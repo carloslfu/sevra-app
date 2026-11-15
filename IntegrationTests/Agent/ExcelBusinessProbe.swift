@@ -192,8 +192,8 @@ import SevraNativeAI
       let confirmation = try book.addMessage("Confirm", role: "user")
       try expectEqual(
         try book.claimChatApproval(conversation: "main", messageID: confirmation).id, approval)
-      _ = try await active.converse("enable")
-      result["catalog"] = try await active.converse("inspect")
+      _ = try await active.businessCommand("enable")
+      result["catalog"] = try await active.businessCommand("inspect")
       var undoExpected: Value?
       var receiptAction: Value?
       var successfulCalls: [Int: Value] = [:]
@@ -221,13 +221,15 @@ import SevraNativeAI
             if !["app.inspect", "app.browse"].contains(action) {
               try expectEqual(arguments["expectedVersion"].int, space.version)
             }
-            let result = try await active.converse(
+            let result = try await active.businessCommand(
               String(action.dropFirst(4)), arguments: arguments,
               readOnly: readOnly, cancellation: cancellation)
             if action == "app.run" { namedCalls.append((arguments, result)) }
             return result
           })
         let after = try snapshot(book)
+        let finalMessage = try expectValue(book.messages().last { $0.role == "assistant" })
+        let completion = try book.messagePayload(finalMessage.id)
         let currentApp = try book.space(space.id)
         try expectEqual(currentApp.version, space.version)
         try expectEqual(currentApp.definition.app?.digest, package.digest)
@@ -235,6 +237,7 @@ import SevraNativeAI
           .object([
             "step": .number(Double(step)), "request": .string(request),
             "answer": .string(answer.answer), "state": after,
+            "completion": completion,
           ]))
         try Data(Value.array(journeys).json().utf8).write(
           to: root.appendingPathComponent(slug + "-journeys.json"), options: .atomic)
@@ -252,6 +255,11 @@ import SevraNativeAI
             result["clarificationAnswer"] = .string(answer.answer)
           }
         } else {
+          try require(
+            completion["unresolvedActionFailure"] == .bool(false)
+              && completion["arguments"]["basis"] == .string("completed_action"),
+            "journey",
+            "A saved action must finish with a truthful completion, without a stale failure.")
           let index = example["sheets"].array.firstIndex(of: journey["sheet"])!
           func field(_ letter: String) -> String { "c\(Int(letter.utf8.first!) - 64)" }
           let matches = after.array[index].array.filter { row in
@@ -317,7 +325,8 @@ import SevraNativeAI
           if after.array[index].array.count > before.array[index].array.count {
             // A second direct invocation must hit the SAME saved business rule.
             // A conversational refusal alone cannot prove duplicate validation.
-            let repeated = try await active.converse("run", arguments: committed[0].arguments)
+            let repeated = try await active.businessCommand(
+              "run", arguments: committed[0].arguments)
             try expectEqual(repeated["outcome"], .string("failed"))
             try expectEqual(try snapshot(book), after)
           }
@@ -325,7 +334,7 @@ import SevraNativeAI
         try expectEqual(try snapshot(Workbook(book.url)), after)
         print(slug + " journey \(step + 1): " + answer.answer)
       }
-      let undone = try await active.converse("undo")
+      let undone = try await active.businessCommand("undo")
       try expectEqual(undone["outcome"], .string("completed"))
       try require(undoExpected != nil, "journey", "No business operation was saved.")
       try expectEqual(try snapshot(book), undoExpected!)
@@ -350,14 +359,14 @@ import SevraNativeAI
               value == .string("TEST-R1") ? .string("LOAD-\(index)") : value
             })
           last = .object(arguments)
-          let saved = try await active.converse("run", arguments: last)
+          let saved = try await active.businessCommand("run", arguments: last)
           try require(
             saved["outcome"] == .string("completed") && saved["changes"].array.count == 1,
             "journey", "The unchanged generated receipt action failed while the ledger grew.")
         }
         let after = try snapshot(book)
         try expectEqual(after.array[1].array.count, before.array[1].array.count + 205)
-        let duplicate = try await active.converse("run", arguments: last)
+        let duplicate = try await active.businessCommand("run", arguments: last)
         try expectEqual(duplicate["outcome"], .string("failed"))
         try expectEqual(try snapshot(book), after)
         try expectEqual(try snapshot(Workbook(book.url)), after)

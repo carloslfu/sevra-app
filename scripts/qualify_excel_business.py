@@ -35,6 +35,14 @@ def require_package_identity(path, result, check):
             'Exported package differs from the model publication and executed review: ' + path.name)
 
 
+def require_completion(journey):
+    completion = journey.get('completion', {})
+    require(completion.get('unresolvedActionFailure') is False
+            and completion.get('arguments', {}).get('basis') == 'completed_action'
+            and isinstance(journey.get('answer'), str) and bool(journey['answer'].strip()),
+            'A saved journey did not report successful completion')
+
+
 def asserted_successful_actions(steps):
     return {call['action'] for call, assertion in zip(steps, steps[1:])
             if call.get('kind') == 'run_action' and call.get('error') is None
@@ -249,6 +257,10 @@ def qualify(directory, cases, invalid):
             require(result.get('pagedGrowthRecords') == 205, 'Missing stock pagination challenge')
             expected_steps.append('paged-growth')
         journeys = read(directory / (slug + '-journeys.json'))
+        for step, expected in enumerate(case['journeys']):
+            if not expected.get('unchanged', False):
+                observed = next((j for j in journeys if j['step'] == step), {})
+                require_completion(observed)
         scenarios = [s for s in manifest if s['slug'] == slug]
         require(len(journeys) == len(expected_steps) == len(scenarios)
                 and {str(j['step']) for j in journeys} == {str(s) for s in expected_steps}

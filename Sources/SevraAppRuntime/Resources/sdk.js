@@ -556,9 +556,14 @@ var Sevra = (() => {
   function h2(type, props, ...children) {
     return { type, props: props || {}, children: children.flat() };
   }
+  function unknownAction(id) {
+    const value = typeof id === "string" ? JSON.stringify(id.slice(0, 96)) : "(" + typeof id + ")";
+    const registered = actions.size ? "Registered action IDs: " + [...actions.keys()].join(", ") + "." : "No actions are registered; call Sevra.action before mounting.";
+    return Error("Unknown action ID " + value + ". " + registered + " Use the exact ID, not display titles or handler functions.");
+  }
   function ActionForm(props) {
     const entry = actions.get(props.action);
-    if (!entry) throw Error("Register the action before its form");
+    if (!entry) throw unknownAction(props.action);
     const { description } = entry, busy = a(false), status = a("");
     const fields = Object.entries(description.inputs || {}).map(([id, input]) => ({ id, input, value: a(input.type === "boolean" ? false : "") }));
     const available = () => {
@@ -615,7 +620,10 @@ var Sevra = (() => {
       if (!section || typeof section.title !== "string" || !section.title.trim() || section.title.length > 256 || titles.has(section.title)) throw Error("Use distinct named workspace sections");
       titles.add(section.title);
       if (section.table !== void 0 && (typeof section.table !== "string" || !section.table)) throw Error("Use a declared table alias");
-      if (section.actions !== void 0 && (!Array.isArray(section.actions) || section.actions.length > 16 || section.actions.some((id) => typeof id !== "string" || !actions.has(id)))) throw Error("Register each workspace action before mounting");
+      if (section.actions !== void 0) {
+        if (!Array.isArray(section.actions) || section.actions.length > 16 || section.actions.some((id) => typeof id !== "string")) throw Error("Workspace actions must be an array of up to 16 action ID strings, not display titles or handler functions");
+        for (const id of section.actions) if (!actions.has(id)) throw unknownAction(id);
+      }
       if (!section.table && !section.actions?.length) throw Error("A workspace section needs a table or action");
     }
     const children = sections.map((section) => {
@@ -625,7 +633,7 @@ var Sevra = (() => {
         { gap: 16 },
         ...section.table ? [
           h2("textField", { label: "Filter " + section.title, placeholder: "Filter " + section.title.toLowerCase(), value: search }),
-          h2("table", { table: section.table, label: section.title + " records", search, height: 240 })
+          h2("table", { table: section.table, label: section.title + " records", search })
         ] : [],
         ...(section.actions || []).map((id) => h2(ActionForm, { action: id }))
       );

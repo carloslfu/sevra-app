@@ -163,6 +163,7 @@ private func checkRefusedRepeats() throws {
 
 func checkActionConfirmations() async throws {
   try checkRefusedRepeats()
+  try checkNestedActionRecovery()
   // Repairing a malformed call can expose a genuine business refusal. Show the
   // refusal, retain both receipts, and never mark the requested action successful.
   for sameTarget in [true, false] {
@@ -211,6 +212,7 @@ func checkActionConfirmations() async throws {
     try expectEqual(result.state, "complete")
     let last = try expectValue(book.messages().last { $0.role == "assistant" })
     let payload = try book.messagePayload(last.id)
+    try expectEqual(payload["unresolvedActionFailure"], .bool(invalid || mode == "different"))
     try expectEqual(try book.spaces().filter { $0.title == "Overview" }.count, 1)
     try expectEqual(result.answer.contains("every condition was verified"), false)
     try expectEqual(result.answer.contains("All requested identifiers"), false)
@@ -284,6 +286,137 @@ func checkActionConfirmations() async throws {
   try expectEqual(queueFailure.answer.contains("saved successfully"), false)
   try expectEqual(try book.workflowActivity()["runs"].array.isEmpty, true)
   try expectEqual(try book.verify()["ok"], .bool(true))
+}
+
+private func checkNestedActionRecovery() throws {
+  let inputs: Value = .object([
+    "principal": .string("12000"), "annualRate": .string("0"), "months": .string("12"),
+  ])
+  let correct: Value = .object([
+    "id": .string("cash-app"), "expectedVersion": .number(1),
+    "action": .string("updateLoan"), "inputs": inputs,
+  ])
+  let nested: Value = .object([
+    "action": .string("updateLoan"),
+    "arguments": .object(correct.object.merging(["annualRate": .string("0")]) { $1 }),
+  ])
+  for mode in [
+    "saved", "refused", "other-id", "other-action", "other-version", "other-input", "conflict",
+    "outer-conflict", "outer-other-input",
+  ] {
+    var confirmations = ActionConfirmations()
+    var malformed = nested.object
+    if mode == "conflict" { malformed["id"] = .string("other-app") }
+    if mode.hasPrefix("outer-") { malformed["id"] = .string("cash-app") }
+    if mode == "outer-conflict" {
+      malformed["arguments"] = .object(correct.object.merging(["id": .string("other-app")]) { $1 })
+    }
+    confirmations.recordFailure(
+      tool: "workspace_action",
+      arguments: .object(["action": .string("app.run"), "arguments": .object(malformed)]),
+      result: .object(["error": .string("Missing fields: expectedVersion, id, inputs")]),
+      receiptID: "envelope")
+    var repaired = correct.object
+    if mode == "other-id" { repaired["id"] = .string("other-app") }
+    if mode == "other-action" { repaired["action"] = .string("otherAction") }
+    if mode == "other-version" { repaired["expectedVersion"] = .number(2) }
+    if ["other-input", "outer-other-input"].contains(mode) {
+      repaired["inputs"] = .object(["months": .string("24")])
+    }
+    let arguments: Value = .object([
+      "action": .string("app.run"), "arguments": .object(repaired),
+    ])
+    if mode == "refused" {
+      confirmations.recordFailure(
+        tool: "workspace_action", arguments: arguments,
+        result: .object(["error": .string("Loan is closed")]), receiptID: "handler")
+    } else {
+      confirmations.record(
+        tool: "workspace_action", arguments: arguments,
+        result: .object(["outcome": .string("completed")]), receiptID: "handler")
+    }
+    try expectEqual(confirmations.evidence.array.count, 2)
+    try expectEqual(confirmations.hasUnresolvedFailure, mode != "saved")
+    try expectEqual(
+      confirmations.rendered?.contains("Missing fields") ?? false,
+      !["saved", "refused"].contains(mode))
+    if mode == "refused" {
+      try expectEqual(confirmations.rendered, "Couldn’t finish that action. Loan is closed")
+    }
+  }
+  // Two requested transactions can use the same action. A different successful
+  // transaction must not erase the first one's actual business refusal.
+  for changedInput in [false, true] {
+    var confirmations = ActionConfirmations()
+    var malformed = correct.object
+    malformed.removeValue(forKey: "expectedVersion")
+    confirmations.recordFailure(
+      tool: "workspace_action",
+      arguments: .object(["action": .string("app.run"), "arguments": .object(malformed)]),
+      result: .object(["error": .string("Missing fields: expectedVersion")]), receiptID: "envelope")
+    var repaired = correct.object
+    if changedInput { repaired["inputs"] = .object(["months": .string("24")]) }
+    confirmations.record(
+      tool: "workspace_action",
+      arguments: .object(["action": .string("app.run"), "arguments": .object(repaired)]),
+      result: .object(["outcome": .string("completed")]), receiptID: "handler")
+    try expectEqual(confirmations.hasUnresolvedFailure, changedInput)
+  }
+  for changedInput in [false, true] {
+    var confirmations = ActionConfirmations()
+    let failed: Value = .object(["action": .string("app.run"), "arguments": correct])
+    confirmations.recordFailure(
+      tool: "workspace_action", arguments: failed,
+      result: .object(["error": .string("Loan is closed")]), receiptID: "first")
+    var next = correct.object
+    next["expectedVersion"] = .number(2)
+    if changedInput { next["inputs"] = .object(["months": .string("24")]) }
+    confirmations.record(
+      tool: "workspace_action",
+      arguments: .object(["action": .string("app.run"), "arguments": .object(next)]),
+      result: .object(["outcome": .string("completed")]), receiptID: "second")
+    try expectEqual(confirmations.hasUnresolvedFailure, changedInput)
+  }
+  for mode in [
+    "missing", "mistyped", "blank", "blank-record", "optional-blank", "nonblank-unicode",
+    "different-value", "partial-write",
+  ] {
+    var confirmations = ActionConfirmations()
+    var incomplete = inputs.object
+    incomplete["months"] = mode == "mistyped" ? .number(12) : nil
+    if ["blank", "blank-record", "optional-blank"].contains(mode) {
+      incomplete["months"] = .string(" \t\n\u{00A0}\u{FEFF}")
+    }
+    if mode == "nonblank-unicode" { incomplete["months"] = .string("\u{0085}") }
+    var arguments = correct.object
+    arguments["inputs"] = .object(incomplete)
+    let contract = Value.object(
+      inputs.object.mapValues { _ in
+        .object([
+          "required": .bool(mode != "optional-blank"), "valueType": .string("string"),
+          "type": .string(mode == "blank-record" ? "record" : "text"),
+        ])
+      })
+    confirmations.recordFailure(
+      tool: "workspace_action",
+      arguments: .object(["action": .string("app.run"), "arguments": .object(arguments)]),
+      result: .object([
+        "errors": .array([.string("Supply months as a string")]),
+        "invocationInputContract": contract,
+        "changes": .array(mode == "partial-write" ? [.object(["saved": .bool(true)])] : []),
+      ]), receiptID: "incomplete")
+    var repaired = correct.object
+    if mode == "different-value" {
+      repaired["inputs"] = .object(inputs.object.merging(["principal": .string("24000")]) { $1 })
+    }
+    confirmations.record(
+      tool: "workspace_action",
+      arguments: .object(["action": .string("app.run"), "arguments": .object(repaired)]),
+      result: .object(["outcome": .string("completed")]), receiptID: "repaired")
+    try expectEqual(
+      confirmations.hasUnresolvedFailure,
+      ["different-value", "partial-write", "optional-blank", "nonblank-unicode"].contains(mode))
+  }
 }
 
 private actor FailedDefinitionConfirmationModel: WorkbookInference {

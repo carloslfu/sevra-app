@@ -1,3 +1,4 @@
+import CryptoKit
 import Foundation
 import SevraCore
 
@@ -13,6 +14,31 @@ package struct ActionConfirmations {
     let later = entries.dropFirst(index + 1)
     return (entry["error"].text.contains(Self.repeatRefused) ? entries[...] : later).contains {
       saved in
+      // A one-level misplaced envelope can omit the outer app ID entirely. Match
+      // only an unambiguous exact invocation, including its version and inputs.
+      // This repairs reporting; it never repairs or executes the refused call.
+      if entry["validationOnly"] == .bool(true),
+        !entry["invocation"].text.isEmpty, saved["invocation"] == entry["invocation"],
+        saved["tool"] == entry["tool"],
+        saved["kind"].text != "failure" || saved["validationOnly"] == .bool(false)
+      {
+        return true
+      }
+      if entry["nestedAppEnvelope"] == .bool(true) { return false }
+      // A corrected outer envelope must preserve every supplied business input.
+      // Adding its missing version must not settle a different transaction.
+      if entry["validationOnly"] == .bool(true), entry["appRun"] == .bool(true),
+        !entry["inputDigests"].object.allSatisfy({ saved["inputDigests"][$0.key] == $0.value })
+      {
+        return false
+      }
+      if entry["inputRepair"] != .null, saved["tool"] == entry["tool"],
+        saved["retryGroup"] == entry["retryGroup"], saved["inputRepair"] == .null,
+        saved["kind"].text != "failure" || saved["validationOnly"] == .bool(false),
+        entry["inputRepair"].object.allSatisfy({ saved["inputDigests"][$0.key] == $0.value })
+      {
+        return true
+      }
       // Once the same operation reaches its business handler, an earlier malformed
       // envelope is no longer the current failure. Preserve the handler's refusal
       // and both receipts, without claiming that the action succeeded.
@@ -47,6 +73,14 @@ package struct ActionConfirmations {
   private static func attempt(_ tool: String, _ arguments: Value) -> String {
     if tool == "workspace_action" {
       let inputs = arguments["arguments"]
+      if arguments["action"].text == "app.run",
+        (try? ChatOperations.validate("app.run", arguments: inputs, readOnly: false)) != nil,
+        let json = try? Value.array([inputs["id"], inputs["action"], inputs["inputs"]]).json()
+      {
+        // Refreshing a stale version can retry the same business request. A
+        // different payload is a different transaction, even on the same action.
+        return "app.run:" + digest(json)
+      }
       return arguments["action"].text + ":" + inputs["id"].text + ":"
         + inputs["action"].text + ":" + inputs["target"].text + ":"
         + inputs["inputs"]["name"].text
@@ -63,6 +97,71 @@ package struct ActionConfirmations {
     let inputs = arguments["arguments"]
     return arguments["action"].text + ":" + inputs["id"].text + ":"
       + inputs["action"].text + ":" + inputs["target"].text
+  }
+  private static func invocation(_ tool: String, _ arguments: Value) -> Value {
+    guard tool == "workspace_action", arguments["action"].text == "app.run" else { return .null }
+    let outer = arguments["arguments"].object
+    let nested = outer["arguments"]?.object ?? [:]
+    var fields: [String: Value] = [:]
+    for key in ["id", "expectedVersion", "action", "inputs"] {
+      if let a = outer[key], let b = nested[key], a != b { return .null }
+      fields[key] = outer[key] ?? nested[key]
+    }
+    let value = Value.object(fields)
+    guard (try? ChatOperations.validate("app.run", arguments: value, readOnly: false)) != nil,
+      let json = try? value.json()
+    else { return .null }
+    return .string(digest(json))
+  }
+  private static func digest(_ json: String) -> String {
+    SHA256.hash(data: Data(json.utf8)).map { String(format: "%02x", $0) }.joined()
+  }
+  /// A missing/mistyped declared input never reaches the SDK's business handler.
+  /// Inspect structured host evidence, not words chosen by the app's error message.
+  private static func repairableInputs(_ arguments: Value, _ result: Value) -> Value {
+    guard arguments["action"].text == "app.run", result["changes"].array.isEmpty else {
+      return .null
+    }
+    let call = arguments["arguments"]
+    guard case .object(let fields) = result["invocationInputContract"],
+      case .object(let inputs) = call["inputs"]
+    else { return .null }
+    var invalid = !Set(inputs.keys).isSubset(of: Set(fields.keys))
+    var preserved: [String: Value] = [:]
+    for (key, field) in fields {
+      guard let value = inputs[key] else {
+        if field["required"] != .bool(false) { invalid = true }
+        continue
+      }
+      switch (field["valueType"].text, value) {
+      case ("string", .string), ("boolean", .bool): break
+      case ("number", .number(let number)) where number.isFinite: break
+      case ("string", _), ("boolean", _), ("number", _):
+        invalid = true
+        continue
+      default: return .null
+      }
+      if field["required"] != .bool(false), ["text", "record"].contains(field["type"].text),
+        value.text.unicodeScalars.allSatisfy({ Self.sdkWhitespace.contains($0) })
+      {
+        invalid = true
+        continue
+      }
+      preserved[key] = value
+    }
+    return invalid ? inputDigests(.object(preserved)) : .null
+  }
+  // Match ECMAScript String.trim, not Foundation's broader whitespace set:
+  // U+0085, for example, is a valid nonblank SDK value and must be preserved.
+  private static let sdkWhitespace = CharacterSet(
+    charactersIn:
+      "\u{0009}\u{000A}\u{000B}\u{000C}\u{000D}\u{0020}\u{00A0}\u{1680}\u{2000}\u{2001}\u{2002}\u{2003}\u{2004}\u{2005}\u{2006}\u{2007}\u{2008}\u{2009}\u{200A}\u{2028}\u{2029}\u{202F}\u{205F}\u{3000}\u{FEFF}"
+  )
+  private static func inputDigests(_ inputs: Value) -> Value {
+    .object(
+      inputs.object.mapValues { value in
+        (try? value.json()).map { .string(digest($0)) } ?? .null
+      })
   }
   /// What the host says to the model after a repeat, never to the person.
   private static let repeatRefused = " Do not save it again."
@@ -115,6 +214,15 @@ package struct ActionConfirmations {
           ? .string(result["errors"].array.map(\.text).joined(separator: " ")) : result["error"],
         "attempt": .string(Self.attempt(tool, arguments)),
         "retryGroup": .string(Self.retryGroup(arguments)),
+        "invocation": Self.invocation(tool, arguments),
+        "inputRepair": Self.repairableInputs(arguments, result),
+        "inputDigests": Self.inputDigests(arguments["arguments"]["inputs"]),
+        "appRun": .bool(tool == "workspace_action" && arguments["action"].text == "app.run"),
+        "nestedAppEnvelope": .bool(
+          tool == "workspace_action" && arguments["action"].text == "app.run"
+            && ["id", "expectedVersion", "action", "inputs"].contains {
+              arguments["arguments"]["arguments"].object[$0] != nil
+            }),
         "validationOnly": .bool(
           tool == "workspace_action"
             && (try? ChatOperations.validate(
@@ -200,6 +308,8 @@ package struct ActionConfirmations {
         "targetID": .string(id), "title": .string(title), "qualifier": .string(qualifier),
         "attempt": .string(attempt),
         "retryGroup": .string(Self.retryGroup(arguments)),
+        "invocation": Self.invocation(tool, arguments),
+        "inputDigests": Self.inputDigests(arguments["arguments"]["inputs"]),
       ]))
   }
 

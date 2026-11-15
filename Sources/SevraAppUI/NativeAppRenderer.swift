@@ -82,7 +82,10 @@ public struct NativeAppSurface: NSViewRepresentable {
         old.removeFromSuperview()
         elements[id] = nil
       }
-      if elements[id] == nil { elements[id] = AppElement(node: node, session: session) }
+      if elements[id] == nil {
+        elements[id] = AppElement(node: node, session: session)
+        elements[id]?.table?.sizeDidChange = { [weak self] in self?.needsLayout = true }
+      }
       elements[id]?.update(node)
     }
     let enabled = tree.interactionEnabled
@@ -283,11 +286,11 @@ final class AppElement: NSView, NSTextFieldDelegate, NSTextViewDelegate, NSTabVi
           dimensions.append(constraint)
         }
       }
-      if ["table", "textEditor", "canvas", "scroll", "tabs"].contains(node.type),
+      if ["textEditor", "canvas", "scroll", "tabs"].contains(node.type),
         props["height"] == .null
       {
         dimensions.append(
-          heightAnchor.constraint(greaterThanOrEqualToConstant: node.type == "table" ? 260 : 160))
+          heightAnchor.constraint(greaterThanOrEqualToConstant: 160))
       }
       NSLayoutConstraint.activate(dimensions)
     }

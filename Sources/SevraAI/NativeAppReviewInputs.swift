@@ -2,6 +2,37 @@ import Foundation
 import SevraCore
 
 extension NativeAppReview {
+  package static func numericInputs(_ contracts: Value) -> Value {
+    .array(
+      contracts.object.keys.sorted().flatMap { action in
+        contracts[action].object.keys.sorted().compactMap { field -> Value? in
+          let input = contracts[action][field]
+          guard ["number", "decimal"].contains(input["type"].text) else { return nil }
+          return .object([
+            "action": .string(action), "input": .string(field),
+            "type": input["type"], "valueType": input["valueType"],
+          ])
+        }
+      })
+  }
+
+  /// Keep reviewer protocol/setup diagnostics in the exact receipt, separate from
+  /// source-repair instructions. A reproduced app defect never takes this path.
+  package static func presentedFailure(_ value: Value, receiptID: String) -> Value {
+    guard value["failureStage"] == .string("independent_review"),
+      value["reviewDiagnostic"] != .null
+    else { return value }
+    var fields = value.object
+    fields["reviewDiagnostic"] = .object([
+      "omitted": .bool(true), "receiptID": .string(receiptID),
+      "path": .array([.string("reviewDiagnostic")]),
+      "notice": .string(
+        "Reviewer-only diagnostic, retained for inspection with tool_result. It is not a demonstrated app defect or an SDK source-edit instruction."
+      ),
+    ])
+    return .object(fields)
+  }
+
   /// The reviewer classifies business meaning. The host verifies its references
   /// and derives the actual probes, so a declared lookup cannot skip its header.
   package static func inputProbes(
@@ -17,6 +48,25 @@ extension NativeAppReview {
     )
     var probes: [Value] = []
     var total = 0
+    var misclassified = Set<String>()
+    for index in steps.indices.dropLast()
+    where actions.contains(steps[index]["action"].text)
+      && !Self.assertedSuccessfulActions(Array(steps[index...index + 1])).isEmpty
+    {
+      let action = steps[index]["action"].text
+      for (field, type) in inputTypes[String(index)].object
+      where ["number", "decimal"].contains(type.text)
+        && roles[action][field]["kind"] == .string("value")
+      {
+        misclassified.insert(action + "." + field + " (" + type.text + ")")
+      }
+    }
+    try require(
+      misclassified.isEmpty, "app_review_inputs",
+      "Correct these numeric fields in the review-only inputRoles: "
+        + misclassified.sorted().joined(separator: ", ")
+        + ". Decimal values are JSON strings but still require numeric rules. Use kind:number with whole, minimum, maximum and nonzero derived from the request; existingKey is only for an actual record lookup. Do not add these review fields to Sevra.action input metadata or ask the builder to change its source."
+    )
     for action in actions.sorted() {
       guard
         let index = steps.indices.dropLast().first(where: {

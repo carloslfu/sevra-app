@@ -344,6 +344,10 @@ do {
     try await checkChatAgentOperations()
     exit(0)
   }
+  if CommandLine.arguments.dropFirst() == ["--action-confirmation-checks"] {
+    try await checkActionConfirmations()
+    exit(0)
+  }
   if CommandLine.arguments.dropFirst() == ["--inference-lease"] {
     try await inferenceLeaseChild()
     exit(0)

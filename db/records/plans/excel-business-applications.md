@@ -3,7 +3,7 @@ type: operational
 meta-type: operational
 id: 01m7ebv28bxsk6szwx72sbrcyp
 created: 2026-11-15T01:06:11.339074+00:00
-updated: 2026-11-15T13:17:12.728138+00:00
+updated: 2026-11-15T14:47:34.511488+00:00
 summary: Close realistic Excel business application reconstruction, reliable autonomous generation, and integrated chat/native qualification gaps.
 title: Realistic Excel business applications
 status: in-progress
@@ -33,7 +33,7 @@ Acceptance requires two consecutive complete six-application fresh batches on un
 
 - [x] Trace the integrated import, generation, comparison, row-growth, refresh, approval and shared chat/native session paths. Record concrete gaps before changing them.
 - [x] Build versioned readable XLSX/XLSM fixtures, independent recalculated originals and held-out action/state scenarios. Verify source formulas and inspect every source sheet.
-- [x] Add a reusable integration harness using production analysis/build/approval/session paths and the installed local model. Check real persisted effects after chat actions, not response wording. Never repair generated source.
+- [x] Add a reusable integration harness using production analysis/build/approval/session paths and the installed local model. Check real persisted effects and truthful completion after chat actions, not response wording alone. Never repair generated source.
 - [x] Run diagnostic applications. Fix generic context, tool, runtime, formula/row-growth, verification and repair failures with focused counterexamples. Keep original expectations and authority boundaries intact.
 - [ ] Complete the two fresh six-application cohorts and the earlier ten-workflow regression on the integrated candidate. Record first-save/retry counts and elapsed distributions honestly; no inferred production success rate.
 - [ ] Inspect all six generated native apps and the import/clarification/approval/chat journeys, including loading, errors, spacing, row alignment, compact windows and shared state after chat edits. Fix observed product defects and recheck affected paths.
@@ -49,10 +49,9 @@ A finite corpus cannot establish universal Excel compatibility. Production signi
 
 ## Active blockers
 
-1. Diagnostic cohort 14 retains Cash chat-reference and Stock shipment-sign failures; Invoices, Job Costing, Production and Bookings pass. Candidates 114–117 address model-facing operation context, independent implementation-blind review and committed-effect evidence. Live verification and two consecutive unchanged-code fresh six-app cohorts remain required. Zero final cohorts are accepted.
-2. Shared native import, analysis/build, access/chat, invalid-input correction, live calculations, Undo and compact layouts pass. Candidate 113 fixes live build activity and visible bottom-form errors; both are visually rechecked. All six final generated native apps still require inspection.
-3. Exact-code hosted checks, final public receipts/specs/handoff, commit/push and task-only cleanup remain. Candidate 113 full source and explicit native package/install/extraction checks pass. The separately labeled retained ten-app regression 111 also passes.
-
+1. Candidate 127 fixes the recorded review/recovery/spacing boundaries and passes focused checks plus a 10/10 retained regression. Cohort 15 remains diagnostic with all failures preserved. Two consecutive unchanged-code fresh six-app cohorts remain required; zero final cohorts are accepted.
+2. The exact candidate-127 preview is installed and its compact Cash layout, keyboard entry, error/correction/Undo and filtering have been visually verified. The test write was undone, its grant revoked and the app quit. All six final generated interfaces and combined final journeys still require inspection.
+3. Local source, native package/install/extraction and identity checks pass under the focused verification policy. Exact-code hosted checks, final sanitized receipts/specs/handoff, final commit/push and task-only recent cleanup remain. This is a verified development checkpoint, not completed functional qualification.
 
 ## Progress
 
@@ -1008,3 +1007,58 @@ Independent cache-stripped spreadsheet recalculation matches 537 formula outputs
 The untouched cohort-14 Cash app passes its diagnostic operating replay on candidate 117 in 204.8 seconds, including the previously failed TEST-C2 request, ten invalid-input cases with valid correction/Undo, held-out calculations, reopening, portable copy and unchanged-source rebuild. Source is reused and no generation occurs, so this is not a fresh cohort and does not isolate context presentation from the different replay history. Fresh generation remains the decisive check.
 
 The complete `scripts/check.sh` suite passes on candidate 117, including the new review/operation tests and db validation. Packaged native journeys require the new package; an explicit native build/package/install/extraction sequence is now running with no other model workload. The preserved baseline package remains separate.
+
+
+### Candidate 118: keep reviewer setup failures out of source repairs
+
+The first case in fresh cohort 15 reproduced another repair boundary problem. Cash passed builder checks, but the independent reviewer classified several string-encoded decimal inputs as text/value roles. After its bounded review failed, generic save-failure feedback exposed that review-only metadata as an apparent source defect. The builder then inserted unsupported minimum/maximum/whole fields into SDK action metadata; the SDK correctly refused them. No app was saved by those failed attempts. The running cohort remains on frozen candidate 117 and becomes diagnostic because production fixes are now in progress; zero final cohorts are accepted.
+
+Candidate 118 explicitly lists numeric fields observed in the SDK and reports all numeric-as-value classification mistakes together. Actual numeric bounds remain inferred from the original request, not defaulted or relaxed. Inconclusive review gets its own host error category. The exact reviewer diagnostic remains in the durable receipt and is explicitly retrievable, while the builder receives a concise unchanged-candidate retry instruction. Reproduced business defects keep their full repair feedback. Check budgets, refusal gates and runtime authority stay unchanged. Regression checks cover aggregate decimal/number feedback, reviewer-only diagnostics retained in receipts, unchanged-source retry and terminal publication; focused verification is running.
+
+
+### November 15 follow-up: candidates 119–120
+
+The candidate 118 review-protocol checks pass. Native inspection then found a distinct completion-reporting defect in cohort 15 Cash: a corrected app.run saved the loan but the final answer repeated the earlier malformed-envelope refusal. State-only assertions had missed it, so cohort 15 remains diagnostic regardless of its old passed flags. Candidate 119 correlates only exact unambiguous nested app.run repairs and adds structured completion acceptance. Candidate 120 removes excess short-table whitespace while retaining explicit sizing and a bounded ledger viewport. Focused confirmation checks pass; renderer/visual checks and two unchanged fresh full cohorts remain required. The native diagnostic copy was restored with Undo, its grant revoked, and the app quit.
+
+
+### Candidate 122: preserve input repair without hiding business refusals
+
+The wider confirmation checks caught a regression in candidate 121: hashing all business inputs also left a stale failure when the model supplied an omitted required field. Using a generic app_input error code was insufficient; the nearby separate-item refusal check rejected that shortcut. The native session now retains the exact pre-invocation SDK input contract in its receipt. Confirmation recovery uses that structured contract to identify missing/mistyped inputs with zero writes and requires every already-valid supplied value to remain unchanged. Different business values and partial writes cannot settle the earlier failure. The original malformed outer envelope still never executes. Focused confirmation and chat checks pass on candidate 122. An initial bare-executable Excel check could not launch its XPC service; the required signed packaging runner is being used for that check. No production failure or acceptance pass is inferred from that runner error.
+
+
+### Candidate 124: pace business qualification within the runtime budget
+
+Candidate 123's signed Excel checks pass, including refusal of shifted-header counterexamples and the genuine wrong-sign defect. The full repository suite is running; native production compilation is prepared separately from packaging so its GPU checks do not overlap the local-model run.
+
+Cohort 15 Stock generated in 763.9 seconds with seven submissions. All six conversational operations and Undo reached their expected saved states, then its tight 205-record growth loop exceeded the documented 16-transaction-per-second runtime cap. That remains a failed diagnostic result. Candidate 124 paces only synthetic business-harness commands with a 100 ms interval. Production budgets, generated source, the 205 new records, beyond-page duplicate refusal, exact state checks and atomicity requirements are unchanged. This qualifies business behavior and paging within the supported operating rate, not overload throughput. Final fresh cohorts will use the paced harness.
+
+
+### Candidate 125: actionable native action-ID diagnostics
+
+Cohort 15 Job Costing failed generation after five submissions in 310.3 seconds. After correcting an initial JavaScript syntax error, three submissions repeated a Workspace reference to the display title Log Time instead of registered ID logTime. The generic error did not identify either the rejected value or the valid IDs. Candidate 125 retains strict ID validation and reports the bounded rejected value, registered IDs and the distinction between IDs, titles and handler functions in both Workspace and ActionForm. It does not guess a mapping or rewrite generated source. The focused regression failed before the change and passes afterward; all 27 SDK tests and generated-resource consistency checks pass. Worker resources have been rebuilt. Fresh-model recovery remains to be demonstrated.
+
+
+### Candidate 126: outer-envelope repair preserves business inputs
+
+A further adversarial counterexample showed that a missing expectedVersion in an ordinary app.run envelope could be cleared by a later successful call with different business inputs on the same action. The regression failed before the fix. Reporting now requires every supplied business input digest to remain unchanged before outer-envelope validation can be settled. The malformed call still never executes; unrelated transactions and handler refusals remain visible. Focused confirmation and chat checks pass, including genuine same-input repairs, nested-envelope recovery, separate business refusals and missing/mistyped SDK input correction. Native release compilation is running on this candidate. No generated source was manually changed.
+
+
+### Cohort 15 completed: diagnostic failures retained
+
+The frozen candidate-117 run completed all six fresh cases with no manual source repairs. Production passed in 426.2 seconds overall, with one save submission and 160.1 seconds for generation. Cash's state-only pass remains disqualified by its observed stale-failure completion. Invoices exhausted its request (10 submissions, 1433.4 seconds); Stock exceeded the unpaced command rate after its conversational journeys (7 submissions, 1078.5 seconds); Job Costing and Bookings repeated display titles instead of Workspace action IDs (5 submissions each, 310.3 and 384.5 seconds). Every failed result and source is retained. Source changed during this diagnostic, so no final cohort is accepted. Independent spreadsheet recalculation of the retained completed journey states is running; it cannot erase these operational failures.
+
+
+### Candidate 127: required blank-input recovery and checkpoint verification
+
+A focused reporting probe reproduced a stale failure after correcting a required blank text/record value. Reporting now recognizes the SDK's exact ECMAScript whitespace contract before preserving valid input digests. Optional blank values and U+0085 remain valid supplied values, so changing them cannot erase a separate refusal. The pre-fix regression failed as expected; confirmation/chat checks and all 27 SDK groups pass, including the nearby optional/Unicode counterexamples. Signed Excel checks and native packaging are running. This change does not change the SDK's input acceptance or execute invalid calls.
+
+The repository suite completed successfully through candidate 126, with packaged journeys explicitly skipped because their old output was stale. Candidate 127 has focused delta checks; exact-code hosted checks and explicit native package/install/extraction proof remain required. Cohort 15's independent cache-stripped spreadsheet recalculation matches 339 formula outputs across 26 retained states. Operational failures remain failures.
+
+
+### Candidate 127: installed visual review and retained regression
+
+The signed Excel checks, release build, explicit package resource/refusal checks (1,888 kernels), isolated install/update/uninstall and extraction journeys all pass. The actual installed preview matches package main UUID 0909FDFE-1E89-3EB8-975B-4C514775C2DA, CLI UUID 8C627540-03FB-37B6-99B3-925B959B6797 and both worker UUIDs F4AB035C-8125-381A-AF6B-00B9B0161A3E. Both installed worker SDK digests match source (443225eb66a98160bc2a3f91475aa0b634e4bd49414568cd0eab0f1bf20897bb). Strict signatures pass. The preserved baseline app was not replaced.
+
+Native Cash inspection confirms compact short-table height, centered rows, wide/split/focused layouts, an approximately 844-point-wide window, native Tab navigation, visible invalid-month feedback and retained drafts. Correcting months 0 to 13 saved, reset the form and showed Completed; Undo restored the original 12-month state and forecast values. Filtering to no matches shrank the table and displayed the empty message; clearing restored it. All test writes were undone, access revoked and the preview quit. This reuses the untouched diagnostic Cash source for renderer verification, not fresh-generation acceptance. All six final generated interfaces still require inspection.
+
+The separately labeled retained ten-workflow regression passes 10/10 on candidate 127: 79 saved-edit/reopen/Undo cases, ten portable copies and 302 independent/boundary UI steps. Source stayed unchanged. It reused earlier generated packages and performed no fresh generation. Final fresh six-app cohorts are next.

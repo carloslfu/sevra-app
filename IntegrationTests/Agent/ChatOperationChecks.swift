@@ -120,7 +120,16 @@ private actor ChatOperationModel: WorkbookInference {
     model: ChatOperationModel([("workspace_action", action), ("workspace_action", .object(fixed))]),
     workspaceAction: { _, arguments, _, _ in
       if arguments["inputs"]["quantity"] == .null {
-        throw SevraError("app_input", "Quantity is required")
+        // Match the native SDK's failed command receipt, including the host's
+        // captured pre-invocation input contract. Error text alone is ambiguous.
+        return .object([
+          "outcome": .string("failed"), "changes": .array([]),
+          "errors": .array([.string("Quantity is required")]),
+          "invocationInputContract": .object([
+            "name": .object(["required": .bool(true), "valueType": .string("string")]),
+            "quantity": .object(["required": .bool(true), "valueType": .string("string")]),
+          ]),
+        ])
       }
       return .object([
         "outcome": .string("completed"), "changes": .array([.object(["saved": .bool(true)])]),

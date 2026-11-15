@@ -42,7 +42,7 @@ import SevraAppUI
       control = try replaced(control, field: field(original), value: value.text)
     }
     let before = try snapshot()
-    let accepted = try await session.converse("run", arguments: control)
+    let accepted = try await session.businessCommand("run", arguments: control)
     try require(
       accepted["outcome"] == .string("completed") && accepted["changes"].array.count == 1,
       "validation_probe",
@@ -50,7 +50,7 @@ import SevraAppUI
     let controlState = try snapshot()
     states.append(
       .object(["step": .string("validation-control-\(group)"), "state": controlState]))
-    let undo = try await session.converse("undo")
+    let undo = try await session.businessCommand("undo")
     try require(undo["outcome"] == .string("completed"), "validation_probe", "Control Undo failed.")
     try expectEqual(try snapshot(), before)
     states.append(.object(["step": .string("validation-undo-\(group)"), "state": try snapshot()]))
@@ -63,20 +63,20 @@ import SevraAppUI
         }
         // A prior refusal may change transient state without committing data.
         // Restart before each variant, then prove correction works afterward.
-        _ = try await session.converse("restart")
+        _ = try await session.businessCommand("restart")
         let beforeVersions = try versions()
-        let result = try await session.converse("run", arguments: args)
+        let result = try await session.businessCommand("run", arguments: args)
         try require(
           result["outcome"] == .string("failed") && result["changes"].array.isEmpty,
           "validation_probe", "The generated action accepted an invalid input: " + args.json())
         try expectEqual(try snapshot(), before)
         try expectEqual(try versions(), beforeVersions)
-        let recovered = try await session.converse("run", arguments: control)
+        let recovered = try await session.businessCommand("run", arguments: control)
         try require(
           recovered["outcome"] == .string("completed") && recovered["changes"].array.count == 1,
           "validation_probe", "A valid correction failed after a rejected input: " + args.json())
         try expectEqual(try snapshot(), controlState)
-        let recoveryUndo = try await session.converse("undo")
+        let recoveryUndo = try await session.businessCommand("undo")
         try require(
           recoveryUndo["outcome"] == .string("completed"), "validation_probe",
           "Recovery Undo failed.")

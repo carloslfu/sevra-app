@@ -24,7 +24,7 @@ package enum NativeAppReview {
   private static let excelReviewPolicy = """
     You are an independent reviewer. When checkedActionIDs is nonempty, the candidate implementation and builder tests are deliberately withheld. Derive expected business effects from originalUserRequest and original workbook evidence, using checkedActionInputs for the actual API and checkedInterface for initial controls. Do not request implementation source or treat observed failure values as the correct answer. A shipment/payment may take a positive input but store a negative movement; derive the sign from the original ledger/formulas and requested operation, never from the candidate's description. For ready, call each checkedActionID directly with run_action and immediately assert its exact business effect. A two-step pattern is [{action:'actualID',inputs:{actualField:'invented value'},kind:'run_action'},{kind:'expect_row',table:'actualAlias',values:{actualColumn:'independently expected value'}}]. Adapt every ID, input type and value to this request and fixture. Native ActionForms already invoke those same actions. Use compact named-action calls for readiness coverage; reserve click/change/select sequences for reproducing a concrete interface defect in a revise verdict. A new transaction reference is an entered value: it must be unique, not match an existing row.
 
-    checkedActionInputs is the input contract observed in the actual SDK. Follow each valueType exactly: number uses a JSON number, decimal uses a JSON string even for whole amounts, boolean uses true/false, and other scalar inputs use strings. These declared types do not establish business validity; derive business rules from the request.
+    checkedActionInputs is the input contract observed in the actual SDK. Follow each valueType exactly: number uses a JSON number, decimal uses a JSON string even for whole amounts, boolean uses true/false, and other scalar inputs use strings. These declared types do not establish business validity; derive business rules from the request. numericInputs lists the actual numeric fields: a decimal's JSON string representation does NOT make it a text/value role. Classify these fields as number with the requested rules, or existingKey only for a real record lookup. inputRoles and its numeric rules belong ONLY to this review verdict, never to Sevra.action input metadata. A malformed review classification calls for correcting your verdict, not changing the candidate app.
 
     FIRST classify every tested action input in inputRoles. An input that must match an existing customer, product, employee, job, resource or record is {column:'c1',headerRow:1,kind:'existingKey',table:'sheet1'}, adapted to the actual original table/column/header row. Text/boolean entered values and new references use {kind:'value'}. EVERY number/decimal entered input requires {kind:'number',maximum:null,minimum:null,nonzero:false,whole:false}, adapted to the user's requested rules: inclusive minimum/maximum or null when unbounded, whole for integers, nonzero for excluding zero. A finite bound needs a rule in the original request or source validation. Never copy a bound from an example, fixture value, row count or current stock. Dynamic stock/capacity checks belong in explicit state-dependent tests, not a fixed input maximum. Derive these rules from the request, never from what the code currently accepts. For positive integers use minimum:1 and whole:true; for positive decimal amounts use minimum:0 and nonzero:true. Do not label numeric inputs or existing-record lookups as value. Supply a role for EVERY input of each action covered by successful tests. The host substitutes original headers and derived fractional/out-of-range/zero values into the successful call, preserves only its prior setup, and requires every invalid variant to refuse with no writes. Numeric/boolean keys already exclude text through the SDK type contract. Keep the original header in synthetic fixtures. Explicit tests cannot replace these generated probes. Add explicit tests for other predicates, allowed sets, unknown keys, duplicate references and conflicts.
 
@@ -168,6 +168,7 @@ package enum NativeAppReview {
       "existingPackage": existing,
       "checkedActionIDs": .array(checkedActions.map(Value.string)),
       "checkedActionInputs": checkedActionInputs,
+      "numericInputs": Self.numericInputs(checkedActionInputs),
       "checkedInterface": checkedInterface,
     ]
     if let build = excelConversion {
@@ -240,7 +241,7 @@ package enum NativeAppReview {
       try cancellation.check()
       try require(
         response.calls.count == 1 && response.calls[0].name == definition.name
-          && response.calls[0].inputJSON.utf8.count <= 12_000, "app_review",
+          && response.calls[0].inputJSON.utf8.count <= 12_000, "app_review_inconclusive",
         "The local app review did not return a complete verdict. No app was saved.")
       let verdict = try Value.parse(response.calls[0].inputJSON)
       func giveFeedback(_ feedback: Value) throws {
@@ -338,6 +339,29 @@ package enum NativeAppReview {
           let formulas =
             package.excelBehavior == nil
             ? try workbook.excelCheckFormulas(build.conversionID) : nil
+          // A failed expectation proves nothing when the review shifted the
+          // worksheet's headers/coordinates. Validate known action contracts and
+          // lookup fixtures before allowing a revise verdict to blame the app.
+          let claimedEffects = Set(checkedActions).intersection(
+            Self.assertedSuccessfulActions(tests))
+          if !ready, !claimedEffects.isEmpty, checkedActionInputs != .null {
+            let types = Value.object(
+              Dictionary(
+                uniqueKeysWithValues: tests.enumerated().map {
+                  index, step in
+                  (
+                    String(index),
+                    Value.object(
+                      checkedActionInputs[step["action"].text].object.mapValues { $0["type"] })
+                  )
+                }))
+            _ = try Self.inputProbes(
+              actions: claimedEffects, roles: verdict["inputRoles"], steps: tests,
+              fixtures: probeFixtures, inputTypes: types, package: package,
+              tables: build.tables, coordinates: coordinates,
+              inputCell: workbook.excelOriginalInputLookup(
+                build.conversionID, cancellation: cancellation))
+          }
           let checked = try await NativeAppCheck.run(
             package: package, steps: tests,
             fixtures: probeFixtures,
@@ -457,7 +481,7 @@ package enum NativeAppReview {
       try giveFeedback(feedback)
     }
     throw SevraError(
-      "app_review",
+      "app_review_inconclusive",
       "The local reviewer did not establish a consistent verdict within its check budget. No app was saved; unverified review claims were not applied to the source. Invalid counterexamples indicate test setup failures, not established app defects. Last review feedback: "
         + String((try counterexamples.last?.json() ?? "{}").prefix(6000))
     )

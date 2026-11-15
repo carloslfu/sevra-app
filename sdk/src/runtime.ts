@@ -80,9 +80,14 @@ function send(message:any) {
 }
 function update(node:Node) { patches.set(node.id,{op:'put',node:{...node,props:{...node.props},children:[...node.children]}}); bounded(); }
 export function h(type:any, props:any,...children:any[]):Descriptor { return {type,props:props||{},children:children.flat()}; }
+function unknownAction(id:unknown):Error {
+ const value=typeof id==='string'?JSON.stringify(id.slice(0,96)):'('+typeof id+')';
+ const registered=actions.size?'Registered action IDs: '+[...actions.keys()].join(', ')+'.':'No actions are registered; call Sevra.action before mounting.';
+ return Error('Unknown action ID '+value+'. '+registered+' Use the exact ID, not display titles or handler functions.');
+}
 /** Native controls for an existing named action; custom interfaces remain ordinary components. */
 export function ActionForm(props:{action:string}):Descriptor {
- const entry=actions.get(props.action);if(!entry)throw Error('Register the action before its form');
+ const entry=actions.get(props.action);if(!entry)throw unknownAction(props.action);
  const {description}=entry,busy=signal(false),status=signal('');
  const fields=Object.entries(description.inputs||{}).map(([id,input])=>({id,input,value:signal<any>(input.type==='boolean'?false:'')}));
  const available=()=>{actionGeneration.value;return actions.get(props.action)===entry&&!busy.value&&actionAvailable(description);};
@@ -129,7 +134,10 @@ export function Workspace(props:{sections:{title:string;table?:string;actions?:s
   if(!section||typeof section.title!=='string'||!section.title.trim()||section.title.length>256||titles.has(section.title))throw Error('Use distinct named workspace sections');
   titles.add(section.title);
   if(section.table!==undefined&&(typeof section.table!=='string'||!section.table))throw Error('Use a declared table alias');
-  if(section.actions!==undefined&&(!Array.isArray(section.actions)||section.actions.length>16||section.actions.some(id=>typeof id!=='string'||!actions.has(id))))throw Error('Register each workspace action before mounting');
+  if(section.actions!==undefined){
+   if(!Array.isArray(section.actions)||section.actions.length>16||section.actions.some(id=>typeof id!=='string'))throw Error('Workspace actions must be an array of up to 16 action ID strings, not display titles or handler functions');
+   for(const id of section.actions)if(!actions.has(id))throw unknownAction(id);
+  }
   if(!section.table&&!section.actions?.length)throw Error('A workspace section needs a table or action');
  }
  const children=sections.map(section=>{
@@ -137,7 +145,7 @@ export function Workspace(props:{sections:{title:string;table?:string;actions?:s
   return h('column',{gap:16},
    ...(section.table?[
     h('textField',{label:'Filter '+section.title,placeholder:'Filter '+section.title.toLowerCase(),value:search}),
-    h('table',{table:section.table,label:section.title+' records',search,height:240})]:[]),
+    h('table',{table:section.table,label:section.title+' records',search})]:[]),
    ...(section.actions||[]).map(id=>h(ActionForm,{action:id})));
  });
  return h('tabs',{label:'Workspace sections',titles:sections.map(section=>section.title),value:signal(0)},...children);

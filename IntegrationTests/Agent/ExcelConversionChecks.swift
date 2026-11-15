@@ -446,6 +446,7 @@ func checkExcelConversions() async throws {
         recoveredVerdict["checkedCounterexamples"].array[0]["result"]["status"],
         .string("invalid_verdict"))
       var inconsistent = ""
+      var inconsistentCode = ""
       do {
         _ = try await NativeAppReview.check(
           request: build.request, requestSourceID: source.id, arguments: lookupArguments,
@@ -453,8 +454,12 @@ func checkExcelConversions() async throws {
           model: ExcelTestModel([], reviews: Array(repeating: contradictory, count: 3)),
           directory: root, cancellation: .init(), progress: { _ in }, excelConversion: build,
           checkedActions: ["lookup"])
-      } catch { inconsistent = error.localizedDescription }
+      } catch {
+        inconsistent = error.localizedDescription
+        inconsistentCode = (error as? SevraError)?.code ?? ""
+      }
       try expectEqual(inconsistent.contains("within its check budget"), true)
+      try expectEqual(inconsistentCode, "app_review_inconclusive")
       var refusalOnlyFailure = ""
       do {
         _ = try await NativeAppReview.check(
@@ -480,6 +485,33 @@ func checkExcelConversions() async throws {
       try expectEqual(autoKeys.count, 1)
       try expectEqual(autoKeys[0]["input"], .string("key"))
       try expectEqual(autoKeys[0]["check"]["status"], .string("passed"))
+      // A shifted fixture is not evidence that the candidate lost a computed
+      // record. Refuse that setup before treating its assertion as an app defect.
+      var shiftedFixtureReview = automaticHeaderReview
+      shiftedFixtureReview["decision"] = .string("revise")
+      shiftedFixtureReview["issues"] = .array([.string("A customer output disappeared.")])
+      shiftedFixtureReview["fixtures"] = lookupArguments["fixtures"]
+      shiftedFixtureReview["tests"] = .array([
+        automaticHeaderReview["tests"]!.array[0],
+        .object(["kind": .string("expect_text"), "value": .string("missing computed customer")]),
+      ])
+      let lookupContract: Value = .object([
+        "lookup": .object([
+          "key": .object([
+            "type": .string("text"), "valueType": .string("string"), "required": .bool(true),
+          ])
+        ])
+      ])
+      let recoveredFixture = try await NativeAppReview.check(
+        request: build.request, requestSourceID: source.id, arguments: lookupArguments,
+        workbook: book,
+        model: ExcelTestModel([], reviews: [.object(shiftedFixtureReview), readiness]),
+        directory: root, cancellation: .init(), progress: { _ in }, excelConversion: build,
+        checkedActions: ["lookup"], checkedActionInputs: lookupContract)
+      try expectEqual(recoveredFixture["attempts"], .number(2))
+      let fixtureFeedback = recoveredFixture["checkedCounterexamples"].array[0]["result"]
+      try expectEqual(fixtureFeedback["status"], .string("invalid_counterexample"))
+      try expectEqual(fixtureFeedback["error"].text.contains("Preserve the original header"), true)
       // Regression: rejection probes all passed while a successful outbound
       // operation stored the positive entered amount. Its author even tested
       // that wrong sign. The independent successful-value check must stop it.
@@ -535,7 +567,12 @@ func checkExcelConversions() async throws {
         _ = try await NativeAppReview.check(
           request: build.request, requestSourceID: source.id, arguments: .object(outboundArgs),
           workbook: book, model: outboundModel, directory: root, cancellation: .init(),
-          progress: { _ in }, excelConversion: build, checkedActions: ["outbound"])
+          progress: { _ in }, excelConversion: build, checkedActions: ["outbound"],
+          checkedActionInputs: .object([
+            "outbound": .object([
+              "amount": .object(["type": .string("decimal"), "valueType": .string("string")])
+            ])
+          ]))
       } catch { wrongSignFailure = error.localizedDescription }
       try expectEqual(wrongSignFailure.contains("wrong stored sign"), true)
       try expectEqual(await outboundModel.reviewInputs.first?["tests"], .null)
@@ -646,13 +683,34 @@ func checkExcelConversions() async throws {
     }
     // A successful conversion is terminal. A model must not get another turn to
     // repeat its now-stale save, misreport failure, or change the accepted app.
-    let buildModel = ExcelTestModel([("save_native_app", args), ("save_native_app", args)])
+    let retryReview = business.name == "Inventory"
+    let malformedReview: Value = .object([
+      "decision": .string("ready"), "issues": .array([.string("Reviewer-only inconsistency")]),
+    ])
+    let buildModel = ExcelTestModel(
+      Array(repeating: ("save_native_app", args), count: retryReview ? 3 : 2),
+      reviews: retryReview ? Array(repeating: malformedReview, count: 3) : [])
     let result = try await WorkbookAgent.run(
       build.request, workbook: book, context: build.context,
       model: buildModel, excelConversion: build)
     try expectEqual(result.state, "complete")
-    try expectEqual(result.steps, 1)
+    try expectEqual(result.steps, retryReview ? 2 : 1)
     try expectEqual(await buildModel.actions.count, 1)
+    if retryReview {
+      let failure = try expectValue(
+        await buildModel.toolResults.first {
+          $0["failureStage"] == .string("independent_review")
+        })
+      try expectEqual(failure["isolatedCheck"]["status"], .string("passed"))
+      try expectEqual(failure["retryInstruction"].text.contains("unchanged"), true)
+      try expectEqual(failure["reviewDiagnostic"]["omitted"], .bool(true))
+      let retained = try book.toolResultPage(failure["receiptID"].text)
+      try expectEqual(
+        retained["value"]["reviewDiagnostic"].text.contains("Reviewer-only inconsistency"), true)
+      let actualDefect: Value = .object(["error": .string("Wrong stored sign")])
+      try expectEqual(
+        NativeAppReview.presentedFailure(actualDefect, receiptID: "defect"), actualDefect)
+    }
     try expectEqual(result.focus?.id, draft.id)
     try expectEqual(result.answer.contains("Review table access"), true)
     let reviewInputs = await buildModel.reviewInputs

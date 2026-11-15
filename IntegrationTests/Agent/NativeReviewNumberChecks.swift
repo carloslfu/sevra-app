@@ -79,6 +79,42 @@ func checkNativeReviewNumbers(
   precision["maximum"] = .null
   try expectThrows(try NativeAppReview.numberProbes(role: .object(precision), input: .number(1e38)))
 
+  // Report every misclassified numeric input together. String-encoded decimals
+  // must not be mistaken for text or turned into SDK metadata by a later repair.
+  let numericContracts: Value = .object([
+    "price": .object([
+      "amount": .object(["type": .string("decimal"), "valueType": .string("string")]),
+      "count": .object(["type": .string("number"), "valueType": .string("number")]),
+      "note": .object(["type": .string("text"), "valueType": .string("string")]),
+    ])
+  ])
+  try expectEqual(NativeAppReview.numericInputs(numericContracts).array.count, 2)
+  let misclassified: Value = .object([
+    "price": .object([
+      "amount": .object(["kind": .string("value")]),
+      "count": .object(["kind": .string("value")]),
+    ])
+  ])
+  var classificationFailure = ""
+  do {
+    _ = try NativeAppReview.inputProbes(
+      actions: ["price"], roles: misclassified,
+      steps: [
+        .object([
+          "kind": .string("run_action"), "action": .string("price"),
+          "inputs": .object(["amount": .string("1"), "count": .number(2)]),
+        ]),
+        .object(["kind": .string("expect_text"), "value": .string("Quoted")]),
+      ], fixtures: .object([:]),
+      inputTypes: .object([
+        "0": .object(["amount": .string("decimal"), "count": .string("number")])
+      ]),
+      package: package, tables: build.tables, coordinates: [], inputCell: { _ in .null })
+  } catch { classificationFailure = error.localizedDescription }
+  try expectEqual(classificationFailure.contains("price.amount (decimal)"), true)
+  try expectEqual(classificationFailure.contains("price.count (number)"), true)
+  try expectEqual(classificationFailure.contains("review-only inputRoles"), true)
+
   // Real isolated worker: a positive-only independent review must not accept
   // validation performed AFTER parseInt has silently truncated a fractional input.
   var candidate = package
@@ -122,6 +158,14 @@ func checkNativeReviewNumbers(
       await model.reviewInputs.first?["checkedActionInputs"], contracts["actionInputs"])
     try expectEqual(
       await model.reviewInputs.first?["checkedInterface"], contracts["initialInterface"])
+    try expectEqual(
+      await model.reviewInputs.first?["numericInputs"],
+      .array([
+        .object([
+          "action": .string("chooseMonth"), "input": .string("month"),
+          "type": .string("number"), "valueType": .string("number"),
+        ])
+      ]))
     return result
   }
   var failure = ""
@@ -163,7 +207,8 @@ func checkNativeReviewNumbers(
   do { _ = try await check(candidate, verdict: .object(hidden)) } catch {
     hiddenFailure = error.localizedDescription
   }
-  try expectEqual(hiddenFailure.contains("Numeric inputs require kind:number"), true)
+  try expectEqual(hiddenFailure.contains("chooseMonth.month (number)"), true)
+  try expectEqual(hiddenFailure.contains("review-only inputRoles"), true)
   print(
     "PASS independent numeric probes: truncation refused, typed boundaries checked, numeric value-role bypass refused"
   )

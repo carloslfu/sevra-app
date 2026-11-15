@@ -3,7 +3,7 @@ type: spec
 meta-type: conclusion
 id: 01m78sah1afmhpr6vzfbkrg1r2
 created: 2026-11-12T21:06:22.890879+00:00
-updated: 2026-11-15T07:45:16.747686+00:00
+updated: 2026-11-15T14:36:07.980031+00:00
 summary: 'Native programmable spaces: scoped QuickJS/XPC execution, reactive AppKit rendering, shared transactional data, SDK authoring, recovery and bounded capabilities.'
 title: Programmable native spaces SDK 1
 status: implemented
@@ -147,3 +147,8 @@ identify the required native tab-selection step rather than pretending the contr
 is absent.
 
 Action availability must produce a synchronous boolean through a literal, signal or zero-argument function. Discovery, native ActionForm and named invocation share this rule. Promises and other nonboolean values fail closed; asynchronous input-dependent validation belongs in the action handler. This is a UI/business constraint, independent of host permission enforcement.
+
+
+### Default table density and action references
+
+Tables without an explicit height use their loaded row count for compact sizing, bounded at 260 points for ledgers. Their intrinsic height includes the native header, scrolling and pagination footer; page changes update layout. Explicit heights remain supported. Workspace uses this same default instead of forcing an empty fixed-height viewport. Workspace and ActionForm require exact registered action IDs. Unknown references report the rejected value and available IDs; display titles and handler functions are never implicitly resolved.

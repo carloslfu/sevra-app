@@ -2,7 +2,7 @@
 type: spec
 id: 01m79fs6ac5qjrxm82yqwa255e
 created: 2026-11-13T03:38:52.108343+00:00
-updated: 2026-11-14T23:09:24.438098+00:00
+updated: 2026-11-15T14:36:08.019281+00:00
 summary: Local-model native app authoring, isolated checks, independent review and exact-version access.
 title: Local-model native app authoring
 status: implemented
@@ -46,3 +46,8 @@ Active programmable spaces identify their type and exact ID in native workspace 
 ## Conversational operation
 
 The later [[records/specs/chat-primary-operation]] contract makes chat the primary operating interface. Named SDK actions and existing semantic controls use the same worker and broker without a renderer. Access review and exact-version approval can be completed in chat. Views remain optional clients of the same actions. The authoring checker also accepts `run_action` with typed inputs and optional expected validation errors.
+
+
+### Review setup and source repair
+
+Independent review distinguishes demonstrated app defects from an inconclusive review. The latter retains its exact diagnostic in the durable tool receipt, exposes a retrieval pointer and tells the builder to retry the unchanged checked candidate within its existing budget. Review-only numeric roles are never SDK input metadata. Numeric fields are derived from the observed action contracts, including string-encoded decimals. Named-action counterexamples that claim saved effects validate declared input roles and original lookup-header positions before a shifted fixture can be blamed on generated source. This does not establish universal semantic equivalence; final realistic-workflow qualification remains in [[records/plans/excel-business-applications]].

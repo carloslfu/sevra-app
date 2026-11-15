@@ -860,6 +860,7 @@ public enum WorkbookAgent {
               "readTables": .array(readTables),
               "actionConfirmations": actionText == nil && supplementalActionText == nil
                 ? .array([]) : actionConfirmations.evidence,
+              "unresolvedActionFailure": .bool(actionConfirmations.hasUnresolvedFailure),
               "renderedReferences": .object(inlineReferences.mapValues(Value.string)),
               "actionPreview": basis == "preview"
                 ? pendingActionPreview.map {
@@ -1230,6 +1231,17 @@ public enum WorkbookAgent {
                   + " The calculation program already matched the original and is retained for this request. Omit package.excelBehavior on the next save to reuse that exact verified program while fixing the UI/tests; do not retype it."
               )
             }
+            if (error as? SevraError)?.code == "app_review_inconclusive",
+              retainedAppCheck?["status"] == .string("passed")
+            {
+              failureResult["failureStage"] = .string("independent_review")
+              failureResult["reviewDiagnostic"] = failureResult["error"]
+              failureResult["error"] = .string(
+                "The independent review was inconclusive. No app was saved.")
+              failureResult["retryInstruction"] = .string(
+                "The builder's isolated tests passed, but the independent reviewer did not establish a valid verdict. No app defect was established by that review failure. Resubmit the SAME package source, tests and fixtures unchanged to retry review within the remaining request budget. Do not translate reviewer inputRoles, minimum, maximum or whole fields into SDK action metadata; they are a separate review protocol. All checks and review must still pass before saving."
+              )
+            }
           }
           result = .object(failureResult)
         }
@@ -1598,7 +1610,9 @@ public enum WorkbookAgent {
         let presentedResult =
           tool == "workspace_action" && a["action"] == .string("app.inspect") && !callFailed
           ? AppOperationContext.inspection(projected, receiptID: receiptID, request: prompt)
-          : tool == "read" ? ToolResultProjection.presentedRead(projected) : projected
+          : tool == "save_native_app" && callFailed
+            ? NativeAppReview.presentedFailure(projected, receiptID: receiptID)
+            : tool == "read" ? ToolResultProjection.presentedRead(projected) : projected
         messages.append(
           InferenceMessage(
             role: "tool",

@@ -36,10 +36,17 @@ import SevraCore
   private var sorting: String?
   private var descending = false
   private var interactionEnabled = true
+  var sizeDidChange: (() -> Void)?
+  override var intrinsicContentSize: NSSize {
+    // Keep short lookup/assumption tables compact while bounding long ledgers.
+    // Include the header, horizontal scroller, footer and its eight-point gap.
+    NSSize(width: NSView.noIntrinsicMetric, height: min(260, 76 + CGFloat(max(1, rows.count)) * 28))
+  }
   init(session: NativeAppSession, node: NativeAppNode) {
     self.session = session
     self.node = node
     super.init(frame: .zero)
+    setContentCompressionResistancePriority(.defaultLow, for: .vertical)
     sorting = node.props["sort"].string
     descending = node.props["descending"] == .bool(true)
     selected = node.props["selection"].string.flatMap { $0.isEmpty ? nil : $0 }
@@ -170,6 +177,8 @@ import SevraCore
       needsLayout = true
     }
     rows = page["rows"].array
+    invalidateIntrinsicContentSize()
+    sizeDidChange?()
     total = page["total"].int ?? 0
     if offset >= total && offset > 0 {
       offset = max(0, ((total - 1) / 200) * 200)

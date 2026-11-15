@@ -86,6 +86,7 @@ private actor ConversationWorker {
       "inputs": .object(["name": .string("Pencils"), "quantity": .string("3")]),
     ]))
   try expect(inserted["outcome"] == .string("completed"))
+  try expect(inserted["invocationInputContract"] == ready["actions"].array.first?["inputs"])
   try expect(inserted["changes"].array.count == 1)
   let dataset = space.definition.app!.datasets["stock"]!.datasetID!
   try expect(book.rows(dataset).count == 1)

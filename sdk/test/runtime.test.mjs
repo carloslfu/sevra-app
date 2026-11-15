@@ -6,6 +6,19 @@ const source=readFileSync(new URL('../../Sources/SevraAppRuntime/Resources/sdk.j
 function runtime(program){const context=vm.createContext({});vm.runInContext(source+';Sevra.__initialize({});'+program,context);return {run:code=>vm.runInContext(code,context),flush:()=>JSON.parse(vm.runInContext('JSON.stringify(Sevra.__flush())',context))};}
 const settled=()=>new Promise(resolve=>setImmediate(resolve));
 function receive(r,message){r.run('Sevra.__receive('+JSON.stringify([message])+');');}
+test('workspace and forms identify unknown action IDs without accepting display titles or handlers',()=>{
+ const r=runtime(`var logTime=Sevra.action('logTime',{title:'Log Time'},()=>{});Sevra.action('updateCost',{title:'Update Cost'},()=>{});`);
+ for(const expression of ["Sevra.Workspace({sections:[{title:'Time',actions:['Log Time']}]})","Sevra.ActionForm({action:'Log Time'})"]){
+  assert.throws(()=>r.run(expression),error=>/Unknown action ID "Log Time"/.test(error.message)&&/logTime, updateCost/.test(error.message)&&/not display titles or handler functions/.test(error.message));
+ }
+ assert.throws(()=>r.run("Sevra.Workspace({sections:[{title:'Time',actions:[logTime]}]})"),/array of up to 16 action ID strings/);
+ assert.throws(()=>r.run("Sevra.ActionForm({action:logTime})"),/Unknown action ID \(function\)/);
+ assert.throws(()=>r.run("Sevra.ActionForm({action:'x'.repeat(10000)})"),error=>error.message.length<400);
+ r.run("Sevra.mount(Sevra.h(Sevra.Workspace,{sections:[{title:'Time',actions:['logTime']}]}));");
+ assert.equal(r.flush().actions.length,2);
+ const empty=runtime('');
+ assert.throws(()=>empty.run("Sevra.ActionForm({action:'save'})"),/No actions are registered/);
+});
 test('action registration explains a misplaced handler and preserves the three-argument contract',async()=>{
  const r=runtime('');
  for(const description of ["undefined","null","{title:42}","{title:'Add',handler:()=>{}}"]){
@@ -95,7 +108,7 @@ test('named date inputs reject impossible calendar dates before invoking the bus
 });
 test('required text and record inputs reject blanks while optional text and literal values are preserved',async()=>{
  const r=runtime(`var saved=[];Sevra.action('save',{title:'Save',inputs:{reference:{type:'text'},key:{type:'record'},note:{type:'text',required:false}}},args=>saved.push(args));`);
- for(const field of ['reference','key'])for(const value of ['', '   ', '\t\n']){
+ for(const field of ['reference','key'])for(const value of ['', '   ', '\t\n', ' \t\n\u00A0\uFEFF']){
   receive(r,{kind:'command',id:'invalid',action:'save',arguments:{reference:'R1',key:'K1',[field]:value}});await settled();
   assert.match(r.flush().messages.find(m=>m.id==='invalid').error,/Missing input/);
  }
@@ -105,6 +118,9 @@ test('required text and record inputs reject blanks while optional text and lite
   assert.equal(r.flush().messages.find(m=>m.id==='valid').error,undefined);
  }
  assert.equal(r.run('saved[0].reference'),' R1 ');assert.equal(r.run('saved[0].note'),'');assert.equal(r.run('saved[1].note'),'   ');
+ receive(r,{kind:'command',id:'unicode',action:'save',arguments:{reference:'\u0085',key:'\u0085'}});await settled();
+ assert.equal(r.flush().messages.find(m=>m.id==='unicode').error,undefined);
+ assert.equal(r.run('saved[2].reference'),'\u0085');
 });
 test('complete business reads traverse pages and refuse mixed revisions, truncation and excess rows',async()=>{
  async function start(){const r=runtime(`var answer=null;Sevra.data.all('ledger').then(rows=>answer={rows},error=>answer={error:error.message});`);return r;}

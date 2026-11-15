@@ -4,7 +4,24 @@ import hashlib
 import copy
 from pathlib import Path
 import tempfile
-from qualify_excel_business import require_consecutive, require_package_identity, asserted_successful_actions, require_input_checks, number_variants
+from qualify_excel_business import require_consecutive, require_package_identity, asserted_successful_actions, require_input_checks, number_variants, require_completion
+
+
+completed = {'answer': 'Saved the loan update.', 'completion': {
+    'unresolvedActionFailure': False, 'arguments': {'basis': 'completed_action'}}}
+require_completion(completed)
+for fault in ['stale_failure', 'missing', 'unresolved', 'blank']:
+    malformed = copy.deepcopy(completed)
+    if fault == 'stale_failure': malformed['completion']['unresolvedActionFailure'] = True
+    if fault == 'missing': del malformed['completion']['unresolvedActionFailure']
+    if fault == 'unresolved': malformed['completion']['arguments']['basis'] = 'unresolved'
+    if fault == 'blank': malformed['answer'] = ' '
+    try:
+        require_completion(malformed)
+    except ValueError:
+        pass
+    else:
+        raise AssertionError('An untruthful/missing completion passed: ' + fault)
 
 
 call = {'kind': 'run_action', 'action': 'ship', 'inputs': {'amount': '3'}}

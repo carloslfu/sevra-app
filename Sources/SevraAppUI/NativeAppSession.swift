@@ -565,6 +565,7 @@ import SwiftUI
       commandResults = [:]
     }
     var answer: Value = .null
+    var invocationInputContract: Value = .null
     do {
       if operation == "undo" {
         try require(canUndo, "app_undo", "There is no app change to undo in this session.")
@@ -572,9 +573,12 @@ import SwiftUI
         try await settleConversation(cancellation)
       } else if operation == "run" {
         let id = arguments["action"].text
-        try require(
-          actionCatalog.array.contains { $0["id"].text == id }, "app_action",
-          "Inspect the app and choose an available action.")
+        guard let action = actionCatalog.array.first(where: { $0["id"].text == id }) else {
+          throw SevraError("app_action", "Inspect the app and choose an available action.")
+        }
+        // Preserve the pre-invocation SDK contract, even if the action changes
+        // its UI/catalog before finishing. Used only to report repaired inputs.
+        invocationInputContract = action["inputs"]
         answer = try await conversationCommand(
           [
             "action": .string(id),
@@ -669,6 +673,9 @@ import SwiftUI
     }
     var snapshot = conversationSnapshot().object
     snapshot["result"] = answer
+    if invocationInputContract != .null {
+      snapshot["invocationInputContract"] = invocationInputContract
+    }
     snapshot["changes"] = .array(commandReceipts)
     snapshot["errors"] = .array(commandFailures.map(Value.string))
     snapshot["outcome"] = .string(commandFailures.isEmpty ? "completed" : "failed")

@@ -154,7 +154,8 @@ extension Checks {
         h(S.Disclosure,{enabled:false,title:'Locked details',value:false},h(S.Text,{text:'Details'})),
         h(S.Table,{enabled:false,table:'rows',label:'Disabled rows',height:100}),
         h(S.Button,{title:'Enable action',onClick:()=>active.value=true}),
-        h(S.Disclosure,{title:'Working details',value:false},h(S.Text,{text:'Visible details'}))));
+        h(S.Disclosure,{title:'Working details',value:false},h(S.Text,{text:'Visible details'})),
+        h(S.Table,{table:'rows',label:'Compact rows'})));
         """, datasets: ["rows": .init(title: "Rows", columns: columns, datasetID: table.id)])
     let space = try book.installNativeApp(package)
     let domain = "sevra.adversarial." + identifier()
@@ -180,6 +181,16 @@ extension Checks {
     }
     let grid = findTable(renderer)!
     try await wait { grid.numberOfRows == 2 }
+    let compactTable = renderer.view(for: "root/10")!
+    try await wait { findTable(compactTable)?.numberOfRows == 2 }
+    renderer.layoutSubtreeIfNeeded()
+    try expect(
+      compactTable.frame.height >= 100 && compactTable.frame.height < 160,
+      "A two-row table must fit its rows without pushing the form down: \(compactTable.frame.height)"
+    )
+    try expect(
+      abs(renderer.view(for: "root/2")!.frame.height - 200) < 1,
+      "An explicit table height must still be respected")
     try expect(!grid.usesAlternatingRowBackgroundColors, "Empty table space resembles extra rows")
     var failures: [String] = []
     if tabs.selectedTabViewItem?.identifier as? String != "root/0/1" {
