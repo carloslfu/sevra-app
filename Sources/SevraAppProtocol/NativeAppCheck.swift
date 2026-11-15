@@ -417,32 +417,8 @@ public enum NativeAppCheck {
           do {
             let declared = registeredActions[step["action"].text]!["inputs"].object
             actionInputTypes[String(index)] = .object(declared.mapValues { $0["type"] })
-            let inputs = step["inputs"] == .null ? Value.object([:]) : step["inputs"]
-            guard case .object = inputs else {
-              throw SevraError("app_check", "Action test inputs must be an object.")
-            }
-            try require(
-              Set(inputs.object.keys).isSubset(of: Set(declared.keys)), "app_check",
-              "Action test inputs must use the declared field IDs.")
-            for (key, field) in declared {
-              let value = inputs[key]
-              if inputs.object[key] == nil && field["required"] == .bool(false) { continue }
-              let valid: Bool
-              switch field["valueType"].text {
-              case "boolean": if case .bool = value { valid = true } else { valid = false }
-              case "number":
-                if case .number(let number) = value {
-                  valid = number.isFinite
-                } else {
-                  valid = false
-                }
-              default: valid = value.string != nil
-              }
-              try require(
-                valid, "app_check",
-                "Invalid counterexample setup: input \(key) requires JSON \(field["valueType"].text). Use the declared input types for a successful action test, or supply error to assert rejection. Decimal inputs are strings, for example \"5\"."
-              )
-            }
+            let errors = inputSetupErrors(step, fields: declared)
+            try require(errors.isEmpty, "app_check", errors.joined(separator: " "))
           } catch {
             // Wrong JSON types can be intentional SDK-rejection tests. They
             // cannot establish a business-rule defect when a different error
@@ -650,9 +626,10 @@ public enum NativeAppCheck {
                 let expected = $0.value
                 if actual.text == expected.text { return true }
                 guard actual.string == nil || expected.string == nil,
-                  let left = Double(actual.text), let right = Double(expected.text)
+                  let left = decimalSpelling(actual.text),
+                  let right = decimalSpelling(expected.text)
                 else { return false }
-                return left.isFinite && right.isFinite && left == right
+                return left == right
               }
             })
           {
@@ -679,10 +656,12 @@ public enum NativeAppCheck {
                 + " Ordinary worksheet cells are strings; convert arithmetic results with String(...), for example String(-quantity). Preserve the correct expected values."
             }
           }
+          let spellingHint =
+            count == expectedCount ? "" : try decimalTextHint(values, rows: observedRows)
           try require(
             count == expectedCount, "app_check_assertion",
             "Expected \(expectedCount!) matching rows; found \(count ?? 0). This table started with \(startingCounts[step["table"].text] ?? 0) rows, including \(fixtures[step["table"].text].array.count) supplied fixture rows and any blank worksheet positions. expect_row checks one matching row; expect_rows with values counts only matches. Fixtures are starting data, not expected outputs. Check the saved values and column types."
-              + typeHint + " Observed row values: "
+              + typeHint + spellingHint + " Observed row values: "
               + String(
                 try Value.array(
                   observedRows.enumerated().sorted { lhs, rhs in

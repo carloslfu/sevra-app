@@ -219,6 +219,43 @@ func checkNativeAppAuthoring() async throws {
   do {
     _ = try await NativeAppCheck.run(
       package: workspace,
+      steps: [
+        .object([
+          "kind": .string("expect_row"), "table": .string("entries"),
+          "values": .object(["name": .string("9007199254740993")]),
+        ])
+      ],
+      fixtures: .object(["entries": .array([.object(["name": .number(9_007_199_254_740_992)])])]))
+    throw SevraError("test", "Distinct integers satisfied an exact row assertion.")
+  } catch {
+    try expectEqual((error as? SevraError)?.code, "app_check_assertion")
+    try expectEqual(error.localizedDescription.contains("Value TYPE mismatch"), false)
+    try expectEqual(error.localizedDescription.contains("Decimal TEXT spelling"), false)
+  }
+  for (expected, actual, spellingHint) in [
+    ("3.0", "3", true), ("2.500", "2.5", true),
+    ("3.0", "-3", false), ("03.0", "3", false),
+    ("9007199254740993.0", "9007199254740992", false),
+  ] {
+    do {
+      _ = try await NativeAppCheck.run(
+        package: workspace,
+        steps: [
+          .object([
+            "kind": .string("expect_row"), "table": .string("entries"),
+            "values": .object(["name": .string(expected)]),
+          ])
+        ],
+        fixtures: .object(["entries": .array([.object(["name": .string(actual)])])]))
+      throw SevraError("test", "A different decimal spelling passed an exact text assertion.")
+    } catch {
+      try expectEqual((error as? SevraError)?.code, "app_check_assertion")
+      try expectEqual(error.localizedDescription.contains("Decimal TEXT spelling"), spellingHint)
+    }
+  }
+  do {
+    _ = try await NativeAppCheck.run(
+      package: workspace,
       steps: steps(
         #"[{"kind":"expect_rows","table":"entries","count":1,"values":{"unknown":"42"}}]"#))
     throw SevraError("test", "An unknown column became an app-behavior counterexample.")

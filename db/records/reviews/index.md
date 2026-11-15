@@ -2,13 +2,13 @@
 type: index
 scope: type-folder
 folder: records/reviews
-updated: 2026-11-15T16:07:42.782699Z
+updated: 2026-11-15T16:12:29.056633Z
 ---
 
 # records/reviews
 
-- [[records/reviews/rich-native-visuals-plan-review]] — Original three visual-plan reviews plus three inline-chat revision passes covering UX, input lifecycle, authority and delivery acceptance.
 - [[records/reviews/excel-business-applications-2026-11-15]] — Shared formula, review, numeric validation, repair and authority fixes pass scoped checks; final fresh cohorts and native visual qualification remain pending.
+- [[records/reviews/rich-native-visuals-plan-review]] — Original three visual-plan reviews plus three inline-chat revision passes covering UX, input lifecycle, authority and delivery acceptance.
 - [[records/reviews/excel-reconstruction-and-engine-review]] — Multiple-pass review, fixes, local and hosted checks and installed UI verified; autonomous model-generation reliability remains open
 - [[records/reviews/single-excel-import]] — Single Excel import accepted for the bounded preview: full suite, 38 focused groups, three actual-model workflows and installed UI pass; 14 findings repaired
 - [[records/reviews/native-app-fresh-start-2026-11-13]] — Fresh mini-app test state retired; 28 focused groups and imported-app UI pass, but both new local-model calculator attempts fail.

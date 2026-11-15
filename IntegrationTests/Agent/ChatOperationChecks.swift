@@ -93,6 +93,45 @@ private actor ChatOperationModel: WorkbookInference {
       "inputs": .object(["name": .string("Paper")]),
     ]),
   ])
+  for (outcome, changes) in [
+    ("failed", Value.array([])),
+    ("failed", .array([.object(["saved": .string("partial")])])),
+    ("completed", .array([.object(["saved": .string("complete")])])),
+  ] {
+    var snapshot = inspection.object
+    snapshot["outcome"] = .string(outcome)
+    snapshot["changes"] = changes
+    snapshot["errors"] =
+      outcome == "failed" ? .array([.string("Overlaps an existing booking")]) : .array([])
+    snapshot["display"] = .array(
+      Array(repeating: .string(String(repeating: "x", count: 400)), count: 100))
+    snapshot["nextStep"] = .string("Untrusted replacement instructions")
+    let outcomeModel = ChatOperationModel([("workspace_action", action)])
+    _ = try await WorkbookAgent.run(
+      supplied, workbook: book, model: outcomeModel,
+      workspaceAction: { _, _, _, _ in .object(snapshot) })
+    let shown = try Value.parse(await outcomeModel.latestToolContent)
+    try expectEqual(shown["outcome"], .string(outcome))
+    try expectEqual(shown["changes"], changes)
+    try expectEqual(shown["errors"], snapshot["errors"]!)
+    try expectEqual(shown["inputs"], .null)
+    try expectEqual(shown["display"], .null)
+    try expectEqual(shown["fullSnapshot"]["omitted"], .bool(true))
+    try expectEqual(shown["currentUserRequest"], .string(supplied))
+    try expectEqual(shown["nextStep"].text.contains("This invocation has finished"), true)
+    let savedErrors = try book.toolResultPage(shown["receiptID"].text, path: ["errors"])
+    try expectEqual(savedErrors["value"], snapshot["errors"]!)
+    var oversized = snapshot
+    oversized["changes"] = .array([.string(String(repeating: "x", count: 20_000))])
+    let bounded = try AppOperationContext.operation(
+      .object(oversized), receiptID: "exact-receipt", request: long)
+    try expectEqual(bounded["outcome"], .string(outcome))
+    try expectEqual(bounded["changes"]["omitted"], .bool(true))
+    try expectEqual(bounded["changes"]["path"], .array([.string("changes")]))
+    try expectEqual(bounded["changes"]["receiptID"], .string("exact-receipt"))
+    try expectEqual(bounded["currentUserRequest"], .null)
+    try expectEqual(try bounded.json().utf8.count <= ToolResultProjection.byteLimit, true)
+  }
   var invocations = 0
   let model = ChatOperationModel([
     ("workspace_actions", .object(["domain": .string("app")])), ("workspace_action", action),

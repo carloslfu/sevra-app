@@ -3,7 +3,7 @@ type: operational
 meta-type: operational
 id: 01m7ebv28bxsk6szwx72sbrcyp
 created: 2026-11-15T01:06:11.339074+00:00
-updated: 2026-11-15T14:47:34.511488+00:00
+updated: 2026-11-15T16:12:29.027624+00:00
 summary: Close realistic Excel business application reconstruction, reliable autonomous generation, and integrated chat/native qualification gaps.
 title: Realistic Excel business applications
 status: in-progress
@@ -49,9 +49,9 @@ A finite corpus cannot establish universal Excel compatibility. Production signi
 
 ## Active blockers
 
-1. Candidate 127 fixes the recorded review/recovery/spacing boundaries and passes focused checks plus a 10/10 retained regression. Cohort 15 remains diagnostic with all failures preserved. Two consecutive unchanged-code fresh six-app cohorts remain required; zero final cohorts are accepted.
-2. The exact candidate-127 preview is installed and its compact Cash layout, keyboard entry, error/correction/Undo and filtering have been visually verified. The test write was undone, its grant revoked and the app quit. All six final generated interfaces and combined final journeys still require inspection.
-3. Local source, native package/install/extraction and identity checks pass under the focused verification policy. Exact-code hosted checks, final sanitized receipts/specs/handoff, final commit/push and task-only recent cleanup remain. This is a verified development checkpoint, not completed functional qualification.
+1. Candidate 133 repairs newly reproduced independent-review and conversational refusal-reporting failures while preserving every acceptance gate. Cohort 16 is diagnostic and retains its Stock/Production failures. Two consecutive complete fresh six-app cohorts on unchanged final code remain required; zero final cohorts are accepted.
+2. Candidate 127 is installed. Diagnostic Cash, Invoices and Job Costing native copies pass wide/compact layout, keyboard, validation/correction, recalculation and Undo checks, with writes undone and grants revoked. All six final generated interfaces and the combined final import/chat journey still require inspection on the final installed candidate.
+3. Candidate 127 hosted CI and package/install/extraction checks passed. Candidate 133 focused checks pass; the required combined suite, final package/install identity, hosted CI, sanitized receipts/specs/handoff and cleanup remain. This is ongoing qualification, not a completed product claim.
 
 ## Progress
 
@@ -1062,3 +1062,23 @@ The signed Excel checks, release build, explicit package resource/refusal checks
 Native Cash inspection confirms compact short-table height, centered rows, wide/split/focused layouts, an approximately 844-point-wide window, native Tab navigation, visible invalid-month feedback and retained drafts. Correcting months 0 to 13 saved, reset the form and showed Completed; Undo restored the original 12-month state and forecast values. Filtering to no matches shrank the table and displayed the empty message; clearing restored it. All test writes were undone, access revoked and the preview quit. This reuses the untouched diagnostic Cash source for renderer verification, not fresh-generation acceptance. All six final generated interfaces still require inspection.
 
 The separately labeled retained ten-workflow regression passes 10/10 on candidate 127: 79 saved-edit/reopen/Undo cases, ten portable copies and 302 independent/boundary UI steps. Source stayed unchanged. It reused earlier generated packages and performed no fresh generation. Final fresh six-app cohorts are next.
+
+
+### Candidates 128–132: repair the review, preserve the acceptance boundary
+
+Cohort 16 Stock repeated the identical candidate three times after isolated checks passed. Each independent review restarted with the same mistakes: a ready verdict with an issues checklist, decimal fields supplied as JSON numbers, then invented trailing decimal padding in an exact string assertion. Candidate 128 combines already-known verdict/input setup feedback and explains decimal spelling differences without accepting them. Candidate 129 replaces floating-point diagnostic equivalence with exact decimal spelling, so distinct large integers cannot be described as a type-only mismatch. Exact assertions remain unchanged.
+
+Candidate 130 retains only the last host-recorded rejected review for an identical package/fixture/test fingerprint within the same authoring request. Changed candidates, successful reviews, actual app defects and separate requests discard it. Every retry still reruns isolated checks and all readiness probes. Prior diagnostics are explicitly untrusted and fit within the existing review-context budget. Candidate 132 bounds oversized diagnostic text by UTF-8 bytes with room for JSON escaping; combining-character and control-character regressions cover the limit.
+
+Cohort 16 Production supplied a claimed operation defect whose counterexample only expected nonexistent saved rows, without invoking any operation. Candidate 131 routes that setup failure back to the reviewer instead of presenting it as a demonstrated app defect. Initial row assertions may still pass; a real operation followed by a wrong-result assertion still blocks publication. Regressions reproduced both the unchanged-review feedback loss and the fixture-only false diagnosis before their fixes. Focused signed GREEN verification is running on the combined candidate.
+
+Cohort 16 remains diagnostic because Stock and Production failed and source changed during the run. Cash, Invoices and Job Costing complete their operating, refusal/recovery, Undo, held-out, reopening and portable-copy checks. Bookings is still running. No generated package was manually edited. Separate native copies of the three passing apps were checked at wide and compact sizes, including keyboard entry, retained invalid drafts, correction, dependent recalculation and Undo; all test writes were undone and grants revoked. These are diagnostic interface checks, not final fresh-cohort qualification. Candidate 127 exact-code hosted CI passed (run 43726304990).
+
+
+### Candidate 133: distinguish a finished operation from its visual drafts
+
+Cohort 16 completed with three full passes (Cash, Invoices, Job Costing) and three retained failures. Bookings generated a checked app in 555.5 seconds after four submissions, but its conversational overlap-refusal journey failed: the app correctly refused the overlap with zero changes, then the model repeatedly inspected mistyped app IDs rather than reporting that refusal. The 724.8-second failure is preserved. Independent cache-stripped spreadsheet recalculation matches 342 formula outputs across 34 retained states; this does not erase operational failures.
+
+Named-action result presentation now foregrounds the host-recorded outcome, errors, returned result and saved changes instead of repeating unrelated visual drafts and the entire action catalog. The exact snapshot stays in the durable receipt. Bounded field omissions navigate original receipt paths, not offsets in a derived object. Guidance calls for reporting business refusals without retrying unchanged inputs or inventing replacements. Partial changes remain visible; no automatic success or early completion is introduced. Focused chat and confirmation checks pass for refusal with zero writes, failure after a saved change, successful writes, oversized results, untrusted replacement metadata and receipt retrieval.
+
+Candidate 131 signed authoring checks and candidate 132 signed Excel checks pass, including continued-review isolation, fixture-only false-diagnosis recovery, genuine wrong-result refusal and exact decimal/large-integer assertions. The candidate-132 signed checker matches the current build UUID; signing changes byte hashes as expected. Strict formatting and whitespace checks pass. The repository suite and candidate-133 release compilation are running. An explicitly labeled diagnostic replay of the untouched cohort-16 Bookings package is testing the conversation correction. It cannot qualify fresh generation. Zero final cohorts are accepted.

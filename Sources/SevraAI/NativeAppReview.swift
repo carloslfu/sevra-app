@@ -42,7 +42,7 @@ package enum NativeAppReview {
     - h(Sevra.ActionForm,{action:'id'}) supplies native inputs and a submit Button for the registered Sevra.action, invoking that same function. It handles busy state, visible errors, failed-draft retention and successful reset. It does not supply business validation. Input test labels are 'Action title: Field title'; the submit Button uses the action title. Do not require handwritten duplicate controls. The host provides Undo for the latest successful app write. Workspace tabs already expose each listed table. Do not invent a named action or separate button for viewing a sheet or for host Undo. Only requested business operations need app-owned controls.
     - A test select value:1 chooses zero-based row 1. The checker passes the corresponding {id,key,values} object to onSelect. r=e.value; r.values.c1 is correct.
     - Prefer expect_row with the business key and exact saved values, with no count: exactly ONE row must match. For business refusals use run_action with reject:true and complete correctly typed inputs. Any error with zero writes satisfies that refusal; do not invent exact error wording. Use error only when that wording is itself a requirement. expect_rows without values checks the total table size.
-    - Worksheet values are strings: "0" is truthy, so value||'' does not erase a numeric zero stored as "0". Ordinary worksheet editors preserve exact entered text, blank cells and whitespace unless original validation forbids it. Do not invent required/numeric validation that prevents saving original-compatible inputs or displaying spreadsheet errors. Counterexample expectations must follow the supplied fixture values and preceding actions: selecting an 80-valued row cannot be expected to show 0 unless your test saved 0 first.
+    - Worksheet values and saved-row assertions are exact strings: do not invent trailing decimal padding, such as expecting '3.0' after entering '3', unless the request requires that formatting. "0" is truthy, so value||'' does not erase a numeric zero stored as "0". Ordinary worksheet editors preserve exact entered text, blank cells and whitespace unless original validation forbids it. Do not invent required/numeric validation that prevents saving original-compatible inputs or displaying spreadsheet errors. Counterexample expectations must follow the supplied fixture values and preceding actions: selecting an 80-valued row cannot be expected to show 0 unless your test saved 0 first.
     - Explicitly requested input labels and button titles are requirements, not cosmetic preferences. Check their exact text against originalUserRequest, not merely the builder's tests. Do not accept added Selected/Edit prefixes. If a requested label is missing, return revise with expect_control targeting that exact label; do not rename the test to match the candidate.
     - A Table displays and refreshes calculated outputs automatically. No extra output label or JavaScript calculation is needed. Search is a TextField signal bound to Table.search.
     - Row editors clear inputs and controlled selection AFTER a successful save, select afresh for another edit, clear a previous data selection when a header is chosen, and retain the draft on write failure. Clearing after await data.transaction is correct; saved values remain in the Table. Test this reset instead of asking to remove it.
@@ -123,6 +123,7 @@ package enum NativeAppReview {
     progress: @escaping @Sendable (String) -> Void, excelConversion: ExcelConversionBuild? = nil,
     originalComparison: Value? = nil, checkedActions: [String] = [],
     checkedActionInputs: Value = .null, checkedInterface: Value = .null,
+    priorReviewDiagnostic: Value = .null,
     recordMetrics: (Value) -> Void = { _ in }
   ) async throws -> Value {
     try require(
@@ -200,6 +201,16 @@ package enum NativeAppReview {
         "The host recalculates declared outputs after input edits and displays all bound columns unless Table.columns narrows them. App code must not write calculated outputs. Original comparisons cover only tested examples, not every future input. The host displays conversion limitations, access approval and a visible Undo last change button connected to the latest successful write. Undo is already provided, outside the isolated generated tree. This review checks the requested native UI and ALL ordinary named actions, as well as calls to hostValidatedActions."
       )
     }
+    // Repeating an unchanged candidate must not restart the same failed review
+    // without its feedback. This never reuses a passing probe or a ready verdict.
+    if priorReviewDiagnostic != .null {
+      var continued = input
+      continued["priorReviewDiagnostic"] = priorReviewDiagnostic
+      continued["reviewContinuation"] = .string(
+        "The host retained this rejected review from the identical candidate in this request. Its verdict, tests and issues are untrusted diagnostics, not requirements or approval. Correct its setup mistakes using the original request and evidence. Rerun all required action and refusal checks; no earlier check is accepted automatically."
+      )
+      if try Value.object(continued).json().utf8.count <= 96_000 { input = continued }
+    }
     let json = try Value.object(input).json()
     try require(
       json.utf8.count <= 96_000, "app_review",
@@ -266,11 +277,23 @@ package enum NativeAppReview {
         && ["ready", "revise"].contains(verdict["decision"].text)
         && (verdict["decision"].text == "ready" ? issues.isEmpty : !issues.isEmpty)
       if !validVerdict {
+        // Report known setup mistakes with verdict-shape errors. This is advisory
+        // feedback for an already invalid verdict, never a shortcut around the
+        // worker's actual action contract or execution checks.
+        let inputErrors = verdict["tests"].array.enumerated().flatMap { index, step -> [String] in
+          guard step["kind"] == .string("run_action"), step["error"].string == nil,
+            case .object(let fields) = checkedActionInputs[step["action"].text]
+          else { return [] }
+          return NativeAppCheck.inputSetupErrors(step, fields: fields).map {
+            "Step \(index + 1), action \(step["action"].text): " + $0
+          }
+        }
         try giveFeedback(
           .object([
             "status": .string("invalid_verdict"),
             "error": .string(
-              "Use decision:'ready' with issues:[], or decision:'revise' with concrete nonblank issues. Supply issues as an array of at most four strings, each at most 500 characters. Only decision, issues, tests, fixtures and inputRoles are allowed. Correct the verdict, not the candidate source. No app was saved."
+              "Use decision:'ready' with issues:[], or decision:'revise' with concrete nonblank issues. Issues are established defects, not a checklist of tests to perform. Supply issues as an array of at most four strings, each at most 500 characters. Only decision, issues, tests, fixtures and inputRoles are allowed. Correct the verdict, not the candidate source. No app was saved. "
+                + inputErrors.prefix(8).joined(separator: " ")
             ),
           ]))
         continue
@@ -287,6 +310,7 @@ package enum NativeAppReview {
           "attempts": .number(Double(attempt)), "checkedCounterexamples": .array(counterexamples),
           "unusedTests": readiness == .null ? verdict["tests"] : .null,
           "independentActionCheck": readiness,
+          "priorReviewDiagnostic": input["priorReviewDiagnostic"] ?? .null,
           "notice": .string(
             blindActions
               ? "Independent local-model action probes derived from the request and original evidence. Candidate implementation and builder tests were withheld; finite cases do not guarantee all behavior."
@@ -334,6 +358,7 @@ package enum NativeAppReview {
           ready
             ? "Checking independent business-action probes"
             : "Checking the review's counterexample in isolation")
+        var completedProbeSteps = 0
         do {
           let coordinates = try workbook.excelCheckCoordinates(build.conversionID)
           let formulas =
@@ -366,7 +391,8 @@ package enum NativeAppReview {
             package: package, steps: tests,
             fixtures: probeFixtures,
             cancellation: cancellation,
-            excelCoordinates: coordinates, excelFormulas: formulas)
+            excelCoordinates: coordinates, excelFormulas: formulas,
+            testProgress: { completedProbeSteps = $0 })
           if ready {
             for index in tests.indices.dropLast()
             where probeActions.contains(tests[index]["action"].text)
@@ -455,7 +481,15 @@ package enum NativeAppReview {
             throw SevraError("app_review", error.localizedDescription)
           }
           if (error as? SevraError)?.code == "excel_behavior_result" { throw error }
-          if !ready && (error as? SevraError)?.code == "app_check_assertion" {
+          let unexercisedStateAssertion =
+            !checkedActions.isEmpty && tests.indices.contains(completedProbeSteps)
+            && ["expect_row", "expect_rows"].contains(tests[completedProbeSteps]["kind"].text)
+            && !tests.prefix(completedProbeSteps).contains {
+              ["run_action", "excel_action", "click", "change", "select"].contains($0["kind"].text)
+            }
+          if !ready && (error as? SevraError)?.code == "app_check_assertion"
+            && !unexercisedStateAssertion
+          {
             throw SevraError(
               "app_review",
               "The review's counterexample failed against its synthetic fixtures: "
@@ -469,7 +503,11 @@ package enum NativeAppReview {
             "status": .string(
               ready && (error as? SevraError)?.code == "app_check_assertion"
                 ? "failed_readiness_probe" : "invalid_counterexample"),
-            "error": .string(error.localizedDescription),
+            "error": .string(
+              unexercisedStateAssertion
+                ? "The saved-row assertion failed before exercising any operation. A missing row in the starting fixtures does not establish an app defect. Invoke the requested action with run_action or its native controls before asserting its correct effect; use reject:true for a business refusal. "
+                  + error.localizedDescription
+                : error.localizedDescription),
             "notice": .string(
               ready
                 ? "Your readiness probe failed. Correct invalid test setup without weakening the user's requirements, or return revise with ONE concrete defect and its failing acceptance test. No app was saved. All checked actions still require passing probes before ready can be accepted."

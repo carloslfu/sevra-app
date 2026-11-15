@@ -435,16 +435,52 @@ func checkExcelConversions() async throws {
         correctedLookup["checkedCounterexamples"].array[0]["result"]["status"], .string("passed"))
       let contradictory: Value = .object([
         "decision": .string("ready"), "issues": .array([.string("A pending concern")]),
+        "tests": .array([
+          .object([
+            "kind": .string("run_action"), "action": .string("lookup"),
+            "inputs": .object(["key": .number(42)]),
+          ])
+        ]),
       ])
       let recoveredVerdict = try await NativeAppReview.check(
         request: build.request, requestSourceID: source.id, arguments: lookupArguments,
         workbook: book, model: ExcelTestModel([], reviews: [contradictory, readiness]),
         directory: root, cancellation: .init(), progress: { _ in }, excelConversion: build,
-        checkedActions: ["lookup"])
+        checkedActions: ["lookup"],
+        checkedActionInputs: .object([
+          "lookup": .object([
+            "key": .object(["type": .string("text"), "valueType": .string("string")])
+          ])
+        ]))
       try expectEqual(recoveredVerdict["attempts"], .number(2))
       try expectEqual(
         recoveredVerdict["checkedCounterexamples"].array[0]["result"]["status"],
         .string("invalid_verdict"))
+      try expectEqual(
+        recoveredVerdict["checkedCounterexamples"].array[0]["result"]["error"].text.contains(
+          "input key requires JSON string"), true)
+      let unexercised: Value = .object([
+        "decision": .string("revise"),
+        "issues": .array([.string("The operation did not save its result.")]),
+        "tests": .array([
+          .object([
+            "kind": .string("expect_row"), "table": .string("sheet1"),
+            "values": .object(["c1": .string("NEVER-CREATED")]),
+          ])
+        ]),
+      ])
+      let correctedProbe = try await NativeAppReview.check(
+        request: build.request, requestSourceID: source.id, arguments: lookupArguments,
+        workbook: book, model: ExcelTestModel([], reviews: [unexercised, readiness]),
+        directory: root, cancellation: .init(), progress: { _ in }, excelConversion: build,
+        checkedActions: ["lookup"])
+      try expectEqual(correctedProbe["attempts"], .number(2))
+      try expectEqual(
+        correctedProbe["checkedCounterexamples"].array[0]["result"]["status"],
+        .string("invalid_counterexample"))
+      try expectEqual(
+        correctedProbe["checkedCounterexamples"].array[0]["result"]["error"].text.contains(
+          "before exercising any operation"), true)
       var inconsistent = ""
       var inconsistentCode = ""
       do {
@@ -707,6 +743,10 @@ func checkExcelConversions() async throws {
       let retained = try book.toolResultPage(failure["receiptID"].text)
       try expectEqual(
         retained["value"]["reviewDiagnostic"].text.contains("Reviewer-only inconsistency"), true)
+      let resumed = try expectValue(await buildModel.reviewInputs.last)["priorReviewDiagnostic"]
+      try expectEqual(resumed["receiptID"], failure["receiptID"])
+      try expectEqual(
+        resumed["probe"]["result"]["status"], .string("invalid_verdict"))
       let actualDefect: Value = .object(["error": .string("Wrong stored sign")])
       try expectEqual(
         NativeAppReview.presentedFailure(actualDefect, receiptID: "defect"), actualDefect)

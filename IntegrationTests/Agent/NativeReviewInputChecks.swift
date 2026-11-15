@@ -5,6 +5,62 @@ import SevraCore
 func checkNativeReviewInputContracts(
   package: NativeAppPackage, tables: [Dataset], coordinates: [[Int]], header: String
 ) throws {
+  // An unchanged retry gets its own prior diagnostic, never another candidate's
+  // fixture/source/test context, another request's state, or a passed check.
+  let arguments: Value = .object([
+    "package": .object(["source": .string("first")]),
+    "fixtures": .object(["rows": .array([])]), "tests": .array([.string("first")]),
+  ])
+  let metric: Value = .object([
+    "host": .string("native_app_review_probe"),
+    "probe": .object(["result": .object(["error": .string("Correct test setup")])]),
+  ])
+  var retry = NativeAppReviewRetry()
+  try expectEqual(try retry.context(for: arguments), .null)
+  retry.observe(metric, receiptID: "prior-review")
+  try expectEqual(try retry.context(for: arguments)["receiptID"], .string("prior-review"))
+  for key in ["package", "fixtures", "tests"] {
+    _ = try retry.context(for: arguments)
+    retry.observe(metric, receiptID: "prior-review")
+    var changed = arguments.object
+    changed[key] = .string("different")
+    try expectEqual(try retry.context(for: .object(changed)), .null)
+  }
+  _ = try retry.context(for: arguments)
+  retry.observe(
+    .object(["host": .string("other"), "probe": .string("unrelated")]), receiptID: "other")
+  try expectEqual(try retry.context(for: arguments), .null)
+  retry.observe(
+    .object([
+      "host": .string("native_app_review_probe"),
+      "probe": .object([
+        "verdict": .string(String(repeating: "x", count: 20_000)),
+        "result": .object(["error": .string("Retain this bounded diagnostic")]),
+      ]),
+    ]), receiptID: "large")
+  let bounded = try retry.context(for: arguments)
+  try expectEqual(bounded["probe"]["verdict"], .null)
+  try expectEqual(bounded["probe"]["result"]["error"], .string("Retain this bounded diagnostic"))
+  try expectEqual(try bounded.json().utf8.count < 16_384, true)
+  for hostileText in [
+    "a" + String(repeating: "\u{301}", count: 20_000),
+    String(repeating: "\u{1}", count: 20_000),
+  ] {
+    retry.observe(
+      .object([
+        "host": .string("native_app_review_probe"),
+        "probe": .object([
+          "result": .object([
+            "status": .string(hostileText), "error": .string(hostileText),
+          ])
+        ]),
+      ]), receiptID: "bounded-unicode")
+    try expectEqual(try retry.context(for: arguments).json().utf8.count < 16_384, true)
+  }
+  retry.discard()
+  try expectEqual(try retry.context(for: arguments), .null)
+  var otherRequest = NativeAppReviewRetry()
+  try expectEqual(try otherRequest.context(for: arguments), .null)
   let roles = try Value.parse(
     #"{"lookup":{"key":{"kind":"existingKey","table":"sheet1","column":"c1","headerRow":1},"reference":{"kind":"value"}}}"#
   )

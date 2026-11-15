@@ -226,6 +226,7 @@ public enum WorkbookAgent {
     var draftCorrected = false
     var completedAction = false
     var nativeAppAuthoring = excelConversion != nil
+    var nativeReviewRetry = NativeAppReviewRetry()
     // A verified calculation is a build artifact. Do not require the model to regenerate it
     // while also authoring UI and tests. It never survives this request or a failed comparison.
     var excelBehaviorDraft: (behavior: Value, receiptID: String)?
@@ -1020,16 +1021,29 @@ public enum WorkbookAgent {
             if let behaviorDraftReceiptID {
               checked["behaviorDraftReceiptID"] = .string(behaviorDraftReceiptID)
             }
-            checked["review"] = try await NativeAppReview.check(
-              request: prompt, requestSourceID: requestSource.id,
-              arguments: checkedArguments, workbook: workbook, model: model,
-              directory: modelDirectory,
-              cancellation: cancellation, progress: progress, excelConversion: excelConversion,
-              originalComparison: comparison,
-              checkedActions: nativeAppCheck!["actions"].array.map(\.text),
-              checkedActionInputs: nativeAppCheck!["actionInputs"],
-              checkedInterface: nativeAppCheck!["initialInterface"],
-              recordMetrics: { metrics.append($0) })
+            let priorReviewDiagnostic = try nativeReviewRetry.context(for: checkedArguments)
+            do {
+              checked["review"] = try await NativeAppReview.check(
+                request: prompt, requestSourceID: requestSource.id,
+                arguments: checkedArguments, workbook: workbook, model: model,
+                directory: modelDirectory,
+                cancellation: cancellation, progress: progress, excelConversion: excelConversion,
+                originalComparison: comparison,
+                checkedActions: nativeAppCheck!["actions"].array.map(\.text),
+                checkedActionInputs: nativeAppCheck!["actionInputs"],
+                checkedInterface: nativeAppCheck!["initialInterface"],
+                priorReviewDiagnostic: priorReviewDiagnostic,
+                recordMetrics: {
+                  metrics.append($0)
+                  nativeReviewRetry.observe($0, receiptID: receiptID)
+                })
+              nativeReviewRetry.discard()
+            } catch {
+              if (error as? SevraError)?.code != "app_review_inconclusive" {
+                nativeReviewRetry.discard()
+              }
+              throw error
+            }
             nativeAppCheck = .object(checked)
           }
           var value = try tools.execute(
@@ -1610,9 +1624,11 @@ public enum WorkbookAgent {
         let presentedResult =
           tool == "workspace_action" && a["action"] == .string("app.inspect") && !callFailed
           ? AppOperationContext.inspection(projected, receiptID: receiptID, request: prompt)
-          : tool == "save_native_app" && callFailed
-            ? NativeAppReview.presentedFailure(projected, receiptID: receiptID)
-            : tool == "read" ? ToolResultProjection.presentedRead(projected) : projected
+          : tool == "workspace_action" && a["action"] == .string("app.run")
+            ? try AppOperationContext.operation(result, receiptID: receiptID, request: prompt)
+            : tool == "save_native_app" && callFailed
+              ? NativeAppReview.presentedFailure(projected, receiptID: receiptID)
+              : tool == "read" ? ToolResultProjection.presentedRead(projected) : projected
         messages.append(
           InferenceMessage(
             role: "tool",
