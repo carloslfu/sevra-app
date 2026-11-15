@@ -18,8 +18,9 @@ public struct NativeAppSpaceView: View {
         if session.status != "running" { Text(session.package.name).font(.title2) }
         Spacer()
         if session.status == "running" {
-          Button("Undo last change") { session.undo() }.disabled(
-            !session.canUndo || session.conversationBusy)
+          Button(session.canRedo ? "Redo last change" : "Undo last change") {
+            if session.canRedo { session.redo() } else { session.undo() }
+          }.disabled((!session.canUndo && !session.canRedo) || session.conversationBusy)
           Button("Disable app") { session.revoke() }
         } else if session.status == "failed" {
           Button("Restart app") { session.start() }

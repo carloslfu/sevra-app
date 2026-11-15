@@ -108,7 +108,14 @@ private actor ConversationWorker {
   try expect(
     (appRenderer.view(for: statusNode.id) as? NSTextField)?.stringValue == "Saved Pens",
     "Detaching Home must not disconnect the full app")
-  _ = try await session.converse("undo")
+  let undone = try await session.converse("undo")
+  try expect(book.rows(dataset).count == 1)
+  try expect(undone["canUndo"] == .bool(false) && undone["canRedo"] == .bool(true),
+    "A second Undo must not silently redo the change")
+  do {
+    _ = try await session.converse("undo")
+    throw SevraError("test", "A repeated Undo silently restored the change")
+  } catch let error as SevraError { try expect(error.code == "app_undo") }
   try expect(book.rows(dataset).count == 1)
   let invalid = try await session.converse(
     "run",
@@ -118,6 +125,7 @@ private actor ConversationWorker {
     ]))
   try expect(invalid["outcome"] == .string("failed"))
   try expect(invalid["changes"].array.isEmpty)
+  try expect(invalid["canRedo"] == .bool(true), "A refused action must preserve Redo")
   try expect(book.rows(dataset).count == 1)
   do {
     _ = try await session.converse(
@@ -149,6 +157,8 @@ private actor ConversationWorker {
   let operated = try await session.converse(
     "activate", arguments: .object(["target": .string("Add one")]))
   try expect(operated["outcome"] == .string("completed"))
+  try expect(operated["canUndo"] == .bool(true) && operated["canRedo"] == .bool(false),
+    "A new saved change replaces the previous Redo")
   try expect(book.rows(dataset).count == 2)
   let browsed = try await session.converse(
     "browse",
@@ -181,7 +191,7 @@ private actor ConversationWorker {
     book: reopened, space: space, defaults: defaults, exchange: transport)
   defer { restored.stop() }
   let restoredState = try await restored.converse("enable")
-  try expect(restoredState["canUndo"] == .bool(true))
+  try expect(restoredState["canUndo"] == .bool(false) && restoredState["canRedo"] == .bool(true))
   restored.stop()
   let stoppedInspection = try await restored.converse("inspect")
   try expect(
@@ -189,7 +199,13 @@ private actor ConversationWorker {
       && stoppedInspection["enabled"] == .bool(true),
     "Inspection must not execute an approved but stopped program")
   _ = try await restored.converse("restart")
-  _ = try await restored.converse("undo")
+  let redone = try await restored.converse("redo")
+  try expect(redone["canUndo"] == .bool(true) && redone["canRedo"] == .bool(false))
+  try expect(reopened.rows(dataset).count == 2)
+  do {
+    _ = try await restored.converse("redo")
+    throw SevraError("test", "A repeated Redo silently undid the change")
+  } catch let error as SevraError { try expect(error.code == "app_undo") }
   try expect(reopened.rows(dataset).count == 2)
   let cancellation = Cancellation()
   let interrupted = Task {

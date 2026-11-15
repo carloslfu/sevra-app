@@ -2,14 +2,14 @@
 type: index
 scope: type-folder
 folder: records/specs
-updated: 2026-11-15T14:36:08.019281Z
+updated: 2026-11-15T18:33:18.415051Z
 ---
 
 # records/specs
 
-- [[records/specs/local-model-native-apps]] — Local-model native app authoring, isolated checks, independent review and exact-version access.
 - [[records/specs/programmable-native-engine]] — Native programmable spaces: scoped QuickJS/XPC execution, reactive AppKit rendering, shared transactional data, SDK authoring, recovery and bounded capabilities.
 - [[records/specs/chat-primary-operation]] — Chat-first workbook and mini-app operations through shared typed actions, durable human approval and native transaction receipts.
+- [[records/specs/local-model-native-apps]] — Local-model native app authoring, isolated checks, independent review and exact-version access.
 - [[records/specs/excel-application-reconstruction]] — Constrained Excel application reconstruction with original-result comparison; ten automatic workflows qualified against 89 independent originals within explicit limits.
 - [[records/specs/single-excel-import]] — One native Excel import with reviewed local workflow inference, shared tables and constrained app generation
 - [[records/specs/contextual-import]] — One contextual intake for starting and ongoing work, role-aware CSV/data use and truthful Excel continuity gates.

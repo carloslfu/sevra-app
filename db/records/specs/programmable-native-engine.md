@@ -3,7 +3,7 @@ type: spec
 meta-type: conclusion
 id: 01m78sah1afmhpr6vzfbkrg1r2
 created: 2026-11-12T21:06:22.890879+00:00
-updated: 2026-11-15T14:36:07.980031+00:00
+updated: 2026-11-15T18:33:18.415051+00:00
 summary: 'Native programmable spaces: scoped QuickJS/XPC execution, reactive AppKit rendering, shared transactional data, SDK authoring, recovery and bounded capabilities.'
 title: Programmable native spaces SDK 1
 status: implemented
@@ -48,7 +48,7 @@ Workbook revision polling is read-only and runs every 500 ms while the space is 
 
 `data.transaction(operations, {revision?, token?})` submits 1–64 insert/update/delete operations against writable aliases. Insert takes values; update/delete take an exact current row version ID. A named action captures its starting revision; subscription refreshes cannot advance that validation snapshot. Only its own successful writes advance its snapshot, and overlapping named actions refuse. Outside named actions, the default base is the last observed workbook revision; callers can pass the query revision explicitly. All operations commit atomically or none do. Permission, current package, schema, stale base, row membership and value constraints are checked natively. A final authority guard runs before commit. Revocation stops new work immediately; the final guard is the authorization linearization point for an already-committing operation. No arbitrary SQL/DDL is accepted.
 
-Receipts contain the operation token, resulting revision and exact row IDs. Reusing a token with identical arguments returns the original receipt; different arguments refuse. `data.undo(receipt)` reverses the stored operation through a new captured transaction, only while its affected versions still match. Native app chrome offers undo of the latest session command. Immutable prior versions and the exact program digest remain in history. Programmatic writes are attributed as programmatic, not as human acceptance or AI output. Imported records preserve the workbook's origin/meaning distinctions.
+Receipts contain the operation token, resulting revision and exact row IDs. Reusing a token with identical arguments returns the original receipt; different arguments refuse. `data.undo(receipt)` reverses the stored operation through a new captured transaction, only while its affected versions still match. Native app chrome offers one reversible latest saved transaction: **Undo last change** becomes **Redo last change** after reversal. The direction is derived from immutable receipt ancestry and survives reopening. A new saved transaction replaces Redo. Chat exposes the same direction through `canUndo`/`canRedo` and `app.undo`/`app.redo`; repeated Undo never means Redo. This is not a multi-step history stack. Immutable prior versions and the exact program digest remain in history. Programmatic writes are attributed as programmatic, not as human acceptance or AI output. Imported records preserve the workbook's origin/meaning distinctions.
 
 ## Permissions, recovery and limits
 

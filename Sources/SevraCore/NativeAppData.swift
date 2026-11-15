@@ -1,18 +1,34 @@
 import Foundation
 
 extension Workbook {
-  /// The optional view and chat restore the same last receipt after reopening.
-  public func nativeAppLastTransaction(_ access: NativeAppAccess) throws -> String? {
+  /// The optional view and chat share one reversible transaction. Derive its
+  /// direction from saved receipt ancestry, including after reopening.
+  public func nativeAppLastTransaction(_ access: NativeAppAccess) throws -> (token: String, redo: Bool)? {
     try synchronized {
       try access.authorized(self) {
-        try db.scalar(
+        let bindings: [Value] = [.string(access.spaceID), .string(access.package.digest)]
+        guard let row = try db.execute(
           """
-          SELECT id FROM operations WHERE kind='native_app_transaction'
-          AND json_extract(request,'$.arguments.space')=?
-          AND json_extract(request,'$.arguments.digest')=?
-          ORDER BY revision DESC LIMIT 1
-          """, [.string(access.spaceID), .string(access.package.digest)]
-        ).string
+          WITH RECURSIVE latest AS (
+            SELECT id,request,revision FROM operations WHERE kind='native_app_transaction'
+            AND json_extract(request,'$.arguments.space')=?
+            AND json_extract(request,'$.arguments.digest')=?
+            ORDER BY revision DESC LIMIT 1
+          ), history(id,parent,revision,depth) AS (
+            SELECT id,json_extract(request,'$.arguments.undo'),revision,0 FROM latest
+            UNION ALL
+            SELECT o.id,json_extract(o.request,'$.arguments.undo'),o.revision,h.depth+1
+            FROM operations o JOIN history h ON o.id=h.parent AND o.revision<h.revision
+            WHERE o.kind='native_app_transaction'
+            AND json_extract(o.request,'$.arguments.space')=?
+            AND json_extract(o.request,'$.arguments.digest')=? AND h.depth<1024
+          )
+          SELECT (SELECT id FROM latest) AS token,parent,depth FROM history ORDER BY depth DESC LIMIT 1
+          """, bindings + bindings
+        ).first, row["parent"] == .null, let token = row["token"]?.string,
+          let depth = row["depth"]?.int
+        else { return nil }
+        return (token, depth % 2 == 1)
       }
     }
   }

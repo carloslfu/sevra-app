@@ -38,7 +38,10 @@ import SwiftUI
   private var fingerprints: [String: String] = [:]
   private var poll: Task<Void, Never>?
   @Published private var lastUndo: String?
-  public var canUndo: Bool { lastUndo != nil && !activeRequests.contains("native-undo") }
+  @Published private var reversalIsRedo = false
+  private var canReverse: Bool { lastUndo != nil && !activeRequests.contains("native-undo") }
+  public var canUndo: Bool { canReverse && !reversalIsRedo }
+  public var canRedo: Bool { canReverse && reversalIsRedo }
   private var activeRequests = Set<String>()
   private var draftValues: [String: Value] = [:]
   private var nativeEdits: [String: Int] = [:]
@@ -103,6 +106,7 @@ import SwiftUI
     subscriptionGeneration = [:]
     runningSubscriptions = []
     lastUndo = nil
+    reversalIsRedo = false
     activeRequests = []
     tablePresentations = [:]
   }
@@ -140,7 +144,8 @@ import SwiftUI
         self.access = access
         revision = state.1
         fingerprints = state.2
-        lastUndo = state.3
+        lastUndo = state.3?.token
+        reversalIsRedo = state.3?.redo ?? false
         draftValues = state.0.object
         nativeEdits = [:]
         if exchangeOverride == nil {
@@ -396,7 +401,12 @@ import SwiftUI
         guard epoch == current else { return }
         if message["method"].text == "transaction" {
           if conversationBusy { commandReceipts.append(result) }
-          lastUndo = result["token"].text
+          let reversal = try await Task.detached { [book] in
+            try book.nativeAppLastTransaction(access)
+          }.value
+          guard epoch == current else { return }
+          lastUndo = reversal?.token
+          reversalIsRedo = reversal?.redo ?? false
           await checkRevision()
         }
         enqueue(.object(["kind": .string("result"), "id": message["id"], "value": result]))
@@ -479,7 +489,15 @@ import SwiftUI
     }
   }
   public func undo() {
-    guard canUndo, let lastUndo else { return }
+    guard canUndo else { return }
+    reverseLastChange()
+  }
+  public func redo() {
+    guard canRedo else { return }
+    reverseLastChange()
+  }
+  private func reverseLastChange() {
+    guard canReverse, let lastUndo else { return }
     request(
       .object([
         "id": .string("native-undo"), "method": .string("transaction"),
@@ -567,9 +585,10 @@ import SwiftUI
     var answer: Value = .null
     var invocationInputContract: Value = .null
     do {
-      if operation == "undo" {
-        try require(canUndo, "app_undo", "There is no app change to undo in this session.")
-        undo()
+      if operation == "undo" || operation == "redo" {
+        try require(operation == "undo" ? canUndo : canRedo, "app_undo",
+          "There is no app change to \(operation). Only the latest saved transaction can be reversed.")
+        if operation == "undo" { undo() } else { redo() }
         try await settleConversation(cancellation)
       } else if operation == "run" {
         let id = arguments["action"].text
@@ -734,7 +753,7 @@ import SwiftUI
         status == "disabled" && isGranted
           ? "Approved but stopped. app.restart starts it for requested work. Inspection does not execute saved code."
           : ""),
-      "actions": actionCatalog, "canUndo": .bool(canUndo),
+      "actions": actionCatalog, "canUndo": .bool(canUndo), "canRedo": .bool(canRedo),
       "inputs": .array(
         interactionCatalog.array.compactMap { item in
           guard let node = tree.nodes[item["id"].text] else { return nil }

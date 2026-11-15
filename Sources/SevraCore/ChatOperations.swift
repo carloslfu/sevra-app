@@ -61,7 +61,10 @@ public enum ChatOperations {
       "Move a named canvas region by movement deltas x,y through its saved drop handler.",
       ["id", "expectedVersion", "target", "region", "x", "y"], host: true),
     .init(
-      "app.undo", "Undo the app's last saved transaction with its normal version checks.",
+      "app.undo", "Undo the app's latest saved transaction when canUndo is true. After Undo, use app.redo to restore it; a second Undo never redoes it.",
+      ["id", "expectedVersion"], host: true),
+    .init(
+      "app.redo", "Restore the app's last undone transaction when canRedo is true. A new saved transaction replaces that Redo.",
       ["id", "expectedVersion"], host: true),
     .init(
       "app.enable",

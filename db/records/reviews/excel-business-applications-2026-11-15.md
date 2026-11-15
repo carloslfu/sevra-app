@@ -2,7 +2,7 @@
 type: review
 id: 01m7fb55rgf0b9rfxcfp0683tx
 created: 2026-11-15T10:13:28.464388+00:00
-updated: 2026-11-15T18:05:35.874473+00:00
+updated: 2026-11-15T18:41:07.206654+00:00
 summary: Shared formula, review, numeric validation, repair and authority fixes pass scoped checks; final fresh cohorts and native visual qualification remain pending.
 title: Excel business application adversarial review
 ---
@@ -323,3 +323,17 @@ A diagnostic replay of the untouched cohort-17 Jobs package passes all five conv
 Native candidate-137 inspection found an explicit Stop was presented as a red failure banner even though the workspace already supports a neutral stopped status. The shared error presenter now uses that neutral status only when the active ticket was cancelled and the thrown structured error is cancellation. A real concurrent failure still remains an error. This is a presentation-only change; cancellation, saved state, model behavior and approval are unchanged. Release compilation and visual reinspection are pending.
 
 The fresh synthetic Production import on candidate 137 passes wide and compact layout, wrapped purpose, original-result example selection, and incompatible-example refusal with the original valid example and full purpose retained. Stop during local-AI preparation returns promptly with all inputs retained and controls reenabled; the preview was quit before package GPU checks. Candidate-137 installation identity matches the package for main, CLI, extractor and both workers, with strict signatures and SDK digests verified. The complete local suite is still running; final fresh cohorts remain zero.
+
+
+## Candidate 139: explicit Undo and Redo
+
+The installed candidate 138 native review found a concrete semantic defect: pressing **Undo last change** twice undid then restored the same transaction while keeping the Undo label. The underlying receipt inverses were correct, but the UI and chat exposed both directions as Undo. Candidate 139 derives the current direction from bounded, same-app/version immutable receipt ancestry, restores it on reopen, and exposes distinct Undo/Redo states and chat operations. New saved writes replace Redo; refused actions preserve it. The native button names the operation it actually performs. No generated source was repaired and no multi-step history stack is claimed.
+
+A regression assertion reproduced the old defect. Focused signed native checks pass all 18 groups after the correction, including repeat-direction refusal, failed-action retention, new-write replacement, reopen, cross-app history separation and revoked/version-stale access. Full integrated authoring, package/install, UI recheck and two final fresh cohorts remain pending.
+
+The separate fresh GUI Production conversion on candidate 138 saved after two local-model submissions in about 4 minutes 25 seconds. Its independent review was ready, original comparison matched 30 saved results across two cases, and chat approval named the exact tables. A chat-planned run appeared immediately in the native tables; native completion recalculated material capacity, and refused completion preserved the draft. Preparation and review were inspected at wide and compact widths. Candidate 138 cancellation now displays the neutral stopped state with retained purpose/example inputs. These are diagnostic GUI receipts, not a qualifying six-app cohort.
+
+
+Candidate 139 follow-up: the exact installed executable/helper/worker UUIDs, SDK hash and strict signatures match its packaged product. Native UI inspection confirms Undo changes Completed to Planned and names Redo; Redo restores Completed and names Undo; reopening preserves Redo. Wide and approximately 842-point layouts retain readable controls and aligned table rows. The generated Production source still matches its successful model submission. The grant was revoked and the preview quit after inspection. Local-model chat Redo and final six-app interfaces remain pending.
+
+The candidate-139 retained ten-app regression passes 10/10, 79 saved-edit/reopen/Undo cases, ten portable copies and 302 independent/boundary UI steps. Source hashes stayed unchanged. These are reused, untouched generated packages with no inference, not fresh-model acceptance. Signed authoring, chat operations, action-confirmation recovery and the independent qualification-verifier counterexamples also pass. The full release suite is running on candidate 139.

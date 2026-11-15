@@ -179,15 +179,21 @@ func exchange(
           == .number(1))
     }
     check("Delete undo and redo preserve immutable history") {
+      let original = try book.nativeAppLastTransaction(access)
+      try expect(original?.token == "insert-one" && original?.redo == false)
       let undone = try book.nativeAppTransaction(
         access, operations: [], expectedRevision: book.revision(), token: "undo-one",
         undo: "insert-one")
+      let reversal = try book.nativeAppLastTransaction(access)
+      try expect(reversal?.token == "undo-one" && reversal?.redo == true)
       try expect(
         book.nativeAppPage(access, request: .object(["table": .string("rows")]))["total"]
           == .number(0))
       _ = try book.nativeAppTransaction(
         access, operations: [], expectedRevision: book.revision(), token: "redo-one",
         undo: undone["token"].text)
+      let restored = try book.nativeAppLastTransaction(access)
+      try expect(restored?.token == "redo-one" && restored?.redo == false)
       try expect(
         book.nativeAppPage(access, request: .object(["table": .string("rows")]))["total"]
           == .number(1))
@@ -218,16 +224,20 @@ func exchange(
       readOnly.datasets["rows"]?.writable = false
       let reader = try book.installNativeApp(readOnly)
       let permission = try NativeAppAccess(workbook: book, space: reader)
+      try expect(book.nativeAppLastTransaction(permission) == nil,
+        "Another app cannot inherit this app's reversal history")
       try refuses {
         _ = try book.nativeAppTransaction(
           permission, operations: [insert], expectedRevision: book.revision(), token: "readonly")
       }
       package.source += "\n// revised"
       _ = try book.installNativeApp(package, spaceID: saved.id, expectedVersion: saved.version)
+      try refuses { _ = try book.nativeAppLastTransaction(access) }
       try refuses {
         _ = try book.nativeAppPage(access, request: .object(["table": .string("rows")]))
       }
       permission.revoke()
+      try refuses { _ = try book.nativeAppLastTransaction(permission) }
       try refuses {
         _ = try book.nativeAppPage(permission, request: .object(["table": .string("rows")]))
       }

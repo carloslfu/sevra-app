@@ -59,6 +59,9 @@ Operate apps directly in chat: “Add Pencils with quantity 3,” “Change it t
 or clicking its view. Tables, forms, workflow execution, Excel conversion and reviewed
 approvals also have conversational operations. Native controls remain available. See the
 [chat operation contract and qualification](db/records/specs/chat-primary-operation.md).
+Apps retain one reversible latest transaction: Undo changes to Redo after reversal,
+including after reopening. A new saved transaction replaces that Redo; this is not a
+multi-step history stack.
 
 The [SDK and architecture](db/records/specs/programmable-native-engine.md) explain
 TypeScript/JSX authoring, signals, native components, scoped data access and current limits.

@@ -39,7 +39,7 @@ public enum NativeAppAuthoring {
   /// The build sees the working contract; detailed cell-editor examples remain in
   /// native_app_sdk. Do not bury record operations under unrelated editor examples.
   public static let excelBuildGuide = """
-    Register the requested business operations only. Workspace tabs provide sheet navigation, and the host provides Undo last change. Do not register placeholder view-sheet or Undo actions, add duplicate buttons for them, or wrap Workspace merely to supply those host features.
+    Register the requested business operations only. Workspace tabs provide sheet navigation, and the host provides Undo/Redo for the latest saved transaction. Do not register placeholder view-sheet or Undo actions, add duplicate buttons for them, or wrap Workspace merely to supply those host features.
 
     Action IDs start with a lowercase letter and use only letters, digits, _, . or -, at most 64 characters, no spaces. Example ID 'logTime', title 'Log time': Workspace sections[].actions, ActionForm.action and run_action.action use the ID 'logTime'; click uses the title 'Log time'. Never put display titles in Workspace actions arrays. Omit action enabled unless a synchronous boolean or boolean signal/function is needed. It takes no action inputs and cannot await data. Put all input-dependent validation and asynchronous reads inside the async handler, which receives the arguments. ActionForm handles its own busy state.
 
@@ -55,7 +55,7 @@ public enum NativeAppAuthoring {
 
     Writes: await data.transaction([{op:'insert',table:'sheet2',values:{c1:reference,c2:quantity}},{op:'update',table:'sheet1',id:row.id,values:{c3:value}}]). Use the actual columns, existing exact row IDs, and one atomic transaction for related changes. Ordinary worksheet values and decimals are strings. Use await calculate('a*b',{a:'3',b:'2.40'}) for exact arithmetic; its result is the string '7.2'. Never store business records/constants in source or write formula outputs. Preserve the person's argument rules (for example, positive quantities may produce signed ledger values). Throw validation errors before the write. Return after awaiting it.
 
-    Input ledgers with NO formulas can append records and recalculate existing dependent formulas atomically. Formula-bearing sheets refuse ambiguous row growth. Translated recreate(input) must enumerate current input.cells within the original formula ranges instead of freezing the original row count. Ordinary record actions use data.transaction, not excel_action. excel_action is ONLY for translated source operations declaring fixed original write cells. The host supplies Undo for the last successful write; do not add data.undo() without a retained receipt or a second undo implementation.
+    Input ledgers with NO formulas can append records and recalculate existing dependent formulas atomically. Formula-bearing sheets refuse ambiguous row growth. Translated recreate(input) must enumerate current input.cells within the original formula ranges instead of freezing the original row count. Ordinary record actions use data.transaction, not excel_action. excel_action is ONLY for translated source operations declaring fixed original write cells. The host supplies Undo/Redo for the latest successful write; do not add data.undo() without a retained receipt or a second undo implementation.
 
     Package bindings are host owned: datasets:{sheet1:{writable:true},sheet2:{writable:false},...}. Use every supplied alias and ONLY its writable boolean. No dataset IDs/columns/titles; omit id and expectedVersion on this conversion's save. Saving never enables the app.
 
@@ -68,7 +68,7 @@ public enum NativeAppAuthoring {
 
   public static let componentGuide = """
     Workspace: sections:[{title:'Inputs',table:'alias',actions:['registeredActionID']},...], 1..12 distinct titles. Every actions entry is an exact registered action ID, never its display title. Composes searchable tables and ActionForms. Tab label 'Workspace sections', initial index 0. Register actions first.
-    ActionForm: h(Sevra.ActionForm,{action:'registeredActionID'}) supplies native inputs, busy/error feedback, failed-draft retention and successful reset for the SAME action as chat. Test input labels are 'Action title: Field title'; submit uses the action title. Business validation belongs in the action. The host supplies Undo for the latest write.
+    ActionForm: h(Sevra.ActionForm,{action:'registeredActionID'}) supplies native inputs, busy/error feedback, failed-draft retention and successful reset for the SAME action as chat. Test input labels are 'Action title: Field title'; submit uses the action title. Business validation belongs in the action. The host supplies Undo/Redo for the latest write.
     Components (only these props in addition to common label/help/enabled/hidden/width/height/padding/gap):
     Column,Row: alignment; Grid: columns; Split: vertical; Scroll,Section: common props.
     Text: text,size,weight ('bold' or 'semibold'),color ('primary','secondary','red','green','blue'),selectable.
