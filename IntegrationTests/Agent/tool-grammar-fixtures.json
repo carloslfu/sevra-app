@@ -2,7 +2,7 @@
   "schemaVersion": 1,
   "nestedPropertyOrder": "required-then-component-and-definition-selectors",
   "splashCommit": "1744cfafee415fb463b289449cec59a864e768e9",
-  "toolsSHA256": "088b4b22cdf26a8de8d528b97e007a78d75a46889af686fa2c7ebbc669cb791e",
+  "toolsSHA256": "ea9af733cdc44d9c74d82c3623f945f45eb3191eadba38c1f7a4d61d92bbf85d",
   "cases": [
     {
       "name": "required_native_app_sdk",
@@ -38077,7 +38077,7 @@
             198,
             658
           ],
-          "maskSHA256": "db6eed52a6364fc2cf03f64119e24ba5ae4570652ba1a7dbaf69ad1c94e776b2"
+          "maskSHA256": "8047db76be28494b42f46351d1ee8cc33c0fdae47bad2e669594b1fa1826957e"
         },
         {
           "committed": [
@@ -38108,7 +38108,7 @@
             198,
             27
           ],
-          "maskSHA256": "fc396426e3fb1c607c1e2dc1c36ff44b7b74f0c2293161a57a4dc93bd54e9ab7"
+          "maskSHA256": "5615e88eabcff717dfdcc1aa74b53cffc31b5cc4ad6b81af54c13e957f797503"
         },
         {
           "committed": [
