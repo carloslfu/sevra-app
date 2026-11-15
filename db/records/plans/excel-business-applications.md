@@ -3,7 +3,7 @@ type: operational
 meta-type: operational
 id: 01m7ebv28bxsk6szwx72sbrcyp
 created: 2026-11-15T01:06:11.339074+00:00
-updated: 2026-11-15T18:41:07.185978+00:00
+updated: 2026-11-15T19:05:53.767361+00:00
 summary: Close realistic Excel business application reconstruction, reliable autonomous generation, and integrated chat/native qualification gaps.
 title: Realistic Excel business applications
 status: in-progress
@@ -49,9 +49,9 @@ A finite corpus cannot establish universal Excel compatibility. Production signi
 
 ## Active blockers
 
-1. Cohort 17 remains diagnostic. Candidates 134–139 address numeric-rule inference, action-ID guidance, exact valid-control effects, truthful recovery and explicit Undo/Redo. Two consecutive complete fresh six-app cohorts remain required; zero final cohorts are accepted.
-2. Candidate 138 passed package/install identity and the fresh GUI Production import, generation, approval and shared chat/native operation review, which exposed the Undo labeling defect. Candidate 139 focused checks pass; final native recheck and all six final generated interfaces remain pending.
-3. The combined 137/138 local suite, explicit 138 package/install checks and retained 10/10 regression pass. Candidate 139 release checks, exact-code hosted CI, sanitized receipts/specs/handoff and task-only recent/grant cleanup remain. This is ongoing qualification, not a completed product claim.
+1. Cohort 17 remains diagnostic. Production candidate 139 and its regenerated tool-grammar fixture are fixed at commits 886edc8/f90529a. Two consecutive complete fresh six-app cohorts remain required; zero final cohorts are accepted.
+2. Candidate 139 passes exact installed identity, native Undo/Redo/reopen and real local-model chat Redo. The unchanged GUI-generated Production package survived all checks; the synthetic test row was removed through the official version-checked table operation, original capacity restored, grant revoked and preview quit. All six final generated interfaces remain pending.
+3. The retained 10/10 regression and focused authoring/chat/grammar checks pass. The corrected full release suite and native package checks pass; exact-code hosted CI, final sanitized receipts/specs/handoff and task-only recent cleanup remain. This is ongoing qualification, not a completed product claim.
 
 ## Progress
 
@@ -1168,3 +1168,17 @@ The separate fresh GUI Production conversion on candidate 138 saved after two lo
 Candidate 139 follow-up: the exact installed executable/helper/worker UUIDs, SDK hash and strict signatures match its packaged product. Native UI inspection confirms Undo changes Completed to Planned and names Redo; Redo restores Completed and names Undo; reopening preserves Redo. Wide and approximately 842-point layouts retain readable controls and aligned table rows. The generated Production source still matches its successful model submission. The grant was revoked and the preview quit after inspection. Local-model chat Redo and final six-app interfaces remain pending.
 
 The candidate-139 retained ten-app regression passes 10/10, 79 saved-edit/reopen/Undo cases, ten portable copies and 302 independent/boundary UI steps. Source hashes stayed unchanged. These are reused, untouched generated packages with no inference, not fresh-model acceptance. Signed authoring, chat operations, action-confirmation recovery and the independent qualification-verifier counterexamples also pass. The full release suite is running on candidate 139.
+
+
+The first full candidate-139 suite refused stale reference grammar masks after the new `app.redo` tool changed the declaration bytes. The pinned reference generator regenerated only the tool hash and two mask hashes; 86 actual-tool cases and 817 exact masks now pass, with the existing ordinary/authoring prompt limits unchanged. The complete suite is being rerun on that correction. This is a test-fixture correction, not a generated-app repair or a relaxed gate.
+
+Local-model UI Redo completed in 46 seconds using `app.inspect` then `app.redo`; the saved run and native button reflected the actual change. Native Undo returned it to Planned. The task-created UI-R1 row was then removed through `table.change_rows` with exact row/schema versions, preserving all original rows and immutable history and restoring original capacity values. Exporting the complete generated package again proves it is identical to the original successful package. The grant was revoked and the preview quit.
+
+The owner explicitly authorized coordination with the inference-engine audit chat. That audit confirmed it will use code inspection, saved results and isolated CPU tests during the fresh-cohort model/runtime window; no model configuration or production-source change is part of this acceptance.
+
+
+## Candidate 139 release checks complete; fresh cohorts started
+
+The complete corrected `scripts/check.sh` run passes: 660 core checks, 27 SDK groups, 18 signed native groups, signed authoring/Excel checks, 86 actual-tool grammars with 817 exact reference masks, workflow/durability/concurrency/recovery checks, current native packaging, ten missing-resource and altered-resource refusals, strict signatures, isolated native install/update/uninstall, both extraction helpers and repository/store validation. The preserved baseline package is intentionally stale and skipped; the current native package checks ran and passed. The installed native product and its identity remain unchanged by the grammar-fixture-only correction.
+
+Cohort 18 starts from absent output directories with all six cases in the declared order, no replay environment, unchanged candidate-139 production code and the regenerated reference fixture. The independent inference audit is respecting the reserved runtime/model window. Documentation-only rich-visual-plan changes were committed separately and are outside the acceptance source hash. Zero final cohorts are accepted until the full runs and independent oracles pass.

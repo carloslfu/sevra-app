@@ -2,7 +2,7 @@
 type: review
 id: 01m7fb55rgf0b9rfxcfp0683tx
 created: 2026-11-15T10:13:28.464388+00:00
-updated: 2026-11-15T18:41:07.206654+00:00
+updated: 2026-11-15T19:05:53.805659+00:00
 summary: Shared formula, review, numeric validation, repair and authority fixes pass scoped checks; final fresh cohorts and native visual qualification remain pending.
 title: Excel business application adversarial review
 ---
@@ -337,3 +337,17 @@ The separate fresh GUI Production conversion on candidate 138 saved after two lo
 Candidate 139 follow-up: the exact installed executable/helper/worker UUIDs, SDK hash and strict signatures match its packaged product. Native UI inspection confirms Undo changes Completed to Planned and names Redo; Redo restores Completed and names Undo; reopening preserves Redo. Wide and approximately 842-point layouts retain readable controls and aligned table rows. The generated Production source still matches its successful model submission. The grant was revoked and the preview quit after inspection. Local-model chat Redo and final six-app interfaces remain pending.
 
 The candidate-139 retained ten-app regression passes 10/10, 79 saved-edit/reopen/Undo cases, ten portable copies and 302 independent/boundary UI steps. Source hashes stayed unchanged. These are reused, untouched generated packages with no inference, not fresh-model acceptance. Signed authoring, chat operations, action-confirmation recovery and the independent qualification-verifier counterexamples also pass. The full release suite is running on candidate 139.
+
+
+The first full candidate-139 suite refused stale reference grammar masks after the new `app.redo` tool changed the declaration bytes. The pinned reference generator regenerated only the tool hash and two mask hashes; 86 actual-tool cases and 817 exact masks now pass, with the existing ordinary/authoring prompt limits unchanged. The complete suite is being rerun on that correction. This is a test-fixture correction, not a generated-app repair or a relaxed gate.
+
+Local-model UI Redo completed in 46 seconds using `app.inspect` then `app.redo`; the saved run and native button reflected the actual change. Native Undo returned it to Planned. The task-created UI-R1 row was then removed through `table.change_rows` with exact row/schema versions, preserving all original rows and immutable history and restoring original capacity values. Exporting the complete generated package again proves it is identical to the original successful package. The grant was revoked and the preview quit.
+
+The owner explicitly authorized coordination with the inference-engine audit chat. That audit confirmed it will use code inspection, saved results and isolated CPU tests during the fresh-cohort model/runtime window; no model configuration or production-source change is part of this acceptance.
+
+
+## Candidate 139 release checks complete; fresh cohorts started
+
+The complete corrected `scripts/check.sh` run passes: 660 core checks, 27 SDK groups, 18 signed native groups, signed authoring/Excel checks, 86 actual-tool grammars with 817 exact reference masks, workflow/durability/concurrency/recovery checks, current native packaging, ten missing-resource and altered-resource refusals, strict signatures, isolated native install/update/uninstall, both extraction helpers and repository/store validation. The preserved baseline package is intentionally stale and skipped; the current native package checks ran and passed. The installed native product and its identity remain unchanged by the grammar-fixture-only correction.
+
+Cohort 18 starts from absent output directories with all six cases in the declared order, no replay environment, unchanged candidate-139 production code and the regenerated reference fixture. The independent inference audit is respecting the reserved runtime/model window. Documentation-only rich-visual-plan changes were committed separately and are outside the acceptance source hash. Zero final cohorts are accepted until the full runs and independent oracles pass.
