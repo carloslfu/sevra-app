@@ -5,7 +5,7 @@ import SevraCore
 import SevraNativeAI
 
 @MainActor func runChatOperationProbe(
-  modelsRoot: String, library: String, engine: String, output: String
+  modelsRoot: String, library: String, engine: String, output: String, homeOnly: Bool = false
 ) async throws {
   let root = URL(fileURLWithPath: output)
   try require(
@@ -62,6 +62,32 @@ import SevraNativeAI
       to: root.appendingPathComponent("messages.json"), options: .atomic)
     print("CHAT PROBE " + name + ": " + result.answer)
     return result
+  }
+  if homeOnly {
+    _ = try await ask(
+      "home-embed",
+      "Put the Stock room app on Home as a live view. Keep the existing Home sections.")
+    let home = try book.space("home")
+    try expectEqual(
+      home.definition.components.contains { $0.type == "app" && $0.spaceID == space.id }, true)
+    try expectEqual(
+      home.definition.components.filter { $0.type != "app" }, SpaceDefinition.defaultHome.components
+    )
+    _ = try await ask("home-operate", "Add Pencils with quantity 3 in Stock room, here in chat.")
+    try expectEqual(try book.rows(table).count, 1)
+    try expectEqual(try book.rows(table)[0].data["name"].text, "Pencils")
+    _ = try await ask(
+      "home-move", "Move the Stock room live view to the top of Home. Keep the other sections.")
+    try expectEqual(try book.space("home").definition.components.first?.spaceID, space.id)
+    _ = try await ask(
+      "home-remove", "Remove the Stock room view from Home. Keep the app and all its data.")
+    try expectEqual(try book.space("home").definition.containsComponent("app"), false)
+    try expectEqual(try book.rows(table).count, 1)
+    try expectEqual(try book.space(space.id).version, 1)
+    _ = try await ask("home-reset", "Reset Home to its default layout.")
+    try expectEqual(try Workbook(book.url).space("home").definition, SpaceDefinition.defaultHome)
+    print("PASS live Home: embed, operate, rearrange, remove, reset and reopen through chat")
+    return
   }
   let added = try await ask(
     "add", "In the Stock room app, add Pencils with quantity 3. Do it here in chat.")

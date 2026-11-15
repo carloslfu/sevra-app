@@ -4,27 +4,39 @@ import Foundation
 extension SpaceDefinition {
   public static var defaultHome: Self {
     .init(components: [
-      .init(id: "input", type: "input", title: "Add information"),
-      .init(id: "reviews", type: "reviews", title: "Drafts to review"),
-      .init(id: "shortcuts", type: "shortcuts", title: "Your spaces"),
-      .init(id: "tables", type: "tables", title: "Tables"),
-      .init(id: "intake", type: "intake", title: "Intake needs attention"),
-      .init(id: "recent", type: "recent", title: "Recent work"),
+      .init(id: "attention", type: "attention", title: "Needs attention"),
+      .init(id: "continue", type: "continue", title: "Continue working"),
+      .init(id: "shortcuts", type: "shortcuts", title: "Pinned spaces"),
     ])
   }
   public static let sectionTypes: Set<String> = [
-    "input", "reviews", "shortcuts", "tables", "intake", "recent",
+    "input", "reviews", "shortcuts", "tables", "intake", "recent", "attention", "continue",
   ]
-  /// P03b: however Home is arranged, waiting drafts stay in view. A Home with its own reviews
-  /// section keeps it where it is.
-  public func homeComponents(pendingReview: Bool) -> [Component] {
-    func includesReviews(_ components: [Component]) -> Bool {
-      components.contains { $0.type == "reviews" || includesReviews($0.children ?? []) }
+  public func containsComponent(_ type: String) -> Bool {
+    func contains(_ components: [Component]) -> Bool {
+      components.contains { $0.type == type || contains($0.children ?? []) }
     }
-    guard pendingReview, !includesReviews(components) else { return components }
-    return [Component(id: "pending-reviews", type: "reviews", title: "Drafts to review")]
-      + components
+    return contains(components)
   }
+  /// Pending work remains reachable even after its section was removed.
+  public func homeComponents(pendingReview: Bool, pendingAttention: Bool = false) -> [Component] {
+    let needsAttention = pendingAttention && !containsComponent("attention")
+    let needsReviews =
+      pendingReview && !containsComponent("attention") && !containsComponent("reviews")
+    guard needsAttention || needsReviews else { return components }
+    func ids(_ components: [Component]) -> [String] {
+      components.flatMap { [$0.id] + ids($0.children ?? []) }
+    }
+    let occupied = Set(ids(components))
+    var id = "home-attention"
+    while occupied.contains(id) { id += "-" }
+    return [
+      Component(
+        id: id, type: needsAttention ? "attention" : "reviews",
+        title: needsAttention ? "Needs attention" : "Drafts to review")
+    ] + components
+  }
+
 }
 
 public struct SpaceEdit: Codable, Equatable, Sendable {
@@ -181,7 +193,11 @@ extension Workbook {
       var title = current.title
       for edit in edits {
         try validateSpaceEdit(edit)
-        if edit.operation == "rename" {
+        if edit.operation == "reset" {
+          try require(id == "home", "view", "Reset is only available for Home.")
+          definition = .defaultHome
+          title = "Home"
+        } else if edit.operation == "rename" {
           try require(edit.title != nil, "view", "A rename needs a title.")
           title = edit.title!
         } else if edit.operation == "insert" {
@@ -211,6 +227,7 @@ extension Workbook {
       ].compactMap { $0 })
     let allowed: Set<String>
     switch edit.operation {
+    case "reset": allowed = []
     case "rename": allowed = ["title"]
     case "insert": allowed = ["component", "beforeID", "at"]
     case "remove": allowed = ["componentID"]

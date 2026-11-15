@@ -11,7 +11,7 @@ def run(*a,ok=True):
 with tempfile.TemporaryDirectory(prefix='sevra-layout-') as d:
  b=Path(d)/'Layouts.sevra';run('create',b)
  initial=next(s for s in run('spaces',b) if s['id']=='home')
- assert [x['id'] for x in initial['definition']['components']]==['input','reviews','shortcuts','tables','intake','recent']
+ assert [x['id'] for x in initial['definition']['components']]==['attention','continue','shortcuts']
  def write(n):
   r=subprocess.run([cli,'space-edit',str(b),'home','1',json.dumps([{'operation':'rename','title':f'Writer {n}'}]),f'writer-{n}'],capture_output=True,text=True,timeout=60)
   return r
@@ -20,7 +20,7 @@ with tempfile.TemporaryDirectory(prefix='sevra-layout-') as d:
  assert next(json.loads(x.stderr)['error']['code'] for x in r if x.returncode)=='space_conflict' 
  history=run('space-history',b,'home');assert [x['version'] for x in history]==[2,1]
  current=next(s for s in run('spaces',b) if s['id']=='home')
- edits=json.dumps([{'operation':'remove','componentID':'recent'},{'operation':'move','componentID':'tables','beforeID':'input'}])
+ edits=json.dumps([{'operation':'remove','componentID':'shortcuts'},{'operation':'move','componentID':'continue','beforeID':'attention'}])
  saved=run('space-edit',b,'home','2',edits,'once');assert saved['version']==3
  assert run('space-edit',b,'home','2',edits,'once')==saved
  assert run('space-edit',b,'home','1',edits,ok=False)['error']['code']=='space_conflict'

@@ -11,10 +11,19 @@ import SwiftUI
   @Published public private(set) var tree = NativeAppTree()
   public let book: Workbook
   public let space: Space
-  public var onFrame: ((NativeAppTree, Set<String>) -> Void)?
-  public var onData: ((Set<String>) -> Void)?
-  public var onTablePresentation: ((String) -> Void)?
-  public var onInteractionAvailability: (() -> Void)?
+  public struct ViewObserver {
+    public var frame: (NativeAppTree, Set<String>) -> Void
+    public var data: (Set<String>) -> Void
+    public var tablePresentation: (String) -> Void
+    public var interactionAvailability: () -> Void
+  }
+  private var viewObservers: [UUID: ViewObserver] = [:]
+  public func observeView(_ observer: ViewObserver) -> UUID {
+    let id = UUID()
+    viewObservers[id] = observer
+    return id
+  }
+  public func removeViewObserver(_ id: UUID) { viewObservers[id] = nil }
   private var tablePresentations: [String: (signature: Value, request: Value)] = [:]
   public private(set) var access: NativeAppAccess?
   private var connection: NSXPCConnection?
@@ -46,7 +55,7 @@ import SwiftUI
   private var commandReceipts: [Value] = []
   private var commandFailures: [String] = []
   @Published public private(set) var conversationBusy = false {
-    didSet { onInteractionAvailability?() }
+    didSet { for observer in Array(viewObservers.values) { observer.interactionAvailability() } }
   }
   private let exchangeOverride: (@Sendable (Data) async throws -> Data)?
   public init(
@@ -106,7 +115,7 @@ import SwiftUI
     status = "starting"
     tree = NativeAppTree()
     sequence = 0
-    onFrame?(tree, [])
+    for observer in Array(viewObservers.values) { observer.frame(tree, []) }
     budgetStarted = Date()
     budgetFrames = 0
     budgetBytes = 0
@@ -230,7 +239,7 @@ import SwiftUI
         "app_protocol", "The app exposes too many operations.")
       actionCatalog = response["frame"]["actions"]
       interactionCatalog = response["frame"]["interactions"]
-      onFrame?(next, changed)
+      for observer in Array(viewObservers.values) { observer.frame(next, changed) }
       sequence += 1
       busy = false
       status = "running"
@@ -238,6 +247,10 @@ import SwiftUI
       if poll == nil { beginPolling() }
       flush()
     } catch { fail(error.localizedDescription, epoch: current) }
+  }
+  /// A field can be edited in Home, its app and chat. All views use one edit clock.
+  public func nextInputRevision(for node: String) -> Int {
+    max(nativeEdits[node] ?? 0, tree.nodes[node]?.props["editRevision"].int ?? 0) + 1
   }
   public func event(
     node: String, handler: String, value: Value = .null, editRevision: Int = 0,
@@ -461,7 +474,9 @@ import SwiftUI
   public func setTableRequest(_ node: NativeAppNode, request: Value, notify: Bool = false) {
     _ = tableRequest(node)
     tablePresentations[node.id]?.request = request
-    if notify { onTablePresentation?(node.id) }
+    if notify {
+      for observer in Array(viewObservers.values) { observer.tablePresentation(node.id) }
+    }
   }
   public func undo() {
     guard canUndo, let lastUndo else { return }
@@ -640,7 +655,7 @@ import SwiftUI
         } else if operation == "set" {
           try Self.validateConversationInput(node, value: value)
         }
-        nativeEdits[node.id, default: 0] += 1
+        nativeEdits[node.id] = nextInputRevision(for: node.id)
         extra.merge([
           "node": .string(node.id), "mountID": .number(Double(node.mountID)),
           "handler": .string(handler), "value": value,
@@ -802,7 +817,7 @@ import SwiftUI
             ? [args["table"].text] : args["sources"].array.map { $0["table"].text })
         if !changed.isDisjoint(with: dependencies) { refreshSubscription(id) }
       }
-      onData?(changed)
+      for observer in Array(viewObservers.values) { observer.data(changed) }
     } catch { fail(error.localizedDescription, epoch: current) }
   }
 }

@@ -200,33 +200,23 @@ struct SpaceView: View {
           Text("Snapshot from " + DisplayText.date(captured)).readingFont(.caption).foregroundStyle(
             .secondary)
         }
-        if space.definition.components.isEmpty {
+        if space.id == "home", visibleComponents.isEmpty {
+          HomeStartView(state: state)
+        } else if space.definition.components.isEmpty {
           Text("Make room for your work").readingFont(size: 28, weight: .medium)
           Text(
-            "Describe what you want here, or edit the layout. Removing sections keeps your information in the workbook."
+            "Describe what you want here. Removing a view keeps its information in the workbook."
           )
-          .foregroundStyle(.secondary).frame(maxWidth: 520, alignment: .leading)
-        }
-        if space.id == "home", !state.excelImports.isEmpty {
-          VStack(alignment: .leading, spacing: 12) {
-            Text("Excel workbooks").readingFont(.headline)
-            ForEach(Array(state.excelImports.enumerated()), id: \.offset) { _, entry in
-              Button {
-                state.navigate(.excelImport(entry["id"].text))
-              } label: {
-                HStack(spacing: 12) {
-                  Image(systemName: "tablecells")
-                  Text(entry["title"].text)
-                  Spacer()
-                  Text(entry["state"].text == "ready" ? "Workspace ready" : "Continue import")
-                    .readingFont(.caption).foregroundStyle(.secondary)
-                }.padding(.vertical, 7).contentShape(Rectangle())
-              }.buttonStyle(.plain)
-            }
-          }
+          .foregroundStyle(.secondary)
         }
         ForEach(visibleComponents) { component in
           NativeComponent(component: component, state: state).id(component.id)
+        }
+        if space.id == "home" {
+          Divider()
+          Button("Arrange Home in chat") {
+            state.focusHomeChat("Change my Home to show ")
+          }.buttonStyle(.link).readingFont(.callout)
         }
       }.scrollTargetLayout().padding(26).frame(maxWidth: .infinity, alignment: .leading)
     }.scrollPosition(
@@ -238,9 +228,13 @@ struct SpaceView: View {
     let pending = state.pendingReview?.items.isEmpty == false
     let components =
       space.id == "home"
-      ? space.definition.homeComponents(pendingReview: pending) : space.definition.components
+      ? space.definition.homeComponents(
+        pendingReview: pending, pendingAttention: state.hasHomeAttention)
+      : space.definition.components
     return components.filter { component in
       switch component.type {
+      case "attention": return state.hasHomeAttention
+      case "continue": return state.hasContinueWork
       case "reviews": return state.pendingReview?.items.isEmpty == false
       case "tables": return !state.datasets.isEmpty || !state.archivedDatasets.isEmpty
       case "recent": return !state.items.isEmpty
@@ -249,7 +243,7 @@ struct SpaceView: View {
       case "shortcuts":
         let shortcuts = SpacePickerSections(
           spaces: state.spaces, navigation: state.spaceNavigation.state, query: "")
-        return !shortcuts.pinned.isEmpty || !shortcuts.recent.isEmpty
+        return !shortcuts.pinned.isEmpty
       default: return true
       }
     }
@@ -268,6 +262,8 @@ struct WorkbookSection: View {
   @ObservedObject var state: WorkspaceState
   @ViewBuilder var body: some View {
     switch type {
+    case "attention": HomeAttentionView(state: state)
+    case "continue": HomeContinueView(state: state)
     case "input":
       HStack {
         Button("Add files…") { state.importPanel() }
@@ -292,14 +288,7 @@ struct WorkbookSection: View {
       let shortcuts = SpacePickerSections(
         spaces: state.spaces, navigation: state.spaceNavigation.state, query: "")
       if !shortcuts.pinned.isEmpty {
-        sectionTitle("Pinned spaces")
         ForEach(shortcuts.pinned) { saved in
-          SpaceShortcutRow(space: saved, state: state) { state.navigate(.space(saved.id)) }
-        }
-      }
-      if !shortcuts.recent.isEmpty {
-        sectionTitle("Recent spaces")
-        ForEach(Array(shortcuts.recent.prefix(4))) { saved in
           SpaceShortcutRow(space: saved, state: state) { state.navigate(.space(saved.id)) }
         }
       }
@@ -421,8 +410,9 @@ struct NativeComponent: View {
             .secondary)
       }
       switch component.type {
-      case "input", "reviews", "shortcuts", "tables", "intake", "recent":
+      case "input", "reviews", "shortcuts", "tables", "intake", "recent", "attention", "continue":
         WorkbookSection(type: component.type, state: state)
+      case "app": HomeAppView(component: component, state: state)
       case "calculation", "query":
         DefinitionComponentView(component: component, workspace: state).id(
           state.interactionIdentity)

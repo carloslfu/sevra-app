@@ -88,7 +88,8 @@ extension Workbook {
       func pin(_ component: Component) throws -> Component {
         try cancellation.check()
         try require(
-          !SpaceDefinition.sectionTypes.contains(component.type) && component.type != "form",
+          !SpaceDefinition.sectionTypes.contains(component.type)
+            && !["form", "app"].contains(component.type),
           "view_limit",
           "Live workbook sections and forms cannot be frozen. Snapshot a space containing bound business views."
         )

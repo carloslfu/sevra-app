@@ -67,6 +67,9 @@ struct FolderReview {
   @Published var items: [ItemSummary] = []
   @Published var datasets: [Dataset] = []
   @Published var archivedDatasets: [Dataset] = []
+  @Published var homeDocuments: [ItemSummary] = []
+  @Published var pendingWorkflows: [Value] = []
+  @Published var chatApproval: ChatApproval?
   @Published var excelImports: [Value] = []
   @Published var excelPurposeDrafts: [String: String] = [:]
   func dataset(_ id: String) -> Dataset? {
@@ -249,6 +252,9 @@ struct FolderReview {
     reviewResults.reset()
     datasets = []
     archivedDatasets = []
+    homeDocuments = []
+    pendingWorkflows = []
+    chatApproval = nil
     excelImports = []
     excelPurposeDrafts = [:]
     messages = []
@@ -378,6 +384,9 @@ struct FolderReview {
         self.items = snapshot.items
         self.datasets = snapshot.datasets
         self.archivedDatasets = snapshot.archivedDatasets
+        self.homeDocuments = snapshot.homeDocuments
+        self.pendingWorkflows = snapshot.pendingWorkflows
+        self.chatApproval = snapshot.chatApproval
         self.excelImports = snapshot.excelImports
         self.messages = snapshot.messages
         self.contents.retain(snapshot.messages)
@@ -1642,6 +1651,9 @@ struct FolderReview {
     items = []
     datasets = []
     archivedDatasets = []
+    homeDocuments = []
+    pendingWorkflows = []
+    chatApproval = nil
     excelImports = []
     excelPurposeDrafts = [:]
     messages = []

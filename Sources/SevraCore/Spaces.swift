@@ -6,6 +6,7 @@ public struct Component: Codable, Identifiable, Equatable, Sendable {
   public var title: String
   public var datasetID: String?
   public var itemID: String?
+  public var spaceID: String?
   public var query: String?
   public var x: String?
   public var y: String?
@@ -25,13 +26,15 @@ public struct Component: Codable, Identifiable, Equatable, Sendable {
     text: String? = nil, chartStyle: String? = nil, aggregation: String? = nil,
     unit: String? = nil, children: [Component]? = nil, snapshot: ComponentSnapshot? = nil,
     searchSnapshot: ComponentSearchSnapshot? = nil, definitionBinding: Value? = nil,
-    arguments: Value? = nil, evaluationSnapshot: DefinitionResultSnapshot? = nil
+    arguments: Value? = nil, evaluationSnapshot: DefinitionResultSnapshot? = nil,
+    spaceID: String? = nil
   ) {
     self.id = id
     self.type = type
     self.title = title
     self.datasetID = datasetID
     self.itemID = itemID
+    self.spaceID = spaceID
     self.query = query
     self.x = x
     self.y = y
@@ -148,10 +151,27 @@ extension Workbook {
       try require(
         Set([
           "table", "chart", "metric", "comparison", "document", "asset", "search", "text", "form",
-          "calculation", "query",
+          "calculation", "query", "app",
         ])
         .union(SpaceDefinition.sectionTypes).contains(c.type), "view",
         "Unknown native component: \(c.type)")
+      if c.type == "app" {
+        try require(
+          definition.pinnedAt == nil && c.datasetID == nil && c.itemID == nil
+            && c.snapshot == nil && c.searchSnapshot == nil && c.evaluationSnapshot == nil
+            && c.arguments == nil && c.definitionBinding == nil,
+          "view", "A live app view binds only to its app space and cannot be a snapshot.")
+        guard let id = c.spaceID, !id.isEmpty, id.utf8.count <= 256 else {
+          throw SevraError("view", "Choose the exact app space ID from spaces.")
+        }
+        // Existing unavailable bindings remain removable and restorable.
+        if !unchanged.contains(c) {
+          try require(
+            try space(id).definition.app != nil, "view", "Choose a programmable app space.")
+        }
+      } else {
+        try require(c.spaceID == nil, "view", "Only a live app component uses spaceID.")
+      }
       if ["calculation", "query"].contains(c.type) {
         try validateDefinitionComponent(
           c, pinned: definition.pinnedAt != nil, checkArguments: !unchanged.contains(c))

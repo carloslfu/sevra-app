@@ -70,6 +70,10 @@ struct SpaceLayoutEditor: View {
                     text: Binding(
                       get: { component.query ?? "" }, set: { component.query = $0 }))
                 }
+                if let id = component.spaceID {
+                  Text(state.spaces.first { $0.id == id }?.title ?? "Unavailable app")
+                    .readingFont(.caption).foregroundStyle(.secondary)
+                }
                 if let id = component.datasetID {
                   Text(state.datasets.first { $0.id == id }?.title ?? "Missing table binding")
                     .readingFont(.caption).foregroundStyle(.secondary)
@@ -90,6 +94,11 @@ struct SpaceLayoutEditor: View {
             Button("Text") { add(.init(type: "text", title: "Note", text: "")) }
             Button("Receive delivery form") { addReceivingForm() }
             Button("Saved search") { add(.init(type: "search", title: "Search", query: "")) }
+            Menu("Live app") {
+              ForEach(state.spaces.filter { $0.definition.app != nil }) { app in
+                Button(app.title) { add(.init(type: "app", title: app.title, spaceID: app.id)) }
+              }
+            }
             Menu("Table") {
               ForEach(state.datasets) { table in
                 Button(table.title) {
@@ -98,7 +107,15 @@ struct SpaceLayoutEditor: View {
               }
             }
             Divider()
-            ForEach(SpaceDefinition.defaultHome.components) { component in
+            ForEach(
+              SpaceDefinition.defaultHome.components + [
+                Component(id: "input", type: "input", title: "Add information"),
+                Component(id: "tables", type: "tables", title: "Tables"),
+                Component(id: "recent", type: "recent", title: "Recent files and records"),
+                Component(id: "reviews", type: "reviews", title: "Drafts to review"),
+                Component(id: "intake", type: "intake", title: "Intake needs attention"),
+              ]
+            ) { component in
               Button(component.title) {
                 add(.init(type: component.type, title: component.title))
               }

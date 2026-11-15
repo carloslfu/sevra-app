@@ -39,6 +39,7 @@ public struct NativeAppSurface: NSViewRepresentable {
 @MainActor public final class NativeAppRenderer: NSView {
   private let session: NativeAppSession
   private var elements: [String: AppElement] = [:]
+  private var observerID: UUID?
   private var rootID: String?
   private let scroll = NSScrollView()
   private var documentWidth: NSLayoutConstraint?
@@ -50,24 +51,25 @@ public struct NativeAppSurface: NSViewRepresentable {
     scroll.drawsBackground = false
     scroll.autoresizingMask = [.width, .height]
     addSubview(scroll)
-    session.onFrame = { [weak self] tree, changed in self?.apply(tree, changed: changed) }
-    session.onTablePresentation = { [weak self] id in self?.elements[id]?.table?.reload() }
-    session.onInteractionAvailability = { [weak self] in self?.refreshInteractionAvailability() }
-    session.onData = { [weak self] aliases in
-      guard let self else { return }
-      for element in self.elements.values {
-        if aliases.contains(element.node.props["table"].text) { element.table?.reload() }
-      }
-    }
+    observerID = session.observeView(
+      .init(
+        frame: { [weak self] tree, changed in self?.apply(tree, changed: changed) },
+        data: { [weak self] aliases in
+          guard let self else { return }
+          for element in self.elements.values {
+            if aliases.contains(element.node.props["table"].text) { element.table?.reload() }
+          }
+        },
+        tablePresentation: { [weak self] id in self?.elements[id]?.table?.reload() },
+        interactionAvailability: { [weak self] in self?.refreshInteractionAvailability() }
+      ))
     apply(session.tree, changed: Set(session.tree.nodes.keys))
   }
   required init?(coder: NSCoder) { fatalError("init(coder:) has not been implemented") }
   public override var isFlipped: Bool { true }
   public func disconnect() {
-    session.onFrame = nil
-    session.onTablePresentation = nil
-    session.onInteractionAvailability = nil
-    session.onData = nil
+    if let observerID { session.removeViewObserver(observerID) }
+    observerID = nil
   }
   public func view(for id: String) -> NSView? { elements[id]?.content }
   private func apply(_ tree: NativeAppTree, changed: Set<String>) {
@@ -465,7 +467,7 @@ final class AppElement: NSView, NSTextFieldDelegate, NSTextViewDelegate, NSTabVi
   }
   private func changed(_ value: Value) {
     guard !applying, interactionEnabled else { return }
-    inputRevision += 1
+    inputRevision = session.nextInputRevision(for: node.id)
     session.event(node: node.id, handler: "onChange", value: value, editRevision: inputRevision)
   }
   @objc private func action() {

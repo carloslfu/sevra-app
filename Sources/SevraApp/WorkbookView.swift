@@ -87,11 +87,21 @@ struct WorkbookView: View {
                 if space.definition.app != nil {
                   Button("Update app…") { state.importNativeApp(replacing: space) }.disabled(
                     state.busy)
+                  if state.homeShowsApp(space.id) {
+                    Button("Open Home") { state.navigate(.space("home")) }
+                  } else {
+                    Button("Show on Home") { state.showAppOnHome(space) }.disabled(state.busy)
+                  }
                   Button("App history…") { editingSpace = space }.disabled(state.busy)
                 } else {
                   Button("Edit layout…") { editingSpace = space }.disabled(state.busy)
+                  if id == "home" {
+                    Button("Reset Home to default") { state.resetHome(space) }.disabled(state.busy)
+                  }
                 }
-                if !space.definition.components.isEmpty && !space.definition.containsSections {
+                if !space.definition.components.isEmpty && !space.definition.containsSections
+                  && !space.definition.containsComponent("app")
+                {
                   Button("Save a snapshot") {
                     state.pinSpace(
                       space.id,
@@ -100,6 +110,20 @@ struct WorkbookView: View {
                   }.disabled(state.busy)
                 }
                 Divider()
+              }
+              Menu("Tables") {
+                ForEach(state.datasets + state.archivedDatasets) { table in
+                  Button(table.title + (table.archived ? " (archived)" : "")) {
+                    state.navigate(.table(table.id))
+                  }
+                }
+              }
+              if !state.excelImports.isEmpty {
+                Menu("Excel workbooks") {
+                  ForEach(state.excelImports, id: \.text) { entry in
+                    Button(entry["title"].text) { state.navigate(.excelImport(entry["id"].text)) }
+                  }
+                }
               }
               Button("Drafts to review") { state.navigate(.reviews) }
               Button("Workflow runs") { state.navigate(.activity) }

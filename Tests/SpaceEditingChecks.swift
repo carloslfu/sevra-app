@@ -29,6 +29,113 @@ func checkSpaceEditing(at temp: URL) {
     try expect(try rebuilt.spaceHistory("home").map(\.version) == [3, 2, 1])
     try expect(try rebuilt.item(draft.id).status == "draft")
   }
+  check(
+    "Home app composition shares bindings, survives reopen and resets without changing app data"
+  ) {
+    let book = try fixture()
+    let app = try book.installNativeAppContents(
+      NativeAppPackage(
+        name: "Orders", source: "Sevra.mount(Sevra.h(Sevra.Text,{text:'Orders'}));", datasets: [:]))
+    let initial = try book.space("home")
+    let component = Component(id: "orders", type: "app", title: "Orders", spaceID: app.id)
+    let tools = WorkbookTools(book)
+    let result = try tools.execute(
+      "edit_space",
+      .object([
+        "id": .string("home"), "expectedVersion": .number(Double(initial.version)),
+        "edits": try encoded([SpaceEdit(operation: "insert", at: "last", component: component)]),
+      ]))
+    try expect(result["version"].int == 2)
+    try expect(try book.space("home").definition.components.last == component)
+    try expect(try Workbook(book.url).space("home").definition.components.last == component)
+    try expect(try book.space(app.id).version == 1)
+    try refuses("space_conflict") {
+      _ = try book.editSpace("home", expectedVersion: 1, edits: [.init(operation: "reset")])
+    }
+    try refuses("view") {
+      _ = try book.editSpace(
+        "home", expectedVersion: 2,
+        edits: [
+          .init(
+            operation: "insert", at: "last",
+            component: .init(id: "bad", type: "app", title: "Bad", spaceID: "home"))
+        ])
+    }
+    try refuses("view") {
+      _ = try book.saveSpace(
+        title: "Invalid binding",
+        definition: .init(components: [
+          .init(type: "text", title: "Text", spaceID: app.id)
+        ]))
+    }
+    let onlyApp = try book.saveSpace(title: "Live", definition: .init(components: [component]))
+    try refuses("view_limit") { _ = try book.pinSpace(onlyApp) }
+    try refuses("view") {
+      _ = try book.editSpace(onlyApp, expectedVersion: 1, edits: [.init(operation: "reset")])
+    }
+    try refuses("read_only_request") {
+      _ = try WorkbookTools(book, readOnly: true).execute(
+        "edit_space",
+        .object([
+          "id": .string("home"), "expectedVersion": .number(2),
+          "edits": try encoded([SpaceEdit(operation: "reset")]),
+        ]))
+    }
+    _ = try book.editSpace("home", expectedVersion: 2, edits: [.init(operation: "reset")])
+    try expect(try book.space("home").definition == .defaultHome)
+    _ = try book.restoreSpace("home", version: 2, expectedVersion: 3)
+    try expect(try book.space("home").definition.components.last == component)
+    let replay = try book.reconstruct(to: temp.appendingPathComponent(identifier() + ".sevra"))
+    try expect(try replay.space("home").definition == book.space("home").definition)
+    try expect(try replay.space(app.id).definition.app == book.space(app.id).definition.app)
+    try expect(try book.spaceHistory("home").map(\.version) == [4, 3, 2, 1])
+    let snapshot = try book.workspaceSnapshot(conversation: "main")!
+    try expect(
+      snapshot.pendingWorkflows.isEmpty && snapshot.chatApproval == nil
+        && snapshot.homeDocuments.isEmpty)
+    let evidence = try book.addItem(
+      category: "source", kind: "observation", title: "Technical observation", status: "accepted")
+    let document = try book.addItem(
+      category: "record", kind: "document", title: "Delivery notes", text: "Synthetic draft",
+      inputs: [evidence.id])
+    try expect(
+      try book.workspaceSnapshot(conversation: "main")!.homeDocuments.map(\.id) == [document.id])
+    let function = try book.saveApplicationDefinition(
+      logicalID: identifier(),
+      content: .object([
+        "kind": .string("function"), "title": .string("Order total"),
+        "description": .string("Synthetic"),
+        "parameters": .array([]), "payload": .object(["expression": .string("2*2")]),
+      ]))
+    let workflow = try book.saveApplicationDefinition(
+      logicalID: identifier(), content: book.workflowTemplate(function.id))
+    for _ in 0..<6 {
+      _ = try book.startWorkflow(workflow.id, arguments: .object([:]), token: identifier())
+    }
+    let pending = try book.workspaceSnapshot(conversation: "main")!.pendingWorkflows
+    try expect(
+      pending.count == 4
+        && pending.allSatisfy { $0["title"].text == workflow.title && $0["state"].text == "queued" }
+    )
+
+    _ = try book.prepareChatApproval(
+      action: "app.enable",
+      arguments: .object([
+        "id": .string(app.id), "expectedVersion": .number(1),
+      ]), title: "Enable Orders", conversation: "main")
+    try expect(
+      try book.workspaceSnapshot(conversation: "main")!.chatApproval?.title == "Enable Orders")
+    let empty = SpaceDefinition(components: [
+      .init(id: "home-attention", type: "text", title: "Note")
+    ])
+    let protected = empty.homeComponents(pendingReview: true, pendingAttention: true)
+    try expect(protected.count == 2 && protected[0].type == "attention")
+    try expect(Set(protected.map(\.id)).count == 2)
+    try expect(
+      SpaceDefinition.defaultHome.homeComponents(pendingReview: true, pendingAttention: true)
+        == SpaceDefinition.defaultHome.components)
+    _ = try book.verify()
+  }
   check("a view that went stale under a saved space does not block edits around it") {
     let book = try fixture()
     let source = try book.addItem(category: "source", kind: "observation", title: "Stock")
@@ -109,7 +216,7 @@ func checkSpaceEditing(at temp: URL) {
   check("space edits compare exact bases and retries keep the original saved version") {
     let book = try fixture()
     let other = try Workbook(book.url)
-    let edits = [SpaceEdit(operation: "title", componentID: "recent", title: "Recent evidence")]
+    let edits = [SpaceEdit(operation: "title", componentID: "shortcuts", title: "Recent evidence")]
     let first = try book.editSpace("home", expectedVersion: 1, edits: edits, token: "layout-once")
     _ = try other.editSpace(
       "home", expectedVersion: 2, edits: [.init(operation: "rename", title: "Operations")])
@@ -120,7 +227,7 @@ func checkSpaceEditing(at temp: URL) {
         == first.version)
     try refuses("space_conflict") {
       _ = try other.editSpace(
-        "home", expectedVersion: 1, edits: [.init(operation: "remove", componentID: "recent")])
+        "home", expectedVersion: 1, edits: [.init(operation: "remove", componentID: "shortcuts")])
     }
     try refuses("space_conflict") {
       _ = try book.saveSpace(id: "home", title: "Overwrite", definition: .init(components: []))
@@ -191,12 +298,12 @@ func checkSpaceEditing(at temp: URL) {
   check("agent layout tools preserve read-only authority and exact saved identities") {
     let book = try fixture()
     let run = try book.startAgentRequest(
-      "Hide recent work on Home", conversation: "main", model: "local-test-model"
+      "Hide pinned spaces on Home", conversation: "main", model: "local-test-model"
     ).runID
     let tools = WorkbookTools(book, runID: run)
     let arguments: Value = .object([
       "id": .string("home"), "expectedVersion": .number(1),
-      "edits": try encoded([SpaceEdit(operation: "remove", componentID: "recent")]),
+      "edits": try encoded([SpaceEdit(operation: "remove", componentID: "shortcuts")]),
     ])
     let result = try tools.execute("edit_space", arguments)
     try expect(result["spaceID"].text == "home" && result["version"].int == 2)
@@ -220,10 +327,10 @@ func checkSpaceEditing(at temp: URL) {
     let initial = try book.space("home")
     let revision = try book.revision()
     for edit in [
-      SpaceEdit(operation: "move", componentID: "tables", title: "Tables"),
-      SpaceEdit(operation: "move", componentID: "tables"),
-      SpaceEdit(operation: "move", componentID: "tables", beforeID: "input", at: "first"),
-      SpaceEdit(operation: "remove", componentID: "recent", text: "Unused"),
+      SpaceEdit(operation: "move", componentID: "continue", title: "Tables"),
+      SpaceEdit(operation: "move", componentID: "continue"),
+      SpaceEdit(operation: "move", componentID: "continue", beforeID: "attention", at: "first"),
+      SpaceEdit(operation: "remove", componentID: "shortcuts", text: "Unused"),
       SpaceEdit(operation: "insert", component: .init(type: "text", title: "Unplaced")),
     ] {
       try refuses("view") { _ = try book.editSpace("home", expectedVersion: 1, edits: [edit]) }
@@ -233,19 +340,19 @@ func checkSpaceEditing(at temp: URL) {
     let first = try book.editSpace(
       "home", expectedVersion: 1,
       edits: [
-        .init(operation: "move", componentID: "tables", at: "first"),
-        .init(operation: "remove", componentID: "recent"),
+        .init(operation: "move", componentID: "continue", at: "first"),
+        .init(operation: "remove", componentID: "shortcuts"),
       ])
     try expect(
       first.definition.components.map(\.id) == [
-        "tables", "input", "reviews", "shortcuts", "intake",
+        "continue", "attention",
       ])
     let last = try book.editSpace(
       "home", expectedVersion: 2,
       edits: [
-        .init(operation: "move", componentID: "tables", at: "last")
+        .init(operation: "move", componentID: "continue", at: "last")
       ])
-    try expect(last.definition.components.last?.id == "tables")
+    try expect(last.definition.components.last?.id == "continue")
   }
   check(
     "failed layout publication rolls back history, state and receipts; missing history is detected"

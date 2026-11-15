@@ -48,7 +48,8 @@ package enum NativeTools {
         "enum": .array(
           [
             "table", "chart", "metric", "document", "asset", "search", "text", "input", "reviews",
-            "shortcuts", "tables", "intake", "recent", "form", "calculation", "query",
+            "shortcuts", "tables", "intake", "recent", "form", "calculation", "query", "app",
+            "attention", "continue",
           ].map(
             Value.string)),
       ]),
@@ -57,6 +58,8 @@ package enum NativeTools {
         "string",
         "REQUIRED on each table and each chart. Use the datasetID from datasets, even when another component uses the same table."
       ),
+      "spaceID": schema(
+        "string", "App component: exact programmable space ID; same live data and actions."),
       "itemID": schema("string", "REQUIRED for document/asset. Exact evidence item ID."),
       "definitionBinding": .object(["type": .string("object")]),
       "arguments": .object(["type": .string("object")]),
@@ -77,7 +80,7 @@ package enum NativeTools {
           [
             "table", "chart", "metric", "comparison", "document", "asset", "search", "text",
             "input", "reviews", "shortcuts", "tables", "intake", "recent", "form", "calculation",
-            "query",
+            "query", "app", "attention", "continue",
           ].map(
             Value.string)),
       ])
@@ -472,7 +475,7 @@ package enum NativeTools {
       .init(
         name: "edit_space",
         description:
-          "Edit requested space/Home layout only. Read spaces for exact IDs/version; preserve unrelated components. Stale bases refuse. Omit unrelated fields.",
+          "Edit Home/layout: app component {id,type:app,title,spaceID} embeds an existing live app. reset restores default Home only when requested. Read spaces for IDs/version; preserve unrelated components.",
         parameters: object(
           [
             "id": schema("string", "Exact inspected space ID."),
@@ -485,8 +488,9 @@ package enum NativeTools {
                     "type": .string("string"),
                     "description": .string("insert/move MUST include at or beforeID."),
                     "enum": .array(
-                      ["rename", "insert", "remove", "move", "title", "text", "replace"].map(
-                        Value.string)),
+                      ["rename", "insert", "remove", "move", "title", "text", "replace", "reset"]
+                        .map(
+                          Value.string)),
                   ]),
                   "componentID": schema(
                     "string",

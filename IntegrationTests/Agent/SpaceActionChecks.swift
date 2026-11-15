@@ -246,6 +246,39 @@ private actor SpaceActionModel: WorkbookInference {
     "resolved")
   try expectThrows(try WorkbookTools(book, readOnly: true).execute("open_space", target))
   try expectEqual(try book.verify()["ok"], .bool(true))
+  let homeBook = try Workbook.create(
+    at: root.appendingPathComponent("Home.sevra"), title: "Home actions")
+  let app = try homeBook.installNativeAppContents(
+    NativeAppPackage(
+      name: "Orders", source: "Sevra.mount(Sevra.h(Sevra.Text,{text:'Orders'}));", datasets: [:]))
+  let embed: Value = .object([
+    "id": .string("home"), "expectedVersion": .number(1),
+    "edits": try encoded([
+      SpaceEdit(
+        operation: "insert", at: "last",
+        component:
+          Component(id: "orders", type: "app", title: "Orders", spaceID: app.id))
+    ]),
+  ])
+  _ = try await WorkbookAgent.run(
+    "Show Orders on Home as a live app view.", workbook: homeBook,
+    model: SpaceActionModel([("spaces", .object([:])), ("edit_space", embed)]))
+  try expectEqual(try homeBook.space("home").definition.components.last?.spaceID, app.id)
+  try expectEqual(try homeBook.space(app.id).version, 1)
+  let reset: Value = .object([
+    "id": .string("home"), "expectedVersion": .number(2),
+    "edits": try encoded([SpaceEdit(operation: "reset")]),
+  ])
+  _ = try await WorkbookAgent.run(
+    "Explain only how Home reset works.", workbook: homeBook,
+    model: SpaceActionModel([("edit_space", reset)]))
+  try expectEqual(try homeBook.space("home").version, 2)
+  _ = try await WorkbookAgent.run(
+    "Reset Home to default.", workbook: homeBook,
+    model: SpaceActionModel([("edit_space", reset)]))
+  try expectEqual(try Workbook(homeBook.url).space("home").definition, SpaceDefinition.defaultHome)
+  try expectEqual(try homeBook.spaceHistory("home").map(\.version), [3, 2, 1])
+  print("PASS chat Home composition, default reset, history, reopen and read-only refusal")
   print(
     "PASS scoped space opening, compound continuation, shortcut/snapshot separation, read-only denial and terminal ambiguity/window refusal"
   )

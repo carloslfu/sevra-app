@@ -20,10 +20,43 @@ public struct WorkspaceSnapshot: Sendable {
   public let bookmarks: [Value]
   public let pendingExtractions: [Value]
   public let intakeStatus: [Value]
+  public let homeDocuments: [ItemSummary]
+  public let pendingWorkflows: [Value]
+  public let chatApproval: ChatApproval?
   public let excelImports: [Value]
 }
 
 extension Workbook {
+  /// Resume documents rather than technical observations made while creating apps/tables.
+  func homeRecentDocuments() throws -> [ItemSummary] {
+    try db.execute(
+      """
+      SELECT i.id,i.category,i.kind,i.title,i.meaning,i.status,i.asset_id
+      FROM items i JOIN heads h ON h.item_id=i.id
+      WHERE i.status!='withdrawn' AND (i.asset_id IS NOT NULL OR i.kind='document'
+        OR (i.kind='note' AND i.status='accepted'))
+        AND i.kind NOT IN ('row',\(Item.technicalKindSQL))
+      ORDER BY i.created DESC,i.id LIMIT 3
+      """, maxRows: 3, maxBytes: 262_144
+    ).map { row in
+      ItemSummary(
+        id: row["id"]!.text, category: row["category"]!.text,
+        kind: row["kind"]!.text, title: row["title"]!.text, meaning: row["meaning"]!.text,
+        status: row["status"]!.text, assetID: row["asset_id"]?.string)
+    }
+  }
+  /// Bounded, factual attention. Completed runs never crowd out unresolved work.
+  func homeWorkflowAttention() throws -> [Value] {
+    try db.execute(
+      """
+      SELECT r.id,r.state,r.detail,d.title FROM workflow_runs r
+      JOIN app_definitions d ON d.id=r.definition_id
+      WHERE r.state IN ('waiting_review','needs_attention','queued')
+      ORDER BY CASE r.state WHEN 'needs_attention' THEN 0 WHEN 'waiting_review' THEN 1 ELSE 2 END,
+        r.updated DESC,r.id DESC LIMIT 4
+      """, maxRows: 4, maxBytes: 262_144
+    ).map(Value.object)
+  }
   /// Call off the UI actor. A cancelled waiter must not remain queued behind an
   /// unrelated long search, and all fields must come from the same SQLite view.
   public func workspaceSnapshot(
@@ -63,6 +96,8 @@ extension Workbook {
             conversations: conversations(), chapters: chapters(),
             bookmarks: chapters(bookmarks: true),
             pendingExtractions: pendingExtractions(), intakeStatus: intakeStatus(),
+            homeDocuments: homeRecentDocuments(), pendingWorkflows: homeWorkflowAttention(),
+            chatApproval: pendingChatApproval(conversation: conversation),
             excelImports: excelConversionSummaries())
         }
       }

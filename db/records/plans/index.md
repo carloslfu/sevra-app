@@ -2,11 +2,12 @@
 type: index
 scope: type-folder
 folder: records/plans
-updated: 2026-11-15T00:11:59.682627Z
+updated: 2026-11-15T01:19:41.617770Z
 ---
 
 # records/plans
 
+- [[records/plans/home-working-overview]] — Chat-customizable Home with live app views, a useful default, attention and recovery.
 - [[records/plans/chat-primary-operation]] — Implement chat as primary operator for workbook and mini-app actions, inputs, review and undo.
 - [[records/plans/fresh-excel-batches]] — Two consecutive fresh 10/10 local-model Excel batches pass on frozen da3c472; all ten native interfaces checked, with no reused apps or manual source repairs.
 - [[records/plans/automatic-excel-reliability]] — Automatic local-model Excel conversion qualified across 10 generated apps and 89 independent originals, including five held-out states; no manual generated-code repairs.

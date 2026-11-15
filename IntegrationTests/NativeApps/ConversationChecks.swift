@@ -1,3 +1,4 @@
+import AppKit
 import Foundation
 import SevraAppProtocol
 import SevraAppRuntime
@@ -51,9 +52,32 @@ private actor ConversationWorker {
     _ = try await session.converse("run", arguments: .object(["action": .string("add")]))
     throw SevraError("test", "Disabled app silently accepted an action")
   } catch let error as SevraError { try expect(error.code == "app_permission") }
+  let homeRenderer = NativeAppRenderer(session: session)
+  let appRenderer = NativeAppRenderer(session: session)
+  defer {
+    homeRenderer.disconnect()
+    appRenderer.disconnect()
+  }
   let ready = try await session.converse("enable")
   try expect(ready["actions"].array.first?["id"] == .string("add"))
   try expect(ready["actions"].array.first?["inputs"]["quantity"]["valueType"] == .string("string"))
+  let nameNode = session.tree.nodes.values.first { $0.type == "textField" }!
+  let homeField = homeRenderer.view(for: nameNode.id) as! NSTextField
+  let appField = appRenderer.view(for: nameNode.id) as! NSTextField
+  func edit(_ field: NSTextField, _ text: String) async throws {
+    field.stringValue = text
+    field.delegate?.controlTextDidChange?(
+      Notification(name: NSControl.textDidChangeNotification, object: field))
+    try await Checks.wait { homeField.stringValue == text && appField.stringValue == text }
+  }
+  try await edit(homeField, "First draft")
+  try await edit(homeField, "Second draft")
+  try await edit(appField, "Changed in the app")
+  _ = try await session.converse(
+    "set", arguments: .object(["target": .string("Name"), "value": .string("Changed in chat")]))
+  try expect(
+    homeField.stringValue == "Changed in chat" && appField.stringValue == "Changed in chat")
+  try await edit(homeField, "Changed after chat")
   _ = try book.addMessage("Add Pencils with quantity 3", role: "user")
   let inserted = try await session.converse(
     "run",
@@ -64,6 +88,26 @@ private actor ConversationWorker {
   try expect(inserted["outcome"] == .string("completed"))
   try expect(inserted["changes"].array.count == 1)
   let dataset = space.definition.app!.datasets["stock"]!.datasetID!
+  try expect(book.rows(dataset).count == 1)
+  guard
+    let statusNode = session.tree.nodes.values.first(where: {
+      $0.type == "text" && $0.props["text"].text == "Saved Pencils"
+    })
+  else { throw SevraError("test", "Shared live status was missing") }
+  try expect(
+    (homeRenderer.view(for: statusNode.id) as? NSTextField)?.stringValue == "Saved Pencils")
+  try expect((appRenderer.view(for: statusNode.id) as? NSTextField)?.stringValue == "Saved Pencils")
+  homeRenderer.disconnect()
+  _ = try await session.converse(
+    "run",
+    arguments: .object([
+      "action": .string("add"),
+      "inputs": .object(["name": .string("Pens"), "quantity": .string("2")]),
+    ]))
+  try expect(
+    (appRenderer.view(for: statusNode.id) as? NSTextField)?.stringValue == "Saved Pens",
+    "Detaching Home must not disconnect the full app")
+  _ = try await session.converse("undo")
   try expect(book.rows(dataset).count == 1)
   let invalid = try await session.converse(
     "run",

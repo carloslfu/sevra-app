@@ -4,13 +4,15 @@ import SwiftUI
 
 public struct NativeAppSpaceView: View {
   @StateObject private var session: NativeAppSession
+  private let embedded: Bool
   @State private var showSource = false
   @State private var tableTitles: [String: String]?
   @State private var tableAccessError: String?
-  public init(session: NativeAppSession) {
+  public init(session: NativeAppSession, embedded: Bool = false) {
+    self.embedded = embedded
     _session = StateObject(wrappedValue: session)
   }
-  public var body: some View {
+  private var content: some View {
     VStack(alignment: .leading, spacing: 12) {
       HStack {
         if session.status != "running" { Text(session.package.name).font(.title2) }
@@ -62,7 +64,16 @@ public struct NativeAppSpaceView: View {
         Spacer()
       }
     }
-    .padding(20)
+    .padding(embedded ? 12 : 20)
+  }
+  public var body: some View {
+    Group {
+      if embedded && session.status != "running" {
+        ScrollView { content.frame(maxWidth: .infinity, alignment: .leading) }
+      } else {
+        content
+      }
+    }
     .task { await loadTableAccess() }
     .onAppear { session.start() }
     .sheet(isPresented: $showSource) {
