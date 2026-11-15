@@ -2,7 +2,7 @@
 type: review
 id: 01m7fb55rgf0b9rfxcfp0683tx
 created: 2026-11-15T10:13:28.464388+00:00
-updated: 2026-11-15T21:17:09.730251+00:00
+updated: 2026-11-15T21:30:37.485087+00:00
 summary: Shared formula, review, numeric validation, repair and authority fixes pass scoped checks; final fresh cohorts and native visual qualification remain pending.
 title: Excel business application adversarial review
 ---
@@ -402,3 +402,15 @@ The exact installed candidate143 matches packaged executable UUIDs and SDK hashe
 Focused Excel behavioral checks and the new real constrained-grammar probes pass, including wrong-sign refusal/correction, unchanged source withholding, malformed/missing/unknown probe refusals, numeric/header safeguards, incomplete/repeated/overlapping batch coverage and canonical executed receipts. The independent qualifier regression passes unchanged. Full scripts/check.sh passes on candidate143, including660 core,27 SDK,18 native app groups,86 actual tool grammars/817 reference masks, the new paired-review grammar, sandbox/resource failures,1888 Metal kernels, signatures, installation/extraction and db validation. Native build and installation pass; installed main UUID E0198DB1-0B29-30EF-A0C4-2668BE5CC8D9 and CLI B0F97A11-E5FB-3727-815B-A8B6E8366D93 match the package. Model, engine, resources and reasoning/output budgets remain unchanged.
 
 Predeclared next final pair: cohorts24 then25, each fresh Stock, Production, Bookings, Cash, Invoices and Jobs in that order. Both must finish on identical production/acceptance/fixture/model/runtime identities, then pass independent original oracles and final native interface checks. No app, conversation or builder answer replay; no manual generated-source repair. Zero final cohorts are accepted so far. Hosted CI for the forthcoming exact commit remains pending. The full-ledger capture limitation is understood and its visual/keyboard diagnostic now passes; remaining blockers are fresh reliability, six final native interfaces/oracles, and final exact-code/public evidence qualification.
+
+
+## Candidate 144: require blind-review input classifications
+
+Candidate143 cohort24 was interrupted during Stock after two refused saves and a third submission in progress. The first independent review reproduced a real header-as-product defect, which the local builder repaired automatically. The second candidate passed its saved-effect sequence but the reviewer omitted inputRoles, an existing required host gate. Saving stayed blocked as an inconclusive review; no unverified source repair was applied. Source identity stayed unchanged through interruption. No complete case or final cohort is claimed, and cohort25 never started.
+
+Candidate144 makes inputRoles mandatory in the blind-review constrained grammar and checks that it is an object before executing probes. Refusal-only counterexamples may use an empty object; successful actions still require complete valid roles and all derived checks. The behavioral fixture adapter emits this canonical required field; the real grammar test explicitly rejects its omission. No verification threshold, model, engine, budget, source isolation, final cohort rule or independent qualifier is relaxed. Focused tests, package and fresh cohorts remain pending; full candidate143 suite evidence is retained for unchanged boundaries.
+
+
+## Candidate 144 focused verification and next pair
+
+Focused Excel behavioral regression and actual review grammar checks pass, including explicit omission of inputRoles refused with reasoning enabled and disabled. Native build, package resource/sandbox checks, ten missing-resource refusals,1888 kernels, strict signatures and actual installation pass. Installed main UUID BE916EE7-812F-33F0-B0C1-23B5952F6706 and CLI D5FEF5C5-0483-3049-B9EF-3B8C25D2E2C5 match the package; SDK hashes are unchanged. Candidate143 full-suite and renderer/UI evidence are reused only for unchanged boundaries; final exact-source suite and hosted CI remain pending. Predeclared fresh cohorts26 then27 use all six cases in the established order and every unchanged final acceptance gate. No model/engine/budget change or manual generated-source edit.

@@ -221,6 +221,7 @@ func pairedActionReviewFixture(_ verdict: Value) -> Value {
       ]))
   }
   fields["probes"] = .array(probes)
+  if fields["inputRoles"] == nil { fields["inputRoles"] = .object([:]) }
   if !interface.isEmpty { fields["interfaceTests"] = .array(interface) }
   return .object(fields)
 }

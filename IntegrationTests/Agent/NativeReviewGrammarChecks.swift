@@ -45,10 +45,15 @@ func checkNativeReviewGrammar(frontend: SplashTextFrontend, factory: SplashGramm
   for thinking in [false, true] {
     let policy = try NativeCitationPolicy.make(
       [], toolScope: .nativeActionReview, thinking: thinking)
-    func output(_ probes: String, tool: String = "review_native_app") -> [UInt32] {
+    func output(_ probes: String, tool: String = "review_native_app", includeRoles: Bool = true)
+      -> [UInt32]
+    {
       frontend.encode(
         (thinking ? "Derive the saved effect.</think>\n" : "")
           + "<tool_call>\n<function=\(tool)>\n<parameter=decision>\nready\n</parameter>\n"
+          + (includeRoles
+            ? "<parameter=inputRoles>\n{\"ship\":{\"quantity\":{\"kind\":\"number\",\"maximum\":null,\"minimum\":0,\"nonzero\":true,\"whole\":false}}}\n</parameter>\n"
+            : "")
           + "<parameter=issues>\n[]\n</parameter>\n<parameter=probes>\n"
           + probes + "\n</parameter>\n</function>\n</tool_call>")
     }
@@ -66,6 +71,7 @@ func checkNativeReviewGrammar(frontend: SplashTextFrontend, factory: SplashGramm
       output(#"[{"action":"ship","inputs":{}}]"#),
       output(probes.replacingOccurrences(of: "expect_row", with: "run_action")),
       output(probes, tool: "save_native_app"),
+      output(probes, includeRoles: false),
     ] {
       let invalid = try factory.create(grammar: policy.grammar)
       try expectThrows(try invalid.finish(committed: tokens, requireComplete: true))

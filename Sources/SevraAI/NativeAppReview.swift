@@ -288,6 +288,11 @@ package enum NativeAppReview {
       }
       let validVerdict =
         Set(verdict.object.keys).isSubset(of: allowedFields)
+        && (!blindActions
+          || {
+            if case .object = verdict["inputRoles"] { return true }
+            return false
+          }())
         && verdict["issues"] == .array(issues) && issues.count <= 4
         && issues.allSatisfy {
           $0.string != nil && !$0.text.isEmpty && $0.text.utf8.count <= 2000

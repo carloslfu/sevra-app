@@ -71,7 +71,8 @@ extension NativeAppReview {
     return .init(
       name: definition.name,
       description: "Independently probe requested business actions. No write authority.",
-      parameters: NativeTools.object(properties, required: ["decision", "issues", "probes"]))
+      parameters: NativeTools.object(
+        properties, required: ["decision", "issues", "probes", "inputRoles"]))
   }()
 
   package static func actionProbeSteps(_ verdict: Value, actions: Set<String>) throws -> [Value] {
