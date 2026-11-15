@@ -22,8 +22,8 @@ and progress. Cloud/sync and the expanded roadmap are outside this next MVP slic
 ## Build a native mini app
 
 For existing Excel work, add or drop an **.xlsx or .xlsm** file. Sevra preserves the original,
-uses the local model to describe the likely workflow, and lets you clarify it before
-choosing **Build workspace**. The checked native app uses the imported tables and
+asks in chat what work you do with it, and uses the local model to inspect or build
+the workspace when requested. Supply clarifications in the same conversation. The checked native app uses the imported tables and
 spreadsheet calculations. It can translate missing formulas and readable macro logic into
 saved local calculations and native actions, then compare results against the original.
 Add recalculated Excel copies to test more inputs. Review access before enabling it. **Just use
@@ -44,7 +44,7 @@ still fail or take minutes; this is not a first-attempt or universal-compatibili
 
 Ask the local model to build a named mini app with the fields, actions and tables you need.
 It writes the app, runs synthetic checks in isolation, and reviews the result against your
-request before saving. Review its table access and choose **Enable app**. Ask for changes
+request before saving. Ask to enable it, review its table access in chat, and type **Confirm**. Ask for changes
 by the app's name; each new version needs approval again. See the
 [authoring workflow and limits](db/records/specs/local-model-native-apps.md).
 
@@ -53,6 +53,12 @@ Inventory, Jobs and Visual Planner exercise native forms, tables, live counts an
 sandboxed worker; the interface is AppKit, with no web view. App code and business records
 travel with the workbook, while execution permissions stay on this Mac. Enabled apps run
 without the inference model. Generated apps still need your own testing before business use.
+
+Operate apps directly in chat: “Add Pencils with quantity 3,” “Change it to 5,” or
+“Undo that change.” Chat can supply inputs and run the same app actions without opening
+or clicking its view. Tables, forms, workflow execution, Excel conversion and reviewed
+approvals also have conversational operations. Native controls remain available. See the
+[chat operation contract and qualification](db/records/specs/chat-primary-operation.md).
 
 The [SDK and architecture](db/records/specs/programmable-native-engine.md) explain
 TypeScript/JSX authoring, signals, native components, scoped data access and current limits.
@@ -92,8 +98,7 @@ a working table when needed; the searchable PDF stays an included reference.
 Open the quotation and ask for a cited summary, calculate goods plus shipping,
 keep a live table/chart in a space, edit an input, Undo, and make a portable copy.
 Add a folder compares a folder with what you already added and shows the counts first; it does
-not watch the folder. Ask to enable a saved automation by name and Sevra opens its review, where
-you decide. Long conversations summarize as they go, and a long request that stops keeps its saved
+not watch the folder. Ask to enable a saved automation by name, review its access in chat and type Confirm. Long conversations summarize as they go, and a long request that stops keeps its saved
 work, so you can ask it to continue.
 File actions > Transcribe on this Mac turns a recording of up to two hours into a searchable
 transcript with times, in the Mac's language. Audio stays on the Mac, though the first use of a

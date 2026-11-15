@@ -55,6 +55,15 @@ func exchange(
       "sevra-app-checks-" + identifier())
     try! FileManager.default.createDirectory(at: root, withIntermediateDirectories: true)
     defer { try? FileManager.default.removeItem(at: root) }
+    if CommandLine.arguments.contains("--chat") {
+      do {
+        try await conversationChecks(root)
+        return 0
+      } catch {
+        print("FAIL conversation: \(error)")
+        return 1
+      }
+    }
     if CommandLine.arguments.contains("--paging-benchmark") {
       check("Native app paging over 10,000 records") {
         let book = try Workbook.create(
@@ -283,6 +292,13 @@ func exchange(
         _ = try tree.apply(result["frame"])
         try expect(tree.nodes.count > 3)
       }
+    }
+    do {
+      try await conversationChecks(root, useXPC: CommandLine.arguments.contains("--xpc"))
+      passed += 1
+    } catch {
+      failed += 1
+      print("FAIL conversation: \(error)")
     }
     if CommandLine.arguments.contains("--xpc") {
       do {

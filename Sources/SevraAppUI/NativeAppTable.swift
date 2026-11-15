@@ -130,15 +130,11 @@ import SevraCore
     }
     loading = true
     let current = generation
-    var args: [String: Value] = [
-      "table": node.props["table"], "offset": .number(Double(offset)), "limit": .number(200),
-      "search": node.props["search"] == .null ? .string("") : node.props["search"],
-    ]
-    if let sorting {
-      args["sort"] = .string(sorting)
-      args["descending"] = .bool(descending)
-    }
-    session.page(.object(args)) { [weak self] result in
+    let request = session.tableRequest(node)
+    offset = request["offset"].int ?? 0
+    sorting = request["sort"].string
+    descending = request["descending"] == .bool(true)
+    session.page(request) { [weak self] result in
       guard let self else { return }
       self.loading = false
       if self.reloadPending || self.generation != current {
@@ -177,6 +173,7 @@ import SevraCore
     total = page["total"].int ?? 0
     if offset >= total && offset > 0 {
       offset = max(0, ((total - 1) / 200) * 200)
+      savePresentation()
       reload()
       return
     }
@@ -232,15 +229,25 @@ import SevraCore
     sorting = grid.sortDescriptors.first?.key
     descending = grid.sortDescriptors.first?.ascending == false
     offset = 0
+    savePresentation()
     reload()
   }
   @objc private func back() {
     offset = max(0, offset - 200)
+    savePresentation()
     reload()
   }
   @objc private func forward() {
     offset += 200
+    savePresentation()
     reload()
+  }
+  private func savePresentation() {
+    var request = session.tableRequest(node).object
+    request["sort"] = sorting.map(Value.string)
+    request["descending"] = .bool(descending)
+    request["offset"] = .number(Double(offset))
+    session.setTableRequest(node, request: .object(request))
   }
   @objc private func activate() {
     guard interactionEnabled, rows.indices.contains(grid.clickedRow) else { return }

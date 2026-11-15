@@ -44,7 +44,10 @@ func checkWorkbookGrammars(frontend: SplashTextFrontend, factory: SplashGrammarF
   let ordinaryPrompt = try frontend.prepare(
     messages: [["role": "user", "content": "Read the workbook."]], tools: ordinary.promptTools(),
     thinking: false, contextLimit: 32768)
-  try expectEqual(ordinaryPrompt.tokens.count <= 8448, true)
+  guard ordinaryPrompt.tokens.count <= 8448 else {
+    throw SplashError(
+      "Ordinary tool prompt uses \(ordinaryPrompt.tokens.count) tokens, over its 8448-token check")
+  }
   let ordinaryNames = try NativeTools.referenceDefinitions(nativeAppAuthoring: false).map(\.name)
   try expectEqual(ordinaryNames.contains("save_native_app"), false)
   try expectEqual(ordinaryNames.contains("native_app_sdk"), true)

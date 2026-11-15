@@ -40,10 +40,11 @@ package enum ExcelConversionAgent {
 
   package static func analyze(
     _ conversion: ExcelConversion, workbook: Workbook, model: any WorkbookInference, directory: URL,
-    cancellation: Cancellation, progress: @escaping @Sendable (String) -> Void
+    cancellation: Cancellation, progress: @escaping @Sendable (String) -> Void,
+    modelAlreadyActive: Bool = false
   ) async throws -> Value {
     try cancellation.check()
-    try await model.beginRun()
+    if !modelAlreadyActive { try await model.beginRun() }
     do {
       let input: Value = .object([
         "inspection": conversion.inspection, "userClarification": .string(conversion.purpose),
@@ -70,7 +71,7 @@ package enum ExcelConversionAgent {
         let value = try Value.parse(call.inputJSON)
         if call.name == definition.name {
           try Workbook.validateExcelPlan(value)
-          await model.endRun()
+          if !modelAlreadyActive { await model.endRun() }
           return value
         }
         let result: Value
@@ -87,14 +88,17 @@ package enum ExcelConversionAgent {
           } else {
             try require(
               call.name == readDefinition.name
-                && Set(value.object.keys) == ["sheet", "offset", "limit"] && value["sheet"].int != nil
+                && Set(value.object.keys) == ["sheet", "offset", "limit"]
+                && value["sheet"].int != nil
                 && value["offset"].int != nil && value["limit"].int != nil, "excel_scope",
               "The workbook inspection requested an unavailable operation.")
             result = try workbook.readExcelConversionRange(
               conversion.id, sheet: value["sheet"].int!,
               offset: value["offset"].int!, limit: value["limit"].int!, cancellation: cancellation)
           }
-        } catch let error as SevraError where ["excel_evidence", "excel_range"].contains(error.code) {
+        } catch let error as SevraError
+          where ["excel_evidence", "excel_range"].contains(error.code)
+        {
           try cancellation.check()
           result = .object([
             "error": .string(error.message), "code": .string(error.code),
@@ -118,7 +122,7 @@ package enum ExcelConversionAgent {
         "The inspection reached its step limit. Your original is saved; narrow the workflow description or use the tables."
       )
     } catch {
-      await model.endRun()
+      if !modelAlreadyActive { await model.endRun() }
       throw error
     }
   }

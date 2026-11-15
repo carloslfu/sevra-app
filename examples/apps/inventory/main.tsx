@@ -1,15 +1,23 @@
-import {Column,Row,Text,TextField,Button,Table,signal,draftSignal,liveQuery,data,mount} from '@sevra/sdk';
+import {Column,Row,Text,TextField,Button,Table,signal,draftSignal,liveQuery,data,mount,action} from '@sevra/sdk';
 function Inventory() {
  const name=draftSignal('name',''), quantity=draftSignal('quantity','0'), search=signal('');
  const selected=signal<any>(null), status=signal(''), busy=signal(false);
  const stock=liveQuery(()=>({table:'stock',search:search.value,limit:20}));
+ const saveItem=action('saveItem',{title:'Add or update stock',inputs:{name:{type:'text',title:'Item name'},quantity:{type:'decimal',title:'Quantity'},rowID:{type:'record',title:'Existing item',required:false}}},async({name,quantity,rowID})=>{
+  if(!name.trim())throw Error('Enter an item name.');
+  const receipt=await data.transaction([{op:rowID?'update':'insert',table:'stock',...(rowID?{id:rowID}:{}),values:{name,quantity}}]);
+  status.value='Saved to your workbook.';return receipt;
+ });
+ action('removeItem',{title:'Remove stock item',inputs:{rowID:{type:'record',title:'Item'}}},async({rowID})=>{
+  const receipt=await data.transaction([{op:'delete',table:'stock',id:rowID}]);status.value='Item removed.';return receipt;
+ });
  async function save() {
   if(busy.value)return;
   if(!name.value.trim()){status.value='Enter an item name.';return;}
   busy.value=true;
   const row=selected.value, submitted={name:name.value,quantity:quantity.value};
   try {
-   const receipt=await data.transaction([{op:row?'update':'insert',table:'stock',...(row?{id:row.id}:{}),values:submitted}]);
+   const receipt=await saveItem({...submitted,...(row?{rowID:row.id}:{})});
    if(name.value===submitted.name && quantity.value===submitted.quantity && selected.value===row){name.value='';quantity.value='0';selected.value=null;}
    else if(row && selected.value===row)selected.value={...row,id:receipt.results[0].id};
    status.value='Saved to your workbook.';

@@ -1,0 +1,120 @@
+import Foundation
+
+/// An exact host-prepared change. A model cannot approve it through workspace_action.
+/// Append-only conversation receipts preserve the preview, human input and outcome.
+public struct ChatApproval: Sendable {
+  public let id: String
+  public let action: String
+  public let arguments: Value
+  public let title: String
+}
+
+extension Workbook {
+  @discardableResult public func prepareChatApproval(
+    action: String, arguments: Value, title: String, conversation: String
+  ) throws -> String {
+    _ = try ChatOperations.validate(action, arguments: arguments, readOnly: false)
+    return try addMessage(
+      "Prepared a change for your confirmation.",
+      role: "event", conversation: conversation,
+      payload: .object([
+        "kind": .string("chat_approval"), "action": .string(action),
+        "arguments": arguments, "title": .string(title),
+      ]))
+  }
+
+  public func pendingChatApproval(conversation: String) throws -> ChatApproval? {
+    try synchronized {
+      guard
+        let row = try db.execute(
+          """
+          SELECT m.id,p.payload FROM messages m JOIN message_payloads p ON p.message_id=m.id
+          WHERE m.conversation_id=? AND json_extract(p.payload,'$.kind')='chat_approval'
+          ORDER BY m.rowid DESC LIMIT 1
+          """, [.string(conversation)]
+        ).first
+      else { return nil }
+      let id = row["id"]!.text
+      let handled =
+        try db.scalar(
+          """
+          SELECT count(*) FROM messages m JOIN message_payloads p ON p.message_id=m.id
+          WHERE m.conversation_id=? AND json_extract(p.payload,'$.approvalID')=?
+            AND json_extract(p.payload,'$.kind') IN ('chat_approval_started','chat_approval_cancelled')
+          """, [.string(conversation), .string(id)]
+        ).int ?? 0
+      guard handled == 0 else { return nil }
+      let payload = try Value.parse(row["payload"]!.text)
+      return .init(
+        id: id, action: payload["action"].text, arguments: payload["arguments"],
+        title: payload["title"].text)
+    }
+  }
+
+  /// This is called only by the native composer, with a saved human message.
+  /// Claim before executing: a crash must never replay an uncertain change.
+  public func claimChatApproval(conversation: String, messageID: String, cancel: Bool = false)
+    throws -> ChatApproval
+  {
+    var claimed: ChatApproval?
+    _ = try mutation(
+      "chat_approval_claim", request: .string(messageID), actor: .human("Sevra.chat-confirmation")
+    ) {
+      guard let approval = try pendingChatApproval(conversation: conversation) else {
+        throw SevraError(
+          "chat_approval",
+          "There is no pending change in this conversation. Ask Sevra to prepare it again.")
+      }
+      guard
+        let message = try db.execute(
+          "SELECT role,body FROM messages WHERE id=? AND conversation_id=? AND rowid>(SELECT rowid FROM messages WHERE id=?)",
+          [.string(messageID), .string(conversation), .string(approval.id)]
+        ).first
+      else {
+        throw SevraError("chat_approval", "Confirmation must come from this conversation.")
+      }
+      let body = message["body"]!.text.trimmingCharacters(in: .whitespacesAndNewlines)
+        .lowercased().trimmingCharacters(in: CharacterSet(charactersIn: ".!"))
+      try require(
+        message["role"] == .string("user")
+          && (cancel ? body == "cancel approval" : ["confirm", "confirm change"].contains(body)),
+        "chat_approval", "A new human confirmation is required.")
+      let receiptID = identifier()
+      try db.execute(
+        "INSERT INTO messages VALUES(?,?,?,?,?,?)",
+        [
+          .string(receiptID), .string(conversation), .string("event"),
+          .string(
+            cancel
+              ? "Approval cancelled. No change was applied." : "Applying your confirmed change."),
+          .string("complete"), .string(timestamp()),
+        ])
+      let payload: Value = .object([
+        "kind": .string(cancel ? "chat_approval_cancelled" : "chat_approval_started"),
+        "approvalID": .string(approval.id), "messageID": .string(messageID),
+      ])
+      try db.execute(
+        "INSERT INTO message_payloads VALUES(?,?)",
+        [.string(receiptID), .string(try payload.json())])
+      claimed = approval
+      return .string(approval.id)
+    }
+    return claimed!
+  }
+
+  public func finishChatApproval(
+    _ approval: ChatApproval, conversation: String, result: Value, error: String? = nil
+  ) throws {
+    _ = try addMessage(
+      error.map {
+        "The confirmed change did not finish: " + $0 + " Inspect saved results before retrying."
+      }
+        ?? "Your confirmed change is complete. "
+        + approval.title.components(separatedBy: "\n")[0].replacingOccurrences(of: "?", with: "."),
+      role: "event", conversation: conversation,
+      payload: .object([
+        "kind": .string("chat_approval_result"), "approvalID": .string(approval.id),
+        "result": result, "error": error.map(Value.string) ?? .null,
+      ]))
+  }
+}

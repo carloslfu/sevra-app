@@ -225,7 +225,9 @@ func checkAgentLifecycle() async throws {
   }
   let readOnlyTools = WorkbookTools(readOnlyBook, readOnly: true)
   for tool in NativeTools.definitions
-  where tool.name != "finish" && !WorkbookTools.readOnlyTools.contains(tool.name) {
+  where tool.name != "finish" && tool.name != "workspace_action"
+    && !WorkbookTools.readOnlyTools.contains(tool.name)
+  {
     do {
       _ = try readOnlyTools.execute(tool.name, .object([:]))
       throw SplashError("Mutating tool was allowed")

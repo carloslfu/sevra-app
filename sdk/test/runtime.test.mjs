@@ -4,6 +4,42 @@ import vm from 'node:vm';
 import {readFileSync} from 'node:fs';
 const source=readFileSync(new URL('../../Sources/SevraAppRuntime/Resources/sdk.js',import.meta.url),'utf8');
 function runtime(program){const context=vm.createContext({});vm.runInContext(source+';Sevra.__initialize({});'+program,context);return {run:code=>vm.runInContext(code,context),flush:()=>JSON.parse(vm.runInContext('JSON.stringify(Sevra.__flush())',context))};}
+test('named actions share validation and outcomes between chat and the visual handler',async()=>{
+ const r=runtime(`var total=Sevra.signal('0');var add=Sevra.action('add',{title:'Add amount',inputs:{amount:{type:'decimal',title:'Amount'}}},async({amount})=>{total.value=amount;return {saved:amount};});Sevra.mount(Sevra.h(Sevra.Text,{text:total}));`);
+ assert.equal(r.flush().actions[0].inputs.amount.type,'decimal');
+ r.run(`Sevra.__receive([{kind:'command',id:'one',action:'add',arguments:{amount:'12.50'}}]);`);
+ await new Promise(resolve=>setImmediate(resolve));
+ const result=r.flush();
+ assert.equal(result.messages.find(m=>m.kind==='commandResult').value.saved,'12.50');
+ assert.equal(r.run('total.value'),'12.50');
+ r.run(`Sevra.__receive([{kind:'command',id:'two',action:'add',arguments:{amount:'12bad'}}]);`);
+ await new Promise(resolve=>setImmediate(resolve));
+ assert.match(r.flush().messages[0].error,/decimal/);
+ assert.equal(r.run('total.value'),'12.50');
+ await r.run(`add({amount:'8'})`);
+ assert.equal(r.run('total.value'),'8');
+});
+test('component actions are removed with their scope and can be remounted',async()=>{
+ const r=runtime(`var shown=Sevra.signal(true),calls=0;function Panel(){Sevra.action('apply',{title:'Apply',inputs:{}},()=>++calls);return Sevra.h(Sevra.Text,{text:'Panel'});}Sevra.mount(Sevra.h(Sevra.Column,{},()=>shown.value?Sevra.h(Panel,{}):null));`);
+ assert.equal(r.flush().actions.length,1);
+ r.run('shown.value=false');assert.equal(r.flush().actions.length,0);
+ r.run('shown.value=true');assert.equal(r.flush().actions.length,1);
+ r.run(`Sevra.__receive([{kind:'command',id:'apply',action:'apply',arguments:{}}]);`);
+ await new Promise(resolve=>setImmediate(resolve));
+ assert.equal(r.flush().messages.find(m=>m.kind==='commandResult').value,1);
+});
+test('conversation controls reject stale mounts, disabled containers and unknown handlers',async()=>{
+ const r=runtime(`var value=Sevra.signal(''),enabled=Sevra.signal(false);Sevra.mount(Sevra.h(Sevra.Column,{enabled},Sevra.h(Sevra.TextField,{label:'Name',value})));`);
+ const frame=r.flush(),field=frame.patches.find(p=>p.node?.type==='textField').node;
+ async function command(extra){r.run('Sevra.__receive('+JSON.stringify([{kind:'command',id:'input',node:field.id,mountID:field.mountID,handler:'onChange',value:'Updated',...extra}])+');');await new Promise(resolve=>setImmediate(resolve));return r.flush().messages.find(m=>m.kind==='commandResult');}
+ assert.match((await command({})).error,/unavailable/);
+ r.run('enabled.value=true');r.flush();
+ assert.match((await command({mountID:9999})).error,/changed/);
+ assert.match((await command({handler:'onClick'})).error,/Unsupported/);
+ assert.equal(r.run('value.value'),'');
+ assert.equal((await command({})).error,undefined);
+ assert.equal(r.run('value.value'),'Updated');
+});
 test('unsupported native event handlers fail instead of silently losing interactions',()=>{
  assert.throws(()=>runtime(`Sevra.mount(Sevra.h(Sevra.TextField,{onValueChange:()=>{}}));`),/Unknown event onValueChange for textField.*onChange/);
  assert.throws(()=>runtime(`Sevra.mount(Sevra.h(Sevra.Text,{text:'Click',onClick:()=>{}}));`),/Unknown event onClick for text/);

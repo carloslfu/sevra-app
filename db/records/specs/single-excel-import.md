@@ -2,7 +2,7 @@
 type: spec
 id: 01m7b1b0m1hsrhhgtybew4xqqa
 created: 2026-11-13T18:04:56.321049+00:00
-updated: 2026-11-13T21:31:38.069669+00:00
+updated: 2026-11-14T23:09:24.482063+00:00
 summary: One native Excel import with reviewed local workflow inference, shared tables and constrained app generation
 title: Single Excel import
 status: implemented
@@ -13,9 +13,9 @@ Owner direction: [[sources/notes/2026/11/single-excel-import]]. Implementation p
 
 ## Customer path
 
-Add or drop an `.xlsx` or `.xlsm` file into a workbook. The original is included/indexed through the existing intake pipeline, and one Excel workspace opens. With an installed local model, inspection starts automatically. The model describes the likely work, inputs, calculations and daily tasks; any material questions and the optional workflow field let the person correct that interpretation. The proposal is an inference, not a claim of complete reconstruction.
+Add or drop an `.xlsx` or `.xlsm` file into a workbook. The original is included/indexed through the existing intake pipeline, and one Excel workspace opens. Under [[records/specs/chat-primary-operation]], chat asks what work the person wants to do. Ask it to inspect the original, clarify the workflow, use the tables or build the workspace. Native controls remain available. When requested, the local model describes the likely work, inputs, calculations and daily tasks; any material questions and the optional workflow field let the person correct that interpretation. The proposal is an inference, not a claim of complete reconstruction.
 
-Choose **Build workspace** after reviewing the plan. Sevra imports working tables once, preserves supported spreadsheet calculations, and asks the local model to build native controls over those same tables. Isolated behavioral checks and a separate local-model review must pass before the app and its conversion record publish atomically. Choose **Open workspace**, review actual table access, then enable that version. A host-owned origin banner links back to import details and states the conversion limits.
+Ask to build the workspace after reviewing the plan, or choose **Build workspace**. Sevra imports working tables once, preserves supported spreadsheet calculations, and asks the local model to build native controls over those same tables. Isolated behavioral checks and a separate local-model review must pass before the app and its conversion record publish atomically. Review actual table access and confirm enabling that version in chat; **Open workspace** and its native Enable control remain optional. A host-owned origin banner links back to import details and states the conversion limits.
 
 **Just use the tables** needs no model. Failed or stopped planning/building preserves the original and any committed working tables. Home resumes the saved import. Retry uses the same data; rethinking/rebuilding replaces the same app identity with a newly reviewed version. New clarification invalidates the previous build even when the inferred plan text happens to be identical. Table updates remain a secondary **Update an existing table…** action with the existing target/mapping/preview/review flow. No automatic append, merge or replacement is inferred from a file name.
 

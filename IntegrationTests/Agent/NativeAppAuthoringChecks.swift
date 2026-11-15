@@ -97,6 +97,23 @@ func checkNativeAppAuthoring() async throws {
   let report = try await NativeAppCheck.run(package: calculator, steps: tests)
   _ = try await NativeAppCheck.run(
     package: .init(
+      name: "Chat calculator",
+      source: """
+        const answer=Sevra.signal('');
+        Sevra.action('multiply',{title:'Multiply',inputs:{a:{type:'decimal'},b:{type:'decimal'}}},async values=>{
+          answer.value=await Sevra.calculate('a*b',values);return answer.value;
+        });
+        Sevra.mount(Sevra.h(Sevra.Text,{text:answer}));
+        """),
+    steps: try steps(
+      """
+      [{"kind":"run_action","action":"multiply","inputs":{"a":"2.4","b":"3"}},
+       {"kind":"expect_text","value":"7.2"},
+       {"kind":"run_action","action":"multiply","inputs":{"a":"bad","b":"3"},"error":"decimal"},
+       {"kind":"expect_text","value":"7.2"}]
+      """))
+  _ = try await NativeAppCheck.run(
+    package: .init(
       name: "Handled",
       source:
         "Promise.reject(Error('handled')).catch(()=>{}); Sevra.mount(Sevra.h(Sevra.Text,{text:'Ready'}));"

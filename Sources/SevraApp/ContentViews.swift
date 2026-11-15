@@ -186,7 +186,8 @@ struct SpaceView: View {
     if space.definition.app != nil, let book = state.workbook {
       VStack(spacing: 0) {
         ExcelAppOriginView(spaceID: space.id, state: state)
-        NativeAppSpaceView(book: book, space: space).id(space.id + ":" + String(space.version))
+        NativeAppSpaceView(session: state.nativeAppSession(space, book: book)).id(
+          space.id + ":" + String(space.version))
       }
     } else {
       ordinarySpace

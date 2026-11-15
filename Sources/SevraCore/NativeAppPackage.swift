@@ -90,6 +90,9 @@ public final class NativeAppAccess: @unchecked Sendable {
   private let permission: @Sendable () -> Bool
   private let lock = NSRecursiveLock()
   private var enabled = true
+  private var tableDefinitionID: String?
+  var tableOperation = false
+  var requestSourceID: String?
   public init(
     workbook: Workbook, space: Space, permission: @escaping @Sendable () -> Bool = { true }
   ) throws {
@@ -109,6 +112,26 @@ public final class NativeAppAccess: @unchecked Sendable {
     let attributes = try FileManager.default.attributesOfItem(atPath: url.path)
     return "\(url.path):\(attributes[.systemNumber] ?? ""):\(attributes[.systemFileNumber] ?? "")"
   }
+  /// A typed workbook operation reuses the data broker, without creating an app or a device grant.
+  /// Only the core constructs this scope; it cannot be serialized or supplied by JavaScript.
+  init(workbook: Workbook, table: Dataset, requestSourceID: String?, cancellation: Cancellation)
+    throws
+  {
+    spaceID = "table:" + table.id
+    version = table.version
+    package = NativeAppPackage(
+      name: table.title, source: "",
+      datasets: [
+        "table": .init(
+          title: table.title, columns: table.columns, writable: true, datasetID: table.id)
+      ])
+    workbookID = workbook.id
+    physicalID = try Self.physicalIdentity(workbook)
+    permission = { !cancellation.isCancelled }
+    tableDefinitionID = table.definitionID
+    tableOperation = true
+    self.requestSourceID = requestSourceID
+  }
   public func revoke() {
     lock.lock()
     enabled = false
@@ -123,6 +146,13 @@ public final class NativeAppAccess: @unchecked Sendable {
     try require(
       permitted && (allowRevokedDraft || permission()) && book.id == workbookID
         && Self.physicalIdentity(book) == physicalID, "app_permission", "App access was revoked.")
+    if let tableDefinitionID {
+      let table = try book.dataset(package.datasets["table"]!.datasetID!)
+      try require(
+        !table.archived && table.definitionID == tableDefinitionID, "stale_revision",
+        "The table schema changed. Inspect it again.")
+      return try body()
+    }
     let current = try book.space(spaceID)
     try require(
       current.version == version && current.definition.app?.digest == package.digest,

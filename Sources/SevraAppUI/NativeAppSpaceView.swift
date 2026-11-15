@@ -7,8 +7,8 @@ public struct NativeAppSpaceView: View {
   @State private var showSource = false
   @State private var tableTitles: [String: String]?
   @State private var tableAccessError: String?
-  public init(book: Workbook, space: Space) {
-    _session = StateObject(wrappedValue: NativeAppSession(book: book, space: space))
+  public init(session: NativeAppSession) {
+    _session = StateObject(wrappedValue: session)
   }
   public var body: some View {
     VStack(alignment: .leading, spacing: 12) {
@@ -16,7 +16,8 @@ public struct NativeAppSpaceView: View {
         if session.status != "running" { Text(session.package.name).font(.title2) }
         Spacer()
         if session.status == "running" {
-          Button("Undo last change") { session.undo() }.disabled(!session.canUndo)
+          Button("Undo last change") { session.undo() }.disabled(
+            !session.canUndo || session.conversationBusy)
           Button("Disable app") { session.revoke() }
         } else if session.status == "failed" {
           Button("Restart app") { session.start() }
@@ -32,7 +33,7 @@ public struct NativeAppSpaceView: View {
       if session.status == "disabled" {
         Text("This app is ready to enable").font(.headline)
         Text(
-          "Its JavaScript runs in an isolated worker. Enable gives this exact version access to the following workbook tables on this Mac."
+          "Ask in chat to enable this app, review its access, and supply its inputs. You can also enable it here. This exact version gets access to the following tables on this Mac."
         )
         ForEach(session.package.datasets.keys.sorted(), id: \.self) { key in
           let binding = session.package.datasets[key]!
@@ -55,6 +56,7 @@ public struct NativeAppSpaceView: View {
         Spacer()
       } else if session.status == "running" {
         NativeAppSurface(session: session).frame(maxWidth: .infinity, maxHeight: .infinity)
+          .disabled(session.conversationBusy)
       } else {
         Text("Saved records remain in your workbook. Your draft will be restored when you restart.")
         Spacer()
@@ -63,7 +65,6 @@ public struct NativeAppSpaceView: View {
     .padding(20)
     .task { await loadTableAccess() }
     .onAppear { session.start() }
-    .onDisappear { session.stop() }
     .sheet(isPresented: $showSource) {
       VStack(alignment: .leading) {
         Text("App source · SDK \(session.package.sdkVersion)").font(.headline)

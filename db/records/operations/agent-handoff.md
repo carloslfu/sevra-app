@@ -3,11 +3,19 @@ type: operational
 meta-type: operational
 id: 01m659x4nd2q89tkpzzsssd7yr
 created: 2026-10-30T02:23:30.477380+00:00
-updated: 2026-11-14T23:31:20.779299+00:00
-summary: Two consecutive fresh 10/10 local-model Excel batches pass on frozen da3c472; all ten native interfaces checked, with no reused apps or manual source repairs.
+updated: 2026-11-15T00:12:21.479789+00:00
+summary: Chat-primary workbook and mini-app operations pass a fresh real-model walkthrough, shared-runtime checks and packaged verification; active installed app remains untouched.
 title: Minimum-feature continuation handoff
 ---
 # Minimum-feature continuation handoff
+
+## Current chat operation checkpoint, November 14
+
+The owner-directed [[records/plans/chat-primary-operation]] implements chat as the primary operator for workbook and mini-app work. Named actions and existing fields, selections, tables and canvas actions execute through the same signed worker and data broker without a rendered app. Workbook editing, workflow execution, approvals, automations, Excel conversion and explicit-path exports also have conversational operations. Views remain optional clients of shared state. The [[records/specs/chat-primary-operation]] contract records coverage and authority.
+
+The [acceptance evidence](../../../integration/evidence/2026-11-14-chat-primary-operation.json) includes a final actual-model add/edit/missing-input/Undo/reopen walkthrough and all earlier failures. Core, signed native, SDK, agent, grammar, release-package, isolated install and extraction checks pass with the plan's exact rerun boundaries. Prompt budgets remain unchanged. This is finite action coverage, not a universal local-model success guarantee.
+
+Packaged main UUID is 039A908F-28BB-36CA-8E57-32EEE8862C92. The active user app was left untouched under the owner's no-control instruction. The newer package has not replaced the installed frozen Excel build described below; verify the exact bundle before any later opening or installation. No current visual/VoiceOver or production distribution qualification is claimed. The frozen Excel batch evidence remains separate and is preserved.
 
 ## Current Excel checkpoint: two fresh complete batches, November 14
 

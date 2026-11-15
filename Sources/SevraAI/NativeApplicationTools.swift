@@ -159,7 +159,7 @@ extension NativeTools {
     .init(
       name: "start_workflow",
       description:
-        "Queue exact workflow, no steps/drafts. Explicit Continue required.",
+        "Queue an exact workflow for later without executing steps. For a request to run it now, discover workspace_actions workflow and use workflow.run.",
       parameters: object(
         [
           "id": schema("string", "Exact saved workflow version."),

@@ -14,7 +14,9 @@ package struct ActionConfirmations {
     return (entry["error"].text.contains(Self.repeatRefused) ? entries[...] : later).contains {
       saved in
       if saved["tool"] == entry["tool"] && saved["kind"].text != "failure"
-        && saved["attempt"] == entry["attempt"]
+        && (saved["attempt"] == entry["attempt"]
+          || (entry["validationOnly"] == .bool(true)
+            && saved["retryGroup"] == entry["retryGroup"]))
       {
         return true
       }
@@ -34,6 +36,12 @@ package struct ActionConfirmations {
   /// What a call acted on, so a later success can settle the failure before it. A thread tool
   /// acts on the current conversation whatever its arguments say.
   private static func attempt(_ tool: String, _ arguments: Value) -> String {
+    if tool == "workspace_action" {
+      let inputs = arguments["arguments"]
+      return arguments["action"].text + ":" + inputs["id"].text + ":"
+        + inputs["action"].text + ":" + inputs["target"].text + ":"
+        + inputs["inputs"]["name"].text
+    }
     if WorkbookTools.conversationTools[tool] != nil { return "" }
     if tool == "save_native_app" {
       return arguments["id"].string ?? arguments["package"]["name"].text
@@ -41,6 +49,11 @@ package struct ActionConfirmations {
     return arguments["content"]["title"].string
       ?? ["id", "title", "target", "subject", "datasetID", "templateReceiptID"].lazy
       .compactMap { arguments[$0].string }.first ?? ""
+  }
+  private static func retryGroup(_ arguments: Value) -> String {
+    let inputs = arguments["arguments"]
+    return arguments["action"].text + ":" + inputs["id"].text + ":"
+      + inputs["action"].text + ":" + inputs["target"].text
   }
   /// What the host says to the model after a repeat, never to the person.
   private static let repeatRefused = " Do not save it again."
@@ -55,6 +68,16 @@ package struct ActionConfirmations {
   ) {
     let task: String
     switch tool {
+    case "workspace_action":
+      // Discovery/lookup failures carry no mutation outcome, just like other
+      // read-only tools. Keep them in tool history without masking a later save.
+      guard
+        let operation = ChatOperations.operations.first(where: {
+          $0.name == arguments["action"].text
+        }),
+        !operation.readOnly
+      else { return }
+      task = "that action"
     case "draft": task = "saving the draft"
     case "save_definition", "save_template": task = "saving reusable behavior"
     case "start_workflow": task = "queueing the workflow"
@@ -78,8 +101,16 @@ package struct ActionConfirmations {
     entries.append(
       .object([
         "receiptID": .string(receiptID), "tool": .string(tool), "kind": .string("failure"),
-        "targetID": .string(receiptID), "title": .string(task), "error": result["error"],
+        "targetID": .string(receiptID), "title": .string(task),
+        "error": result["error"] == .null
+          ? .string(result["errors"].array.map(\.text).joined(separator: " ")) : result["error"],
         "attempt": .string(Self.attempt(tool, arguments)),
+        "retryGroup": .string(Self.retryGroup(arguments)),
+        "validationOnly": .bool(
+          tool == "workspace_action"
+            && (try? ChatOperations.validate(
+              arguments["action"].text, arguments: arguments["arguments"], readOnly: false)) == nil
+        ),
         "appName": .string(tool == "save_native_app" ? arguments["package"]["name"].text : ""),
       ]))
   }
@@ -91,6 +122,20 @@ package struct ActionConfirmations {
     let title: String
     var qualifier = ""
     switch tool {
+    case "workspace_action":
+      if result["status"] == .string("confirmation_required") {
+        kind = "chat_approval"
+      } else {
+        guard
+          ChatOperations.operations.first(where: { $0.name == arguments["action"].text })?.readOnly
+            == false
+        else { return }
+        // Recovery evidence only. The model describes arbitrary business results
+        // from the structured receipt; a generic host success label cannot do that.
+        kind = "workspace_completion"
+      }
+      id = receiptID
+      title = result["preview"].text
     case "save_definition", "save_template":
       guard let value = result["id"].string, let name = result["title"].string else { return }
       kind = "definition"
@@ -145,6 +190,7 @@ package struct ActionConfirmations {
         "receiptID": .string(receiptID), "tool": .string(tool), "kind": .string(kind),
         "targetID": .string(id), "title": .string(title), "qualifier": .string(qualifier),
         "attempt": .string(attempt),
+        "retryGroup": .string(Self.retryGroup(arguments)),
       ]))
   }
 
@@ -161,6 +207,8 @@ package struct ActionConfirmations {
       let title = entry["title"].text.replacingOccurrences(of: "\\", with: "\\\\")
         .replacingOccurrences(of: "[", with: "\\[").replacingOccurrences(of: "]", with: "\\]")
       switch kind {
+      case "chat_approval":
+        return title + "\nType **Confirm** to apply this change. Nothing has been applied yet."
       case "definition":
         return "Saved reusable behavior “" + title
           + "”. Business acceptance is separate."

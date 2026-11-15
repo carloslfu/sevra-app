@@ -226,6 +226,7 @@ let package = Package(
     .executableTarget(
       name: "SevraAgentChecks",
       dependencies: [
+        "SevraAppUI",
         "SevraNativeAI", "SevraAI", "SevraBaseline", "SevraCore", "SevraSplashGrammar",
         "SevraSplashText",
         "SevraSplash",

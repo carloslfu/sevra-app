@@ -2,17 +2,18 @@
 type: index
 scope: type-folder
 folder: records/specs
-updated: 2026-11-14T20:42:57.554267Z
+updated: 2026-11-15T00:12:21.461213Z
 ---
 
 # records/specs
 
-- [[records/specs/excel-application-reconstruction]] — Constrained Excel application reconstruction with original-result comparison; ten automatic workflows qualified against 89 independent originals within explicit limits.
-- [[records/specs/contextual-import]] — One contextual intake for starting and ongoing work, role-aware CSV/data use and truthful Excel continuity gates.
+- [[records/specs/chat-primary-operation]] — Chat-first workbook and mini-app operations through shared typed actions, durable human approval and native transaction receipts.
+- [[records/specs/programmable-native-engine]] — Native programmable spaces: scoped QuickJS/XPC execution, reactive AppKit rendering, shared transactional data, SDK authoring, recovery and bounded capabilities.
 - [[records/specs/single-excel-import]] — One native Excel import with reviewed local workflow inference, shared tables and constrained app generation
 - [[records/specs/local-model-native-apps]] — Local-model native app authoring, isolated checks, independent review and exact-version access.
+- [[records/specs/excel-application-reconstruction]] — Constrained Excel application reconstruction with original-result comparison; ten automatic workflows qualified against 89 independent originals within explicit limits.
+- [[records/specs/contextual-import]] — One contextual intake for starting and ongoing work, role-aware CSV/data use and truthful Excel continuity gates.
 - [[records/specs/distribution]] — Independent source build, native bundle, CLI skill, portable format and end-to-end release gates.
-- [[records/specs/programmable-native-engine]] — Native programmable spaces: scoped QuickJS/XPC execution, reactive AppKit rendering, shared transactional data, SDK authoring, recovery and bounded capabilities.
 - [[records/specs/native-automation-owner]] — Native schedule controls and persistent physical-workbook device grants with a conservative active-app owner; scoped synthetic, process-death and installed-package proof, full lifecycle/release open.
 - [[records/specs/product]] — Native two-pane workbook UX, conversation, viewers, contextual intake and customizable application engine with actions, workflows and automations.
 - [[records/specs/conversation-context]] — Automatic compaction, preserved conversation history, authoritative continuation state and measured larger-context qualification.

@@ -51,6 +51,8 @@ public struct NativeAppSurface: NSViewRepresentable {
     scroll.autoresizingMask = [.width, .height]
     addSubview(scroll)
     session.onFrame = { [weak self] tree, changed in self?.apply(tree, changed: changed) }
+    session.onTablePresentation = { [weak self] id in self?.elements[id]?.table?.reload() }
+    session.onInteractionAvailability = { [weak self] in self?.refreshInteractionAvailability() }
     session.onData = { [weak self] aliases in
       guard let self else { return }
       for element in self.elements.values {
@@ -63,6 +65,8 @@ public struct NativeAppSurface: NSViewRepresentable {
   public override var isFlipped: Bool { true }
   public func disconnect() {
     session.onFrame = nil
+    session.onTablePresentation = nil
+    session.onInteractionAvailability = nil
     session.onData = nil
   }
   public func view(for id: String) -> NSView? { elements[id]?.content }
@@ -82,7 +86,7 @@ public struct NativeAppSurface: NSViewRepresentable {
     let enabled = tree.interactionEnabled
     for element in elements.values {
       element.arrange(element.node.children.compactMap { elements[$0] })
-      element.setInteractionEnabled(enabled[element.node.id] == true)
+      element.setInteractionEnabled(enabled[element.node.id] == true && !session.conversationBusy)
     }
     if rootID != tree.root || scroll.documentView !== tree.root.flatMap({ elements[$0] }) {
       documentWidth?.isActive = false
@@ -106,6 +110,12 @@ public struct NativeAppSurface: NSViewRepresentable {
     view.layoutSubtreeIfNeeded()
     let height = max(1, min(1_000_000, view.fittingSize.height))
     view.setFrameSize(NSSize(width: width, height: height))
+  }
+  private func refreshInteractionAvailability() {
+    let enabled = session.tree.interactionEnabled
+    for element in elements.values {
+      element.setInteractionEnabled(enabled[element.node.id] == true && !session.conversationBusy)
+    }
   }
 
 }

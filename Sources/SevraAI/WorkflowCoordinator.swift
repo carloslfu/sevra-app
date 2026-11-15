@@ -8,6 +8,7 @@ package enum WorkflowCoordinator {
     workbook: Workbook, session: WorkflowExecutionSession, owner: String,
     directory: URL, cancellation: Cancellation,
     progress: @escaping @Sendable (String) -> Void,
+    modelAlreadyActive: Bool = false,
     model: () async throws -> any WorkbookInference
   ) async throws -> Value {
     try workbook.validateWorkflowExecution(session)
@@ -56,14 +57,14 @@ package enum WorkflowCoordinator {
         try workbook.validateWorkflowExecution(session, forAI: true)
         let inference = try await model()
         try workbook.validateWorkflowExecution(session, forAI: true)
-        try await inference.beginRun()
+        if !modelAlreadyActive { try await inference.beginRun() }
         do {
           run = try await interpret(
             workbook: workbook, session: session, owner: owner, model: inference,
             directory: directory, cancellation: cancellation, progress: progress)
-          await inference.endRun()
+          if !modelAlreadyActive { await inference.endRun() }
         } catch {
-          await inference.endRun()
+          if !modelAlreadyActive { await inference.endRun() }
           throw error
         }
       } else {
@@ -120,7 +121,7 @@ package enum WorkflowCoordinator {
           leaseEnd = Double(beat["deadline"].text) ?? leaseEnd
         } catch let error as SevraError
           where ["database", "workbook_busy"].contains(error.code)
-            && Date().timeIntervalSince1970 < leaseEnd
+          && Date().timeIntervalSince1970 < leaseEnd
         {
           // Another process held the file for a moment. The lease still stands, so beat again.
           continue

@@ -171,6 +171,7 @@ public enum NativeAppCheck {
       }
       return result["frame"]
     }
+    var commandResult: Value?
     func settle(_ initial: Value) async throws {
       var frame = initial
       while !frame["messages"].array.isEmpty {
@@ -182,6 +183,10 @@ public enum NativeAppCheck {
           try require(requests <= 256, "app_check", "Too many requests during app check.")
           let kind = message["kind"].text
           let id = message["id"].text
+          if kind == "commandResult" {
+            commandResult = message
+            continue
+          }
           if kind == "draft" {
             draft = message["values"]
             try book.saveNativeAppDraft(access, values: draft)
@@ -296,6 +301,28 @@ public enum NativeAppCheck {
           return node
         }
         switch kind {
+        case "run_action":
+          commandResult = nil
+          checkingInteraction = true
+          defer { checkingInteraction = false }
+          try await settle(
+            exchange([
+              .object([
+                "kind": .string("command"), "id": .string("test-action"),
+                "action": step["action"], "arguments": step["inputs"],
+              ])
+            ]))
+          guard let result = commandResult else {
+            throw SevraError("app_check", "The named action did not finish.")
+          }
+          if let expected = step["error"].string {
+            try require(
+              !expected.isEmpty && result["error"].text.contains(expected), "app_check_assertion",
+              "Expected the named action validation error.")
+            assertions += 1
+          } else {
+            try require(result["error"] == .null, "app_check_assertion", result["error"].text)
+          }
         case "expect_text":
           let text = step["value"].text
           try require(!text.isEmpty, "app_check", "Supply a nonempty text expectation.")

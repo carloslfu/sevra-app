@@ -2,7 +2,7 @@
 type: spec
 id: 01m79fs6ac5qjrxm82yqwa255e
 created: 2026-11-13T03:38:52.108343+00:00
-updated: 2026-11-13T15:59:38.299138+00:00
+updated: 2026-11-14T23:09:24.438098+00:00
 summary: Local-model native app authoring, isolated checks, independent review and exact-version access.
 title: Local-model native app authoring
 status: implemented
@@ -42,3 +42,7 @@ Synthetic assertions and a separate model review reduce mistakes; neither proves
 Ordinary chat exposes SDK/source discovery but omits the large save/test schema. SDK delivery sets a host-owned flag that exposes save_native_app and permits up to 8192 output tokens. Compaction and both local adapters use the same flag for measurement and generation. Pinned tokenizer checks gate ordinary tool prompts at 8448 tokens (measured 8361) and authoring prompts at 10240 (measured 9506), inside the same 32768-token context. The separate review scope still exposes only its verdict tool. The SDK is returned with source inspection so follow-up edits do not have to invent APIs from code alone. A failed lookup in a writable request also supplies the host SDK and creation guidance: a failed build has no saved app to edit. Read-only requests never enable the save schema.
 
 Active programmable spaces identify their type and exact ID in native workspace context. Fixed-layout tools return a native-edit route before attempting component edits. A later checked save settles failed edits to the same app in the final receipt while preserving every attempt in activity and retaining unrelated failures.
+
+## Conversational operation
+
+The later [[records/specs/chat-primary-operation]] contract makes chat the primary operating interface. Named SDK actions and existing semantic controls use the same worker and broker without a renderer. Access review and exact-version approval can be completed in chat. Views remain optional clients of the same actions. The authoring checker also accepts `run_action` with typed inputs and optional expected validation errors.

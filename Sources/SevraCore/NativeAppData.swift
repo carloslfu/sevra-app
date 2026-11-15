@@ -1,6 +1,75 @@
 import Foundation
 
 extension Workbook {
+  /// The optional view and chat restore the same last receipt after reopening.
+  public func nativeAppLastTransaction(_ access: NativeAppAccess) throws -> String? {
+    try synchronized {
+      try access.authorized(self) {
+        try db.scalar(
+          """
+          SELECT id FROM operations WHERE kind='native_app_transaction'
+          AND json_extract(request,'$.arguments.space')=?
+          AND json_extract(request,'$.arguments.digest')=?
+          ORDER BY revision DESC LIMIT 1
+          """, [.string(access.spaceID), .string(access.package.digest)]
+        ).string
+      }
+    }
+  }
+  public func chatTableTransaction(
+    _ id: String, expectedDefinitionID: String, operations: [Value], undo: String? = nil,
+    token: String = identifier(), requestSourceID: String? = nil,
+    cancellation: Cancellation = .init()
+  ) throws -> Value {
+    try synchronized(cancellation: cancellation) {
+      let table = try dataset(id)
+      try require(
+        table.definitionID == expectedDefinitionID && !table.archived, "stale_revision",
+        "Inspect the current table schema before changing rows.")
+      let scoped = try operations.map { operation -> Value in
+        try require(
+          ["insert", "update", "delete"].contains(operation["op"].text)
+            && Set(operation.object.keys).isSubset(of: ["op", "id", "values"]), "table_operation",
+          "Use insert/update/delete with exact row IDs and changed values only.")
+        return .object(operation.object.merging(["table": .string("table")]) { _, new in new })
+      }
+      let access = try NativeAppAccess(
+        workbook: self, table: table, requestSourceID: requestSourceID, cancellation: cancellation)
+      defer { access.revoke() }
+      let saved = try db.scalar(
+        "SELECT request FROM operations WHERE id=? AND kind='native_app_transaction'",
+        [.string(token)]
+      ).string
+      let base =
+        try saved.map { try Value.parse($0)["arguments"]["expectedRevision"].int ?? revision() }
+        ?? revision()
+      return try nativeAppTransaction(
+        access, operations: scoped, expectedRevision: base, token: token, undo: undo)
+    }
+  }
+  public func nativeAppConversationRow(_ access: NativeAppAccess, alias: String, id: String) throws
+    -> Value
+  {
+    try synchronized {
+      try db.readTransaction {
+        try access.authorized(self) {
+          let table = try nativeAppBoundTable(access.binding(alias))
+          let row = try item(id)
+          try require(
+            row.id == id && item(row.logicalID).id == id && row.status == "accepted"
+              && db.scalar(
+                "SELECT count(*) FROM dataset_rows WHERE dataset_id=? AND logical_id=?",
+                [.string(table.id), .string(row.logicalID)]
+              ).int == 1,
+            "app_row", "Choose a current row from this app's table.")
+          return .object([
+            "id": .string(row.id), "key": .string(row.logicalID),
+            "values": .object(calculatedValues(row, columns: table.columns)),
+          ])
+        }
+      }
+    }
+  }
   /// Approval covers these exact columns, not future additions to the same table.
   private func nativeAppBoundTable(_ binding: NativeAppDataset) throws -> Dataset {
     guard let id = binding.datasetID else {
@@ -94,7 +163,9 @@ extension Workbook {
       try access.authorized(self) {
         try mutation(
           "native_app_transaction", token: token, request: request, expected: expectedRevision,
-          actor: .programmatic("native-app:" + access.package.digest),
+          actor: access.tableOperation
+            ? ChangeAttribution.actor ?? .programmatic("Sevra.chat-table")
+            : .programmatic("native-app:" + access.package.digest),
           commitGuard: { try access.authorized(self) {} }
         ) {
           var requested = operations
@@ -131,8 +202,11 @@ extension Workbook {
           }
           let evidence = try insertItem(
             category: "source", kind: "observation", title: access.package.name + " update",
-            text: "An authorized native app submitted these values.", data: request,
-            meaning: "actual", status: "accepted", scenario: "actual", inputs: [],
+            text: access.tableOperation
+              ? "A conversation operation submitted these values."
+              : "An authorized native app submitted these values.", data: request,
+            meaning: "actual", status: "accepted", scenario: "actual",
+            inputs: access.requestSourceID.map { [$0] } ?? [],
             transformation: "native-app-command-v1")
           var output: [Value] = []
           var inverse: [Value] = []

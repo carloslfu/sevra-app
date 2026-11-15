@@ -1,0 +1,226 @@
+{
+  "schemaVersion": 1,
+  "date": "2026-11-14",
+  "scope": "Chat-operated synthetic inventory through the actual local model and signed isolated app worker, without a renderer or UI events.",
+  "baseCommit": "d73dd7b8a307d17b98c1433134b63e13bd0ef39d",
+  "modelProfile": "Native product configuration: installed Qwen3.6 35B A3B, 32K context, bounded512 reasoning; unchanged Splash engine.",
+  "actualModel": true,
+  "visibleUI": false,
+  "activeUserAppControlled": false,
+  "cases": [
+    {
+      "case": "add",
+      "request": "In the Stock room app, add Pencils with quantity 3. Do it here in chat.",
+      "answer": "Pencils (quantity 3) have been added to the Stock room.",
+      "state": "complete",
+      "steps": 5,
+      "seconds": 50.228,
+      "rowCount": 1,
+      "values": [
+        {
+          "name": "Pencils",
+          "quantity": "3"
+        }
+      ]
+    },
+    {
+      "case": "edit",
+      "request": "Change Pencils to quantity 5 in the Stock room app.",
+      "answer": "Pencils quantity has been updated to 5 in the Stock room app.",
+      "state": "complete",
+      "steps": 5,
+      "seconds": 47.22,
+      "rowCount": 1,
+      "values": [
+        {
+          "name": "Pencils",
+          "quantity": "5"
+        }
+      ]
+    },
+    {
+      "case": "missing-input",
+      "request": "Add Notebooks in the Stock room app.",
+      "answer": "To add Notebooks to the Stock room, how many do you want to add?",
+      "state": "complete",
+      "steps": 3,
+      "seconds": 22.829,
+      "rowCount": 1,
+      "values": [
+        {
+          "name": "Pencils",
+          "quantity": "5"
+        }
+      ]
+    },
+    {
+      "case": "undo",
+      "request": "Undo the last saved change in the Stock room app.",
+      "answer": "The last change in the Stock room app has been undone. The Pencils quantity was reverted from 5 back to 3.",
+      "state": "complete",
+      "steps": 4,
+      "seconds": 32.782,
+      "rowCount": 1,
+      "values": [
+        {
+          "name": "Pencils",
+          "quantity": "3"
+        }
+      ]
+    }
+  ],
+  "assertions": [
+    "Add and edit both used app.run and returned actual committed transaction receipts.",
+    "Missing quantity caused a question and no inserted row.",
+    "Undo restored quantity 3 after the edit to 5.",
+    "Reopening preserved the final record.",
+    "Successful operations did not report an earlier failed lookup as an unfinished mutation."
+  ],
+  "liveSourceSHA256": {
+    "Sources/SevraAI/WorkbookAgent.swift": "f5828597a280e757d364b6248f3dfe3f063e8e3939354b21da89ec7460b404b1",
+    "Sources/SevraAI/ChatTools.swift": "1cba22a5d3486babb9fda2a69fa694b319e55ea83b3f79363420200f77242b30",
+    "Sources/SevraAI/ActionConfirmations.swift": "dda5fbbd0db3d49f873de7f73e64161ec4fc8dd3e35f1a1a02bf0ab62b51a637",
+    "Sources/SevraCore/ChatOperations.swift": "3510fd8cc3c3aae97c34e2b841321fe33f6b95021632076f9af7f4f51e0fe871",
+    "Sources/SevraAppUI/NativeAppSession.swift": "0a109d292bc908a5ad84aaff065e1e2552ca02bbcc6e4e870aa99dd83bbe8399",
+    "Sources/SevraAppRuntime/Resources/sdk.js": "8b2e9d108662821f39cdd41d51d889384372db576123cbaadebe27084e68c82e",
+    "IntegrationTests/Agent/ChatOperationProbe.swift": "00375da1bad0f078a4744c6053b85cc4a1e8920371c58331a80933d1b1925c4c",
+    "Sources/SevraAI/NativeTools.swift": "d8bc504507811896dfb78a8e68e1d02f5cc168b062fb5fdbe5f74bd789b8e5b0"
+  },
+  "liveBinariesSHA256": {
+    "Contents/MacOS/checks": "7e33092a2dd8ac4a0d6c094aa311a2ae99fd47d323cbf13081fb6dfc702b4ce5",
+    "Contents/MacOS/sevra-extract": "53f3cd56d77be4718327ca193d46e5c521d9ed772ca8ce37b0f6fb2817b36f0b",
+    "Contents/XPCServices/com.sevra.workbooks.app-check-worker.xpc/Contents/MacOS/sevra-app-worker": "9b3bcb839ecdc90c1ee2b963334a11addb011407b2bdb020ad61fa488e7e099c",
+    "Contents/XPCServices/com.sevra.workbooks.app-worker.xpc/Contents/MacOS/sevra-app-worker": "d980e73c6d296b5eb924770c7f18e659ec33c0446dbb4b757fbddacec63f28d9"
+  },
+  "engineSHA256": "532732b0fef256d08e683fc1b50d132e4946d25a8d4f878d0451bebba0385a9a",
+  "earlierAttempts": [
+    {
+      "run": 1,
+      "result": "model_busy; existing inference owner left untouched"
+    },
+    {
+      "run": 2,
+      "result": "step_limit; fixed stale revision after saved chat receipts, decimal encoding feedback, and shared bulk input dispatch"
+    },
+    {
+      "run": 3,
+      "result": "add/edit saved; missing-input case invented quantity 1; clarified required-input policy"
+    },
+    {
+      "run": 4,
+      "result": "direct edit became a review proposal; clarified operation versus authoring/proposal guidance"
+    },
+    {
+      "run": 5,
+      "result": "all state checks passed, including missing-input question and Undo; repaired misleading final failure labels after lookup recovery"
+    },
+    {
+      "run": 7,
+      "result": "corrected malformed app.run arguments saved successfully but left an old error label; recovery now distinguishes pre-execution argument rejection from runtime write failures and preserves failures on other items"
+    }
+  ],
+  "qualification": "One final four-request walkthrough plus deterministic regressions, not a general success rate or guarantee against model mistakes. Native OS dialogs and model setup remain OS interactions. No active-user UI walkthrough or installed-bundle replacement was performed.",
+  "previousQualifiedRun": {
+    "run": 6,
+    "cases": [
+      {
+        "case": "add",
+        "request": "In the Stock room app, add Pencils with quantity 3. Do it here in chat.",
+        "answer": "Pencils with quantity 3 have been added to the Stock room.",
+        "state": "complete",
+        "steps": 4,
+        "seconds": 47.226,
+        "rowCount": 1,
+        "values": [
+          {
+            "name": "Pencils",
+            "quantity": "3"
+          }
+        ]
+      },
+      {
+        "case": "edit",
+        "request": "Change Pencils to quantity 5 in the Stock room app.",
+        "answer": "The quantity for Pencils has been updated to 5 in the Stock room app.",
+        "state": "complete",
+        "steps": 6,
+        "seconds": 68.157,
+        "rowCount": 1,
+        "values": [
+          {
+            "name": "Pencils",
+            "quantity": "5"
+          }
+        ]
+      },
+      {
+        "case": "missing-input",
+        "request": "Add Notebooks in the Stock room app.",
+        "answer": "To add Notebooks to the Stock room, I need to know the quantity. How many Notebooks should be added?",
+        "state": "complete",
+        "steps": 3,
+        "seconds": 25.535,
+        "rowCount": 1,
+        "values": [
+          {
+            "name": "Pencils",
+            "quantity": "5"
+          }
+        ]
+      },
+      {
+        "case": "undo",
+        "request": "Undo the last saved change in the Stock room app.",
+        "answer": "The last saved change in the Stock room app has been undone.",
+        "state": "complete",
+        "steps": 5,
+        "seconds": 65.967,
+        "rowCount": 1,
+        "values": [
+          {
+            "name": "Pencils",
+            "quantity": "3"
+          }
+        ]
+      }
+    ],
+    "liveSourceSHA256": {
+      "Sources/SevraAI/WorkbookAgent.swift": "f5828597a280e757d364b6248f3dfe3f063e8e3939354b21da89ec7460b404b1",
+      "Sources/SevraAI/ChatTools.swift": "bd9f5251fcd71bd4d43090b1b06a8d5417c66ab9afd240a4df32a1ddebdce6bb",
+      "Sources/SevraAI/ActionConfirmations.swift": "eae2eb607adf473e9e76cc146b5a7c3502b1a5f2e6fa91f99cd88f1b5089bdb8",
+      "Sources/SevraCore/ChatOperations.swift": "3510fd8cc3c3aae97c34e2b841321fe33f6b95021632076f9af7f4f51e0fe871",
+      "Sources/SevraAppUI/NativeAppSession.swift": "ae4c9c279e2b4d2bbec9d8a138358d26515b2ec70a6a9b6c9fc88f0d14c97e29",
+      "Sources/SevraAppRuntime/Resources/sdk.js": "8b2e9d108662821f39cdd41d51d889384372db576123cbaadebe27084e68c82e",
+      "IntegrationTests/Agent/ChatOperationProbe.swift": "00375da1bad0f078a4744c6053b85cc4a1e8920371c58331a80933d1b1925c4c"
+    }
+  },
+  "finalRun": 8,
+  "packagedBuild": {
+    "mainUUID": "039A908F-28BB-36CA-8E57-32EEE8862C92",
+    "installedOverUserApp": false,
+    "sha256": {
+      "Contents/MacOS/Sevra": "70639edacfe4ebdefb26062c9df4011f913e351308e9bb2bf87d4392d97807b7",
+      "Contents/XPCServices/com.sevra.workbooks.app-worker.xpc/Contents/MacOS/sevra-app-worker": "70ce039de13d922c663cc1f0bac68d77e2ae2326f5cbe76bcb367dfaf0a08fba",
+      "Contents/XPCServices/com.sevra.workbooks.app-check-worker.xpc/Contents/MacOS/sevra-app-worker": "30a4b824381977f14fa73b7d3088840d7afaaac2e2cad952282e94d6f3060b91"
+    },
+    "verification": {
+      "nativePackage": true,
+      "isolatedInstallUpdateUninstall": true,
+      "extraction": true,
+      "initialModelBusyRefusal": true,
+      "idleRetryPassed": true
+    }
+  },
+  "regressions": {
+    "coreChecksPassed": 655,
+    "signedNativeGroupsPassed": 18,
+    "SDKChecksPassed": 10,
+    "toolGrammarCases": 84,
+    "referenceMasks": 787,
+    "ordinaryToolPromptTokens": 8435,
+    "ordinaryToolPromptBudget": 8448,
+    "authoringToolPromptTokens": 9791,
+    "authoringToolPromptBudget": 10240,
+    "suite": "scripts/check.sh prefix passed. Updated old read-only/document-route assertions, regenerated pinned grammar fixtures, and compressed redundant parameter prose without changing schemas or raising budgets. Failing stage and every remaining script stage passed on focused rerun. Latest receipt recovery additionally passed the complete scripted agent suite."
+  }
+}

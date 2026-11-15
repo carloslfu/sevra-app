@@ -1,14 +1,21 @@
-import {Column,Row,Text,TextField,Button,Picker,Table,signal,draftSignal,data,mount,liveQuery,For} from '@sevra/sdk';
+import {Column,Row,Text,TextField,Button,Picker,Table,signal,draftSignal,data,mount,liveQuery,For,action} from '@sevra/sdk';
 function Jobs() {
  const title=draftSignal('title',''), owner=draftSignal('owner',''), stage=signal('Todo'), selected=signal<any>(null), status=signal(''), busy=signal(false);
  const jobs=liveQuery({sources:[{table:'jobs'}],select:[{id:'stage',column:{source:0,column:'stage'}},{id:'count',aggregate:'countRows'}],groupBy:[{source:0,column:'stage'}],limit:20},'query');
+ const saveJob=action('saveJob',{title:'Add or update a job',inputs:{title:{type:'text',title:'Job title'},owner:{type:'text',title:'Owner'},stage:{type:'text',title:'Stage',choices:['Todo','Doing','Done']},rowID:{type:'record',title:'Existing job',required:false}}},async({title,owner,stage,rowID})=>{
+  if(!title.trim())throw Error('Enter a job title.');
+  const receipt=await data.transaction([{op:rowID?'update':'insert',table:'jobs',...(rowID?{id:rowID}:{}),values:{title,owner,stage}}]);status.value='Job saved.';return receipt;
+ });
+ action('removeJob',{title:'Remove a job',inputs:{rowID:{type:'record',title:'Job'}}},async({rowID})=>{
+  const receipt=await data.transaction([{op:'delete',table:'jobs',id:rowID}]);status.value='Job removed.';return receipt;
+ });
  async function save() {
   if(busy.value)return;
   if(!title.value.trim()){status.value='Enter a job title.';return;}
   busy.value=true;
   const row=selected.value, values={title:title.value,owner:owner.value,stage:stage.value};
   try {
-   const receipt=await data.transaction([{op:row?'update':'insert',table:'jobs',...(row?{id:row.id}:{}),values}]);
+   const receipt=await saveJob({...values,...(row?{rowID:row.id}:{})});
    if(title.value===values.title&&owner.value===values.owner&&stage.value===values.stage&&selected.value===row){selected.value=null;title.value='';owner.value='';}
    else if(row&&selected.value===row)selected.value={...row,id:receipt.results[0].id};
    status.value='Job saved.';

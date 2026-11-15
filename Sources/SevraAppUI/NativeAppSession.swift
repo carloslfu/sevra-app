@@ -13,6 +13,9 @@ import SwiftUI
   public let space: Space
   public var onFrame: ((NativeAppTree, Set<String>) -> Void)?
   public var onData: ((Set<String>) -> Void)?
+  public var onTablePresentation: ((String) -> Void)?
+  public var onInteractionAvailability: (() -> Void)?
+  private var tablePresentations: [String: (signature: Value, request: Value)] = [:]
   public private(set) var access: NativeAppAccess?
   private var connection: NSXPCConnection?
   private var sequence = 0
@@ -37,10 +40,23 @@ import SwiftUI
   private var budgetCommands = 0
   private let defaults: UserDefaults
   private var grant: NativeAppDeviceGrant?
-  public init(book: Workbook, space: Space, defaults: UserDefaults = .standard) {
+  private var actionCatalog: Value = .array([])
+  private var interactionCatalog: Value = .array([])
+  private var commandResults: [String: Value] = [:]
+  private var commandReceipts: [Value] = []
+  private var commandFailures: [String] = []
+  @Published public private(set) var conversationBusy = false {
+    didSet { onInteractionAvailability?() }
+  }
+  private let exchangeOverride: (@Sendable (Data) async throws -> Data)?
+  public init(
+    book: Workbook, space: Space, defaults: UserDefaults = .standard,
+    exchange: (@Sendable (Data) async throws -> Data)? = nil
+  ) {
     self.book = book
     self.space = space
     self.defaults = defaults
+    exchangeOverride = exchange
   }
   public var package: NativeAppPackage { space.definition.app! }
   private var grantKey: String {
@@ -51,6 +67,7 @@ import SwiftUI
   }
   public var isGranted: Bool { NativeAppDeviceGrant(defaults: defaults, key: grantKey) != nil }
   public func enable() {
+    stop()
     defaults.set(UUID().uuidString, forKey: grantKey)
     start()
   }
@@ -60,6 +77,7 @@ import SwiftUI
     status = "disabled"
   }
   public func stop() {
+    status = "disabled"
     access?.revoke()
     access = nil
     grant = nil
@@ -77,8 +95,10 @@ import SwiftUI
     runningSubscriptions = []
     lastUndo = nil
     activeRequests = []
+    tablePresentations = [:]
   }
   public func start() {
+    guard status != "running" && status != "starting" else { return }
     guard let grant = NativeAppDeviceGrant(defaults: defaults, key: grantKey) else { return }
     stop()
     self.grant = grant
@@ -101,7 +121,7 @@ import SwiftUI
         let state = try await Task.detached { [book] in
           (
             try book.nativeAppDraft(access), try book.revision(),
-            try book.nativeAppFingerprints(access)
+            try book.nativeAppFingerprints(access), try book.nativeAppLastTransaction(access)
           )
         }.value
         guard epoch == current else {
@@ -111,23 +131,26 @@ import SwiftUI
         self.access = access
         revision = state.1
         fingerprints = state.2
+        lastUndo = state.3
         draftValues = state.0.object
         nativeEdits = [:]
-        let connection = NSXPCConnection(serviceName: NativeAppWire.service)
-        connection.remoteObjectInterface = NSXPCInterface(with: NativeAppWorkerProtocol.self)
-        connection.interruptionHandler = { [weak self] in
-          Task { @MainActor in
-            self?.fail(
-              "The app worker stopped. Your saved data is safe; restart the app.", epoch: current)
+        if exchangeOverride == nil {
+          let connection = NSXPCConnection(serviceName: NativeAppWire.service)
+          connection.remoteObjectInterface = NSXPCInterface(with: NativeAppWorkerProtocol.self)
+          connection.interruptionHandler = { [weak self] in
+            Task { @MainActor in
+              self?.fail(
+                "The app worker stopped. Your saved data is safe; restart the app.", epoch: current)
+            }
           }
-        }
-        connection.invalidationHandler = { [weak self] in
-          Task { @MainActor in
-            self?.fail("The app worker disconnected. Restart to try again.", epoch: current)
+          connection.invalidationHandler = { [weak self] in
+            Task { @MainActor in
+              self?.fail("The app worker disconnected. Restart to try again.", epoch: current)
+            }
           }
+          connection.resume()
+          self.connection = connection
         }
-        connection.resume()
-        self.connection = connection
         transmit(
           .object([
             "kind": .string("start"), "source": .string(package.source),
@@ -143,7 +166,7 @@ import SwiftUI
     status = "failed"
   }
   private func transmit(_ payload: Value) {
-    guard let connection else { return }
+    guard connection != nil || exchangeOverride != nil else { return }
     let current = epoch
     let expected = sequence
     busy = true
@@ -152,6 +175,15 @@ import SwiftUI
     object["sequence"] = .number(Double(expected))
     do {
       let data = try NativeAppWire.encode(.object(object))
+      if let exchangeOverride {
+        Task {
+          do {
+            received(try await exchangeOverride(data), epoch: current, sequence: expected)
+          } catch { fail(error.localizedDescription, epoch: current) }
+        }
+        return
+      }
+      guard let connection else { throw SevraError("app_service", "The app is unavailable.") }
       guard
         let worker = connection.remoteObjectProxyWithErrorHandler({ [weak self] error in
           Task { @MainActor in self?.fail(error.localizedDescription, epoch: current) }
@@ -192,6 +224,12 @@ import SwiftUI
         nativeEdits.removeValue(forKey: id)
       }
       tree = next
+      try require(
+        response["frame"]["actions"].array.count <= 64
+          && response["frame"]["interactions"].array.count <= 512,
+        "app_protocol", "The app exposes too many operations.")
+      actionCatalog = response["frame"]["actions"]
+      interactionCatalog = response["frame"]["interactions"]
       onFrame?(next, changed)
       sequence += 1
       busy = false
@@ -205,7 +243,9 @@ import SwiftUI
     node: String, handler: String, value: Value = .null, editRevision: Int = 0,
     extra: [String: Value] = [:]
   ) {
-    guard status == "running", tree.interactionEnabled[node] == true else { return }
+    guard status == "running", !conversationBusy, tree.interactionEnabled[node] == true else {
+      return
+    }
     nativeEdits[node] = editRevision
     if handler == "onChange", let key = tree.nodes[node]?.props["draftKey"].string {
       draftValues[key] = value
@@ -238,7 +278,7 @@ import SwiftUI
     Task { [weak self] in self?.flush() }
   }
   private func flush() {
-    guard !busy, !pending.isEmpty, connection != nil else { return }
+    guard !busy, !pending.isEmpty, connection != nil || exchangeOverride != nil else { return }
     let messages = pending
     pending = []
     transmit(.object(["kind": .string("events"), "messages": .array(messages)]))
@@ -258,6 +298,12 @@ import SwiftUI
     }
     for message in messages where message["kind"].text != "draft" {
       switch message["kind"].text {
+      case "commandResult":
+        guard conversationBusy, commandResults.count < 64 else {
+          fail("Unexpected app command result.", epoch: current)
+          return
+        }
+        commandResults[message["id"].text] = message
       case "request": request(message, epoch: current)
       case "unsubscribe":
         let id = message["id"].text
@@ -336,12 +382,14 @@ import SwiftUI
         }.value
         guard epoch == current else { return }
         if message["method"].text == "transaction" {
+          if conversationBusy { commandReceipts.append(result) }
           lastUndo = result["token"].text
           await checkRevision()
         }
         enqueue(.object(["kind": .string("result"), "id": message["id"], "value": result]))
       } catch {
         guard epoch == current else { return }
+        if conversationBusy { commandFailures.append(error.localizedDescription) }
         if message["id"].text == "native-undo" { self.error = error.localizedDescription }
         enqueue(
           .object([
@@ -388,6 +436,33 @@ import SwiftUI
       completion(result)
     }
   }
+  /// The optional native table and conversation share this exact page request.
+  public func tableRequest(_ node: NativeAppNode) -> Value {
+    let signature: Value = .array([
+      .number(Double(node.mountID)), node.props["table"], node.props["search"], node.props["sort"],
+      node.props["descending"], node.props["columns"],
+    ])
+    if let saved = tablePresentations[node.id], saved.signature == signature {
+      return saved.request
+    }
+    var fields: [String: Value] = [
+      "table": node.props["table"],
+      "search": node.props["search"].string.map(Value.string) ?? .string(""), "offset": .number(0),
+      "limit": .number(200),
+    ]
+    if let sort = node.props["sort"].string {
+      fields["sort"] = .string(sort)
+      fields["descending"] = .bool(node.props["descending"] == .bool(true))
+    }
+    let request = Value.object(fields)
+    tablePresentations[node.id] = (signature, request)
+    return request
+  }
+  public func setTableRequest(_ node: NativeAppNode, request: Value, notify: Bool = false) {
+    _ = tableRequest(node)
+    tablePresentations[node.id]?.request = request
+    if notify { onTablePresentation?(node.id) }
+  }
   public func undo() {
     guard canUndo, let lastUndo else { return }
     request(
@@ -398,6 +473,300 @@ import SwiftUI
           "revision": .number(Double(revision)), "token": .string(UUID().uuidString),
         ]),
       ]), epoch: epoch)
+  }
+
+  /// Uses the same live worker and scoped data broker as the optional native surface.
+  /// No renderer, accessibility event, pointer or keyboard input is involved.
+  public func converse(
+    _ operation: String, arguments: Value = .object([:]),
+    readOnly: Bool = false, cancellation: Cancellation = .init()
+  ) async throws -> Value {
+    try require(!conversationBusy, "app_busy", "This app is already handling a request.")
+    try require(
+      ["inspect", "browse"].contains(operation) || !readOnly, "read_only_request",
+      "This request forbids changes.")
+    let current = try book.space(space.id)
+    try require(
+      current.version == space.version, "stale_app", "The app changed. Inspect its current version."
+    )
+    if operation == "fill" {
+      guard case .array(let inputs) = arguments["inputs"], (1...32).contains(inputs.count),
+        inputs.allSatisfy({
+          Set($0.object.keys) == Set(["target", "value"]) && $0["target"].string != nil
+        })
+      else { throw SevraError("app_input", "Supply 1 to 32 named inputs and their values.") }
+      var changes: [Value] = []
+      var result: Value = .null
+      for field in inputs {
+        do {
+          result = try await converse(
+            "set", arguments: field, readOnly: readOnly, cancellation: cancellation)
+          changes += result["changes"].array
+          if result["outcome"] == .string("failed") { break }
+        } catch {
+          return .object([
+            "outcome": .string("failed"), "errors": .array([.string(error.localizedDescription)]),
+            "changes": .array(changes), "input": field["target"],
+          ])
+        }
+      }
+      var fields = result.object
+      fields["changes"] = .array(changes)
+      return .object(fields)
+    }
+    if operation == "disable" {
+      revoke()
+      return conversationSnapshot()
+    }
+    if operation == "enable" { enable() }
+    if operation == "restart" {
+      stop()
+      start()
+    }
+    if status != "running" && isGranted && !readOnly && !["inspect", "browse"].contains(operation) {
+      start()
+    }
+    if status == "disabled" {
+      try require(
+        operation == "inspect", "app_permission",
+        isGranted
+          ? "This approved app is stopped. Use app.restart for requested work; inspection does not execute saved code."
+          : "This app is disabled. Prepare app.enable and ask the user to confirm its access in chat."
+      )
+      return conversationSnapshot()
+    }
+    try await settleConversation(cancellation)
+    // Saved chat receipts also advance the workbook revision.
+    // Refresh the worker before a command, rather than waiting for its periodic poll.
+    await checkRevision()
+    try await settleConversation(cancellation)
+    if ["inspect", "enable", "restart"].contains(operation) { return conversationSnapshot() }
+    conversationBusy = true
+    commandResults = [:]
+    commandReceipts = []
+    commandFailures = []
+    defer {
+      conversationBusy = false
+      commandResults = [:]
+    }
+    var answer: Value = .null
+    do {
+      if operation == "undo" {
+        try require(canUndo, "app_undo", "There is no app change to undo in this session.")
+        undo()
+        try await settleConversation(cancellation)
+      } else if operation == "run" {
+        let id = arguments["action"].text
+        try require(
+          actionCatalog.array.contains { $0["id"].text == id }, "app_action",
+          "Inspect the app and choose an available action.")
+        answer = try await conversationCommand(
+          [
+            "action": .string(id),
+            "arguments": arguments["inputs"] == .null ? .object([:]) : arguments["inputs"],
+          ], cancellation: cancellation)
+      } else {
+        try require(
+          ["set", "select", "activate", "drop", "browse"].contains(operation), "app_action",
+          "Unknown app operation.")
+        let target = arguments["target"].text
+        let matches = tree.nodes.values.filter {
+          $0.id == target || $0.props["label"].string == target
+            || $0.props["title"].string == target
+            || ($0.type == "table" && ["browse", "select", "activate"].contains(operation)
+              && $0.props["table"].string == target)
+        }
+        try require(
+          matches.count == 1, "app_target", "Use one exact input/action name from app.inspect.")
+        let node = matches[0]
+        try require(
+          tree.interactionEnabled[node.id] == true, "app_disabled",
+          "This input is currently unavailable.")
+        if operation == "browse" {
+          try require(node.type == "table", "app_table", "Choose a table target from app.inspect.")
+          guard let access else { throw SevraError("app_permission", "Enable this app first.") }
+          var query = tableRequest(node).object
+          if ["search", "sort", "descending"].contains(where: { arguments.object[$0] != nil }) {
+            query["offset"] = .number(0)
+          }
+          for key in ["search", "sort", "descending", "offset"] where arguments.object[key] != nil {
+            query[key] = arguments[key]
+          }
+          if query["sort"] == .string("") { query.removeValue(forKey: "sort") }
+          let request = Value.object(query)
+          let page = try await Task.detached { [book] in
+            try book.nativeAppPage(access, request: request)
+          }.value
+          try cancellation.check()
+          setTableRequest(node, request: request, notify: true)
+          return .object([
+            "kind": .string("app_table_page"), "status": .string("shown"), "id": .string(space.id),
+            "datasetID": package.datasets[node.props["table"].text]?.datasetID.map(Value.string)
+              ?? .null, "table": node.props["table"], "request": request, "page": page,
+          ])
+        }
+        let handler =
+          operation == "set"
+          ? "onChange"
+          : operation == "select"
+            ? "onSelect"
+            : operation == "drop" ? "onDrop" : node.type == "table" ? "onActivate" : "onClick"
+        try require(
+          interactionCatalog.array.contains {
+            $0["id"].text == node.id && $0["handlers"].array.contains(.string(handler))
+          }, "app_action", "That operation is not available on this input.")
+        var value = arguments["value"]
+        var extra: [String: Value] = [:]
+        if node.type == "table" {
+          guard let access else { throw SevraError("app_permission", "Enable this app first.") }
+          value = try book.nativeAppConversationRow(
+            access, alias: node.props["table"].text, id: arguments["rowID"].text)
+        } else if node.type == "canvas" {
+          let id = arguments["region"].text
+          guard let region = node.props["regions"].array.first(where: { $0["id"].text == id })
+          else {
+            throw SevraError("app_region", "Choose a named region from the app.")
+          }
+          value = region["id"]
+          extra = [
+            "x": arguments["x"] == .null ? .number(0) : arguments["x"],
+            "y": arguments["y"] == .null ? .number(0) : arguments["y"],
+          ]
+          for point in extra.values {
+            guard case .number(let number) = point, number.isFinite, abs(number) <= 100_000 else {
+              throw SevraError("app_input", "Use bounded numeric movement distances.")
+            }
+          }
+        } else if operation == "set" {
+          try Self.validateConversationInput(node, value: value)
+        }
+        nativeEdits[node.id, default: 0] += 1
+        extra.merge([
+          "node": .string(node.id), "mountID": .number(Double(node.mountID)),
+          "handler": .string(handler), "value": value,
+          "editRevision": .number(Double(nativeEdits[node.id]!)),
+        ]) { _, new in new }
+        answer = try await conversationCommand(extra, cancellation: cancellation)
+      }
+    } catch {
+      if cancellation.isCancelled { stop() }
+      throw error
+    }
+    var snapshot = conversationSnapshot().object
+    snapshot["result"] = answer
+    snapshot["changes"] = .array(commandReceipts)
+    snapshot["errors"] = .array(commandFailures.map(Value.string))
+    snapshot["outcome"] = .string(commandFailures.isEmpty ? "completed" : "failed")
+    return .object(snapshot)
+  }
+
+  private func conversationCommand(_ fields: [String: Value], cancellation: Cancellation)
+    async throws -> Value
+  {
+    let id = UUID().uuidString
+    enqueue(
+      .object(fields.merging(["kind": .string("command"), "id": .string(id)]) { _, new in new }))
+    let deadline = Date().addingTimeInterval(15)
+    while commandResults[id] == nil {
+      try cancellation.check()
+      try require(
+        status == "running", "app_script",
+        error
+          ?? "The app stopped before this action finished. Inspect saved changes before retrying.")
+      guard Date() < deadline else {
+        stop()
+        throw SevraError(
+          "app_timeout",
+          "The action did not finish. Inspect saved records before retrying; completed changes are preserved."
+        )
+      }
+      try await Task.sleep(nanoseconds: 10_000_000)
+    }
+    let result = commandResults.removeValue(forKey: id)!
+    if let error = result["error"].string { commandFailures.append(error) }
+    try await settleConversation(cancellation)
+    return result["value"]
+  }
+
+  private func settleConversation(_ cancellation: Cancellation) async throws {
+    let deadline = Date().addingTimeInterval(15)
+    while status == "starting" || busy || !pending.isEmpty || !activeRequests.isEmpty
+      || !runningSubscriptions.isEmpty
+    {
+      try cancellation.check()
+      guard Date() < deadline else {
+        stop()
+        throw SevraError("app_timeout", "The app did not finish its pending work.")
+      }
+      try await Task.sleep(nanoseconds: 10_000_000)
+    }
+    try require(status == "running", "app_script", error ?? "Enable the app before using it.")
+    await draftSave?.value
+  }
+
+  private func conversationSnapshot() -> Value {
+    .object([
+      "id": .string(space.id), "version": .number(Double(space.version)),
+      "name": .string(package.name), "status": .string(status), "enabled": .bool(isGranted),
+      "runtimeNotice": .string(
+        status == "disabled" && isGranted
+          ? "Approved but stopped. app.restart starts it for requested work. Inspection does not execute saved code."
+          : ""),
+      "actions": actionCatalog, "canUndo": .bool(canUndo),
+      "inputs": .array(
+        interactionCatalog.array.compactMap { item in
+          guard let node = tree.nodes[item["id"].text] else { return nil }
+          return .object([
+            "target": .string(node.id), "type": .string(node.type), "fields": node.props,
+            "enabled": .bool(tree.interactionEnabled[node.id] == true),
+            "handlers": item["handlers"],
+          ])
+        }),
+      "display": .array(
+        tree.nodes.values.filter { $0.type == "text" }.sorted { $0.id < $1.id }.map {
+          $0.props["text"]
+        }),
+      "tables": .array(
+        tree.nodes.values.filter { $0.type == "table" }.sorted { $0.id < $1.id }.map {
+          .object([
+            "target": .string($0.id), "label": $0.props["label"], "table": $0.props["table"],
+            "request": tableRequest($0),
+          ])
+        }),
+      "access": .object(
+        package.datasets.mapValues { binding in
+          .object([
+            "datasetID": binding.datasetID.map(Value.string) ?? .null,
+            "writable": .bool(binding.writable),
+          ])
+        }),
+    ])
+  }
+
+  private static func validateConversationInput(_ node: NativeAppNode, value: Value) throws {
+    let valid: Bool
+    switch node.type {
+    case "toggle", "disclosure": if case .bool = value { valid = true } else { valid = false }
+    case "slider":
+      if case .number(let number) = value {
+        valid =
+          number.isFinite && number >= (Double(node.props["min"].text) ?? 0)
+          && number <= (Double(node.props["max"].text) ?? 1)
+      } else {
+        valid = false
+      }
+    case "tabs":
+      valid =
+        value.int.map {
+          value == .number(Double($0)) && $0 >= 0 && $0 < node.props["titles"].array.count
+        } ?? false
+    case "picker":
+      valid = node.props["options"].array.contains { $0 == value || $0["value"] == value }
+    case "textField", "textEditor", "date": valid = value.string != nil
+    default: valid = false
+    }
+    try require(
+      valid, "app_input", "Supply a value of the displayed input type and listed choices.")
   }
   private func beginPolling() {
     poll = Task { [weak self] in

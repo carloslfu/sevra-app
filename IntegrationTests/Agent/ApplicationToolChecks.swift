@@ -252,13 +252,13 @@ func checkApplicationTools() async throws {
       try expectEqual(
         failures.contains {
           $0["tool"] == .string("prepare_action")
-            && $0["result"]["error"].text.contains("not qualified yet")
+            && $0["result"]["error"].text.contains("workspace_action form.submit")
         }, true)
     }
     try expectEqual(try book.verify()["ok"], .bool(true))
   }
   print(
-    "PASS document action preview identifies meaning and new prose; unqualified direct chat submission stays closed without inventory review"
+    "PASS document action preview identifies meaning and new prose; unreviewed direct preparation stays closed and routes to conversational form submission"
   )
   try expectEqual(InferenceToolScope.actionDirection.allows("prepare_action"), false)
   try expectEqual(InferenceToolScope.propose_movement.allows("prepare_action"), true)

@@ -1,13 +1,20 @@
-import {Column,Row,Text,TextField,Button,Canvas,signal,draftSignal,liveQuery,data,mount} from '@sevra/sdk';
+import {Column,Row,Text,TextField,Button,Canvas,signal,draftSignal,liveQuery,data,mount,action} from '@sevra/sdk';
 function Planner() {
  const title=draftSignal('title',''), status=signal(''), cards=liveQuery({table:'cards',limit:100});
+ const addCard=action('addCard',{title:'Add a card',inputs:{title:{type:'text',title:'Card title'}}},async({title})=>{
+  if(!title.trim())throw Error('Enter a card title.');
+  const receipt=await data.transaction([{op:'insert',table:'cards',values:{title,x:String(20+(cards.value.rows.length%2)*170),y:String(25+Math.floor(cards.value.rows.length/2)*90)}}]);status.value='Card saved.';return receipt;
+ });
+ const moveCard=action('moveCard',{title:'Position a card',inputs:{rowID:{type:'record',title:'Card'},x:{type:'number',title:'Horizontal position'},y:{type:'number',title:'Vertical position'}}},async({rowID,x,y})=>{
+  const receipt=await data.transaction([{op:'update',table:'cards',id:rowID,values:{x:String(Math.max(0,Math.min(300,x))),y:String(Math.max(0,y))}}]);status.value='Position saved.';return receipt;
+ });
  async function add() {
   if(!title.value.trim()){status.value='Enter a card title.';return;}
-  try {await data.transaction([{op:'insert',table:'cards',values:{title:title.value,x:String(20+(cards.value.rows.length%2)*170),y:String(25+Math.floor(cards.value.rows.length/2)*90)}}]);title.value='';status.value='Card saved.';}catch(error){status.value=error.message;}
+  try {await addCard({title:title.value});title.value='';status.value='Card saved.';}catch(error){status.value=error.message;}
  }
  async function move(event) {
   const row=cards.value.rows.find(row=>row.key===event.value);if(!row)return;
-  try {await data.transaction([{op:'update',table:'cards',id:row.id,values:{x:String(Math.max(0,Math.min(300,Number(row.values.x)+event.x))),y:String(Math.max(0,Number(row.values.y)+event.y))}}],{revision:cards.value.revision});status.value='Position saved.';}catch(error){status.value=error.message;}
+  try {await moveCard({rowID:row.id,x:Number(row.values.x)+event.x,y:Number(row.values.y)+event.y});status.value='Position saved.';}catch(error){status.value=error.message;}
  }
  return <Column gap={12}>
   <Text text="Plan your work" size={26} weight="bold"/>

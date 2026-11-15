@@ -2,6 +2,7 @@ import AVKit
 import AppKit
 import Foundation
 import SevraAI
+import SevraAppUI
 import SevraCore
 import SevraDocumentUI
 import SevraPreviewUI
@@ -28,6 +29,22 @@ struct FolderReview {
 }
 
 @MainActor final class WorkspaceState: ObservableObject {
+  private var nativeAppSessions: [String: NativeAppSession] = [:]
+  func nativeAppSession(_ space: Space, book: Workbook) -> NativeAppSession {
+    if let session = nativeAppSessions[space.id], session.book === book,
+      session.space.version == space.version
+    {
+      return session
+    }
+    nativeAppSessions[space.id]?.stop()
+    let session = NativeAppSession(book: book, space: space)
+    nativeAppSessions[space.id] = session
+    return session
+  }
+  private func closeNativeApps() {
+    for session in nativeAppSessions.values { session.stop() }
+    nativeAppSessions = [:]
+  }
   enum Route: Equatable {
     case space(String)
     case item(String)
@@ -224,6 +241,7 @@ struct FolderReview {
       "Save or preserve clarification inputs before opening another workbook.")
     await spaceNavigation.open(opened)
     endInteraction()
+    closeNativeApps()
     workbook = opened
     spaces = []
     items = []
@@ -355,7 +373,7 @@ struct FolderReview {
         if let oldReviews,
           snapshot.reviewQueue.items.contains(where: { !oldReviews.contains($0.id) })
         {
-          self.terminalStatus = "Drafts are available for review. Open Drafts to review."
+          self.terminalStatus = "Drafts are ready. Ask to review or accept them here in chat."
         }
         self.items = snapshot.items
         self.datasets = snapshot.datasets
@@ -611,16 +629,13 @@ struct FolderReview {
         self.composerFocusRequest = UUID()
         if let id = excel.first {
           self.navigate(.excelImport(id))
-          Task {
-            let path = self.excelModelDirectory
-            if await ProductAI.shared.installed(at: path), self.route == .excelImport(id),
-              let book = self.workbook, let draft = try? book.excelConversion(id),
-              draft.plan == .null,
-              draft.inspection["sheets"].array.contains(where: { ($0["rows"].int ?? 0) > 0 })
-            {
-              self.analyzeExcelImport(id)
-            }
+          if let book = self.workbook {
+            _ = try? book.addMessage(
+              "Your Excel workbook is ready. Tell me what work you do with it, or ask me to inspect it, use its tables, or build an app. You can supply the inputs and run its actions here in chat.",
+              role: "assistant", conversation: chat)
+            self.refresh()
           }
+          self.composerFocusRequest = UUID()
         }
       })
   }
@@ -846,7 +861,7 @@ struct FolderReview {
       return
     }
     clarificationDrafts.invalidateConversationPreviews()
-    if let command = WorkspaceControlCommand.parse(input) {
+    if let command = WorkspaceControlCommand.parse(input), command != .openCopy {
       prompt = ""
       error = nil
       control(command, input: input, book: book)
@@ -892,6 +907,10 @@ struct FolderReview {
       return
     }
     if conversationCommand(input, book: book) {
+      refresh()
+      return
+    }
+    if handleChatConfirmation(input, book: book) {
       refresh()
       return
     }
@@ -975,7 +994,15 @@ struct FolderReview {
             }
           },
           openSpace: { target in try openRequestedView(.space(target.id)) },
-          openReviews: { try openRequestedView(.reviews) })
+          openReviews: { try openRequestedView(.reviews) },
+          workspaceAction: { action, arguments, readOnly, cancellation in
+            try require(
+              self.owns(ticket, in: book) && self.conversation == chat, "workspace_changed",
+              "This workbook conversation changed.")
+            return try await self.performChatAction(
+              action, arguments: arguments, book: book, readOnly: readOnly,
+              cancellation: cancellation)
+          })
         unsent = nil
         guard owns(ticket, in: book) else { return }
         refresh()
@@ -1092,14 +1119,14 @@ struct FolderReview {
       let native = spaces.first { $0.id == id }?.definition.app != nil
       return routeContext + "\nActive space ID: " + id
         + (native
-          ? "\nActive space is a programmable native app. For interface edits, use read_native_app with this exact ID, then save_native_app with its current version and tests."
+          ? "\n" + ChatOperations.appOperationGuidance
           : "")
     case .item(let id):
       return routeContext + "\nActive item version ID: " + (viewedItemVersion ?? id)
     case .table(let id): return routeContext + "\nActive dataset ID: " + id
     case .tableUpdate(let source, _):
       return routeContext + "\nTable-update review for source ID: " + source
-    case .excelImport: return routeContext
+    case .excelImport(let id): return routeContext + "\nActive Excel import ID: " + id
     case .automation(let id): return routeContext + "\nActive exact automation version ID: " + id
     case .workflow(let id): return routeContext + "\nActive workflow run ID: " + id
     case .search, .reviews, .activity, .automations: return routeContext
@@ -1114,7 +1141,7 @@ struct FolderReview {
     case .tableUpdate: return "Review table update"
     case .excelImport:
       return
-        "Excel import review. Use its native controls to understand the workbook, clarify the workflow, use tables or build a checked native workspace."
+        "Excel import review. Use workspace_actions domain=excel to inspect, clarify, analyze, use tables or build the workspace directly in this conversation."
     case .search: return "Workbook search"
     case .reviews: return "Drafts to review"
     case .activity: return "Workflow activity"
@@ -1172,10 +1199,6 @@ struct FolderReview {
       }
       if lower == "add folder" || lower == "add a folder" {
         folderPanel()
-        return true
-      }
-      if lower == "make a shareable copy" || lower == "export workbook" {
-        exportPanel()
         return true
       }
       if lower.hasPrefix("open ") {
@@ -1608,6 +1631,7 @@ struct FolderReview {
   /// gone. The window saved before it closed, so the workbook is let go here and its connection
   /// and memory end with the window.
   func close() {
+    closeNativeApps()
     endInteraction()
     conversationSession.close()
     formDrafts.close()

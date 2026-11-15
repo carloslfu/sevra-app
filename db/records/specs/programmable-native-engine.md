@@ -3,7 +3,7 @@ type: spec
 meta-type: conclusion
 id: 01m78sah1afmhpr6vzfbkrg1r2
 created: 2026-11-12T21:06:22.890879+00:00
-updated: 2026-11-13T15:44:35.525507+00:00
+updated: 2026-11-14T23:42:23.408357+00:00
 summary: 'Native programmable spaces: scoped QuickJS/XPC execution, reactive AppKit rendering, shared transactional data, SDK authoring, recovery and bounded capabilities.'
 title: Programmable native spaces SDK 1
 status: implemented
@@ -50,7 +50,7 @@ Receipts contain the operation token, resulting revision and exact row IDs. Reus
 
 ## Permissions, recovery and limits
 
-The native Enable surface lists requested table read/write access using names resolved from the bound workbook tables, not package-authored labels. Enable remains disabled until the native host validates those bindings. The device-local grant key includes the physical SQLite file identity, workbook ID, space ID/version and package digest. Changing code/bindings/version or copying/replacing the database requires a fresh grant. Each approval stores a fresh device-local generation. Data admission and the final write guard compare the captured generation, so Disable also fences other live sessions using that grant and reapproval cannot revive their old access. Revision polling removes stale UI even when no workbook data changed. Disable/navigation close the connection and revoke its in-memory capability; navigation alone does not erase the saved device approval. Development approvals and synthetic fixtures are disposable, with no conversion or migration path; [[sources/notes/2026/11/mini-app-fresh-start]] confirms the fresh baseline. Newly created apps follow the normal review and initial Enable flow. Draft checkpoints may finish after closing because they carry no business-write authority. Draft writes are serialized and restart waits for them. Native fields protect newer unsent values against older script frames.
+The native Enable surface lists requested table read/write access using names resolved from the bound workbook tables, not package-authored labels. Enable remains disabled until the native host validates those bindings. The device-local grant key includes the physical SQLite file identity, workbook ID, space ID/version and package digest. Changing code/bindings/version or copying/replacing the database requires a fresh grant. Each approval stores a fresh device-local generation. Data admission and the final write guard compare the captured generation, so Disable also fences other live sessions using that grant and reapproval cannot revive their old access. Revision polling removes stale UI even when no workbook data changed. Disable and workbook close end the connection and revoke its in-memory capability. Navigation keeps the workbook-owned session available to chat; it does not erase the saved device approval. Development approvals and synthetic fixtures are disposable, with no conversion or migration path; [[sources/notes/2026/11/mini-app-fresh-start]] confirms the fresh baseline. Newly created apps follow the normal review and initial Enable flow. Draft checkpoints may finish after closing because they carry no business-write authority. Draft writes are serialized and restart waits for them. Native fields protect newer unsent values against older script frames.
 
 Trusted chrome retains error/disable/restart controls outside the generated tree. A failed script poisons its runtime; it is not resumed in a partially evaluated state. Restart mounts saved source and retained drafts; it does not replay recorded database transactions. Authors must avoid unconditional business side effects during mount and retain operation tokens for explicit retry of uncertain requests. JavaScript source is portable but grants and OS privileges are not.
 
@@ -121,3 +121,7 @@ The local workbook conversation now uses SDK discovery, exact source inspection 
 ## November 13 adversarial follow-up
 
 [[records/reviews/native-app-adversarial-review-2026-11-13]] records two permission findings and three native-state findings with failing probes and fixes. Disabled or hidden containers fence descendant interactions in the native renderer, host event dispatcher and authoring checker. Controlled table sort/selection and tab selection apply on the initial frame; tab title changes preserve current selection. These are bounded behavior guarantees, not general security certification.
+
+## Conversational operation
+
+The later [[records/specs/chat-primary-operation]] contract makes chat the primary operating interface. Named SDK actions and existing semantic controls use the same worker and broker without a renderer. Access review and exact-version approval can be completed in chat. Views remain optional clients of the same actions. The authoring checker also accepts `run_action` with typed inputs and optional expected validation errors.

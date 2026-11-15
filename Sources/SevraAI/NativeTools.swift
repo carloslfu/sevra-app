@@ -95,7 +95,20 @@ package enum NativeTools {
     "type": .string("array"), "maxItems": .number(16),
     "items": withoutDescriptions(componentSchema(depth: 1)),
   ])
-  package static let definitions: [WorkbookToolDefinition] =
+  // These parameter descriptions repeat the tool's contract and the request policy.
+  // Keep the same schemas, bounds and enums while reserving context for actual work.
+  private static let compactParameterDescriptions: Set<String> = [
+    "start_thread_and_continue", "start_thread", "review_thread_summary", "tool_result",
+    "read", "compare_rows", "propose_table", "edit_space", "draft", "finish",
+    "workflow_template", "save_definition", "include_archive_members", "propose_table_edit",
+    "space_history",
+  ]
+  package static let definitions: [WorkbookToolDefinition] = fullDefinitions.map {
+    guard compactParameterDescriptions.contains($0.name) else { return $0 }
+    return .init(
+      name: $0.name, description: $0.description, parameters: withoutDescriptions($0.parameters))
+  }
+  private static let fullDefinitions: [WorkbookToolDefinition] =
     nativeAppDefinitions + [
       .init(
         name: "start_thread_and_continue",
@@ -410,7 +423,7 @@ package enum NativeTools {
       .init(
         name: "propose_table_edit",
         description:
-          "Draft cell changes: read exact rows first; supply their version IDs and changed fields only. Accepted values stay unchanged.",
+          "Draft cell changes when the user asks for a proposal or review first. Accepted values stay unchanged. To operate a mini app or directly make requested changes, use workspace_action app.run or table.change_rows instead. Read exact rows first; supply their version IDs and changed fields only.",
         parameters: object(
           [
             "datasetID": schema("string", "Existing table ID."),
@@ -606,5 +619,5 @@ package enum NativeTools {
               ),
             ]),
           ], required: ["answer", "basis", "citations"])),
-    ] + applicationDefinitions
+    ] + applicationDefinitions + chatDefinitions
 }

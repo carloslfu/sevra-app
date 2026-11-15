@@ -251,6 +251,7 @@ public actor ProductAI {
     requestStarted: @escaping @Sendable (AgentRequest, String) -> Void = { _, _ in },
     openSpace: SpaceOpener? = nil,
     openReviews: ReviewQueueOpener? = nil,
+    workspaceAction: WorkspaceActionHandler? = nil,
     excelConversion: ExcelConversionBuild? = nil
   ) async throws -> AgentResult {
     try await perform(cancellation: cancellation) {
@@ -266,7 +267,8 @@ public actor ProductAI {
         prompt, workbook: workbook, conversation: conversation, context: context,
         modelDirectory: modelDirectory, cancellation: cancellation, progress: progress,
         model: model, requestStarted: requestStarted,
-        openSpace: openSpace, openReviews: openReviews, excelConversion: excelConversion
+        openSpace: openSpace, openReviews: openReviews, workspaceAction: workspaceAction,
+        excelConversion: excelConversion
       )
     }
   }

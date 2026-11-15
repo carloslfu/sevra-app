@@ -7,6 +7,14 @@ import ZIPFoundation
 
 setbuf(stdout, nil)
 
+if CommandLine.arguments.dropFirst() == ["--chat"] {
+  try checkChatOperations()
+  print(
+    "PASS chat operations: inserts, formulas, retry replay, read-only/unknown-input refusal, update/delete/Undo, stale row/schema and reopen"
+  )
+  exit(0)
+}
+
 if CommandLine.arguments.count == 5 && CommandLine.arguments[1] == "--condition-death-worker" {
   try inventoryConditionDeathWorker(
     CommandLine.arguments[2], consumer: CommandLine.arguments[3], stage: CommandLine.arguments[4])
@@ -1591,5 +1599,6 @@ checkBusinessInputs(at: temp)
 checkConditionCauses(at: temp)
 checkConditionDispatch(at: temp)
 checkReviewFollowUps(at: temp)
+check("Chat operations and immutable table changes") { try checkChatOperations() }
 print("\(passed) passed; \(failed) failed")
 exit(failed == 0 ? 0 : 1)

@@ -277,6 +277,12 @@ do {
     try await checkExcelConversions()
     exit(0)
   }
+  if CommandLine.arguments.count == 6 && CommandLine.arguments[1] == "--chat-live" {
+    try await runChatOperationProbe(
+      modelsRoot: CommandLine.arguments[2], library: CommandLine.arguments[3],
+      engine: CommandLine.arguments[4], output: CommandLine.arguments[5])
+    exit(0)
+  }
   if CommandLine.arguments.count == 6 && CommandLine.arguments[1] == "--excel-conversion-live" {
     try await runExcelConversionProbe(
       modelsRoot: CommandLine.arguments[2], library: CommandLine.arguments[3],
@@ -311,6 +317,10 @@ do {
     try checks.testActualWorkbookSchemas()
     exit(0)
   }
+  if CommandLine.arguments.dropFirst() == ["--chat-checks"] {
+    try await checkChatAgentOperations()
+    exit(0)
+  }
   if CommandLine.arguments.dropFirst() == ["--inference-lease"] {
     try await inferenceLeaseChild()
     exit(0)
@@ -333,6 +343,7 @@ do {
   try await checkApplicationTools()
   try await checkInventoryAutomationAuthoring()
   try await checkWorkflowAgentTools()
+  try await checkChatAgentOperations()
   try await checkWorkflowAnswerAgent()
   try await checkComputationTools()
   try await checkCitationVersions()

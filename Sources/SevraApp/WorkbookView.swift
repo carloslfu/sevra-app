@@ -508,7 +508,8 @@ struct WorkbookView: View {
           .help("Ask without this selection").accessibilityLabel("Remove selection from message")
         }
       }
-      TextField("Type or speak…", text: $state.prompt, axis: .vertical).textFieldStyle(.plain)
+      TextField("Ask, change, or run something…", text: $state.prompt, axis: .vertical)
+        .textFieldStyle(.plain)
         .focused($composerFocused).lineLimit(2...7).onSubmit { state.send() }.accessibilityLabel(
           "Message Sevra"
         )

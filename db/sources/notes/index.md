@@ -8,6 +8,7 @@ updated: 2026-11-14T22:35:41.377796Z
 # sources/notes
 
 - [[sources/notes/2026/11/frozen-excel-checkpoint]] — Owner selects continued Excel verification on exact frozen da3c472 checkpoint while another chat changes the shared engine.
+- [[sources/notes/2026/11/chat-primary-operation]] — Owner directs all app operations and mini-app inputs/actions through chat without UI clicks.
 - [[sources/notes/2026/11/fresh-excel-batches]] — Owner requests fresh local-model conversion of all ten workflows, fixing failures and repeating without reused apps or manual repairs.
 - [[sources/notes/2026/11/automatic-excel-reliability]] — Owner requests automatic Excel conversion without manually repaired apps and fresh business-case verification
 - [[sources/notes/2026/11/app-engine-adversarial-review]] — Owner expands active work to an adversarial review of app, engine and mini apps

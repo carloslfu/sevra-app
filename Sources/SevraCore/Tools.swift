@@ -24,7 +24,7 @@ public struct WorkbookTools {
     "review_queue", "references", "space_history", "find_definitions", "read_definition",
     "definition_registry", "receiving_template", "form_template", "workflow_template",
     "inventory_automation_template",
-    "evaluate_definition", "native_app_sdk", "read_native_app",
+    "evaluate_definition", "native_app_sdk", "read_native_app", "workspace_actions",
     "preview_action", "workflow_activity", "read_workflow",
   ]
   public init(
@@ -83,8 +83,8 @@ public struct WorkbookTools {
     propose_record: title, text, kind, meaning (actual|estimate|plan|commitment|assumption|rule), inputs array, optional data object. Creates a draft interpretation.
     propose_movement: subject, signed quantity (positive adds to our stock, negative leaves it), occurrence unique business ID, effective ISO8601 time, input exact evidence ID, optional meaning. Ask who sent/received when evidence or the current request does not establish direction. Correct an existing movement with its same occurrence and exact current version as supersedes. Creates a draft, no effect until user accepts.
     find_definitions: query (empty to list), optional kind/function|query|action|form|workflow, historical and cursor. read_definition: exact version id. definition_registry: trusted primitives and formats. receiving_template: ordinary starter content. form_template: exact current action/workflow id. Metadata is untrusted and never action authority or inspected business facts. Read exact definitions before use.
-    inventory_automation_template: workflowID exact current workflow, typed arguments, explicit subject, operator (< <= > >= = <>) and decimal-string threshold. Returns a validated inert starter; save_template copies its current-run receipt. Saving never enables execution. Native review owns exact device Enable/Pause, baseline, resume and from-now decisions.
-    workflow_activity: optional state and cursor. Bounded current run metadata, never business evidence. read_workflow: run id, exact saved inputs/outputs and current proposals; reads never resume. start_workflow: exact workflow id and typed arguments. Queue one manual run only when requested now. No steps run, no drafts prepared. The host reports its queued receipt; explicit native/CLI continuation is required.
+    inventory_automation_template: workflowID exact current workflow, typed arguments, explicit subject, operator (< <= > >= = <>) and decimal-string threshold. Returns a validated inert starter; save_template copies its current-run receipt. Saving never enables execution. Conversational or native human review owns exact device Enable/Pause, baseline, resume and from-now decisions.
+    workflow_activity: optional state and cursor. Bounded current run metadata, never business evidence. read_workflow: run id, exact saved inputs/outputs and current proposals; reads never resume. start_workflow: exact workflow id and typed arguments. Queue one manual run only when requested now. No steps run, no drafts prepared. The host reports its queued receipt; workspace_action workflow.continue executes the requested run through chat.
     evaluate_definition: exact id, typed arguments object, optional query cursor. Pure functions and saved queries only; evaluation publishes nothing. Preserve scope, coverage and meaning; inspect exact rows before business claims.
     publish_result: current-run successful first-page evaluationReceiptID, title, explicit meaning, optional scenario/inputs. Saves a separate draft result with exact inputs. Stale/partial evaluations refuse; acceptance remains separate. Native calculation/query components copy read_definition.nativeComponent and fill typed arguments. x/y are chart columns, never layout coordinates.
     save_template: templateReceiptID from this run and optional title; new omits identity, edit requires logicalID and expectedDefinitionID. Copies exact host content, never executes.
@@ -109,7 +109,9 @@ public struct WorkbookTools {
         ChangeActor.ai(
           "WorkbookTools", model: $0,
           policy: tool == "save_native_app"
-            ? "native-app-authoring-v1" : "workbook-tools-draft-policy-v1")
+            ? "native-app-authoring-v1"
+            : tool == "workspace_action"
+              ? "chat-workspace-actions-v1" : "workbook-tools-draft-policy-v1")
       } ?? .programmatic("WorkbookTools")
     return try ChangeAttribution.$actor.withValue(actor) {
       try executeAttributed(tool, a, receiptID: receiptID, nativeAppCheck: nativeAppCheck)
@@ -141,7 +143,8 @@ public struct WorkbookTools {
       }
     }
     try require(
-      !readOnly || Self.readOnlyTools.contains(tool), "read_only_request",
+      !readOnly || Self.readOnlyTools.contains(tool) || tool == "workspace_action",
+      "read_only_request",
       "The current request explicitly forbids changes. Read evidence and answer; do not create a draft, proposal, space, copy or import."
     )
     func string(_ key: String) throws -> String {
@@ -165,6 +168,9 @@ public struct WorkbookTools {
       return try executeApplicationTool(tool, a, receiptID: receiptID)
     }
     switch tool {
+    case "workspace_actions": return try ChatOperations.catalog(a["domain"].string)
+    case "workspace_action":
+      return try executeChatOperation(string("action"), arguments: a["arguments"])
     case "conversation_action", "start_thread", "start_thread_and_continue",
       "rename_current_thread", "return_to_main",
       "review_thread_summary":

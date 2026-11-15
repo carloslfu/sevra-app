@@ -126,7 +126,8 @@ import SevraCore
 
   public func enable(
     _ book: Workbook, exactID: String, expectedGeneration: Int, allowAI: Bool,
-    now: Date = Date(), token: String = identifier(), fromNow: Bool = false
+    now: Date = Date(), token: String = identifier(), fromNow: Bool = false,
+    actor: ChangeActor? = nil
   ) async throws {
     await quiesce("Updating device permission.")
     let registry = registry
@@ -136,14 +137,14 @@ import SevraCore
       if definition.payload["policy"] == .string("inventory-condition-drafts-v1") {
         session = try book.authorizeInventoryConditionExecution(
           exactID, expectedGeneration: expectedGeneration, after: now, allowAI: allowAI,
-          fromNow: fromNow, token: token, actor: .human("Sevra.native-condition-enable"))
+          fromNow: fromNow, token: token, actor: actor ?? .human("Sevra.native-condition-enable"))
       } else {
         try require(
           !fromNow, "automation_trigger",
           "From-now queue replacement applies to inventory conditions.")
         session = try book.authorizeAutomationExecution(
           exactID, expectedGeneration: expectedGeneration, after: now, allowAI: allowAI,
-          token: token, actor: .human("Sevra.native-schedule-enable"))
+          token: token, actor: actor ?? .human("Sevra.native-schedule-enable"))
       }
       return try registry.register(book, session: session)
     }.value
@@ -153,7 +154,9 @@ import SevraCore
     statuses[grant.id] = "Enabled on this Mac."
   }
 
-  public func pause(_ grant: AutomationDeviceGrant) async throws {
+  public func pause(
+    _ grant: AutomationDeviceGrant, actor: ChangeActor = .human("Sevra.native-schedule-pause")
+  ) async throws {
     // Remove first so another process and any old live capability are fenced.
     let registry = registry
     let removed = try await Task.detached { try registry.remove(grant) }.value
@@ -170,7 +173,7 @@ import SevraCore
         else { return }
         _ = try book.pauseAutomation(
           grant.activationID, expectedGeneration: grant.generation,
-          token: identifier(), actor: .human("Sevra.native-schedule-pause"))
+          token: identifier(), actor: actor)
       }.value
     } catch {
       throw SevraError(

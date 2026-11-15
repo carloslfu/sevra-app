@@ -13,6 +13,33 @@ const subscriptions = new Map<string,ReturnType<typeof signal>>();
 const edits = new Map<string,number>();
 const draftKeys = new WeakMap<object,string>();
 const patches = new Map<string,any>();
+type ActionInput = {type:'text'|'decimal'|'boolean'|'number'|'date'|'record';title?:string;required?:boolean;choices?:string[]};
+type ActionDescription = {title:string;description?:string;inputs?:Record<string,ActionInput>;enabled?:any};
+const actions = new Map<string,{description:ActionDescription;run:(args:any)=>Promise<any>}>();
+/** One business operation shared by chat and optional visual controls. */
+export function action(id:string,description:ActionDescription,handler:(args:any)=>any) {
+ if(!/^[a-z][a-zA-Z0-9_.-]{0,63}$/.test(id)||actions.has(id)||actions.size>=64)throw Error('Use a unique short action ID');
+ if(!description.title||description.title.length>256||typeof handler!=='function')throw Error('An action needs a title and handler');
+ const inputs=description.inputs||{};
+ if(Object.keys(inputs).length>32)throw Error('An action supports up to 32 inputs');
+ for(const [key,input] of Object.entries(inputs))if(!/^[a-zA-Z][a-zA-Z0-9_]{0,63}$/.test(key)||!['text','decimal','boolean','number','date','record'].includes(input.type)||(input.choices&&(!Array.isArray(input.choices)||input.choices.length>200||input.choices.some(v=>typeof v!=='string'))))throw Error('Invalid action input');
+ const run=async(args:any={})=>{
+  if(reading(description.enabled)===false)throw Error('This action is currently unavailable');
+  if(!args||typeof args!=='object'||Array.isArray(args)||Object.keys(args).some(key=>!Object.hasOwn(inputs,key)))throw Error('Use the declared action inputs');
+  for(const [key,input] of Object.entries(inputs)){
+   const value=args[key];
+   if(value===undefined){if(input.required!==false)throw Error('Missing input: '+(input.title||key));continue;}
+   if(input.type==='boolean'?typeof value!=='boolean':input.type==='number'?typeof value!=='number'||!Number.isFinite(value):typeof value!=='string')throw Error('Invalid input: '+(input.title||key)+'. Expected '+(input.type==='decimal'?'a JSON string containing a decimal, for example "3"':input.type==='boolean'?'a boolean':input.type==='number'?'a finite number':'a string'));
+   if(input.type==='decimal'&&!/^[+-]?(?:\d+(?:\.\d*)?|\.\d+)$/.test(value))throw Error('Use a decimal for '+(input.title||key));
+   if(input.type==='date'&&!/^\d{4}-\d{2}-\d{2}$/.test(value))throw Error('Use a date for '+(input.title||key));
+   if(input.choices&&!input.choices.includes(value))throw Error('Choose a listed value for '+(input.title||key));
+  }
+  return await handler(args);
+ };
+ const entry={description,run};actions.set(id,entry);
+ owner?.push(()=>{if(actions.get(id)===entry)actions.delete(id);});
+ return run;
+}
 let outbox:any[] = [], requestID=0, mountID=0, root:string|null=null, initialized=false;
 let draft:any={}, revision=0;
 const reading=(value:any)=>value instanceof Signal ? value.value : typeof value==='function' ? value() : value;
@@ -129,7 +156,21 @@ export function calculate(expression:string,values:any={}) {return request('calc
 export function __initialize(state:any) {if(initialized)throw Error('Runtime already initialized');initialized=true;draft=state.draft||{};revision=state.revision||0;}
 export function __receive(messages:any[]) {
  batch(()=>{for(const message of messages){
-  if(message.kind==='event') {
+  if(message.kind==='command') {
+   Promise.resolve().then(async()=>{
+    if(message.action){const command=actions.get(message.action);if(!command)throw Error('Unknown app action');return await command.run(message.arguments||{});}
+    const node=nodes.get(message.node);
+    if(!node||node.mountID!==message.mountID)throw Error('This input changed; inspect the app again');
+    let current:Node|undefined=node;
+    while(current){if(current.props.enabled===false||current.props.hidden===true)throw Error('This input is currently unavailable');current=[...nodes.values()].find(parent=>parent.children.includes(current!.id));}
+    if(!eventProps[node.type]?.includes(message.handler))throw Error('Unsupported input operation');
+    const bound=handlers.get(node.id+':bind'),handler=handlers.get(node.id+':'+message.handler);
+    if(!handler&&!(bound&&message.handler==='onChange'))throw Error('This control has no operation');
+    edits.set(node.id,message.editRevision||0);
+    if(bound&&message.handler==='onChange')bound(message);
+    return await handler?.(message);
+   }).then(value=>send({kind:'commandResult',id:message.id,value:value??null}),error=>send({kind:'commandResult',id:message.id,error:String(error?.message||error)}));
+  } else if(message.kind==='event') {
    if(!nodes.has(message.node)||nodes.get(message.node)!.mountID!==message.mountID)continue;
    edits.set(message.node,message.editRevision||0);
    const bound=handlers.get(message.node+':bind');if(bound && message.event==='change')bound(message);
@@ -145,5 +186,7 @@ export function __receive(messages:any[]) {
  }});
 }
 export function __flush() {
- const result={version:1,root,patches:[...patches.values()],messages:outbox};patches.clear();outbox=[];return result;
+ const declared=[...actions].map(([id,{description}])=>({id,title:description.title,description:description.description||'',inputPolicy:'Ask the user for missing required business values before invoking this action. Never invent values or assume defaults from visual fields.',inputs:Object.fromEntries(Object.entries(description.inputs||{}).map(([key,input])=>[key,{...input,required:input.required!==false,valueType:input.type==='boolean'?'boolean':input.type==='number'?'number':'string'}])),enabled:reading(description.enabled)!==false}));
+ const interactions=[...nodes.values()].map(node=>({id:node.id,handlers:(eventProps[node.type]||[]).filter(key=>handlers.has(node.id+':'+key)||(key==='onChange'&&handlers.has(node.id+':bind')))})).filter(item=>item.handlers.length);
+ const result={version:1,root,patches:[...patches.values()],messages:outbox,actions:declared,interactions};patches.clear();outbox=[];return result;
 }
