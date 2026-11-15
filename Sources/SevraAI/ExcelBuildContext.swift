@@ -12,6 +12,8 @@ package enum ExcelBuildContext {
     var latestFailedSave: Int?
     var superseded = Set<Int>()
     var comparisons: [Int] = []
+    var failedSaves: [Int] = []
+    var saveBoundary: Int?
     var repairContent: [Int: String] = [:]
     for index in messages.indices.reversed() where index > 0 {
       let result = messages[index]
@@ -33,12 +35,63 @@ package enum ExcelBuildContext {
       } else if result.toolName == "save_native_app",
         let value = try? Value.parse(result.content), value["error"].string != nil
       {
+        failedSaves.append(index)
+        var fields = value.object
+        if fields.removeValue(forKey: "interfaceRepairAnchor") != nil {
+          repairContent[index] = try? Value.object(fields).json()
+        }
         replace = latestFailedSave != nil
         latestFailedSave = index
       } else {
+        if result.toolName == "save_native_app", saveBoundary == nil {
+          saveBoundary = index
+        }
         continue
       }
       if replace { superseded.formUnion([index - 1, index]) }
+    }
+    // Retain one bounded earlier candidate that got further through host checks.
+    // This includes a runnable candidate regressing into a syntax error during
+    // test repair. Only host progress counts; exception prose cannot forge it.
+    func quality(_ result: Value) -> Int {
+      if result["isolatedCheck"]["status"] == .string("passed"),
+        (result["isolatedCheck"]["assertions"].int ?? 0) > 0
+      {
+        return 1000
+      }
+      guard let steps = result["isolatedTestStepsPassed"].int, (1...32).contains(steps) else {
+        return 0
+      }
+      return steps
+    }
+    if let latest = failedSaves.first,
+      let current = try? Value.parse(messages[latest].content),
+      current["isolatedCheck"]["status"] != .string("passed"),
+      let version = current["excelBuildVersion"].string, !version.isEmpty,
+      let best = failedSaves.dropFirst().filter({ index in
+        guard saveBoundary.map({ index > $0 }) ?? true,
+          let previous = try? Value.parse(messages[index].content)
+        else { return false }
+        return previous["excelBuildVersion"] == .string(version)
+          && quality(previous) > quality(current)
+          && messages[index - 1].content.utf8.count
+            + messages[index - 1].toolCalls[0].inputJSON.utf8.count
+            + messages[index].content.utf8.count <= 24_000
+      }).max(by: { left, right in
+        quality((try? Value.parse(messages[left].content)) ?? .null)
+          < quality((try? Value.parse(messages[right].content)) ?? .null)
+      })
+    {
+      superseded.subtract([best - 1, best])
+      var fields =
+        (try? Value.parse(repairContent[latest] ?? messages[latest].content))?.object ?? [:]
+      fields["interfaceRepairAnchor"] = .object([
+        "toolCallID": .string(messages[best].toolCallId ?? ""),
+        "instruction": .string(
+          "The earlier candidate retained above completed more host checks before its reported failure. The current repair regressed. Preserve the earlier working source/tests while correcting its specific failure and the latest error. This is NOT an approved app: its remaining tests or review still failed. Submit the complete corrected package for every check again. Do not remove assertions or add unrequested behavior."
+        ),
+      ])
+      repairContent[latest] = try? Value.object(fields).json()
     }
     if let latest = comparisons.first,
       let current = try? Value.parse(messages[latest].content),

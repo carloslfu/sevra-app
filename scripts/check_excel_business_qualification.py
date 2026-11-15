@@ -1,0 +1,152 @@
+"""An intervening failed trial cannot be hidden by selecting two passing cohorts."""
+import json
+import hashlib
+import copy
+from pathlib import Path
+import tempfile
+from qualify_excel_business import require_consecutive, require_package_identity, asserted_successful_actions, require_input_checks, number_variants
+
+
+call = {'kind': 'run_action', 'action': 'ship', 'inputs': {'amount': '3'}}
+assertion = {'kind': 'expect_row', 'table': 'ledger', 'values': {'amount': '-3'}}
+assert asserted_successful_actions([call, assertion]) == {'ship'}
+for steps in [
+    [{**call, 'reject': True}, assertion],
+    [{**call, 'error': 'Expected refusal'}, assertion],
+    [call, {'kind': 'expect_rows', 'table': 'ledger', 'count': 1}],
+    [assertion, call],
+    [call, {'kind': 'expect_control', 'target': 'Ship'}, assertion],
+]:
+    assert not asserted_successful_actions(steps), 'Missing successful-effect evidence passed'
+
+key_call = {'kind': 'run_action', 'action': 'ship', 'inputs': {'sku': 'P1', 'reference': 'R1'}}
+setup = {'kind': 'expect_text', 'value': 'Ready'}
+key_probe = {
+    'tests': [setup, key_call, assertion],
+    'check': {'actionInputTypes': {'1': {'sku': 'text', 'reference': 'text'}}, 'actionChanges': {'1': 1}},
+    'inputRoles': {'ship': {'sku': {'kind': 'existingKey', 'table': 'products', 'column': 'sku',
+                                  'headerRow': 1}, 'reference': {'kind': 'value'}}},
+    'inputChecks': [{'action': 'ship', 'input': 'sku', 'rule': 'header', 'value': 'SKU', 'cell': 'sheet1!A1',
+                   'tests': [setup, {**key_call, 'inputs': {'sku': 'SKU', 'reference': 'R1'}, 'reject': True}],
+                   'check': {'status': 'passed', 'digest': 'package'}}],
+}
+assert require_input_checks(key_probe, 'package') == {'ship'}
+numeric_probe = copy.deepcopy(key_probe)
+numeric_probe['tests'][1]['inputs']['sku'] = 42
+numeric_probe['check']['actionInputTypes']['1']['sku'] = 'number'
+numeric_probe['inputChecks'] = []
+assert require_input_checks(numeric_probe, 'package') == {'ship'}
+for fault in ['missing', 'duplicate', 'digest', 'prefix', 'header', 'roles', 'fields', 'type', 'no_write', 'missing_write']:
+    malformed = copy.deepcopy(key_probe)
+    if fault == 'missing': malformed['inputChecks'] = []
+    if fault == 'duplicate': malformed['inputChecks'] *= 2
+    if fault == 'digest': malformed['inputChecks'][0]['check']['digest'] = 'different'
+    if fault == 'prefix': malformed['inputChecks'][0]['tests'].insert(1, key_call)
+    if fault == 'header': malformed['inputChecks'][0]['value'] = 'different'
+    if fault == 'roles': malformed['inputRoles'] = None
+    if fault == 'fields': del malformed['inputRoles']['ship']['reference']
+    if fault == 'type': del malformed['check']['actionInputTypes']
+    if fault == 'no_write': malformed['check']['actionChanges']['1'] = 0
+    if fault == 'missing_write': del malformed['check']['actionChanges']
+    try:
+        require_input_checks(malformed, 'package')
+    except ValueError:
+        pass
+    else:
+        raise AssertionError('Invalid existing-key proof passed: ' + fault)
+
+number_role = {'kind': 'number', 'minimum': 1, 'maximum': 3, 'whole': True, 'nonzero': False}
+assert number_variants(number_role, 1) == [('whole', 1.5), ('minimum', 0), ('maximum', 4)]
+assert number_variants(number_role, '3.00') == [('whole', '2.5'), ('minimum', '0'), ('maximum', '4')]
+assert number_variants({**number_role, 'maximum': 1.2}, 1) == [('whole', 1.1), ('minimum', 0), ('maximum', 2)]
+assert number_variants({**number_role, 'minimum': 1.5, 'maximum': 3.25}, 2) == [('whole', 2.5), ('minimum', 1), ('maximum', 4)]
+assert number_variants({**number_role, 'minimum': -3.25, 'maximum': -1.5}, -2) == [('whole', -1.5), ('minimum', -4), ('maximum', -1)]
+assert number_variants({**number_role, 'nonzero': True}, 1) == [('whole', 1.5), ('minimum', -1), ('maximum', 4), ('nonzero', 0)]
+number_probe = copy.deepcopy(key_probe)
+number_probe['inputRoles']['ship']['sku'] = number_role
+number_probe['check']['actionInputTypes']['1']['sku'] = 'number'
+number_probe['tests'][1]['inputs']['sku'] = 1
+variants = [{'input': 'sku', 'rule': rule, 'value': value} for rule, value in number_variants(number_role, 1)]
+number_probe['inputChecks'] = [
+    {**variant, 'action': 'ship',
+     'tests': [setup, {**key_call, 'inputs': {**key_call['inputs'], 'sku': variant['value']}, 'reject': True}],
+     'check': {'status': 'passed', 'digest': 'package'}} for variant in variants]
+assert require_input_checks(number_probe, 'package') == {'ship'}
+independent_order = copy.deepcopy(number_probe)
+independent_order['inputChecks'].reverse()
+assert require_input_checks(independent_order, 'package') == {'ship'}
+for fault in ['hidden', 'missing', 'value', 'shared_state', 'integer']:
+    malformed = copy.deepcopy(number_probe)
+    if fault == 'hidden': malformed['inputRoles']['ship']['sku'] = {'kind': 'value'}
+    if fault == 'missing': malformed['inputChecks'].pop()
+    if fault == 'value': malformed['inputChecks'][0]['value'] = 1
+    if fault == 'shared_state': malformed['inputChecks'][1]['tests'].insert(1, malformed['inputChecks'][0]['tests'][1])
+    if fault == 'integer': malformed['inputRoles']['ship']['sku']['whole'] = 'true'
+    try:
+        require_input_checks(malformed, 'package')
+    except ValueError:
+        pass
+    else:
+        raise AssertionError('Invalid numeric proof passed: ' + fault)
+
+
+def runtime(start, end, business=True):
+    return {'startedAt': f'2026-11-15T{start:02}:00:00+00:00',
+            'finishedAt': f'2026-11-15T{end:02}:00:00+00:00',
+            'fixtures': {'integration/fixtures/excel-business/cases.json': 'fixture'} if business else {}}
+
+
+with tempfile.TemporaryDirectory(prefix='sevra-cohort-sequence-') as temporary:
+    root = Path(temporary)
+    directories = [root / 'first', root / 'second']
+    intervals = [runtime(2, 3), runtime(5, 6)]
+    for directory, receipt in zip(directories, intervals):
+        directory.mkdir()
+        (directory / 'runtime.json').write_text(json.dumps(receipt))
+    other = root / 'other'
+    other.mkdir()
+    for receipt in [runtime(0, 1), runtime(7, 8), runtime(3, 4, business=False)]:
+        (other / 'runtime.json').write_text(json.dumps(receipt))
+        require_consecutive(directories, intervals)
+    for receipt in [runtime(3, 4), runtime(1, 3), runtime(5, 7)]:
+        (other / 'runtime.json').write_text(json.dumps(receipt))
+        try:
+            require_consecutive(directories, intervals)
+        except ValueError as error:
+            assert 'intervened or overlapped' in str(error)
+        else:
+            raise AssertionError('A failed or overlapping business trial was ignored')
+    (other / 'runtime.json').write_text(json.dumps(runtime(0, 1)))
+    for candidate in [[runtime(2, 5), runtime(4, 6)], [runtime(3, 2), runtime(5, 6)]]:
+        try:
+            require_consecutive(directories, candidate)
+        except ValueError:
+            pass
+        else:
+            raise AssertionError('Invalid or overlapping cohort intervals passed')
+    package = root / 'app.sevraapp'
+    package.write_text('{"source":"model source","excelBehavior":{"source":"model calculations"}}')
+    expected = hashlib.sha256(package.read_bytes()).hexdigest()
+    result = {'digest': expected}
+    check = {'digest': expected, 'review': {'digest': expected}}
+    require_package_identity(package, result, check)
+    original = package.read_bytes()
+    package.write_bytes(original.replace(b'model calculations', b'changed calculations'))
+    try:
+        require_package_identity(package, result, check)
+    except ValueError:
+        pass
+    else:
+        raise AssertionError('A changed calculation program passed artifact identity')
+    package.write_bytes(original)
+    check['review']['digest'] = 'different review'
+    try:
+        require_package_identity(package, result, check)
+    except ValueError:
+        pass
+    else:
+        raise AssertionError('A different reviewed package passed artifact identity')
+
+print('PASS cohort sequence: earlier/later trials and separate regression allowed; intervening failures, overlaps and invalid intervals refused')
+print('PASS complete generated package identity; changed calculations and stale review refused')
+print('PASS host-derived key/numeric checks; missing, duplicate, stale, reordered and misclassified probes refused')

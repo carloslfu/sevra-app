@@ -1,0 +1,467 @@
+[
+  {
+    "name": "Stock and purchasing",
+    "slug": "stock",
+    "sheets": [
+      "Products",
+      "Movements",
+      "Stock"
+    ],
+    "purpose": "Manage a synthetic plumbing supplier. Expose Receive stock and Ship stock actions taking Reference, SKU and Quantity; reference must be unique, SKU must exist, quantity positive, and shipping must not overdraw stock. Append signed movements, never change opening stock. Expose Update unit cost for a known SKU, using explicit supplied prices. Show all three sheets with clear names and current available/value/reorder values. Native controls and named conversation actions must share rules. Include Undo.",
+    "edits": [
+      [
+        "Products",
+        "D2",
+        3.75
+      ],
+      [
+        "Movements",
+        "C3",
+        -8
+      ]
+    ],
+    "journeys": [
+      {
+        "request": "Receive 7 units of P1 under reference TEST-R1.",
+        "sheet": "Movements",
+        "match": {
+          "A": "TEST-R1"
+        },
+        "values": {
+          "B": "P1",
+          "C": "7"
+        },
+        "argumentValues": [
+          "7"
+        ]
+      },
+      {
+        "request": "Ship 3 units of P1 under reference TEST-S1.",
+        "sheet": "Movements",
+        "match": {
+          "A": "TEST-S1"
+        },
+        "values": {
+          "B": "P1",
+          "C": "-3"
+        },
+        "argumentValues": [
+          "3"
+        ]
+      },
+      {
+        "request": "Ship 9999 units of P1 under reference TEST-INVALID.",
+        "unchanged": true
+      },
+      {
+        "request": "Receive 7 units of P1 under reference TEST-R1 again.",
+        "unchanged": true
+      },
+      {
+        "request": "Set the unit cost of P1 to 3.75.",
+        "sheet": "Products",
+        "match": {
+          "A": "P1"
+        },
+        "values": {
+          "D": "3.75"
+        }
+      },
+      {
+        "request": "Update unit costs for the products listed in the supplied price file.",
+        "inputFile": "stock-prices.csv",
+        "sheet": "Products",
+        "match": {
+          "A": "P2"
+        },
+        "values": {
+          "D": "7.25"
+        }
+      }
+    ],
+    "files": [
+      "stock-0.xlsx",
+      "stock-1.xlsx",
+      "stock-2.xlsx"
+    ]
+  },
+  {
+    "name": "Invoicing and payments",
+    "slug": "invoices",
+    "sheets": [
+      "Customers",
+      "Ledger",
+      "Receivables"
+    ],
+    "purpose": "Manage synthetic service invoices and payments. Create invoice and Record payment take Reference, Customer and Amount. Reject duplicate references and unknown customers; require positive amounts. Store invoices positive and payments negative in Ledger, including partial payments. Issue credit uses a positive entered amount stored negative with Kind Credit. Preserve balances and available credit. Show each sheet. Expose each operation as a named conversation action and a native form using the same function; include Undo.",
+    "edits": [
+      [
+        "Ledger",
+        "D2",
+        240
+      ],
+      [
+        "Ledger",
+        "D5",
+        -120
+      ]
+    ],
+    "journeys": [
+      {
+        "request": "Create invoice TEST-I1 for customer C1 for 240.",
+        "sheet": "Ledger",
+        "match": {
+          "A": "TEST-I1"
+        },
+        "values": {
+          "B": "C1",
+          "C": "Invoice",
+          "D": "240"
+        },
+        "argumentValues": [
+          "240"
+        ]
+      },
+      {
+        "request": "Record payment TEST-P1 from customer C1 for 80.",
+        "sheet": "Ledger",
+        "match": {
+          "A": "TEST-P1"
+        },
+        "values": {
+          "B": "C1",
+          "C": "Payment",
+          "D": "-80"
+        },
+        "argumentValues": [
+          "80"
+        ]
+      },
+      {
+        "request": "Issue credit TEST-C1 to customer C1 for 20.",
+        "sheet": "Ledger",
+        "match": {
+          "A": "TEST-C1"
+        },
+        "values": {
+          "B": "C1",
+          "C": "Credit",
+          "D": "-20"
+        },
+        "argumentValues": [
+          "20"
+        ]
+      },
+      {
+        "request": "Create invoice TEST-I1 for C1 for 240 again.",
+        "unchanged": true
+      },
+      {
+        "request": "Create invoice TEST-INVALID for customer UNKNOWN for 100.",
+        "unchanged": true
+      }
+    ],
+    "files": [
+      "invoices-0.xlsx",
+      "invoices-1.xlsx",
+      "invoices-2.xlsx"
+    ]
+  },
+  {
+    "name": "Job costing",
+    "slug": "jobs",
+    "sheets": [
+      "Staff",
+      "Time",
+      "Jobs"
+    ],
+    "purpose": "Manage synthetic job time and profitability. Log time takes Reference, Job, Employee and Hours; require a unique reference, existing job and employee, and positive hours at most 24. Append the Time ledger. Update hourly cost takes Employee and Hourly cost; nonnegative rates apply to all recorded time, as in the source. Costs join by employee key and job key, never row position. Show every sheet. Expose named conversation actions and native controls calling the same functions; include Undo.",
+    "edits": [
+      [
+        "Time",
+        "D2",
+        6
+      ],
+      [
+        "Staff",
+        "C3",
+        35
+      ]
+    ],
+    "journeys": [
+      {
+        "request": "Log time TEST-T1 for employee E2 on job J1: 3.5 hours.",
+        "sheet": "Time",
+        "match": {
+          "A": "TEST-T1"
+        },
+        "values": {
+          "B": "J1",
+          "C": "E2",
+          "D": "3.5"
+        }
+      },
+      {
+        "request": "Set hourly cost for employee E2 to 35.",
+        "sheet": "Staff",
+        "match": {
+          "A": "E2"
+        },
+        "values": {
+          "C": "35"
+        }
+      },
+      {
+        "request": "Log time TEST-INVALID for employee UNKNOWN on job J1: 2 hours.",
+        "unchanged": true
+      },
+      {
+        "request": "Log time TEST-INVALID for employee E1 on job J1: 25 hours.",
+        "unchanged": true
+      },
+      {
+        "request": "Log time TEST-T2 for employee E1 on job J2: 4 hours.",
+        "sheet": "Time",
+        "match": {
+          "A": "TEST-T2"
+        },
+        "values": {
+          "B": "J2",
+          "C": "E1",
+          "D": "4"
+        }
+      }
+    ],
+    "files": [
+      "jobs-0.xlsx",
+      "jobs-1.xlsx",
+      "jobs-2.xlsx"
+    ]
+  },
+  {
+    "name": "Production planning",
+    "slug": "production",
+    "sheets": [
+      "Materials",
+      "Runs",
+      "Capacity"
+    ],
+    "purpose": "Manage synthetic single-product production with three materials in Materials. Plan run takes unique Reference and positive integer Batches, appending a Planned row. Complete run takes Reference, validates it exists and is Planned, checks every material has enough available stock, then changes its status to Completed atomically. Cancel run only cancels a Planned run by setting Cancelled. Never partially consume stock or complete twice. Capacity formulas determine consumption and shortages. Show all sheets; shared named conversation and native actions; include Undo.",
+    "edits": [
+      [
+        "Runs",
+        "B2",
+        8
+      ],
+      [
+        "Materials",
+        "B3",
+        20
+      ]
+    ],
+    "journeys": [
+      {
+        "request": "Plan production run TEST-R1 for 3 batches.",
+        "sheet": "Runs",
+        "match": {
+          "A": "TEST-R1"
+        },
+        "values": {
+          "B": "3",
+          "C": "Planned"
+        }
+      },
+      {
+        "request": "Complete production run TEST-R1.",
+        "sheet": "Runs",
+        "match": {
+          "A": "TEST-R1"
+        },
+        "values": {
+          "C": "Completed"
+        }
+      },
+      {
+        "request": "Complete production run TEST-R1 again.",
+        "unchanged": true
+      },
+      {
+        "request": "Plan production run TEST-R2 for 999 batches.",
+        "sheet": "Runs",
+        "match": {
+          "A": "TEST-R2"
+        },
+        "values": {
+          "B": "999",
+          "C": "Planned"
+        }
+      },
+      {
+        "request": "Complete production run TEST-R2.",
+        "unchanged": true
+      },
+      {
+        "request": "Cancel production run TEST-R2.",
+        "sheet": "Runs",
+        "match": {
+          "A": "TEST-R2"
+        },
+        "values": {
+          "C": "Cancelled"
+        }
+      }
+    ],
+    "files": [
+      "production-0.xlsm",
+      "production-1.xlsm",
+      "production-2.xlsm"
+    ]
+  },
+  {
+    "name": "Cash and loans",
+    "slug": "cash",
+    "sheets": [
+      "Assumptions",
+      "Cashbook",
+      "Forecast"
+    ],
+    "purpose": "Manage a synthetic three-month cash forecast with a fixed-payment loan. Add cash entry takes Reference, Month (integer 1 through 3), Amount (signed, nonzero), and Description; reject duplicate references. Update loan takes Principal (nonnegative), Annual rate (decimal fraction, nonnegative) and Months (positive integer). Preserve PMT zero-interest behavior and two-decimal payment rounding, month boundaries and rolling cash. Show all sheets; named conversation actions and native controls share implementation; include Undo.",
+    "edits": [
+      [
+        "Assumptions",
+        "C2",
+        0
+      ],
+      [
+        "Cashbook",
+        "C2",
+        -800
+      ]
+    ],
+    "journeys": [
+      {
+        "request": "Add cash entry TEST-C1 in month 2 for -125.50, description Machine maintenance.",
+        "sheet": "Cashbook",
+        "match": {
+          "A": "TEST-C1"
+        },
+        "values": {
+          "B": "2",
+          "C": "-125.50",
+          "D": "Machine maintenance"
+        }
+      },
+      {
+        "request": "Update loan to principal 12000, annual rate 0, and 12 months.",
+        "sheet": "Assumptions",
+        "match": {
+          "A": "15000"
+        },
+        "values": {
+          "B": "12000",
+          "C": "0",
+          "D": "12"
+        }
+      },
+      {
+        "request": "Add cash entry TEST-INVALID in month 4 for 100, description Invalid period.",
+        "unchanged": true
+      },
+      {
+        "request": "Update loan to principal 12000, annual rate 0.06, and 0 months.",
+        "unchanged": true
+      },
+      {
+        "request": "Add cash entry TEST-C2 in month 1 for 250, description Deposit.",
+        "sheet": "Cashbook",
+        "match": {
+          "A": "TEST-C2"
+        },
+        "values": {
+          "B": "1",
+          "C": "250",
+          "D": "Deposit"
+        }
+      }
+    ],
+    "files": [
+      "cash-0.xlsx",
+      "cash-1.xlsx",
+      "cash-2.xlsx"
+    ]
+  },
+  {
+    "name": "Service bookings",
+    "slug": "bookings",
+    "sheets": [
+      "Resources",
+      "Bookings",
+      "Utilization"
+    ],
+    "purpose": "Manage synthetic weekday room bookings. Add booking takes Reference, Resource, Day (Monday through Friday), Start hour, Hours and Customer. Require unique reference, known resource, nonblank customer, positive hours, integer start hour from 8 through 17 and end no later than 18. Reject overlapping Booked intervals for the same resource/day. Reschedule booking takes Reference, Day and Start hour, preserves duration/customer and applies the same overlap rules excluding itself. Cancel booking sets Cancelled; cancelled bookings do not consume capacity/revenue. Show all sheets. Use shared named conversation/native actions and include Undo. Ask for missing required inputs rather than guessing.",
+    "edits": [
+      [
+        "Bookings",
+        "E2",
+        3
+      ],
+      [
+        "Resources",
+        "C3",
+        75
+      ]
+    ],
+    "journeys": [
+      {
+        "request": "Add booking TEST-B1 for resource B1 on Thursday starting at 10 for 2 hours, customer Willow Studio.",
+        "sheet": "Bookings",
+        "match": {
+          "A": "TEST-B1"
+        },
+        "values": {
+          "B": "B1",
+          "C": "Thursday",
+          "D": "10",
+          "E": "2",
+          "F": "Willow Studio",
+          "G": "Booked"
+        }
+      },
+      {
+        "request": "Add booking TEST-CONFLICT for resource B1 on Thursday starting at 11 for 2 hours, customer Oak Studio.",
+        "unchanged": true
+      },
+      {
+        "request": "Reschedule booking TEST-B1 to Friday at 14.",
+        "sheet": "Bookings",
+        "match": {
+          "A": "TEST-B1"
+        },
+        "values": {
+          "C": "Friday",
+          "D": "14"
+        }
+      },
+      {
+        "request": "Cancel booking TEST-B1.",
+        "sheet": "Bookings",
+        "match": {
+          "A": "TEST-B1"
+        },
+        "values": {
+          "G": "Cancelled"
+        }
+      },
+      {
+        "request": "Add a booking for resource B2 on Friday.",
+        "unchanged": true,
+        "clarification": true
+      }
+    ],
+    "files": [
+      "bookings-0.xlsx",
+      "bookings-1.xlsx",
+      "bookings-2.xlsx"
+    ]
+  }
+]

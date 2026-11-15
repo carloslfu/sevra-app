@@ -128,7 +128,8 @@ def main():
                 fill['state'] == 'ready' and 'recalculate' in fill['detail']
                 and run('table-formulas', book, fill['datasetIDs'][0])['recalculating'] == 0)
         checked('text operators keep the saved value',
-                reasons['D16'] == 'Uses text values, which Sevra does not calculate.')
+                reasons['D16'] == 'Uses joined text, which Sevra does not calculate.'
+                and grid(book, items)['Text']['data']['c4'] == 'ab')
         rows = grid(book, items)
         checked('import leaves every saved value as Excel wrote it',
                 [rows[name]['data']['c4'] for name in ('Bolts', 'Nuts', 'Washers', 'Total', 'Rounded')]

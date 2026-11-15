@@ -267,6 +267,23 @@ func expectValue<T>(_ value: T?) throws -> T {
   return value
 }
 do {
+  if CommandLine.arguments.count == 4 && CommandLine.arguments[1] == "--native-review-grammar" {
+    let frontend = try SplashTextFrontend(
+      modelFolder: URL(fileURLWithPath: CommandLine.arguments[2]))
+    let library = URL(fileURLWithPath: CommandLine.arguments[3])
+    let digest = SHA256.hash(data: try Data(contentsOf: library)).map { String(format: "%02x", $0) }
+      .joined()
+    let factory = try SplashGrammarFactory(
+      frontend: frontend, library: library, librarySHA256: digest)
+    try checkNativeReviewGrammar(frontend: frontend, factory: factory)
+    exit(0)
+  }
+  if CommandLine.arguments.count == 6 && CommandLine.arguments[1] == "--excel-business-live" {
+    try await runExcelBusinessProbe(
+      modelsRoot: CommandLine.arguments[2], library: CommandLine.arguments[3],
+      engine: CommandLine.arguments[4], output: CommandLine.arguments[5])
+    exit(0)
+  }
   if CommandLine.arguments.count == 6 && CommandLine.arguments[1] == "--home-live" {
     try await runChatOperationProbe(
       modelsRoot: CommandLine.arguments[2], library: CommandLine.arguments[3],
@@ -523,6 +540,7 @@ do {
     try checkDocumentCopyGrammar(frontend: frontend, factory: factory)
     try checkConversationActionGrammar(frontend: frontend, factory: factory)
     try checkActionDirectionGrammar(frontend: frontend, factory: factory)
+    try checkNativeReviewGrammar(frontend: frontend, factory: factory)
     try checkInterpretationGrammar(frontend: frontend, factory: factory)
     if CommandLine.arguments.count == 5 {
       try runNativeWorkbookProbe(

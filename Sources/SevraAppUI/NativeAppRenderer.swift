@@ -435,7 +435,18 @@ final class AppElement: NSView, NSTextFieldDelegate, NSTextViewDelegate, NSTabVi
         item.label =
           node.props["titles"].array.indices.contains(index)
           ? node.props["titles"].array[index].text : "Tab \(index + 1)"
-        item.view = child
+        // AppKit's tab content rectangle reaches its bezel. Keep native controls
+        // and labels comfortably inside it, including generated layouts that do
+        // not provide their own container padding.
+        let body = NSView()
+        body.addSubview(child)
+        NSLayoutConstraint.activate([
+          child.leadingAnchor.constraint(equalTo: body.leadingAnchor, constant: 12),
+          child.trailingAnchor.constraint(equalTo: body.trailingAnchor, constant: -12),
+          child.topAnchor.constraint(equalTo: body.topAnchor, constant: 12),
+          child.bottomAnchor.constraint(equalTo: body.bottomAnchor, constant: -12),
+        ])
+        item.view = body
         tabs.addTabViewItem(item)
       }
       // Children must exist before applying the controlled initial selection.

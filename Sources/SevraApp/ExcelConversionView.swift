@@ -1,5 +1,6 @@
 import Foundation
 import SevraCore
+import SevraPreviewUI
 import SevraProduct
 import SwiftUI
 import UniformTypeIdentifiers
@@ -250,15 +251,18 @@ struct ExcelConversionView: View {
   }
   private func comparison(_ draft: ExcelConversion) -> some View {
     let result = draft.record.data["comparison"]
+    let cases = result["cases"].array.count
+    let varied = result["variedCases"].int ?? 0
     return VStack(alignment: .leading, spacing: 10) {
       Text("Compare with the original").readingFont(.headline)
       if let compared = result["compared"].int {
         Label(
           compared == 0
-            ? "No saved calculation results to compare" : "\(compared) saved results matched",
+            ? "No saved calculation results to compare"
+            : "\(compared) saved \(compared == 1 ? "result" : "results") matched",
           systemImage: compared == 0 ? "info.circle" : "checkmark.circle")
         Text(
-          "\(result["cases"].array.count) comparison cases · \(result["variedCases"].int ?? 0) examples with changed inputs"
+          "\(cases) comparison \(cases == 1 ? "case" : "cases") · \(varied) \(varied == 1 ? "example" : "examples") with changed inputs"
         )
         .readingFont(.caption).foregroundStyle(.secondary)
         if !draft.appMatchesPlan {
@@ -430,6 +434,7 @@ extension WorkspaceState {
         let inputs = action == "recalculate" ? Value.object([:]) : arguments
         let source = try book.captureIntake(
           url, role: .reference, token: identifier(), cancellation: cancel)
+        _ = try book.runIntake(source.id, cancellation: cancel)
         return try book.addExcelExample(
           id, sourceID: source.sourceID, action: action, arguments: inputs,
           expectedVersion: draft.version, cancellation: cancel
@@ -501,6 +506,7 @@ extension WorkspaceState {
     guard let (book, ticket) = beginOperation("Preparing your native workspace") else { return }
     let path = excelModelDirectory
     let chat = conversation
+    liveActivity = LiveRequestActivity(conversation: chat)
     let progress = rowProgress()
     Task {
       defer { finishOperation(ticket, in: book) }
@@ -521,10 +527,12 @@ extension WorkspaceState {
           context: build.context, modelDirectory: path, cancellation: ticket.cancellation,
           progress: { update in
             Task { @MainActor in
-              if self.owns(ticket, in: book) {
-                self.status = update
-                self.refresh()
-              }
+              self.updateAgentActivity(update, for: ticket, in: book)
+            }
+          },
+          requestStarted: { request, destination in
+            Task { @MainActor in
+              self.attachAgentActivity(request, conversation: destination, for: ticket, in: book)
             }
           }, excelConversion: build)
         let completed = try await Task.detached { try book.excelConversion(id) }.value

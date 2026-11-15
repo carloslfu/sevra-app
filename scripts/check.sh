@@ -5,6 +5,7 @@ cd "$ROOT"
 python3 scripts/generate_brand.py --check
 npm ci --prefix sdk --ignore-scripts
 python3 scripts/check_native_app_sources.py
+python3 scripts/check_excel_business_qualification.py
 npm test --prefix sdk
 swift build --product sevra-app-worker -j "${SEVRA_BUILD_JOBS:-4}"
 swift build --product sevra-native-app-checks -j "${SEVRA_BUILD_JOBS:-4}"

@@ -31,6 +31,26 @@ func checkChatOperations() throws {
         "value": .string("Paper"),
       ]), readOnly: false)
   }
+  do {
+    _ = try ChatOperations.validate(
+      "app.run",
+      arguments: .object([
+        "id": .string("app"), "action": .string("receive"),
+        "arguments": .object(["quantity": .string("7")]),
+      ]), readOnly: false)
+    throw SevraError("test", "A malformed action envelope was accepted")
+  } catch let error as SevraError {
+    try expect(error.code == "arguments")
+    try expect(error.localizedDescription.contains("Missing fields: expectedVersion, inputs"))
+    try expect(error.localizedDescription.contains("Unexpected fields: arguments"))
+    try expect(error.localizedDescription.contains("expectedVersion:integer"))
+  }
+  _ = try ChatOperations.validate(
+    "app.run",
+    arguments: .object([
+      "id": .string("app"), "expectedVersion": .number(1), "action": .string("receive"),
+      "inputs": .object(["quantity": .string("7")]),
+    ]), readOnly: false)
   let arguments: Value = .object([
     "action": .string("table.change_rows"),
     "arguments": .object([

@@ -3,7 +3,7 @@ type: spec
 meta-type: conclusion
 id: 01m78sah1afmhpr6vzfbkrg1r2
 created: 2026-11-12T21:06:22.890879+00:00
-updated: 2026-11-14T23:42:23.408357+00:00
+updated: 2026-11-15T07:45:16.747686+00:00
 summary: 'Native programmable spaces: scoped QuickJS/XPC execution, reactive AppKit rendering, shared transactional data, SDK authoring, recovery and bounded capabilities.'
 title: Programmable native spaces SDK 1
 status: implemented
@@ -30,6 +30,8 @@ Import from `@sevra/sdk`. Components return JSX or `h(...)` descriptors. Call `m
 
 `For` preserves row-local state by a stable `by` key, passing each child a signal containing its current item. Ordinary conditional child expressions replace changed descriptors; a preserved native position does not promise preservation of arbitrary JavaScript objects constructed again inside the expression. Use keyed `For` and component-owned signals for that state. Duplicate sibling keys refuse.
 
+ActionForm is a reusable SDK component over the existing native controls. Register a named action, then render `h(Sevra.ActionForm,{action: id})`. It supplies visible field headings, action-qualified input labels, a submit button, busy state, retained failed inputs and successful reset. Business rules stay inside the same action invoked by chat. Unmounting the action disables its remaining form. Custom components remain available. Required text/record inputs reject blank values, decimal inputs preserve their string while rejecting nonfinite conversion, and dates validate the Gregorian calendar. String choices apply to text, decimal, date or record inputs and use a native picker; number and boolean inputs cannot declare string choices. These shared input checks precede the same handler used by chat, while domain validation remains in that handler.
+
 Available primitives: Column, Row, Grid, Split, Scroll, Section, Text, Button, TextField, TextEditor, Toggle, Picker, Slider, DatePicker, Progress, Table, Tabs, Disclosure, Canvas, Image and Spacer. Image displays native SF Symbols in SDK 1. Canvas supports rectangles, circles, lines and text with named hit regions, native drag feedback, arrow-key movement and accessibility buttons. Arbitrary file-backed images/documents, external APIs, OS extensions, custom compiled controls and per-frame JavaScript drawing require separately designed capabilities; the SDK does not imply those permissions. Existing ordinary workbook spaces still provide document/chart/media components.
 
 Layout properties use native points, gap/padding, bounded optional width/height and semantic controls. There is no CSS. Labels/help, keyboard controls, system colors and native accessibility are part of the renderer. Canvas authors must name hit regions. Custom control semantics and broad assistive-technology behavior still need real user qualification.
@@ -40,11 +42,11 @@ A package contains `sdkVersion: 1`, `name`, bundled `source`, and `datasets` key
 
 The installed package is part of SpaceDefinition and space_versions. Installation, revision and restoration use the existing captured transaction path. Removing/changing interface code never deletes business data. Exported app templates clear dataset IDs; portable workbooks retain exact app code, bindings, originals and data. Saving/importing/reconstructing does not execute scripts or grant access. Existing fixed spaces and app spaces coexist.
 
-`liveQuery({table: 'stock', search, limit})` returns a signal with loading/error/rows/total/revision. `liveQuery(query, 'query')` uses the existing typed dataset query grammar with source aliases `{table:'stock'}` in place of physical dataset/definition identifiers. The native broker resolves current schema IDs and checks every alias. Each page, typed query and fingerprint read validates the exact approved columns and active table state in the same read transaction; added, removed or changed columns require an updated binding and fresh approval. A table rename alone does not expand access. `data.page` and `data.query` return one result. The existing deterministic Decimal query/aggregate and `calculate` paths remain authoritative for precision; JS Number is not a replacement for financial Decimal arithmetic.
+`liveQuery({table: 'stock', search, limit})` returns a signal with loading/error/rows/total/revision. `liveQuery(query, 'query')` uses the existing typed dataset query grammar with source aliases `{table:'stock'}` in place of physical dataset/definition identifiers. The native broker resolves current schema IDs and checks every alias. Each page, typed query and fingerprint read validates the exact approved columns and active table state in the same read transaction; added, removed or changed columns require an updated binding and fresh approval. A table rename alone does not expand access. `data.page` and `data.query` return one result. `await data.all(alias)` collects complete pages for business validation and lookup, returning row objects with exact IDs, keys and values. It refuses more than 20,000 rows, changing revisions/totals or incomplete pages. Native Table scrolling continues to page directly through the host. The existing deterministic Decimal query/aggregate and `calculate` paths remain authoritative for precision; JS Number is not a replacement for financial Decimal arithmetic.
 
 Workbook revision polling is read-only and runs every 500 ms while the space is mounted. On a revision change the host compares bound-table schema and current immutable row fingerprints, then refreshes subscriptions dependent on changed aliases. It is deliberately invalidation plus bounded re-querying, not an incremental SQL engine. Native mutations also trigger an immediate revision check. Read snapshots identify their revision and exact row versions. Irrelevant workbook revisions update the revision signal without rebuilding unchanged query results.
 
-`data.transaction(operations, {revision?, token?})` submits 1–64 insert/update/delete operations against writable aliases. Insert takes values; update/delete take an exact current row version ID. The default base is the last observed workbook revision; callers can pass the query revision explicitly. All operations commit atomically or none do. Permission, current package, schema, stale base, row membership and value constraints are checked natively. A final authority guard runs before commit. Revocation stops new work immediately; the final guard is the authorization linearization point for an already-committing operation. No arbitrary SQL/DDL is accepted.
+`data.transaction(operations, {revision?, token?})` submits 1–64 insert/update/delete operations against writable aliases. Insert takes values; update/delete take an exact current row version ID. A named action captures its starting revision; subscription refreshes cannot advance that validation snapshot. Only its own successful writes advance its snapshot, and overlapping named actions refuse. Outside named actions, the default base is the last observed workbook revision; callers can pass the query revision explicitly. All operations commit atomically or none do. Permission, current package, schema, stale base, row membership and value constraints are checked natively. A final authority guard runs before commit. Revocation stops new work immediately; the final guard is the authorization linearization point for an already-committing operation. No arbitrary SQL/DDL is accepted.
 
 Receipts contain the operation token, resulting revision and exact row IDs. Reusing a token with identical arguments returns the original receipt; different arguments refuse. `data.undo(receipt)` reverses the stored operation through a new captured transaction, only while its affected versions still match. Native app chrome offers undo of the latest session command. Immutable prior versions and the exact program digest remain in history. Programmatic writes are attributed as programmatic, not as human acceptance or AI output. Imported records preserve the workbook's origin/meaning distinctions.
 
@@ -59,6 +61,14 @@ Current budgets: package 1 MiB, source 512 KiB, 16 dataset bindings of at most 5
 The sandboxed helper has only the app-sandbox entitlement. The packaged check verifies actual denial of a synthetic foreign file and network connection. Runtime memory and message limits complement OS isolation; no claim of invulnerability follows. Native host validation is required even if a script bypasses the SDK.
 
 ## Verification
+
+Authoring assertions use `expect_row` for exactly one saved row matching a business
+key and values, and `expect_rows` for explicit cardinality. Saved-value assertions
+read complete bounded pages, including duplicates beyond the first page. A named
+action probe may use `reject:true` to require an error with no committed writes;
+that probe requires complete correctly typed inputs and cannot also specify an
+error substring. Exact wording is separately testable with `error`. These checks
+never repair source or change expected business outcomes.
 
 Run `npm test --prefix sdk`, `python3 scripts/check_native_app_sources.py`, build `sevra-app-worker` and `sevra-native-app-checks`, then `python3 scripts/check_native_apps.py`. The packaged test uses the production SDK, service, host, AppKit renderer and workbook broker, including actual sandbox denials, native actions, reactive save, stable control identity and draft recovery. Core checks include refused/atomic writes, exact decimals, undo, portable/reconstructed code and data, stale/revoked grants, runaway scripts and malformed trees. SDK checks cover keyed state, conditional replacement, input acknowledgements, batching and cleanup.
 
@@ -125,3 +135,15 @@ The local workbook conversation now uses SDK discovery, exact source inspection 
 ## Conversational operation
 
 The later [[records/specs/chat-primary-operation]] contract makes chat the primary operating interface. Named SDK actions and existing semantic controls use the same worker and broker without a renderer. Access review and exact-version approval can be completed in chat. Views remain optional clients of the same actions. The authoring checker also accepts `run_action` with typed inputs and optional expected validation errors.
+
+
+The SDK's `Workspace` component composes existing native Tabs, searchable Tables
+and ActionForms from 1..12 named sections. Each section names an existing table
+alias and/or registered action IDs. It keeps real bound columns and vertical form
+spacing; business rules and permissions remain in the same named actions and host
+boundary. Custom native component composition remains available. The selected tab
+is reactive and tests can address it as `Workspace sections`. Hidden-tab failures
+identify the required native tab-selection step rather than pretending the control
+is absent.
+
+Action availability must produce a synchronous boolean through a literal, signal or zero-argument function. Discovery, native ActionForm and named invocation share this rule. Promises and other nonboolean values fail closed; asynchronous input-dependent validation belongs in the action handler. This is a UI/business constraint, independent of host permission enforcement.

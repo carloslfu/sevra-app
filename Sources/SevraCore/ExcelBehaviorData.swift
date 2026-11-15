@@ -21,13 +21,14 @@ extension Workbook {
           [.string(sheet.dataset)]
         ).map { $0["logical_id"]!.text })
       try require(
-        members == Set(sheet.logical), "excel_behavior",
+        members.isSubset(of: Set(sheet.logical))
+          && Set(sheet.logical).subtracting(sheet.appended ?? []).isSubset(of: members),
+        "excel_behavior",
         "Worksheet rows changed. Rebuild its behavior before calculating.")
       for (number, logical) in zip(sheet.rows, sheet.logical) {
-        try require(
-          members.contains(logical), "excel_behavior", "A recreated worksheet row was removed.")
-        let row = try item(logical)
-        let values = pending[logical] ?? row.data.object
+        let values =
+          members.contains(logical)
+          ? try pending[logical] ?? item(logical).data.object : [:]
         for column in 0..<sheet.width {
           let key = "sheet\(index + 1)!" + XLSX.cellName(column: column, row: number)
           let field = "c\(column + 1)"
@@ -39,7 +40,7 @@ extension Workbook {
             cells.count < 100_000 && bytes <= 2_000_000,
             "excel_behavior_limit", "The recreated calculation exceeds its cell budget.")
           cells[key] = value
-          targets[key] = (logical, field, sheet.dataset)
+          if members.contains(logical) { targets[key] = (logical, field, sheet.dataset) }
         }
       }
     }
@@ -80,6 +81,7 @@ extension Workbook {
       original.count == conversion.datasetIDs.count, "excel_behavior", "Worksheet bindings changed."
     )
     var plan = SheetFormulaPlan(sheets: [], cells: [], behavior: behavior)
+    let previousPlan = try conversion.datasetIDs.first.flatMap { try sheetFormulaPlan($0) }
     for (index, sheet) in original.enumerated() {
       let datasetID = conversion.datasetIDs[index]
       let logical = try db.execute(
@@ -87,6 +89,13 @@ extension Workbook {
         [.string(datasetID)]
       ).map { $0["logical_id"]!.text }
       let table = try dataset(datasetID)
+      if let mapped = previousPlan?.plan.sheets.first(where: { $0.dataset == datasetID }) {
+        try require(
+          mapped.name == sheet.name && mapped.width == table.columns.count,
+          "excel_behavior", "Worksheet bindings changed before behavior publication.")
+        plan.sheets.append(mapped)
+        continue
+      }
       try require(
         logical.count == sheet.rows.count && logical.count <= SheetFormulaPlan.rowLimit,
         "excel_behavior", "Worksheet rows changed. Rebuild from a matching original.")
@@ -108,7 +117,7 @@ extension Workbook {
           reason: nil))
     }
     _ = try excelBehaviorSnapshot(plan)
-    let previous = try conversion.datasetIDs.first.flatMap { try sheetFormulaPlan($0)?.id }
+    let previous = previousPlan?.id
     let saved = try insertItem(
       category: "record", kind: Self.sheetFormulaKind,
       title: conversion.record.title + ", recreated behavior",
@@ -128,11 +137,22 @@ extension Workbook {
   }
 
   /// Trusted checker setup, on its disposable workbook after invented fixtures have been seeded.
-  package func attachSyntheticExcelBehavior(_ package: NativeAppPackage, coordinates: [[Int]]?)
+  package func attachSyntheticExcelCalculations(
+    _ package: NativeAppPackage, coordinates: [[Int]]?,
+    formulas: ExcelCheckFormulas? = nil
+  )
     throws
   {
-    guard let behavior = package.excelBehavior else { return }
+    let behavior = package.excelBehavior
+    guard behavior != nil || formulas != nil else { return }
     try package.validate()
+    if behavior == nil, let formulas {
+      try require(
+        formulas.sheets.count == package.datasets.count
+          && formulas.cells.count == formulas.sheets.count
+          && coordinates?.count == formulas.sheets.count,
+        "app_check", "Invalid synthetic formula template.")
+    }
     _ = try mutation("excel_synthetic_behavior", token: identifier()) {
       var plan = SheetFormulaPlan(sheets: [], cells: [], behavior: behavior)
       for index in 0..<package.datasets.count {
@@ -153,19 +173,31 @@ extension Workbook {
           "Fixtures exceed the original worksheet structure.")
         plan.sheets.append(
           .init(
-            name: "sheet\(index + 1)", dataset: tableID,
+            name: behavior != nil ? "sheet\(index + 1)" : formulas!.sheets[index], dataset: tableID,
             width: try dataset(tableID).columns.count, rows: numbers, logical: logical))
       }
-      for key in behavior.outputs {
+      for key in behavior?.outputs ?? [] {
         let address = try ExcelBehavior.address(key)
         plan.cells.append(
           .init(
             sheet: address.sheet, cell: String(key.split(separator: "!")[1]),
             formula: "Recreated calculation", reason: nil))
       }
+      if behavior == nil, let formulas {
+        for (index, cells) in formulas.cells.enumerated() {
+          for cell in cells {
+            try require(
+              cell.reason == nil, "app_check", "This source calculation needs translated behavior.")
+            _ = try SheetFormula.parse(cell.formula)
+            plan.cells.append(
+              .init(sheet: index, cell: cell.cell, formula: cell.formula, reason: nil))
+          }
+        }
+      }
       let evidence = try insertItem(
         category: "source", kind: "observation", title: "Synthetic behavior program",
-        text: "Disposable checker input", data: try encoded(behavior), meaning: "actual",
+        text: "Disposable checker input",
+        data: .string("Formula definitions and synthetic rows only"), meaning: "actual",
         status: "accepted",
         scenario: "actual", inputs: [], transformation: "excel-synthetic-input-v1")
       let saved = try insertItem(

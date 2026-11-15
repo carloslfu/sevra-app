@@ -3,9 +3,15 @@ import SevraCore
 import SwiftUI
 
 extension WorkspaceState {
+  var usableExcelImports: [Value] {
+    excelImports.filter { ["ready", "tables"].contains($0["state"].text) }
+  }
+  var unfinishedExcelImports: [Value] {
+    excelImports.filter { !["ready", "tables"].contains($0["state"].text) }
+  }
   var hasHomeAttention: Bool {
     chatApproval != nil || pendingReview?.items.isEmpty == false || !pendingWorkflows.isEmpty
-      || !pendingExtractions.isEmpty || excelImports.contains { $0["state"].text != "ready" }
+      || !pendingExtractions.isEmpty || !unfinishedExcelImports.isEmpty
   }
   var continueSpace: Space? {
     let home = spaces.first { $0.id == "home" }
@@ -19,7 +25,7 @@ extension WorkspaceState {
   }
   var hasContinueWork: Bool {
     continueSpace != nil || !homeDocuments.isEmpty
-      || excelImports.contains { $0["state"].text == "ready" }
+      || !usableExcelImports.isEmpty
   }
   func focusHomeChat(_ text: String? = nil) {
     focus = false
@@ -88,7 +94,7 @@ struct HomeContinueView: View {
         }
       }
       ForEach(
-        Array(state.excelImports.filter { $0["state"].text == "ready" }.prefix(2)), id: \.text
+        Array(state.usableExcelImports.prefix(2)), id: \.text
       ) { entry in
         HomeWorkRow(title: entry["title"].text, detail: "Excel workbook", symbol: "tablecells") {
           state.navigate(.excelImport(entry["id"].text))
@@ -140,7 +146,7 @@ struct HomeAttentionView: View {
         Button("All workflow runs") { state.navigate(.activity) }.buttonStyle(.link)
       }
       ForEach(
-        Array(state.excelImports.filter { $0["state"].text != "ready" }.prefix(3)), id: \.text
+        Array(state.unfinishedExcelImports.prefix(3)), id: \.text
       ) { entry in
         HomeWorkRow(
           title: entry["title"].text, detail: "Continue Excel import", symbol: "tablecells"

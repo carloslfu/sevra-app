@@ -64,7 +64,9 @@ final class GridTable: NSTableView {
   func beginCellEditing() {
     let row = activeRow
     guard row >= 0,
-      let field = view(atColumn: activeColumn, row: row, makeIfNecessary: true) as? NSTextField,
+      let field =
+        (view(atColumn: activeColumn, row: row, makeIfNecessary: true) as? NSTableCellView)?
+        .textField,
       field.isEditable
     else { return }
     focusCell(row: row, column: activeColumn)
@@ -79,8 +81,9 @@ final class GridTable: NSTableView {
         current: .init(row: activeRow, column: activeColumn), delta: delta,
         editableOnly: editableOnly,
         isEditable: { cell in
-          (self.view(atColumn: cell.column, row: cell.row, makeIfNecessary: true) as? NSTextField)?
-            .isEditable == true
+          (self.view(atColumn: cell.column, row: cell.row, makeIfNecessary: true)
+            as? NSTableCellView)?
+            .textField?.isEditable == true
         })
     else { return false }
     if editableOnly { selectRowIndexes(IndexSet(integer: cell.row), byExtendingSelection: false) }
@@ -329,7 +332,16 @@ public struct NativeTable: NSViewRepresentable {
               ? "Double-click or press Return to edit"
               : "Read only while the table updates or another task runs")
       }
-      return cell
+      let container = NSTableCellView()
+      cell.translatesAutoresizingMaskIntoConstraints = false
+      container.addSubview(cell)
+      container.textField = cell
+      NSLayoutConstraint.activate([
+        cell.leadingAnchor.constraint(equalTo: container.leadingAnchor),
+        cell.trailingAnchor.constraint(equalTo: container.trailingAnchor),
+        cell.centerYAnchor.constraint(equalTo: container.centerYAnchor),
+      ])
+      return container
     }
     public func controlTextDidBeginEditing(_ notification: Notification) {
       guard let cell = notification.object as? BoundTableCell,

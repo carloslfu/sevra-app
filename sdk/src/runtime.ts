@@ -14,35 +14,64 @@ const edits = new Map<string,number>();
 const draftKeys = new WeakMap<object,string>();
 const patches = new Map<string,any>();
 type ActionInput = {type:'text'|'decimal'|'boolean'|'number'|'date'|'record';title?:string;required?:boolean;choices?:string[]};
-type ActionDescription = {title:string;description?:string;inputs?:Record<string,ActionInput>;enabled?:any};
+type ActionDescription = {title:string;description?:string;inputs?:Record<string,ActionInput>;enabled?:boolean|Signal<boolean>|(()=>boolean)};
 const actions = new Map<string,{description:ActionDescription;run:(args:any)=>Promise<any>}>();
+const actionGeneration=signal(0);
+function validDate(value:string):boolean {
+ if(!/^\d{4}-\d{2}-\d{2}$/.test(value))return false;
+ const [year,month,day]=value.split('-').map(Number);
+ const leap=year%4===0&&(year%100!==0||year%400===0);
+ return year>=1&&month>=1&&month<=12&&day>=1&&day<=[31,leap?29:28,31,30,31,30,31,31,30,31,30,31][month-1];
+}
+// A business action validates and writes one optimistic snapshot. Subscription
+// refreshes may update presentation, but cannot bless its previously read values.
+let actionSnapshot:{revision:number}|null=null;
 /** One business operation shared by chat and optional visual controls. */
 export function action(id:string,description:ActionDescription,handler:(args:any)=>any) {
- if(!/^[a-z][a-zA-Z0-9_.-]{0,63}$/.test(id)||actions.has(id)||actions.size>=64)throw Error('Use a unique short action ID');
- if(!description.title||description.title.length>256||typeof handler!=='function')throw Error('An action needs a title and handler');
- const inputs=description.inputs||{};
+ if(typeof id!=='string'||!/^[a-z][a-zA-Z0-9_.-]{0,63}$/.test(id))throw Error("Action IDs must start with a lowercase letter and contain 1..64 letters, digits, underscores, dots or hyphens, with no spaces. Use e.g. 'logTime' as the ID and 'Log time' as its title; ActionForm and tests use that same ID.");
+ if(actions.has(id))throw Error('This action ID is already registered: '+id);
+ if(actions.size>=64)throw Error('An app supports up to 64 named actions');
+ if(!description?.title||typeof description.title!=='string'||description.title.length>256||typeof handler!=='function')throw Error("Sevra.action takes THREE arguments: action ID, {title,inputs}, then async inputs=>{...}. The handler is the third argument, not a field inside the description object.");
+ const inputs=description.inputs===undefined?{}:description.inputs;
+ if(!inputs||typeof inputs!=='object'||Array.isArray(inputs))throw Error('Action inputs must be an object of named input descriptions');
  if(Object.keys(inputs).length>32)throw Error('An action supports up to 32 inputs');
- for(const [key,input] of Object.entries(inputs))if(!/^[a-zA-Z][a-zA-Z0-9_]{0,63}$/.test(key)||!['text','decimal','boolean','number','date','record'].includes(input.type)||(input.choices&&(!Array.isArray(input.choices)||input.choices.length>200||input.choices.some(v=>typeof v!=='string'))))throw Error('Invalid action input');
+ for(const [key,input] of Object.entries(inputs)){
+  if(!input||typeof input!=='object'||Array.isArray(input))throw Error('Action input '+key+' must be a description object');
+  const unknown=Object.keys(input).filter(field=>!['type','title','required','choices'].includes(field));
+  if(unknown.length)throw Error('Unsupported action input options for '+key+': '+unknown.join(', ')+'. Use only type, title, required and choices. Validate numeric bounds and other business rules inside the action handler; input metadata does not enforce min/max/step.');
+  if(!/^[a-zA-Z][a-zA-Z0-9_]{0,63}$/.test(key)||!['text','decimal','boolean','number','date','record'].includes(input.type)||(input.title!==undefined&&(typeof input.title!=='string'||input.title.length>256))||(input.required!==undefined&&typeof input.required!=='boolean')||(input.choices!==undefined&&(!Array.isArray(input.choices)||input.choices.length>200||input.choices.some(v=>typeof v!=='string'))))throw Error('Invalid action input: '+key);
+ }
+ for(const input of Object.values(inputs))if(input.choices&&(input.type==='number'||input.type==='boolean'))throw Error('String choices require a text, decimal, date or record input; number and boolean inputs use their own types');
  const run=async(args:any={})=>{
-  if(reading(description.enabled)===false)throw Error('This action is currently unavailable');
+  if(!actionAvailable(description))throw Error('This action is currently unavailable');
   if(!args||typeof args!=='object'||Array.isArray(args)||Object.keys(args).some(key=>!Object.hasOwn(inputs,key)))throw Error('Use the declared action inputs');
   for(const [key,input] of Object.entries(inputs)){
    const value=args[key];
    if(value===undefined){if(input.required!==false)throw Error('Missing input: '+(input.title||key));continue;}
    if(input.type==='boolean'?typeof value!=='boolean':input.type==='number'?typeof value!=='number'||!Number.isFinite(value):typeof value!=='string')throw Error('Invalid input: '+(input.title||key)+'. Expected '+(input.type==='decimal'?'a JSON string containing a decimal, for example "3"':input.type==='boolean'?'a boolean':input.type==='number'?'a finite number':'a string'));
-   if(input.type==='decimal'&&!/^[+-]?(?:\d+(?:\.\d*)?|\.\d+)$/.test(value))throw Error('Use a decimal for '+(input.title||key));
-   if(input.type==='date'&&!/^\d{4}-\d{2}-\d{2}$/.test(value))throw Error('Use a date for '+(input.title||key));
+   if(input.required!==false&&(input.type==='text'||input.type==='record')&&!value.trim())throw Error('Missing input: '+(input.title||key));
+   if(input.type==='decimal'&&(!/^[+-]?(?:\d+(?:\.\d*)?|\.\d+)$/.test(value)||!Number.isFinite(Number(value))))throw Error('Use a finite decimal for '+(input.title||key));
+   if(input.type==='date'&&!validDate(value))throw Error('Use a valid YYYY-MM-DD date for '+(input.title||key));
    if(input.choices&&!input.choices.includes(value))throw Error('Choose a listed value for '+(input.title||key));
   }
-  return await handler(args);
+  if(actionSnapshot)throw Error('Another business action is still running');
+  const snapshot={revision};actionSnapshot=snapshot;
+  try{return await handler(args);}finally{if(actionSnapshot===snapshot)actionSnapshot=null;}
  };
  const entry={description,run};actions.set(id,entry);
- owner?.push(()=>{if(actions.get(id)===entry)actions.delete(id);});
+ actionGeneration.value=actionGeneration.peek()+1;
+ owner?.push(()=>{if(actions.get(id)===entry){actions.delete(id);actionGeneration.value=actionGeneration.peek()+1;}});
  return run;
 }
 let outbox:any[] = [], requestID=0, mountID=0, root:string|null=null, initialized=false;
 let draft:any={}, revision=0;
 const reading=(value:any)=>value instanceof Signal ? value.value : typeof value==='function' ? value() : value;
+function actionAvailable(description:ActionDescription):boolean {
+ if(description.enabled===undefined)return true;
+ const value=reading(description.enabled);
+ if(typeof value!=='boolean')throw Error('Action enabled must be a synchronous boolean or boolean signal/function with no inputs. Omit enabled unless needed; validate input-dependent business rules inside the async handler.');
+ return value;
+}
 const changed=(a:any,b:any)=>JSON.stringify(a)!==JSON.stringify(b);
 function bounded() { if(nodes.size>512 || outbox.length>128 || requests.size>64) throw Error('App resource limit exceeded'); }
 function send(message:any) {
@@ -51,6 +80,68 @@ function send(message:any) {
 }
 function update(node:Node) { patches.set(node.id,{op:'put',node:{...node,props:{...node.props},children:[...node.children]}}); bounded(); }
 export function h(type:any, props:any,...children:any[]):Descriptor { return {type,props:props||{},children:children.flat()}; }
+/** Native controls for an existing named action; custom interfaces remain ordinary components. */
+export function ActionForm(props:{action:string}):Descriptor {
+ const entry=actions.get(props.action);if(!entry)throw Error('Register the action before its form');
+ const {description}=entry,busy=signal(false),status=signal('');
+ const fields=Object.entries(description.inputs||{}).map(([id,input])=>({id,input,value:signal<any>(input.type==='boolean'?false:'')}));
+ const available=()=>{actionGeneration.value;return actions.get(props.action)===entry&&!busy.value&&actionAvailable(description);};
+ async function submit(){
+  if(!available())return;
+  busy.value=true;status.value='';
+  try {
+   const args:any={};
+   for(const {id,input,value} of fields){
+    const raw=value.peek();
+    if(raw===''&&input.required===false)continue;
+    if(input.type==='number'){
+     if(typeof raw!=='string'||!raw.trim()||!Number.isFinite(Number(raw)))throw Error('Enter a number for '+(input.title||id));
+     args[id]=Number(raw);
+    }else args[id]=raw;
+   }
+   await entry.run(args);
+   batch(()=>{for(const {input,value} of fields)value.value=input.type==='boolean'?false:'';status.value='Completed';});
+  }catch(error:any){status.value=String(error?.message||error);}
+  finally{busy.value=false;}
+ }
+ return h('column',{gap:12},
+  h('text',{text:description.title,size:16,weight:'semibold'}),
+  ...(description.description?[h('text',{text:description.description,color:'secondary'})]:[]),
+  ...fields.map(({id,input,value})=>{
+   const title=input.title||id,label=description.title+': '+title;
+   if(input.type==='boolean')return h('toggle',{label,title,value,enabled:available});
+   const control=input.choices
+    ? h('picker',{label,value,options:['',...input.choices.filter(option=>option!=='')],enabled:available})
+    : h('textField',{label,value,placeholder:input.type==='date'?'YYYY-MM-DD':'',enabled:available});
+   return h('column',{gap:6},h('text',{text:title}),control);
+  }),
+  // Keep feedback above the submission point so a bottom-aligned form does not
+  // append its validation error below the visible scroll area.
+  h('text',{text:status,hidden:()=>status.value===''}),
+  h('button',{title:description.title,onClick:submit,enabled:available}));
+}
+/** A conventional native workspace, composed only from the existing controls. */
+export function Workspace(props:{sections:{title:string;table?:string;actions?:string[]}[]}):Descriptor {
+ const sections=props.sections;
+ if(!Array.isArray(sections)||!sections.length||sections.length>12)throw Error('Use 1 to 12 workspace sections');
+ const titles=new Set<string>();
+ for(const section of sections){
+  if(!section||typeof section.title!=='string'||!section.title.trim()||section.title.length>256||titles.has(section.title))throw Error('Use distinct named workspace sections');
+  titles.add(section.title);
+  if(section.table!==undefined&&(typeof section.table!=='string'||!section.table))throw Error('Use a declared table alias');
+  if(section.actions!==undefined&&(!Array.isArray(section.actions)||section.actions.length>16||section.actions.some(id=>typeof id!=='string'||!actions.has(id))))throw Error('Register each workspace action before mounting');
+  if(!section.table&&!section.actions?.length)throw Error('A workspace section needs a table or action');
+ }
+ const children=sections.map(section=>{
+  const search=signal('');
+  return h('column',{gap:16},
+   ...(section.table?[
+    h('textField',{label:'Filter '+section.title,placeholder:'Filter '+section.title.toLowerCase(),value:search}),
+    h('table',{table:section.table,label:section.title+' records',search,height:240})]:[]),
+   ...(section.actions||[]).map(id=>h(ActionForm,{action:id})));
+ });
+ return h('tabs',{label:'Workspace sections',titles:sections.map(section=>section.title),value:signal(0)},...children);
+}
 export const Fragment='column';
 export const Column='column', Row='row', Grid='grid', Split='split', Scroll='scroll', Section='section';
 export const Text='text', Button='button', TextField='textField', TextEditor='textEditor', Toggle='toggle';
@@ -136,14 +227,37 @@ function request(method:string,args:any):Promise<any> {
  const id=String(++requestID);send({kind:'request',id,method,args});
  return new Promise((resolve,reject)=>{requests.set(id,{resolve,reject});bounded();});
 }
+async function write(operations:any[],options:any={}) {
+ if(!Array.isArray(operations))throw Error("data.transaction expects an array of operations, for example [{op:'insert',table:'alias',values:{column:'value'}}], not a single operation object");
+ const snapshot=actionSnapshot,base=snapshot?.revision??revision;
+ if(snapshot&&options.revision!==undefined&&options.revision!==base)throw Error('The action snapshot changed; retry the action');
+ const result=await request('transaction',{operations,revision:options.revision??base,token:options.token||('op-'+Date.now()+'-'+Math.random()),...(options.undo?{undo:options.undo}:{})});
+ revision=Math.max(revision,result.revision);
+ if(snapshot&&actionSnapshot===snapshot)snapshot.revision=result.revision;
+ return result;
+}
 export const data={
  page:(table:string,options:any={})=>request('page',{table,...options}),
- query:(query:any)=>request('query',query),
- transaction:async(operations:any[],options:any={})=>{
-  const result=await request('transaction',{operations,revision:options.revision??revision,token:options.token||('op-'+Date.now()+'-'+Math.random())});
-  revision=Math.max(revision,result.revision);return result;
+ /** All rows for bounded business validation, with one stable read revision. */
+ all:async(table:string)=>{
+  const rows:any[]=[];let snapshot:number|undefined,total:number|undefined;
+  while(true){
+   const page=await request('page',{table,offset:rows.length,limit:200});
+   if(!Array.isArray(page.rows)||!Number.isInteger(page.total)||page.total<0||page.total>20_000||!Number.isInteger(page.revision))throw Error('Table exceeds the complete-read limit or returned an invalid page');
+   if(snapshot!==undefined&&(snapshot!==page.revision||total!==page.total))throw Error('The table changed while reading; retry the action');
+   snapshot=page.revision;total=page.total;
+   if(page.rows.length>200||rows.length+page.rows.length>page.total)throw Error('Invalid table page');
+   rows.push(...page.rows);
+   if(rows.length===page.total)return rows;
+   if(!page.rows.length)throw Error('The table page is incomplete');
+  }
  },
- undo:async(receipt:any)=>request('transaction',{operations:[],undo:receipt.token,revision,token:'undo-'+Date.now()+'-'+Math.random()}),
+ query:(query:any)=>request('query',query),
+ transaction:write,
+ undo:async(receipt:any)=>{
+  if(!receipt||typeof receipt.token!=='string'||!receipt.token)throw Error('data.undo requires the receipt returned by a successful transaction. Sevra already provides Undo last change outside the app; do not add a duplicate Undo button.');
+  return write([],{undo:receipt.token,token:'undo-'+Date.now()+'-'+Math.random()});
+ },
 };
 export function liveQuery(query:any,kind:'page'|'query'='page') {
  const value=signal<any>({loading:true,rows:[],revision:0,error:null});const id='s'+(++requestID);
@@ -186,7 +300,7 @@ export function __receive(messages:any[]) {
  }});
 }
 export function __flush() {
- const declared=[...actions].map(([id,{description}])=>({id,title:description.title,description:description.description||'',inputPolicy:'Ask the user for missing required business values before invoking this action. Never invent values or assume defaults from visual fields.',inputs:Object.fromEntries(Object.entries(description.inputs||{}).map(([key,input])=>[key,{...input,required:input.required!==false,valueType:input.type==='boolean'?'boolean':input.type==='number'?'number':'string'}])),enabled:reading(description.enabled)!==false}));
+ const declared=[...actions].map(([id,{description}])=>({id,title:description.title,description:description.description||'',inputPolicy:"Before invocation, match every required input to the user's supplied values. If any are missing, finish with a clarification question. Never send placeholders, invent values, or reuse another transaction's values without explicit instruction.",inputs:Object.fromEntries(Object.entries(description.inputs||{}).map(([key,input])=>[key,{...input,required:input.required!==false,valueType:input.type==='boolean'?'boolean':input.type==='number'?'number':'string'}])),enabled:actionAvailable(description)}));
  const interactions=[...nodes.values()].map(node=>({id:node.id,handlers:(eventProps[node.type]||[]).filter(key=>handlers.has(node.id+':'+key)||(key==='onChange'&&handlers.has(node.id+':bind')))})).filter(item=>item.handlers.length);
  const result={version:1,root,patches:[...patches.values()],messages:outbox,actions:declared,interactions};patches.clear();outbox=[];return result;
 }

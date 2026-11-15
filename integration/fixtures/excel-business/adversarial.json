@@ -1,0 +1,377 @@
+{
+  "stock": [
+    {
+      "journey": 0,
+      "reference": "TEST-R1",
+      "invalid": [
+        {
+          "original": "7",
+          "values": [
+            "0",
+            "-1"
+          ]
+        },
+        {
+          "original": "P1",
+          "values": [
+            "UNKNOWN",
+            "SKU",
+            ""
+          ]
+        },
+        {
+          "original": "TEST-R1",
+          "values": [
+            "",
+            "   "
+          ]
+        }
+      ]
+    },
+    {
+      "journey": 1,
+      "reference": "TEST-S1",
+      "invalid": [
+        {
+          "original": "3",
+          "values": [
+            "0",
+            "-1",
+            "9999"
+          ]
+        },
+        {
+          "original": "P1",
+          "values": [
+            "UNKNOWN",
+            "SKU",
+            ""
+          ]
+        },
+        {
+          "original": "TEST-S1",
+          "values": [
+            "",
+            "   "
+          ]
+        }
+      ]
+    },
+    {
+      "journey": 4,
+      "valid": {
+        "3.75": "3.80"
+      },
+      "invalid": [
+        {
+          "original": "P1",
+          "values": [
+            "UNKNOWN",
+            "SKU",
+            ""
+          ]
+        }
+      ]
+    }
+  ],
+  "invoices": [
+    {
+      "journey": 0,
+      "reference": "TEST-I1",
+      "invalid": [
+        {
+          "original": "240",
+          "values": [
+            "0",
+            "-1"
+          ]
+        },
+        {
+          "original": "C1",
+          "values": [
+            "UNKNOWN",
+            "Customer",
+            ""
+          ]
+        },
+        {
+          "original": "TEST-I1",
+          "values": [
+            "",
+            "   "
+          ]
+        }
+      ]
+    },
+    {
+      "journey": 1,
+      "reference": "TEST-P1",
+      "invalid": [
+        {
+          "original": "80",
+          "values": [
+            "0",
+            "-1"
+          ]
+        },
+        {
+          "original": "C1",
+          "values": [
+            "UNKNOWN",
+            "Customer",
+            ""
+          ]
+        },
+        {
+          "original": "TEST-P1",
+          "values": [
+            "",
+            "   "
+          ]
+        }
+      ]
+    },
+    {
+      "journey": 2,
+      "reference": "TEST-C1",
+      "invalid": [
+        {
+          "original": "20",
+          "values": [
+            "0",
+            "-1"
+          ]
+        },
+        {
+          "original": "C1",
+          "values": [
+            "UNKNOWN",
+            "Customer",
+            ""
+          ]
+        },
+        {
+          "original": "TEST-C1",
+          "values": [
+            "",
+            "   "
+          ]
+        }
+      ]
+    }
+  ],
+  "jobs": [
+    {
+      "journey": 0,
+      "reference": "TEST-T1",
+      "invalid": [
+        {
+          "original": "3.5",
+          "values": [
+            "0",
+            "-1",
+            "24.5"
+          ]
+        },
+        {
+          "original": "J1",
+          "values": [
+            "UNKNOWN",
+            "Job",
+            ""
+          ]
+        },
+        {
+          "original": "E2",
+          "values": [
+            "UNKNOWN",
+            "Employee",
+            ""
+          ]
+        },
+        {
+          "original": "TEST-T1",
+          "values": [
+            "",
+            "   "
+          ]
+        }
+      ]
+    },
+    {
+      "journey": 1,
+      "valid": {
+        "35": "36"
+      },
+      "invalid": [
+        {
+          "original": "35",
+          "values": [
+            "-1"
+          ]
+        },
+        {
+          "original": "E2",
+          "values": [
+            "UNKNOWN",
+            "Employee",
+            ""
+          ]
+        }
+      ]
+    }
+  ],
+  "production": [
+    {
+      "journey": 0,
+      "reference": "TEST-R1",
+      "invalid": [
+        {
+          "original": "3",
+          "values": [
+            "0",
+            "-1",
+            "1.5"
+          ]
+        },
+        {
+          "original": "TEST-R1",
+          "values": [
+            "",
+            "   "
+          ]
+        }
+      ]
+    }
+  ],
+  "cash": [
+    {
+      "journey": 0,
+      "reference": "TEST-C1",
+      "invalid": [
+        {
+          "original": "2",
+          "values": [
+            "0",
+            "4",
+            "1.5"
+          ]
+        },
+        {
+          "original": "-125.50",
+          "values": [
+            "0"
+          ]
+        },
+        {
+          "original": "TEST-C1",
+          "values": [
+            "",
+            "   "
+          ]
+        }
+      ]
+    },
+    {
+      "journey": 1,
+      "valid": {
+        "12000": "11000"
+      },
+      "invalid": [
+        {
+          "original": "12000",
+          "values": [
+            "-1"
+          ]
+        },
+        {
+          "original": "0",
+          "values": [
+            "-0.01"
+          ]
+        },
+        {
+          "original": "12",
+          "values": [
+            "0",
+            "1.5"
+          ]
+        }
+      ]
+    }
+  ],
+  "bookings": [
+    {
+      "journey": 0,
+      "reference": "TEST-B1",
+      "invalid": [
+        {
+          "original": "B1",
+          "values": [
+            "UNKNOWN",
+            "Resource",
+            ""
+          ]
+        },
+        {
+          "original": "Thursday",
+          "values": [
+            "Saturday"
+          ]
+        },
+        {
+          "original": "10",
+          "values": [
+            "7",
+            "17",
+            "10.5"
+          ]
+        },
+        {
+          "original": "2",
+          "values": [
+            "0",
+            "-1"
+          ]
+        },
+        {
+          "original": "Willow Studio",
+          "values": [
+            "",
+            "   "
+          ]
+        },
+        {
+          "original": "TEST-B1",
+          "values": [
+            "",
+            "   "
+          ]
+        }
+      ]
+    },
+    {
+      "journey": 2,
+      "valid": {
+        "Friday": "Thursday",
+        "14": "10"
+      },
+      "invalid": [
+        {
+          "original": "Friday",
+          "values": [
+            "Saturday"
+          ]
+        },
+        {
+          "original": "14",
+          "values": [
+            "7",
+            "17",
+            "10.5"
+          ]
+        }
+      ]
+    }
+  ]
+}

@@ -53,9 +53,28 @@ func checkRequestActivity() throws {
   let savedPath = page["entries"].array.first?["value"]["path"].array.compactMap(\.string) ?? []
   let nested = try reopened.toolResultPage(large, path: savedPath)
   try require(
-    savedPath == ["text"] && nested["textSegment"].text.count == 1000
-      && nested["nextOffset"].int == 1000, "activity_check",
+    savedPath == ["text"] && !nested["textSegment"].text.isEmpty
+      && nested["nextOffset"].int == nested["textSegment"].text.unicodeScalars.count,
+    "activity_check",
     "Omitted content could not be explored with its exact saved path")
+  var current = nested
+  var restored = ""
+  while true {
+    let segment = current["textSegment"].text
+    try require(
+      !segment.isEmpty && current["offset"].int == restored.unicodeScalars.count
+        && current["total"].int == 30_000 && current.json().utf8.count <= 16_000,
+      "activity_check", "Exploration lost its saved offset, length or response bound")
+    restored += segment
+    guard let next = current["nextOffset"].int else { break }
+    try require(
+      next == restored.unicodeScalars.count && next < 30_000, "activity_check",
+      "Exploration repeated or skipped saved text")
+    current = try reopened.toolResultPage(large, path: savedPath, offset: next)
+  }
+  try require(
+    restored == String(repeating: "x", count: 30_000), "activity_check",
+    "Exploration did not recover the complete saved result")
   let branch = try book.tangent(title: "Other", parentMessage: request.messageID)
   let foreign = try reopened.requestActivities(
     messageIDs: [request.messageID], conversation: branch)

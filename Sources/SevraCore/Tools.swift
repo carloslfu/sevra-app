@@ -126,7 +126,7 @@ public struct WorkbookTools {
       try require(
         [
           "native_app_sdk", "read_native_app", "datasets", "rows", "calculate", "save_native_app",
-          "inspect_excel_evidence", "compare_excel_behavior",
+          "inspect_excel_evidence", "compare_excel_behavior", "tool_result",
         ]
         .contains(tool),
         "excel_scope",
@@ -140,6 +140,12 @@ public struct WorkbookTools {
         try require(
           workbook.spaceTarget(a["id"].text, cancellation: cancellation).id == build.conversionID,
           "excel_scope", "Only this conversion's existing app can be read.")
+      }
+      if tool == "tool_result" {
+        let call = try workbook.toolCall(a["id"].text, conversation: conversation)
+        try require(
+          call["run_id"].text == runID, "excel_scope",
+          "This conversion can read only tool results from its current build request.")
       }
     }
     try require(
@@ -401,10 +407,10 @@ public struct WorkbookTools {
       return .object([
         "sdkVersion": .number(1),
         "guide": .string(
-          excelConversion == nil
-            ? NativeAppAuthoring.guide
-            : NativeAppAuthoring.excelEditingGuide + "\n" + NativeAppAuthoring.excelBehaviorGuide
-              + "\n" + NativeAppAuthoring.componentGuide),
+          try excelConversion.map {
+            try NativeAppAuthoring.excelGuide($0, workbook: workbook, detailed: true)
+          }
+            ?? NativeAppAuthoring.guide),
       ])
     case "read_native_app":
       let target: SpaceTarget

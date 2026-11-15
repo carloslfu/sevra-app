@@ -74,6 +74,159 @@ func checkNativeAppAuthoring() async throws {
     "sevra-authoring-tests-" + identifier())
   try FileManager.default.createDirectory(at: root, withIntermediateDirectories: false)
   defer { try? FileManager.default.removeItem(at: root) }
+  let workspace = NativeAppPackage(
+    name: "Synthetic workspace",
+    source: """
+      Sevra.action('add',{title:'Add entry',inputs:{name:{type:'text',title:'Name'}}},async inputs=>{
+        if(!inputs.name.trim())throw Error('Enter a name');
+        return await Sevra.data.transaction([{op:'insert',table:'entries',values:{name:inputs.name}}]);
+      });
+      Sevra.mount(Sevra.h(Sevra.Workspace,{sections:[
+        {title:'Reference',table:'reference'},
+        {title:'Entries',table:'entries',actions:['add']}
+      ]}));
+      """,
+    datasets: [
+      "reference": .init(title: "Reference", columns: [.init(id: "name", title: "Name")]),
+      "entries": .init(
+        title: "Entries", columns: [.init(id: "name", title: "Name")], writable: true),
+    ])
+  do {
+    _ = try await NativeAppCheck.run(
+      package: workspace,
+      steps: steps(#"[{"kind":"expect_control","target":"Add entry: Name"}]"#))
+    throw SevraError("test", "An inactive tab accepted input.")
+  } catch {
+    try expectEqual(error.localizedDescription.contains("inactive tab"), true)
+    try expectEqual(error.localizedDescription.contains("Workspace sections"), true)
+    try expectEqual((error as? SevraError)?.code, "app_check")
+  }
+  _ = try await NativeAppCheck.run(
+    package: workspace,
+    steps: steps(
+      #"[{"kind":"expect_control","target":"Reference records"},{"kind":"select","target":"Workspace sections","value":1},{"kind":"change","target":"Add entry: Name","value":"Native"},{"kind":"click","target":"Add entry"},{"kind":"expect_rows","table":"entries","count":1,"values":{"name":"Native"}},{"kind":"expect_value","target":"Add entry: Name","value":""},{"kind":"run_action","action":"add","inputs":{"name":"Chat"}},{"kind":"expect_rows","table":"entries","count":1,"values":{"name":"Chat"}}]"#
+    ))
+  print("PASS reusable native workspace: tab navigation, form input/reset and shared named action")
+  try await checkNativeAssertionContracts(workspace)
+  do {
+    _ = try await NativeAppCheck.run(
+      package: workspace, steps: steps(#"[{"kind":"expect_control","target":"Name"}]"#))
+    throw SevraError("test", "An unqualified action-form label became a missing-control defect.")
+  } catch {
+    try expectEqual((error as? SevraError)?.code, "app_check")
+    try expectEqual(error.localizedDescription.contains("Add entry: Name"), true)
+  }
+  let refusal = try await NativeAppCheck.run(
+    package: workspace,
+    steps: steps(
+      #"[{"kind":"run_action","action":"add","inputs":{"name":""},"error":"Missing input: Name"}]"#)
+  )
+  try expectEqual(refusal["assertions"], .number(1))
+  for (action, name, expectedCode) in [
+    ("add", "Valid", "app_check_assertion"), ("missing", "", "app_check"),
+  ] {
+    do {
+      _ = try await NativeAppCheck.run(
+        package: workspace,
+        steps: [
+          .object([
+            "kind": .string("run_action"), "action": .string(action),
+            "inputs": .object(["name": .string(name)]), "error": .string("Missing input: Name"),
+          ])
+        ])
+      throw SevraError("test", "An invalid refusal assertion passed.")
+    } catch {
+      try expectEqual((error as? SevraError)?.code, expectedCode)
+    }
+  }
+  print("PASS standalone negative action assertions; successful and unknown actions cannot pass")
+  do {
+    _ = try await NativeAppCheck.run(
+      package: workspace,
+      steps: steps(
+        #"[{"kind":"run_action","action":"add","inputs":{"name":42}},{"kind":"expect_rows","table":"entries","count":1}]"#
+      ))
+    throw SevraError("test", "Wrong JSON input type became a successful action test.")
+  } catch {
+    try expectEqual((error as? SevraError)?.code, "app_check")
+    try expectEqual(error.localizedDescription.contains("requires JSON string"), true)
+  }
+  _ = try await NativeAppCheck.run(
+    package: workspace,
+    steps: steps(
+      #"[{"kind":"run_action","action":"add","inputs":{"name":42},"error":"Expected a string"}]"#))
+  do {
+    _ = try await NativeAppCheck.run(
+      package: workspace,
+      steps: steps(
+        #"[{"kind":"run_action","action":"add","inputs":{"name":42},"error":"Missing input: Name"}]"#
+      ))
+    throw SevraError("test", "A type rejection was mistaken for a missing business validation.")
+  } catch {
+    try expectEqual((error as? SevraError)?.code, "app_check")
+    try expectEqual(error.localizedDescription.contains("Observed: Invalid input"), true)
+    try expectEqual(error.localizedDescription.contains("requires JSON string"), true)
+  }
+  print(
+    "PASS wrong input types are invalid review setup; explicit runtime rejection remains testable")
+  _ = try await NativeAppCheck.run(
+    package: .init(
+      name: "Finite decimal boundary",
+      source: """
+        Sevra.action('pay',{title:'Pay',inputs:{amount:{type:'decimal'}}},args=>args.amount);
+        Sevra.mount(Sevra.h(Sevra.Text,{text:'Decimal boundary'}));
+        """),
+    steps: [
+      .object([
+        "kind": .string("run_action"), "action": .string("pay"),
+        "inputs": .object(["amount": .string(String(repeating: "9", count: 400))]),
+        "error": .string("finite decimal"),
+      ])
+    ])
+  var partial = workspace
+  partial.source = """
+    Sevra.action('partial',{title:'Partial'},async()=>{
+      await Sevra.data.transaction([{op:'insert',table:'entries',values:{name:'Unexpected'}}]);
+      throw Error('Rejected');
+    });
+    Sevra.mount(Sevra.h(Sevra.Text,{text:'Test'}));
+    """
+  do {
+    _ = try await NativeAppCheck.run(
+      package: partial,
+      steps: steps(#"[{"kind":"run_action","action":"partial","error":"Rejected"}]"#))
+    throw SevraError("test", "An error assertion accepted a committed partial write.")
+  } catch {
+    try expectEqual((error as? SevraError)?.code, "app_check_assertion")
+    try expectEqual(error.localizedDescription.contains("committed a data change"), true)
+  }
+  print("PASS expected action errors cannot hide committed partial effects")
+  let exactText = try steps(
+    #"[{"kind":"expect_rows","table":"entries","count":1,"values":{"name":"42"}}]"#)
+  do {
+    _ = try await NativeAppCheck.run(
+      package: workspace, steps: exactText,
+      fixtures: .object(["entries": .array([.object(["name": .number(42)])])]))
+    throw SevraError("test", "A JSON number satisfied an exact string assertion.")
+  } catch {
+    try expectEqual((error as? SevraError)?.code, "app_check_assertion")
+    try expectEqual(error.localizedDescription.contains("Value TYPE mismatch"), true)
+    try expectEqual(error.localizedDescription.contains("stored JSON number 42"), true)
+  }
+  _ = try await NativeAppCheck.run(
+    package: workspace, steps: exactText,
+    fixtures: .object(["entries": .array([.object(["name": .string("42")])])]))
+  do {
+    _ = try await NativeAppCheck.run(
+      package: workspace,
+      steps: steps(
+        #"[{"kind":"expect_rows","table":"entries","count":1,"values":{"unknown":"42"}}]"#))
+    throw SevraError("test", "An unknown column became an app-behavior counterexample.")
+  } catch {
+    try expectEqual((error as? SevraError)?.code, "app_check")
+    try expectEqual(error.localizedDescription.contains("stored column IDs"), true)
+  }
+  print("PASS row assertions identify value types and refuse unknown columns as invalid setup")
   let calculator = NativeAppPackage(name: "Multiply", source: calculatorSource)
   let tests = try steps(
     """
@@ -95,6 +248,36 @@ func checkNativeAppAuthoring() async throws {
     try expectEqual(error.localizedDescription.contains("datasets.sales.title"), true)
   }
   let report = try await NativeAppCheck.run(package: calculator, steps: tests)
+  _ = try await NativeAppCheck.run(
+    package: .init(
+      name: "Native action form",
+      source: """
+        Sevra.action('receive',{title:'Receive',inputs:{quantity:{type:'decimal',title:'Quantity'}}},async values=>{
+          if(Number(values.quantity)<=0)throw Error('Enter a positive quantity');
+          await Sevra.data.all('entries');
+          return await Sevra.data.transaction([{op:'insert',table:'entries',values}]);
+        });
+        Sevra.mount(Sevra.h(Sevra.ActionForm,{action:'receive'}));
+        """,
+      datasets: [
+        "entries": .init(
+          title: "Entries",
+          columns: [.init(id: "quantity", title: "Quantity", type: "decimal")], writable: true)
+      ]),
+    steps: try steps(
+      """
+      [{"kind":"change","target":"Receive: Quantity","value":"-2"},
+       {"kind":"click","target":"Receive"},
+       {"kind":"expect_text","value":"Enter a positive quantity"},
+       {"kind":"expect_rows","table":"entries","count":0},
+       {"kind":"expect_value","target":"Receive: Quantity","value":"-2"},
+       {"kind":"change","target":"Receive: Quantity","value":"2.50"},
+       {"kind":"click","target":"Receive"},
+       {"kind":"expect_rows","table":"entries","values":{"quantity":"2.50"},"count":1},
+       {"kind":"expect_value","target":"Receive: Quantity","value":""},
+       {"kind":"run_action","action":"receive","inputs":{"quantity":"4"}},
+       {"kind":"expect_rows","table":"entries","values":{"quantity":"4"},"count":1}]
+      """))
   _ = try await NativeAppCheck.run(
     package: .init(
       name: "Chat calculator",
@@ -211,6 +394,16 @@ func checkNativeAppAuthoring() async throws {
   do {
     _ = try await NativeAppCheck.run(
       package: .init(
+        name: "Missing assertions", source: "Sevra.mount(Sevra.h(Sevra.Text,{text:'Ready'}));"),
+      steps: Array(
+        repeating: .object(["kind": .string("click"), "target": .string("Save")]), count: 32))
+    throw SevraError("test", "Unchecked interactions were accepted")
+  } catch {
+    try expectEqual(error.localizedDescription.contains("32 test steps contain no assertion"), true)
+  }
+  do {
+    _ = try await NativeAppCheck.run(
+      package: .init(
         name: "Syntax feedback",
         source: "const x=1;\nSevra.mount(Sevra.h(Sevra.Text,{text:'Ready'})));"),
       steps: [.object(["kind": .string("expect_text"), "value": .string("Ready")])])
@@ -218,6 +411,34 @@ func checkNativeAppAuthoring() async throws {
   } catch {
     try expectEqual(error.localizedDescription.contains("No test steps ran"), true)
     try expectEqual(error.localizedDescription.contains("2: Sevra.mount("), true)
+  }
+  for closeDescription in [false, true] {
+    let source =
+      "Sevra.action('add',{title:'Add',inputs:{amount:{type:'decimal',title:'Amount'}}"
+      + (closeDescription ? "}" : "")
+      + ",async inputs=>{return {amount:inputs.amount};});"
+      + "Sevra.mount(Sevra.h(Sevra.Text,{text:'Ready'}));"
+    do {
+      _ = try await NativeAppCheck.run(
+        package: .init(name: "Action delimiter", source: source),
+        steps: [.object(["kind": .string("expect_text"), "value": .string("Ready")])])
+      try expectEqual(closeDescription, true)
+    } catch {
+      try expectEqual(closeDescription, false)
+      try expectEqual(error.localizedDescription.contains("THREE arguments"), true)
+    }
+  }
+  do {
+    _ = try await NativeAppCheck.run(
+      package: .init(
+        name: "Nested layout repair",
+        source:
+          "const {h,Tabs,Column,Text,mount}=Sevra;mount(h(Column,{},h(Tabs,{titles:['One']},h(Text,{text:'Ready'})));"
+      ),
+      steps: [.object(["kind": .string("expect_text"), "value": .string("Ready")])])
+    throw SevraError("test", "Unbalanced worksheet layout accepted")
+  } catch {
+    try expectEqual(error.localizedDescription.contains("Workspace supplies native tabs"), true)
   }
   do {
     _ = try await NativeAppCheck.run(
@@ -227,6 +448,33 @@ func checkNativeAppAuthoring() async throws {
   } catch {
     try expectEqual(error.localizedDescription.contains("sevra-app.js"), true)
     try expectEqual(error.localizedDescription.contains("Correct the JavaScript syntax"), false)
+  }
+  for awaitBeforeFilter in [false, true] {
+    let expression =
+      awaitBeforeFilter
+      ? "(await Sevra.data.all('rows')).filter(r=>r.values.name==='Sample')"
+      : "await Sevra.data.all('rows').filter(r=>r.values.name==='Sample')"
+    let candidate = NativeAppPackage(
+      name: "Async read repair",
+      source: """
+        Sevra.action('read',{title:'Read'},async()=>{const rows=\(expression);return rows.length;});
+        Sevra.mount(Sevra.h(Sevra.Text,{text:'Ready'}));
+        """,
+      datasets: ["rows": .init(title: "Rows", columns: [.init(id: "name", title: "Name")])])
+    do {
+      _ = try await NativeAppCheck.run(
+        package: candidate,
+        steps: try steps(
+          """
+          [{"kind":"run_action","action":"read","inputs":{}},
+           {"kind":"expect_text","value":"Ready"}]
+          """),
+        fixtures: try Value.parse(#"{"rows":[{"name":"Sample"}]}"#))
+      try expectEqual(awaitBeforeFilter, true)
+    } catch {
+      try expectEqual(awaitBeforeFilter, false)
+      try expectEqual(error.localizedDescription.contains("Await it first"), true)
+    }
   }
   let cancelled = Cancellation()
   cancelled.cancel()

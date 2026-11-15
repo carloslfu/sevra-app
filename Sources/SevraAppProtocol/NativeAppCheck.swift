@@ -4,10 +4,19 @@ import SevraCore
 /// Production preflight uses the same sandboxed service and typed data broker as the UI.
 /// It never receives a real workbook, a device grant, or real table bindings.
 public enum NativeAppCheck {
+  package static func hasAssertion(_ steps: [Value]) -> Bool {
+    steps.contains {
+      $0["kind"].text.hasPrefix("expect_")
+        || ($0["kind"].text == "run_action"
+          && (!$0["error"].text.isEmpty || $0["reject"] == .bool(true)))
+    }
+  }
+
   public static func run(
     package: NativeAppPackage, steps: [Value], fixtures: Value = .object([:]),
     cancellation: Cancellation = .init(), excelCoordinates: [[Int]]? = nil,
-    requireUnselectedExcelActions: Bool = false
+    requireUnselectedExcelActions: Bool = false, excelFormulas: ExcelCheckFormulas? = nil,
+    testProgress: (Int) -> Void = { _ in }
   ) async throws -> Value {
     try cancellation.check()
     try package.validate()
@@ -15,11 +24,15 @@ public enum NativeAppCheck {
       throw SevraError("app_check", "Fixtures must be an object of table aliases and row arrays.")
     }
     try require(
-      (1...32).contains(steps.count) && steps.contains { $0["kind"].text.hasPrefix("expect_") }
+      (1...32).contains(steps.count)
         && Value.array(steps).json().utf8.count <= 65_536
         && fixtures.json().utf8.count <= 65_536,
       "app_check",
       "Supply 1 to 32 test steps including an assertion, with small synthetic fixtures.")
+    try require(
+      hasAssertion(steps), "app_check",
+      "These \(steps.count) test steps contain no assertion. Interactions alone do not verify behavior. Within the 32-step limit, include expect_row with exact saved values, expect_value, expect_text, or run_action with reject:true or an expected error. Remove redundant interactions to make room; do not remove assertions on repair."
+    )
     try require(
       Set(fixtures.object.keys).isSubset(of: Set(package.datasets.keys)),
       "app_check", "Fixtures must name declared table aliases.")
@@ -53,7 +66,7 @@ public enum NativeAppCheck {
       }
     }
     try require(seeds.count <= 64, "app_check", "Use up to 64 synthetic fixture rows.")
-    if package.excelBehavior != nil, let coordinates = excelCoordinates {
+    if package.excelBehavior != nil || excelFormulas != nil, let coordinates = excelCoordinates {
       try require(
         coordinates.reduce(0) { $0 + $1.count } <= 2000,
         "app_check", "Reconstructed app checks support up to 2,000 stored worksheet rows.")
@@ -82,6 +95,7 @@ public enum NativeAppCheck {
         access, operations: Array(seeds[start..<min(start + 64, seeds.count)]),
         expectedRevision: book.revision(), token: identifier())
     }
+    let startingCounts = Dictionary(grouping: seeds, by: { $0["table"].text }).mapValues(\.count)
     access.revoke()
     isolated = space.definition.app!
     for alias in isolated.datasets.keys {
@@ -89,7 +103,9 @@ public enum NativeAppCheck {
     }
     space = try book.installNativeAppContents(
       isolated, spaceID: space.id, expectedVersion: space.version)
-    try book.attachSyntheticExcelBehavior(space.definition.app!, coordinates: excelCoordinates)
+    try book.attachSyntheticExcelCalculations(
+      space.definition.app!, coordinates: excelCoordinates,
+      formulas: excelFormulas)
     access = try NativeAppAccess(workbook: book, space: space)
     defer { access.revoke() }
     let connection = NativeAppCheckConnection()
@@ -98,12 +114,18 @@ public enum NativeAppCheck {
     var sequence = 0
     var requests = 0
     var transactions = 0
+    var committedTransactions = 0
     var assertions = 0
     var tableRowWasSelected = false
     var checkingInteraction = false
     var unselectedExcelActions = Set<String>()
     let deadline = ProcessInfo.processInfo.systemUptime + 20
     var tree = NativeAppTree()
+    var registeredActions: [String: Value] = [:]
+    var checkedActions = Set<String>()
+    var actionInputs: [String: Value] = [:]
+    var actionInputTypes: [String: Value] = [:]
+    var actionChanges: [String: Value] = [:]
     var subscriptions: [String: Value] = [:]
     var draft: Value = .object([:])
     func available(_ node: NativeAppNode) -> Bool {
@@ -163,6 +185,17 @@ public enum NativeAppCheck {
         "app_check", "Unexpected worker response.")
       sequence += 1
       _ = try tree.apply(result["frame"])
+      try require(
+        result["frame"]["actions"].array.count <= 64, "app_check", "Too many named actions.")
+      registeredActions.removeAll()
+      for action in result["frame"]["actions"].array {
+        try require(
+          registeredActions[action["id"].text] == nil, "app_check", "Duplicate action ID.")
+        registeredActions[action["id"].text] = action
+        checkedActions.insert(action["id"].text)
+        actionInputs[action["id"].text] = action["inputs"]
+        try require(checkedActions.count <= 64, "app_check", "Too many distinct named actions.")
+      }
       try require(tree.root != nil, "app_check", "Mount one native root with Sevra.mount.")
       for node in tree.nodes.values where node.type == "table" {
         try require(
@@ -224,6 +257,7 @@ public enum NativeAppCheck {
                 access, operations: args["operations"].array,
                 expectedRevision: args["revision"].int ?? -1, token: args["token"].text,
                 undo: args["undo"].string)
+              committedTransactions += 1
               // Fixed-cell actions do not receive a selected table row. Publication
               // must exercise them through an interaction before any table selection,
               // rather than trusting a model's readiness verdict or self-selected tests.
@@ -274,14 +308,34 @@ public enum NativeAppCheck {
         let excerpt = (max(1, line - 3)...min(lines.count, line + 2)).map {
           "\($0): " + String(lines[$0 - 1].prefix(500))
         }.joined(separator: "\n")
+        let actionHint =
+          message.contains("invalid property name")
+            && package.source.contains("Sevra.action")
+          ? "\nAn async arrow cannot be an unnamed object property. Sevra.action takes THREE arguments: ID, a fully closed description object, then the handler. Close both inputs and description before the comma preceding async. Valid shape: Sevra.action('add',{title:'Add',inputs:{amount:{type:'decimal',title:'Amount'}}},async inputs=>{return {amount:inputs.amount};});"
+          : ""
+        let layoutHint =
+          package.source.contains("h(Tabs,") || package.source.contains("h(Sevra.Tabs,")
+          ? "\nIf the error is in a deeply nested worksheet layout, simplify only that layout using mount(h(Sevra.Workspace,{sections:[{title:'Inputs',table:'sheet1',actions:['yourRegisteredActionID']},{title:'Results',table:'sheet2'}]})); adapt existing aliases and action IDs. Preserve business handlers and tests. Workspace supplies native tabs, tables and ActionForms without nested h calls."
+          : ""
         throw SevraError(
           "app_check",
           message
             + "\nNo test steps ran. Correct the JavaScript syntax before resubmitting; do not repeat unchanged source. Inspect delimiter balance near these source lines (host prelude excluded):\n"
-            + excerpt)
+            + excerpt + actionHint + layoutHint)
       }
       throw error
     }
+    // Describe the initial native controls without source or builder-test results.
+    // Independent action review must not learn its expected effects from either.
+    let initialInterface: Value = .array(
+      tree.nodes.values.sorted { $0.id < $1.id }.map { node in
+        .object([
+          "id": .string(node.id), "type": .string(node.type),
+          "children": .array(node.children.map(Value.string)),
+          "props": .object(
+            node.props.object.filter { ["label", "title", "titles", "table"].contains($0.key) }),
+        ])
+      })
     var lastSelection = ""
     for (index, step) in steps.enumerated() {
       do {
@@ -294,6 +348,54 @@ public enum NativeAppCheck {
               && ($0.id == target || $0.props["label"].string == target
                 || $0.props["title"].string == target)
           }
+          if matches.isEmpty {
+            let qualified = registeredActions.values.flatMap { action in
+              action["inputs"].object.compactMap { key, input -> String? in
+                guard (input["title"].string ?? key) == target else { return nil }
+                return action["title"].text + ": " + target
+              }
+            }.filter { label in tree.nodes.values.contains { $0.props["label"] == .string(label) } }
+            if !qualified.isEmpty {
+              throw SevraError(
+                "app_check_setup",
+                "The requested input exists in an action form. Its test label includes the action title: "
+                  + qualified.sorted().joined(separator: ", ")
+                  + ". Use one exact label and select its tab first; do not add duplicate fields."
+              )
+            }
+          }
+          if matches.isEmpty,
+            ["undo", "undo last change"].contains(target.lowercased())
+          {
+            throw SevraError(
+              "app_check_host_control",
+              "Sevra already provides the visible Undo last change control outside the generated app, using the latest successful write receipt. This isolated tree contains only generated controls. A missing app-owned Undo button is not a defect. Test the business write here; do not require or add a duplicate Undo button."
+            )
+          }
+          if matches.isEmpty, !target.isEmpty,
+            let hidden = tree.nodes.values.first(where: {
+              $0.id == target || $0.props["label"].string == target
+                || $0.props["title"].string == target
+            })
+          {
+            var child = hidden.id
+            while let parent = tree.nodes.values.first(where: { $0.children.contains(child) }) {
+              if parent.type == "tabs", let tab = parent.children.firstIndex(of: child),
+                tab != (parent.props["value"].int ?? 0)
+              {
+                let selection: Value = .object([
+                  "kind": .string("select"),
+                  "target": parent.props["label"].string.map(Value.string) ?? .string(parent.id),
+                  "value": .number(Double(tab)),
+                ])
+                throw SevraError(
+                  "app_check_inactive_tab",
+                  "The control exists on an inactive tab: " + target
+                    + ". Select its tab before interacting: " + (try selection.json()))
+              }
+              child = parent.id
+            }
+          }
           try require(
             !target.isEmpty && matches.count == 1, "app_check",
             "Target must match one control label/title or node ID: " + target)
@@ -302,7 +404,54 @@ public enum NativeAppCheck {
         }
         switch kind {
         case "run_action":
+          try require(
+            (step["reject"] == .null || step["reject"] == .bool(true))
+              && (step["reject"] == .null || step["error"] == .null)
+              && (step["error"] == .null || step["error"].string?.isEmpty == false),
+            "app_check", "Use reject:true or an exact error substring, not both.")
+          try require(
+            registeredActions[step["action"].text] != nil, "app_check",
+            "Choose a registered action ID: "
+              + registeredActions.keys.sorted().joined(separator: ", "))
+          var inputSetupError: String?
+          do {
+            let declared = registeredActions[step["action"].text]!["inputs"].object
+            actionInputTypes[String(index)] = .object(declared.mapValues { $0["type"] })
+            let inputs = step["inputs"] == .null ? Value.object([:]) : step["inputs"]
+            guard case .object = inputs else {
+              throw SevraError("app_check", "Action test inputs must be an object.")
+            }
+            try require(
+              Set(inputs.object.keys).isSubset(of: Set(declared.keys)), "app_check",
+              "Action test inputs must use the declared field IDs.")
+            for (key, field) in declared {
+              let value = inputs[key]
+              if inputs.object[key] == nil && field["required"] == .bool(false) { continue }
+              let valid: Bool
+              switch field["valueType"].text {
+              case "boolean": if case .bool = value { valid = true } else { valid = false }
+              case "number":
+                if case .number(let number) = value {
+                  valid = number.isFinite
+                } else {
+                  valid = false
+                }
+              default: valid = value.string != nil
+              }
+              try require(
+                valid, "app_check",
+                "Invalid counterexample setup: input \(key) requires JSON \(field["valueType"].text). Use the declared input types for a successful action test, or supply error to assert rejection. Decimal inputs are strings, for example \"5\"."
+              )
+            }
+          } catch {
+            // Wrong JSON types can be intentional SDK-rejection tests. They
+            // cannot establish a business-rule defect when a different error
+            // prevents that handler from running at all.
+            guard step["error"].string != nil else { throw error }
+            inputSetupError = error.localizedDescription
+          }
           commandResult = nil
+          let committedBefore = committedTransactions
           checkingInteraction = true
           defer { checkingInteraction = false }
           try await settle(
@@ -315,10 +464,33 @@ public enum NativeAppCheck {
           guard let result = commandResult else {
             throw SevraError("app_check", "The named action did not finish.")
           }
-          if let expected = step["error"].string {
+          actionChanges[String(index)] = .number(Double(committedTransactions - committedBefore))
+          if step["reject"] == .bool(true) {
+            try require(
+              result["error"].string?.isEmpty == false, "app_check_assertion",
+              "Expected rejection without data changes, but the action completed successfully.")
+            try require(
+              committedTransactions == committedBefore, "app_check_assertion",
+              "The action rejected its inputs but committed a data change. Reject invalid inputs before writing."
+            )
+            assertions += 1
+          } else if let expected = step["error"].string {
+            let observed = result["error"].string ?? "The action completed successfully."
+            if !result["error"].text.contains(expected), let inputSetupError {
+              throw SevraError(
+                "app_check_setup",
+                inputSetupError + " Expected error containing: " + String(expected.prefix(500))
+                  + ". Observed: " + String(observed.prefix(1500))
+                  + ". Correct the test input shape before probing its business rule.")
+            }
             try require(
               !expected.isEmpty && result["error"].text.contains(expected), "app_check_assertion",
-              "Expected the named action validation error.")
+              "Expected a named action error containing: " + String(expected.prefix(500))
+                + ". Observed: " + String(observed.prefix(1500)))
+            try require(
+              committedTransactions == committedBefore, "app_check_assertion",
+              "The action reported an expected error but committed a data change. Reject invalid inputs before writing; a failed action must not save partial effects."
+            )
             assertions += 1
           } else {
             try require(result["error"] == .null, "app_check_assertion", result["error"].text)
@@ -326,16 +498,35 @@ public enum NativeAppCheck {
         case "expect_text":
           let text = step["value"].text
           try require(!text.isEmpty, "app_check", "Supply a nonempty text expectation.")
+          var tabHint = ""
+          if let tabs = tree.nodes.values.first(where: {
+            $0.type == "tabs" && visible($0) && $0.props["titles"].array.contains(.string(text))
+          }), let index = tabs.props["titles"].array.firstIndex(of: .string(text)) {
+            let selection: Value = .object([
+              "kind": .string("select"),
+              "target": tabs.props["label"].string.map(Value.string) ?? .string(tabs.id),
+              "value": .number(Double(index)),
+            ])
+            tabHint =
+              " This is an existing native tab title, not a Text node. Navigate with "
+              + (try selection.json())
+              + "; then use expect_control for its table label or expect_row for saved values. Do not add a duplicate heading just to satisfy a test of an existing tab."
+          }
           try require(
             tree.nodes.values.contains {
               $0.type == "text" && visible($0) && $0.props["text"].text.contains(text)
             },
-            "app_check_assertion", "Expected visible text: " + text)
+            "app_check_assertion", "Expected visible text: " + text + tabHint)
           assertions += 1
         case "expect_control":
           try require(
             !step["target"].text.isEmpty, "app_check", "Supply a control label to expect.")
           do { _ = try control() } catch {
+            if ["app_check_host_control", "app_check_inactive_tab", "app_check_setup"].contains(
+              (error as? SevraError)?.code ?? "")
+            {
+              throw error
+            }
             throw SevraError("app_check_assertion", error.localizedDescription)
           }
           assertions += 1
@@ -398,29 +589,110 @@ public enum NativeAppCheck {
             control().props["value"] == step["value"], "app_check_assertion",
             "Control value did not match.")
           assertions += 1
-        case "expect_rows":
+        case "expect_row", "expect_rows":
+          let expectedCount = kind == "expect_row" ? 1 : step["count"].int
           try require(
-            step["count"].int.map { $0 >= 0 } == true, "app_check",
+            expectedCount.map { $0 >= 0 } == true, "app_check",
             "expect_rows requires count: a nonnegative integer.")
+          if kind == "expect_row" {
+            try require(
+              !step["values"].object.isEmpty && step["count"] == .null,
+              "app_check",
+              "expect_row requires nonempty values and no count; exactly one row must match."
+            )
+          }
           let page = try book.nativeAppPage(
             access, request: .object(["table": step["table"], "limit": .number(200)]))
+          if step["values"] != .null {
+            guard case .object = step["values"] else {
+              throw SevraError(
+                "app_check", "Saved-row values must be an object of column/value pairs.")
+            }
+          }
           let values = step["values"].object
+          let columns = Set(page["columns"].array.map { $0["id"].text })
           try require(
-            values.isEmpty || (page["total"].int ?? 0) <= 200, "app_check",
-            "Narrow this bounded row assertion.")
+            Set(values.keys).isSubset(of: columns), "app_check",
+            "expect_rows uses stored column IDs, not action input IDs. Available columns: "
+              + columns.sorted().joined(separator: ", "))
+          var observedRows = page["rows"].array
+          if !values.isEmpty {
+            guard let total = page["total"].int, (0...20_000).contains(total) else {
+              throw SevraError("app_check", "Saved-row assertions support up to 20,000 rows.")
+            }
+            while observedRows.count < total {
+              try cancellation.check()
+              let next = try book.nativeAppPage(
+                access,
+                request: .object([
+                  "table": step["table"], "limit": .number(200),
+                  "offset": .number(Double(observedRows.count)),
+                ]))
+              try require(
+                next["total"] == page["total"] && next["revision"] == page["revision"]
+                  && !next["rows"].array.isEmpty
+                  && observedRows.count + next["rows"].array.count <= total,
+                "app_check", "Saved rows changed or returned an incomplete assertion page.")
+              observedRows += next["rows"].array
+            }
+          }
           let count =
             values.isEmpty
             ? page["total"].int
-            : page["rows"].array.filter { row in
+            : observedRows.filter { row in
               values.allSatisfy { row["values"][$0.key] == $0.value }
             }.count
+          var typeHint = ""
+          if count != expectedCount, !values.isEmpty,
+            let row = observedRows.first(where: { row in
+              values.allSatisfy {
+                let actual = row["values"][$0.key]
+                let expected = $0.value
+                if actual.text == expected.text { return true }
+                guard actual.string == nil || expected.string == nil,
+                  let left = Double(actual.text), let right = Double(expected.text)
+                else { return false }
+                return left.isFinite && right.isFinite && left == right
+              }
+            })
+          {
+            func type(_ value: Value) -> String {
+              switch value {
+              case .string: return "string"
+              case .number: return "number"
+              case .bool: return "boolean"
+              case .null: return "null"
+              case .array: return "array"
+              case .object: return "object"
+              }
+            }
+            typeHint = try values.keys.sorted().compactMap { key -> String? in
+              let actual = row["values"][key]
+              let expected = values[key]!
+              guard type(actual) != type(expected) else { return nil }
+              return
+                "Column \(key): expected JSON \(type(expected)) \(try expected.json()), stored JSON \(type(actual)) \(try actual.json())."
+            }.joined(separator: " ")
+            if !typeHint.isEmpty {
+              typeHint =
+                " Value TYPE mismatch: " + String(typeHint.prefix(1500))
+                + " Ordinary worksheet cells are strings; convert arithmetic results with String(...), for example String(-quantity). Preserve the correct expected values."
+            }
+          }
           try require(
-            count == step["count"].int, "app_check_assertion",
-            "Expected \(step["count"].int!) matching rows; found \(count ?? 0). This table started with \(fixtures[step["table"].text].array.count) fixture rows before any test actions. Fixtures are starting data, not expected outputs. Check the saved values and column types."
-              + " Observed row values: "
+            count == expectedCount, "app_check_assertion",
+            "Expected \(expectedCount!) matching rows; found \(count ?? 0). This table started with \(startingCounts[step["table"].text] ?? 0) rows, including \(fixtures[step["table"].text].array.count) supplied fixture rows and any blank worksheet positions. expect_row checks one matching row; expect_rows with values counts only matches. Fixtures are starting data, not expected outputs. Check the saved values and column types."
+              + typeHint + " Observed row values: "
               + String(
                 try Value.array(
-                  page["rows"].array.prefix(4).map { row in
+                  observedRows.enumerated().sorted { lhs, rhs in
+                    func score(_ row: Value) -> Int {
+                      values.filter { row["values"][$0.key] == $0.value }.count
+                    }
+                    let left = score(lhs.element)
+                    let right = score(rhs.element)
+                    return left == right ? lhs.offset < rhs.offset : left > right
+                  }.prefix(4).map { _, row in
                     .object(row["values"].object.filter { values.isEmpty || values[$0.key] != nil })
                   }
                 ).json().prefix(2000))
@@ -505,6 +777,7 @@ public enum NativeAppCheck {
             ]))
         default: throw SevraError("app_check", "Unknown test step: " + kind)
         }
+        testProgress(index + 1)
       } catch {
         let code = (error as? SevraError)?.code ?? "app_check"
         let labels = tree.nodes.values.sorted { $0.id < $1.id }.filter(visible).map { node in
@@ -513,10 +786,19 @@ public enum NativeAppCheck {
             node.props["value"].string,
           ].compactMap { $0 }.filter { !$0.isEmpty }.joined(separator: " = ")
         }.filter { !$0.isEmpty }.joined(separator: "; ")
+        let asynchronousReadHint =
+          (error.localizedDescription + labels).contains("not a function")
+            && package.source.range(
+              of:
+                #"data\.(?:all|page)\([^)]*\)\s*\.\s*(?:filter|find|map|some|every|reduce|forEach)\s*\("#,
+              options: .regularExpression) != nil
+          ? "\nAn array method is being called directly on an asynchronous data read. Await it first: const rows=await data.all('alias'); const records=rows.filter(...); or (await data.all('alias')).filter(...). await data.all('alias').filter(...) calls filter on the Promise before awaiting. data.page also needs await, then use its .rows array. Correct the read, preserving the validation and assertions."
+          : ""
         throw SevraError(
           ["app_check_assertion", "excel_behavior_result"].contains(code) ? code : "app_check",
           "Test step \(index + 1): \(error.localizedDescription) Controls/text: "
             + String(labels.prefix(1500))
+            + asynchronousReadHint
             + (lastSelection.isEmpty ? "" : "\n" + lastSelection))
       }
     }
@@ -536,6 +818,11 @@ public enum NativeAppCheck {
       "paddedSyntheticRows": .number(Double(paddedRows)),
       "steps": .number(Double(steps.count)), "transactions": .number(Double(transactions)),
       "digest": .string(package.digest),
+      "actions": .array(checkedActions.sorted().map(Value.string)),
+      "actionInputs": .object(actionInputs),
+      "initialInterface": initialInterface,
+      "actionInputTypes": .object(actionInputTypes),
+      "actionChanges": .object(actionChanges),
       "unselectedExcelActions": .array(unselectedExcelActions.sorted().map(Value.string)),
       "tables": .array(
         Array(

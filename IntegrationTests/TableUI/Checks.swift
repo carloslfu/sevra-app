@@ -88,7 +88,8 @@ actor ReadGate {
     try expect(
       selectedColumn == 2, "Clicking a different column in the same row lost the paste target")
     let originalCell =
-      coordinator.tableView(table, viewFor: table.tableColumns[1], row: 0) as! NSTextField
+      (coordinator.tableView(table, viewFor: table.tableColumns[1], row: 0) as! NSTableCellView)
+      .textField!
     coordinator.controlTextDidBeginEditing(
       Notification(name: NSControl.textDidBeginEditingNotification, object: originalCell))
     view(sortedPage).update(table, coordinator: coordinator)
@@ -114,7 +115,8 @@ actor ReadGate {
     view(current).update(table, coordinator: coordinator)
     try expect(table.selectedRow == 0, "Correction lost logical selection")
     let staleCell =
-      coordinator.tableView(table, viewFor: table.tableColumns[1], row: 0) as! NSTextField
+      (coordinator.tableView(table, viewFor: table.tableColumns[1], row: 0) as! NSTableCellView)
+      .textField!
     let other = try Workbook(url)
     var values = current.rows[0].data.object
     values["quantity"] = .string("7")
@@ -139,7 +141,8 @@ actor ReadGate {
     )
 
     let cancelCell =
-      coordinator.tableView(table, viewFor: table.tableColumns[1], row: 0) as! NSTextField
+      (coordinator.tableView(table, viewFor: table.tableColumns[1], row: 0) as! NSTableCellView)
+      .textField!
     cancelCell.stringValue = "23"
     coordinator.controlTextDidEndEditing(
       Notification(
@@ -170,7 +173,8 @@ actor ReadGate {
       "Formula snapshot did not include a referenced-row change")
     view(formulaChanged).update(table, coordinator: coordinator)
     let formulaCell =
-      coordinator.tableView(table, viewFor: table.tableColumns[3], row: 0) as! NSTextField
+      (coordinator.tableView(table, viewFor: table.tableColumns[3], row: 0) as! NSTableCellView)
+      .textField!
     try expect(
       formulaCell.stringValue == "3.1" && !formulaCell.isEditable, "Calculated cell did not refresh"
     )

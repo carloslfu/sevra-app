@@ -112,11 +112,19 @@ extension Workbook {
     let actions = behavior?.actions ?? []
     let evaluate: ([String: String], String, Value) throws -> [String: String]
     if let behavior {
+      let declared = Set(behavior.outputs)
       try require(
-        Set(behavior.outputs) == formulas
-          && Set(behavior.outputs + actions.flatMap(\.writes)).isSubset(of: Set(baseline.keys)),
+        declared == formulas,
         "excel_coverage",
-        "Declare exactly the original formula cells as outputs. Input cells may change only through declared actions, never automatic recalculation."
+        "Declare every original formula cell as an output, including simple references such as =Other!A2. "
+          + "Missing: " + formulas.subtracting(declared).sorted().prefix(40).joined(separator: ", ")
+          + "; extra: " + declared.subtracting(formulas).sorted().prefix(40).joined(separator: ", ")
+          + ". Recreate all of them from input cells. Derived values are hidden in input.cells; calculate intermediate results in local variables, then return them. Input cells never belong in outputs."
+      )
+      try require(
+        Set(behavior.outputs + actions.flatMap(\.writes)).isSubset(of: Set(baseline.keys)),
+        "excel_coverage",
+        "A declared output or action write names a cell absent from the original. Inspect original coordinates before declaring writes."
       )
       outputs = behavior.outputs
       evaluate = {

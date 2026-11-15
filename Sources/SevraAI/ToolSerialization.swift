@@ -27,17 +27,22 @@ extension NativeTools {
     }
     let available =
       definitions
-      + (toolScope == .excelBuild ? [excelEvidenceDefinition, excelBehaviorDefinition] : [])
+      + ([.excelBuild, .excelCalculation, .excelInterface].contains(toolScope)
+        ? [excelEvidenceDefinition, excelBehaviorDefinition] : [])
     return try available.compactMap { definition in
       if definition.name == "save_native_app", !nativeAppAuthoring { return nil }
-      if definition.name == "save_native_app", toolScope == .excelBuild {
+      if definition.name == "save_native_app", [.excelBuild, .excelInterface].contains(toolScope) {
         var parameters = definition.parameters.object
         var properties = definition.parameters["properties"].object
         properties.removeValue(forKey: "id")
         properties.removeValue(forKey: "expectedVersion")
         var package = properties["package"]!.object
         var fields = package["properties"]!.object
-        fields["excelBehavior"] = excelBehaviorSchema
+        if toolScope == .excelBuild {
+          fields["excelBehavior"] = excelBehaviorSchema
+        } else {
+          fields.removeValue(forKey: "excelBehavior")
+        }
         fields["datasets"] = .object([
           "type": .string("object"),
           "additionalProperties": NativeTools.object(
@@ -49,10 +54,17 @@ extension NativeTools {
         package["properties"] = .object(fields)
         properties["package"] = .object(package)
         parameters["properties"] = .object(properties)
+        parameters["required"] = .array(
+          Array(
+            Set(parameters["required"]?.array.map(\.text) ?? [])
+              .union(["fixtures"])
+          ).sorted().map(Value.string))
         return .init(
           name: definition.name,
-          description:
-            "Save this Excel conversion's native workspace. Omit package.excelBehavior to reuse the last host-matched calculation draft from this request, or supply a replacement explicitly. Calculation drafts survive later UI/test/review failures; failed compare_excel_behavior calls clear them. The host supplies app identity, version and exact table bindings. package.datasets is only {sheet1:{writable:true/false},...}. Use all supplied aliases; do not supply datasetID/title/columns inside bindings or id/expectedVersion. Tests use synthetic fixtures, never imported rows. Include fixture rows before selecting/editing them. Failed checks save no app; fix the error and resubmit.",
+          description: (toolScope == .excelInterface
+            ? "Author the interface and shared record actions only. Calculation behavior is host-owned in this stage; do not supply excelBehavior or reimplement working formulas. "
+            : "")
+            + "Save this Excel conversion's native workspace. Omit package.excelBehavior to reuse the last host-matched calculation draft from this request, or supply a replacement explicitly. Calculation drafts survive later UI/test/review failures; failed compare_excel_behavior calls clear them. The host supplies app identity, version and exact table bindings. package.datasets is only {sheet1:{writable:true/false},...}. Use all supplied aliases; do not supply datasetID/title/columns inside bindings or id/expectedVersion. Tests use synthetic fixtures, never imported rows. Include fixture rows before selecting/editing them. Failed checks save no app; fix the error and resubmit.",
           parameters: .object(parameters))
       }
       if let action = WorkbookTools.conversationTools[definition.name], let conversationActions {

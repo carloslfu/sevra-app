@@ -3,7 +3,7 @@ import Foundation
 /// Discoverable operations, shared by conversation and the existing domain implementations.
 public enum ChatOperations {
   public static let appOperationGuidance =
-    "Active space is a programmable native app. For business operations, use workspace_actions domain=app and app.inspect; supply values and invoke actions in chat. For interface edits, use read_native_app with this exact ID, then save_native_app with its current version and tests."
+    "Active space is a programmable native app. For business operations, use workspace_actions domain=app and app.inspect. Read the full current request and map its supplied values to EVERY required action input before invoking it. A reference or name can follow the operation directly without a field label. Empty visual form drafts are not missing chat inputs. Do not ask again for a value already supplied in the current request. If any business value is missing, finish with a question listing the missing values; do not invoke the action with placeholders or guessed defaults. Earlier transactions and nearby records are not defaults for a new transaction unless the user explicitly asks to reuse them. For interface edits, use read_native_app with this exact ID, then save_native_app with its current version and tests."
   public struct Operation: Sendable {
     public let name: String
     public let summary: String
@@ -38,7 +38,7 @@ public enum ChatOperations {
       ["id"], readOnly: true, host: true),
     .init(
       "app.run",
-      "Run a discovered named action ONLY after every required input is known from the user's instructions or inspected records. If the user asks to add an item without a required quantity, ask how many; do not call this action with 1, 0 or another invented default. inputs is its typed argument object. Follow each input valueType: decimal inputs are JSON strings, for example quantity:\"3\". No visual view required.",
+      "Run a discovered named action ONLY after every required input is supplied by the user or a record they explicitly identified for that value. Missing inputs require a finish clarification question BEFORE this call. Never send TODO/placeholders, invent references, or copy another transaction's customer, amount or time as defaults. A validation error is not permission to choose replacement business values. inputs is its typed argument object. Follow each input valueType: decimal inputs are JSON strings, for example quantity:\"3\". No visual view required.",
       ["id", "expectedVersion", "action", "inputs"], host: true),
     .init(
       "app.set",
@@ -245,10 +245,23 @@ public enum ChatOperations {
     }
     try require(
       !readOnly || operation.readOnly, "read_only_request", "This request forbids changes.")
-    try require(
-      Set(operation.required).isSubset(of: Set(fields.keys))
-        && Set(fields.keys).isSubset(of: Set(operation.required + operation.optional)),
-      "arguments", "Use the exact required and optional inputs returned by workspace_actions.")
+    let missing = Set(operation.required).subtracting(fields.keys).sorted()
+    let unexpected = Set(fields.keys).subtracting(operation.required + operation.optional).sorted()
+    if !missing.isEmpty || !unexpected.isEmpty {
+      // A rejected envelope never reaches the domain handler. Describe its exact
+      // contract so the model can repair this call without guessing field names.
+      let required = operation.required.map { $0 + ":" + argumentType(name, $0) }.joined(
+        separator: ", ")
+      let optional = operation.optional.map { $0 + ":" + argumentType(name, $0) }.joined(
+        separator: ", ")
+      throw SevraError(
+        "arguments",
+        name + " was not invoked. Missing fields: "
+          + missing.joined(separator: ", ") + ". Unexpected fields: "
+          + unexpected.joined(separator: ", ") + ". Required arguments: {" + required
+          + "}. Optional arguments: {" + optional
+          + "}. Read workspace_actions for this operation; preserve the user's values.")
+    }
     for (key, value) in fields {
       let type = argumentType(name, key)
       let valid: Bool

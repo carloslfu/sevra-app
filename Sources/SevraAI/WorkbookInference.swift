@@ -6,7 +6,7 @@ package enum InferenceToolScope: String, Sendable {
   // Tool scopes retain the public tool names as their raw values.
   // swift-format-ignore: AlwaysUseLowerCamelCase
   case all, finish, inspection, movementDirection, actionDirection, nativeAppReview, excelPlan,
-    excelBuild, workflowAnswer,
+    excelBuild, excelCalculation, excelInterface, workflowAnswer,
     answer,
     boundedAnswer, draft,
     save_space, save_native_app,
@@ -34,7 +34,18 @@ package enum InferenceToolScope: String, Sendable {
     case .excelBuild:
       return [
         "native_app_sdk", "read_native_app", "datasets", "rows", "calculate", "save_native_app",
-        "finish", "inspect_excel_evidence", "compare_excel_behavior",
+        "inspect_excel_evidence", "compare_excel_behavior", "tool_result",
+      ].contains(tool)
+    case .excelCalculation:
+      return [
+        "native_app_sdk", "datasets", "rows", "calculate",
+        "inspect_excel_evidence", "compare_excel_behavior", "tool_result",
+      ].contains(tool)
+    case .excelInterface:
+      return [
+        "native_app_sdk", "read_native_app", "datasets", "rows", "calculate",
+        "save_native_app", "inspect_excel_evidence", "tool_result",
+        "compare_excel_behavior",
       ].contains(tool)
     case .finish: return tool == "finish"
     case .inspection: return WorkbookTools.readOnlyTools.contains(tool)

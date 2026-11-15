@@ -52,12 +52,20 @@ public struct NativeAppNode: Equatable, Sendable {
     ] {
       guard let raw = props.object[key], !(type == "table" && key == "columns") else { continue }
       guard case .number(let value) = raw, value.isFinite, abs(value) <= 100_000 else {
-        throw SevraError("app_tree", "Native dimensions must be bounded numbers.")
+        throw SevraError(
+          "app_tree",
+          "Property " + key + " on " + type + " at " + id
+            + " must be a finite number between -100000 and 100000; received "
+            + String((try raw.json()).prefix(80)) + "."
+            + (key == "size" ? " Use size:16 for points and weight:'bold' for emphasis." : ""))
       }
     }
     if ["slider", "progress"].contains(type), let raw = props.object["value"] {
       guard case .number(let value) = raw, value.isFinite, abs(value) <= 100_000 else {
-        throw SevraError("app_tree", "Native numeric values must be bounded numbers.")
+        throw SevraError(
+          "app_tree",
+          "Property value on " + type + " at " + id
+            + " must be a finite number between -100000 and 100000.")
       }
     }
     for key in ["enabled", "hidden", "selectable", "vertical", "indeterminate", "descending"] {

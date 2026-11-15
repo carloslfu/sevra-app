@@ -13,6 +13,15 @@ package struct ActionConfirmations {
     let later = entries.dropFirst(index + 1)
     return (entry["error"].text.contains(Self.repeatRefused) ? entries[...] : later).contains {
       saved in
+      // Once the same operation reaches its business handler, an earlier malformed
+      // envelope is no longer the current failure. Preserve the handler's refusal
+      // and both receipts, without claiming that the action succeeded.
+      if entry["tool"].text == "workspace_action", saved["tool"] == entry["tool"],
+        entry["validationOnly"] == .bool(true), saved["validationOnly"] == .bool(false),
+        saved["retryGroup"] == entry["retryGroup"]
+      {
+        return true
+      }
       if saved["tool"] == entry["tool"] && saved["kind"].text != "failure"
         && (saved["attempt"] == entry["attempt"]
           || (entry["validationOnly"] == .bool(true)

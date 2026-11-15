@@ -9,8 +9,10 @@ struct SheetFormulaPlan: Codable, Sendable {
     /// Columns the sheet held. A read past them is blank, while one inside them was removed.
     let width: Int
     /// Excel row numbers, and the table row each became. Empty rows have no table row.
-    let rows: [Int]
-    let logical: [String]
+    var rows: [Int]
+    var logical: [String]
+    /// Appended input records retain their coordinate when removed or restored by Undo.
+    var appended: [String]?
   }
   struct Cell: Codable, Sendable {
     let sheet: Int
@@ -163,11 +165,11 @@ struct SheetFormulaEngine {
     for key in expressions.keys {
       waiting[key] = dependencies[key]!.filter { expressions[$0] != nil }.count
     }
-    var ready = waiting.filter { $0.value == 0 }.map(\.key)
+    var ready = waiting.filter { $0.value == 0 }.map(\.key).sorted()
     var sorted: [Key] = []
     while let key = ready.popLast() {
       sorted.append(key)
-      for reader in readers[key] ?? [] where expressions[reader] != nil {
+      for reader in (readers[key] ?? []).sorted() where expressions[reader] != nil {
         waiting[reader]! -= 1
         if waiting[reader] == 0 { ready.append(reader) }
       }
@@ -201,8 +203,9 @@ struct SheetFormulaEngine {
     -> [Key: SheetValue]
   {
     var results: [Key: SheetValue] = [:]
+    let budget = SheetFormulaBudget()
     for key in order where !skipped(key) {
-      let value = expressions[key]!.evaluate { cell in
+      let value = expressions[key]!.evaluate(budget: budget) { cell in
         guard let target = self.key(cell, from: key.sheet) else { return .error("#REF!") }
         return results[target] ?? stored(target)
       }
@@ -258,6 +261,35 @@ extension Workbook {
       let record = try item(logical)
       let plan = try JSONDecoder().decode(
         SheetFormulaPlan.self, from: Data(record.data["plan"].text.utf8))
+      try require(
+        (1...100).contains(plan.sheets.count)
+          && Set(plan.sheets.map(\.dataset)).count == plan.sheets.count
+          && plan.sheets.allSatisfy {
+            $0.rows.count == $0.logical.count && $0.rows.count <= SheetFormulaPlan.rowLimit
+              && (1...500).contains($0.width)
+              && Set($0.rows).count == $0.rows.count && Set($0.logical).count == $0.logical.count
+              && $0.rows.allSatisfy { (1...1_048_576).contains($0) }
+          }
+          && plan.sheets.reduce(0, { $0 + $1.rows.count }) <= SheetFormulaPlan.rowLimit
+          && plan.cells.count <= SheetFormulaPlan.listLimit
+          && plan.cells.allSatisfy {
+            plan.sheets.indices.contains($0.sheet) && SheetFormulaToken.address($0.cell) != nil
+          }
+          && (plan.unlisted.isEmpty
+            || (plan.unlisted.count == plan.sheets.count
+              && plan.unlisted.enumerated().allSatisfy {
+                (0...(plan.sheets[$0.offset].width * 1_048_576)).contains($0.element)
+              })),
+        "sheet_formulas", "The saved worksheet coordinate map is malformed.")
+      for (index, sheet) in plan.sheets.enumerated() {
+        let appended = sheet.appended ?? []
+        try require(
+          Set(appended).count == appended.count && Set(appended).isSubset(of: Set(sheet.logical))
+            && (appended.isEmpty
+              || (!plan.cells.contains { $0.sheet == index }
+                && (index >= plan.unlisted.count || plan.unlisted[index] == 0))),
+          "sheet_formulas", "The saved input-row extension is malformed.")
+      }
       if let behavior = plan.behavior {
         try behavior.validate()
         try require(
@@ -475,6 +507,12 @@ extension Workbook {
         // Rows and columns Excel left empty read as blank. Ones since removed are a broken reference.
         guard mapped[key.sheet]?.contains(key.row) == true else { return .blank }
         guard rows[Key(sheet: key.sheet, column: -1, row: key.row)] != nil else {
+          let sheet = plan.sheets[key.sheet]
+          if let index = sheet.rows.firstIndex(of: key.row),
+            sheet.appended?.contains(sheet.logical[index]) == true
+          {
+            return .blank
+          }
           return .error("#REF!")
         }
         guard columns[key.sheet]?.contains(key.column) == true else {
@@ -532,6 +570,7 @@ extension Workbook {
     var plans = Set<String>()
     for table in tables.sorted() {
       guard let (id, _) = try sheetFormulaPlan(table), plans.insert(id).inserted else { continue }
+      try extendSheetInputRows(after: table)
       try recalculateSheetFormulas(after: table)
     }
     tablesWithChangedRows = []

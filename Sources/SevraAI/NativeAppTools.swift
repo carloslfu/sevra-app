@@ -29,6 +29,12 @@ extension NativeTools {
           "action": schema("string", "Named Sevra.action ID."),
           "inputs": .object(["type": .string("object")]),
           "error": schema("string", "Optional expected validation-error substring."),
+          "reject": .object([
+            "type": .string("boolean"), "enum": .array([.bool(true)]),
+            "description": .string(
+              "Assert rejection with no writes, without requiring exact error wording. Supply complete correctly typed inputs. Do not combine with error."
+            ),
+          ]),
         ], required: ["action", "inputs"]),
       canvasStep("drop"), canvasStep("expect_region"), canvasStep("press_region"),
       appStep(
@@ -68,6 +74,17 @@ extension NativeTools {
       appStep(
         "expect_value", ["target": schema("string", "Input label."), "value": .object([:])],
         required: ["target", "value"]),
+      appStep(
+        "expect_row",
+        [
+          "table": schema("string", "Table alias."),
+          "values": .object([
+            "type": .string("object"),
+            "description": .string(
+              "Exactly one saved row must match these column/value pairs. Include its business key and changed values; worksheet cells are strings."
+            ),
+          ]),
+        ], required: ["table", "values"]),
       appStep(
         "expect_rows",
         [

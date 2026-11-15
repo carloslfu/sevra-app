@@ -14,6 +14,146 @@ func checkExcelBehaviorReconstruction() async throws {
     "sevra-behavior-check-" + identifier())
   try FileManager.default.createDirectory(at: root, withIntermediateDirectories: true)
   defer { try? FileManager.default.removeItem(at: root) }
+  do {
+    let book = try Workbook.create(
+      at: root.appendingPathComponent("Native totals.sevra"), title: "Native totals")
+    let source = try book.importFile(
+      URL(fileURLWithPath: "integration/fixtures/excel-business/stock-0.xlsx"))
+    var conversion = try book.beginExcelConversion(sourceID: source.id)
+    conversion = try book.updateExcelConversion(
+      conversion.id, expectedVersion: conversion.version,
+      state: "review",
+      plan: .object([
+        "name": .string("Stock"), "purpose": .string("Receive stock"),
+        "workflows": .array([.string("Receive stock")]), "questions": .array([]),
+      ]))
+    conversion = try book.importExcelConversionTables(conversion.id)
+    let build = try book.prepareExcelConversionBuild(conversion.id)
+    var bindings: [String: NativeAppDataset] = [:]
+    for (index, table) in build.tables.enumerated() {
+      bindings["sheet\(index + 1)"] = .init(
+        title: table.title, columns: table.columns,
+        writable: index == 1, datasetID: table.id)
+    }
+    let package = NativeAppPackage(
+      name: "Synthetic native stock",
+      source: """
+        Sevra.action('receive',{title:'Receive',inputs:{reference:{type:'text'},sku:{type:'text'},quantity:{type:'decimal'}}},async values=>{
+          return await Sevra.data.transaction([{op:'insert',table:'sheet2',values:{c1:values.reference,c2:values.sku,c3:values.quantity,c4:'Receipt'}}]);
+        });
+        Sevra.mount(Sevra.h(Sevra.ActionForm,{action:'receive'}));
+        """, datasets: bindings)
+    _ = try await NativeAppCheck.run(
+      package: package,
+      steps: [
+        .object([
+          "kind": .string("expect_rows"), "table": .string("sheet3"), "count": .number(1),
+          "values": .object(["c1": .string("TEST-SKU"), "c2": .string("10"), "c3": .string("20")]),
+        ]),
+        .object([
+          "kind": .string("run_action"), "action": .string("receive"),
+          "inputs": .object([
+            "reference": .string("TEST-REF"), "sku": .string("TEST-SKU"), "quantity": .string("3"),
+          ]),
+        ]),
+        .object([
+          "kind": .string("expect_rows"), "table": .string("sheet3"), "count": .number(1),
+          "values": .object(["c1": .string("TEST-SKU"), "c2": .string("13"), "c3": .string("26")]),
+        ]),
+      ],
+      fixtures: .object([
+        "sheet1": .array([
+          .object(["c1": .string("SKU")]),
+          .object([
+            "c1": .string("TEST-SKU"), "c2": .string("Invented product"),
+            "c3": .string("10"), "c4": .string("2"), "c5": .string("5"),
+          ]),
+        ]),
+        "sheet2": .array([.object(["c1": .string("Reference")])]),
+      ]), excelCoordinates: book.excelCheckCoordinates(conversion.id),
+      excelFormulas: book.excelCheckFormulas(conversion.id))
+    // The preflight must not expose, mutate or replace the source workbook rows.
+    try expectEqual(try book.tablePage(build.tables[0].id).values[1]["c1"], .string("P1"))
+    try expectEqual(try book.tablePage(build.tables[1].id).total, 13)
+    print(
+      "PASS native formula definitions recalculate synthetic input growth without original business rows"
+    )
+  }
+  do {
+    let book = try Workbook.create(
+      at: root.appendingPathComponent("Growing inputs.sevra"), title: "Growing inputs")
+    let source = try book.addItem(category: "source", kind: "note", title: "Synthetic input rows")
+    let columns: [Column] = [.init(id: "c1", title: "A")]
+    let inputs = try book.createDataset(
+      title: "Inputs", columns: columns,
+      rows: [["c1": .string("Amount")], ["c1": .string("3")]], sourceID: source.id)
+    let totals = try book.createDataset(
+      title: "Totals", columns: columns,
+      rows: [["c1": .string("3")]], sourceID: source.id)
+    var package = NativeAppPackage(
+      name: "Growth check", source: "Sevra.mount(Sevra.h(Sevra.Text,{text:'Input ledger'}));",
+      datasets: [
+        "sheet1": .init(title: "Inputs", columns: columns, writable: true, datasetID: inputs.id),
+        "sheet2": .init(title: "Totals", columns: columns, writable: false, datasetID: totals.id),
+      ])
+    package.excelBehavior = .init(
+      source:
+        "function recreate(input){let sum=0;for(const key of Object.keys(input.cells)){if(/^sheet1!A[0-9]+$/.test(key)&&key!=='sheet1!A1')sum+=Number(input.cells[key]);}return {'sheet2!A1':String(sum)};}",
+      outputs: ["sheet2!A1"])
+    try book.attachSyntheticExcelCalculations(package, coordinates: [[1, 2], [1]])
+    let saved = try book.installNativeAppContents(package)
+    let access = try NativeAppAccess(workbook: book, space: saved)
+    defer { access.revoke() }
+    func total() throws -> String { try book.rows(totals.id)[0].data["c1"].text }
+    let receipt = try book.nativeAppTransaction(
+      access,
+      operations: [
+        .object([
+          "op": .string("insert"), "table": .string("sheet1"),
+          "values": .object(["c1": .string("7")]),
+        ])
+      ], expectedRevision: book.revision(), token: identifier())
+    try expectEqual(try total(), "10")
+    try expectEqual(try Workbook(book.url).rows(totals.id)[0].data["c1"].text, "10")
+    _ = try book.nativeAppTransaction(
+      access, operations: [], expectedRevision: book.revision(),
+      token: identifier(), undo: receipt["token"].text)
+    try expectEqual(try total(), "3")
+    _ = try book.nativeAppTransaction(
+      access,
+      operations: [
+        .object([
+          "op": .string("insert"), "table": .string("sheet1"),
+          "values": .object(["c1": .string("11")]),
+        ])
+      ], expectedRevision: book.revision(), token: identifier())
+    try expectEqual(try total(), "14")
+    let state = try book.tablePage(inputs.id).values
+    let revision = try book.revision()
+    // Removing an original coordinate and inserting an unauthorized output both
+    // fail atomically, preserving the previously committed input/derived state.
+    for operation: Value in [
+      .object([
+        "op": .string("delete"), "table": .string("sheet1"),
+        "id": .string(try book.rows(inputs.id)[1].id),
+      ]),
+      .object([
+        "op": .string("insert"), "table": .string("sheet2"),
+        "values": .object(["c1": .string("99")]),
+      ]),
+    ] {
+      try expectThrows(
+        try book.nativeAppTransaction(
+          access, operations: [operation], expectedRevision: revision, token: identifier()))
+      try expectEqual(try book.tablePage(inputs.id).values, state)
+      try expectEqual(try total(), "14")
+      try expectEqual(try book.revision(), revision)
+    }
+    try expectEqual(try book.verify()["ok"], .bool(true))
+    print(
+      "PASS translated behavior input growth, atomic derived values, Undo/reopen and protected original coordinates"
+    )
+  }
   for example in cases {
     let name = example["name"].text
     let behavior = try JSONDecoder().decode(
@@ -308,14 +448,17 @@ func checkExcelBehaviorReconstruction() async throws {
     }
     if name == "Reference codes" {
       var firstPackage = minimal
-      firstPackage["excelBehavior"] = try encoded(behavior)
+      firstPackage.removeValue(forKey: "excelBehavior")
       let failedUI: Value = .object([
         "package": .object(firstPackage), "fixtures": fixtures,
         "tests": .array([.object(["kind": .string("expect_text"), "value": .string("Missing")])]),
       ])
-      // A save that passes original comparison but fails its UI checks retains only the
-      // exact verified calculation draft. The next UI repair need not regenerate it.
-      buildActions = [("save_native_app", failedUI), ("save_native_app", args)]
+      // The calculation stage must complete before UI is offered. A subsequent
+      // failed UI save retains the draft; repair need not regenerate it.
+      buildActions = [
+        ("compare_excel_behavior", .object(["behavior": try encoded(behavior)])),
+        ("save_native_app", failedUI), ("save_native_app", args),
+      ]
     }
     let builder = ExcelTestModel(buildActions)
     _ = try await WorkbookAgent.run(
@@ -608,10 +751,28 @@ func checkExcelBehaviorReconstruction() async throws {
   let examplesBook = try Workbook.create(
     at: root.appendingPathComponent("Examples.sevra"), title: "Example corrections")
   let original = try examplesBook.importFile(fixtureRoot.appendingPathComponent("loan-0.xlsx"))
-  let reference = try examplesBook.importFile(fixtureRoot.appendingPathComponent("loan-1.xlsx"))
+  let referenceJob = try examplesBook.captureIntake(
+    fixtureRoot.appendingPathComponent("loan-1.xlsx"), role: .reference)
+  try expectEqual(try examplesBook.runIntake(referenceJob.id).state, "ready")
+  let reference = try examplesBook.item(referenceJob.sourceID)
   var exampleDraft = try examplesBook.beginExcelConversion(sourceID: original.id)
   exampleDraft = try examplesBook.addExcelExample(
     exampleDraft.id, sourceID: reference.id, expectedVersion: exampleDraft.version)
+  try expectEqual(
+    ["ready", "partial"].contains(try examplesBook.extractionStatus(reference.id)["state"].text),
+    true)
+  try expectEqual(
+    try examplesBook.pendingExtractions().contains { $0["item_id"] == .string(reference.id) },
+    false)
+  let incompatibleJob = try examplesBook.captureIntake(
+    fixtureRoot.appendingPathComponent("inventory-0.xlsm"), role: .reference)
+  try expectEqual(try examplesBook.runIntake(incompatibleJob.id).state, "ready")
+  try expectThrows(
+    try examplesBook.addExcelExample(
+      exampleDraft.id, sourceID: incompatibleJob.sourceID, expectedVersion: exampleDraft.version))
+  try expectEqual(try examplesBook.excelConversion(exampleDraft.id).version, exampleDraft.version)
+  try expectEqual(try examplesBook.intakeJob(incompatibleJob.id).state, "ready")
+  try expectEqual(try examplesBook.item(incompatibleJob.sourceID).id, incompatibleJob.sourceID)
   let duplicate = try examplesBook.importFile(fixtureRoot.appendingPathComponent("loan-1.xlsx"))
   try expectThrows(
     try examplesBook.addExcelExample(
@@ -643,18 +804,28 @@ func checkExcelBehaviorReconstruction() async throws {
           title: "Rows", columns: oldRows.dataset.columns, writable: true, datasetID: table)
       ]))
   let editorAccess = try NativeAppAccess(workbook: examplesBook, space: editor)
+  try expectThrows(
+    try examplesBook.nativeAppTransaction(
+      editorAccess,
+      operations: [
+        .object([
+          "op": .string("delete"), "table": .string("rows"), "id": .string(oldRows.rows[0].id),
+        ]),
+        .object([
+          "op": .string("insert"), "table": .string("rows"), "values": .object(oldRows.values[0]),
+        ]),
+      ], expectedRevision: examplesBook.revision(), token: identifier()))
+  try expectEqual(try examplesBook.tablePage(table).total, oldRows.total)
+  try expectEqual(try examplesBook.tablePage(table).rows.map(\.id), oldRows.rows.map(\.id))
+  try examplesBook.validateExcelConversionBuild(binding)
   _ = try examplesBook.nativeAppTransaction(
     editorAccess,
     operations: [
       .object([
         "op": .string("delete"), "table": .string("rows"), "id": .string(oldRows.rows[0].id),
-      ]),
-      .object([
-        "op": .string("insert"), "table": .string("rows"), "values": .object(oldRows.values[0]),
-      ]),
+      ])
     ], expectedRevision: examplesBook.revision(), token: identifier())
   editorAccess.revoke()
-  try expectEqual(try examplesBook.tablePage(table).total, oldRows.total)
   try expectThrows(try examplesBook.validateExcelConversionBuild(binding))
   try expectThrows(try examplesBook.prepareExcelConversionBuild(exampleDraft.id))
   print(
@@ -741,6 +912,26 @@ private func checkExcelActionCoverage(
 }
 
 private func checkExcelEvidenceBoundaries(_ root: URL) throws {
+  let long = ImportedSheet(
+    name: "Long", rows: (1...150).map { ["Value \($0)"] },
+    rowNumbers: Array(1...150), notes: [], formulas: [:])
+  let later = ImportedSheet(
+    name: "Later", rows: [["Actual header", "Result"], ["KEY", "2"]],
+    rowNumbers: [3, 5], notes: [], formulas: ["B5": "1+1"])
+  let originals = [long, later]
+  try expectEqual(
+    try Workbook.excelCalculationEvidence(originals)["inputCells"]["sheet2!A3"], .null)
+  let exact = Workbook.excelInputLookup(originals)
+  try expectEqual(try exact("sheet2!A3"), .string("Actual header"))
+  try expectEqual(try exact("sheet2!A5"), .string("KEY"))
+  for absent in ["sheet2!A4", "sheet2!C3", "sheet3!A1", "sheet2!B5"] {
+    try expectEqual(try exact(absent), .null)
+  }
+  try expectThrows(try exact("sheet0!A1"))
+  let oversized = ImportedSheet(
+    name: "Long header", rows: [[String(repeating: "x", count: 4097)]],
+    rowNumbers: [1], notes: [], formulas: [:])
+  try expectThrows(try Workbook.excelInputLookup([oversized])("sheet1!A1"))
   let duplicate = ImportedSheet(
     name: "Duplicate", rows: [["a"], ["b"]], rowNumbers: [1, 1], notes: [], formulas: [:])
   try expectThrows(try StructuredResult(sheets: [duplicate]).validate())
@@ -824,7 +1015,7 @@ private func checkExcelActionAtomicity(_ root: URL) throws {
         "values": .object(["c1": .string("2"), "c2": .string("0")]),
       ])
     }, expectedRevision: book.revision(), token: identifier())
-  try book.attachSyntheticExcelBehavior(space.definition.app!, coordinates: nil)
+  try book.attachSyntheticExcelCalculations(space.definition.app!, coordinates: nil)
   let action: [Value] = [.object(["op": .string("excel_action"), "action": .string("advance")])]
   let token = identifier()
   _ = try book.nativeAppTransaction(

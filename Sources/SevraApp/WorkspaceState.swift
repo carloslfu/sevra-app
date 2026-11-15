@@ -526,6 +526,21 @@ struct FolderReview {
   func owns(_ ticket: WorkspaceOperation, in book: Workbook) -> Bool {
     interactionActive && workbook === book && operations.owns(ticket)
   }
+  // Excel builds and ordinary conversation share the same request identity,
+  // cancellation guard and revision-aware activity refresh.
+  func updateAgentActivity(_ value: String, for ticket: WorkspaceOperation, in book: Workbook) {
+    guard owns(ticket, in: book), operations.acceptsProgress(ticket) else { return }
+    status = value
+    liveActivity?.update(value)
+    requestRefresh(polling: true)
+  }
+  func attachAgentActivity(
+    _ request: AgentRequest, conversation: String, for ticket: WorkspaceOperation, in book: Workbook
+  ) {
+    guard owns(ticket, in: book), operations.acceptsProgress(ticket) else { return }
+    liveActivity?.attach(request, conversation: conversation)
+    refresh()
+  }
   func finishOperation(_ ticket: WorkspaceOperation, in book: Workbook) {
     guard owns(ticket, in: book), operations.finish(ticket) else { return }
     terminalStatus =
@@ -981,25 +996,14 @@ struct FolderReview {
           cancellation: ticket.cancellation,
           progress: { value in
             Task { @MainActor in
-              guard self.owns(ticket, in: book), self.operations.acceptsProgress(ticket) else {
-                return
-              }
-              self.status = value
-              self.liveActivity?.update(value)
-              // Phase/count updates are ephemeral; only fetch saved history when
-              // the workbook revision changed. Reads remain off the UI actor.
-              self.requestRefresh(polling: true)
+              self.updateAgentActivity(value, for: ticket, in: book)
             }
           },
           requestStarted: { request, destination in
             admitted.withLock { $0 = true }
             Task { @MainActor in
               self.unsent = nil
-              guard self.owns(ticket, in: book), self.operations.acceptsProgress(ticket) else {
-                return
-              }
-              self.liveActivity?.attach(request, conversation: destination)
-              self.refresh()
+              self.attachAgentActivity(request, conversation: destination, for: ticket, in: book)
             }
           },
           openSpace: { target in try openRequestedView(.space(target.id)) },

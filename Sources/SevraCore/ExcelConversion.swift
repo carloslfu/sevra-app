@@ -37,18 +37,21 @@ public struct ExcelConversionBuild: Sendable {
 }
 
 extension Workbook {
-  private func excelRowIdentity(_ dataset: String) throws -> String {
+  private func excelRowIdentity(_ dataset: String, excluding: Set<String> = []) throws -> String {
     let rows = try db.execute(
       "SELECT logical_id FROM dataset_rows WHERE dataset_id=? ORDER BY ordinal",
       [.string(dataset)]
-    ).map { $0["logical_id"]!.text }
+    ).map { $0["logical_id"]!.text }.filter { !excluding.contains($0) }
     return SHA256.hash(data: Data(try encoded(rows).json().utf8)).map { String(format: "%02x", $0) }
       .joined()
   }
   private func validateExcelRows(_ conversion: ExcelConversion) throws {
     for table in conversion.datasetIDs {
+      let appended =
+        try sheetFormulaPlan(table)?.plan.sheets.first { $0.dataset == table }?.appended ?? []
       try require(
-        conversion.record.data["rowIdentities"][table] == .string(excelRowIdentity(table)),
+        conversion.record.data["rowIdentities"][table]
+          == .string(excelRowIdentity(table, excluding: Set(appended))),
         "excel_rows",
         "The original worksheet rows changed. Restore their structure or import a new original before rebuilding."
       )
@@ -407,6 +410,7 @@ extension Workbook {
       try Self.validateExcelPlan(conversion.plan)
       try validateExcelRows(conversion)
       let tables = try conversion.datasetIDs.map { try dataset($0) }
+      let originalSheets = try excelOriginalSheets(conversion.sourceID).filter { !$0.rows.isEmpty }
       try require(
         !tables.isEmpty && tables.count <= 12 && tables.allSatisfy { !$0.archived }, "excel_build",
         "Import 1 to 12 nonempty worksheets before building. Larger files remain available as tables."
@@ -430,12 +434,11 @@ extension Workbook {
       let context: Value = .object([
         "original": conversion.inspection, "inferredPlan": conversion.plan,
         "originalLogic": .array(logic),
-        "calculationEvidence": try Self.excelCalculationEvidence(
-          excelOriginalSheets(conversion.sourceID)),
+        "calculationEvidence": try Self.excelCalculationEvidence(originalSheets),
         "fixtureRowCounts": .object(
           Dictionary(
-            uniqueKeysWithValues: tables.enumerated().map {
-              ("sheet\($0.offset + 1)", .number(Double($0.element.rowCount)))
+            uniqueKeysWithValues: originalSheets.enumerated().map {
+              ("sheet\($0.offset + 1)", .number(Double($0.element.rows.count)))
             })),
         "userClarification": .string(conversion.purpose),
         "tables": try encoded(tables), "formulaReport": conversion.record.data["formulaReport"],

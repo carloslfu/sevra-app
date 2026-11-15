@@ -2,11 +2,12 @@
 type: index
 scope: type-folder
 folder: records/reviews
-updated: 2026-11-14T01:57:19.484172Z
+updated: 2026-11-15T13:17:12.762082Z
 ---
 
 # records/reviews
 
+- [[records/reviews/excel-business-applications-2026-11-15]] — Shared formula, review, numeric validation, repair and authority fixes pass scoped checks; final fresh cohorts and native visual qualification remain pending.
 - [[records/reviews/excel-reconstruction-and-engine-review]] — Multiple-pass review, fixes, local and hosted checks and installed UI verified; autonomous model-generation reliability remains open
 - [[records/reviews/single-excel-import]] — Single Excel import accepted for the bounded preview: full suite, 38 focused groups, three actual-model workflows and installed UI pass; 14 findings repaired
 - [[records/reviews/native-app-fresh-start-2026-11-13]] — Fresh mini-app test state retired; 28 focused groups and imported-app UI pass, but both new local-model calculator attempts fail.

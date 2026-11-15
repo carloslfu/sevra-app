@@ -36,7 +36,16 @@ with tempfile.TemporaryDirectory(prefix='sevra-receipt-cli-') as directory:
     text = 'café\0👩🏽‍💻\n' * 12_000
     for offset in [0, 1000, len(text) - 20]:
         page = run('tool-result', book, 'main', call, '["text"]', offset)
-        assert page['textSegment'] == text[offset:offset + 1000]
+        segment = page['textSegment']
+        end = offset + len(segment)
+        assert segment and segment == text[offset:end]
+        assert page['offsetUnit'] == 'Unicode scalar' and page['total'] == len(text)
+        assert page['nextOffset'] == (end if end < len(text) else None)
+        assert len(json.dumps(segment, ensure_ascii=False).encode('utf-8')) <= 8000
+        assert len(json.dumps(page, ensure_ascii=False).encode('utf-8')) <= 16000
+        if page['nextOffset'] is not None:
+            following = run('tool-result', book, 'main', call, '["text"]', end)
+            assert following['textSegment'] == text[end:end + len(following['textSegment'])]
     raw = run('tool-result', book, 'main', call, '--raw-json')
     assert raw['offsetUnit'] == 'Unicode scalar' and raw['textSegment'].startswith('{')
     run('tool-result', book, 'main', call, '"wrong path type"', success=False)

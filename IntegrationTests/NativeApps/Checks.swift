@@ -5,11 +5,14 @@ import SevraAppRuntime
 import SevraAppUI
 import SevraCore
 
-func expect(_ condition: @autoclosure () throws -> Bool, _ message: String = "Expectation failed")
+func expect(
+  _ condition: @autoclosure () throws -> Bool, _ message: String = "Expectation failed",
+  file: StaticString = #fileID, line: UInt = #line
+)
   throws
 {
   if try !condition() {
-    print("ASSERTION FAILED: " + message)
+    print("ASSERTION FAILED: \(file):\(line): " + message)
     throw SevraError("test", message)
   }
 }
@@ -280,6 +283,21 @@ func exchange(
       )
       try refuses { _ = try tree.apply(invalid) }
       try expect(tree.nodes == prior)
+      do {
+        _ = try NativeAppNode(
+          .object([
+            "id": .string("root/1"), "type": .string("text"),
+            "props": .object(["text": .string("Operations"), "size": .string("bold")]),
+            "children": .array([]),
+          ]))
+        throw SevraError("test", "A string font size was accepted")
+      } catch let error as SevraError {
+        try expect(
+          error.code == "app_tree"
+            && error.localizedDescription.contains("Property size on text at root/1")
+            && error.localizedDescription.contains("weight:'bold'"),
+          "A rejected native property did not identify the repair target")
+      }
     }
     check("All three example programs mount and use only native controls") {
       for name in ["inventory", "jobs", "planner"] {

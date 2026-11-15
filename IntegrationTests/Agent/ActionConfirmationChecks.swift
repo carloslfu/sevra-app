@@ -163,6 +163,36 @@ private func checkRefusedRepeats() throws {
 
 func checkActionConfirmations() async throws {
   try checkRefusedRepeats()
+  // Repairing a malformed call can expose a genuine business refusal. Show the
+  // refusal, retain both receipts, and never mark the requested action successful.
+  for sameTarget in [true, false] {
+    var confirmations = ActionConfirmations()
+    let malformed: Value = .object([
+      "action": .string("app.run"),
+      "arguments": .object([
+        "id": .string("invoice-app"), "expectedVersion": .number(1),
+        "action": .string("createInvoice"), "arguments": .object([:]),
+      ]),
+    ])
+    let valid: Value = .object([
+      "action": .string("app.run"),
+      "arguments": .object([
+        "id": .string(sameTarget ? "invoice-app" : "other-app"),
+        "expectedVersion": .number(1), "action": .string("createInvoice"),
+        "inputs": .object(["reference": .string("INV-1")]),
+      ]),
+    ])
+    confirmations.recordFailure(
+      tool: "workspace_action", arguments: malformed,
+      result: .object(["error": .string("Missing fields: inputs")]), receiptID: "envelope")
+    confirmations.recordFailure(
+      tool: "workspace_action", arguments: valid,
+      result: .object(["error": .string("Duplicate reference")]), receiptID: "business")
+    try expectEqual(confirmations.evidence.array.count, 2)
+    try expectEqual(confirmations.hasUnresolvedFailure, true)
+    try expectEqual(confirmations.rendered?.contains("Duplicate reference"), true)
+    try expectEqual(confirmations.rendered?.contains("Missing fields"), !sameTarget)
+  }
   let root = FileManager.default.temporaryDirectory.appendingPathComponent(
     "confirmation-" + identifier())
   defer { try? FileManager.default.removeItem(at: root) }

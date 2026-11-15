@@ -10,6 +10,7 @@ struct SheetCell: Hashable, Sendable {
 
 indirect enum SheetExpression: Sendable {
   case number(Decimal)
+  case text(String)
   case cell(SheetCell)
   case range(SheetCell, SheetCell)
   case negate(SheetExpression)
@@ -34,7 +35,7 @@ struct SheetFormulaGap: Error {
 }
 
 /// The declared Excel subset: numbers, percent, + - * /, cell and range references with
-/// an optional sheet, and SUM, AVERAGE, MIN, MAX, COUNT, ROUND, IF and PMT. Anything else keeps
+/// an optional sheet, and SUM, SUMIF, SUMIFS, SUMPRODUCT, AVERAGE, MIN, MAX, COUNT, ROUND, IF and PMT. Anything else keeps
 /// its saved value. This is not an Excel engine and makes no claim to match one.
 enum SheetFormula {
   static let aggregates: Set<String> = ["SUM", "AVERAGE", "MIN", "MAX", "COUNT"]
@@ -113,7 +114,8 @@ enum SheetFormula {
     if let plain = try? Numbers.decimal(text) { return plain }
     guard
       text.range(
-        of: "^[+-]?(?:[0-9]+(?:\\.[0-9]*)?|\\.[0-9]+)[eE][+-]?[0-9]+\\z", options: .regularExpression)
+        of: "^[+-]?(?:[0-9]+(?:\\.[0-9]*)?|\\.[0-9]+)[eE][+-]?[0-9]+\\z",
+        options: .regularExpression)
         != nil,
       let number = Decimal(string: text, locale: Locale(identifier: "en_US_POSIX")), !number.isNaN
     else { return nil }
@@ -173,12 +175,14 @@ struct SheetAddress {
     guard x >= 0, x < 500, y >= 1, y <= 1_048_576 else { return "#REF!" }
     let name = XLSX.cellName(column: x, row: y)
     let letters = name.prefix { $0.isLetter }
-    return (absoluteColumn ? "$" : "") + letters + (absoluteRow ? "$" : "") + name.dropFirst(letters.count)
+    return (absoluteColumn ? "$" : "") + letters + (absoluteRow ? "$" : "")
+      + name.dropFirst(letters.count)
   }
 }
 
 enum SheetFormulaToken: Equatable {
   case number(Decimal)
+  case text(String)
   case cell(SheetCellToken)
   case function(String)
   case symbol(String)
@@ -201,7 +205,9 @@ enum SheetFormulaToken: Equatable {
     if absoluteColumn { index += 1 }
     let lettersStart = index
     var column = 0
-    while index < characters.count, let value = characters[index].asciiValue, (65...90).contains(value) {
+    while index < characters.count, let value = characters[index].asciiValue,
+      (65...90).contains(value)
+    {
       column = column * 26 + Int(value) - 64
       index += 1
       if index - lettersStart > 3 { return nil }
@@ -262,7 +268,25 @@ enum SheetFormulaToken: Equatable {
         output.append(.number(number))
         index = end
       } else if character == "\"" {
-        throw SheetFormulaGap(uses: "text values")
+        var value = ""
+        index += 1
+        var closed = false
+        while index < input.count {
+          if input[index] == "\"" {
+            if index + 1 < input.count, input[index + 1] == "\"" {
+              value.append("\"")
+              index += 2
+              continue
+            }
+            index += 1
+            closed = true
+            break
+          }
+          value.append(input[index])
+          index += 1
+        }
+        guard closed else { throw SheetFormulaGap(uses: "an unfinished text value") }
+        output.append(.text(value))
       } else if character == "'" {
         var name = ""
         var end = index + 1
@@ -274,7 +298,9 @@ enum SheetFormulaToken: Equatable {
           name.append(input[end])
           end += 1
         }
-        guard !name.hasPrefix("[") else { throw SheetFormulaGap(uses: "a reference to another file") }
+        guard !name.hasPrefix("[") else {
+          throw SheetFormulaGap(uses: "a reference to another file")
+        }
         guard end + 1 < input.count, input[end + 1] == "!" else {
           throw SheetFormulaGap(uses: "a sheet reference it cannot read")
         }
@@ -291,7 +317,9 @@ enum SheetFormulaToken: Equatable {
         } else if next == "(" {
           // Name an unsupported function before anything inside it.
           let function = name.uppercased().replacingOccurrences(of: "_XLFN.", with: "")
-          guard SheetFormula.aggregates.contains(function) || ["ROUND", "IF", "PMT"].contains(function)
+          guard
+            SheetFormula.aggregates.contains(function)
+              || ["ROUND", "IF", "PMT", "SUMIF", "SUMIFS", "SUMPRODUCT"].contains(function)
           else { throw SheetFormulaGap(uses: function) }
           output.append(.function(function))
           index = end
@@ -328,7 +356,9 @@ enum SheetFormulaToken: Equatable {
       } else {
         throw SheetFormulaGap(uses: "the symbol \(character)")
       }
-      if output.count > 1024 { throw SheetFormulaGap(reason: "The formula is too long to calculate.") }
+      if output.count > 1024 {
+        throw SheetFormulaGap(reason: "The formula is too long to calculate.")
+      }
     }
     return output + [.end]
   }
@@ -346,26 +376,49 @@ struct SheetFormulaParser {
       throw SheetFormulaGap(uses: "syntax it cannot read")
     }
     try check(result)
+    // SUMIF can extend its sum range beyond the explicitly parsed reference.
+    // Count the normalized tree across sibling calls before materializing cells.
+    guard result.referenceCount <= SheetFormula.rangeLimit else {
+      throw SheetFormulaGap(uses: "more than \(SheetFormula.rangeLimit.formatted()) cells")
+    }
     return result
   }
 
-  private func check(_ node: SheetExpression, condition: Bool = false) throws {
+  private func check(
+    _ node: SheetExpression, condition: Bool = false, criterion: Bool = false, array: Bool = false
+  )
+    throws
+  {
     switch node {
     case .number, .cell: break
+    case .text:
+      guard criterion || array else {
+        throw SheetFormulaGap(uses: "text values outside a criterion")
+      }
     case .range(let first, let last):
-      throw SheetFormulaGap(uses: "the range \(first.name):\(last.name) outside a function")
-    case .negate(let inner), .percent(let inner): try check(inner)
+      if !array {
+        throw SheetFormulaGap(uses: "the range \(first.name):\(last.name) outside a function")
+      }
+    case .negate(let inner), .percent(let inner): try check(inner, array: array)
     case .arithmetic(_, let lhs, let rhs):
-      try check(lhs)
-      try check(rhs)
+      try check(lhs, array: array)
+      try check(rhs, array: array)
     case .comparison(_, let lhs, let rhs):
-      guard condition else { throw SheetFormulaGap(uses: "TRUE and FALSE values") }
-      try check(lhs)
-      try check(rhs)
+      guard condition || array else { throw SheetFormulaGap(uses: "TRUE and FALSE values") }
+      try check(lhs, array: array)
+      try check(rhs, array: array)
     case .call(let name, let arguments):
       for (index, argument) in arguments.enumerated() {
         if case .range = argument, SheetFormula.aggregates.contains(name) { continue }
-        try check(argument, condition: name == "IF" && index == 0)
+        if name == "SUMPRODUCT" {
+          try check(argument, array: true)
+        } else if name == "SUMIF" || name == "SUMIFS" {
+          let isCriterion = name == "SUMIF" ? index == 1 : index > 0 && index % 2 == 0
+          if !isCriterion { continue }  // Range arguments were checked and bounded in primary().
+          try check(argument, criterion: true)
+        } else {
+          try check(argument, condition: name == "IF" && index == 0)
+        }
       }
     }
   }
@@ -412,6 +465,7 @@ struct SheetFormulaParser {
     position += 1
     switch token {
     case .number(let number): return .number(number)
+    case .text(let text): return .text(text)
     case .cell(let first):
       let start = SheetCell(sheet: first.sheet, column: first.column, row: first.row)
       guard take([":"]) != nil else { return .cell(start) }
@@ -432,10 +486,23 @@ struct SheetFormulaParser {
       var arguments: [SheetExpression] = []
       repeat { arguments.append(try comparison(depth + 1)) } while take([","]) != nil
       guard take([")"]) != nil else { throw SheetFormulaGap(uses: "syntax it cannot read") }
-      if name == "IF", arguments.count != 3 { throw SheetFormulaGap(uses: "IF without both results") }
-      if name == "ROUND", arguments.count != 2 { throw SheetFormulaGap(uses: "syntax it cannot read") }
+      if name == "IF", arguments.count != 3 {
+        throw SheetFormulaGap(uses: "IF without both results")
+      }
+      if name == "ROUND", arguments.count != 2 {
+        throw SheetFormulaGap(uses: "syntax it cannot read")
+      }
       if name == "PMT", !(3...5).contains(arguments.count) {
         throw SheetFormulaGap(uses: "PMT without three to five arguments")
+      }
+      if name == "SUMPRODUCT", arguments.count > 255 {
+        throw SheetFormulaGap(uses: "SUMPRODUCT with more than 255 arguments")
+      }
+      if name == "SUMIF" || name == "SUMIFS" {
+        arguments = try SheetConditional.arguments(name, arguments)
+        guard arguments.reduce(0, { $0 + $1.referenceCount }) <= SheetFormula.rangeLimit else {
+          throw SheetFormulaGap(uses: "more than \(SheetFormula.rangeLimit.formatted()) cells")
+        }
       }
       return .call(name, arguments)
     case .symbol("("):
@@ -448,12 +515,29 @@ struct SheetFormulaParser {
   }
 }
 
+/// Shared by one recalculation pass, including nested expressions and criteria.
+final class SheetFormulaBudget {
+  private var remaining: Int
+  init(limit: Int = 2_000_000) { remaining = max(0, limit) }
+  func consume(_ units: Int = 1, multiplier: Int = 1) -> Bool {
+    guard units >= 0, multiplier > 0, units <= remaining / multiplier else {
+      remaining = 0
+      return false
+    }
+    remaining -= units * multiplier
+    return true
+  }
+}
+
 extension SheetExpression {
   /// Blank counts as zero in arithmetic. Ranges and cell references passed to an aggregate
   /// skip text and blanks, as Excel does. The first error wins and IF reads one branch.
-  func evaluate(_ read: (SheetCell) throws -> SheetValue) rethrows -> SheetValue {
+  func evaluate(budget: SheetFormulaBudget = .init(), _ read: (SheetCell) throws -> SheetValue)
+    rethrows -> SheetValue
+  {
+    guard budget.consume() else { return .error("#CALC!") }
     func numeric(_ node: SheetExpression) throws -> SheetValue {
-      switch try node.evaluate(read) {
+      switch try node.evaluate(budget: budget, read) {
       case .blank: return .number(0)
       case .text: return .error("#VALUE!")
       case let value: return value
@@ -461,6 +545,7 @@ extension SheetExpression {
     }
     switch self {
     case .number(let number): return .number(number)
+    case .text(let text): return .text(text)
     case .cell(let cell): return try read(cell)
     case .range: return .error("#VALUE!")
     case .negate(let node):
@@ -481,9 +566,9 @@ extension SheetExpression {
       guard let result = try? Numbers.binary(x, y, op: op) else { return .error("#NUM!") }
       return .number(result)
     case .comparison(let op, let lhs, let rhs):
-      let left = try lhs.evaluate(read)
+      let left = try lhs.evaluate(budget: budget, read)
       if case .error = left { return left }
-      let right = try rhs.evaluate(read)
+      let right = try rhs.evaluate(budget: budget, read)
       if case .error = right { return right }
       let order = SheetValue.order(left, right)
       switch op {
@@ -497,7 +582,7 @@ extension SheetExpression {
     case .call("IF", let arguments):
       let test = try numeric(arguments[0])
       guard case .number(let number) = test else { return test }
-      return try (number != 0 ? arguments[1] : arguments[2]).evaluate(read)
+      return try (number != 0 ? arguments[1] : arguments[2]).evaluate(budget: budget, read)
     case .call("ROUND", let arguments):
       let value = try numeric(arguments[0])
       guard case .number(var number) = value else { return value }
@@ -518,6 +603,10 @@ extension SheetExpression {
         values.append(number)
       }
       return SheetFinancial.payment(values)
+    case .call(let name, let arguments) where name == "SUMIF" || name == "SUMIFS":
+      return try SheetConditional.evaluate(name, arguments, budget: budget, read)
+    case .call("SUMPRODUCT", let arguments):
+      return try SheetProduct.evaluate(arguments, budget: budget, read)
     case .call(let name, let arguments):
       var numbers: [Decimal] = []
       for argument in arguments {
@@ -537,6 +626,7 @@ extension SheetExpression {
           }
         }
         for cell in cells {
+          guard budget.consume() else { return .error("#CALC!") }
           switch try read(cell) {
           case .number(let number): numbers.append(number)
           case .error(let code): if name != "COUNT" { return .error(code) }
@@ -551,7 +641,9 @@ extension SheetExpression {
       default:
         var total = Decimal(0)
         for number in numbers {
-          guard let next = try? Numbers.binary(total, number, op: "+") else { return .error("#NUM!") }
+          guard let next = try? Numbers.binary(total, number, op: "+") else {
+            return .error("#NUM!")
+          }
           total = next
         }
         if name == "SUM" { return .number(total) }
@@ -565,9 +657,22 @@ extension SheetExpression {
   }
 
   /// Every cell the formula could read, for dependency order and bounds.
+  var referenceCount: Int {
+    switch self {
+    case .number, .text: return 0
+    case .cell: return 1
+    case .range(let first, let last):
+      return (last.row - first.row + 1) * (last.column - first.column + 1)
+    case .negate(let node), .percent(let node): return node.referenceCount
+    case .arithmetic(_, let lhs, let rhs), .comparison(_, let lhs, let rhs):
+      return lhs.referenceCount + rhs.referenceCount
+    case .call(_, let arguments): return arguments.reduce(0, { $0 + $1.referenceCount })
+    }
+  }
+
   var references: [SheetCell] {
     switch self {
-    case .number: return []
+    case .number, .text: return []
     case .cell(let cell): return [cell]
     case .range(let first, let last):
       var cells: [SheetCell] = []

@@ -8,6 +8,7 @@ updated: 2026-11-15T01:23:50.439338Z
 # sources/notes
 
 - [[sources/notes/2026/11/home-working-overview]] — Carlos requests end-to-end implementation and verification of a useful chat-customizable Home with live mini-app capabilities.
+- [[sources/notes/2026/11/excel-business-applications]] — Carlos requests closing whole Excel application, autonomous reliability, and integrated chat product gaps with fresh local-model tests and adversarial review.
 - [[sources/notes/2026/11/frozen-excel-checkpoint]] — Owner selects continued Excel verification on exact frozen da3c472 checkpoint while another chat changes the shared engine.
 - [[sources/notes/2026/11/chat-primary-operation]] — Owner directs all app operations and mini-app inputs/actions through chat without UI clicks.
 - [[sources/notes/2026/11/fresh-excel-batches]] — Owner requests fresh local-model conversion of all ten workflows, fixing failures and repeating without reused apps or manual repairs.

@@ -196,12 +196,34 @@ func excelPlan(_ business: ExcelBusinessCase) -> Value {
 }
 
 func checkExcelConversions() async throws {
+  try await checkExcelValidationIsolation()
   try checkExcelBuildContext()
   try await checkExcelBehaviorReconstruction()
-  for scope: InferenceToolScope in [.excelPlan, .excelBuild] {
+  for scope: InferenceToolScope in [.excelPlan, .excelCalculation, .excelBuild, .excelInterface] {
     _ = try NativeCitationPolicy.make([], toolScope: scope, thinking: false)
     _ = try NativeCitationPolicy.make([], toolScope: scope, thinking: true)
+    // Checked publication completes a build. A prose-only "building now" reply
+    // must not end its run before any app exists.
+    try expectEqual(scope.allows("finish"), false)
+    let definitions = try NativeTools.serializedDefinitions(toolScope: scope)
+    try expectEqual(
+      try Value.parse(String(decoding: definitions, as: UTF8.self)).array.contains {
+        $0["function"]["name"] == .string("finish")
+      }, false)
   }
+  try expectEqual(InferenceToolScope.all.allows("finish"), true)
+  try expectEqual(InferenceToolScope.excelCalculation.allows("save_native_app"), false)
+  try expectEqual(InferenceToolScope.excelCalculation.allows("compare_excel_behavior"), true)
+  try expectEqual(InferenceToolScope.excelCalculation.allows("tool_result"), true)
+  try expectEqual(InferenceToolScope.excelInterface.allows("save_native_app"), true)
+  // Explicit replacement still goes through the independent comparison tool;
+  // an interface save cannot silently introduce another calculation program.
+  try expectEqual(InferenceToolScope.excelInterface.allows("compare_excel_behavior"), true)
+  let interfaceSave = try NativeTools.referenceDefinitions(toolScope: .excelInterface)
+    .first { $0.name == "save_native_app" }!
+  try expectEqual(
+    interfaceSave.parameters["properties"]["package"]["properties"]["excelBehavior"], .null)
+  try expectEqual(interfaceSave.parameters["required"].array.contains(.string("fixtures")), true)
   let root = FileManager.default.temporaryDirectory.appendingPathComponent(
     "sevra-excel-check-" + identifier())
   try FileManager.default.createDirectory(at: root, withIntermediateDirectories: true)
@@ -291,6 +313,327 @@ func checkExcelConversions() async throws {
       try expectEqual(
         confirmed["checkedCounterexamples"].array[1]["result"]["status"],
         .string("invalid_counterexample"))
+      let hostUndo = try await NativeAppReview.check(
+        request: build.request, requestSourceID: source.id, arguments: checkedArguments,
+        workbook: book, model: ExcelTestModel([], reviews: [review("Undo"), ready]),
+        directory: root, cancellation: .init(), progress: { _ in }, excelConversion: build)
+      try expectEqual(hostUndo["attempts"], .number(2))
+      let hostProbe = hostUndo["checkedCounterexamples"].array[0]["result"]
+      try expectEqual(hostProbe["status"], .string("invalid_counterexample"))
+      try expectEqual(hostProbe["error"].text.contains("outside the generated app"), true)
+      // An adversarial reviewer must be able to challenge an author-selected
+      // fixture that omits the very header which exposes a business-key defect.
+      var lookup = package
+      lookup.source = """
+        const found=Sevra.signal('');
+        Sevra.action('lookup',{title:'Lookup',inputs:{key:{type:'text'}}},async input=>{
+          const rows=await Sevra.data.all('sheet1');
+          if(!rows.some(r=>r.values.c1===input.key))throw Error('Unknown entity');
+          found.value=input.key;
+          return {found:true};
+        });
+        Sevra.mount(Sevra.h(Sevra.Column,{},Sevra.h(Sevra.Table,{table:'sheet1',label:'Records'}),Sevra.h(Sevra.Text,{text:found})));
+        """
+      let fixtureReview: Value = .object([
+        "decision": .string("revise"), "issues": .array([.string("A header is not an entity.")]),
+        "fixtures": .object([
+          "sheet1": .array([
+            .object(["c1": .string(business.headers[0])]),
+            .object(["c1": .string("INVENTED-ENTITY")]),
+          ])
+        ]),
+        "tests": .array([
+          .object([
+            "kind": .string("run_action"), "action": .string("lookup"),
+            "inputs": .object(["key": .string(business.headers[0])]),
+            "error": .string("Unknown entity"),
+          ])
+        ]),
+      ])
+      var lookupArguments: Value = .object([
+        "package": try encoded(lookup), "tests": .array(tests),
+        "fixtures": .object([
+          "sheet1": .array([.object(["c1": .string("INVENTED-ENTITY")])])
+        ]),
+      ])
+      var fixtureFailure = ""
+      do {
+        _ = try await NativeAppReview.check(
+          request: build.request, requestSourceID: source.id, arguments: lookupArguments,
+          workbook: book, model: ExcelTestModel([], reviews: [fixtureReview]),
+          directory: root, cancellation: .init(), progress: { _ in }, excelConversion: build)
+      } catch { fixtureFailure = error.localizedDescription }
+      try expectEqual(fixtureFailure.contains("Observed failure:"), true)
+      try expectEqual(fixtureFailure.contains("Counterexample fixture replacements:"), true)
+      var readinessFields = fixtureReview.object
+      readinessFields["decision"] = .string("ready")
+      readinessFields["issues"] = .array([])
+      readinessFields["inputRoles"] = .object([
+        "lookup": .object([
+          "key": .object([
+            "kind": .string("existingKey"), "table": .string("sheet1"),
+            "column": .string("c1"), "headerRow": .number(1),
+          ])
+        ])
+      ])
+      let refusalOnly = Value.object(readinessFields)
+      readinessFields["tests"] = .array(
+        fixtureReview["tests"].array + [
+          .object([
+            "kind": .string("run_action"), "action": .string("lookup"),
+            "inputs": .object(["key": .string("INVENTED-ENTITY")]),
+          ]),
+          .object(["kind": .string("expect_text"), "value": .string("INVENTED-ENTITY")]),
+        ])
+      let readiness = Value.object(readinessFields)
+      var automaticHeaderReview = readinessFields
+      automaticHeaderReview["tests"] = .array(Array(readiness["tests"].array.dropFirst()))
+      var missedHeader = ""
+      do {
+        _ = try await NativeAppReview.check(
+          request: build.request, requestSourceID: source.id, arguments: lookupArguments,
+          workbook: book, model: ExcelTestModel([], reviews: [.object(automaticHeaderReview)]),
+          directory: root, cancellation: .init(), progress: { _ in }, excelConversion: build,
+          checkedActions: ["lookup"])
+      } catch { missedHeader = error.localizedDescription }
+      try expectEqual(missedHeader.contains("derived input-refusal probe failed"), true)
+      try expectEqual(missedHeader.contains("worksheet header is not a business entity"), true)
+      try checkNativeReviewInputContracts(
+        package: lookup, tables: build.tables,
+        coordinates: book.excelCheckCoordinates(build.conversionID),
+        header: business.headers[0])
+      // A prose readiness verdict cannot bypass the independent action gate.
+      var missingReadiness = ""
+      do {
+        _ = try await NativeAppReview.check(
+          request: build.request, requestSourceID: source.id, arguments: lookupArguments,
+          workbook: book, model: ExcelTestModel([]), directory: root, cancellation: .init(),
+          progress: { _ in }, excelConversion: build, checkedActions: ["lookup"])
+      } catch { missingReadiness = error.localizedDescription }
+      try expectEqual(missingReadiness.contains("Readiness needs"), true)
+      let falseReadiness = ExcelTestModel([], reviews: [readiness, fixtureReview])
+      var failedReadiness = ""
+      do {
+        _ = try await NativeAppReview.check(
+          request: build.request, requestSourceID: source.id, arguments: lookupArguments,
+          workbook: book, model: falseReadiness, directory: root, cancellation: .init(),
+          progress: { _ in }, excelConversion: build, checkedActions: ["lookup"])
+      } catch { failedReadiness = error.localizedDescription }
+      try expectEqual(failedReadiness.contains("A header is not an entity"), true)
+      try expectEqual(await falseReadiness.reviewInputs.count, 2)
+      lookup.source = lookup.source.replacingOccurrences(
+        of: "rows.some",
+        with: "rows.filter(r=>r.values.c1!==\(try Value.string(business.headers[0]).json())).some")
+      var lookupFields = lookupArguments.object
+      lookupFields["package"] = try encoded(lookup)
+      lookupArguments = .object(lookupFields)
+      let correctedLookup = try await NativeAppReview.check(
+        request: build.request, requestSourceID: source.id, arguments: lookupArguments,
+        workbook: book, model: ExcelTestModel([], reviews: [fixtureReview, ready]),
+        directory: root, cancellation: .init(), progress: { _ in }, excelConversion: build)
+      try expectEqual(
+        correctedLookup["checkedCounterexamples"].array[0]["result"]["status"], .string("passed"))
+      let contradictory: Value = .object([
+        "decision": .string("ready"), "issues": .array([.string("A pending concern")]),
+      ])
+      let recoveredVerdict = try await NativeAppReview.check(
+        request: build.request, requestSourceID: source.id, arguments: lookupArguments,
+        workbook: book, model: ExcelTestModel([], reviews: [contradictory, readiness]),
+        directory: root, cancellation: .init(), progress: { _ in }, excelConversion: build,
+        checkedActions: ["lookup"])
+      try expectEqual(recoveredVerdict["attempts"], .number(2))
+      try expectEqual(
+        recoveredVerdict["checkedCounterexamples"].array[0]["result"]["status"],
+        .string("invalid_verdict"))
+      var inconsistent = ""
+      do {
+        _ = try await NativeAppReview.check(
+          request: build.request, requestSourceID: source.id, arguments: lookupArguments,
+          workbook: book,
+          model: ExcelTestModel([], reviews: Array(repeating: contradictory, count: 3)),
+          directory: root, cancellation: .init(), progress: { _ in }, excelConversion: build,
+          checkedActions: ["lookup"])
+      } catch { inconsistent = error.localizedDescription }
+      try expectEqual(inconsistent.contains("within its check budget"), true)
+      var refusalOnlyFailure = ""
+      do {
+        _ = try await NativeAppReview.check(
+          request: build.request, requestSourceID: source.id, arguments: lookupArguments,
+          workbook: book,
+          model: ExcelTestModel([], reviews: [refusalOnly, refusalOnly, refusalOnly]),
+          directory: root, cancellation: .init(), progress: { _ in }, excelConversion: build,
+          checkedActions: ["lookup"])
+      } catch { refusalOnlyFailure = error.localizedDescription }
+      try expectEqual(refusalOnlyFailure.contains("Rejection-only probes"), true)
+      let verifiedLookup = try await NativeAppReview.check(
+        request: build.request, requestSourceID: source.id, arguments: lookupArguments,
+        workbook: book, model: ExcelTestModel([], reviews: [readiness]),
+        directory: root, cancellation: .init(), progress: { _ in }, excelConversion: build,
+        checkedActions: ["lookup"])
+      try expectEqual(
+        verifiedLookup["independentActionCheck"]["actions"], .array([.string("lookup")]))
+      try expectEqual(
+        verifiedLookup["independentActionCheck"]["checks"].array[0]["check"]["assertions"],
+        .number(2))
+      let autoKeys = verifiedLookup["independentActionCheck"]["checks"].array[0]["inputChecks"]
+        .array
+      try expectEqual(autoKeys.count, 1)
+      try expectEqual(autoKeys[0]["input"], .string("key"))
+      try expectEqual(autoKeys[0]["check"]["status"], .string("passed"))
+      // Regression: rejection probes all passed while a successful outbound
+      // operation stored the positive entered amount. Its author even tested
+      // that wrong sign. The independent successful-value check must stop it.
+      var outbound = lookup
+      outbound.source = """
+        Sevra.action('outbound',{title:'Outbound',inputs:{amount:{type:'decimal'}}},async input=>{
+          if(Number(input.amount)<=0)throw Error('Positive amount required');
+          const rows=await Sevra.data.all('sheet1');
+          const row=rows.find(r=>r.values.c1==='INVENTED-ENTITY');
+          await Sevra.data.transaction([{op:'update',table:'sheet1',id:row.id,values:{c2:input.amount}}]);
+        });
+        Sevra.mount(Sevra.h(Sevra.Table,{table:'sheet1',label:'Records'}));
+        """
+      let outboundCall: Value = .object([
+        "kind": .string("run_action"), "action": .string("outbound"),
+        "inputs": .object(["amount": .string("3")]),
+      ])
+      let outboundTests: [Value] = [
+        outboundCall,
+        .object([
+          "kind": .string("expect_row"), "table": .string("sheet1"),
+          "values": .object(["c1": .string("INVENTED-ENTITY"), "c2": .string("-3")]),
+        ]),
+      ]
+      var outboundReview: [String: Value] = [
+        "decision": .string("ready"), "issues": .array([]), "tests": .array(outboundTests),
+        "fixtures": fixtureReview["fixtures"],
+        "inputRoles": .object([
+          "outbound": .object([
+            "amount": .object([
+              "kind": .string("number"), "minimum": .number(0), "maximum": .null,
+              "whole": .bool(false), "nonzero": .bool(true),
+            ])
+          ])
+        ]
+        ),
+      ]
+      let outboundReady = Value.object(outboundReview)
+      outboundReview["decision"] = .string("revise")
+      outboundReview["issues"] = .array([.string("Outbound movement has the wrong stored sign.")])
+      var outboundArgs = lookupArguments.object
+      outboundArgs["package"] = try encoded(outbound)
+      outboundArgs["tests"] = .array([
+        outboundCall,
+        .object([
+          "kind": .string("expect_row"), "table": .string("sheet1"),
+          "values": .object(["c1": .string("INVENTED-ENTITY"), "c2": .string("3")]),
+        ]),
+      ])
+      let outboundModel = ExcelTestModel([], reviews: [outboundReady, .object(outboundReview)])
+      var wrongSignFailure = ""
+      do {
+        _ = try await NativeAppReview.check(
+          request: build.request, requestSourceID: source.id, arguments: .object(outboundArgs),
+          workbook: book, model: outboundModel, directory: root, cancellation: .init(),
+          progress: { _ in }, excelConversion: build, checkedActions: ["outbound"])
+      } catch { wrongSignFailure = error.localizedDescription }
+      try expectEqual(wrongSignFailure.contains("wrong stored sign"), true)
+      try expectEqual(await outboundModel.reviewInputs.first?["tests"], .null)
+      try expectEqual(await outboundModel.reviewInputs.first?["proposedPackage"]["source"], .null)
+      try expectEqual(await outboundModel.reviewInputs.first?["existingPackage"]["source"], .null)
+      try expectEqual(
+        await outboundModel.reviewInputs.first?["calculationEvidence"]["formulas"],
+        (try Value.parse(build.context))["calculationEvidence"]["formulas"])
+      // An existing matching row must not prove that a no-op saved anything.
+      // This candidate validates inputs correctly, so refusal probes alone pass.
+      var noWrite = outbound
+      noWrite.source = """
+        Sevra.action('outbound',{title:'Outbound',inputs:{amount:{type:'decimal'}}},async input=>{
+          if(Number(input.amount)<=0)throw Error('Positive amount required');
+        });
+        Sevra.mount(Sevra.h(Sevra.Table,{table:'sheet1',label:'Records'}));
+        """
+      var noWriteArgs = outboundArgs
+      noWriteArgs["package"] = try encoded(noWrite)
+      var noWriteReview = outboundReady.object
+      var matchingFixtures = fixtureReview["fixtures"].object
+      matchingFixtures["sheet1"] = .array(
+        matchingFixtures["sheet1"]!.array.map { row in
+          guard row["c1"] == .string("INVENTED-ENTITY") else { return row }
+          var values = row.object
+          values["c2"] = .string("-3")
+          return .object(values)
+        })
+      noWriteReview["fixtures"] = .object(matchingFixtures)
+      var noWriteFailure = ""
+      do {
+        _ = try await NativeAppReview.check(
+          request: build.request, requestSourceID: source.id, arguments: .object(noWriteArgs),
+          workbook: book,
+          model: ExcelTestModel([], reviews: Array(repeating: .object(noWriteReview), count: 3)),
+          directory: root, cancellation: .init(), progress: { _ in }, excelConversion: build,
+          checkedActions: ["outbound"])
+      } catch { noWriteFailure = error.localizedDescription }
+      try expectEqual(noWriteFailure.contains("did not commit a write"), true)
+      outbound.source = outbound.source.replacingOccurrences(
+        of: "c2:input.amount", with: "c2:String(-Number(input.amount))")
+      outboundArgs["package"] = try encoded(outbound)
+      let checkedOutbound = try await NativeAppReview.check(
+        request: build.request, requestSourceID: source.id, arguments: .object(outboundArgs),
+        workbook: book, model: ExcelTestModel([], reviews: [outboundReady]),
+        directory: root, cancellation: .init(), progress: { _ in }, excelConversion: build,
+        checkedActions: ["outbound"])
+      try expectEqual(
+        checkedOutbound["independentActionCheck"]["actions"], .array([.string("outbound")]))
+      try expectEqual(checkedOutbound["method"], .string("contract-probes"))
+      try await checkNativeReviewNumbers(
+        package: lookup, workbook: book, build: build,
+        requestSourceID: source.id, directory: root)
+      try expectEqual(
+        NativeAppReview.assertedSuccessfulActions([
+          outboundCall,
+          .object(["kind": .string("expect_rows"), "table": .string("sheet1"), "count": .number(2)]
+          ),
+        ]).isEmpty, true)
+      var many = lookup
+      many.source =
+        "const result=Sevra.signal('');"
+        + (0..<9).map { index in
+          "Sevra.action('check\(index)',{title:'Check \(index)',inputs:{key:{type:'text'}}},input=>{result.value=input.key;});"
+        }.joined() + "Sevra.mount(Sevra.h(Sevra.Text,{text:result}));"
+      var manyArgs = lookupArguments.object
+      manyArgs["package"] = try encoded(many)
+      func batch(_ indices: Range<Int>) -> Value {
+        .object([
+          "decision": .string("ready"), "issues": .array([]),
+          "inputRoles": .object(
+            Dictionary(
+              uniqueKeysWithValues: indices.map {
+                ("check\($0)", .object(["key": .object(["kind": .string("value")])]))
+              })),
+          "tests": .array(
+            indices.flatMap { index in
+              [
+                .object([
+                  "kind": .string("run_action"), "action": .string("check\(index)"),
+                  "inputs": .object(["key": .string("RESULT-\(index)")]),
+                ]),
+                .object(["kind": .string("expect_text"), "value": .string("RESULT-\(index)")]),
+              ]
+            }),
+        ])
+      }
+      let manyReport = try await NativeAppReview.check(
+        request: build.request, requestSourceID: source.id, arguments: .object(manyArgs),
+        workbook: book,
+        model: ExcelTestModel(
+          [], reviews: [batch(0..<4), batch(0..<4), batch(4..<8), batch(8..<9)]),
+        directory: root, cancellation: .init(), progress: { _ in }, excelConversion: build,
+        checkedActions: (0..<9).map { "check\($0)" })
+      try expectEqual(manyReport["attempts"], .number(4))
+      try expectEqual(manyReport["independentActionCheck"]["actions"].array.count, 9)
+      try expectEqual(manyReport["independentActionCheck"]["checks"].array.count, 3)
+      try expectEqual(try book.tablePage(tableID).values, before.values)
       var reproduced = ""
       do {
         _ = try await NativeAppReview.check(
@@ -363,6 +706,22 @@ func checkExcelConversions() async throws {
     try expectThrows(
       try NativeAppAuthoring.arguments(.object(["package": try encoded(forbidden)]), tools: scoped))
     if business.name == "Inventory" {
+      let request = try book.addMessage("Read this conversion's SDK", role: "user")
+      let run = try book.startAgentRun(
+        conversation: "main", model: "fixture", requestMessageID: request)
+      let scopedRun = WorkbookTools(book, runID: run, excelConversion: fresh)
+      let receipt = try book.prepareToolCall(
+        runID: run, callID: "guide", tool: "native_app_sdk", arguments: .object([:]))
+      _ = try book.completeToolCall(
+        receipt, result: scopedRun.execute("native_app_sdk", .object([:])))
+      let page = try scopedRun.execute(
+        "tool_result",
+        .object([
+          "id": .string(receipt), "path": .array([.string("guide")]),
+        ]))
+      try expectEqual(page["textSegment"].text.isEmpty, false)
+      // Another build cannot use paged receipts to escape its imported-table scope.
+      try expectThrows(try scoped.execute("tool_result", .object(["id": .string(receipt)])))
       let hidden = NativeAppPackage(
         name: "Hidden worksheet",
         source:
@@ -443,13 +802,20 @@ func checkExcelConversions() async throws {
     ("inspect_excel_evidence", .object([:])),
     ("inspect_excel_evidence", .object(["part": .string(part), "offset": .number(-1)])),
     ("inspect_excel_evidence", .object(["part": .string(part)])),
-    ("inspect_excel_rows", .object(["sheet": .number(99), "offset": .number(0), "limit": .number(1)])),
-    ("inspect_excel_rows", .object(["sheet": .number(1), "offset": .number(0), "limit": .number(1)])),
+    (
+      "inspect_excel_rows",
+      .object(["sheet": .number(99), "offset": .number(0), "limit": .number(1)])
+    ),
+    (
+      "inspect_excel_rows",
+      .object(["sheet": .number(1), "offset": .number(0), "limit": .number(1)])
+    ),
     ("describe_excel_workflow", excelPlan(excelBusinessCases[0])),
   ])
   let planningRevision = try book.revision()
   let recoveredPlan = try await ExcelConversionAgent.analyze(
-    data, workbook: book, model: recovery, directory: root, cancellation: .init(), progress: { _ in })
+    data, workbook: book, model: recovery, directory: root, cancellation: .init(),
+    progress: { _ in })
   try expectEqual(recoveredPlan, excelPlan(excelBusinessCases[0]))
   let recoveryResults = await recovery.toolResults
   try expectEqual(recoveryResults[0]["code"], .string("excel_evidence"))
@@ -458,11 +824,14 @@ func checkExcelConversions() async throws {
   try expectEqual(recoveryResults[3]["id"], .string(part))
   try expectEqual(recoveryResults[4]["code"], .string("excel_range"))
   try expectEqual(try book.revision(), planningRevision)
-  let repeated = ExcelTestModel(Array(repeating:
-    ("inspect_excel_evidence", .object(["part": .string("invented-module")])), count: 12))
+  let repeated = ExcelTestModel(
+    Array(
+      repeating: ("inspect_excel_evidence", .object(["part": .string("invented-module")])),
+      count: 12))
   do {
     _ = try await ExcelConversionAgent.analyze(
-      data, workbook: book, model: repeated, directory: root, cancellation: .init(), progress: { _ in })
+      data, workbook: book, model: repeated, directory: root, cancellation: .init(),
+      progress: { _ in })
     throw SevraError("test", "Repeated invalid reads exceeded planning bounds.")
   } catch let error as SevraError { try expectEqual(error.code, "excel_plan") }
   try expectEqual(await repeated.scopes.count, 12)

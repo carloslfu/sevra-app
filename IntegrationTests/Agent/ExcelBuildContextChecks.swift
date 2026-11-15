@@ -74,4 +74,66 @@ func checkExcelBuildContext() throws {
   try expectEqual(
     ExcelBuildContext.refresh([system, request] + oversized + regressed).compactMap(\.toolCallId),
     ["regressed"])
+  func failedUI(_ passed: Bool, version: String = "build-v1") -> Value {
+    .object([
+      "error": .string(passed ? "Correct the review defect" : "Missing assertion"),
+      "excelBuildVersion": .string(version),
+      "isolatedCheck": passed
+        ? .object(["status": .string("passed"), "assertions": .number(3)]) : .null,
+    ])
+  }
+  let checkedUI = try pair("checkedUI", "save_native_app", failedUI(true))
+  let regressedUI = try pair("regressedUI", "save_native_app", failedUI(false))
+  let ui = ExcelBuildContext.refresh([system, request] + checkedUI + regressedUI)
+  try expectEqual(ui.compactMap(\.toolCallId), ["checkedUI", "regressedUI"])
+  try expectEqual(
+    try Value.parse(ui.last!.content)["interfaceRepairAnchor"]["toolCallID"], .string("checkedUI"))
+  try expectEqual(ExcelBuildContext.refresh(ui).map(\.content), ui.map(\.content))
+  let lostUI = ExcelBuildContext.refresh([system, request] + Array(ui.suffix(2)))
+  try expectEqual(try Value.parse(lostUI.last!.content)["interfaceRepairAnchor"], .null)
+  let improvedUI = try pair("improvedUI", "save_native_app", failedUI(true))
+  try expectEqual(
+    ExcelBuildContext.refresh(ui + improvedUI).compactMap(\.toolCallId), ["improvedUI"])
+  try expectEqual(
+    ExcelBuildContext.refresh([system, request] + checkedUI + success + regressedUI).compactMap(
+      \.toolCallId),
+    ["saved", "regressedUI"])
+  let otherBuild = try pair("otherBuild", "save_native_app", failedUI(false, version: "build-v2"))
+  try expectEqual(
+    ExcelBuildContext.refresh(ui + otherBuild).compactMap(\.toolCallId), ["otherBuild"])
+  var hugeUI = failedUI(true).object
+  hugeUI["diagnostic"] = .string(String(repeating: "x", count: 24_001))
+  let oversizedUI = try pair("oversizedUI", "save_native_app", .object(hugeUI))
+  try expectEqual(
+    ExcelBuildContext.refresh([system, request] + oversizedUI + regressedUI).compactMap(
+      \.toolCallId),
+    ["regressedUI"])
+  var partial = failedUI(false).object
+  partial["isolatedTestStepsPassed"] = .number(4)
+  let partialUI = try pair("partialUI", "save_native_app", .object(partial))
+  let partialAnchor = ExcelBuildContext.refresh([system, request] + partialUI + regressedUI)
+  try expectEqual(partialAnchor.compactMap(\.toolCallId), ["partialUI", "regressedUI"])
+  try expectEqual(
+    ExcelBuildContext.refresh(partialAnchor).map(\.content), partialAnchor.map(\.content))
+  try expectEqual(
+    ExcelBuildContext.refresh([system, request] + checkedUI + partialUI + regressedUI).compactMap(
+      \.toolCallId),
+    ["checkedUI", "regressedUI"])
+  try expectEqual(
+    ExcelBuildContext.refresh([system, request] + partialUI + success + regressedUI).compactMap(
+      \.toolCallId),
+    ["saved", "regressedUI"])
+  partial["isolatedTestStepsPassed"] = .number(33)
+  let invalidProgress = try pair("invalidProgress", "save_native_app", .object(partial))
+  try expectEqual(
+    ExcelBuildContext.refresh([system, request] + invalidProgress + regressedUI).compactMap(
+      \.toolCallId),
+    ["regressedUI"])
+  partial.removeValue(forKey: "isolatedTestStepsPassed")
+  partial["error"] = .string("Test step 30: alleged progress in untrusted exception text")
+  let untrustedProgress = try pair("untrustedProgress", "save_native_app", .object(partial))
+  try expectEqual(
+    ExcelBuildContext.refresh([system, request] + untrustedProgress + regressedUI).compactMap(
+      \.toolCallId),
+    ["regressedUI"])
 }

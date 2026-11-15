@@ -2,7 +2,7 @@
 type: spec
 id: 01m7bd3448sec8weav20n1fyht
 created: 2026-11-13T21:30:20.679849+00:00
-updated: 2026-11-14T20:42:57.554267+00:00
+updated: 2026-11-15T12:52:13.872087+00:00
 summary: Constrained Excel application reconstruction with original-result comparison; ten automatic workflows qualified against 89 independent originals within explicit limits.
 title: Excel application reconstruction
 status: implemented
@@ -29,7 +29,7 @@ For `recalculate`, return every declared output as a string. Outputs must be **e
 
 An action declares an ID, human title, exact non-formula write set and named arguments. It receives freshly computed starting outputs. It returns only changes within that write set, then the host recalculates derived cells. The native UI calls `data.transaction([{op:'excel_action',action:'ship',arguments:{quantity:'2'}}])`. Table/version permissions, current revision, rollback, command identity and Undo apply. Cross-sheet input changes commit together before one recalculation. Undo and redo restore inputs and recalculate under the same rule, with final immutable row identities.
 
-Publication repeats original comparison and atomically saves the app, comparison report and formula-plan attachment. It may recalculate exactly the original formula cells from current working inputs; it does not reset inputs to original values. That bounded calculation authorization is recorded by authoring policy v2. Interactive app writes/actions still need exact-version native access approval. Row identities must match the original imported positions, preventing attachment to inserted/replaced rows. Pure program packages cannot bypass original comparison through ordinary standalone app import; use the Excel flow or carry an already checked workbook in a portable copy.
+Publication repeats original comparison and atomically saves the app, comparison report and formula-plan attachment. It may recalculate exactly the original formula cells from current working inputs; it does not reset inputs to original values. That bounded calculation authorization is recorded by authoring policy v2. Interactive app writes/actions still need exact-version native access approval. Original row identities must still match their imported positions. Host-mapped appended input rows are excluded from that original-identity comparison and retain their stable coordinates across publication; replacing or removing original rows still refuses attachment. Pure program packages cannot bypass original comparison through ordinary standalone app import; use the Excel flow or carry an already checked workbook in a portable copy.
 
 ## Isolation and limits
 
@@ -47,9 +47,9 @@ The local `sandbox_init` entry point is deprecated in the macOS SDK. Local denia
 
 The host reads immutable original bytes and derives expected results itself. It compares the baseline and user-selected result files, records their source hashes, conversion version and program digest, and refuses mismatches before publication. Formula outputs with no saved result remain unverified. Numeric comparison accepts only canonical numeric strings with a relative tolerance of 5e-14; leading-zero text remains exact. The host reports actions without original examples, missing evidence, model-declared gaps and behavior outside cell comparisons.
 
-An original-result match covers those finite examples. It cannot prove all branches or detect every model misunderstanding or deliberately overfit program. Synthetic native tests prove the tested controls/transactions, not original spreadsheet equivalence. Separate model review checks the requested workflow and code, but is also fallible. These evidence classes remain distinct in the saved report and customer copy.
+An original-result match covers those finite examples. It cannot prove all branches or detect every model misunderstanding or deliberately overfit program. Synthetic native tests prove the tested controls/transactions, not original spreadsheet equivalence. Separate model review checks the requested workflow through independent behavior probes, but is also fallible. These evidence classes remain distinct in the saved report and customer copy.
 
-No automatic row-insertion formula extension is implemented. Original VBA and connections never execute, and credentials or service integrations are never inferred. Binary `.xls`/`.xlsb`, encrypted originals, unavailable dependencies, exact Excel rendering and every possible Excel semantic are not qualified. Such gaps must remain visible; preserving a file is not the same as reconstructing all of it.
+Input ledgers without formulas now append stable Excel coordinates inside the same transaction and recalculate dependent native or translated outputs. Undo leaves a coordinate tombstone, so a later insertion cannot shift old references. Translations must read current input cells within the original formula ranges. Sheets containing formulas still refuse ambiguous row insertion; automatic copying or inference of new formula rows is not implemented. Original VBA and connections never execute, and credentials or service integrations are never inferred. Binary `.xls`/`.xlsb`, encrypted originals, unavailable dependencies, exact Excel rendering and every possible Excel semantic are not qualified. Such gaps must remain visible; preserving a file is not the same as reconstructing all of it.
 
 ## Developer references
 
@@ -58,3 +58,51 @@ The parser follows Microsoft's [MS-OVBA compression](https://learn.microsoft.com
 ## Qualification checkpoint, November 14
 
 Automatic conversion is qualified for ten finite business workflows under [[records/plans/automatic-excel-reliability]]. Ten unchanged local-model-generated candidates from successive runs pass 89 independently recalculated originals (84 comparison cases and five held-out states), 302 independent UI steps, 79 saved-edit/reopen/Undo cases and ten portable copies on the final code. Loan and Commission use native formula evaluation; Inventory uses a constrained translated business action. No generated source is manually repaired. Native UI checks include spacing, compact layouts, initial/input guards, invalid values, repeated edits and Undo. The [acceptance receipt](../../../integration/evidence/2026-11-14-automatic-excel-reliability.json) records exact-code hosted checks, package identity and retained failures. Finite examples cannot prove every business rule or first-attempt generation reliability; generation can still fail or take minutes. Original action-execution equivalence remains unverified. Earlier reviewed derivatives are historical and are not counted as automatic generation.
+
+## Business-app integration work
+
+[[records/plans/excel-business-applications]] owns the current six-application cohort and its qualification. The build separates missing-calculation translation from interface/action authoring, retains only a matched draft, and repeats original comparison before publication. Native SUMIF/SUMIFS and SUMPRODUCT join the bounded declared formula subset. Conditional sums preserve typed criteria and wildcard matching; SUMPRODUCT supports bounded arithmetic/comparison arrays with shape validation and explicit logical coercion. A deterministic shared work budget bounds the complete recalculation pass, including numeric-text and comparison work. This does not remove original-result comparison or establish all Excel criteria/locale equivalence.
+
+Disposable app checks receive the original formula definitions and worksheet names over invented input rows, never original business values or row identities. Both native and translated calculations run after synthetic actions. The conversion grammar requires a fixtures object. The separate reviewer examines ordinary named record actions as well as UI calls to translated fixed-cell operations; calculation comparison alone does not verify validation, duplicates, stock limits or input conventions.
+
+
+Independent Excel named-action review withholds the candidate implementation and the builder's tests so they cannot become
+expected-value authority. To accept a named action it must execute a successful call
+followed immediately by a saved-value assertion, or a value/text assertion for a read-only
+result. Rejection-only probes, total row counts and control presence do not satisfy that
+successful-effect coverage. The reviewer also probes requested business boundaries,
+including actual worksheet headers used as entity keys. Probes use separate invented
+fixtures, 1..16 steps and up to four new actions per batch, with a bounded review budget.
+Every probe executes against the proposed package before acceptance. Expectations and
+business interpretation remain model judgments; the independent business harness and
+spreadsheet oracle are separate qualification. Current broader acceptance is pending in
+[[records/plans/excel-business-applications]].
+
+Each ready action batch also classifies every supplied input in `inputRoles`: a new/entered
+value, or an existing key with its worksheet alias, column and original header row. The
+host validates that mapping and reads the exact header cell from the verified retained
+original, independent of the bounded model excerpt. Sparse row coordinates and skipped
+empty sheets retain their original mapping; formula outputs cannot be lookup headers,
+and headers over 4 KiB refuse without truncation. String-key probes substitute
+that header into the successful call, replay only the prior setup in a fresh disposable
+workbook, and require rejection without writes. The successful call itself is not replayed
+first, because duplicate-reference checks could mask the invalid key. Fixture headers
+must be unique at their original positions. Successful numeric/boolean input contracts
+already prevent text headers reaching their handlers. Receipts retain classifications,
+original cells/headers, exact probes and package digests. The bounded reviewer can correct
+an inconsistent verdict without resubmitting the candidate source; exhausted review
+still refuses publication. Classification remains a model judgment, not universal proof.
+
+Actual number/decimal inputs must instead declare requested whole-number, inclusive
+minimum/maximum and nonzero rules. The host derives typed counterexamples from an
+independently successful call. Whole-number and boundary variants avoid violating other
+applicable rules; narrow ranges use an in-range fractional midpoint. Values that cannot
+be represented within the checked numeric type refuse rather than silently losing a
+probe. Each header or numeric variant receives its own worker and only the exact setup
+preceding the successful call. Refusal must commit no writes. Separate workers also
+prevent a rejection's transient closure state from masking another invalid input.
+Receipts retain individual rule/value/tests/check digests. These checks validate declared
+rules; the model can still misunderstand which rules the business actually requires.
+
+
+For named-action review, the host provides the executed action input contracts, initial native control identities/labels (without value/text properties), original cells/formulas and available original logic. The reviewer derives expected effects before running the candidate. A saved-row assertion must follow a successful named action with a host-observed committed write; matching a pre-existing row after a no-op does not establish a saved effect. Read-only actions may use value/text assertions. Receipts distinguish contract probes from source review and retain committed-write counts by test-step index. These checks do not establish universal equivalence or replace independent business journeys.

@@ -101,6 +101,9 @@ for tool in tools:
             step = example(step_schema)
             composed = dict(values, tests=[step])
             outputs.append((name + '_' + step['kind'], xml(name, composed), composed))
+            if step['kind'] == 'run_action':
+                rejection = dict(values, tests=[dict(step, reject=True)])
+                outputs.append((name + '_run_action_reject', xml(name, rejection), rejection))
     if name == 'find_definitions':
         interpretations = {'query': '', 'kind': 'interpretation'}
         outputs.append(('find_definitions_interpretation', xml(name, interpretations), interpretations))

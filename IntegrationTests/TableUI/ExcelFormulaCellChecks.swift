@@ -32,7 +32,8 @@ import AppKit
   grid.dataSource = coordinator
   view.update(grid, coordinator: coordinator)
   func cell(_ column: Int) -> NSTextField {
-    coordinator.tableView(grid, viewFor: grid.tableColumns[column], row: 0) as! NSTextField
+    (coordinator.tableView(grid, viewFor: grid.tableColumns[column], row: 0) as! NSTableCellView)
+      .textField!
   }
   try expect(cell(0).isEditable && cell(0).toolTip == nil, "An input cell changed.")
   try expect(
@@ -64,7 +65,8 @@ import AppKit
     with: .leftMouseDown, location: clicked.convert(target, to: nil), modifierFlags: [],
     timestamp: 0, windowNumber: 0, context: nil, eventNumber: 0, clickCount: 1, pressure: 1)!
   _ = clicked.validateProposedFirstResponder(
-    selection.tableView(clicked, viewFor: clicked.tableColumns[2], row: 0) as! NSTextField,
+    (selection.tableView(clicked, viewFor: clicked.tableColumns[2], row: 0) as! NSTableCellView)
+      .textField!,
     for: click)
   try expect(selected.last == 2, "A click on a read-only cell left another column selected.")
 }

@@ -502,7 +502,8 @@ private final class NativeWorker: @unchecked Sendable {
     let excelReview = toolScope == .nativeAppReview && messages.first?.nativeAppAuthoring == true
     // Translation must reason through formulas and failing original scenarios before
     // emitting code. The ordinary 512-token budget repeatedly cut those repairs short.
-    let excelReasoning = toolScope == .excelBuild || excelReview
+    let excelReasoning =
+      [.excelBuild, .excelCalculation, .excelInterface].contains(toolScope) || excelReview
     let reasoning =
       excelReasoning && configuration.reasoning.enabled
       ? NativeReasoning.bounded2048 : configuration.reasoning

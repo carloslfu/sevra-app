@@ -39,7 +39,26 @@ func checkToolReceipts(at root: URL) {
       try expect(next > offset)
       offset = next
     }
-    try expect(rebuilt == text)
+    try expect(rebuilt == text, "Unicode pages must reconstruct the exact string")
+    // A documentation read should not exhaust an agent's step budget before it
+    // can act. Escaped/Unicode evidence above still obeys the same byte ceiling.
+    let reference = String(repeating: "Readable SDK reference. ", count: 1000)
+    let referenceID = try book.prepareToolCall(
+      runID: run, callID: "reference", tool: "native_app_sdk", arguments: .object([:]))
+    _ = try book.completeToolCall(referenceID, result: .object(["guide": .string(reference)]))
+    var referenceText = ""
+    var referenceOffset = 0
+    var pages = 0
+    while true {
+      let page = try book.toolResultPage(referenceID, path: ["guide"], offset: referenceOffset)
+      try expect(try page.json().utf8.count <= ToolResultProjection.byteLimit)
+      referenceText += page["textSegment"].text
+      pages += 1
+      guard let next = page["nextOffset"].int else { break }
+      referenceOffset = next
+    }
+    try expect(referenceText == reference, "Reference pages must preserve every scalar")
+    try expect(pages <= 4, "Expected at most four reference pages, received \(pages)")
     let cell = try book.toolResultPage(id, path: ["data", "299", "decimal"])
     try expect(cell["value"] == .string("0.10"))
     try refuses("result_path") { _ = try book.toolResultPage(id, path: ["data", "-1"]) }
@@ -52,7 +71,8 @@ func checkToolReceipts(at root: URL) {
     let saved = try book.historyMessage(book.toolCall(id)["message_id"].text)
     try expect(saved.body.utf8.count <= 128_000 && saved.body.contains(id))
     try expect(try book.unresolvedToolCalls().isEmpty)
-    try expect(try book.verify()["ok"] == .bool(true))
+    let verification = try book.verify()
+    try expect(verification["ok"] == .bool(true), "Receipt integrity: \(verification)")
     _ = try book.saveContextCheckpoint(
       book.historySlice(), summary: "Read-only result is saved.", model: "fixture", template: "v1",
       runID: run)

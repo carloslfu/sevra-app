@@ -26,7 +26,7 @@ private actor ConversationWorker {
         const receipt=await S.data.transaction([{op:'insert',table:'stock',values:args}]);
         status.value='Saved '+args.name;return {saved:args.name,receipt:receipt.token};
       });
-      S.action('partial',{title:'Save and wait',inputs:{}},async()=>{await add({name:'Committed before stop',quantity:'1'});await new Promise(()=>{});});
+      S.action('partial',{title:'Save and wait',inputs:{}},async()=>{await S.data.transaction([{op:'insert',table:'stock',values:{name:'Committed before stop',quantity:'1'}}]);await new Promise(()=>{});});
       S.mount(S.h(S.Column,{},S.h(S.TextField,{label:'Name',value:name}),S.h(S.Button,{title:'Add one',onClick:async()=>add({name:name.value,quantity:'1'})}),S.h(S.Text,{text:status}),S.h(S.Table,{table:'stock',label:'Stock',onSelect:e=>name.value=e.value.values.name}),S.h(S.Canvas,{label:'Board',width:300,height:200,regions:[{id:'card',label:'Card',x:0,y:0,width:100,height:50}],onDrop:e=>status.value='Moved '+e.value+' by '+e.x+','+e.y})));
       """,
     datasets: [

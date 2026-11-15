@@ -81,7 +81,10 @@ public enum ToolResultProjection {
     if page["type"].text == "array" { return .array(entries.map { $0["value"] }) }
     return .null
   }
-  static func page(_ value: Value, receiptID: String, hash: String, path: [String], offset: Int)
+  static func page(
+    _ value: Value, receiptID: String, hash: String, path: [String], offset: Int,
+    denseText: Bool = false
+  )
     throws -> Value
   {
     try require(offset >= 0, "result_offset", "Result offset must be nonnegative.")
@@ -165,7 +168,14 @@ public enum ToolResultProjection {
       case .string(let text):
         let scalars = text.unicodeScalars
         try require(offset <= scalars.count, "result_offset", "Result offset exceeds text length.")
-        let part = String(String.UnicodeScalarView(scalars.dropFirst(offset).prefix(1000)))
+        // Explicit navigation uses the existing byte budget efficiently. Keep the
+        // initial receipt projection stable, because integrity checks reproduce it.
+        var count = denseText ? 7900 : 1000
+        var part = String(String.UnicodeScalarView(scalars.dropFirst(offset).prefix(count)))
+        while try denseText && Value.string(part).json().utf8.count > 8000 {
+          count /= 2
+          part = String(String.UnicodeScalarView(scalars.dropFirst(offset).prefix(count)))
+        }
         let next = offset + part.unicodeScalars.count
         result["type"] = .string("string")
         result["textSegment"] = .string(part)
@@ -354,7 +364,7 @@ extension Workbook {
       try cancellation.check()
       return try ToolResultProjection.page(
         rawJSON ? .string(json) : Value.parse(json), receiptID: id,
-        hash: row["result_hash"]!.text, path: path, offset: offset)
+        hash: row["result_hash"]!.text, path: path, offset: offset, denseText: true)
     }
   }
 }
