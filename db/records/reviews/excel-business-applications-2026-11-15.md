@@ -2,7 +2,7 @@
 type: review
 id: 01m7fb55rgf0b9rfxcfp0683tx
 created: 2026-11-15T10:13:28.464388+00:00
-updated: 2026-11-15T19:05:53.805659+00:00
+updated: 2026-11-15T20:32:48.817525+00:00
 summary: Shared formula, review, numeric validation, repair and authority fixes pass scoped checks; final fresh cohorts and native visual qualification remain pending.
 title: Excel business application adversarial review
 ---
@@ -351,3 +351,27 @@ The owner explicitly authorized coordination with the inference-engine audit cha
 The complete corrected `scripts/check.sh` run passes: 660 core checks, 27 SDK groups, 18 signed native groups, signed authoring/Excel checks, 86 actual-tool grammars with 817 exact reference masks, workflow/durability/concurrency/recovery checks, current native packaging, ten missing-resource and altered-resource refusals, strict signatures, isolated native install/update/uninstall, both extraction helpers and repository/store validation. The preserved baseline package is intentionally stale and skipped; the current native package checks ran and passed. The installed native product and its identity remain unchanged by the grammar-fixture-only correction.
 
 Cohort 18 starts from absent output directories with all six cases in the declared order, no replay environment, unchanged candidate-139 production code and the regenerated reference fixture. The independent inference audit is respecting the reserved runtime/model window. Documentation-only rich-visual-plan changes were committed separately and are outside the acceptance source hash. Zero final cohorts are accepted until the full runs and independent oracles pass.
+
+### Cohort 18 interruption and unchanged restart
+
+Fresh Stock and Production pass on candidate 139. Stock generated in 988.5 seconds and completed in 1391.6 seconds after five save submissions; Production generated in 325.9 seconds and completed in 662.3 seconds after four submissions. All source corrections were made by the local model. Independent LibreOffice recalculation matches 351 formulas across 27 retained states, including Stock growth and allowed zero/fraction controls.
+
+The isolated Stock UI copy passes table access, three sections, filtering, refusal with retained draft, native price update, exact Undo, keyboard field order and ledger paging past 200 rows. Rows are vertically centered at wide and compact widths. Scrolling the surrounding form repeatedly causes the computer-use accessibility request to time out. The first process sample showed active layout; a later sample showed the app main thread idle while automation still timed out. Isolated AppKit and SwiftUI-wrapper diagnostics with a 220-row ledger preserve document geometry and reach the last fields. This is an unresolved UI/accessibility observation, not a proven production layout defect or a fixed bug. Exploratory test changes were removed from tracked source; diagnostic code and traces are retained locally. The owner was asked to distinguish normal manual scrolling from a frozen app.
+
+Cohort 18 was interrupted during Bookings before any source changes and is diagnostic only; its final source-unchanged flag is true. Cohorts 19 and 20 are predeclared as the next consecutive fresh pair on unchanged candidate-139 production and acceptance code. Cohort 19 is running; no final cohort is accepted. The other authorized audit continues to reserve the model and runtime window.
+
+## Candidate 140: reviewer action-role scope
+
+Cohort 19 failed Stock after 832.1 seconds and three unchanged submissions: the independent reviewer correctly identified a signed-shipment defect but included classifications for all three registered actions in its single-action counterexample. The host demanded an exact action-set match and rejected the test setup, preventing the defect from reaching the builder. Production was still generating when the diagnostic run stopped; its final runtime receipt confirms unchanged sources. Cohort 20 was not started. Neither run qualifies as a final acceptance cohort.
+
+The focused host correction accepts classifications for other registered actions while deriving probes and readiness coverage only from actions actually tested. Missing tested roles, unknown IDs, incomplete successful coverage and exact per-input checks remain refused. A signed-worker regression fails before the change and passes after it, including incomplete-ready and unknown-ID counterexamples. No generated app source was edited. The next full pair must use this new production and acceptance identity.
+
+The Stock UI investigation remains open. Filtering to one row or using the final 20-row ledger page permits lower-form capture at wide and compact widths. The first 200-row page still causes accessibility/capture timeouts after outer scrolling, including a 120-second attempt. A realistic plain-table width experiment disproved the suspected width calculation error. A later process sample again shows an idle main thread; neither a universal app hang nor an automation-only cause is established. Manual responsiveness confirmation is pending. No speculative renderer change was made.
+
+## Candidate 140 verified checkpoint and next pair
+
+The full local suite passed, including the final strengthened reviewer regression. Native package checks were explicitly rerun after restoring the packaged source: both executables load 1,888 Metal kernels without build-tree fallback; missing/altered resources refuse; signatures, install/update/uninstall and packaged extraction pass. The restored installed main and CLI UUIDs match the rebuilt package. This rebuild has a different main UUID from the earlier 140 build; the restored identity receipt records it rather than claiming byte identity. Retained ten-app runtime regression evidence remains applicable: the production change only affects pre-save independent review, not saved-app execution.
+
+An isolated AppKit table with 200 rows remained responsive after outer scrolling. Constraint-centered cells raised capture time from approximately 7.3 to 18.8 seconds there. Candidate 141 was only a diagnostic experiment using frame-centered cells. It did not resolve the actual Stock capture timeout and was fully reverted; no renderer change remains. A trace during the failed request shows substantial SwiftUI layout work, while later samples are idle. The unfiltered Stock capture issue is unresolved, not a passed visual gate. The diagnostic app grant was visibly revoked and the preview quit after restoring 140.
+
+Predeclare cohorts 21 and 22, in stock/production/bookings/cash/invoices/jobs order, with new files, analysis, generation and conversations on unchanged candidate 140 and final acceptance hashes. Cohort 20 was never started. Both complete runs, independent oracles and final visual qualification remain required. No replay or manual generated-source changes are allowed.

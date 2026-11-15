@@ -611,6 +611,53 @@ func checkExcelConversions() async throws {
           ]))
       } catch { wrongSignFailure = error.localizedDescription }
       try expectEqual(wrongSignFailure.contains("wrong stored sign"), true)
+      // A one-action counterexample may retain roles for the other registered
+      // actions. They confer no coverage, but must not conceal a real defect.
+      var multiActionOutbound = outbound
+      multiActionOutbound.source += "\nSevra.action('other',{title:'Other',inputs:{}},()=>{});"
+      var multiActionArgs = outboundArgs
+      multiActionArgs["package"] = try encoded(multiActionOutbound)
+      var multiActionReview = outboundReview
+      multiActionReview["inputRoles"] = .object(
+        outboundReview["inputRoles"]!.object.merging(["other": .object([:])]) { _, new in new })
+      let multiActionContracts: Value = .object([
+        "outbound": .object([
+          "amount": .object(["type": .string("decimal"), "valueType": .string("string")])
+        ]),
+        "other": .object([:]),
+      ])
+      func multiActionFailure(_ review: Value, arguments: Value? = nil) async -> String {
+        do {
+          _ = try await NativeAppReview.check(
+            request: build.request, requestSourceID: source.id,
+            arguments: arguments ?? .object(multiActionArgs),
+            workbook: book, model: ExcelTestModel([], reviews: [review]), directory: root,
+            cancellation: .init(), progress: { _ in }, excelConversion: build,
+            checkedActions: ["outbound", "other"], checkedActionInputs: multiActionContracts)
+          return ""
+        } catch { return error.localizedDescription }
+      }
+      try expectEqual(
+        await multiActionFailure(.object(multiActionReview)).contains("wrong stored sign"), true)
+      // Unexecuted roles must not count as readiness, and misspelled action
+      // IDs must still be reported as protocol errors rather than app defects.
+      var incompleteReady = multiActionReview
+      incompleteReady["decision"] = .string("ready")
+      incompleteReady["issues"] = .array([])
+      var correctOutbound = multiActionOutbound
+      correctOutbound.source = correctOutbound.source.replacingOccurrences(
+        of: "c2:input.amount", with: "c2:String(-Number(input.amount))")
+      var correctArgs = multiActionArgs
+      correctArgs["package"] = try encoded(correctOutbound)
+      try expectEqual(
+        await multiActionFailure(.object(incompleteReady), arguments: .object(correctArgs)).isEmpty,
+        false)
+      var unknownRole = multiActionReview
+      unknownRole["inputRoles"] = .object(
+        multiActionReview["inputRoles"]!.object.merging(["typo": .object([:])]) { _, new in new })
+      let unknownFailure = await multiActionFailure(.object(unknownRole))
+      try expectEqual(unknownFailure.isEmpty, false)
+      try expectEqual(unknownFailure.contains("wrong stored sign"), false)
       try expectEqual(await outboundModel.reviewInputs.first?["tests"], .null)
       try expectEqual(await outboundModel.reviewInputs.first?["proposedPackage"]["source"], .null)
       try expectEqual(await outboundModel.reviewInputs.first?["existingPackage"]["source"], .null)

@@ -36,16 +36,20 @@ extension NativeAppReview {
   /// The reviewer classifies business meaning. The host verifies its references
   /// and derives the actual probes, so a declared lookup cannot skip its header.
   package static func inputProbes(
-    actions: Set<String>, roles: Value, steps: [Value], fixtures: Value,
+    actions: Set<String>, registeredActions: Set<String>? = nil,
+    roles: Value, steps: [Value], fixtures: Value,
     inputTypes: Value, package: NativeAppPackage, tables: [Dataset], coordinates: [[Int]],
     inputCell: (String) throws -> Value
   ) throws -> [Value] {
     try require(
-      Set(roles.object.keys) == actions, "app_review_inputs",
+      actions.isSubset(of: Set(roles.object.keys))
+        && Set(roles.object.keys).isSubset(of: registeredActions ?? actions), "app_review_inputs",
       "inputRoles must classify every tested action and each of its supplied inputs: "
         + actions.sorted().joined(separator: ", ")
-        + ". Use value for text/boolean entered values; number with whole/minimum/maximum/nonzero rules for numeric inputs; existingKey with the original table/column/headerRow for record lookups. Derive rules from the request, not from what the candidate accepts."
+        + ". Roles for other registered actions are allowed but do not count as tested coverage. Unknown action IDs are not allowed. Use value for text/boolean entered values; number with whole/minimum/maximum/nonzero rules for numeric inputs; existingKey with the original table/column/headerRow for record lookups. Derive rules from the request, not from what the candidate accepts."
     )
+    // A one-action counterexample can carry the reviewer's full classification.
+    // Only actually exercised actions acquire probes or readiness evidence.
     var probes: [Value] = []
     var total = 0
     var misclassified = Set<String>()

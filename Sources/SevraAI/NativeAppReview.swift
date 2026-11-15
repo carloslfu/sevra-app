@@ -381,7 +381,8 @@ package enum NativeAppReview {
                   )
                 }))
             _ = try Self.inputProbes(
-              actions: claimedEffects, roles: verdict["inputRoles"], steps: tests,
+              actions: claimedEffects, registeredActions: Set(checkedActions),
+              roles: verdict["inputRoles"], steps: tests,
               fixtures: probeFixtures, inputTypes: types, package: package,
               tables: build.tables, coordinates: coordinates,
               inputCell: workbook.excelOriginalInputLookup(
@@ -406,7 +407,8 @@ package enum NativeAppReview {
               )
             }
             let probes = try Self.inputProbes(
-              actions: probeActions, roles: verdict["inputRoles"], steps: tests,
+              actions: probeActions, registeredActions: Set(checkedActions),
+              roles: verdict["inputRoles"], steps: tests,
               fixtures: probeFixtures, inputTypes: checked["actionInputTypes"], package: package,
               tables: build.tables,
               coordinates: coordinates,
