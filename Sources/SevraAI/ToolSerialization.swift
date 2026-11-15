@@ -12,6 +12,7 @@ extension NativeTools {
     if toolScope == .movementDirection { return [MovementDirectionReview.definition] }
     if toolScope == .actionDirection { return [ActionDirectionReview.definition] }
     if toolScope == .nativeAppReview { return [NativeAppReview.definition] }
+    if toolScope == .nativeActionReview { return [NativeAppReview.actionDefinition] }
     if toolScope == .excelPlan {
       return [
         ExcelConversionAgent.readDefinition, NativeTools.excelEvidenceDefinition,

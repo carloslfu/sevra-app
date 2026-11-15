@@ -5,7 +5,8 @@ import SevraCore
 package enum InferenceToolScope: String, Sendable {
   // Tool scopes retain the public tool names as their raw values.
   // swift-format-ignore: AlwaysUseLowerCamelCase
-  case all, finish, inspection, movementDirection, actionDirection, nativeAppReview, excelPlan,
+  case all, finish, inspection, movementDirection, actionDirection, nativeAppReview,
+    nativeActionReview, excelPlan,
     excelBuild, excelCalculation, excelInterface, workflowAnswer,
     answer,
     boundedAnswer, draft,
@@ -27,7 +28,7 @@ package enum InferenceToolScope: String, Sendable {
     case .workflowAnswer: return Self.answer.allows(tool) || tool == "prepare_workflow_answer"
     case .movementDirection: return tool == "review_movement_direction"
     case .actionDirection: return tool == "review_action_directions"
-    case .nativeAppReview: return tool == "review_native_app"
+    case .nativeAppReview, .nativeActionReview: return tool == "review_native_app"
     case .excelPlan:
       return ["describe_excel_workflow", "inspect_excel_rows", "inspect_excel_evidence"].contains(
         tool)

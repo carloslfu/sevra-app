@@ -5,6 +5,34 @@ import SevraCore
 func checkNativeReviewInputContracts(
   package: NativeAppPackage, tables: [Dataset], coordinates: [[Int]], header: String
 ) throws {
+  let paired = try Value.parse(
+    #"{"probes":[{"action":"ship","inputs":{"quantity":3},"expect":{"kind":"expect_row","table":"ledger","values":{"reference":"NEW","quantity":"-3"}}},{"action":"ship","inputs":{"quantity":0},"expect":{"kind":"reject"}}]}"#
+  )
+  let expanded = try NativeAppReview.actionProbeSteps(paired, actions: ["ship"])
+  try expectEqual(expanded.count, 3)
+  try expectEqual(expanded[0]["kind"], .string("run_action"))
+  try expectEqual(expanded[0]["inputs"]["quantity"], .number(3))
+  try expectEqual(expanded[1], paired["probes"].array[0]["expect"])
+  try expectEqual(expanded[2]["reject"], .bool(true))
+  try expectEqual(NativeAppReview.assertedSuccessfulActions(expanded), ["ship"])
+  for invalid in [
+    #"{"tests":[{"kind":"expect_text","value":"Ready"}]}"#,
+    #"{"probes":[]}"#,
+    #"{"probes":[{"action":"typo","inputs":{},"expect":{"kind":"reject"}}]}"#,
+    #"{"probes":[{"action":"ship","inputs":{},"expect":{"kind":"expect_rows","table":"ledger","count":1}}]}"#,
+    #"{"probes":[{"action":"ship","inputs":{},"expect":{"kind":"expect_row","table":"ledger","values":{}}}]}"#,
+    #"{"probes":[{"action":"ship","inputs":{},"expect":{"kind":"reject","error":false}}]}"#,
+    #"{"probes":[{"action":"ship","inputs":{}}]}"#,
+    #"{"probes":[{"action":"ship","inputs":{},"expect":{"kind":"reject"},"source":"execute me"}]}"#,
+  ] {
+    try expectThrows(try NativeAppReview.actionProbeSteps(Value.parse(invalid), actions: ["ship"]))
+  }
+  var hiddenCall = paired.object
+  hiddenCall["interfaceTests"] = .array([expanded[0]])
+  try expectThrows(try NativeAppReview.actionProbeSteps(.object(hiddenCall), actions: ["ship"]))
+  var oversized = paired.object
+  oversized["probes"] = .array(Array(repeating: paired["probes"].array[0], count: 9))
+  try expectThrows(try NativeAppReview.actionProbeSteps(.object(oversized), actions: ["ship"]))
   // An unchanged retry gets its own prior diagnostic, never another candidate's
   // fixture/source/test context, another request's state, or a passed check.
   let arguments: Value = .object([

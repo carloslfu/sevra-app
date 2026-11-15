@@ -131,7 +131,6 @@ func checkNativeReviewNumbers(
     "decision": .string("ready"), "issues": .array([]),
     "inputRoles": .object(["chooseMonth": .object(["month": role])]),
     "tests": .array([
-      .object(["kind": .string("expect_text"), "value": .string("Ready")]),
       .object([
         "kind": .string("run_action"), "action": .string("chooseMonth"),
         "inputs": .object(["month": .number(1)]),
@@ -139,7 +138,11 @@ func checkNativeReviewNumbers(
       .object(["kind": .string("expect_text"), "value": .string("Month 1")]),
     ]),
   ])
-  let contracts = try await NativeAppCheck.run(package: candidate, steps: review["tests"].array)
+  let contracts = try await NativeAppCheck.run(
+    package: candidate,
+    steps: [
+      .object(["kind": .string("expect_text"), "value": .string("Ready")])
+    ] + review["tests"].array)
   try expectEqual(contracts["actionInputs"]["chooseMonth"]["month"]["type"], .string("number"))
   try expectEqual(contracts["actionInputs"]["chooseMonth"]["month"]["valueType"], .string("number"))
   func check(
@@ -232,27 +235,33 @@ func checkNativeReviewNumbers(
   correctedCostReview["inputRoles"] = .object([
     "updateCost": .object(["cost": .object(unconstrained)])
   ])
-  correctedCostReview["tests"] = .array(costTests.array + [
-    .object([
-      "kind": .string("run_action"), "action": .string("updateCost"),
-      "inputs": .object(["cost": .string("0")]),
-    ]),
-    .object(["kind": .string("expect_text"), "value": .string("Cost 0")]),
-  ])
+  correctedCostReview["tests"] = .array(
+    costTests.array + [
+      .object([
+        "kind": .string("run_action"), "action": .string("updateCost"),
+        "inputs": .object(["cost": .string("0")]),
+      ]),
+      .object(["kind": .string("expect_text"), "value": .string("Cost 0")]),
+    ])
   let correctingModel = ExcelTestModel(
     [], reviews: [.object(wrongCostReview), .object(correctedCostReview)])
   let costAccepted = try await NativeAppReview.check(
     request: "Update unit cost using the explicit supplied price.",
     requestSourceID: requestSourceID,
-    arguments: .object(["package": try encoded(cost), "tests": costTests, "fixtures": .object([:])]),
+    arguments: .object(["package": try encoded(cost), "tests": costTests, "fixtures": .object([:])]
+    ),
     workbook: workbook, model: correctingModel, directory: directory, cancellation: .init(),
     progress: { _ in }, excelConversion: build, checkedActions: ["updateCost"],
-    checkedActionInputs: costContracts["actionInputs"], checkedInterface: costContracts["initialInterface"])
+    checkedActionInputs: costContracts["actionInputs"],
+    checkedInterface: costContracts["initialInterface"])
   try expectEqual(await correctingModel.reviewInputs.count, 2)
-  try expectEqual(await correctingModel.toolResults.first?["status"], .string("unconfirmed_input_rule"))
+  try expectEqual(
+    await correctingModel.toolResults.first?["status"], .string("unconfirmed_input_rule"))
   try expectEqual(costAccepted["digest"], .string(cost.digest))
   try expectEqual(costAccepted["checkedCounterexamples"].array.count, 1)
-  try expectEqual(costAccepted["checkedCounterexamples"].array[0]["verdict"], .object(wrongCostReview))
+  try expectEqual(
+    costAccepted["checkedCounterexamples"].array[0]["verdict"],
+    pairedActionReviewFixture(.object(wrongCostReview)))
   try expectEqual(
     costAccepted["checkedCounterexamples"].array[0]["result"]["status"],
     .string("unconfirmed_input_rule"))
@@ -264,12 +273,12 @@ func checkNativeReviewNumbers(
     of: "parseInt(input.month,10)", with: "input.month")
   let accepted = try await check(candidate)
   let checks = accepted["independentActionCheck"]["checks"].array
-  try expectEqual(checks[0]["check"]["actionInputTypes"]["1"]["month"], .string("number"))
+  try expectEqual(checks[0]["check"]["actionInputTypes"]["0"]["month"], .string("number"))
   let derived = checks[0]["inputChecks"].array
   try expectEqual(derived.count, 3)
   for probe in derived {
-    try expectEqual(probe["tests"].array.count, 2)
-    try expectEqual(probe["tests"].array[1]["reject"], .bool(true))
+    try expectEqual(probe["tests"].array.count, 1)
+    try expectEqual(probe["tests"].array[0]["reject"], .bool(true))
     try expectEqual(probe["check"]["status"], .string("passed"))
   }
   // Rejecting without writes can still mutate in-memory state. A prior refused

@@ -42,5 +42,37 @@ func checkNativeReviewGrammar(frontend: SplashTextFrontend, factory: SplashGramm
       try expectThrows(try invalid.finish(committed: tokens, requireComplete: true))
     }
   }
+  for thinking in [false, true] {
+    let policy = try NativeCitationPolicy.make(
+      [], toolScope: .nativeActionReview, thinking: thinking)
+    func output(_ probes: String, tool: String = "review_native_app") -> [UInt32] {
+      frontend.encode(
+        (thinking ? "Derive the saved effect.</think>\n" : "")
+          + "<tool_call>\n<function=\(tool)>\n<parameter=decision>\nready\n</parameter>\n"
+          + "<parameter=issues>\n[]\n</parameter>\n<parameter=probes>\n"
+          + probes + "\n</parameter>\n</function>\n</tool_call>")
+    }
+    let probes =
+      #"[{"action":"ship","inputs":{"quantity":3},"expect":{"kind":"expect_row","table":"ledger","values":{"reference":"NEW","quantity":"-3"}}},{"action":"ship","inputs":{"quantity":0},"expect":{"kind":"reject"}}]"#
+    let valid = try factory.create(grammar: policy.grammar)
+    let validTokens = output(probes)
+    for end in 1...validTokens.count {
+      try valid.finish(
+        committed: Array(validTokens.prefix(end)), requireComplete: end == validTokens.count)
+    }
+    for tokens in [
+      output("[]"),
+      output(#"[{"kind":"expect_text","value":"Ready"}]"#),
+      output(#"[{"action":"ship","inputs":{}}]"#),
+      output(probes.replacingOccurrences(of: "expect_row", with: "run_action")),
+      output(probes, tool: "save_native_app"),
+    ] {
+      let invalid = try factory.create(grammar: policy.grammar)
+      try expectThrows(try invalid.finish(committed: tokens, requireComplete: true))
+    }
+  }
   print("PASS independent review grammar: nested input roles, typed headers and no write tools")
+  print(
+    "PASS blind review grammar: mandatory action/input/effect pairs, refusals, no standalone assertions"
+  )
 }

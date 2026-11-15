@@ -3,7 +3,7 @@ type: operational
 meta-type: operational
 id: 01m7ebv28bxsk6szwx72sbrcyp
 created: 2026-11-15T01:06:11.339074+00:00
-updated: 2026-11-15T20:37:19.841183+00:00
+updated: 2026-11-15T21:17:09.715459+00:00
 summary: Close realistic Excel business application reconstruction, reliable autonomous generation, and integrated chat/native qualification gaps.
 title: Realistic Excel business applications
 status: in-progress
@@ -1214,3 +1214,22 @@ The next adversarial pass found that accepting extra registered classifications 
 A nine-action, multi-batch signed-worker regression fails on the old full-role receipt and passes with projection to executed batch actions. Repeated batches still do not count as new coverage. The focused Excel reconstruction and unchanged independent-qualifier regression suites pass. The correction changes evidence serialization only, preserves the candidate 140 role validation, and reuses the full local suite and packaging-boundary proof for unchanged code. Exact candidate 142 hosted CI and final fresh generation remain pending.
 
 The next predeclared pair is cohorts 22 and 23 with the same six cases and all original gates. The renderer, SDK, model, inference engine, fixtures, budgets and independent verifier remain unchanged. The previously discussed 200-row offscreen table capture remains unresolved; the rejected 141 layout experiment was reverted.
+
+
+## Candidate 143: paired independent action probes, qualification pending
+
+Candidate142 cohort22 failed Stock after764.1 seconds: the blind reviewer first invented wrong starting totals, then repeatedly emitted saved-row assertions without action calls. Three identical candidate submissions ended at the existing unsuccessful-action guard. No generated app was manually repaired. Production was interrupted before completion; source identities stayed unchanged through the runtime receipt. Cohort23 never started. Cohort22 is diagnostic, not accepted final evidence.
+
+The blind review contract now pairs each actual action ID and typed inputs with an independent expected saved effect or refusal. A separate host-selected scope constrains that response grammar; ordinary source/UI review retains its own contract. The host expands pairs into the existing isolated checker, preserving write-effect, input-role, header/numeric, coverage, counterexample and bounded-budget gates. A shorter independent policy replaces conflicting procedural instructions. Saved receipts remain the actual executed flat checks, so the independent qualifier is unchanged. Adversarial inspection also found that overlapping successful batches must retain roles and input checks for every action executed in that batch, while only new actions advance coverage. Focused behavioral/grammar checks, full suite, installation, new consecutive fresh cohorts and remaining native UI checks are pending.
+
+
+## Candidate 143 full-ledger UI diagnosis
+
+The exact installed candidate143 matches packaged executable UUIDs and SDK hashes with strict signatures. On the untouched cohort18 Stock diagnostic copy, the first 200-row page of a220-row ledger scrolls to both lower forms. Receive and complete Ship forms are visually aligned at1200x800 points; Reference-to-SKU Tab focus is verified. The click-plus-Tab call took0.21 seconds and outer-scroll action0.40 seconds. Full offscreen-table accessibility captures expose roughly1800 elements and take26–29 seconds; separating action and capture calls succeeds. This narrows the prior compound-call timeouts to expensive full snapshots, not evidence of a frozen manual app. No speculative renderer change was kept. Existing compact, validation, saved-write and Undo checks remain retained; this diagnostic UI is not new final-cohort evidence. Test access was revoked and preview closure observed.
+
+
+## Candidate 143 verification and next fresh pair
+
+Focused Excel behavioral checks and the new real constrained-grammar probes pass, including wrong-sign refusal/correction, unchanged source withholding, malformed/missing/unknown probe refusals, numeric/header safeguards, incomplete/repeated/overlapping batch coverage and canonical executed receipts. The independent qualifier regression passes unchanged. Full scripts/check.sh passes on candidate143, including660 core,27 SDK,18 native app groups,86 actual tool grammars/817 reference masks, the new paired-review grammar, sandbox/resource failures,1888 Metal kernels, signatures, installation/extraction and db validation. Native build and installation pass; installed main UUID E0198DB1-0B29-30EF-A0C4-2668BE5CC8D9 and CLI B0F97A11-E5FB-3727-815B-A8B6E8366D93 match the package. Model, engine, resources and reasoning/output budgets remain unchanged.
+
+Predeclared next final pair: cohorts24 then25, each fresh Stock, Production, Bookings, Cash, Invoices and Jobs in that order. Both must finish on identical production/acceptance/fixture/model/runtime identities, then pass independent original oracles and final native interface checks. No app, conversation or builder answer replay; no manual generated-source repair. Zero final cohorts are accepted so far. Hosted CI for the forthcoming exact commit remains pending. The full-ledger capture limitation is understood and its visual/keyboard diagnostic now passes; remaining blockers are fresh reliability, six final native interfaces/oracles, and final exact-code/public evidence qualification.

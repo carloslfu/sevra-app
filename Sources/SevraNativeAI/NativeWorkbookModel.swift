@@ -499,7 +499,9 @@ private final class NativeWorker: @unchecked Sendable {
     _ cancellation: Cancellation, _ progress: @escaping @Sendable (String) -> Void,
     _ toolScope: InferenceToolScope, _ citationIDs: [String], _ interpretation: Value? = nil
   ) throws -> (NativeReply, Value) {
-    let excelReview = toolScope == .nativeAppReview && messages.first?.nativeAppAuthoring == true
+    let excelReview =
+      [.nativeAppReview, .nativeActionReview].contains(toolScope)
+      && messages.first?.nativeAppAuthoring == true
     // Translation must reason through formulas and failing original scenarios before
     // emitting code. The ordinary 512-token budget repeatedly cut those repairs short.
     let excelReasoning =

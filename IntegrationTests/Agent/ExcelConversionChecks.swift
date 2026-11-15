@@ -165,12 +165,14 @@ actor ExcelTestModel: WorkbookInference {
       toolResults.append(try Value.parse(last.content))
     }
     let action: (String, Value)
-    if toolScope == .nativeAppReview {
+    if [.nativeAppReview, .nativeActionReview].contains(toolScope) {
       reviewInputs.append(try Value.parse(messages.first { $0.role == "user" }!.content))
+      let review =
+        reviews.isEmpty
+        ? Value.object(["decision": .string("ready"), "issues": .array([])]) : reviews.removeFirst()
       action = (
         "review_native_app",
-        reviews.isEmpty
-          ? .object(["decision": .string("ready"), "issues": .array([])]) : reviews.removeFirst()
+        toolScope == .nativeActionReview ? pairedActionReviewFixture(review) : review
       )
     } else if !actions.isEmpty {
       action = actions.removeFirst()
@@ -186,6 +188,41 @@ actor ExcelTestModel: WorkbookInference {
     return .init(
       text: "", calls: [.init(id: identifier(), name: action.0, inputJSON: try action.1.json())])
   }
+}
+
+// Test-fixture notation for the existing behavioral cases. Production accepts
+// only paired probes in the blind review scope, never the old flat protocol.
+func pairedActionReviewFixture(_ verdict: Value) -> Value {
+  if verdict["probes"] != .null { return verdict }
+  var fields = verdict.object
+  let tests = fields.removeValue(forKey: "tests")?.array ?? []
+  var probes: [Value] = []
+  var interface: [Value] = []
+  var index = 0
+  while index < tests.count {
+    let step = tests[index]
+    index += 1
+    guard step["kind"] == .string("run_action") else {
+      interface.append(step)
+      continue
+    }
+    var expectation: Value = .null
+    if step["reject"] == .bool(true) || step["error"].string != nil {
+      var refusal: [String: Value] = ["kind": .string("reject")]
+      if step["error"] != .null { refusal["error"] = step["error"] }
+      expectation = .object(refusal)
+    } else if index < tests.count {
+      expectation = tests[index]
+      index += 1
+    }
+    probes.append(
+      .object([
+        "action": step["action"], "inputs": step["inputs"], "expect": expectation,
+      ]))
+  }
+  fields["probes"] = .array(probes)
+  if !interface.isEmpty { fields["interfaceTests"] = .array(interface) }
+  return .object(fields)
 }
 
 func excelPlan(_ business: ExcelBusinessCase) -> Value {
@@ -410,7 +447,7 @@ func checkExcelConversions() async throws {
           workbook: book, model: ExcelTestModel([]), directory: root, cancellation: .init(),
           progress: { _ in }, excelConversion: build, checkedActions: ["lookup"])
       } catch { missingReadiness = error.localizedDescription }
-      try expectEqual(missingReadiness.contains("Readiness needs"), true)
+      try expectEqual(missingReadiness.contains("Supply 1..16 probes"), true)
       let falseReadiness = ExcelTestModel([], reviews: [readiness, fixtureReview])
       var failedReadiness = ""
       do {
@@ -439,7 +476,8 @@ func checkExcelConversions() async throws {
           .object([
             "kind": .string("run_action"), "action": .string("lookup"),
             "inputs": .object(["key": .number(42)]),
-          ])
+          ]),
+          .object(["kind": .string("expect_text"), "value": .string("42")]),
         ]),
       ])
       let recoveredVerdict = try await NativeAppReview.check(
@@ -480,7 +518,7 @@ func checkExcelConversions() async throws {
         .string("invalid_counterexample"))
       try expectEqual(
         correctedProbe["checkedCounterexamples"].array[0]["result"]["error"].text.contains(
-          "before exercising any operation"), true)
+          "Assertions alone cannot exercise business behavior"), true)
       var inconsistent = ""
       var inconsistentCode = ""
       do {
@@ -747,7 +785,7 @@ func checkExcelConversions() async throws {
         request: build.request, requestSourceID: source.id, arguments: .object(manyArgs),
         workbook: book,
         model: ExcelTestModel(
-          [], reviews: [batch(0..<4), batch(0..<4), batch(4..<8), batch(8..<9)]),
+          [], reviews: [batch(0..<4), batch(0..<4), batch(3..<8), batch(8..<9)]),
         directory: root, cancellation: .init(), progress: { _ in }, excelConversion: build,
         checkedActions: (0..<9).map { "check\($0)" })
       try expectEqual(manyReport["attempts"], .number(4))
