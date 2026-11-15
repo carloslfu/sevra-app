@@ -1,0 +1,29 @@
+{
+  "release": "1.6.1",
+  "sourceCommit": "d8af1054aab0f97de21d043e01aa98af3754f10e",
+  "archiveSHA256": "0ed408a781f951a13ff58bed95c9e8c1d1dc67ab9d649fcaf365972b6720ce6c",
+  "archiveBytes": 78670846,
+  "files": {
+    "engine/splash": {
+      "bytes": 4330248,
+      "sha256": "ce771e5f51081a2fd60df0ee0083f982a278a863ffaeab29fd590f55e9e36e89"
+    },
+    "engine/splash.metallib": {
+      "bytes": 49965369,
+      "sha256": "7006f53dedd016809a16f4e5694c78e4f8959f31691e4473a35ad46be45b9b03"
+    },
+    "engine/host-step.metallib": {
+      "bytes": 4648,
+      "sha256": "9f94af73a1a7ab440d381268281989cb80698b3921ebec95772e2b889fc54ffb"
+    },
+    "LICENSE": {
+      "bytes": 11358,
+      "sha256": "cfc7749b96f63bd31c3c42b5c471bf756814053e847c10f3eb003417bc523d30"
+    },
+    "THIRD_PARTY_NOTICES": {
+      "bytes": 20289,
+      "sha256": "b8052712a0bc25a90672127c1ce30b1b55e3cce2c9778652ab76c90e067a31c4"
+    }
+  },
+  "verification": "Downloaded and hashed archive; checked unique regular whitelisted members, hashes and 128 MiB product resource bound. No executable or Metal file loaded, installed or run."
+}

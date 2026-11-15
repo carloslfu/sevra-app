@@ -3,7 +3,7 @@ type: operational
 meta-type: operational
 id: 01m659x4nd2q89tkpzzsssd7yr
 created: 2026-10-30T02:23:30.477380+00:00
-updated: 2026-11-15T22:08:09.389399+00:00
+updated: 2026-11-15T22:20:53.009773+00:00
 summary: Rich visuals and inline-chat revision 13 closes agent integration gaps; start with native chat inputs, then charts. Implementation remains proposed.
 title: Minimum-feature continuation handoff
 ---
@@ -193,3 +193,12 @@ The owner requested a thorough implementation plan for context-accounting fixes,
 Planning only. No engine/model/configuration change, candidate GPU benchmark, installation or UI work occurred in this checkpoint. The native preview remains at its existing 32K/12 GiB configuration and Splash 1.4.1 pin. Candidate 1.6.1 provenance is recorded from source/release metadata; archive/component verification and qualification remain implementation steps. The next implementation sequence is P0/P1 accounting and preparation, P2/P3 same-configuration engine integration and qualification, then P4/P5 controlled context/memory selection, followed by UX and release gates. No automatic mid-job capacity-growth ladder is planned for the first implementation.
 
 The current W1 exact-parity blocker and D9 repeatability evidence remain open; passing historical timings do not qualify promotion. Candidate context research may proceed only after behavioral/lifecycle/admission prerequisites, with promotion gated separately. This planning checkpoint does not alter other workstreams' status or restart cross-chat coordination.
+
+## Complete inference plan re-review, November 15
+The owner's complete re-review is finished. [[records/plans/inference-context-upgrade]] is revision 5, ready for staged implementation. [[records/reviews/inference-context-plan-full-review]] records 18 resolved gaps/ambiguities and coverage of every plan section. The earlier three-pass review remains historical evidence.
+
+The revision makes direct-inference admission, actual output modes, phase/result reserves, CPU preparation, one-helper memory admission, cancellation versus successful protocol Stop, runtime provenance and saved attempts concrete. It preserves original and corrected-old-engine workers for comparisons, keeps the 32K/12 GiB control, separates screening from formal task variants, guards against accumulated regressions and requires qualification of the final selected profile.
+
+The candidate 1.6.1 archive and its five intended native/license members are now hash-verified; no candidate executable or Metal library was loaded, run or installed. The current product remains Splash 1.4.1 with unchanged 32K/12 GiB settings. Existing CPU performance-harness rejection checks passed. Runtime, strict parity, context/memory, installed UX and release gates remain implementation work. No cross-chat coordination was resumed.
+
+Start implementation with P0/P1 when directed. The target is the native source preview; production signing and other hardware qualification remain separate. The preserved strict W1/D9 issue has a bounded diagnosis path and is not cleared by this planning review.

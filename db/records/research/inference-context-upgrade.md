@@ -3,7 +3,7 @@ type: research
 meta-type: conclusion
 id: 01m7gjt29wpn77rzz5z9z27g91
 created: 2026-11-15T21:46:27.516157+00:00
-updated: 2026-11-15T21:49:30.423421+00:00
+updated: 2026-11-15T22:04:49.766076+00:00
 summary: Code findings, retained synthetic probes, historical workload limits and Splash 1.6.1 relevance for context planning.
 title: Inference and context upgrade evidence
 ---
@@ -59,7 +59,7 @@ The request-level R1 priority mismatch and later command/cache/tracing confounds
 
 ## Candidate release and practical relevance
 
-[Release identity](../../../integration/evidence/2026-11-15-inference-context-planning/engine-release.json) records Splash 1.6.1, published November 11, 2026, source commit `d8af1054aab0f97de21d043e01aa98af3754f10e`, annotated tag object `f3ee53329926d53d42159fd40cad28cdd3080393` and the published archive digest. The GitHub release is not immutable. Implementation must download/hash the archive and pin extracted executable/Metal/license resources; metadata inspection does not perform those checks.
+[Release identity](../../../integration/evidence/2026-11-15-inference-context-planning/engine-release.json) records Splash 1.6.1, published November 11, 2026, source commit `d8af1054aab0f97de21d043e01aa98af3754f10e`, annotated tag object `f3ee53329926d53d42159fd40cad28cdd3080393` and the published archive digest. The GitHub release is not immutable. The initial review inspected metadata only. The subsequent complete review downloaded and verified the archive and all five intended native/license members; its [artifact receipt](../../../integration/evidence/2026-11-15-inference-plan-review/release-artifacts.json) records their hashes and sizes. Implementation must still pin/package those resources and qualify their behavior; no candidate executable or Metal library was run or loaded in either planning review.
 
 The [commit inventory](../../../integration/evidence/2026-11-15-inference-context-planning/upstream-commits.json) retains 132 commits between 1.4.1 and 1.6.1. The source diff spans 592 files. Relevance is mapped by integration surface in the plan; line volume is not a claim that every upstream feature changes Sevra.
 
@@ -79,3 +79,8 @@ Primary upstream sources: [1.6.1 release](https://github.com/incoai/splash/relea
 ## Limits and conclusion
 
 There is enough evidence to choose the implementation order and identify concrete fixes. There is not enough matched evidence to name an optimal context/memory pair, promise an engine speedup or support all eligible Mac RAM tiers. The plan makes those choices finite, controlled experiments with explicit success/failure gates. It does not need customer telemetry to fix demonstrable accounting, but synthetic fixtures must not be described as the user's measured workload distribution.
+
+
+## Complete follow-up review
+
+[[records/reviews/inference-context-plan-full-review]] records the comprehensive revision 5 review at `5b05c5f6127d6956d63c167c7bc2b42812578047`. It adds direct-inference caller coverage, the exact output/reasoning mode map, interpretation/review byte and deadline limits, per-tool result reservations, true one-helper memory admission, Cancel versus protocol Stop, runtime provenance, baseline-worker preservation and controlled final-profile qualification. The archive integrity gap is closed by the linked receipt; implementation, strict parity, useful-context performance and installed UX remain unqualified. The existing CPU performance-harness rejection checks passed again.

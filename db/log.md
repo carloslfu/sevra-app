@@ -154,3 +154,9 @@ Created revision 4 implementation plan after architecture/integration, recovery/
 ## [2026-11-15 21:51] verification | records/reviews/inference-context-plan-readiness.md
 Repository Markdown links, full dbmd validation, diff whitespace and retained synthetic evidence consistency pass. No runtime, GPU, installation or current-source model qualification claimed.
 
+## [2026-11-15 22:09] design | records/plans/inference-context-upgrade.md
+Revision 5 completes full follow-up review: 18 gaps/ambiguities resolved across every section, including direct-call accounting, admission API, Cancel versus Stop, saved identity, baseline/control preservation and final-profile qualification. Planning only.
+
+## [2026-11-15 22:09] verification | records/reviews/inference-context-plan-full-review.md
+CPU performance-gate self-check, candidate archive/native-member integrity, Markdown links, full dbmd validation and whitespace checks pass. No candidate execution, GPU comparison, installation or product changes.
+

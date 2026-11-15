@@ -3,7 +3,7 @@ type: spec
 meta-type: conclusion
 id: 01m5wps1qcharh0qv8vq40wbjr
 created: 2026-10-26T18:15:17.996137+00:00
-updated: 2026-11-15T21:50:38.950334+00:00
+updated: 2026-11-15T22:07:39.328100+00:00
 summary: Python-free Swift integration of pinned upstream Splash, explicit behavior mapping, differential verification and measured adoption gates.
 title: Native Splash integration and upgrades
 status: reviewed
@@ -418,4 +418,4 @@ Do not blindly repeat the full cohort until one happens to pass. Complete replay
 and independent hash/process audit: integration/evidence/2026-10-27-prefix-d9-repeatability.json.gz.
 
 ## Reviewed inference and context upgrade plan, November 15
-[[records/plans/inference-context-upgrade]] is the reviewed, planning-only proposal for exact-scope preparation, mode-specific output/result/recovery reservations, actual admitted capacity, the Splash 1.6.1 adapter and controlled context/memory experiments. [[records/reviews/inference-context-plan-readiness]] records three review passes. It does not change current implementation or promote a runtime/profile. Historical policy and qualification evidence above remain preserved; implementation must update the canonical contract and tests together, retaining the existing 75% policy and explicit adoption gates unless a separate reviewed decision changes them.
+[[records/plans/inference-context-upgrade]] is revision 5 after three original passes and a complete follow-up review. [[records/reviews/inference-context-plan-full-review]] records every section's coverage and 18 resolved gaps/ambiguities. The plan covers shared exact-scope admission, mode-specific output/result/transition reserves, actual admitted capacity, Splash 1.6.1 and controlled context/memory experiments. The archive and intended native members are hash-verified; runtime behavior is unqualified. Current implementation, 75% policy and explicit adoption gates remain unchanged until implementation updates the canonical contract and tests together. The historical review and qualification failures remain preserved.

@@ -8,6 +8,7 @@ updated: 2026-11-15T22:05:50.938657Z
 # sources/notes
 
 - [[sources/notes/2026/11/rich-visual-plan-final-audit]] — Owner requests another detail-by-detail audit of the complete visual and inline-chat plan.
+- [[sources/notes/2026/11/inference-context-full-review]] — Owner requests complete re-review and correction of every detail of the inference and context implementation plan.
 - [[sources/notes/2026/11/inference-context-upgrade-plan]] — Owner requests a reviewed plan for context accounting fixes, Splash upgrade and context/memory qualification.
 - [[sources/notes/2026/11/rich-visual-plan-readiness]] — Owner requests several complete review passes to make the integrated visual and inline-chat plan ready for implementation.
 - [[sources/notes/2026/11/inline-chat-interactions]] — Owner extends the rich-native-visuals plan to useful inline questions, forms and interfaces in chat.

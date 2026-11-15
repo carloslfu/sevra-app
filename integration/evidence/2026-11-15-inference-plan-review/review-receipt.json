@@ -1,0 +1,71 @@
+{
+  "date": "2026-11-15",
+  "sourceBaseline": "5b05c5f6127d6956d63c167c7bc2b42812578047",
+  "upstreamCommit": "d8af1054aab0f97de21d043e01aa98af3754f10e",
+  "inspectedSourceHashes": {
+    "Sources/SevraAI/WorkbookAgent.swift": "7d2e71a231c96e981e6c88ba457307de51154433857f9d54bd89dc9fb4854972",
+    "Sources/SevraAI/WorkbookInference.swift": "50f6428798a9aff44a38514f42406499b5304d56905f75d0ec929d729ae9faef",
+    "Sources/SevraAI/ContextBudget.swift": "b51e240db8e5333d275492eb6068930ecb5239d761843f0d6d6cd12c14bfcf1b",
+    "Sources/SevraAI/ContextMaintenance.swift": "f021ddcd8877c3f614bb540c12aa241f262fcc11ce378f561d14e71b9fe3aca1",
+    "Sources/SevraAI/ContextDigest.swift": "2da619433a36e947992b203555fdc162c27f317406950034f72c700cef501bee",
+    "Sources/SevraAI/ExcelConversionAgent.swift": "f877bc93ad5313ad26df7cad3a7382306eec029acf9e4a62d833c47de9115982",
+    "Sources/SevraAI/NativeAppReview.swift": "4a3cbbb92c13d15ed7fa19212f59485a410901bb7d0121d436229edb36d44bdb",
+    "Sources/SevraAI/NativeAppReviewRetry.swift": "ff3e65b2dccd08a3b3f6c9595e26bfdb30c863ac0fe0a760373e107cdf9b3c21",
+    "Sources/SevraAI/WorkflowCoordinator.swift": "7482debc95d0fcaa09eb215a90f39f01f0b58d1787326e11487c08c1bcca944f",
+    "Sources/SevraCore/WorkflowInterpretation.swift": "3061193b36ad892a45d38c8f481df142c6705a119d88ff694f9b676e6c1ab2d4",
+    "Sources/SevraNativeAI/NativeWorkbookModel.swift": "00c8c7943ea04714445f54eb6b6dc8d82d455bc2bedc194b2435f0b2ccaed797",
+    "Sources/SevraNativeAI/NativeReasoning.swift": "8078636e0679495657d2b1527a7e7586082cad62967d0c18bac8e022d62c2dc6",
+    "Sources/SevraSplash/Wire.swift": "a168f401a3480f96dc925ec7e6050d33dbb719a64853826ba7260d153b7a6c52",
+    "Sources/SevraSplash/StreamState.swift": "7b9bfefa306dac739fabcf0f8d316e15dc92315d3994b62a361acfe72416cf35",
+    "Sources/SevraSplash/NativeProcess.swift": "966a289f1398a3476da380957f6cc05af6e8a01416f53528d8a57181b80c79a0",
+    "Sources/SevraSplash/ModelSetup.swift": "55fae105a73cb9bdbdd3a1f841e72d4319996528f2d5c37ad09155845b16ae52",
+    "Sources/SevraSplash/ModelPreparation.swift": "4da6aa9545c0f8b350fb6664b59421fb22167b29155e02d5dc3a9abf861c47c0",
+    "Sources/SevraSplashText/TextFrontend.swift": "78acb5eaa98ec5eefde446524b3ba16ddb812706315728184a24ff12df4edb27",
+    "Sources/SevraProduct/NativeProductResources.swift": "d1f2de0b0041e4cbcaf9066b8e97089c055399fb13e4e6175959869b7d0da32e",
+    "Sources/SevraProduct/ProductAI.swift": "c0c3cee9f2133e5755b673bb6a0a1f351d2a32156662984588ea2506a2b471f9",
+    "Sources/SevraBaseline/LocalModel.swift": "bfed6aa5771ce146b588eb786e33603bd1f9dd2335112a1f06e8ef12d9df24bb",
+    "scripts/fetch_splash.py": "4dcbb0094e5d00bad037c5a75afba45ce7572888ba575f97d6e873c9d30763f4",
+    "scripts/package_native.py": "82dac561d9c9e451ed125944de5f8ddda198377d7255410d7649541300fffa45",
+    "scripts/build_native.sh": "229d822089627e500969cf45508b2bbfd6c125b5cc3a8559c97ecc403231a993",
+    "scripts/check_performance_harness.py": "dc4fad0a219ff5725d756f35d4235fd0f8a83045130619a97656e2ca429eb1b3",
+    "integration/performance/protocol.json": "7359b495d37a1a94cf599c85afe30706336ef80a59c7b4eeb5a005f94d3898dd",
+    "integration/performance/workflow-protocol.json": "29a2cb6dd62a9b3ae3ec1c2485076c682407ef346b5f102764f0219f85985a45",
+    "integration/splash.json": "7447c037b94551a1620d55531f7a885b0653a2014d0c1b5ca2dbaf05a99401f6",
+    "integration/llguidance.json": "7eef7d7adae8ca8a32cad6a7676c64c04dcfce700824f660f63a8c569034b5f9"
+  },
+  "inspectedUpstreamHashes": {
+    "runtime/main.mm": "c0987aed095c7cbfcc3581d656c8d40daa064ee7066639b08682b967c2573ee4",
+    "runtime/Supervision.hpp": "faa0b85fb47db745b3e35a1c2b42d7b0942bc65fdcdc2a1b48a698d0c0e7e6e0",
+    "runtime/engine/Protocol.hpp": "a7f5bdb0487cb2f8f852de974f5085d50835b0201e6071f1ba38748e6eb01e5a",
+    "runtime/engine/Bootstrap.hpp": "09288ebed88e87d5bd16e8d0f191c03f465c8553f1fc2dd285e9ef879c33dc30",
+    "runtime/engine/Bootstrap.mm": "195178ab125530c2d2f2265fc9b89e6f9947c73cafb17180531fd1fee9185da1",
+    "runtime/engine/MemoryPlan.cpp": "b21b6f61ddacc517aae82bd1b7cdf4fffc816d84ba6bbfefa9217c4eb3331aad",
+    "runtime/engine/NativeArguments.hpp": "12674303f0420b9215cc021a7cccd064eb8fb8093fc930c04e2a0adfd79273af",
+    "runtime/engine/NativeArguments.cpp": "6fdf18586d682b07e3707f4e72669f8fd3a7435efcbb4a1b71a3542466b4d69b",
+    "docs/server.md": "3ec61d568dc89e3451be3c337842b1dd3a634eb013f2044f46499bf847879147",
+    "THIRD_PARTY_NOTICES": "b8052712a0bc25a90672127c1ce30b1b55e3cce2c9778652ab76c90e067a31c4"
+  },
+  "checks": [
+    {
+      "command": "python3 scripts/check_performance_harness.py",
+      "exitCode": 0,
+      "output": "PASS: performance gate rejects pilot, incomplete, mismatched, failed, overheated and slower evidence"
+    },
+    {
+      "check": "release archive, native/license member hashes, unique regular members and 128 MiB bounds",
+      "passed": true,
+      "receipt": "release-artifacts.json"
+    },
+    {
+      "check": "archive THIRD_PARTY_NOTICES equals candidate source",
+      "passed": true
+    }
+  ],
+  "limits": [
+    "Planning review and CPU/source/artifact checks only. No product implementation, pin/configuration change, candidate execution, Metal-library load, model download, GPU comparison, install or UI test.",
+    "Source hashes identify inspected files, not a fresh compiled-source qualification.",
+    "The existing performance harness self-check validates rejection logic, not engine timing or context quality.",
+    "Only the archive and five whitelisted members were validated for planned native packaging; additional archive contents are not adopted.",
+    "Historical probes and model evidence remain frozen to their original sources; they were not rerun as part of this review."
+  ]
+}
