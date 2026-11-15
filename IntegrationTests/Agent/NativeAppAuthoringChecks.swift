@@ -201,6 +201,63 @@ func checkNativeAppAuthoring() async throws {
     try expectEqual(error.localizedDescription.contains("committed a data change"), true)
   }
   print("PASS expected action errors cannot hide committed partial effects")
+  var posting = workspace
+  posting.source = """
+    const count=Sevra.signal('Saved 0');
+    Sevra.action('post',{title:'Post',inputs:{name:{type:'text',title:'Name'}}},async inputs=>{
+      if(!inputs.name.trim())throw Error('Enter a name');
+      const rows=await Sevra.data.all('entries');
+      if(rows.some(r=>r.values.name===inputs.name))throw Error('Duplicate reference');
+      await Sevra.data.transaction([{op:'insert',table:'entries',values:{name:inputs.name}}]);
+      count.value='Saved '+(rows.length+1);
+    });
+    Sevra.mount(Sevra.h(Sevra.Column,{},Sevra.h(Sevra.ActionForm,{action:'post'}),Sevra.h(Sevra.Text,{text:count})));
+    """
+  let pairedEffects = try NativeAppReview.actionProbeSteps(
+    Value.parse(
+      #"{"probes":[{"action":"post","inputs":{"name":"NEW"},"expect":[{"kind":"expect_row","table":"entries","values":{"name":"NEW"}},{"kind":"expect_text","value":"Saved 1"}]},{"action":"post","inputs":{"name":"NEW"},"expect":[{"kind":"reject"}]}]}"#
+    ), actions: ["post"])
+  let pairedReport = try await NativeAppCheck.run(package: posting, steps: pairedEffects)
+  try expectEqual(pairedReport["assertions"], .number(3))
+  try expectEqual(pairedReport["transactions"], .number(1))
+  try expectEqual(pairedReport["actionTitles"]["post"], .string("Post"))
+  try expectEqual(pairedReport["actionChanges"]["0"], .number(1))
+  try expectEqual(pairedReport["actionChanges"]["3"], .number(0))
+  do {
+    _ = try await NativeAppCheck.run(
+      package: posting,
+      steps: steps(
+        #"[{"kind":"click","target":"Post"},{"kind":"change","target":"Post: Name","value":"NEW"},{"kind":"expect_row","table":"entries","values":{"name":"NEW"}}]"#
+      ))
+    throw SevraError("test", "Editing after submit unexpectedly saved a row.")
+  } catch {
+    try expectEqual((error as? SevraError)?.code, "app_check_assertion")
+    try expectEqual(error.localizedDescription.contains("without submitting again"), true)
+  }
+  _ = try await NativeAppCheck.run(
+    package: posting,
+    steps: steps(
+      #"[{"kind":"change","target":"Post: Name","value":"NEW"},{"kind":"click","target":"Post"},{"kind":"expect_row","table":"entries","values":{"name":"NEW"}},{"kind":"expect_value","target":"Post: Name","value":""}]"#
+    ))
+  for (expectedError, hint) in [
+    (Value.null, "Failed successful action: post"),
+    (.string("Unknown reference"), "actually isolate the intended rule"),
+  ] {
+    var duplicate = pairedEffects[0].object
+    if expectedError != .null { duplicate["error"] = expectedError }
+    do {
+      _ = try await NativeAppCheck.run(
+        package: posting, steps: Array(pairedEffects.prefix(3)) + [.object(duplicate)])
+      throw SevraError("test", "A duplicate unexpectedly satisfied the action test.")
+    } catch {
+      try expectEqual((error as? SevraError)?.code, "app_check_assertion")
+      try expectEqual(error.localizedDescription.contains("Duplicate reference"), true)
+      try expectEqual(error.localizedDescription.contains(hint), true)
+    }
+  }
+  print(
+    "PASS one action checks multiple effects; duplicate refusal and form submission order remain exact"
+  )
   let exactText = try steps(
     #"[{"kind":"expect_rows","table":"entries","count":1,"values":{"name":"42"}}]"#)
   do {

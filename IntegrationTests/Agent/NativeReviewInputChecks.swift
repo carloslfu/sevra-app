@@ -6,24 +6,39 @@ func checkNativeReviewInputContracts(
   package: NativeAppPackage, tables: [Dataset], coordinates: [[Int]], header: String
 ) throws {
   let paired = try Value.parse(
-    #"{"probes":[{"action":"ship","inputs":{"quantity":3},"expect":{"kind":"expect_row","table":"ledger","values":{"reference":"NEW","quantity":"-3"}}},{"action":"ship","inputs":{"quantity":0},"expect":{"kind":"reject"}}]}"#
+    #"{"probes":[{"action":"ship","inputs":{"quantity":3},"expect":[{"kind":"expect_row","table":"ledger","values":{"reference":"NEW","quantity":"-3"}}]},{"action":"ship","inputs":{"quantity":0},"expect":[{"kind":"reject"}]}]}"#
   )
   let expanded = try NativeAppReview.actionProbeSteps(paired, actions: ["ship"])
   try expectEqual(expanded.count, 3)
   try expectEqual(expanded[0]["kind"], .string("run_action"))
   try expectEqual(expanded[0]["inputs"]["quantity"], .number(3))
-  try expectEqual(expanded[1], paired["probes"].array[0]["expect"])
+  try expectEqual(expanded[1], paired["probes"].array[0]["expect"].array[0])
   try expectEqual(expanded[2]["reject"], .bool(true))
   try expectEqual(NativeAppReview.assertedSuccessfulActions(expanded), ["ship"])
+  var multiple = paired.object
+  var successful = paired["probes"].array[0].object
+  successful["expect"] = .array([
+    successful["expect"]!.array[0],
+    .object(["kind": .string("expect_text"), "value": .string("Remaining 7")]),
+  ])
+  multiple["probes"] = .array([.object(successful), paired["probes"].array[1]])
+  let effects = try NativeAppReview.actionProbeSteps(.object(multiple), actions: ["ship"])
+  try expectEqual(
+    effects.map { $0["kind"].text },
+    ["run_action", "expect_row", "expect_text", "run_action"])
+  try expectEqual(effects[3]["reject"], .bool(true))
   for invalid in [
     #"{"tests":[{"kind":"expect_text","value":"Ready"}]}"#,
     #"{"probes":[]}"#,
-    #"{"probes":[{"action":"typo","inputs":{},"expect":{"kind":"reject"}}]}"#,
-    #"{"probes":[{"action":"ship","inputs":{},"expect":{"kind":"expect_rows","table":"ledger","count":1}}]}"#,
-    #"{"probes":[{"action":"ship","inputs":{},"expect":{"kind":"expect_row","table":"ledger","values":{}}}]}"#,
-    #"{"probes":[{"action":"ship","inputs":{},"expect":{"kind":"reject","error":false}}]}"#,
+    #"{"probes":[{"action":"ship","inputs":{},"expect":[]}]}"#,
+    #"{"probes":[{"action":"ship","inputs":{},"expect":{"kind":"reject"}}]}"#,
+    #"{"probes":[{"action":"ship","inputs":{},"expect":[{"kind":"reject"},{"kind":"expect_text","value":"Done"}]}]}"#,
+    #"{"probes":[{"action":"typo","inputs":{},"expect":[{"kind":"reject"}]}]}"#,
+    #"{"probes":[{"action":"ship","inputs":{},"expect":[{"kind":"expect_rows","table":"ledger","count":1}]}]}"#,
+    #"{"probes":[{"action":"ship","inputs":{},"expect":[{"kind":"expect_row","table":"ledger","values":{}}]}]}"#,
+    #"{"probes":[{"action":"ship","inputs":{},"expect":[{"kind":"reject","error":false}]}]}"#,
     #"{"probes":[{"action":"ship","inputs":{}}]}"#,
-    #"{"probes":[{"action":"ship","inputs":{},"expect":{"kind":"reject"},"source":"execute me"}]}"#,
+    #"{"probes":[{"action":"ship","inputs":{},"expect":[{"kind":"reject"}],"source":"execute me"}]}"#,
   ] {
     try expectThrows(try NativeAppReview.actionProbeSteps(Value.parse(invalid), actions: ["ship"]))
   }

@@ -16,13 +16,17 @@ package struct ActionConfirmations {
       saved in
       if entry["validationOnly"] == .bool(true), entry["envelopeRepair"] != .null {
         let repair = entry["envelopeRepair"]
-        // An action selector is removable only when the actual pre-invocation
-        // SDK contract proves it is not a business input with the same name.
+        let removable = Set(repair["removableFields"].array.map(\.text))
         return saved["tool"] == entry["tool"] && saved["appTarget"] == repair["target"]
           && (saved["kind"].text != "failure" || saved["validationOnly"] == .bool(false))
-          && (repair["removedActionInput"] != .bool(true)
-            || saved["contractExcludesActionInput"] == .bool(true))
-          && repair["inputs"].object.allSatisfy { saved["inputDigests"][$0.key] == $0.value }
+          && repair["inputs"].object.allSatisfy { key, digest in
+            let later = saved["inputDigests"][key]
+            // A misplaced selector may disappear only when the pre-invocation
+            // SDK contract proves it is not a business input with the same name.
+            return later == digest
+              || (later == .null && removable.contains(key)
+                && saved["excludedEnvelopeInputs"].array.contains(.string(key)))
+          }
       }
       // A one-level misplaced envelope can omit the outer app ID entirely. Match
       // only an unambiguous exact invocation, including its version and inputs.
@@ -108,17 +112,29 @@ package struct ActionConfirmations {
     return arguments["action"].text + ":" + inputs["id"].text + ":"
       + inputs["action"].text + ":" + inputs["target"].text
   }
+  private static let envelopeSelectors = ["id", "expectedVersion", "action"]
+
   private static func invocation(_ tool: String, _ arguments: Value) -> Value {
     guard tool == "workspace_action", arguments["action"].text == "app.run" else { return .null }
     let outer = arguments["arguments"].object
-    let nested = outer["arguments"]?.object ?? [:]
+    let envelopeKeys = Self.envelopeSelectors + ["inputs"]
+    guard Set(outer.keys).isSubset(of: Set(envelopeKeys + ["arguments"])) else { return .null }
+    let nested: [String: Value]
+    switch outer["arguments"] {
+    case nil: nested = [:]
+    case .object(let fields): nested = fields
+    default: return .null
+    }
     var fields: [String: Value] = [:]
-    for key in ["id", "expectedVersion", "action", "inputs"] {
+    for key in envelopeKeys {
       if let a = outer[key], let b = nested[key], a != b { return .null }
       fields[key] = outer[key] ?? nested[key]
     }
     let value = Value.object(fields)
     guard (try? ChatOperations.validate("app.run", arguments: value, readOnly: false)) != nil,
+      nested.allSatisfy({
+        envelopeKeys.contains($0.key) || value["inputs"].object[$0.key] == $0.value
+      }),
       let json = try? value.json()
     else { return .null }
     return .string(digest(json))
@@ -138,35 +154,45 @@ package struct ActionConfirmations {
       return .null
     }
     var fields = arguments["arguments"].object
-    let removedAction: Bool
+    let supplied: [String: Value]
+    let removable: [String]
     if Set(fields.keys) == ["id", "expectedVersion", "inputs"],
       case .object(var inputs) = fields["inputs"], let action = inputs["action"]?.string,
       !action.isEmpty
     {
+      supplied = inputs
       fields["action"] = .string(action)
       inputs.removeValue(forKey: "action")
       fields["inputs"] = .object(inputs)
-      removedAction = true
+      removable = ["action"]
     } else if Set(fields.keys) == ["id", "expectedVersion", "action", "arguments"],
-      case .object(let inputs) = fields["arguments"],
-      Set(inputs.keys).isDisjoint(with: ["id", "expectedVersion", "action", "inputs"])
+      case .object(let inputs) = fields["arguments"]
     {
+      // An inner object named inputs belongs to the nested-envelope check.
+      if case .object = inputs["inputs"] { return .null }
+      supplied = inputs
+      // Identical duplicates can be routing noise. A conflicting value is
+      // business data unless the corrected invocation preserves it exactly.
+      removable = Self.envelopeSelectors.filter { inputs[$0] == fields[$0] }
       fields.removeValue(forKey: "arguments")
       fields["inputs"] = .object(inputs)
-      removedAction = false
-    } else { return .null }
-    let target = appTarget(tool, .object([
-      "action": .string("app.run"), "arguments": .object(fields),
-    ]))
+    } else {
+      return .null
+    }
+    let target = appTarget(
+      tool,
+      .object([
+        "action": .string("app.run"), "arguments": .object(fields),
+      ]))
     guard target != .null else { return .null }
     return .object([
-      "target": target, "inputs": inputDigests(fields["inputs"]!),
-      "removedActionInput": .bool(removedAction),
+      "target": target, "inputs": inputDigests(.object(supplied)),
+      "removableFields": .array(removable.map(Value.string)),
     ])
   }
-  private static func contractExcludesActionInput(_ result: Value) -> Value {
+  private static func excludedEnvelopeInputs(_ result: Value) -> Value {
     guard case .object(let fields) = result["invocationInputContract"] else { return .null }
-    return .bool(fields["action"] == nil)
+    return .array(Self.envelopeSelectors.filter { fields[$0] == nil }.map(Value.string))
   }
   private static func digest(_ json: String) -> String {
     SHA256.hash(data: Data(json.utf8)).map { String(format: "%02x", $0) }.joined()
@@ -272,7 +298,7 @@ package struct ActionConfirmations {
         "invocation": Self.invocation(tool, arguments),
         "appTarget": Self.appTarget(tool, arguments),
         "envelopeRepair": Self.envelopeRepair(tool, arguments),
-        "contractExcludesActionInput": Self.contractExcludesActionInput(result),
+        "excludedEnvelopeInputs": Self.excludedEnvelopeInputs(result),
         "inputRepair": Self.repairableInputs(arguments, result),
         "inputDigests": Self.inputDigests(arguments["arguments"]["inputs"]),
         "appRun": .bool(tool == "workspace_action" && arguments["action"].text == "app.run"),
@@ -366,7 +392,7 @@ package struct ActionConfirmations {
         "retryGroup": .string(Self.retryGroup(arguments)),
         "invocation": Self.invocation(tool, arguments),
         "appTarget": Self.appTarget(tool, arguments),
-        "contractExcludesActionInput": Self.contractExcludesActionInput(result),
+        "excludedEnvelopeInputs": Self.excludedEnvelopeInputs(result),
         "inputDigests": Self.inputDigests(arguments["arguments"]["inputs"]),
       ]))
   }

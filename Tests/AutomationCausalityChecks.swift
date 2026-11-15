@@ -250,16 +250,9 @@ func checkAutomationCausality(at directory: URL) {
   check("origin inspection cancels an actual exclusive SQLite lock within one second") {
     let f = try fixture("Lock")
     let seed = try f.admit(f.initial)
-    let other = try Database(f.book.url.appendingPathComponent("workbook.sqlite"))
-    try other.execute("BEGIN EXCLUSIVE")
-    defer { _ = try? other.execute("ROLLBACK") }
-    let cancellation = Cancellation()
-    DispatchQueue.global().asyncAfter(deadline: .now() + 0.03) { cancellation.cancel() }
-    let start = ProcessInfo.processInfo.systemUptime
-    try refuses("cancelled") {
+    try checkLockedReadCancellation(f.book) { cancellation in
       _ = try f.book.automationCausality(seed.id, cancellation: cancellation)
     }
-    try expect(ProcessInfo.processInfo.systemUptime - start < 1)
   }
   check("budget reads use reverse indexes instead of scanning unrelated saved history") {
     let f = try fixture("Indexes")

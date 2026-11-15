@@ -303,7 +303,7 @@ private func checkNestedActionRecovery() throws {
   ])
   for mode in [
     "saved", "refused", "other-id", "other-action", "other-version", "other-input", "conflict",
-    "outer-conflict", "outer-other-input",
+    "outer-conflict", "outer-other-input", "conflicting-extra-input",
   ] {
     var confirmations = ActionConfirmations()
     var malformed = nested.object
@@ -311,6 +311,9 @@ private func checkNestedActionRecovery() throws {
     if mode.hasPrefix("outer-") { malformed["id"] = .string("cash-app") }
     if mode == "outer-conflict" {
       malformed["arguments"] = .object(correct.object.merging(["id": .string("other-app")]) { $1 })
+    }
+    if mode == "conflicting-extra-input" {
+      malformed["arguments"] = .object(correct.object.merging(["annualRate": .string("1")]) { $1 })
     }
     confirmations.recordFailure(
       tool: "workspace_action",

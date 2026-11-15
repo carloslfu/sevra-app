@@ -70,6 +70,23 @@ key_probe = {
                    'check': {'status': 'passed', 'digest': 'package'}}],
 }
 assert require_input_checks(key_probe, 'package') == {'ship'}
+for repeat in [False, True]:
+    multiple_effects = copy.deepcopy(key_probe)
+    if repeat:
+        multiple_effects['tests'] += [key_call, setup, assertion]
+        index = 3
+    else:
+        multiple_effects['tests'].insert(2, setup)
+        index = 1
+    multiple_effects['check']['actionChanges'][str(index)] = 1
+    assert require_input_checks(multiple_effects, 'package') == {'ship'}
+    multiple_effects['check']['actionChanges'][str(index)] = 0
+    try:
+        require_input_checks(multiple_effects, 'package')
+    except ValueError as error:
+        assert 'did not commit a write' in str(error)
+    else:
+        raise AssertionError('A leading text result or repeated action hid a no-op saved effect')
 numeric_probe = copy.deepcopy(key_probe)
 numeric_probe['tests'][1]['inputs']['sku'] = 42
 numeric_probe['check']['actionInputTypes']['1']['sku'] = 'number'

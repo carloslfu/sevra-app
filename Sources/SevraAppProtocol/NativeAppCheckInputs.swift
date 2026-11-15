@@ -2,6 +2,44 @@ import Foundation
 import SevraCore
 
 extension NativeAppCheck {
+  /// Explain the submitted operation and a common form-test ordering mistake.
+  /// This never changes the test sequence, candidate code or asserted values.
+  package static func interactionHint(
+    steps: [Value], index: Int, actions: [String: Value]
+  ) throws -> String {
+    let step = steps[index]
+    if step["kind"] == .string("run_action") {
+      let call =
+        step["action"].text + ", inputs: "
+        + String(String.UnicodeScalarView(try step["inputs"].json().unicodeScalars.prefix(1000)))
+      if step["error"] == .null, step["reject"] == .null {
+        return "\nFailed successful action: " + call
+          + ". The native ActionForm invokes this same handler. Check its validation and these inputs against the requested rules and the state after earlier test steps; changing the test to clicks does not fix the handler. A success case needs an unused reference, available stock or a free time slot when the request requires it."
+      }
+      if step["error"].string != nil {
+        return "\nFailed refusal test: " + call
+          + ". Check that these inputs and the state after earlier steps actually isolate the intended rule. For an unknown record use a key with no matching business row; for a conflict use known records in a conflicting state. When exact wording is not required, use reject:true with valid typed inputs and keep a separate valid success case. Do not change correct validation to match invented wording."
+      }
+    }
+    guard ["expect_row", "expect_rows"].contains(step["kind"].text),
+      let click = steps.prefix(index).lastIndex(where: { $0["kind"] == .string("click") }),
+      !steps[(click + 1)..<index].contains(where: { $0["kind"] == .string("run_action") }),
+      let action = actions.values.first(where: { $0["title"] == steps[click]["target"] })
+    else { return "" }
+    let title = action["title"].text
+    let labels = Set(
+      action["inputs"].object.map { key, field in
+        title + ": " + (field["title"].string ?? key)
+      })
+    guard
+      steps[(click + 1)..<index].contains(where: {
+        ["change", "select"].contains($0["kind"].text) && labels.contains($0["target"].text)
+      })
+    else { return "" }
+    return "\nThe test edited fields after clicking " + title
+      + " and then asserted a saved row without submitting again. For an ActionForm, enter fields first and then click its submit button; that button submits rather than opens the form. A named run_action can test the same handler directly. Preserve the requested business behavior and exact saved-value assertion."
+  }
+
   /// Shared setup diagnostics, not business validation. Explicit SDK-error tests
   /// may deliberately supply these invalid inputs; callers retain that distinction.
   package static func inputSetupErrors(_ step: Value, fields: [String: Value]) -> [String] {

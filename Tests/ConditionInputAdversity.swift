@@ -92,16 +92,9 @@ func checkConditionInputCorruption(at root: URL) {
     let (book, source, id) = try conditionInputFixture(root, "Locked")
     _ = try conditionInputMove(book, source, "-15")
     let observation = try conditionInputObservation(book, id)
-    let other = try Database(book.url.appendingPathComponent("workbook.sqlite"))
-    try other.execute("BEGIN EXCLUSIVE")
-    defer { _ = try? other.execute("ROLLBACK") }
-    let cancellation = Cancellation()
-    DispatchQueue.global().asyncAfter(deadline: .now() + 0.03) { cancellation.cancel() }
-    let start = ProcessInfo.processInfo.systemUptime
-    try refuses("cancelled") {
+    try checkLockedReadCancellation(book) { cancellation in
       _ = try book.inventoryConditionInputs(observation["id"].text, cancellation: cancellation)
     }
-    try expect(ProcessInfo.processInfo.systemUptime - start < 1)
   }
 }
 

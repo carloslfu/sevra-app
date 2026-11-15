@@ -1031,6 +1031,7 @@ public enum WorkbookAgent {
                 originalComparison: comparison,
                 checkedActions: nativeAppCheck!["actions"].array.map(\.text),
                 checkedActionInputs: nativeAppCheck!["actionInputs"],
+                checkedActionTitles: nativeAppCheck!["actionTitles"],
                 checkedInterface: nativeAppCheck!["initialInterface"],
                 priorReviewDiagnostic: priorReviewDiagnostic,
                 recordMetrics: {

@@ -161,14 +161,22 @@ def require_input_checks(probe, package_digest):
     roles = probe.get('inputRoles')
     require(isinstance(roles, dict) and set(roles) <= asserted_successful_actions(steps),
             'Missing successful calls for classified inputs')
+    for index in range(len(steps) - 1):
+        if not asserted_successful_actions(steps[index:index + 2]):
+            continue
+        following = []
+        for assertion in steps[index + 1:]:
+            if assertion.get('kind') not in ['expect_row', 'expect_rows', 'expect_text', 'expect_value']:
+                break
+            following.append(assertion)
+        if any(assertion.get('kind') in ['expect_row', 'expect_rows'] for assertion in following):
+            changes = probe.get('check', {}).get('actionChanges', {}).get(str(index))
+            require(type(changes) is int and changes > 0, 'Successful saved effect did not commit a write')
     expected = {}
     for action, fields in roles.items():
         index = next(i for i in range(len(steps) - 1)
                      if action in asserted_successful_actions(steps[i:i + 2]))
         call = steps[index]
-        if steps[index + 1].get('kind') in ['expect_row', 'expect_rows']:
-            changes = probe.get('check', {}).get('actionChanges', {}).get(str(index))
-            require(type(changes) is int and changes > 0, 'Successful saved effect did not commit a write')
         require(isinstance(fields, dict) and set(fields) == set(call.get('inputs', {})),
                 'Incomplete action input classification')
         variants = []

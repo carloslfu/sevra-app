@@ -122,7 +122,8 @@ package enum NativeAppReview {
     model: any WorkbookInference, directory: URL, cancellation: Cancellation,
     progress: @escaping @Sendable (String) -> Void, excelConversion: ExcelConversionBuild? = nil,
     originalComparison: Value? = nil, checkedActions: [String] = [],
-    checkedActionInputs: Value = .null, checkedInterface: Value = .null,
+    checkedActionInputs: Value = .null, checkedActionTitles: Value = .null,
+    checkedInterface: Value = .null,
     priorReviewDiagnostic: Value = .null,
     recordMetrics: (Value) -> Void = { _ in }
   ) async throws -> Value {
@@ -133,6 +134,12 @@ package enum NativeAppReview {
       try require(
         Set(checkedActionInputs.object.keys) == Set(checkedActions),
         "app_review", "Checked action input contracts do not match the action inventory.")
+    }
+    if checkedActionTitles != .null {
+      try require(
+        Set(checkedActionTitles.object.keys) == Set(checkedActions)
+          && checkedActionTitles.object.values.allSatisfy { $0.string?.isEmpty == false },
+        "app_review", "Checked action titles do not match the action inventory.")
     }
     let package = try NativeAppAuthoring.package(arguments)
     var existing: Value = .null
@@ -169,6 +176,7 @@ package enum NativeAppReview {
       "existingPackage": existing,
       "checkedActionIDs": .array(checkedActions.map(Value.string)),
       "checkedActionInputs": checkedActionInputs,
+      "checkedActionTitles": checkedActionTitles,
       "numericInputs": Self.numericInputs(checkedActionInputs),
       "checkedInterface": checkedInterface,
     ]
@@ -373,9 +381,9 @@ package enum NativeAppReview {
         feedback = .object([
           "error": .string(
             ready
-              ? "Readiness needs a successful run_action immediately followed by expect_row with exact saved values (or expect_value/expect_text for read-only results) for each remaining action, four per batch when needed, within 1..16 steps: "
+              ? "Readiness needs a successful run_action followed by its exact effect assertions for each remaining action, four per batch when needed, within 1..16 steps: "
                 + remainingActions.sorted().joined(separator: ", ")
-                + ". Supply probes pairing action and inputs with expect:expect_row (or expect_value/expect_text for read-only results). Native forms invoke the same actions; filling fields or clicking their buttons does not satisfy named-action coverage. Rejection-only probes, row counts and control-presence checks cannot qualify successful effects. Derive correct values from the request and source; also probe business refusals using the starting fixtures."
+                + ". Supply probes pairing action and inputs with an expect array: [{kind:'expect_row',table:'alias',values:{column:'expected'}}] for saved results, or expect_value/expect_text for read-only results. Put multiple effects of one invocation in the same array. Native forms invoke the same actions; filling fields or clicking their buttons does not satisfy named-action coverage. Rejection-only probes, row counts and control-presence checks cannot qualify successful effects. Derive correct values from the request and source; also probe business refusals using the starting fixtures."
               : "A revision needs one concrete defect and 1..16 counterexample tests with an expectation. Use the supplied starting fixtures. Provide those tests, or return ready with the required independent action probes if no defect is established. Do not repeat untested claims."
           )
         ])
@@ -424,7 +432,12 @@ package enum NativeAppReview {
             for index in tests.indices.dropLast()
             where probeActions.contains(tests[index]["action"].text)
               && !Self.assertedSuccessfulActions(Array(tests[index...index + 1])).isEmpty
-              && ["expect_row", "expect_rows"].contains(tests[index + 1]["kind"].text)
+              && tests.dropFirst(index + 1).prefix(while: {
+                ["expect_row", "expect_rows", "expect_text", "expect_value"].contains(
+                  $0["kind"].text)
+              }).contains(where: {
+                ["expect_row", "expect_rows"].contains($0["kind"].text)
+              })
             {
               try require(
                 (checked["actionChanges"][String(index)].int ?? 0) > 0,

@@ -58,7 +58,7 @@ func checkNativeReviewGrammar(frontend: SplashTextFrontend, factory: SplashGramm
           + probes + "\n</parameter>\n</function>\n</tool_call>")
     }
     let probes =
-      #"[{"action":"ship","inputs":{"quantity":3},"expect":{"kind":"expect_row","table":"ledger","values":{"reference":"NEW","quantity":"-3"}}},{"action":"ship","inputs":{"quantity":0},"expect":{"kind":"reject"}}]"#
+      #"[{"action":"ship","inputs":{"quantity":3},"expect":[{"kind":"expect_row","table":"ledger","values":{"reference":"NEW","quantity":"-3"}},{"kind":"expect_text","value":"Remaining 7"}]},{"action":"ship","inputs":{"quantity":0},"expect":[{"kind":"reject"}]}]"#
     let valid = try factory.create(grammar: policy.grammar)
     let validTokens = output(probes)
     for end in 1...validTokens.count {
@@ -69,6 +69,11 @@ func checkNativeReviewGrammar(frontend: SplashTextFrontend, factory: SplashGramm
       output("[]"),
       output(#"[{"kind":"expect_text","value":"Ready"}]"#),
       output(#"[{"action":"ship","inputs":{}}]"#),
+      output(#"[{"action":"ship","inputs":{},"expect":[]}]"#),
+      output(#"[{"action":"ship","inputs":{},"expect":{"kind":"reject"}}]"#),
+      output(
+        #"[{"action":"ship","inputs":{},"expect":[{"kind":"reject"},{"kind":"expect_text","value":"Done"}]}]"#
+      ),
       output(probes.replacingOccurrences(of: "expect_row", with: "run_action")),
       output(probes, tool: "save_native_app"),
       output(probes, includeRoles: false),

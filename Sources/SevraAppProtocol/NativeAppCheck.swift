@@ -124,6 +124,7 @@ public enum NativeAppCheck {
     var registeredActions: [String: Value] = [:]
     var checkedActions = Set<String>()
     var actionInputs: [String: Value] = [:]
+    var actionTitles: [String: Value] = [:]
     var actionInputTypes: [String: Value] = [:]
     var actionChanges: [String: Value] = [:]
     var subscriptions: [String: Value] = [:]
@@ -194,6 +195,7 @@ public enum NativeAppCheck {
         registeredActions[action["id"].text] = action
         checkedActions.insert(action["id"].text)
         actionInputs[action["id"].text] = action["inputs"]
+        actionTitles[action["id"].text] = action["title"]
         try require(checkedActions.count <= 64, "app_check", "Too many distinct named actions.")
       }
       try require(tree.root != nil, "app_check", "Mount one native root with Sevra.mount.")
@@ -778,6 +780,7 @@ public enum NativeAppCheck {
           "Test step \(index + 1): \(error.localizedDescription) Controls/text: "
             + String(labels.prefix(1500))
             + asynchronousReadHint
+            + (try interactionHint(steps: steps, index: index, actions: registeredActions))
             + (lastSelection.isEmpty ? "" : "\n" + lastSelection))
       }
     }
@@ -799,6 +802,7 @@ public enum NativeAppCheck {
       "digest": .string(package.digest),
       "actions": .array(checkedActions.sorted().map(Value.string)),
       "actionInputs": .object(actionInputs),
+      "actionTitles": .object(actionTitles),
       "initialInterface": initialInterface,
       "actionInputTypes": .object(actionInputTypes),
       "actionChanges": .object(actionChanges),

@@ -3,7 +3,7 @@ type: operational
 meta-type: operational
 id: 01m7ebv28bxsk6szwx72sbrcyp
 created: 2026-11-15T01:06:11.339074+00:00
-updated: 2026-11-15T21:30:37.469684+00:00
+updated: 2026-11-15T22:49:03.511545+00:00
 summary: Close realistic Excel business application reconstruction, reliable autonomous generation, and integrated chat/native qualification gaps.
 title: Realistic Excel business applications
 status: in-progress
@@ -1245,3 +1245,28 @@ Candidate144 makes inputRoles mandatory in the blind-review constrained grammar 
 ## Candidate 144 focused verification and next pair
 
 Focused Excel behavioral regression and actual review grammar checks pass, including explicit omission of inputRoles refused with reasoning enabled and disabled. Native build, package resource/sandbox checks, ten missing-resource refusals,1888 kernels, strict signatures and actual installation pass. Installed main UUID BE916EE7-812F-33F0-B0C1-23B5952F6706 and CLI D5FEF5C5-0483-3049-B9EF-3B8C25D2E2C5 match the package; SDK hashes are unchanged. Candidate143 full-suite and renderer/UI evidence are reused only for unchanged boundaries; final exact-source suite and hosted CI remain pending. Predeclared fresh cohorts26 then27 use all six cases in the established order and every unchanged final acceptance gate. No model/engine/budget change or manual generated-source edit.
+
+## Cohort 26: complete diagnostic, three of six workflows
+
+The unchanged candidate 144 (658f069) ran all six cases in 72 minutes. Three passed their complete journeys with no reused app, responses or manual source edits. The next proposed cohort 27 never started. These are diagnostic results, so no final cohort has been accepted.
+
+| Workflow | Result | Generation / total seconds | Finding |
+| --- | --- | --- | --- |
+| Stock | Failed | — / 1190.8 | Builder fixed an inverted duplicate predicate and completed its own checks. Blind review reran receipt and shipment to check secondary effects, colliding with the references it had just created. |
+| Production | Passed | 448.7 / 819.6 | Builder corrected scalar versus range arithmetic. Nine independent spreadsheet states, 135 formula comparisons. |
+| Bookings | Failed | — / 839.1 | After action-ID and form submission corrections, review still asked for a missing-reference refusal using an existing booking and an occupied target slot. |
+| Cash and loans | Passed | 344.8 / 605.0 | Builder corrected its form metadata and stored month type. Twelve independent spreadsheet states, 144 formula comparisons. |
+| Invoicing | Passed | 374.5 / 615.4 | Builder corrected its duplicate fixture and formula expression. Twelve independent spreadsheet states, 108 formula comparisons. |
+| Job costing | Failed | 200.5 / 250.9 | Corrected chat call saved the first time entry once. The response displayed the refused malformed call as if the saved action had failed. |
+
+Native tests on the exact 144 preview used disposable portable copies of Production, Cash and Invoicing. Rows were centered at standard and compact widths. Keyboard entry, search, scoped enabling, applicable refusal feedback, live cross-table recalculation and Undo worked. The final imported table values matched the untouched copies, all grants were revoked, and all generated source matched its exports. The Invoice table still uses worksheet letters over the raw header row; filtering can remove the meaningful headings from view. Long headings can elide on compact screens. These observations remain visual evidence for diagnostics, not the required six-case final review.
+
+Exact hosted run 43762847584 passed for candidate 143. Run 43764076181 failed for candidate 144 on the asynchronous SQLite exclusive-lock cancellation fixture (659 of 660 core groups). The local focused case reproduced the expected cancellation, identifying a timer-ordering race in the test. These different run results are retained separately.
+
+## Candidate 145: test one action's effects together and report the actual retry outcome
+
+The blind reviewer now puts up to four effects in the same action probe, or one refusal. The isolated worker invokes the action once; the same sequence can verify both a saved ledger record and its calculated result. The existing total, dependency, input-role and isolation bounds remain. Every successful write-backed expectation needs a committed action, even if text comes first or the same action appears again. The independent qualifier enforces the same condition. The reviewer receives validated registered display titles to test requested native controls without guessing from IDs or reading builder source. The checker explains when a test clicked submit before editing or asserted the wrong refusal for its setup. It does not reorder tests or edit code.
+
+The job costing retry now settles a malformed envelope only on the same app, action and version with its input values preserved. Identical redundant selectors may be dropped only when the actual invocation contract shows that they are not business fields. Different values, a real field with the same name, missing proof, and conflicting nested inputs do not silently settle failures. A real refusal remains visible and both receipts remain saved. The host does not rewrite or execute the invalid call. The SQLite lock tests now cancel at transaction entry with a real competing writer; an uncancelled read must still hit the busy error. Product timeouts are unchanged.
+
+Focused confirmation, chat, native authoring, Excel conversion, real constrained-review grammar, independent qualifier and 14 input / 30 causality checks pass on the updated sources. Live business qualification, exact package and full hosted checks remain open. The acceptance gates continue to be two complete fresh cohorts, independent original oracles and final native UI review, and exact-code verification.

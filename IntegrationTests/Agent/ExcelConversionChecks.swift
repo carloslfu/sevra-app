@@ -206,18 +206,22 @@ func pairedActionReviewFixture(_ verdict: Value) -> Value {
       interface.append(step)
       continue
     }
-    var expectation: Value = .null
+    var expectations: [Value] = []
     if step["reject"] == .bool(true) || step["error"].string != nil {
       var refusal: [String: Value] = ["kind": .string("reject")]
       if step["error"] != .null { refusal["error"] = step["error"] }
-      expectation = .object(refusal)
-    } else if index < tests.count {
-      expectation = tests[index]
-      index += 1
+      expectations = [.object(refusal)]
+    } else {
+      while index < tests.count,
+        ["expect_row", "expect_text", "expect_value"].contains(tests[index]["kind"].text)
+      {
+        expectations.append(tests[index])
+        index += 1
+      }
     }
     probes.append(
       .object([
-        "action": step["action"], "inputs": step["inputs"], "expect": expectation,
+        "action": step["action"], "inputs": step["inputs"], "expect": .array(expectations),
       ]))
   }
   fields["probes"] = .array(probes)
@@ -560,6 +564,28 @@ func checkExcelConversions() async throws {
       try expectEqual(autoKeys.count, 1)
       try expectEqual(autoKeys[0]["input"], .string("key"))
       try expectEqual(autoKeys[0]["check"]["status"], .string("passed"))
+      var missingForm = automaticHeaderReview
+      missingForm["decision"] = .string("revise")
+      missingForm["issues"] = .array([.string("The requested Lookup form is missing.")])
+      missingForm["tests"] = .array(
+        missingForm["tests"]!.array + [
+          .object(["kind": .string("expect_control"), "target": .string("Lookup")])
+        ])
+      let missingFormModel = ExcelTestModel([], reviews: [.object(missingForm)])
+      var missingFormFailure = ""
+      do {
+        _ = try await NativeAppReview.check(
+          request: build.request, requestSourceID: source.id, arguments: lookupArguments,
+          workbook: book, model: missingFormModel, directory: root, cancellation: .init(),
+          progress: { _ in }, excelConversion: build, checkedActions: ["lookup"],
+          checkedActionTitles: .object(["lookup": .string("Lookup")]))
+      } catch { missingFormFailure = error.localizedDescription }
+      try expectEqual(missingFormFailure.contains("The requested Lookup form is missing"), true)
+      try expectEqual(
+        await missingFormModel.reviewInputs.first?["checkedActionTitles"]["lookup"],
+        .string("Lookup"))
+      try expectEqual(
+        await missingFormModel.reviewInputs.first?["proposedPackage"]["source"], .null)
       // A shifted fixture is not evidence that the candidate lost a computed
       // record. Refuse that setup before treating its assertion as an app defect.
       var shiftedFixtureReview = automaticHeaderReview
@@ -710,7 +736,7 @@ func checkExcelConversions() async throws {
         Sevra.action('outbound',{title:'Outbound',inputs:{amount:{type:'decimal'}}},async input=>{
           if(Number(input.amount)<=0)throw Error('Positive amount required');
         });
-        Sevra.mount(Sevra.h(Sevra.Table,{table:'sheet1',label:'Records'}));
+        Sevra.mount(Sevra.h(Sevra.Column,{},Sevra.h(Sevra.Text,{text:'Ready'}),Sevra.h(Sevra.Table,{table:'sheet1',label:'Records'})));
         """
       var noWriteArgs = outboundArgs
       noWriteArgs["package"] = try encoded(noWrite)
@@ -724,6 +750,11 @@ func checkExcelConversions() async throws {
           return .object(values)
         })
       noWriteReview["fixtures"] = .object(matchingFixtures)
+      // A leading text result cannot hide a later claimed saved effect.
+      var noWriteTests = noWriteReview["tests"]!.array
+      noWriteTests.insert(
+        .object(["kind": .string("expect_text"), "value": .string("Ready")]), at: 1)
+      noWriteReview["tests"] = .array(noWriteTests)
       var noWriteFailure = ""
       do {
         _ = try await NativeAppReview.check(
