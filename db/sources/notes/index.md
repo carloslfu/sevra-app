@@ -2,11 +2,12 @@
 type: index
 scope: type-folder
 folder: sources/notes
-updated: 2026-11-15T15:42:08.410183Z
+updated: 2026-11-15T16:01:03.899294Z
 ---
 
 # sources/notes
 
+- [[sources/notes/2026/11/inline-chat-interactions]] — Owner extends the rich-native-visuals plan to useful inline questions, forms and interfaces in chat.
 - [[sources/notes/2026/11/rich-native-visuals-plan]] — Owner requests code research, a thorough rich-native-visuals plan, and several review/revision passes.
 - [[sources/notes/2026/11/home-working-overview]] — Carlos requests end-to-end implementation and verification of a useful chat-customizable Home with live mini-app capabilities.
 - [[sources/notes/2026/11/excel-business-applications]] — Carlos requests closing whole Excel application, autonomous reliability, and integrated chat product gaps with fresh local-model tests and adversarial review.

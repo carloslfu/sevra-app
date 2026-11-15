@@ -3,8 +3,8 @@ type: operational
 meta-type: operational
 id: 01m659x4nd2q89tkpzzsssd7yr
 created: 2026-10-30T02:23:30.477380+00:00
-updated: 2026-11-15T15:52:39.819692+00:00
-summary: Rich visual-system research and three-pass plan completed; implementation remains proposed. Existing Excel, Home and chat-operation acceptance is preserved.
+updated: 2026-11-15T16:07:42.827409+00:00
+summary: Reviewed rich visuals and inline-chat plan, including questions/forms, exact actions and input continuity; implementation remains proposed.
 title: Minimum-feature continuation handoff
 ---
 # Minimum-feature continuation handoff
@@ -12,6 +12,8 @@ title: Minimum-feature continuation handoff
 ## Rich visual-system planning checkpoint, November 15
 
 The owner-requested [[records/plans/rich-native-visuals]] is researched and reviewed through three revision passes. [[records/research/rich-native-visuals]] maps clean source `89c8ed70d8f5b18824cccf13932b035d0d424857` and primary technology references; [[records/reviews/rich-native-visuals-plan-review]] records concrete findings, revisions and remaining gates. The recommendation is a common typed native visual system for Home and mini apps, beginning with a complete charts/metrics/exceptions workflow, then richer analysis, boards/time views, diagrams and scoped media.
+
+The subsequent owner request adds native inline chat interactions to the same plan, now revision 8. [[records/research/inline-chat-interactions]] records the code/primary-source audit; three further review passes cover questions, compact forms, exact action/review controls, captured visual answers and durable input handoff. P0a delivers useful chat controls before chart/diagram dependencies. Historical results stay distinct from current live views, and the existing text and business-operation paths remain authoritative.
 
 The plan distinguishes package capabilities from versioned presentation-only edits, reuses exact query/transaction authority and requires chat parity, native visual review and independent data acceptance. ELK/Graphviz selection and performance are explicit implementation gates. This checkpoint changes documentation only: no new component, dependency qualification, UI launch or installed-app change is claimed. The existing accepted Excel, Home and chat-operation checkpoints below retain their original scope.
 

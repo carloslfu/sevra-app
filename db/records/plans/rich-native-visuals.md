@@ -3,22 +3,22 @@ type: spec
 meta-type: conclusion
 id: 01m7fxyzjyxhk7wqfy9044qq7y
 created: 2026-11-15T15:42:08.478533+00:00
-updated: 2026-11-15T15:51:58.792707+00:00
-summary: Proposed shared native visual system for Home and mini apps, with data correctness, chat operations, UX and staged acceptance.
-title: Rich native views for Home and mini apps
+updated: 2026-11-15T16:07:42.750566+00:00
+summary: 'Reviewed native visual and inline-chat system: shared components, questions, forms, exact actions, durable input and staged acceptance.'
+title: Rich native views for Home, mini apps and chat
 status: reviewed
 ---
-# Rich native views for Home and mini apps
+# Rich native views for Home, mini apps and chat
 
 ## Decision and status
 
-Revision 4, after three review-and-revision passes: UX, architecture/data integrity, and delivery/adversarial consistency. Planning only. Research and review do not establish implementation or visual acceptance. Owner request: [[sources/notes/2026/11/rich-native-visuals-plan]]. Code baseline inspected: `89c8ed70d8f5b18824cccf13932b035d0d424857`. Technical evidence and external references: [[records/research/rich-native-visuals]]. Review findings and revisions: [[records/reviews/rich-native-visuals-plan-review]].
+Revision 8, after three further inline-chat review-and-revision passes: interaction/UX, lifecycle/authority, and delivery/acceptance. The original three visual-system passes are preserved in the review record. Planning only. Research and review do not establish implementation or visual acceptance. Owner request: [[sources/notes/2026/11/rich-native-visuals-plan]]. Code baseline inspected: `89c8ed70d8f5b18824cccf13932b035d0d424857`. Technical evidence and external references: [[records/research/rich-native-visuals]]. Review findings and revisions: [[records/reviews/rich-native-visuals-plan-review]].
 
-Build one native visual component system that ordinary workbook spaces, Home and programmable mini apps can all use. The agent chooses the representation, binds real workbook data and invokes semantic operations. The host owns layout, rendering, interaction feedback, arithmetic and access. A chart in a mini app must be as capable and inspectable as the same chart on Home. Reusing components does not mean every view shares filters or every chart reads the same dataset.
+Build one native visual component system that ordinary workbook spaces, Home, programmable mini apps and useful inline chat surfaces can all use. The agent chooses the representation, binds real workbook data and invokes semantic operations. The host owns layout, rendering, interaction feedback, arithmetic and access. A chart in a mini app must be as capable and inspectable as the same chart on Home, with a readable compact representation available in chat. Reusing components does not mean every view shares filters or every chart reads the same dataset.
 
 Keep the product centered on completed business work: the conversation changes the work; the visual surface explains its state and supports fast inspection. Direct manipulation remains a useful optional shortcut. A user should never have to drag a card, click a chart or select a hidden tab to make a business operation possible through chat.
 
-The first deliverable is a complete, attractive chart-and-exceptions workflow in both a mini app and Home. The full program also includes boards, timelines/calendar views, relationship/process diagrams, images, richer tables and flexible composition. Finish each usable increment before advancing. Do not treat this document as authorization to replace the active installed app, toggle VoiceOver or change system settings; those existing operating boundaries remain.
+The first usable chat increment supplies structured questions, compact inputs and exact review/outcome controls. The next deliverable is a complete, attractive chart-and-exceptions workflow spanning inline chat, a mini app and Home. The full program also includes boards, timelines/calendar views, relationship/process diagrams, images, richer tables and flexible composition. Finish each usable increment before advancing. Do not treat this document as authorization to replace the active installed app, toggle VoiceOver or change system settings; those existing operating boundaries remain.
 
 ## 1. What exists and what is missing
 
@@ -26,6 +26,7 @@ The first deliverable is a complete, attractive chart-and-exceptions workflow in
 | --- | --- | --- |
 | Home and ordinary spaces | `Component` supports chart, metric, table, comparison, text and live whole-app bindings. `NativeComponent` renders bar/line charts with exact-values disclosure. | Single-series/categorical-X chart model, fixed 220-point plot, limited composition; no reusable mini-app chart or exported subview binding. |
 | Mini-app UI | Native AppKit renderer; 23 allowed node types; rows, columns, grids, tabs, forms, tables, progress and SF Symbols. | No chart/board/timeline/diagram/media components; weak responsive contracts and semantic styling. |
+| Chat surfaces | Conversation blocks are text/read-only tables; prepared approvals use event payloads and typed Confirm. Saved forms already have typed fields, drafts and receipts outside chat. | Native question choices, compact input/review/result surfaces, exact submission identities and durable input handoff are missing. |
 | Canvas | Four shape types, named hit regions, drag/keyboard events; 2,048 shapes and 128 regions. | No graph semantics, layout, routed edges, zoom model, chart scales, rich text or dependable element reading order. Drawing coordinates is not a visualization system. |
 | Data | Home component data reads at most 1,000 rows; metrics refuse incomplete inputs. The typed query engine already supports joins, grouping, exact Decimal aggregates, snapshot-bound pagination and bounded execution. | Charts bypass much of that query machinery. Dates, numeric bins, group drill-down and visualization coverage need a common contract. Query page limits must not become aggregate population limits. |
 | Excel | Worksheet imports preserve original cell strings, formulas, headers and coordinates; imported columns default to text. | Explicit typed projections and record domains are necessary before aggregating numbers, dates or statuses. Header/total rows cannot silently become data. |
@@ -172,6 +173,11 @@ Proposed new filenames below are planning names. Keep dependencies acyclic and a
 | `sdk/src/runtime.ts`, `sdk/index.d.ts`, `sdk/build.mjs`, bundled SDK resource | Named visual references, typed authoring helpers, subscriptions and event routing; generated/runtime artifacts updated together. |
 | `NativeAppAuthoring.swift`, `NativeAppTools.swift`, `NativeTools.swift`, `ChatOperations.swift` | On-demand capability/schema discovery, purpose-driven recipes, semantic browse/selection/configuration/export and honest receipts. |
 | `NativeAppCheck.swift`, `IntegrationTests/NativeApps/`, `IntegrationTests/Agent/`, `Tests/`, `sdk/test/` | Shared visual assertions plus independent business-value/coverage/refusal fixtures, protocol/catalog parity, prompt grammar and native interactions. |
+| `ConversationBlocks.swift`, `ConversationPresentation.swift`, `ConversationViews.swift`, `WorkbookView.swift`, `WorkspaceSnapshot.swift` | Typed surface projection/rendering, revision-aware caching, reading anchors, focus, native input and truthful fallback. |
+| `Sources/SevraCore/ConversationSurface.swift` and `ConversationInteraction.swift` (new), `ChatApproval.swift`, `Runs.swift`, `ConversationContext.swift`, `CommittedChange.swift` | Durable publications/replies, exact claims, needs-input outcome, bounded causal continuation, captured history and replay. |
+| `FormDrafts.swift`, `FormDraftSession.swift`, `FormComponentView.swift`, `ConversationViewState.swift` | Shared typed field/validation semantics, surface-scoped drafts, conflict recovery and expanded-editor continuity. |
+| `ChatTools.swift`, `WorkbookAgent.swift`, `ConversationHistory.swift`, `SevraSplashGrammar/NativeGrammar.swift` | Structured input/result tools, bounded grammar/catalog discovery, original-request restrictions and semantic history. |
+| `Tests/ChatOperationChecks.swift`, `Tests/ConversationContextChecks.swift`, `IntegrationTests/Preview/ConversationPresentationChecks.swift`, `ConversationStateChecks.swift`, `IntegrationTests/Agent/RequestAdmissionChecks.swift`, `ChatOperationChecks.swift` | Surface schemas, exact claims/replies, draft conflict/reopen, structured history, lease refusal, text/control parity and native row invalidation. |
 | `scripts/build_native.sh`, `scripts/check_native_package.py`, `scripts/check_install.py` | Resource pin/signature verification for any layout/thumbnail helper, packaging/install/uninstall and missing-resource refusal. |
 
 ## 5. Chat and agent authoring
@@ -186,7 +192,105 @@ Authoring should choose by the question: compare categories -> bar; change over 
 
 Provide six small canonical recipes: sales overview, collections exceptions, inventory/reorder, jobs board/timeline, supplier comparison and dependency explanation. Recipes use synthetic data and real binding/action contracts; they never embed customer values as source constants. Preserve named business operations and validate their effects independently of visual output.
 
+### 5.1 Chat is a native interaction surface
+
+Owner extension: [[sources/notes/2026/11/inline-chat-interactions]]. Code audit and primary sources: [[records/research/inline-chat-interactions]]. Chat must support useful controls and visual answers inline. Chat-centric means one continuous place to express intent, supply input, inspect a result and correct it. It does not mean making people type information that a choice, date picker or compact form expresses more easily.
+
+Use the same visual definitions, field semantics, exact calculations and action dispatcher across chat, Home and mini apps, with surface-specific composition. Reuse capability, not identical page layout. A compact chart can work in all three. A full board, spreadsheet editor or large graph usually needs an expanded workspace. Expansion is an optional inspection/editing aid, not a required step in the conversational path. Every such operation remains expressible in text; a widget is a faster optional path, never a hidden capability accessible only by clicking. Do not generate or enable an executable app package merely to ask a question or render a result.
+
+Optimize for fewer avoidable clarification turns, accurate input and a clear saved outcome. The model should first extract values already supplied by the user or explicitly chosen sources. Ask only for consequential missing information. Use a widget when it reduces effort, mistakes or inspection cost; a clear one-sentence answer needs none.
+
+### 5.2 Useful inline repertoire and surface rules
+
+| Purpose | Inline experience | Expand or fall back when |
+| --- | --- | --- |
+| Clarify a decision | One short question with two to four clearly labeled answer buttons; optional short explanation for a recommendation. Clicking a simple answer sends that explicit answer. Free-text reply remains available. | Many alternatives need a searchable native picker; uncertain/open-ended answers use prose. No decorative choice chips after every reply. |
+| Supply related missing values | Compact labeled form, usually two to five fields: text, exact number/money, date, choice, boolean and scoped record/evidence pickers. Submit once; show units, required/optional state and field errors. | Repeated rows, many dependencies or more than six initially visible fields use a focused expanded editor, retaining the same draft. Chat can still supply the entire input. |
+| Choose records | Source-linked result rows with distinguishing fields and stable IDs; radio selection or explicit multi-select plus Apply selection. | Large results require search/paging or the full table, not hundreds of buttons. |
+| Review a real change | Concise before/after or effect summary, affected count, exact target and a specific primary action such as Save payment. Edit and Cancel are secondary. | Full details or many changed rows open the existing review workspace with return navigation. Use this only where the existing operation or user request needs review; the single visible final action fulfills that review, without a second generic confirmation dialog. |
+| Explain a result | Small chart, comparison table, metric with context, cited excerpt, image/attachment preview or compact diagram. Show the question answered, period, units and coverage; allow exact values/source inspection. | Rich comparison, many series, large diagrams and bulk edits expand into the corresponding view. Do not compress beyond legibility to stay inline; use the same named compact view and allow a focused workspace to take over when it no longer fits. |
+| Show an outcome | A short saved-result receipt with source/result link and Undo when supported. Completed forms collapse to their submitted values and outcome. | Inspection can reopen details; repeating the action requires an explicit new invocation. |
+| Continue useful work | At most one or two specific suggestions when there is a clear next step, such as Show overdue invoices or Add this view to Home. | Ordinary finished answers have no mandatory follow-up buttons. |
+| Show work in progress | Existing real activity/Stop controls, plus a clear Waiting for your answer state. | Avoid fake percentages or a second unrelated progress system. |
+
+Keep one visually primary input group at the active end of the conversation; group at most three closely related questions instead of three separate interruptions. Other genuinely pending tasks remain discoverable in a small pending-input list; changing topic does not cancel them silently. One input group can own the current composer context, visibly indicated by the question title with a Clear reply target action. A user can continue an unrelated request while preserving the unfinished form. Native labels persist while typing. Avoid nested cards, tiny unlabeled icon buttons, horizontal button carousels and scroll areas inside scroll areas. Buttons wrap into aligned rows or a vertical list at narrow widths. Use the existing native typography, spacing and light/dark treatment. One prominent submit action is enough. A plain answer button submits an answer; multi-select and editable forms use explicit submission. A suggested follow-up with a complete, accurately labeled request sends that request; a suggestion needing further composition is labeled Edit request and fills the composer without sending. Do not mix these behaviors under indistinguishable buttons. Recommendations may be labeled with a reason, but do not preselect consequential business values or silently submit a default.
+
+Initial budgets to calibrate in the native spike: at most 40 controls/nodes and 64 KiB of descriptor data per chat surface, within the existing 128,000-byte message-payload bound; a visual answer initially shows up to eight rows or 200 plotted marks, subject to shared data-completeness rules. These are chat presentation budgets, not limits on the source population. Share exact aggregate evaluation with full views. At most two visible rich result surfaces actively subscribe to data; offscreen/history rows keep lightweight, correctly sized summaries. No hidden app worker starts merely because a message scrolls into view. These two subscriptions count within the eight-active-rich-view budget for the whole window, not an extra budget per conversation. Do not poll all historical cards or rebuild the transcript on every keystroke.
+
+### 5.3 Three representative journeys
+
+**A missing decision.** “Compare these suppliers” already supplies the files. Sevra asks only “Include delivery in the comparison?” with Include delivery and Item price only, plus ordinary typed reply. Choosing one saves a human response linked to that question and continues the comparison. If the user types “Include delivery, but exclude tax,” retain both pieces of input; do not force the response into one enum and discard the qualification.
+
+**A transaction with missing values.** “Record a payment for Acme” resolves the customer and, if needed, shows distinguishable invoice choices. A small form asks only for the remaining amount and payment date; it does not copy values from the last payment. “250 dollars yesterday” can fill the same fields, using workbook locale/time-zone rules and a visible resolved date. The existing operation's review, if required, shows the exact invoice, amount and resulting balance. Save payment invokes the same registered action as the app and returns its real receipt. Editing any effect-bearing field invalidates an older review. Opening the full editor retains the draft and returning retains conversation position.
+
+**A visual answer that becomes a tool.** “Why did sales fall?” produces a concise explanation, a source-linked period chart and a few exception rows. Inspecting one point shows its exact underlying period/records without asking the model to interpret a click. Open current view expands the existing definition at the selected period. Add to Home creates a live reference/preset through the planned presentation operation. The original answer retains the values and period it used; the pinned live view can subsequently change.
+
+These journeys are acceptance scenarios, not a mandatory wizard. If a request supplies everything and already authorizes the operation, execute within existing policy and show the outcome without adding an input form or redundant approval.
+
+### 5.4 Typed publication and execution contracts
+
+Introduce a bounded host-owned `ConversationSurface` contract in Core, with four primary kinds: `question`, `input`, `review` and `result`. Result surfaces reference the shared `VisualDefinition`/named-view contract; input surfaces reference a saved form/action descriptor or a small ad hoc field schema. Compose registered native primitives only. No HTML, Markdown-encoded callbacks, arbitrary JavaScript, expression evaluator, model-supplied file paths or opaque action URL becomes an executable control.
+
+A published surface has a host-minted ID, schema/catalog version, revision, conversation/message identity, origin request/run, purpose, accessible/plain-text fallback, kind-specific content and exact target references. The host resolves its allowed actions. Question options contain IDs and literal values; actions contain registered operation IDs and validated bindings, not code. Published descriptors are schema-validated and immutable; updates publish a new revision with an explicit supersedes link and cannot retroactively change submitted values. Unknown component/catalog versions retain their readable fallback and disable unsupported actions. The message payload stores the immutable publication and later typed receipts; draft storage remains presentation state. Reuse captured `messages`/`message_payloads` and the existing change/reconstruction mechanism rather than adding a parallel durable ledger. A small derived index is acceptable if rebuildable from these records. Surface publications and draft metadata are not new business records or documents; keep them out of business datasets and Home document recents. Classify only submitted business observations through the existing input-evidence path.
+
+Example of a proposed model-authored question body, before host identities and action bindings are attached:
+
+```json
+{
+  "kind": "question",
+  "purpose": "Choose the comparison basis",
+  "question": "Include delivery in the comparison?",
+  "fields": [{
+    "id": "include_delivery",
+    "type": "boolean",
+    "required": true,
+    "label": "Include delivery"
+  }],
+  "choices": [
+    {"id": "include", "label": "Include delivery", "values": {"include_delivery": true}},
+    {"id": "exclude", "label": "Item price only", "values": {"include_delivery": false}}
+  ],
+  "allowTextReply": true
+}
+```
+
+Expose one narrow structured input-request tool and a typed result-presentation path, with the catalog/schema fetched on demand. Host-authored review/outcome controls should be generated from existing operation receipts, not independently invented by the model. Do not add a tool per widget or a separate UI-generation model. Update the tool registry, constrained grammar, prompt policy and tests together, retaining the existing prompt/run/step budgets. Questions/forms should work without loading the mini-app authoring prompt. Record/evidence choices must resolve to real inspected identities; generated labels alone are not proof that a record exists. Result surfaces bind completed query/calculation/source receipts that pass the existing answer-evidence checks. Do not let a visually authoritative chart, balance or outcome introduce model-invented business values.
+
+Classify an interaction before dispatch:
+
+1. **Presentation only:** expand, select, sort, inspect, change a local filter. Resolve locally through the shared view controller without inference; persistent preset edits still use their normal write path.
+2. **Structured answer:** persist the human's submitted values and exact question identity, then admit a causally linked agent continuation if reasoning is needed. An answer supplies information; it is not blanket permission to perform a new action.
+3. **Known operation:** submit a named business action, review an exact change, navigate or export. Invoke the existing validated dispatcher directly; no model round-trip is needed to reinterpret a known button. Required grants/reviews remain unchanged.
+
+The agent may propose fields or fill a draft from supplied values, but cannot forge a human answer, click-confirmation receipt or local execution grant. A native button event is an explicit human action with its own saved provenance. Preview never implies commit. Read-only requests can display questions/results and keep ordinary input drafts, but cannot gain write authority through a button or a follow-up answer.
+
+### 5.5 Durable input lifecycle, drafts and recovery
+
+Add an explicit `needs_input` run outcome and surface lifecycle: published/awaiting input, submitted, executing, succeeded, failed, cancelled, superseded or stale. Persist the publication before exposing controls, end the active inference segment and release its lease; do not leave a model/tool call busy indefinitely while the user answers. The next submitted answer creates a new admitted run linked to the exact original request and input surface, carrying the original task, completed-operation receipts, restrictions and supplied values. Reuse request admission and causal-capture patterns; this is a narrow handoff, not a new workflow scheduler. Waiting/answered/cancelled must be reflected consistently in activity, history, recovery and summaries. Add and test the needs-input status in every terminal-state validator, activity projection and stopped-request/history path; do not merely add a UI badge. Keep request restrictions and completed-operation identities host-owned across the handoff. A reply cannot reset action retry tokens or override the original read-only scope. A separate explicit request to change scope is admitted as new work with its own authority, not smuggled through answer values. If an inference lease is unavailable after the answer is saved, show Answer saved, continuation not started with a specific Retry continuation action; do not lose the answer or secretly schedule background work.
+
+Give each form an independent draft identity scoped to physical workbook, conversation, surface and definition revision. Reuse Core validation and FormDraftSession behavior where applicable; reuse the existing app-session input revisions for drafts of named mini-app actions without creating a competing business transaction path; ad hoc questions need no saved business form. Preserve edits across rerender, navigation and restart, detect conflicting window edits, and keep unsent values outside model history/evidence. A model update cannot overwrite a dirty human field. When the composer is explicitly answering a form, its submitted text and any current local field edits must be reconciled by revision, preserving conflicting alternatives rather than guessing. Typed corrections and controls update the same draft after explicit target resolution, with input revisions and expected-version checks. Validate at useful boundaries and on submit; retain original entered text beside parsed exact numbers/dates when needed. No implicit business defaults from an unrelated form/session.
+
+Extend `claimChatApproval` to accept a trusted native submission naming the exact approval ID/revision and effect digest. Do not implement old-card buttons by injecting the text Confirm into the composer: today's latest-pending lookup can target a different proposal. Typed Confirm remains available only when the host can resolve the intended current review unambiguously; otherwise identify the alternatives. Model tools cannot manufacture this claim.
+
+Submission uses a durable interaction ID and the operation's existing idempotency/receipt mechanism. Separate the response receipt from execution: record once, validate current schema/targets/grants, claim the exact operation once, execute and record the outcome. Validate and claim atomically against expected identities where the current operation supports a transaction; never hold that transaction open across inference or user input. Duplicate clicks, two windows and restart must not execute twice. Typed answers and native submits for the same surface revision must converge on this one claimed identity. If a process stops after a claim with uncertain completion, inspect operation proof before retrying; never announce success from a pressed button or blindly replay. Stale forms preserve values and offer Refresh review. A cancelled, superseded or interrupted request stays nonactionable until the user explicitly opens a new valid continuation. Missing/withdrawn targets and changed app versions keep the old input readable but require revalidation before a new action. Portable copies retain evidence and unsent drafts but never inherit local grants or replay pending execution; the user explicitly continues against the copy after revalidation.
+
+Cancel input, decline a choice and Stop running work have different meanings. None is a successful response. Ordinary new chat messages stay ordinary requests unless they clearly address the active question. Do not silently attach a reply to a background thread or replay old pending work. Moving to another thread preserves drafts but does not submit them.
+
+### 5.6 Historical answers, live views and native composition
+
+Historical visual answers default to a bounded captured result with exact source/query identity, values, coverage, period and generated-at time. Persist enough to reproduce the displayed result after reopen. Large immutable result payloads use existing workbook-managed evidence/asset storage with verified identity, not inline bytes beyond the message bound. An explicitly exploratory transient view may be live while in use, visibly labeled; later history shows its captured result and an Open current view action. Do not silently refresh old chart numbers beneath an old explanation. Current approval/action status may update from receipts without rewriting the original proposed effect.
+
+Chat selections/filters are local to their surface by default. Open in app carries the chosen context explicitly; it does not silently change the user's saved Home preset. Add to Home creates a live reference/preset only when requested. A deliberately linked preset retains the sharing rules in section 4. Reuse the same renderer/evaluator across all three surfaces; lifecycle and selection policy are explicit adapter inputs. Revalidate bindings and authority on open/refresh/dispatch and reject late results after revoke/version change. Snapshot rendering is not an access bypass.
+
+Move only reusable field/visual presentation into `SevraVisualUI`; it continues to depend on Core and Apple frameworks, not PreviewUI or the app executable. Form session ownership stays in PreviewUI/host adapters; pass narrow picker/navigation/submit closures instead of importing WorkspaceState into shared views. Add `ConversationSurfaceView` in PreviewUI and mount it from the existing conversation row. Avoid embedding a complete app root view, its tabs and toolbars into a message. The host may render a declared compact view after normal grant checks; unsupported shapes have a meaningful text/table fallback.
+
+Update ConversationMessageRow equality, WorkspaceSnapshot and the content cache to include surface/receipt/draft revisions as appropriate; a body-only equality check must not hide a changed form or approval. Batch-load bounded presentation projections instead of querying per row. Preserve measured row heights and reading anchors when mounting rich results; no auto-scroll while the user reads older history. New streamed output cannot steal focus or replace an active field. Fully validate a control group before enabling it; do not execute partial streamed descriptors. Multiline fields, Tab/Shift-Tab, Escape and submit shortcuts keep native semantics, with no global Return handler that both submits a form and sends the composer.
+
+Every surface has a readable fallback for copying, history search, export and unsupported clients: question/options, submitted values, effect/result and source links. Compact agent history includes submitted structured answers, receipts and the bounded currently pending question, never draft keystrokes or entire UI trees. Untrusted labels/evidence remain data. A stored historical choice must not return as a fresh user instruction or renewed authority.
+
 ## 6. Technology choices and open gates
+
+For inline chat, use the existing native message renderer plus the small Core surface schema in section 5. Reuse field/visual components and existing business dispatchers. A2UI, Slack Block Kit, MCP elicitation and Adaptive Cards provide useful catalog/action/lifecycle precedents, documented in [[records/research/inline-chat-interactions]]. Adopting their SDKs, transport or full specifications is not necessary. There is no new service, subscription, network dependency or per-widget code generation in this design.
 
 Use Swift Charts on the existing macOS 14 baseline. Apple documents marks, axes/legends, selection and scrolling; current Home already imports Charts. NSHostingView is the supported bridge to AppKit. Keep newer 3D/vectorized APIs out of baseline requirements. This is a proposed integration, not a claim that embedding is already qualified in Sevra.
 
@@ -200,14 +304,15 @@ If neither candidate clears the gate, keep general diagrams explicitly unavailab
 
 | Stage | Concrete work and owning seams | Exit evidence |
 | --- | --- | --- |
-| P0 Contract and vertical spike | Core visual types/catalog; Package.swift UI target; NSHostingView sizing/focus spike in NativeAppRenderer; query/Excel projection design; named-view persistence; diagram dependency experiment. Specify schema, stable IDs and bounds before parallel feature growth. | One synthetic chart rendered in both adapters; query identity and access refusal; native resize/focus proof; saved presentation edit without regrant plus unauthorized override refusal; measured diagram candidate decision or explicit blocker. Spike code is disposable evidence, not acceptance of the full feature. |
-| P1 First complete workflow | Chart/metric/data-table exception components; typed dates/decimals, query aggregation and coverage; semantic inspection/filtering; shared view state; compact named-view Home binding; agent recipes and check operations. | Sales and collections journey from chat to app to Home, edit/update/Undo, restart/reopen, independent exact totals and partial-data counterexample. Real native wide/narrow UI review. This is the first usable release, not the whole plan. |
-| P2 Rich analysis and composition | Responsive layout tokens, detail inspector, richer chart families, conditional table bars/formatting, structured annotations, native visual/data export. | Stock/supplier scenario, distinct correct visual choices, no clipped labels, exported values match the frozen query, missing-data/units/negative-value cases. |
+| P0 Contract and vertical spike | Core visual types/catalog; Package.swift UI target; NSHostingView sizing/focus spike in NativeAppRenderer; query/Excel projection design; named-view persistence; diagram dependency experiment. Specify schema, stable IDs and bounds before parallel feature growth. | One synthetic chart rendered in Home/app/chat adapters; inline-question publication, native field focus and answer-admission spike; query identity and access refusal; native resize/focus proof; saved presentation edit without regrant plus unauthorized override refusal; measured diagram candidate decision or explicit blocker. Spike code is disposable evidence, not acceptance of the full feature. |
+| P0a First usable chat interaction | Question choices, compact forms/record picks, exact review/outcome controls, draft retention, structured response admission and text parity. Reuse existing business operations; no diagram/chart dependency. | Missing-choice and payment journeys by controls and text, no duplicated inputs, duplicate/stale/cancel/restart/read-only counterexamples; actual local-model and narrow native review. |
+| P1 First complete visual workflow | Chart/metric/data-table exception components; typed dates/decimals, query aggregation and coverage; semantic inspection/filtering; shared view state; compact named-view Home binding; agent recipes and check operations. | Sales and collections journey with an inline captured chart, expanded app and live Home view, edit/update/Undo, restart/reopen, independent exact totals and partial-data counterexample. Real native wide/narrow UI review. This is the first complete rich-visual release; P0a can ship earlier. |
+| P2 Rich analysis and composition | Responsive layout tokens, compact chat result previews and expanded-view continuity, detail inspector, richer chart families, conditional table bars/formatting, structured annotations, native visual/data export. | Stock/supplier scenario, distinct correct visual choices, no clipped labels, exported values match the frozen query, missing-data/units/negative-value cases. |
 | P3 Work organization | Board, timeline, agenda/calendar; record identity and action adapters; date semantics, overlapping events, accessible alternative interactions. | Jobs scenario completed by chat alone and optional pointer/keyboard, with stale/conflicting/invalid move refusal and Undo. Home and full view agree. |
 | P4 Relationships and media | Qualified diagram engine, native graph renderer/accessibility, scoped assets/thumbnails, captions and attachment preview. | Branch/cycle/disconnected graph corpus, readable labels/edges, cancelled/revoked stale-layout refusal; image bounds/permissions/missing source; source-linked dependency journey. |
-| P5 Integration and richness review | Optional bounded custom-scene additions only where a concrete recipe cannot be expressed; examples/discovery cleanup, full native quality review and release qualification. | Whole catalog coverage matrix, actual-model cohort, required suite/package checks on the candidate, documented remaining limits. No unsupported family advertised as ready. |
+| P5 Integration and richness review | Optional bounded custom-scene additions only where a concrete recipe cannot be expressed; examples/discovery cleanup, full native quality review and release qualification. | Whole catalog and chat-surface coverage matrix, actual-model cohort, required suite/package checks on the candidate, documented remaining limits. No unsupported family advertised as ready. |
 
-Every stage updates this plan with exact evidence and retains failures. No invented calendar estimates. Keep at most three active blockers; queued stages remain visibly queued. A blocker in diagram layout must not prevent shipping the accepted chart workflow.
+Every stage updates this plan with exact evidence and retains failures. No invented calendar estimates. Keep at most three active blockers; queued stages remain visibly queued. P0 produces separate chat, chart and diagram evidence: P0a requires the chat contract/focus/admission spike, and P1 requires the chart/data spike. The diagram decision may remain an explicit open gate until P4; it must not hold either earlier release. A blocker in diagram layout must not prevent shipping the accepted chart workflow.
 
 ## 8. Verification strategy and performance
 
@@ -224,10 +329,22 @@ Actual-model qualification: freeze ten fresh requests across the six recipes bef
 At an integration release run `scripts/check.sh`, relevant native UI checks, SDK/protocol/agent grammar checks, strict changed-file formatting, package/install/extraction/resource checks and exact-code hosted CI. During development use the focused policy and nearby counterexamples. This planning change needs only documentation/link/store validation; it does not justify running the entire application suite.
 
 
+### Inline-chat qualification
+
+Freeze six P0a scenarios before implementation acceptance: one missing choice; several related inputs with a custom qualification; exact amount/date and record disambiguation; already-complete request requiring no question; an existing exact review with an older card still visible; and Stop/restart with a partially edited form. Run paired control and text routes against independent expected operations/values. Supply only the scenario's predeclared human answers; do not coach the model with tool names or repair generated artifacts. Report unnecessary questions, lost supplied values, wrong targets, duplicate effects and recovery outcomes. All six must meet their acceptance, with zero wrong-target/duplicate writes. This is a bounded cohort, not a measured production success rate.
+
+P1 adds a captured chart/table result, exact source drill-down, Open current view and Add to Home, checking that historical numbers stay stable while the live view updates. Extend the final P5 cohort to include both typed and native submissions, fields already supplied, deliberate declines, current-versus-historical results and permission/version changes. Keep existing prompt/run limits; structured answer payloads are bounded before admission, and large selections use verified record IDs/scoped references instead of inflating the 16,000-byte request envelope. On-demand inspection preserves exact originals.
+
+Native acceptance includes narrow/wide chat, long translated labels, light/dark appearance, tab order, form/composer Return behavior, focus during streaming, preserving the reading anchor, reopening a draft and conflict handling in two windows. Include a history window with 100 bounded mixed messages and only visible rich content mounted; record scrolling/rendering and peak memory under idle and model-loaded conditions. Local selection, validation and deterministic known actions must not require an extra inference turn. Measure interaction acknowledgment against the existing 100 ms target; query, action and inference completion are reported separately. Use frozen snapshots for offscreen historical result views, with no unbounded background queries. No public usability/latency claim until measured.
+
 ### Required acceptance matrix
 
 | Contract | Positive check | Nearby refusal/recovery |
 | --- | --- | --- |
+| Structured input | Control and text routes submit the same typed values against the same pending question. | Unrelated text, custom qualifications, cancelled questions and cross-thread replies cannot resolve the wrong request. |
+| Draft continuity | Text/control edits and expansion/reopen retain values and expected revisions. | A streamed rerender, conflicting window edit or changed definition cannot overwrite unsent values. |
+| Exact interaction | A current button names an exact operation/effect and produces its durable receipt once. | Old-card clicks, double submit, lease refusal and crash-after-claim neither apply another proposal nor silently replay. |
+| Answer history | Historical charts/values reproduce their captured result; Open current view shows the current labeled result. | A later source edit cannot rewrite an old explanation; copy/search/history include meaningful fallback and no fresh authority. |
 | Visual data | A 10,000-row fixture aggregates to independent exact totals before plotting. | More than 1,000 output groups, malformed values and join fan-out cannot become a misleading complete chart. |
 | Chat parity | Select a group/date range, move a job and edit a view entirely by typed operations, with no window mounted. | Read-only requests cannot persist a presentation or business change; inspection does not start stopped code. |
 | Shared view state | Home and app share the same preset's filter and latest committed result; independent presets retain their own state. | An old query/thumbnail/layout response after filtering, version change or revocation cannot replace current output. |
@@ -240,11 +357,12 @@ At an integration release run `scripts/check.sh`, relevant native UI checks, SDK
 ## 9. Completion checklist
 
 - [ ] Shared typed visual contract and native adapters, with one query/access path.
+- [ ] Complete P0a question/form/review/receipt chat interactions, typed parity and recovery.
 - [ ] Complete P1 app/Home/chat workflow and independent evidence.
 - [ ] P2 analysis/composition/export scope accepted.
 - [ ] P3 board/time/calendar scope accepted.
 - [ ] P4 diagram/media scope accepted, including dependency decision.
-- [ ] Agent discovery, chat operations and assertion coverage for every shipped family.
+- [ ] Agent discovery, chat operations and assertion coverage for every shipped family, including native controls and submitted-answer history.
 - [ ] Persistent edits/history, exact values, grant revocation, Undo/reopen and portable-copy integrity.
 - [ ] Native visual quality and bounded performance acceptance; accessibility limits explicit.
 - [ ] Final source/package/CI identity and honest supported-feature documentation.

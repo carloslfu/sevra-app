@@ -3,7 +3,7 @@ type: research
 meta-type: conclusion
 id: 01m7fxyzj47qvj40kmq79dcbk1
 created: 2026-11-15T15:42:08.452505+00:00
-updated: 2026-11-15T15:42:08.452505+00:00
+updated: 2026-11-15T16:07:42.798937+00:00
 summary: Code audit and primary-source research for shared native charts, richer layouts, boards, timelines, diagrams and media.
 title: Rich native visuals research
 ---
@@ -52,3 +52,7 @@ All links below were consulted November 15, 2026. Statements about Sevra integra
 ## Unresolved by research
 
 ELK/Graphviz runtime choice, native-host performance, minimum supported hardware and actual VoiceOver behavior need implementation evidence. The plan supplies decision gates and proposed targets. No public production claim or model-reliability rate follows from this research. Existing [[records/specs/programmable-native-engine]], [[records/specs/chat-primary-operation]], [[records/plans/home-working-overview]] and [[records/specs/distribution]] remain the implemented contracts until their proposed extensions are accepted.
+
+## Inline-chat extension
+
+The owner later extended this same plan to native controls and visual results in chat. [[records/research/inline-chat-interactions]] audits the message renderer, existing forms/approvals, durable input lifecycle and relevant primary design sources. The updated owning plan now covers Home, mini apps and chat; this initial code audit retains its exact baseline and findings.
