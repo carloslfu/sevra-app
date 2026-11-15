@@ -3,7 +3,7 @@ type: operational
 meta-type: operational
 id: 01m7ebv28bxsk6szwx72sbrcyp
 created: 2026-11-15T01:06:11.339074+00:00
-updated: 2026-11-15T17:54:27.449785+00:00
+updated: 2026-11-15T18:05:35.855521+00:00
 summary: Close realistic Excel business application reconstruction, reliable autonomous generation, and integrated chat/native qualification gaps.
 title: Realistic Excel business applications
 status: in-progress
@@ -1147,3 +1147,10 @@ Cohort 17 completed all six fresh diagnostic cases: five passed their then-curre
 Reporting now recognizes these two unambiguous envelope corrections only after a real subsequent invocation, matching exact app/action/version and every supplied business value. Removing a selector from inputs additionally requires the captured SDK contract to prove there is no legitimate business input named action. Malformed calls are never rewritten or executed. A genuine later business refusal replaces the stale format complaint and remains a failure. Different targets, versions, values, missing contracts and actual action-named inputs have counterexample coverage. The new regression failed before the change; focused confirmation/chat and full signed authoring checks pass afterward.
 
 A diagnostic replay of the untouched cohort-17 Jobs package passes all five conversational journeys, refusal/correction and zero-rate controls, saved effects, Undo, source rebuild and portable checks in 200.2 seconds. Independent spreadsheet recalculation matches 108 formulas across twelve retained states. It is not a fresh-generation trial. Production code remained unchanged during replay; one test file gained missing-contract coverage, so the broad runtime source-unchanged flag is false and that limit is retained. Candidate 137 release packaging passes. No generated source has been manually changed. Final fresh cohorts and native qualification remain pending.
+
+
+### Candidate 138: neutral presentation for a requested stop
+
+Native candidate-137 inspection found an explicit Stop was presented as a red failure banner even though the workspace already supports a neutral stopped status. The shared error presenter now uses that neutral status only when the active ticket was cancelled and the thrown structured error is cancellation. A real concurrent failure still remains an error. This is a presentation-only change; cancellation, saved state, model behavior and approval are unchanged. Release compilation and visual reinspection are pending.
+
+The fresh synthetic Production import on candidate 137 passes wide and compact layout, wrapped purpose, original-result example selection, and incompatible-example refusal with the original valid example and full purpose retained. Stop during local-AI preparation returns promptly with all inputs retained and controls reenabled; the preview was quit before package GPU checks. Candidate-137 installation identity matches the package for main, CLI, extractor and both workers, with strict signatures and SDK digests verified. The complete local suite is still running; final fresh cohorts remain zero.

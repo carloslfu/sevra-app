@@ -558,6 +558,9 @@ struct FolderReview {
   }
   func report(_ failure: Error, for ticket: WorkspaceOperation, in book: Workbook) {
     guard owns(ticket, in: book) else { return }
+    // A requested stop has a neutral terminal status. Do not hide a genuine
+    // failure that happens to arrive after Stop was pressed.
+    if ticket.cancellation.isCancelled, (failure as? SevraError)?.code == "cancelled" { return }
     error = failure.localizedDescription
   }
   func pinSpace(_ id: String, title: String) {
