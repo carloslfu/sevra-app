@@ -728,7 +728,7 @@ func checkExcelConversions() async throws {
           "decision": .string("ready"), "issues": .array([]),
           "inputRoles": .object(
             Dictionary(
-              uniqueKeysWithValues: indices.map {
+              uniqueKeysWithValues: (0..<9).map {
                 ("check\($0)", .object(["key": .object(["kind": .string("value")])]))
               })),
           "tests": .array(
@@ -753,6 +753,11 @@ func checkExcelConversions() async throws {
       try expectEqual(manyReport["attempts"], .number(4))
       try expectEqual(manyReport["independentActionCheck"]["actions"].array.count, 9)
       try expectEqual(manyReport["independentActionCheck"]["checks"].array.count, 3)
+      for check in manyReport["independentActionCheck"]["checks"].array {
+        try expectEqual(
+          Set(check["inputRoles"].object.keys),
+          NativeAppReview.assertedSuccessfulActions(check["tests"].array))
+      }
       try expectEqual(try book.tablePage(tableID).values, before.values)
       var reproduced = ""
       do {

@@ -2,7 +2,7 @@
 type: review
 id: 01m7fb55rgf0b9rfxcfp0683tx
 created: 2026-11-15T10:13:28.464388+00:00
-updated: 2026-11-15T20:32:48.817525+00:00
+updated: 2026-11-15T20:37:19.862844+00:00
 summary: Shared formula, review, numeric validation, repair and authority fixes pass scoped checks; final fresh cohorts and native visual qualification remain pending.
 title: Excel business application adversarial review
 ---
@@ -375,3 +375,11 @@ The full local suite passed, including the final strengthened reviewer regressio
 An isolated AppKit table with 200 rows remained responsive after outer scrolling. Constraint-centered cells raised capture time from approximately 7.3 to 18.8 seconds there. Candidate 141 was only a diagnostic experiment using frame-centered cells. It did not resolve the actual Stock capture timeout and was fully reverted; no renderer change remains. A trace during the failed request shows substantial SwiftUI layout work, while later samples are idle. The unfiltered Stock capture issue is unresolved, not a passed visual gate. The diagnostic app grant was visibly revoked and the preview quit after restoring 140.
 
 Predeclare cohorts 21 and 22, in stock/production/bookings/cash/invoices/jobs order, with new files, analysis, generation and conversations on unchanged candidate 140 and final acceptance hashes. Cohort 20 was never started. Both complete runs, independent oracles and final visual qualification remain required. No replay or manual generated-source changes are allowed.
+
+## Candidate 142: executed-only review receipts
+
+The next adversarial pass found that accepting extra registered classifications also required canonicalizing readiness receipts: each batch must record only roles for actions actually exercised in that batch. The independent qualifier already refuses untested classified roles and remains unchanged. Cohort 21 was stopped after 78 seconds during its first Stock generation, before any completed case; its runtime receipt confirms unchanged sources. No accepted fresh cohort was lost or reclassified.
+
+A nine-action, multi-batch signed-worker regression fails on the old full-role receipt and passes with projection to executed batch actions. Repeated batches still do not count as new coverage. The focused Excel reconstruction and unchanged independent-qualifier regression suites pass. The correction changes evidence serialization only, preserves the candidate 140 role validation, and reuses the full local suite and packaging-boundary proof for unchanged code. Exact candidate 142 hosted CI and final fresh generation remain pending.
+
+The next predeclared pair is cohorts 22 and 23 with the same six cases and all original gates. The renderer, SDK, model, inference engine, fixtures, budgets and independent verifier remain unchanged. The previously discussed 200-row offscreen table capture remains unresolved; the rejected 141 layout experiment was reverted.

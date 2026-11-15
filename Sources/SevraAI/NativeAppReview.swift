@@ -453,7 +453,10 @@ package enum NativeAppReview {
             readinessChecks.append(
               .object([
                 "check": checked, "tests": .array(tests), "fixtures": verdict["fixtures"],
-                "inputRoles": verdict["inputRoles"], "inputChecks": .array(inputChecks),
+                // A receipt describes executed coverage, not every proposed role.
+                "inputRoles": .object(
+                  verdict["inputRoles"].object.filter { probeActions.contains($0.key) }),
+                "inputChecks": .array(inputChecks),
               ]))
             testedActions.formUnion(probeActions)
             let remaining = Set(checkedActions).subtracting(testedActions)
