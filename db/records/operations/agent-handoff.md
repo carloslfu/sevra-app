@@ -3,8 +3,8 @@ type: operational
 meta-type: operational
 id: 01m659x4nd2q89tkpzzsssd7yr
 created: 2026-10-30T02:23:30.477380+00:00
-updated: 2026-11-15T16:07:42.827409+00:00
-summary: Reviewed rich visuals and inline-chat plan, including questions/forms, exact actions and input continuity; implementation remains proposed.
+updated: 2026-11-15T18:58:01.007507+00:00
+summary: Rich visuals and inline-chat plan revision 12 passes four complete readiness reviews; start with native chat inputs, then charts. Implementation remains proposed.
 title: Minimum-feature continuation handoff
 ---
 # Minimum-feature continuation handoff
@@ -13,7 +13,9 @@ title: Minimum-feature continuation handoff
 
 The owner-requested [[records/plans/rich-native-visuals]] is researched and reviewed through three revision passes. [[records/research/rich-native-visuals]] maps clean source `89c8ed70d8f5b18824cccf13932b035d0d424857` and primary technology references; [[records/reviews/rich-native-visuals-plan-review]] records concrete findings, revisions and remaining gates. The recommendation is a common typed native visual system for Home and mini apps, beginning with a complete charts/metrics/exceptions workflow, then richer analysis, boards/time views, diagrams and scoped media.
 
-The subsequent owner request adds native inline chat interactions to the same plan, now revision 8. [[records/research/inline-chat-interactions]] records the code/primary-source audit; three further review passes cover questions, compact forms, exact action/review controls, captured visual answers and durable input handoff. P0a delivers useful chat controls before chart/diagram dependencies. Historical results stay distinct from current live views, and the existing text and business-operation paths remain authoritative.
+The subsequent owner request adds native inline chat interactions to the same plan, reaching revision 8. [[records/research/inline-chat-interactions]] records the code/primary-source audit; three further review passes cover questions, compact forms, exact action/review controls, captured visual answers and durable input handoff. P0a delivers useful chat controls before chart/diagram dependencies. Historical results stay distinct from current live views, and the existing text and business-operation paths remain authoritative.
+
+The owner then requested a complete implementation-readiness review. [[records/reviews/rich-native-visuals-readiness]] records four whole-plan passes and section-by-section coverage, producing revision 12. It resolves standalone chat/Home ownership, stable state versus result keys, captured historical provenance, exact receipt Undo/Redo, partial action outcomes, direct form dispatch and stage dependencies. Relevant code was rechecked at `886edc8` and the Redo grammar follow-up at `f90529a`. The plan is ready to start P0-chat/P0a, followed by the P0-visual/P1 chart workflow. Diagram selection and performance remain explicit stage gates; no proposed feature is marked implemented.
 
 The plan distinguishes package capabilities from versioned presentation-only edits, reuses exact query/transaction authority and requires chat parity, native visual review and independent data acceptance. ELK/Graphviz selection and performance are explicit implementation gates. This checkpoint changes documentation only: no new component, dependency qualification, UI launch or installed-app change is claimed. The existing accepted Excel, Home and chat-operation checkpoints below retain their original scope.
 

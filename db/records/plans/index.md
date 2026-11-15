@@ -2,13 +2,13 @@
 type: index
 scope: type-folder
 folder: records/plans
-updated: 2026-11-15T18:41:07.185978Z
+updated: 2026-11-15T18:56:21.463788Z
 ---
 
 # records/plans
 
 - [[records/plans/excel-business-applications]] — Close realistic Excel business application reconstruction, reliable autonomous generation, and integrated chat/native qualification gaps.
-- [[records/plans/rich-native-visuals]] — Reviewed native visual and inline-chat system: shared components, questions, forms, exact actions, durable input and staged acceptance.
+- [[records/plans/rich-native-visuals]] — Implementation-ready staged plan for shared native visuals and inline chat, with explicit ownership, durable actions, capture and acceptance gates.
 - [[records/plans/home-working-overview]] — Chat-customizable Home with live app views, a useful default, attention and recovery.
 - [[records/plans/chat-primary-operation]] — Implement chat as primary operator for workbook and mini-app actions, inputs, review and undo.
 - [[records/plans/fresh-excel-batches]] — Two consecutive fresh 10/10 local-model Excel batches pass on frozen da3c472; all ten native interfaces checked, with no reused apps or manual source repairs.
