@@ -5,6 +5,7 @@ import datetime
 import decimal
 import json
 import pathlib
+import re
 import sqlite3
 import subprocess
 import sys
@@ -41,6 +42,45 @@ def require_completion(journey):
             and completion.get('arguments', {}).get('basis') == 'completed_action'
             and isinstance(journey.get('answer'), str) and bool(journey['answer'].strip()),
             'A saved journey did not report successful completion')
+
+
+def require_saved_effect(before, after, expected, formulas):
+    """Check requested input values independently of the formula-output oracle."""
+    require(isinstance(expected, dict) and set(expected) == {'sheet', 'match', 'values'}
+            and type(expected['sheet']) is int and isinstance(before, list)
+            and isinstance(after, list) and len(before) == len(after)
+            and 0 <= expected['sheet'] < len(after)
+            and isinstance(expected['match'], dict) and bool(expected['match'])
+            and isinstance(expected['values'], dict) and bool(expected['values']),
+            'Missing or invalid independent saved-effect expectation')
+    target = expected['sheet']
+    def matches(row):
+        return all(row.get(k) == v for k, v in expected['match'].items())
+    def spelling(value):
+        if not isinstance(value, str) or len(value.encode()) > 256 or not re.fullmatch(
+                r'-?(0|[1-9][0-9]*)(\.[0-9]+)?', value):
+            return None
+        return value.rstrip('0').rstrip('.') if '.' in value else value
+    rows = [r for r in after[target] if matches(r)]
+    require(len(rows) == 1, 'Expected exactly one saved business record')
+    for column, value in expected['values'].items():
+        actual = rows[0].get(column)
+        require(actual == value or (spelling(actual) is not None
+                                   and spelling(actual) == spelling(value)),
+                'Wrong saved business input: ' + column)
+    require(after != before, 'No saved change after the requested operation')
+    for sheet, prior in enumerate(before):
+        current = after[sheet]
+        require(len(current) == len(prior) or (sheet == target and len(current) == len(prior) + 1),
+                'Unexpected row insertion, removal or replacement')
+        for position, row in enumerate(prior):
+            is_target = sheet == target and matches(current[position])
+            for column, old in row.items():
+                require(re.fullmatch(r'c[1-9][0-9]*', column) is not None, 'Invalid worksheet column')
+                if (sheet, position, int(column[1:]) - 1) in formulas:
+                    continue
+                require((is_target and column in expected['values']) or current[position].get(column) == old,
+                        'Unrelated business input changed')
 
 
 def asserted_successful_actions(steps):
@@ -268,6 +308,11 @@ def qualify(directory, cases, invalid):
                 'Missing or duplicate journey/oracle state: ' + slug)
         positions = formula_positions(FIXTURES / case['files'][0])
         require(bool(positions), 'Corpus must contain formulas: ' + slug)
+        states = {str(j['step']): j['state'] for j in journeys}
+        baseline = states['paged-growth' if slug == 'stock' else 'undo']
+        for index, group in enumerate(invalid[slug]):
+            require_saved_effect(baseline, states[f'validation-control-{index}'], group.get('expected'), positions)
+            require(states[f'validation-undo-{index}'] == baseline, 'Control Undo changed business inputs')
         for scenario in scenarios:
             require(len(scenario['outputs']) == len(positions) and {
                 (o['sheet'], o['row'], o['column']) for o in scenario['outputs']} == positions,

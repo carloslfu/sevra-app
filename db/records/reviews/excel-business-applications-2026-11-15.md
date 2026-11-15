@@ -2,7 +2,7 @@
 type: review
 id: 01m7fb55rgf0b9rfxcfp0683tx
 created: 2026-11-15T10:13:28.464388+00:00
-updated: 2026-11-15T16:57:31.535111+00:00
+updated: 2026-11-15T17:26:33.991834+00:00
 summary: Shared formula, review, numeric validation, repair and authority fixes pass scoped checks; final fresh cohorts and native visual qualification remain pending.
 title: Excel business application adversarial review
 ---
@@ -290,3 +290,20 @@ Cohort 17 Production completed its full diagnostic business journey in about 508
 
 
 Candidate 135 compiles and passes the complete signed native authoring and Excel suite. The guide change affects authoring context only; action resolution, permissions, source review and executable checks are unchanged. Cohort 17 Bookings published automatically after three submissions and is exercising its business journeys. Final fresh qualification remains pending.
+
+
+Candidate 135 package and installation identity pass: main UUID `6F825925-A88A-3F4A-B314-77C1A1FB2E82`, CLI `51C0032C-E599-3ABB-A875-C5F2DB9C61CA`, extractor `0CEA2DBF-9F82-3913-BCD0-581CB575F84B`, both workers `165AF567-E23E-3A04-AF79-E063608FD5C3`. Installed and packaged UUIDs match, strict signatures pass, and both SDK resources match source. The separate debug agent, extractor and worker have also all been rebuilt for fresh model cohorts. No model or baseline app files were changed.
+
+The retained ten-app regression passes on candidate 135 with unchanged source: 79 saved-edit/reopen/Undo cases, ten portable copies, 187 independent and 115 boundary interface steps. It reuses untouched retained packages and makes no fresh-generation claim. Cohort 17 Cash/Loan completed its diagnostic journey in about 526 seconds, generation about 276 seconds and three save submissions; its new valid zero-principal control and exact Undo passed. Bookings also passed its added valid fractional-duration control. Final fresh cohorts and native visual qualification remain pending.
+
+
+### Qualification revision 136: assert valid controls' saved effects
+
+The adversarial pass found a gap in the acceptance harness: valid correction controls required a successful single write and Undo, but did not independently assert the saved input values. A generated handler could silently truncate an allowed fractional value, and recalculating the spreadsheet from those already-wrong saved inputs would not expose that substitution. A deliberately coercing worker reproduced the gap: the former harness accepted 1.5 being saved as 1.
+
+All eighteen validation groups now carry independent expected sheet, business-key and saved-value assertions derived from the existing scenario requests. The shared saved-effect checker covers ordinary chat journeys and direct validation controls: one matching record, the exact requested numeric value allowing only trailing fractional-zero formatting, a real change, no extra record growth, and no changes to unrelated input cells. Calculated outputs remain subject to the separate original-spreadsheet oracle. Every invalid refusal still requires zero writes, unchanged immutable versions, a valid correction with the same exact saved state, and exact Undo. The independent receipt qualifier repeats the saved-effect and Undo checks rather than trusting a success flag. Focused checks reject truncated, substituted and unrelated values while preserving legitimate recalculated cells.
+
+The reproduced coercion test failed before this change and passes afterward. Existing completed cohort-17 control states also pass the independent saved-input assertions, including Bookings' fractional duration and Cash's zero principal; Stock's two newly added controls were absent from that older running case and remain unqualified. The final signed authoring run is in progress. This revision changes acceptance code and fixtures only; installed native production code and identity remain candidate 135. No generated app source has been edited. Fresh acceptance remains zero until two complete cohorts pass the unchanged strengthened checks.
+
+
+Revision 136 focused Excel and full signed authoring checks pass, including the coercing-worker regression and strict saved-input/unrelated-input counterexamples. The independent Python qualifier tests also pass. A compile-only shadowed test-variable error was corrected before the successful run. Candidate 133 hosted CI completed successfully; candidate 135 exact-production-code CI is still running. Final native production code is unchanged by revision 136.

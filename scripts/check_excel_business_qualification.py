@@ -4,7 +4,29 @@ import hashlib
 import copy
 from pathlib import Path
 import tempfile
-from qualify_excel_business import require_consecutive, require_package_identity, asserted_successful_actions, require_input_checks, number_variants, require_completion
+from qualify_excel_business import require_consecutive, require_package_identity, asserted_successful_actions, require_input_checks, number_variants, require_completion, require_saved_effect
+
+
+before_effect = [[{'c1': 'R1', 'c2': '2', 'c3': '4'}, {'c1': 'R2', 'c2': '3', 'c3': '6'}]]
+after_effect = [[{'c1': 'R1', 'c2': '1.50', 'c3': '3'}, {'c1': 'R2', 'c2': '3', 'c3': '6'}]]
+expected_effect = {'sheet': 0, 'match': {'c1': 'R1'}, 'values': {'c2': '1.5'}}
+formulas_effect = {(0, 0, 2), (0, 1, 2)}
+require_saved_effect(before_effect, after_effect, expected_effect, formulas_effect)
+for fault in ['coerced', 'substituted', 'unrelated', 'extra_row', 'missing', 'no_change']:
+    altered = copy.deepcopy(after_effect)
+    if fault == 'coerced': altered[0][0]['c2'] = '1'
+    if fault == 'substituted': altered[0][0]['c2'] = '1.50000000000001'
+    if fault == 'unrelated': altered[0][1]['c2'] = '4'
+    if fault == 'extra_row': altered[0] += [{'c1': 'R3'}, {'c1': 'R4'}]
+    if fault == 'missing': altered[0][0]['c1'] = 'R0'
+    if fault == 'no_change': altered = before_effect
+    try:
+        require_saved_effect(before_effect, altered, expected_effect, formulas_effect)
+    except ValueError:
+        pass
+    else:
+        raise AssertionError('Invalid saved input effect passed: ' + fault)
+print('PASS valid-control effects: exact inputs and unrelated records checked independently of formula outputs')
 
 
 completed = {'answer': 'Saved the loan update.', 'completion': {

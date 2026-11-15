@@ -7,6 +7,7 @@ import SevraAppUI
 /// Change only test inputs; never inspect or modify the generated source.
 @MainActor func checkBusinessValidation(
   probes: [Value], calls: [Int: Value], session: NativeAppSession,
+  original originalSheets: [ImportedSheet],
   snapshot: () throws -> Value, versions: () throws -> [[String]]
 ) async throws -> [Value] {
   var states: [Value] = []
@@ -48,6 +49,8 @@ import SevraAppUI
       "validation_probe",
       "A valid control failed before testing its invalid variants: " + control.json())
     let controlState = try snapshot()
+    try checkBusinessSavedEffect(
+      before: before, after: controlState, expected: probe["expected"], original: originalSheets)
     states.append(
       .object(["step": .string("validation-control-\(group)"), "state": controlState]))
     let undo = try await session.businessCommand("undo")

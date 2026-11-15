@@ -261,47 +261,17 @@ import SevraNativeAI
             "journey",
             "A saved action must finish with a truthful completion, without a stale failure.")
           let index = example["sheets"].array.firstIndex(of: journey["sheet"])!
-          func field(_ letter: String) -> String { "c\(Int(letter.utf8.first!) - 64)" }
-          let matches = after.array[index].array.filter { row in
-            journey["match"].object.allSatisfy { row[field($0.key)] == $0.value }
+          func fields(_ value: Value) -> Value {
+            .object(Dictionary(uniqueKeysWithValues: value.object.map {
+              ("c\(Int($0.key.utf8.first!) - 64)", $0.value)
+            }))
           }
-          try expectEqual(matches.count, 1)
-          for (key, value) in journey["values"].object {
-            try require(
-              Workbook.sameExcelResult(matches[0][field(key)].text, value.text),
-              "journey", "Wrong saved " + key + " after " + request)
-          }
-          try require(after != before, "journey", "No saved change after " + request)
-          // Only the requested input record may change. Recalculated outputs are
-          // compared later by the independent spreadsheet oracle.
-          for sheet in before.array.indices {
-            let priorRows = before.array[sheet].array
-            let nextRows = after.array[sheet].array
-            try require(
-              nextRows.count == priorRows.count
-                || (sheet == index && nextRows.count == priorRows.count + 1),
-              "journey", "Unexpected row insertion, removal or replacement.")
-            for position in priorRows.indices {
-              let isTarget =
-                sheet == index
-                && journey["match"].object.allSatisfy {
-                  nextRows[position][field($0.key)] == $0.value
-                }
-              for (column, old) in priorRows[position].object {
-                let address = XLSX.cellName(
-                  column: Int(column.dropFirst())! - 1,
-                  row: position < original[sheet].rowNumbers.count
-                    ? original[sheet].rowNumbers[position] : position + 1)
-                if original[sheet].formulas[address] != nil { continue }
-                let allowed =
-                  isTarget && journey["values"].object.keys.contains { field($0) == column }
-                try require(
-                  allowed || nextRows[position][column] == old,
-                  "journey",
-                  "Unrelated input changed: " + example["sheets"].array[sheet].text + "!" + address)
-              }
-            }
-          }
+          try checkBusinessSavedEffect(
+            before: before, after: after,
+            expected: .object([
+              "sheet": .number(Double(index)), "match": fields(journey["match"]),
+              "values": fields(journey["values"]),
+            ]), original: original)
           let committed = namedCalls.filter {
             $0.result["outcome"] == .string("completed")
               && !$0.result["changes"].array.isEmpty
@@ -380,7 +350,7 @@ import SevraNativeAI
       )[slug].array
       try require(!validation.isEmpty, "validation_probe", "Missing business validation probes.")
       journeys += try await checkBusinessValidation(
-        probes: validation, calls: successfulCalls, session: active,
+        probes: validation, calls: successfulCalls, session: active, original: original,
         snapshot: { try snapshot(book) }, versions: rowVersions)
       try Data(Value.array(journeys).json().utf8).write(
         to: root.appendingPathComponent(slug + "-journeys.json"), options: .atomic)

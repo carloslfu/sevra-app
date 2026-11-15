@@ -26,7 +26,17 @@
             "   "
           ]
         }
-      ]
+      ],
+      "expected": {
+        "sheet": 1,
+        "match": {
+          "c1": "CONTROL-0"
+        },
+        "values": {
+          "c2": "P1",
+          "c3": "7"
+        }
+      }
     },
     {
       "journey": 1,
@@ -55,7 +65,17 @@
             "   "
           ]
         }
-      ]
+      ],
+      "expected": {
+        "sheet": 1,
+        "match": {
+          "c1": "CONTROL-1"
+        },
+        "values": {
+          "c2": "P1",
+          "c3": "-3"
+        }
+      }
     },
     {
       "journey": 4,
@@ -71,14 +91,32 @@
             ""
           ]
         }
-      ]
+      ],
+      "expected": {
+        "sheet": 0,
+        "match": {
+          "c1": "P1"
+        },
+        "values": {
+          "c4": "3.80"
+        }
+      }
     },
     {
       "journey": 4,
       "valid": {
         "3.75": "0"
       },
-      "invalid": []
+      "invalid": [],
+      "expected": {
+        "sheet": 0,
+        "match": {
+          "c1": "P1"
+        },
+        "values": {
+          "c4": "0"
+        }
+      }
     },
     {
       "journey": 0,
@@ -86,7 +124,17 @@
       "valid": {
         "7": "0.5"
       },
-      "invalid": []
+      "invalid": [],
+      "expected": {
+        "sheet": 1,
+        "match": {
+          "c1": "CONTROL-4"
+        },
+        "values": {
+          "c2": "P1",
+          "c3": "0.5"
+        }
+      }
     }
   ],
   "invoices": [
@@ -116,7 +164,18 @@
             "   "
           ]
         }
-      ]
+      ],
+      "expected": {
+        "sheet": 1,
+        "match": {
+          "c1": "CONTROL-0"
+        },
+        "values": {
+          "c2": "C1",
+          "c3": "Invoice",
+          "c4": "240"
+        }
+      }
     },
     {
       "journey": 1,
@@ -144,7 +203,18 @@
             "   "
           ]
         }
-      ]
+      ],
+      "expected": {
+        "sheet": 1,
+        "match": {
+          "c1": "CONTROL-1"
+        },
+        "values": {
+          "c2": "C1",
+          "c3": "Payment",
+          "c4": "-80"
+        }
+      }
     },
     {
       "journey": 2,
@@ -172,7 +242,18 @@
             "   "
           ]
         }
-      ]
+      ],
+      "expected": {
+        "sheet": 1,
+        "match": {
+          "c1": "CONTROL-2"
+        },
+        "values": {
+          "c2": "C1",
+          "c3": "Credit",
+          "c4": "-20"
+        }
+      }
     }
   ],
   "jobs": [
@@ -211,7 +292,18 @@
             "   "
           ]
         }
-      ]
+      ],
+      "expected": {
+        "sheet": 1,
+        "match": {
+          "c1": "CONTROL-0"
+        },
+        "values": {
+          "c2": "J1",
+          "c3": "E2",
+          "c4": "3.5"
+        }
+      }
     },
     {
       "journey": 1,
@@ -233,14 +325,32 @@
             ""
           ]
         }
-      ]
+      ],
+      "expected": {
+        "sheet": 0,
+        "match": {
+          "c1": "E2"
+        },
+        "values": {
+          "c3": "36"
+        }
+      }
     },
     {
       "journey": 1,
       "valid": {
         "35": "0"
       },
-      "invalid": []
+      "invalid": [],
+      "expected": {
+        "sheet": 0,
+        "match": {
+          "c1": "E2"
+        },
+        "values": {
+          "c3": "0"
+        }
+      }
     }
   ],
   "production": [
@@ -263,7 +373,17 @@
             "   "
           ]
         }
-      ]
+      ],
+      "expected": {
+        "sheet": 1,
+        "match": {
+          "c1": "CONTROL-0"
+        },
+        "values": {
+          "c2": "3",
+          "c3": "Planned"
+        }
+      }
     }
   ],
   "cash": [
@@ -292,7 +412,18 @@
             "   "
           ]
         }
-      ]
+      ],
+      "expected": {
+        "sheet": 1,
+        "match": {
+          "c1": "CONTROL-0"
+        },
+        "values": {
+          "c2": "2",
+          "c3": "-125.50",
+          "c4": "Machine maintenance"
+        }
+      }
     },
     {
       "journey": 1,
@@ -319,14 +450,36 @@
             "1.5"
           ]
         }
-      ]
+      ],
+      "expected": {
+        "sheet": 0,
+        "match": {
+          "c1": "15000"
+        },
+        "values": {
+          "c2": "11000",
+          "c3": "0",
+          "c4": "12"
+        }
+      }
     },
     {
       "journey": 1,
       "valid": {
         "12000": "0"
       },
-      "invalid": []
+      "invalid": [],
+      "expected": {
+        "sheet": 0,
+        "match": {
+          "c1": "15000"
+        },
+        "values": {
+          "c2": "0",
+          "c3": "0",
+          "c4": "12"
+        }
+      }
     }
   ],
   "bookings": [
@@ -377,7 +530,21 @@
             "   "
           ]
         }
-      ]
+      ],
+      "expected": {
+        "sheet": 1,
+        "match": {
+          "c1": "CONTROL-0"
+        },
+        "values": {
+          "c2": "B1",
+          "c3": "Thursday",
+          "c4": "10",
+          "c5": "2",
+          "c6": "Willow Studio",
+          "c7": "Booked"
+        }
+      }
     },
     {
       "journey": 2,
@@ -400,7 +567,17 @@
             "10.5"
           ]
         }
-      ]
+      ],
+      "expected": {
+        "sheet": 1,
+        "match": {
+          "c1": "TEST-B1"
+        },
+        "values": {
+          "c3": "Thursday",
+          "c4": "10"
+        }
+      }
     },
     {
       "journey": 0,
@@ -408,7 +585,21 @@
       "valid": {
         "2": "1.5"
       },
-      "invalid": []
+      "invalid": [],
+      "expected": {
+        "sheet": 1,
+        "match": {
+          "c1": "CONTROL-2"
+        },
+        "values": {
+          "c2": "B1",
+          "c3": "Thursday",
+          "c4": "10",
+          "c5": "1.5",
+          "c6": "Willow Studio",
+          "c7": "Booked"
+        }
+      }
     }
   ]
 }
