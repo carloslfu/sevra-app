@@ -3,7 +3,7 @@ type: spec
 meta-type: conclusion
 id: 01m5x2pp178p3a4ay7hbfx7wdg
 created: 2026-10-26T21:43:43.399273+00:00
-updated: 2026-11-16T21:03:50.899830+00:00
+updated: 2026-11-16T21:15:44.849287+00:00
 summary: Automatic compaction, preserved conversation history, authoritative continuation state and measured larger-context qualification.
 title: Continuing conversation and context management
 status: reviewed
@@ -151,7 +151,7 @@ faster decode number.
 5. Select a measured product profile, integrate progress/recovery in the app, and
    verify J10 plus the existing J01–J09 before adoption.
 
-The November 16 accounting implementation provides internal 8K/32K/64K/128K/256K evaluation profiles; only the existing 32K/12 GiB preview configuration is retained pending comparison. Exact scoped template output determines admission. The native frontend prepares messages, actual tool schemas, citations, review contracts and reasoning once for dispatch; CPU measurement uses that same preparation path without starting the GPU helper. Generation checks requested capacity before startup and actual Ready capacity before dispatch.
+The November 16 accounting implementation provides internal 8K/32K/64K/128K/256K evaluation profiles; the current native preview selects 64K/32K as specified in C03, at the unchanged 12 GiB engine allowance; larger evaluation profiles remain unqualified. Exact scoped template output determines admission. The native frontend prepares messages, actual tool schemas, citations, review contracts and reasoning once for dispatch; CPU measurement uses that same preparation path without starting the GPU helper. Generation checks requested capacity before startup and actual Ready capacity before dispatch.
 
 The maintenance threshold is `min(floor(0.75*C), C-O-T-256)`, where C is admitted capacity, O is the complete mode output ceiling, and T is the bounded next result including framing. O is 1,800 for ordinary requests, 8,192 for authoring/Excel build phases, 4,096 for Excel review, and 1,400 for tool-free summaries. Reasoning is included in O once. Structured interpretation truthfully retains `min(1800, requested ceiling)` during the controlled accounting comparison. No output ceiling is silently shrunk to fit an incomplete action. The 8K profile therefore cannot run full-output authoring.
 
@@ -635,7 +635,7 @@ Asking again continues.
 Evidence: [[records/operations/implementation]].
 
 ## Reviewed inference and context upgrade plan, November 15
-[[records/plans/inference-context-upgrade]] is revision 5 after three original passes and a complete follow-up review. [[records/reviews/inference-context-plan-full-review]] records every section's coverage and 18 resolved gaps/ambiguities. The plan covers shared exact-scope admission, mode-specific output/result/transition reserves, actual admitted capacity, Splash 1.6.1 and controlled context/memory experiments. The archive and intended native members are hash-verified; runtime behavior is unqualified. Current implementation, 75% policy and explicit adoption gates remain unchanged until implementation updates the canonical contract and tests together. The historical review and qualification failures remain preserved.
+[[records/plans/inference-context-upgrade]] is revision 5 after three original passes and a complete follow-up review. [[records/reviews/inference-context-plan-full-review]] records every section's coverage and 18 resolved gaps/ambiguities. The plan covers shared exact-scope admission, mode-specific output/result/transition reserves, actual admitted capacity, Splash 1.6.1 and controlled context/memory experiments. That record began as an unimplemented proposal. Exact scoped accounting and bounded receipts are now implemented, and the later focused preview decision is described in C03 and [[records/operations/inference-context-execution]]. The mode-aware 75%/reserve policy and remaining broad production gates apply; historical review and qualification failures remain preserved.
 
 ## Exact accounting and bounded history navigation, November 16
 The current implementation follows the actual-scope, complete-output and bounded-result policy in [[records/plans/inference-context-upgrade]]. `ItemReferenceCandidates` preserves review metadata while rebuilding lookup menus. Its bounded history choices prioritize visible original-message citations, checkpoint navigation references and current discovery/results over incidental IDs in chronological history envelopes. It still verifies conversation scope, does not inherit stale candidate annotations and does not turn a summary or unread pointer into evidence. Ranked history-search results retain their order. Assistant originals support what the assistant said; user-supplied facts should cite the original user message.

@@ -2,11 +2,12 @@
 type: index
 scope: type-folder
 folder: sources/notes
-updated: 2026-11-16T17:02:30.261520Z
+updated: 2026-11-16T21:15:44.757671Z
 ---
 
 # sources/notes
 
+- [[sources/notes/2026/11/visual-plan-recent-changes]] — Owner requests review of every recent change and several passes on the dependent visual/chat plan.
 - [[sources/notes/2026/11/rich-visual-end-to-end-review]] — Owner requests an end-to-end code and plan recheck with several review passes.
 - [[sources/notes/2026/11/inference-context-implementation]] — Owner authorizes full inference/context plan implementation, Splash upgrade, runtime tests and evidence-based final configuration.
 - [[sources/notes/2026/11/image-support-plan]] — Owner requests current image-support checks across chat, mini apps and Home, plus reviewed planning for missing support.

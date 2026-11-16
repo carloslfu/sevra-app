@@ -2,13 +2,13 @@
 type: index
 scope: type-folder
 folder: records/plans
-updated: 2026-11-16T21:03:50.863161Z
+updated: 2026-11-16T21:16:45.892966Z
 ---
 
 # records/plans
 
+- [[records/plans/rich-native-visuals]] — Revision 16 integrates current prepared inference, bounded receipts, original-human submissions and 32K/64K preview qualification; ready for staged implementation.
 - [[records/plans/inference-context-upgrade]] — Context fixes and Splash 1.6.1 native preview installed. The focused context comparison selects 64K on the 48 GiB test host.
-- [[records/plans/rich-native-visuals]] — Revision 15 closes end-to-end publication, source-edit, navigation, transcript, memory and template-export gaps; staged acceptance remains open.
 - [[records/plans/programmable-native-engine]] — Reviewed architecture and implementation gates for sandboxed JavaScript, reactive native UI, scoped workbook data, packaging and end-to-end verification.
 - [[records/plans/excel-business-applications]] — Close realistic Excel business application reconstruction, reliable autonomous generation, and integrated chat/native qualification gaps.
 - [[records/plans/home-working-overview]] — Chat-customizable Home with live app views, a useful default, attention and recovery.

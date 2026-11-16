@@ -3,8 +3,8 @@ type: operational
 meta-type: operational
 id: 01m659x4nd2q89tkpzzsssd7yr
 created: 2026-10-30T02:23:30.477380+00:00
-updated: 2026-11-16T21:03:50.772244+00:00
-summary: Splash 1.6.1 native preview installed with 64K on the 48 GiB test Mac. Earlier acceptance and broader qualification findings are preserved.
+updated: 2026-11-16T21:15:44.893712+00:00
+summary: Splash 1.6.1 preview installed; visual plan revision 16 integrates all recent inference changes with explicit token, receipt, human-answer and acceptance contracts.
 title: Minimum-feature continuation handoff
 ---
 # Minimum-feature continuation handoff
@@ -20,6 +20,12 @@ The owner-authorized [[records/plans/inference-context-upgrade]] implements exac
 **The upgrade is not adopted.** Historical same-engine repeatability fails in both native and reference workers; calculator authoring and repair fail independent outcomes. Current-prefix parity, autonomous jobs, corrected multi-compaction continuity, an invoice case and an unchanged stock-program replay pass. The stock replay succeeds at 32K with production context maintenance, after correcting a disabled-maintenance harness. Startup-only 64K/128K admission does not establish better task quality or speed. Full performance, useful-context and finalist cohorts remain gated; no automatic growth or larger user profile is enabled.
 
 Full local checks and final native package/install/extraction checks pass. An isolated installed evaluation verifies progress, both Stop controls, calculator recovery, saved reopening and the corrected completion footer. Main UUID `50067097-3466-35AF-B1C3-00D75F9D1BB9` matches the package; its separate identity changes the signature, with unsigned code and resources verified. Original installed preview UUID `A4AF21E2-1B9E-3757-B8F2-091C630658FD`, executable bytes, model selection and all preferences remain unchanged. Exact containing-commit hosted Checks is required at publication and cannot substitute for the failed real-model gates. Do not replace the preserved preview. Earlier accepted checkpoints below retain their original identities and scope.
+
+## Visual plan after inference changes, November 16
+
+[[records/plans/rich-native-visuals]] is now revision 16. [[records/reviews/rich-native-visuals-recent-changes]] covers all three commits/95 changed files since the prior review through clean 33edcd5, then adversarial integration and whole-plan consistency. Reuse implemented NativePreparedRequest and token-bounded receipts; retain original-human messages for submitted answers, metadata through compaction, exact visible evidence, typed waiting/completion status and measured 32K/64K acceptance. The shared visual architecture and stage order remain intact; no rich visual/chat feature is newly implemented.
+
+The current CPU agent harness passes all 53 reported groups. Existing 1.6.1 receipts retain their bounded scope and known failures; earlier 1.4.1 cohorts are not reassigned to this runtime. Documentation now separates the installed preview from the earlier no-install/32K hold. This review does not open/install the app, rerun GPU experiments or alter the engine/context policy. Start P0-chat's common contracts and continue through its observable acceptance gates.
 
 ## Rich visual-system planning checkpoint, November 15
 

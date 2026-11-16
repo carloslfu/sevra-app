@@ -1,0 +1,516 @@
+{
+  "scope": "Revision 16 visual/chat plan impact review, not runtime or production qualification",
+  "base": "383b70f504fea2663822295ca16e662a2560eb43",
+  "head": "33edcd51dc23b039573562a0d18c207d52ef9530",
+  "commits": [
+    "c6a588c1bb2f9e09a467ff12ee05813a2b76b38e",
+    "26f2ee7f1fbbfb55b8ede00e8e9acee20618abc8",
+    "33edcd51dc23b039573562a0d18c207d52ef9530"
+  ],
+  "changedFileCount": 95,
+  "categories": {
+    "IntegrationTests": 25,
+    "README.md": 1,
+    "Sources": 21,
+    "db": 22,
+    "integration": 10,
+    "scripts": 16
+  },
+  "files": [
+    {
+      "path": "IntegrationTests/Agent/ActiveContextProbe.swift",
+      "sha256": "e5f1c5a5c31a8110e5423f71b2d0f94dd996afbd82f771336cbaf5741182b4f3",
+      "category": "IntegrationTests"
+    },
+    {
+      "path": "IntegrationTests/Agent/CompactionChecks.swift",
+      "sha256": "173f61e0adbd44e2bdad1f1ff02d3cc80bcf1d274070c48bcc4eca28b9aac30c",
+      "category": "IntegrationTests"
+    },
+    {
+      "path": "IntegrationTests/Agent/ContextAccountingProbe.swift",
+      "sha256": "a442c5df0debc272f7385059c57b3536ff18df4215f287b516fc238512c3610e",
+      "category": "IntegrationTests"
+    },
+    {
+      "path": "IntegrationTests/Agent/ContextBudgetChecks.swift",
+      "sha256": "0db5f10b60da6b01ac2ee4d152e53b8d543c1c5a3f39cdb64ba68cf45755d5b1",
+      "category": "IntegrationTests"
+    },
+    {
+      "path": "IntegrationTests/Agent/ContextProfileProbe.swift",
+      "sha256": "e38e0969121ef037b7244d4106691777ab13faaa47abecc0ec8ccf4360a26006",
+      "category": "IntegrationTests"
+    },
+    {
+      "path": "IntegrationTests/Agent/ContextThresholdChecks.swift",
+      "sha256": "dbb91d26746ea54e2d2e83fce971651be9d8baa76ba83aa54887a8abf5fb76cb",
+      "category": "IntegrationTests"
+    },
+    {
+      "path": "IntegrationTests/Agent/ContinuityWorkflowProbe.swift",
+      "sha256": "4043d0316a5b67ee9d5d022c5bfac3dea5ca2b7a5368ac6aa264b8eb8ee8d711",
+      "category": "IntegrationTests"
+    },
+    {
+      "path": "IntegrationTests/Agent/ExcelBusinessProbe.swift",
+      "sha256": "b6960d6acccd3e838cfade2ea58f7fc316141544e24ce17bba816f28efeb542f",
+      "category": "IntegrationTests"
+    },
+    {
+      "path": "IntegrationTests/Agent/HistoryToolChecks.swift",
+      "sha256": "a78cfd96fb0da145e73be4f5ad0c17c76dabab02e30f020fdfadfe34d3d60f42",
+      "category": "IntegrationTests"
+    },
+    {
+      "path": "IntegrationTests/Agent/ItemReferenceChecks.swift",
+      "sha256": "1288debed35eee40600cd6e52686c9c576d5c1231006e93b95ce66fc119e13ec",
+      "category": "IntegrationTests"
+    },
+    {
+      "path": "IntegrationTests/Agent/NativeAgentProbe.swift",
+      "sha256": "a1fc36b55b2bcea8672a3fc86a4e60a168fa2e040f2c5760c02dbf385ada7507",
+      "category": "IntegrationTests"
+    },
+    {
+      "path": "IntegrationTests/Agent/NativeLifecycleChecks.swift",
+      "sha256": "34b7410e05a88f8ba6e7b493fc9cd8d4fc551fbd9ebd0f31bb87c15672b11ce7",
+      "category": "IntegrationTests"
+    },
+    {
+      "path": "IntegrationTests/Agent/main.swift",
+      "sha256": "8713f3ea08a0fddd55751f211c4d2c2e73c3af2dc181e045ab78f128594dee2d",
+      "category": "IntegrationTests"
+    },
+    {
+      "path": "IntegrationTests/Agent/tool-grammar-fixtures.json",
+      "sha256": "369aba466e00c65194c798aac1573ea0ff7d056de6e6e59e4bbcac1dc2e877ba",
+      "category": "IntegrationTests"
+    },
+    {
+      "path": "IntegrationTests/Agent/workbook-tools.json",
+      "sha256": "98ad315519aa4062f6b5ec6d651e5babdb8cbdc949fb64856d8c4e5c4e27fb51",
+      "category": "IntegrationTests"
+    },
+    {
+      "path": "IntegrationTests/Grammar/fixtures.json",
+      "sha256": "6c95e2def702768d19777b37ba99150a7b59d25873bf374e0c451fa6c057e80b",
+      "category": "IntegrationTests"
+    },
+    {
+      "path": "IntegrationTests/Performance/main.swift",
+      "sha256": "f3724700e99c27d5164c838780adbd43c7cd1ab767bf5863a8dc38deddb5aaaf",
+      "category": "IntegrationTests"
+    },
+    {
+      "path": "IntegrationTests/Splash/ModelChecks.swift",
+      "sha256": "6f624e307d0fb1e916f90ede78e1bcd3279e8a2da97873602c2d7ea8eeefb9d7",
+      "category": "IntegrationTests"
+    },
+    {
+      "path": "IntegrationTests/Splash/NativeProbe.swift",
+      "sha256": "db4e6dafd5607b36a5d4127950ed198647b36140e6efba609b3131e6f8b49aa0",
+      "category": "IntegrationTests"
+    },
+    {
+      "path": "IntegrationTests/Splash/main.swift",
+      "sha256": "f88509d03e6841e4624f21c3c90aadaad988179bf5cfa7715e62c670e9cd7e14",
+      "category": "IntegrationTests"
+    },
+    {
+      "path": "IntegrationTests/Splash/protocol_golden.txt",
+      "sha256": "7b20f4427a55290bcae3ef11e38ca603495107355e4180179188bcbac4d49ce6",
+      "category": "IntegrationTests"
+    },
+    {
+      "path": "IntegrationTests/Text/fixtures.json",
+      "sha256": "f4a4fc25f79d4ff8a963585819329afa10f3a80ba2ebeddb4de547daa0e17d3a",
+      "category": "IntegrationTests"
+    },
+    {
+      "path": "IntegrationTests/Text/output-fixtures.json",
+      "sha256": "53f555e6860e0e2c74346bd9430b2a08f5205d09bbb49a564ff4a39e6a7343b6",
+      "category": "IntegrationTests"
+    },
+    {
+      "path": "IntegrationTests/WorkflowPerformance/ReferenceModel.swift",
+      "sha256": "32c4f351db56eb63cdfc64e0e107aa5ce3e72e9ef1974f21134c29616682891f",
+      "category": "IntegrationTests"
+    },
+    {
+      "path": "IntegrationTests/WorkflowPerformance/Runner.swift",
+      "sha256": "3ee6c69de9f94b14b760b1f99350c5734777403341a31e64f643346f9ccb0333",
+      "category": "IntegrationTests"
+    },
+    {
+      "path": "README.md",
+      "sha256": "65d57908729171458352720a13870449347f551322a2b265419f89a551ec0eeb",
+      "category": "README.md"
+    },
+    {
+      "path": "Sources/SevraAI/ContextBudget.swift",
+      "sha256": "ef150cfe5fd91873d19e6983bbbd01e6df049b5b5a38f757c42a1d5ba4e37294",
+      "category": "Sources"
+    },
+    {
+      "path": "Sources/SevraAI/ContextDigest.swift",
+      "sha256": "82264ed08b15d5215988a1bf34919097a81fcd0ba311239f3c4d223718e15a4c",
+      "category": "Sources"
+    },
+    {
+      "path": "Sources/SevraAI/ContextMaintenance.swift",
+      "sha256": "681ae0818418f8f7adeacdc41d9b77ef75bd949f762348117b3e762960067c7e",
+      "category": "Sources"
+    },
+    {
+      "path": "Sources/SevraAI/ExcelBuildContext.swift",
+      "sha256": "c67b5b9d450e4018b38e996dbda1b12dddb3fb2e2127f7bb6be37d014b7cdf7f",
+      "category": "Sources"
+    },
+    {
+      "path": "Sources/SevraAI/ItemReferenceCandidates.swift",
+      "sha256": "daf73902482587fcd6ccd31e3f1bb48db4e61fe22d2e0a6e13fead0da5c353d3",
+      "category": "Sources"
+    },
+    {
+      "path": "Sources/SevraAI/WorkbookAgent.swift",
+      "sha256": "15e39f3dc1ee79e4c980560ff31f199a28074ddc74215f5781c23fc632bbf6c0",
+      "category": "Sources"
+    },
+    {
+      "path": "Sources/SevraAI/WorkbookInference.swift",
+      "sha256": "ea3a80f4497592c23587d5bdc1ecc5b7a298311d00971b6a78de745c1abece43",
+      "category": "Sources"
+    },
+    {
+      "path": "Sources/SevraApp/WorkspaceState.swift",
+      "sha256": "802816e4ff1663f074ca5bd6c09423d74180f303f43761ade7bdab0450ad5f2a",
+      "category": "Sources"
+    },
+    {
+      "path": "Sources/SevraBaseline/LocalModel.swift",
+      "sha256": "55974bce2cfe69e6123f81b9e96e03ff149cbd198128920ded855af17a690da1",
+      "category": "Sources"
+    },
+    {
+      "path": "Sources/SevraCore/ConversationContext.swift",
+      "sha256": "bed30e83e7a2c2b7a1df514bf9890c087a27f062f9001a77dcade24db55d27b4",
+      "category": "Sources"
+    },
+    {
+      "path": "Sources/SevraCore/ToolReceipts.swift",
+      "sha256": "9552043adbf1aac3d9e9ee98b6ad85c620b6ff86fe2fce838e36b448fa595f59",
+      "category": "Sources"
+    },
+    {
+      "path": "Sources/SevraNativeAI/NativePreparedRequest.swift",
+      "sha256": "b549994f8b8a0c66b3ba33b16fdb527d153e579a5814453d34c6bcb6965a4bb2",
+      "category": "Sources"
+    },
+    {
+      "path": "Sources/SevraNativeAI/NativeWorkbookModel.swift",
+      "sha256": "fa19c4d5bc36055bf2b7edc77e20858116874cce36e19c47a4e250b703cbe901",
+      "category": "Sources"
+    },
+    {
+      "path": "Sources/SevraProduct/NativeProductResources.swift",
+      "sha256": "a5b38d10ce078180861a9b58b2df7a5035c2429055066a18b2681d654191df9b",
+      "category": "Sources"
+    },
+    {
+      "path": "Sources/SevraProduct/ProductAI.swift",
+      "sha256": "15a393c55c62dcf56f6f322b8fba0e9cbb7e6c9133ce106291c011a2c6c73708",
+      "category": "Sources"
+    },
+    {
+      "path": "Sources/SevraSplash/ModelPreparation.swift",
+      "sha256": "745c74d2eafac66f5caca109e28ab9e2ab1ad65205c5916736ed0676f7d748e6",
+      "category": "Sources"
+    },
+    {
+      "path": "Sources/SevraSplash/NativeProcess.swift",
+      "sha256": "24f877b44e7c0bec0e3472cac4751a9cf87846992026e91969e30cb7d89c63e3",
+      "category": "Sources"
+    },
+    {
+      "path": "Sources/SevraSplash/Resources/selected-model.json",
+      "sha256": "014c3d86d05b18ca7b89f4386f00a9603413502a76dc5031a248f8fe721639e5",
+      "category": "Sources"
+    },
+    {
+      "path": "Sources/SevraSplash/Wire.swift",
+      "sha256": "70f60d39b120cb00735ddadbcd64ced8c36acb5ef1a21d4dd2fd0cee20f97e7f",
+      "category": "Sources"
+    },
+    {
+      "path": "Sources/SevraSplashText/OutputParser.swift",
+      "sha256": "f6452e9d20ac3195fc3c45c3a9095b0d85d1389d8a673f1fb5520602fd5bb717",
+      "category": "Sources"
+    },
+    {
+      "path": "Sources/SevraSplashText/Resources/template-patch.json",
+      "sha256": "faa8e99e6ac7c3f82b4d0c90055dda287952be3a8fa2fd451479b1b9cc7ddb51",
+      "category": "Sources"
+    },
+    {
+      "path": "db/index.md",
+      "sha256": "67a0fc2a774fa85a375a966550d821aa1d48c071e8ade081304121c682c43b43",
+      "category": "db"
+    },
+    {
+      "path": "db/log.md",
+      "sha256": "1fadeaabc36362fc06901550abce10f770704858348f7f6b1ea6ac1a9baea6b0",
+      "category": "db"
+    },
+    {
+      "path": "db/records/index.md",
+      "sha256": "d6c73e42d6f518eb8eaca3dd550813de54077393621aeb67cc49391b30ac2816",
+      "category": "db"
+    },
+    {
+      "path": "db/records/operations/agent-handoff.md",
+      "sha256": "3c0e22dd628c7118cb41f553b1725f5228679fe672b3eca9d3e45946d2ce166d",
+      "category": "db"
+    },
+    {
+      "path": "db/records/operations/build-and-run.md",
+      "sha256": "7f4fa0c4513417dbf982e458d96d96b8eb20fc1206527f9628bef6fe93d43de1",
+      "category": "db"
+    },
+    {
+      "path": "db/records/operations/index.jsonl",
+      "sha256": "6660e7d6561043cb314e32e78e05241df3fe3653297b7eb84f3095dafdef29e8",
+      "category": "db"
+    },
+    {
+      "path": "db/records/operations/index.md",
+      "sha256": "feccf300f6244d22120b2cc35e2fb68f940516664483e2b2359a2d4b866f2c22",
+      "category": "db"
+    },
+    {
+      "path": "db/records/operations/inference-context-execution.md",
+      "sha256": "2dd4f068ef1f77a12bdb727b95aea2366499ccfac0b4224afe2db99a0c29f018",
+      "category": "db"
+    },
+    {
+      "path": "db/records/overview/index.jsonl",
+      "sha256": "aef5ed68bf6b0f1901058b9b2b86262acad250a5b33f62911d072b056ca75177",
+      "category": "db"
+    },
+    {
+      "path": "db/records/overview/index.md",
+      "sha256": "9a8b7620854dd04d50b573b1cfa1bde4506a2dae5b0ce8fe3e5bab523e166651",
+      "category": "db"
+    },
+    {
+      "path": "db/records/overview/start-here.md",
+      "sha256": "362ac6ecac7edc924182f619ee7f4490dea7d36196afe5b0236026bd10a70142",
+      "category": "db"
+    },
+    {
+      "path": "db/records/plans/index.jsonl",
+      "sha256": "32da202d107b5d88d83a04944face89dea031fc7b16087fb08e2335546f420d9",
+      "category": "db"
+    },
+    {
+      "path": "db/records/plans/index.md",
+      "sha256": "72efdf3bce00f2992d8b0d84462cc1c00334edb3f811503a62f4e7c4903dfae0",
+      "category": "db"
+    },
+    {
+      "path": "db/records/plans/inference-context-upgrade.md",
+      "sha256": "461dba3f154b0a36bcabccc83b78991fda636a6ab37365db4c873b538f314dd9",
+      "category": "db"
+    },
+    {
+      "path": "db/records/specs/conversation-context.md",
+      "sha256": "199f09b092086036f74838f40ca5d8a2a9364c0e24c33a9f9dc4d5858889bee7",
+      "category": "db"
+    },
+    {
+      "path": "db/records/specs/index.jsonl",
+      "sha256": "bd8b2319ea972ad2dba25ea620f5cefde463a48c2544be4a678b94742091690e",
+      "category": "db"
+    },
+    {
+      "path": "db/records/specs/index.md",
+      "sha256": "e1178f0a335d4210be35602bec390a12185c02599ec25569fb48e75d3e3674ad",
+      "category": "db"
+    },
+    {
+      "path": "db/records/specs/splash-integration.md",
+      "sha256": "b8c0180743e761751f1d06223f615191d81013e063e204f0e28ee07515e28dab",
+      "category": "db"
+    },
+    {
+      "path": "db/sources/index.md",
+      "sha256": "8ceaa18778a30be8fcab37344049169326084c780c7e02c9c25da3f124b3a35b",
+      "category": "db"
+    },
+    {
+      "path": "db/sources/notes/2026/11/inference-context-implementation.md",
+      "sha256": "975e5638da027c22597a3fd21dd9f8dd92d1bf7378209cfc15452b8d1bd4be11",
+      "category": "db"
+    },
+    {
+      "path": "db/sources/notes/index.jsonl",
+      "sha256": "e3ad32366689c779f4d27d23a3b18bd8c953ff4fca533af20b1a038c00d09569",
+      "category": "db"
+    },
+    {
+      "path": "db/sources/notes/index.md",
+      "sha256": "b57426e4a1c40fb2d4e1ecc034f7005a4bf8f2f38df2c8177277b2d2addcb091",
+      "category": "db"
+    },
+    {
+      "path": "integration/evidence/2026-11-16-context-accounting.json",
+      "sha256": "a157dd714d98d62b70802a42e589d1ffb7eaebf7400b6c80b0aa7a225aaa6047",
+      "category": "integration"
+    },
+    {
+      "path": "integration/evidence/2026-11-16-context-admission.json",
+      "sha256": "ad819219710243688b079e6638a1bd14765a1aae80a9e786a02364b9dcf803ac",
+      "category": "integration"
+    },
+    {
+      "path": "integration/evidence/2026-11-16-splash-native-preview.json",
+      "sha256": "895d0e5099501dbf9114f50c2bd8bea3fde63b3df71cbd356f6ffe9ab54a4dbb",
+      "category": "integration"
+    },
+    {
+      "path": "integration/evidence/2026-11-16-splash-upgrade.json",
+      "sha256": "b3a6d054e5aa38478aff8634667dd82c57f8aed73f29e93fb17c105e7f035252",
+      "category": "integration"
+    },
+    {
+      "path": "integration/llguidance.json",
+      "sha256": "a93a1bf43e3c1d77a36cf56e3d2c2d19c303920aa18480748f1b72be9297dbe7",
+      "category": "integration"
+    },
+    {
+      "path": "integration/performance/context-admission-protocol.json",
+      "sha256": "a1df6be10b5eb8df66a2ff936424a17d46b42adc24d586ed7d199f2f66aaf342",
+      "category": "integration"
+    },
+    {
+      "path": "integration/performance/context-screen-protocol.json",
+      "sha256": "a12f281f4af2442f499b77a4f5d92b9f88b08b165b5dfc2c54aab4e9763352e5",
+      "category": "integration"
+    },
+    {
+      "path": "integration/performance/inference-upgrade-protocol.json",
+      "sha256": "1f6990c3190c891f9cf4e5352ebc53e3dffd53bfc78a78e67ae6f01112d587b1",
+      "category": "integration"
+    },
+    {
+      "path": "integration/splash-1.4.1-preserved.json",
+      "sha256": "7447c037b94551a1620d55531f7a885b0653a2014d0c1b5ca2dbaf05a99401f6",
+      "category": "integration"
+    },
+    {
+      "path": "integration/splash.json",
+      "sha256": "be331c88069d0e4e50d6aa9d9ea96ab1b6c77da5ab7bad5c16628abde700b0f0",
+      "category": "integration"
+    },
+    {
+      "path": "scripts/check_request_cache_isolation.py",
+      "sha256": "df9638cca6ca985b5053c97b41e4e49855bd39b0d5da2fef55e45291579f1917",
+      "category": "scripts"
+    },
+    {
+      "path": "scripts/check_splash_reference.py",
+      "sha256": "819a5ebf3071f02dbe28ebf864a37927fe42f8f80f9e83dec7755bbec9226b41",
+      "category": "scripts"
+    },
+    {
+      "path": "scripts/compare_workflow_performance.py",
+      "sha256": "d25a9ae991c6ce96fb9e3838c42c69fa593d513d6e3b29b2d820a827db60858f",
+      "category": "scripts"
+    },
+    {
+      "path": "scripts/freeze_historical_inference_prefix.py",
+      "sha256": "2a78612a66c4d6011a2d29887741074c9c7ca24f009d7469493d4101fbcd4532",
+      "category": "scripts"
+    },
+    {
+      "path": "scripts/generate_context_profile_fixtures.py",
+      "sha256": "c5ecd8e632d509eb58ba8d6304a61bcf87210a24fae0da07e4eeaae1176cd378",
+      "category": "scripts"
+    },
+    {
+      "path": "scripts/generate_splash_grammar_fixtures.py",
+      "sha256": "87311bfb65cd983d2a80db838addae43f1af4b50162e60bb1dd3d0a9065c0a6f",
+      "category": "scripts"
+    },
+    {
+      "path": "scripts/generate_splash_output_fixtures.py",
+      "sha256": "b62c2e4ba4e03513d55b0c968f719cc08d25ea03104c89f48993237cd537a109",
+      "category": "scripts"
+    },
+    {
+      "path": "scripts/generate_splash_text_fixtures.py",
+      "sha256": "86bdf5b3eb667833de072db6892621722879f794f2d12c06df9d09a9c1c67756",
+      "category": "scripts"
+    },
+    {
+      "path": "scripts/generate_splash_tool_fixtures.py",
+      "sha256": "4959586418ca9359221a9f7fafde9c8a4249dd04dcadb66e9a5a7e696f49f59d",
+      "category": "scripts"
+    },
+    {
+      "path": "scripts/probe_context_admission.py",
+      "sha256": "4e0ec82cdeb57721bdff4c24b0bdf27661ebc3dd746bbeb2ddeccd6b7a2bcb57",
+      "category": "scripts"
+    },
+    {
+      "path": "scripts/probe_context_profiles.py",
+      "sha256": "50d2aa4f886fcef8f791a7beedf2ed15b823ec7e6af81299ccdfbb0da9a68735",
+      "category": "scripts"
+    },
+    {
+      "path": "scripts/probe_historical_inference_prefix.py",
+      "sha256": "30d656e03f8bbeb8fc1556c595c3826020d532de62a8309af4fa47b3c3fb380a",
+      "category": "scripts"
+    },
+    {
+      "path": "scripts/probe_inference_upgrade.py",
+      "sha256": "fcc92f595f676815610cdeb8f4b524d97f7665c7fbf57e6a3e89a016ff08fc90",
+      "category": "scripts"
+    },
+    {
+      "path": "scripts/probe_request_cache_isolation.py",
+      "sha256": "c47c7b64a07c8ec36f33143b2691949c374ba0f8ef53d3b35f40f76d85e16788",
+      "category": "scripts"
+    },
+    {
+      "path": "scripts/probe_splash_upgrade_effect.py",
+      "sha256": "af83f1cb98581d88581486bd8d146e6d07fa59417adec5bc15f77df4aa4623b8",
+      "category": "scripts"
+    },
+    {
+      "path": "scripts/splash_performance_reference.py",
+      "sha256": "7ce5773d9c39d5a56f32abefce1a1f7ecb3ec62d60dd702c129c488220758d67",
+      "category": "scripts"
+    }
+  ],
+  "executedChecks": {
+    "build": "swift build --product sevra-agent-checks -j 4",
+    "command": ".build/debug/sevra-agent-checks",
+    "exitCode": 0,
+    "reportedPassGroups": 53,
+    "logSHA256": "a717da6d26b089d36515472ae11bb20952fc554da79e8eede8898b03a518b439",
+    "scope": "CPU/scripted agent checks; no real-model generation or installed UI control"
+  },
+  "reusedEvidence": {
+    "2026-11-16-context-accounting.json": "a157dd714d98d62b70802a42e589d1ffb7eaebf7400b6c80b0aa7a225aaa6047",
+    "2026-11-16-context-admission.json": "ad819219710243688b079e6638a1bd14765a1aae80a9e786a02364b9dcf803ac",
+    "2026-11-16-splash-native-preview.json": "895d0e5099501dbf9114f50c2bd8bea3fde63b3df71cbd356f6ffe9ab54a4dbb",
+    "2026-11-16-splash-upgrade.json": "b3a6d054e5aa38478aff8634667dd82c57f8aed73f29e93fb17c105e7f035252"
+  },
+  "verifiedPreviewConfigurationSHA256": "a5b38d10ce078180861a9b58b2df7a5035c2429055066a18b2681d654191df9b",
+  "limitations": [
+    "No new GPU/actual-model cohort, installed build inspection or feature implementation.",
+    "Previous engine/authoring/repair failures remain in their original evidence.",
+    "Byte limits, token admission and preview adoption are separate from feature acceptance."
+  ]
+}

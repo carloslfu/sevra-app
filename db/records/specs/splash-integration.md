@@ -3,7 +3,7 @@ type: spec
 meta-type: conclusion
 id: 01m5wps1qcharh0qv8vq40wbjr
 created: 2026-10-26T18:15:17.996137+00:00
-updated: 2026-11-16T21:03:50.883137+00:00
+updated: 2026-11-16T21:15:44.864893+00:00
 summary: Python-free Swift integration of pinned upstream Splash, explicit behavior mapping, differential verification and measured adoption gates.
 title: Native Splash integration and upgrades
 status: reviewed
@@ -202,7 +202,7 @@ Use all actual workbook tools with a required single-call grammar. Only a comple
 successful, grammar-checked and schema-validated terminal reaches the agent.
 Check cancellation again before dispatch. Preserve existing evidence, calculations,
 proposal review, citations and persisted run state. The original probes use an 8,192-token development context; the isolated product
-preview retains the provisional 32K profile while [[records/plans/inference-context-upgrade]] is implemented. Native requests use a common prepared scope/schema/token array for measurement and dispatch. Complete mode ceilings and token-bounded next-result reservations are specified in [[records/specs/conversation-context]]. Refuse before model startup when they cannot fit, then recheck actual Ready capacity. A length-limited response cannot execute a tool. Existing bounded malformed/truncated-response retries remain; neither a wider context nor an engine change silently expands them.
+preview selects 64K/32K under the current physical-memory tier policy in [[records/specs/conversation-context]]. Native requests use a common prepared scope/schema/token array for measurement and dispatch. Complete mode ceilings and token-bounded next-result reservations are specified in [[records/specs/conversation-context]]. Refuse before model startup when they cannot fit, then recheck actual Ready capacity. A length-limited response cannot execute a tool. Existing bounded malformed/truncated-response retries remain; neither a wider context nor an engine change silently expands them.
 
 Conversation history includes needs-review receipts and explicit cancelled, failed
 and interrupted outcomes. Closed requests are not pending instructions to resume. When its saved structured
@@ -415,9 +415,11 @@ Do not blindly repeat the full cohort until one happens to pass. Complete replay
 and independent hash/process audit: integration/evidence/2026-10-27-prefix-d9-repeatability.json.gz.
 
 ## Reviewed inference and context upgrade plan, November 15
-[[records/plans/inference-context-upgrade]] is revision 5 after three original passes and a complete follow-up review. [[records/reviews/inference-context-plan-full-review]] records every section's coverage and 18 resolved gaps/ambiguities. The plan covers shared exact-scope admission, mode-specific output/result/transition reserves, actual admitted capacity, Splash 1.6.1 and controlled context/memory experiments. The archive and intended native members are hash-verified; runtime behavior is unqualified. The owner authorized implementation on November 16. The common accounting path and mode-aware 75%/reserve policy are now implemented and tested on 1.4.1; the explicit engine/profile adoption gates remain. [[records/operations/inference-context-execution]] records current evidence and gaps. The historical review and qualification failures remain preserved.
+[[records/plans/inference-context-upgrade]] is revision 5 after three original passes and a complete follow-up review. [[records/reviews/inference-context-plan-full-review]] records every section's coverage and 18 resolved gaps/ambiguities. The plan covers shared exact-scope admission, mode-specific output/result/transition reserves, actual admitted capacity, Splash 1.6.1 and controlled context/memory experiments. This describes the original planning checkpoint. The owner authorized implementation on November 16. The common accounting path and mode-aware 75%/reserve policy are now implemented and tested on 1.4.1; the explicit engine/profile adoption gates remain. [[records/operations/inference-context-execution]] records current evidence and gaps. The historical review and qualification failures remain preserved.
 
-## Candidate 1.6.1 execution, November 16
+## Earlier candidate 1.6.1 execution, November 16
+
+This subsection preserves the assessment before the later focused preview adoption described at the top. Candidate-only and adoption-blocked statements below describe that earlier gate; its failures remain relevant to broad production qualification.
 The owner-authorized [[records/plans/inference-context-upgrade]] is in execution. The candidate pin is Splash 1.6.1, commit `d8af1054aab0f97de21d043e01aa98af3754f10e`, protocol 13/status 8. The previous 1.4.1 pin remains in `integration/splash-1.4.1-preserved.json`; preserved source, workers and bundle identities are recorded in [[records/operations/inference-context-execution]]. This is a source candidate, not an adopted production runtime or an installed-preview replacement.
 
 The Swift adapter handles bounded startup Warming, Ready vocabulary/stop-token/mask-row capabilities, typed StartFailed shortfalls, and successful frontend Stop separately from user Cancel. The lease owner retains the child before readiness can fail; teardown must reap it before releasing ownership. Native assembly matches the pinned upstream record and reuses unchanged target/draft/tokenizer bytes without a new model download. LLGuidance stays 1.8.0 and Swift package pins are unchanged. Qualification fixes BF16 activations, int8 KV, fp32 state, ANE on, 32K context and 12 GiB engine budget. Automatic M5 precision is not enabled by upgrading the default.
