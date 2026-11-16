@@ -205,7 +205,7 @@
   "grammarPin": "integration/llguidance.json",
   "boundedReasoningEvidence": "integration/evidence/2026-10-26-bounded-reasoning.json",
   "nativeProductEvidence": "integration/evidence/2026-10-27-native-product.json",
-  "activeBackendMeaning": "Default baseline build target; the isolated native source preview uses the candidate below. This field is not an installed-app receipt.",
+  "activeBackendMeaning": "Default baseline build target. The installed native preview uses the Splash pin below.",
   "statusSchemaVersion": 8,
   "previousNativePreviewPin": "integration/splash-1.4.1-preserved.json",
   "qualification": {
@@ -216,6 +216,14 @@
       "Candidate calculator authoring and repair fail independent outcomes; formula warmup failures retained in both versions"
     ],
     "promoted": false,
-    "largerProfilesQualified": false
+    "largerProfilesQualified": false,
+    "scope": "Broader production qualification"
+  },
+  "nativePreview": {
+    "release": "1.6.1",
+    "contextTokensAt48GiBOrMore": 65536,
+    "contextTokensBelow48GiB": 32768,
+    "engineBudgetGiB": 12,
+    "evidence": "integration/evidence/2026-11-16-splash-native-preview.json"
   }
 }

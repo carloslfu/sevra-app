@@ -69,13 +69,10 @@ The local model can also compose simpler fixed spaces. This is SDK 1, not full E
 
 ## Try the native MVP preview
 
-**Current source candidate: Splash 1.6.1, qualification blocked.** The November 16
-checks found repeatability and app/formula failures. Keep the existing preview
-while these are investigated. The commands below build a separate evaluation
-bundle without replacing the installed app or CLI. The
-[upgrade execution record](db/records/operations/inference-context-execution.md)
-records the preserved 1.4.1 preview, host fixes, context admission results and
-remaining release gates. Larger context profiles are not qualified defaults.
+The native preview uses Splash 1.6.1 with a 12 GiB engine budget and a 64K context
+window on Macs with at least 48 GiB of unified memory. Macs below that tier use
+32K. See the matched workbook and long input checks in the
+[upgrade execution record](db/records/operations/inference-context-execution.md).
 
 Requires Apple M3 or newer, macOS 26.4+, Swift 6.3, Git, Python 3 and Rust 1.96.0.
 The current test host has 48 GB unified memory; other memory profiles are unqualified.
@@ -85,11 +82,11 @@ Initial build/setup needs network access. Installed inference uses no Python.
 git clone https://github.com/carloslfu/sevra-app.git
 cd sevra-app
 rustup toolchain install 1.96.0 --profile minimal
-bash scripts/build_native.sh
+bash scripts/install.sh --native
+open "$HOME/Applications/Sevra Native Preview.app"
 ~~~
 
-The evaluation bundle is `output/native/Sevra Native Preview.app`. Installation
-is a separate step after qualification. The installer includes the matching
+The installer includes the matching
 `sevra` CLI in `~/.local/bin`. It refuses to
 replace another app or an unrelated CLI. This source preview is locally ad-hoc
 signed, with no production notarized installer yet.

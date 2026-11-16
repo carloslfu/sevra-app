@@ -3,8 +3,8 @@ type: operational
 meta-type: conclusion
 id: 01m5rbxz8vn3x44zb6n5k97y8q
 created: 2026-10-25T01:48:47.259629+00:00
-updated: 2026-11-16T19:48:08.492640+00:00
-summary: Inference/context fixes and Splash 1.6.1 candidate implemented; behavior gates block adoption, retaining 32K/12 GiB and the preserved preview. Earlier accepted Excel checkpoints retain their scope.
+updated: 2026-11-16T21:03:50.814714+00:00
+summary: Splash 1.6.1 native preview installed with scoped accounting, continuity fixes and a context default selected by installed memory.
 title: Start here
 ---
 # Sevra app
@@ -24,7 +24,9 @@ Slotstream remains independent.
 
 ## Current preview and delivery order
 
-**Inference/context checkpoint, November 16:** scoped accounting, full response/recovery reserves, continuity fixes and candidate Splash 1.6.1 are implemented. Local checks, native packaging and bounded isolated UI recovery pass. Engine repeatability and app-generation failures block adoption and larger-profile task qualification; keep 32K/12 GiB and the existing installed preview. Startup-only 64K/128K admission is not a quality or speed result. See [[records/operations/inference-context-execution]] and [[records/operations/agent-handoff]] for the failure receipts, identities and exact-head publication gate.
+**Current native preview, November 16:** Splash 1.6.1 with 64K at 48 GiB and above, 32K below, and a 12 GiB engine budget. The matched comparison passed both shorter tasks and retrieved all three facts from the 42K-token audit at 64K. See [[records/operations/inference-context-execution]].
+
+**Earlier inference/context checkpoint, November 16:** scoped accounting, full response/recovery reserves, continuity fixes and candidate Splash 1.6.1 are implemented. Local checks, native packaging and bounded isolated UI recovery pass. Engine repeatability and app-generation failures block adoption and larger-profile task qualification; keep 32K/12 GiB and the existing installed preview. Startup-only 64K/128K admission is not a quality or speed result. See [[records/operations/inference-context-execution]] and [[records/operations/agent-handoff]] for the failure receipts, identities and exact-head publication gate.
 
 **Latest Excel checkpoint, November 14:** two consecutive fresh 10/10 local-model batches pass on owner-selected frozen commit `da3c4720e05033b5aaea620ebb01abde28123d9e`. Twenty new apps pass repeated original-result, independent UI, saved-edit/reopen/Undo and portable-copy checks without reused apps or manual generated-source repairs. All ten newly generated native interfaces were inspected at wide and compact sizes. Exact-code hosted CI and final native package/install checks pass; retained local-suite interruptions and their closure are documented. See [[records/plans/fresh-excel-batches]] and [[records/operations/agent-handoff]] for evidence and installed identity. This qualifies the frozen Excel checkpoint, not newer concurrent chat-operation changes, universal spreadsheet compatibility or first-attempt reliability. Earlier descriptions below are historical.
 

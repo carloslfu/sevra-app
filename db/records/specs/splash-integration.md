@@ -3,14 +3,14 @@ type: spec
 meta-type: conclusion
 id: 01m5wps1qcharh0qv8vq40wbjr
 created: 2026-10-26T18:15:17.996137+00:00
-updated: 2026-11-16T19:32:09.042205+00:00
+updated: 2026-11-16T21:03:50.883137+00:00
 summary: Python-free Swift integration of pinned upstream Splash, explicit behavior mapping, differential verification and measured adoption gates.
 title: Native Splash integration and upgrades
 status: reviewed
 ---
 # Native Splash integration and upgrades
 
-Revision 9, November 16, 2026. Splash 1.6.1 is implemented as a source candidate; adoption remains blocked by retained repeatability and application failures. The installed 1.4.1 preview is preserved. Current evidence and follow-up are in [[records/operations/inference-context-execution]].
+Revision 10, November 16, 2026. The owner authorized a focused preview upgrade and a practical 32K versus 64K comparison. Splash 1.6.1 is installed in the native preview. The source chooses 64K on Macs with at least 48 GiB of unified memory and 32K below that tier, with a 12 GiB engine budget and automatic context maintenance in both cases. The previous 1.4.1 bundle and model selection are backed up. Broader production qualification retains the earlier failures. See [[records/operations/inference-context-execution]].
 Authority: [[sources/notes/2026/10/workbook-primary-splash-direction]].
 The existing Slotstream build is a preserved baseline, not the future architecture.
 
@@ -21,7 +21,7 @@ owns the Swift product, workbook agent and integration. Do not port inference,
 attention, expert routing, speculative verification or GPU scheduling to Swift.
 No runtime Python interpreter, Python server, HTTP proxy or implicit cloud fallback.
 Upstream Python is allowed only in development/reference verification tools.
-I02. Current candidate is Splash 1.6.1, commit
+I02. The native preview pin is Splash 1.6.1, commit
 `d8af1054aab0f97de21d043e01aa98af3754f10e`. The initial 1.4.1 pin at
 `1744cfafee415fb463b289449cec59a864e768e9` is preserved separately. Pin source,
 runtime archive digest and source-to-binary identity. Retain upstream licenses.

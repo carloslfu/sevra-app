@@ -1,0 +1,217 @@
+{
+  "scope": "Owner-directed native source preview upgrade and bounded 32K/64K comparison.",
+  "comparisonSource": "26f2ee7f1fbbfb55b8ede00e8e9acee20618abc8",
+  "comparisonWorkerSHA256": "bbe1e9873f5759aec415d6902ab047f4c16b5e8250951521c520b17af89dd1b0",
+  "engineRelease": "1.6.1",
+  "engineCommit": "d8af1054aab0f97de21d043e01aa98af3754f10e",
+  "runtimeFiles": {
+    "engine/splash": "ce771e5f51081a2fd60df0ee0083f982a278a863ffaeab29fd590f55e9e36e89",
+    "engine/splash.metallib": "7006f53dedd016809a16f4e5694c78e4f8959f31691e4473a35ad46be45b9b03",
+    "engine/host-step.metallib": "9f94af73a1a7ab440d381268281989cb80698b3921ebec95772e2b889fc54ffb",
+    "LICENSE": "cfc7749b96f63bd31c3c42b5c471bf756814053e847c10f3eb003417bc523d30",
+    "THIRD_PARTY_NOTICES": "b8052712a0bc25a90672127c1ce30b1b55e3cce2c9778652ab76c90e067a31c4"
+  },
+  "host": {
+    "chip": "Apple M5 Pro",
+    "unifiedMemoryGiB": 48,
+    "macOS": "26.6.2"
+  },
+  "settings": {
+    "engineBudgetGiB": 12,
+    "activations": "bf16",
+    "kv": "int8",
+    "state": "fp32",
+    "ane": true,
+    "reasoningTokens": 512,
+    "contextMaintenance": true
+  },
+  "fixtureGenerator": "scripts/generate_context_profile_fixtures.py",
+  "fixtureManifest": {
+    "scope": "Synthetic occupied-context recall; no complete large-job or user-distribution claim",
+    "oracle": [
+      "MAPLE-27",
+      "0.25 kg",
+      "HOLD"
+    ],
+    "files": {
+      "small": {
+        "sha256": "d7b55b8a090cbc29eccaaef44570882f76e87fffbf4f461c3650cf6887900828",
+        "bytes": 47325,
+        "textTokens": 13938,
+        "receipts": 123
+      },
+      "medium": {
+        "sha256": "e1f3621ca0336cbff4d1b906873264170736611314a12d7a116362b10f8d8bd7",
+        "bytes": 141965,
+        "textTokens": 41863,
+        "receipts": 371
+      },
+      "large": {
+        "sha256": "4dc812a80c5fa31a75f62fdcfaf1648f14e3563b2b3ed578c25b1f14b7285933",
+        "bytes": 287753,
+        "textTokens": 84883,
+        "receipts": 753
+      }
+    },
+    "placements": [
+      "early",
+      "middle",
+      "late"
+    ]
+  },
+  "runs": [
+    {
+      "requestedContextTokens": 32768,
+      "readyContextTokens": 32768,
+      "tasks": [
+        {
+          "id": "ordinary_inventory",
+          "passed": true,
+          "seconds": 22.00115704536438,
+          "oracle": "18 brass bolts, original opening/movement citations, original items unchanged, integrity and one saved request"
+        },
+        {
+          "id": "small",
+          "passed": true,
+          "admitted": true,
+          "promptTokens": 14462,
+          "threshold": 24576,
+          "seconds": 15.134292960166931,
+          "answer": "MAPLE-27 | 0.25 kg | HOLD"
+        },
+        {
+          "id": "medium",
+          "admitted": false,
+          "promptTokens": 42387,
+          "threshold": 24576,
+          "reason": "Supplied irreducible context reaches the product maintenance threshold"
+        },
+        {
+          "id": "large",
+          "admitted": false,
+          "promptTokens": 85407,
+          "threshold": 24576,
+          "reason": "Supplied irreducible context reaches the product maintenance threshold"
+        }
+      ],
+      "memory": {
+        "sampleCount": 158,
+        "errors": [],
+        "maximumThermalState": 0,
+        "observedPeakSumBytes": 12912824496,
+        "processLifetimePeaks": [
+          395363480,
+          12571233352
+        ]
+      },
+      "systemSwapBefore": "vm.swapusage: total = 1024.00M  used = 2.94M  free = 1021.06M  (encrypted)",
+      "systemSwapAfter": "vm.swapusage: total = 1024.00M  used = 2.94M  free = 1021.06M  (encrypted)",
+      "helperReleased": true,
+      "fatal": null,
+      "criticalPressureStop": false,
+      "seriousThermalStop": false
+    },
+    {
+      "requestedContextTokens": 65536,
+      "readyContextTokens": 65536,
+      "tasks": [
+        {
+          "id": "ordinary_inventory",
+          "passed": true,
+          "seconds": 23.930137991905212,
+          "oracle": "18 brass bolts, original opening/movement citations, original items unchanged, integrity and one saved request"
+        },
+        {
+          "id": "small",
+          "passed": true,
+          "admitted": true,
+          "promptTokens": 14462,
+          "threshold": 49152,
+          "seconds": 15.094828009605408,
+          "answer": "MAPLE-27 | 0.25 kg | HOLD"
+        },
+        {
+          "id": "medium",
+          "passed": true,
+          "admitted": true,
+          "promptTokens": 42387,
+          "threshold": 49152,
+          "seconds": 32.75179409980774,
+          "answer": "MAPLE-27 | 0.25 kg | HOLD"
+        },
+        {
+          "id": "large",
+          "admitted": false,
+          "promptTokens": 85407,
+          "threshold": 49152,
+          "reason": "Supplied irreducible context reaches the product maintenance threshold"
+        }
+      ],
+      "memory": {
+        "sampleCount": 328,
+        "errors": [],
+        "maximumThermalState": 0,
+        "observedPeakSumBytes": 12816552136,
+        "processLifetimePeaks": [
+          384238744,
+          12596137176
+        ]
+      },
+      "systemSwapBefore": "vm.swapusage: total = 1024.00M  used = 2.94M  free = 1021.06M  (encrypted)",
+      "systemSwapAfter": "vm.swapusage: total = 1024.00M  used = 2.94M  free = 1021.06M  (encrypted)",
+      "helperReleased": true,
+      "fatal": null,
+      "criticalPressureStop": false,
+      "seriousThermalStop": false
+    }
+  ],
+  "decision": {
+    "contextTokensAt48GiBOrMore": 65536,
+    "contextTokensBelow48GiB": 32768,
+    "engineBudgetGiB": 12,
+    "reason": "Same shorter-task outcomes and memory footprint, correct 42K-token response at 64K."
+  },
+  "limits": [
+    "One run per setting; no speedup estimate or hardware survey.",
+    "Long audit is a synthetic prompt with source excerpts supplied together.",
+    "Earlier repeatability and app authoring failures are retained in the prior receipt. This is a native preview update."
+  ],
+  "installedPreview": {
+    "installedUUID": "C13AE316-20FD-39BF-BF56-66EB57E48312",
+    "packagedUUID": "C13AE316-20FD-39BF-BF56-66EB57E48312",
+    "installedMainSHA256": "62ad17599c2314e5aa5982a7b21a3dca4b8a370e022914f4b36b385593b39c99",
+    "installedCLISHA256": "cb96714baa3cd45ef275a812469e52f7882b1bd38a4f3eb686e3bc9094050107",
+    "previousInstalledUUID": "A4AF21E2-1B9E-3757-B8F2-091C630658FD",
+    "modelAssemblySHA256": "e909386679ceebcca3f4849fba52479d206f3b61f5c32561e6275bd7e43e7c85",
+    "existingWeightsReused": true,
+    "priorBundleAndAssemblyRetained": true,
+    "packageInstallExtractionChecksPassed": true,
+    "installedResourceCheck": {
+      "backend": "splash-native-candidate",
+      "extractionWorker": true,
+      "grammarLibrary": true,
+      "kernelCount": 2111,
+      "metalLibrary": true,
+      "runtimeDigests": true,
+      "selectedModel": "qwen36-35b-a3b-4bit",
+      "tokenizerResources": true
+    },
+    "ui": {
+      "request": "Use the calculator to compute 47 multiplied by 19. Give the exact result.",
+      "assistantAnswer": "47 multiplied by 19 is exactly 893.",
+      "calculatorReceipt": {
+        "arithmetic": "decimal",
+        "result": "893"
+      },
+      "status": "complete",
+      "steps": 2,
+      "footer": "Response ready.",
+      "workbookIntegrity": true,
+      "servedContextTokens": 65536,
+      "engineMemoryBytes": 12884901888,
+      "runtimeRelease": "1.6.1",
+      "elapsedSecondsShown": 15
+    }
+  },
+  "productConfigurationSHA256": "a5b38d10ce078180861a9b58b2df7a5035c2429055066a18b2681d654191df9b"
+}

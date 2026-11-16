@@ -3,13 +3,17 @@ type: operational
 meta-type: operational
 id: 01m659x4nd2q89tkpzzsssd7yr
 created: 2026-10-30T02:23:30.477380+00:00
-updated: 2026-11-16T19:48:08.453895+00:00
-summary: Inference/context implementation retains 32K/12 GiB; Splash 1.6.1 remains unpromoted after behavior failures. Visual plan and earlier accepted checkpoints are preserved.
+updated: 2026-11-16T21:03:50.772244+00:00
+summary: Splash 1.6.1 native preview installed with 64K on the 48 GiB test Mac. Earlier acceptance and broader qualification findings are preserved.
 title: Minimum-feature continuation handoff
 ---
 # Minimum-feature continuation handoff
 
-## Inference and context checkpoint, November 16
+## Native preview update, November 16
+
+The owner authorized a focused preview upgrade and a practical 32K versus 64K comparison. Splash 1.6.1 is installed in the native preview. The source chooses 64K on Macs with at least 48 GiB of unified memory and 32K below that tier, with a 12 GiB engine budget and automatic context maintenance in both cases. On the 48 GiB M5 Pro, both settings passed the cited inventory task and the 14K-token purchasing audit. The 42K-token audit was refused at 32K and answered all three values correctly at 64K in 32.8 seconds. Observed peak host and helper footprint was 12.0 and 11.9 GiB respectively, with unchanged swap. These were single runs with synthetic inputs. See the [preview comparison receipt](../../../integration/evidence/2026-11-16-splash-native-preview.json) for the measurements and installed build identity. See [[records/operations/inference-context-execution]].
+
+## Earlier inference and context checkpoint, November 16
 
 The owner-authorized [[records/plans/inference-context-upgrade]] implements exact scoped prompt accounting, complete output/tool/recovery reserves, CPU-only preflight, continuity citation fixes and candidate Splash 1.6.1/protocol 13/status 8. Default settings remain 32K context, 12 GiB engine memory, BF16 activations, int8 KV, fp32 state and ANE on. See [[records/operations/inference-context-execution]] and the [portable evidence](../../../integration/evidence/2026-11-16-splash-upgrade.json).
 

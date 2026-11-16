@@ -47,11 +47,15 @@
     static func configuration(modelsRoot: URL) throws -> NativeWorkbookModel.Configuration {
       try SplashModelSetup.checkHardware()
       let (manifest, engine, grammar) = try layout()
+      // The two capacities were compared at the same engine budget on a 48 GiB Mac.
+      let context: ContextBudget.Profile =
+        ProcessInfo.processInfo.physicalMemory >= 48 * 1024 * 1024 * 1024
+        ? .evaluation64K : .evaluation32K
       return .init(
         engine: engine, engineFiles: manifest.engineFiles, grammarLibrary: grammar,
         grammarSHA256: manifest.grammarSHA256, modelsRoot: modelsRoot,
         memoryBytes: 12 * 1024 * 1024 * 1024,
-        contextBudget: .init(profile: .evaluation32K), reasoning: .bounded512,
+        contextBudget: .init(profile: context), reasoning: .bounded512,
         modelLayout: .installed, contextMaintenanceEnabled: true)
     }
     static func check(validateMetal: Bool) throws -> Value {

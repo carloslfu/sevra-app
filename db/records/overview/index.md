@@ -2,9 +2,9 @@
 type: index
 scope: type-folder
 folder: records/overview
-updated: 2026-11-16T19:48:08.492640Z
+updated: 2026-11-16T21:03:50.814714Z
 ---
 
 # records/overview
 
-- [[records/overview/start-here]] — Inference/context fixes and Splash 1.6.1 candidate implemented; behavior gates block adoption, retaining 32K/12 GiB and the preserved preview. Earlier accepted Excel checkpoints retain their scope.
+- [[records/overview/start-here]] — Splash 1.6.1 native preview installed with scoped accounting, continuity fixes and a context default selected by installed memory.

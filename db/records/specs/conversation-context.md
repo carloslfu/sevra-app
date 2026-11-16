@@ -3,14 +3,14 @@ type: spec
 meta-type: conclusion
 id: 01m5x2pp178p3a4ay7hbfx7wdg
 created: 2026-10-26T21:43:43.399273+00:00
-updated: 2026-11-16T19:32:09.063884+00:00
+updated: 2026-11-16T21:03:50.899830+00:00
 summary: Automatic compaction, preserved conversation history, authoritative continuation state and measured larger-context qualification.
 title: Continuing conversation and context management
 status: reviewed
 ---
 # Continuing conversation and context management
 
-Revision 2, November 16, 2026. Automatic maintenance, exact scoped accounting and original-history navigation are implemented with bounded CPU and real-model checks. The native preview retains 32K context and a 12 GiB engine allowance. Larger useful-context, hardware and engine-adoption qualification remain open; startup admission alone is insufficient. Current results and retained failures are in [[records/operations/inference-context-execution]].
+Revision 3, November 16, 2026. The native preview keeps automatic context maintenance and exact input accounting. At 48 GiB and above the preview chooses 64K at startup. Below that tier it chooses 32K. Both use a 12 GiB engine allowance. See [[records/operations/inference-context-execution]] for the comparison and hardware scope.
 
 ## Reconstruction and saved history
 
@@ -40,13 +40,7 @@ Do not silently switch to a cloud model or a different workbook.
 
 ## Context profiles and budgeting
 
-C03. The native preview retains 32,768 tokens and a 12 GiB engine allowance;
-8,192 is an internal development profile. Evaluate 65,536 and 131,072 only after
-the engine prerequisites pass. Larger contexts become a default only after complete workbook
-jobs, input processing latency, memory pressure and correctness pass. A model's
-advertised maximum or an engine accepting a number does not establish usable
-capacity. Keep physical hardware, model/draft revisions, memory/SSD budgets and
-runtime configuration in each result. No universal context size or speed claim.
+C03. The native preview selects 65,536 tokens on Macs with at least 48 GiB of unified memory and 32,768 below that tier. Both use a 12 GiB engine allowance. 8,192 is an internal development profile. The 64K choice comes from testing the same tasks and memory allowance on a 48 GiB Mac. Capacity stays fixed for the running model session. Broader profile and hardware comparisons require measured task correctness, latency and memory. Keep hardware and runtime identities with the corresponding results.
 
 C04. Count the exact rendered prompt tokens, including policy, tool schemas,
 context, summary, history, tool receipts and template delimiters. Reserve output

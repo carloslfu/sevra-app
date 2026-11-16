@@ -2,14 +2,14 @@
 type: operational
 id: 01m5refyq97sez3da1rywz08wf
 created: 2026-10-25T02:33:33.673437+00:00
-updated: 2026-11-16T19:06:40.140809+00:00
+updated: 2026-11-16T21:03:50.917716+00:00
 summary: Source installation, local AI setup, independent CLI use, verification and uninstall.
 title: Build and run
 ---
 # Build and run
 
 ## Native MVP source installation
-The current source builds Splash 1.6.1 as an isolated candidate. Its historical repeatability and application reliability gates have failed, so it is not adopted as the installed preview. Keep an existing 1.4.1 preview and its model selection intact. See [[records/operations/inference-context-execution]] and [[records/plans/inference-context-upgrade]] for current evidence. The preserved Slotstream baseline below is separate development history.
+The owner authorized a focused preview upgrade and a practical 32K versus 64K comparison. Splash 1.6.1 is installed in the native preview. The source chooses 64K on Macs with at least 48 GiB of unified memory and 32K below that tier, with a 12 GiB engine budget and automatic context maintenance in both cases. See [[records/operations/inference-context-execution]].
 
 Prerequisites: Apple M3 or newer, macOS 26.4+, Swift 6.3, Git, Python 3 for build
 tooling, and Rust 1.96.0 through rustup. The checked host is macOS 26.6.2 with 48 GB
@@ -26,9 +26,7 @@ bash scripts/build_native.sh
 output/native/bin/sevra check-resources
 ~~~
 
-This creates `output/native/Sevra Native Preview.app` without replacing the installed app. Qualification uses an isolated model assembly because the preparation format changed. Do not point the preserved 1.4.1 runtime at the candidate assembly.
-
-After the declared adoption gates pass, `bash scripts/install.sh --native --no-build` installs the exact built product.
+This builds `output/native/Sevra Native Preview.app`. Quit the running preview, then use `bash scripts/install.sh --native --no-build` to install the exact built product. For an upgrade from 1.4.1, use Settings > Model files and storage > Use existing model files to rebuild the model assembly from the same compatible weights.
 The installer stages the matching native app, CLI, extraction helper and all engine/
 grammar resources, verifies them before replacement, and preserves upstream signed
 engine bytes. The CLI link is `~/.local/bin/sevra`; add that folder to PATH or use
@@ -38,8 +36,7 @@ preserving that app and all workbooks.
 It refuses a different tool or a mismatched application identity.
 
 Source builds are locally ad-hoc signed, not production Developer ID notarized.
-The documented build route is currently for candidate evaluation. This preview
-uses Open inside Sevra; it does not register itself as the Finder default for workbooks.
+This preview uses Open inside Sevra and leaves the Finder default for workbooks in place.
 
 In Settings, choose Download model, Verify model files when files are found, or
 expand Model files and storage > Use existing model files… and select a compatible Qwen3.6 35B A3B 4-bit folder containing `dflash/`. Reuse verifies

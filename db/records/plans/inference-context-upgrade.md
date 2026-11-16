@@ -3,14 +3,16 @@ type: spec
 meta-type: conclusion
 id: 01m7gjt1zc6br61a29kn3pf5nz
 created: 2026-11-15T21:46:27.180871+00:00
-updated: 2026-11-16T19:48:08.421201+00:00
-summary: Context accounting and Splash 1.6.1 integration implemented; failed behavior gates retain 32K/12 GiB and block upgrade adoption and useful-task profile qualification.
+updated: 2026-11-16T21:03:50.863161+00:00
+summary: Context fixes and Splash 1.6.1 native preview installed. The focused context comparison selects 64K on the 48 GiB test host.
 title: Inference, context accounting and memory policy
 status: reviewed
 ---
 # Inference, context accounting and memory policy
 
 ## Decision and status
+
+The owner subsequently approved a focused native preview update. The owner authorized a focused preview upgrade and a practical 32K versus 64K comparison. Splash 1.6.1 is installed in the native preview. The source chooses 64K on Macs with at least 48 GiB of unified memory and 32K below that tier, with a 12 GiB engine budget and automatic context maintenance in both cases. The detailed proposal below preserves the earlier production evaluation scope and outcomes. See [[records/operations/inference-context-execution]] for the new acceptance evidence.
 
 Revision 5, after the three original readiness passes and a complete follow-up review of every section against implementation, upstream source and qualification contracts. Implementation is authorized by [[sources/notes/2026/11/inference-context-implementation]] and underway in [[records/operations/inference-context-execution]]. P0/P1/P2 are implemented and verified for their scope. P1 is frozen on the previous engine; candidate 1.6.1 is integrated with protocol 13/status 8. Actual-model P3 failures block engine adoption and P4 useful-task/finalist cohorts. The evidence-based no-change decision retains 32K/12 GiB; this is not a proof of universal optimality. Full local checks, final native packaging and bounded isolated UI recovery pass; exact containing-commit hosted Checks is a separate publication gate. The installed preview remains unchanged. Detailed evidence and unresolved acceptance items are in the execution record below. Planning is authorized by [[sources/notes/2026/11/inference-context-upgrade-plan]] and the follow-up by [[sources/notes/2026/11/inference-context-full-review]]. The owner now authorizes the engine upgrade, GPU/context comparisons and final installation/UI verification. No new default or upgrade is considered qualified merely by implementation. It connects [[records/specs/splash-integration]] and [[records/specs/conversation-context]]; implementation must update both contracts together. Research: [[records/research/inference-context-upgrade]]. Original review: [[records/reviews/inference-context-plan-readiness]]. Complete follow-up findings and section coverage: [[records/reviews/inference-context-plan-full-review]].
 

@@ -3,13 +3,22 @@ type: operational
 meta-type: operational
 id: 01m7jmgpet71503tz8tqy8k3ax
 created: 2026-11-16T16:54:46.490015+00:00
-updated: 2026-11-16T19:47:34.438012+00:00
-summary: Splash 1.6.1 candidate and context fixes implemented; local/package/UI checks pass, but repeatability and app-quality failures block adoption and larger profiles.
+updated: 2026-11-16T21:05:16.405902+00:00
+summary: Splash 1.6.1 native preview installed. A focused task comparison supports 64K on the 48 GiB test Mac with the existing 12 GiB engine budget.
 title: Inference and context implementation
 ---
 # Inference and context implementation
 
-## Active checkpoint
+## Current native preview
+
+The owner authorized a focused preview upgrade and a practical 32K versus 64K comparison. Splash 1.6.1 is installed in the native preview. The source chooses 64K on Macs with at least 48 GiB of unified memory and 32K below that tier, with a 12 GiB engine budget and automatic context maintenance in both cases.
+
+On the 48 GiB M5 Pro, both settings passed the cited inventory task and the 14K-token purchasing audit. The 42K-token audit was refused at 32K and answered all three values correctly at 64K in 32.8 seconds. Observed peak host and helper footprint was 12.0 and 11.9 GiB respectively, with unchanged swap. These were single runs with synthetic inputs. See the [preview comparison receipt](../../../integration/evidence/2026-11-16-splash-native-preview.json) for the measurements and installed build identity.
+
+This preview decision supersedes the earlier local hold. The earlier repeatability, authoring and repair failures remain recorded for broader production qualification. [Checks for the integration commit](https://github.com/carloslfu/sevra-app/actions/runs/43943224631) passed all 40 steps. The additional product change selects the context at startup.
+
+The rebuilt native package passes its resource, signature, installation and extraction checks. The installed app matches package UUID `C13AE316-20FD-39BF-BF56-66EB57E48312`. The installed calculator task returns 893 for 47 × 19 and saves the completed receipt with Splash 1.6.1 and 65,536 served tokens. Workbook integrity passes. The model setup verifies and reuses the existing weights. The previous app and assembly remain available for rollback.
+## Earlier candidate evaluation
 The host accounting and continuity fixes are implemented. P1 is committed/frozen at `c6a588c` on Splash 1.4.1. The current source integrates candidate Splash 1.6.1/protocol 13/status 8 with explicit BF16, int8 KV, fp32 state and ANE on at unchanged 32K/12 GiB. Exact model assembly, CPU adapter checks, real startup/responses/cancel/refusal/recovery, autonomous workbook jobs and corrected multi-compaction/portable continuity pass. The preserved original preview CLI opens and verifies a disposable portable copy from the candidate. Portable receipts are `integration/evidence/2026-11-16-splash-upgrade.json` and `integration/evidence/2026-11-16-context-admission.json`.
 
 Current-agent R/N/N/R passes all twelve jobs with exact requests and tokens. Historical fixed-input R/N/N/R varies within both native and reference; an instrumented diagnostic matches all 2,830 common mask prefixes but cannot clear the uninstrumented failure. The old/new pilot retains formula warmup failures in both versions. Candidate calculator authoring and repair fail independent outcomes. Full performance cohorts, engine promotion and the task-quality matrix remain blocked by the preregistered gates. No speedup is claimed.
@@ -25,7 +34,7 @@ Startup-only tests admit 32K, 64K and 128K at 12 GiB, with decreasing resident t
 - P4/P5: controlled context/memory experiments, held-out confirmation and final policy selection.
 - P6/P7: native UX/recovery, complete final checks, package/install identity, commit/push and rollback proof.
 
-## Active blockers
+## Earlier qualification blockers
 1. Historical same-engine repeatability fails within both native and reference workers despite equal input bytes and matching common-prefix masks. Engine promotion and full qualifying cohorts remain blocked. The unchanged upstream numerical engine has not been patched or qualified by instrumented diagnostic passes.
 2. Candidate calculator creation and repair fail independent outcomes. The old/new pilot retains a formula failure in each engine. The useful-task context sweep and larger/precision profiles remain gated; retain 32K/12 GiB without claiming a global optimum.
 3. Exact containing-commit hosted Checks is required at publication. Local broad checks, final native package/setup/install/extraction and bounded UI recovery pass. The remaining full P6 phase-specific cancellation timings are unqualified, and the installed 1.4.1 preview remains unchanged.

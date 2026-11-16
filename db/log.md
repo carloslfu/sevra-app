@@ -166,3 +166,6 @@ P1 scoped accounting and complete-output/result reserves verified on Splash 1.4.
 ## [2026-11-16 19:47] verification | records/operations/inference-context-execution.md
 Full local check.sh passes before one-line success-footer correction; final native build/package/install/extraction and isolated progress/Stop/calculator/reopen UI pass after it. Public upgrade receipt preserves source/binary/log hashes and all failed model cohorts. Historical repeatability and calculator create/repair failures block adoption and larger-context task matrix; retain 32K/12 GiB and unchanged installed preview. Exact containing-commit Checks remains the publication gate.
 
+## [2026-11-16 21:05] verification | records/operations/inference-context-execution.md
+Matched Splash 1.6.1 32K and 64K at 12 GiB using sevra-agent-checks --context-profile. Both shorter tasks passed. The 42K audit only fit at 64K and passed. Rebuilt and checked native packaging, installed with reused weights, and verified the installed 64K calculator receipt and workbook integrity.
+
