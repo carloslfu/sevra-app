@@ -191,21 +191,6 @@ func checkNativeReviewNumbers(
       .object(["kind": .string("expect_text"), "value": .string("Month 1")]),
     ]),
   ])
-  var flatReview = review.object
-  flatReview["inputRoles"] = .object(["month": .object(["kind": role])])
-  let repeatedField =
-    review["tests"].array + [
-      .object([
-        "kind": .string("run_action"), "action": .string("cancelMonth"),
-        "inputs": .object(["month": .number(1)]),
-      ]),
-      .object(["kind": .string("expect_text"), "value": .string("Cancelled")]),
-    ]
-  try expectEqual(
-    NativeAppReview.actionIndexedRoles(
-      flatReview["inputRoles"]!, actions: ["chooseMonth", "cancelMonth"],
-      registeredActions: ["chooseMonth", "cancelMonth"], steps: repeatedField),
-    flatReview["inputRoles"]!)
   let contracts = try await NativeAppCheck.run(
     package: candidate,
     steps: [
@@ -264,7 +249,7 @@ func checkNativeReviewNumbers(
     return result
   }
   let confirmingModel = NumericRulingTestModel(
-    [], reviews: [.object(flatReview)], interpretations: [monthRestriction])
+    [], reviews: [review], interpretations: [monthRestriction])
   var failure = ""
   do {
     _ = try await check(candidate, model: confirmingModel)

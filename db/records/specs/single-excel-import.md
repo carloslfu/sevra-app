@@ -2,7 +2,7 @@
 type: spec
 id: 01m7b1b0m1hsrhhgtybew4xqqa
 created: 2026-11-13T18:04:56.321049+00:00
-updated: 2026-11-14T23:09:24.482063+00:00
+updated: 2026-11-16T05:24:34.650963+00:00
 summary: One native Excel import with reviewed local workflow inference, shared tables and constrained app generation
 title: Single Excel import
 status: implemented
@@ -19,7 +19,7 @@ Ask to build the workspace after reviewing the plan, or choose **Build workspace
 
 **Just use the tables** needs no model. Failed or stopped planning/building preserves the original and any committed working tables. Home resumes the saved import. Retry uses the same data; rethinking/rebuilding replaces the same app identity with a newly reviewed version. New clarification invalidates the previous build even when the inferred plan text happens to be identical. Table updates remain a secondary **Update an existing table…** action with the existing target/mapping/preview/review flow. No automatic append, merge or replacement is inferred from a file name.
 
-Saved Excel files also enter this workspace through **Use saved file**. Other formats retain their existing intake. The raw importer, formula engine and reviewed updater remain shared implementation capabilities; customers no longer choose among competing Excel import modes at the start.
+Saved Excel files also enter this workspace through **Use saved file**. New-workbook Save panels supply the workbook package type so a replacement filename retains the .sevra extension. File-only intake pickers exclude workbook packages as file sources. Successful Excel intake, analysis, comparison and table conversion report the result in the native status area. The draft-review action appears when drafts remain. Other formats retain their existing intake. The raw importer, formula engine and reviewed updater remain shared implementation capabilities; customers no longer choose among competing Excel import modes at the start.
 
 ## Reused architecture and authority
 

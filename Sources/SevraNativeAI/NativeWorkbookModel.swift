@@ -520,7 +520,8 @@ private final class NativeWorker: @unchecked Sendable {
         conversationActions: messages.first?.conversationActions,
         documentCopyIDs: DocumentCopyCandidates.ids(in: messages),
         historyReferenceIDs: ItemReferenceCandidates.historyIDs(in: messages),
-        nativeAppAuthoring: messages.first?.nativeAppAuthoring == true)
+        nativeAppAuthoring: messages.first?.nativeAppAuthoring == true,
+        reviewContract: messages.first?.reviewContract ?? .null)
     }
     let budget = configuration.contextBudget
     let prompt = try session.frontend.prepare(

@@ -496,12 +496,13 @@ struct FolderReview {
     run(title, operation: operation, completion: { _ in })
   }
   func run<Result: Sendable>(
-    _ title: String, operation: @escaping @Sendable (Workbook, Cancellation) throws -> Result,
+    _ title: String, successStatus: String? = nil,
+    operation: @escaping @Sendable (Workbook, Cancellation) throws -> Result,
     completion: @escaping @MainActor (Result) -> Void
   ) {
     guard let (book, ticket) = beginOperation(title) else { return }
     Task {
-      defer { finishOperation(ticket, in: book) }
+      defer { finishOperation(ticket, in: book, successStatus: successStatus) }
       do {
         let result = try await Task.detached(priority: .userInitiated) {
           try ticket.cancellation.check()
@@ -541,13 +542,15 @@ struct FolderReview {
     liveActivity?.attach(request, conversation: conversation)
     refresh()
   }
-  func finishOperation(_ ticket: WorkspaceOperation, in book: Workbook) {
+  func finishOperation(
+    _ ticket: WorkspaceOperation, in book: Workbook, successStatus: String? = nil
+  ) {
     guard owns(ticket, in: book), operations.finish(ticket) else { return }
     terminalStatus =
       error == nil
       ? (ticket.cancellation.isCancelled
         ? "Stopped. Saved work is kept."
-        : "Operation ended: " + operationTitle
+        : successStatus ?? "Operation ended: " + operationTitle
           + ". Read the result or conversation for its outcome.")
       : nil
     busy = false
@@ -587,6 +590,7 @@ struct FolderReview {
     let panel = NSOpenPanel()
     panel.canChooseFiles = true
     panel.canChooseDirectories = false
+    panel.treatsFilePackagesAsDirectories = true
     panel.allowsMultipleSelection = true
     guard panel.runModal() == .OK, interactionActive, workbook === book,
       conversation == chat, interactionIdentity == identity
@@ -620,6 +624,7 @@ struct FolderReview {
     let navigation = itemPreviewIdentity
     run(
       linked ? "Linking files" : "Including files",
+      successStatus: finished ?? (linked ? "Files linked." : "Files added."),
       operation: { book, cancel in
         var failures: [String] = []
         var excel: [String] = []
@@ -658,7 +663,7 @@ struct FolderReview {
           self.navigate(.excelImport(id))
           if let book = self.workbook {
             _ = try? book.addMessage(
-              "Your Excel workbook is ready. Tell me what work you do with it, or ask me to inspect it, use its tables, or build an app. You can supply the inputs and run its actions here in chat.",
+              "I added your Excel file. Tell me how you use it, or open its tables. I can use your description to build a workspace you can operate here in chat.",
               role: "assistant", conversation: chat)
             self.refresh()
           }

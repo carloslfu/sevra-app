@@ -68,44 +68,6 @@ extension NativeAppReview {
     return matches
   }
 
-  /// Accept a field-indexed classification only when each supplied field belongs
-  /// to exactly one exercised action. It must carry the same complete roles.
-  package static func actionIndexedRoles(
-    _ roles: Value, actions: Set<String>, registeredActions: Set<String>, steps: [Value]
-  ) -> Value {
-    guard registeredActions.isDisjoint(with: roles.object.keys) else { return roles }
-    var actionFields: [String: Set<String>] = [:]
-    var allFields = Set<String>()
-    for index in steps.indices.dropLast() {
-      let step = steps[index]
-      let action = step["action"].text
-      guard actions.contains(action), actionFields[action] == nil,
-        !assertedSuccessfulActions(Array(steps[index...index + 1])).isEmpty
-      else { continue }
-      let fields = Set(step["inputs"].object.keys)
-      guard allFields.isDisjoint(with: fields) else { return roles }
-      allFields.formUnion(fields)
-      actionFields[action] = fields
-    }
-    guard Set(actionFields.keys) == actions, allFields == Set(roles.object.keys) else {
-      return roles
-    }
-    var normalized: [String: Value] = [:]
-    for (action, fields) in actionFields {
-      var mapped: [String: Value] = [:]
-      for field in fields {
-        let entry = roles[field]
-        let role =
-          Set(entry.object.keys) == ["kind"] && entry["kind"].string == nil
-          ? entry["kind"] : entry
-        guard role["kind"].string != nil else { return roles }
-        mapped[field] = role
-      }
-      normalized[action] = .object(mapped)
-    }
-    return .object(normalized)
-  }
-
   /// The reviewer classifies business meaning. The host verifies its references
   /// and derives the actual probes, so a declared lookup cannot skip its header.
   package static func inputProbes(
@@ -231,8 +193,17 @@ extension NativeAppReview {
         // numeric/boolean key cannot receive a text header through that contract;
         // reject:true deliberately refuses type errors as business-rule evidence.
         if ["number", "decimal", "boolean"].contains(type) { continue }
+        let entered = inputs[field] ?? .null
         try require(
-          inputs[field]?.string != nil, "app_review_inputs", "Existing keys must use scalar inputs."
+          entered.string?.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty == false
+            && entered != .string(header)
+            && (fixtures[alias].array.contains { $0[column] == entered }
+              || steps.prefix(index).contains {
+                $0["kind"] == .string("expect_row") && $0["table"] == .string(alias)
+                  && $0["values"][column] == entered
+              }),
+          "app_review_inputs",
+          "The successful \(action).\(field) input marked existingKey needs a distinct record key in the starting fixtures or a preceding saved-row assertion for \(alias).\(column). If this operation creates a new reference, use kind:value. Correct the review setup before using this mapping to report a defect."
         )
         variants.append(
           .object([
@@ -259,6 +230,7 @@ extension NativeAppReview {
         }
         var probe = variant.object
         probe["action"] = .string(action)
+        probe["controlInputs"] = .object(inputs)
         probe["tests"] = .array(Array(steps.prefix(index)) + [.object(revised)])
         probes.append(.object(probe))
       }

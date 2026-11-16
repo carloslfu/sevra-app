@@ -6,6 +6,7 @@ import SevraPreviewUI
 import SevraProduct
 import SevraTableUI
 import SwiftUI
+import UniformTypeIdentifiers
 
 @main struct SevraApp: App {
   init() {
@@ -104,11 +105,17 @@ private struct WorkbookFileCommands: Commands {
 /// Everything that starts from a file rather than from a window.
 @MainActor struct WorkbookFiles {
   let openWindow: OpenWindowAction
-  func create() {
+  static func workbookSavePanel(title: String, name: String) -> NSSavePanel {
     let panel = NSSavePanel()
-    panel.title = "Create a workbook"
-    panel.nameFieldStringValue = "Untitled.sevra"
+    panel.title = title
+    panel.nameFieldStringValue = name
+    panel.allowedContentTypes = [UTType(filenameExtension: "sevra", conformingTo: .package)]
+      .compactMap { $0 }
     panel.canCreateDirectories = true
+    return panel
+  }
+  func create() {
+    let panel = Self.workbookSavePanel(title: "Create a workbook", name: "Untitled")
     guard panel.runModal() == .OK, let url = panel.url else { return }
     let title = url.deletingPathExtension().lastPathComponent
     build(url) { _ = try Workbook.create(at: url, title: title) }
@@ -125,15 +132,13 @@ private struct WorkbookFileCommands: Commands {
       openWindow(value: url.path)
       return
     }
-    let panel = NSSavePanel()
-    panel.title = "Open portable workbook"
-    panel.nameFieldStringValue = url.deletingPathExtension().lastPathComponent + ".sevra"
+    let panel = Self.workbookSavePanel(
+      title: "Open portable workbook", name: url.deletingPathExtension().lastPathComponent)
     guard panel.runModal() == .OK, let target = panel.url else { return }
     build(target) { _ = try Workbook.openArchive(url, at: target) }
   }
   func demo() {
-    let panel = NSSavePanel()
-    panel.nameFieldStringValue = "Willow Workshop.sevra"
+    let panel = Self.workbookSavePanel(title: "Save example workbook", name: "Willow Workshop")
     guard panel.runModal() == .OK, let url = panel.url else { return }
     build(url) { try Demo.create(at: url) }
   }
@@ -397,6 +402,7 @@ struct WorkspaceWindow: View {
     input.title = "Start a workbook from your files"
     input.canChooseFiles = true
     input.canChooseDirectories = false
+    input.treatsFilePackagesAsDirectories = true
     input.allowsMultipleSelection = true
     guard input.runModal() == .OK, ownWindow === owner, owner.isVisible,
       !input.urls.isEmpty
@@ -405,10 +411,8 @@ struct WorkspaceWindow: View {
   }
   private func saveWorkbook(from files: [URL], owner: NSWindow) {
     guard ownWindow === owner, owner.isVisible else { return }
-    let destination = NSSavePanel()
-    destination.title = "Save your new workbook"
-    destination.nameFieldStringValue = files[0].deletingPathExtension().lastPathComponent + ".sevra"
-    destination.canCreateDirectories = true
+    let destination = WorkbookFiles.workbookSavePanel(
+      title: "Save your new workbook", name: files[0].deletingPathExtension().lastPathComponent)
     guard destination.runModal() == .OK, ownWindow === owner, owner.isVisible,
       let url = destination.url
     else { return }

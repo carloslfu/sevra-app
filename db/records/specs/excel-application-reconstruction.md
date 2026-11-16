@@ -2,7 +2,7 @@
 type: spec
 id: 01m7bd3448sec8weav20n1fyht
 created: 2026-11-13T21:30:20.679849+00:00
-updated: 2026-11-16T03:39:31.331147+00:00
+updated: 2026-11-16T05:24:34.609034+00:00
 summary: Constrained Excel application reconstruction with original-result comparison; ten automatic workflows qualified against 89 independent originals within explicit limits.
 title: Excel application reconstruction
 status: implemented
@@ -78,8 +78,7 @@ business interpretation remain model judgments; the independent business harness
 spreadsheet oracle are separate qualification. Current broader acceptance is pending in
 [[records/plans/excel-business-applications]].
 
-Each ready action batch also classifies every supplied input in `inputRoles`: a new/entered
-value, or an existing key with its worksheet alias, column and original header row. The
+Each successful independent probe groups its action, exact inputs, input roles and expected effects. Refusal probes contain the call and expected refusal. A new or entered value can share its field name with a lookup in a different action. An existing key identifies its worksheet alias, column and original header row. The
 host validates that mapping and reads the exact header cell from the verified retained
 original, independent of the bounded model excerpt. Sparse row coordinates and skipped
 empty sheets retain their original mapping; formula outputs cannot be lookup headers,
@@ -87,7 +86,7 @@ and headers over 4 KiB refuse without truncation. String-key probes substitute
 that header into the successful call, replay only the prior setup in a fresh disposable
 workbook, and require rejection without writes. The successful call itself is not replayed
 first, because duplicate-reference checks could mask the invalid key. Fixture headers
-must be unique at their original positions. Successful numeric/boolean input contracts
+must be unique at their original positions. A successful text lookup must use a distinct nonblank key present in its fixture or an earlier exercised saved-row assertion. Successful numeric/boolean input contracts
 already prevent text headers reaching their handlers. Receipts retain classifications,
 original cells/headers, exact probes and package digests. The bounded reviewer can correct
 an inconsistent verdict without resubmitting the candidate source; exhausted review
@@ -120,9 +119,9 @@ examples prove universal equivalence.
 ## Disputed numeric rules
 The first reviewer receives the original worksheet validation operator, formulas and explicit blank or error metadata where available. When a derived numeric action's observed result disagrees with the review, a new structured local interpretation receives only the exact field and typed value, actual user clarification and bounded original worksheet validation or readable VBA evidence. It cannot see candidate source, its observed result or the earlier rule. A decision to forbid requires a literal supporting original passage. A user passage must identify this specific field. An unclear answer blocks publication. The host must independently reproduce a reversed expectation in the same isolated state before it changes the accepted rule. Review coverage records the executed typed probes under their actual action IDs.
 
-The first reviewer may express input roles by field if the fields are unique across its exercised actions and every role maps to one exact supplied input. The saved review always groups those complete roles by action. The ordinary role, evidence, typing and probe checks still apply. An inconclusive independent review remains a retryable review failure. A later verified counterexample from the same draft is a distinct outcome that can be used for repair under the normal build step limit.
+The blind review grammar requires input roles beside each successful call and worksheet fixture rows keyed by original native column IDs. Its action choices and input shapes come from the SDK contracts observed by the host. Each exact action still validates its own inputs in the isolated worker. A failed derived boundary case requires the original representative call to pass in the same starting state before feedback can ask for a source repair. The saved review stores the exercised roles by action. An inconclusive independent review remains a retryable review failure. A later verified counterexample from the same draft can be used for repair under the normal build step limit.
 
-A successful isolated named-action probe accounts for every input it changes. The checker reads committed broker receipts, identifies the affected logical records and compares each direct input with the exact saved row asserted by the reviewer. An unrelated row cannot witness a change. The checker requires identifying values for removals and treats an ambiguous match as incomplete evidence. Recomputed formula outputs require no additional input write. A repeated idempotent receipt does not count as a second commit. A saved row that was already present establishes no write by itself.
+A successful isolated named-action probe accounts for every input it changes. The checker reads committed broker receipts, identifies the affected logical records and compares each direct input with the exact saved row asserted by the reviewer. An unrelated row cannot witness a change. The checker requires identifying values for removals and treats an ambiguous match as incomplete evidence. Recomputed formula outputs require no additional input write. A repeated idempotent receipt does not count as a second commit. A saved row that was already present establishes no write by itself. Excel authoring checks also refuse a committed worksheet write during mount and initial subscriptions before any user operation.
 
 The host checks derived input variants using contracts already observed in the isolated builder check. An authored refusal with invalid setup cannot block an otherwise executable check of an original worksheet heading. Those derived variants still use the exact earlier setup and run in disposable worksheets. Every submitted ready probe must still pass before publication. The model derives the expected effects from original evidence and clarification, and the held-out operating corpus checks the saved workbook separately.
 

@@ -26,8 +26,12 @@ private actor ConversationWorker {
         const receipt=await S.data.transaction([{op:'insert',table:'stock',values:args}]);
         status.value='Saved '+args.name;return {saved:args.name,receipt:receipt.token};
       });
+      S.action('update',{title:'Update quantity',inputs:{row:{type:'text',title:'Row'}}},async({row})=>{
+        const saved=await S.data.transaction([{op:'update',table:'stock',id:row,values:{quantity:'7'}}]);
+        return {receipt:saved.token};
+      });
       S.action('partial',{title:'Save and wait',inputs:{}},async()=>{await S.data.transaction([{op:'insert',table:'stock',values:{name:'Committed before stop',quantity:'1'}}]);await new Promise(()=>{});});
-      S.mount(S.h(S.Column,{},S.h(S.TextField,{label:'Name',value:name}),S.h(S.Button,{title:'Add one',onClick:async()=>add({name:name.value,quantity:'1'})}),S.h(S.Text,{text:status}),S.h(S.Table,{table:'stock',label:'Stock',onSelect:e=>name.value=e.value.values.name}),S.h(S.Canvas,{label:'Board',width:300,height:200,regions:[{id:'card',label:'Card',x:0,y:0,width:100,height:50}],onDrop:e=>status.value='Moved '+e.value+' by '+e.x+','+e.y})));
+      S.mount(S.h(S.Column,{},S.h(S.TextField,{label:'Name',value:name}),S.h(S.Button,{title:'Add one',onClick:async()=>add({name:name.value,quantity:'1'})}),S.h(S.Text,{text:status}),S.h(S.Table,{table:'stock',label:'Stock',onSelect:e=>name.value=e.value.values.name}),S.h(S.Table,{table:'stock',label:'Stock review'}),S.h(S.Canvas,{label:'Board',width:300,height:200,regions:[{id:'card',label:'Card',x:0,y:0,width:100,height:50}],onDrop:e=>status.value='Moved '+e.value+' by '+e.x+','+e.y})));
       """,
     datasets: [
       "stock": .init(
@@ -163,12 +167,12 @@ private actor ConversationWorker {
   let browsed = try await session.converse(
     "browse",
     arguments: .object([
-      "target": .string("stock"), "sort": .string("name"), "descending": .bool(true),
+      "target": .string("Stock"), "sort": .string("name"), "descending": .bool(true),
       "search": .string("Pencils"),
     ]), readOnly: true)
   try expect(browsed["page"]["total"] == .number(1))
   try expect(browsed["page"]["rows"].array.first?["values"]["name"] == .string("Pencils"))
-  let tableNode = session.tree.nodes.values.first { $0.type == "table" }!
+  let tableNode = session.tree.nodes.values.first { $0.props["label"] == .string("Stock") }!
   try expect(
     session.tableRequest(tableNode) == browsed["request"],
     "The optional renderer must read the same page settings")
@@ -207,6 +211,32 @@ private actor ConversationWorker {
     throw SevraError("test", "A repeated Redo silently undid the change")
   } catch let error as SevraError { try expect(error.code == "app_undo") }
   try expect(reopened.rows(dataset).count == 2)
+  let pencil = try reopened.rows(dataset).first { $0.data["name"] == .string("Pencils") }!
+  let refusedSelection = try await restored.converse(
+    "select",
+    arguments: .object(["target": .string("Stock review"), "rowID": .string(pencil.id)]))
+  let selectedRow: Value = .object(["table": .string("stock"), "key": .string(pencil.logicalID)])
+  try expect(refusedSelection["outcome"] == .string("failed"))
+  try expect(refusedSelection["id"] == .string(space.id))
+  try expect(refusedSelection["version"].int == space.version)
+  try expect(refusedSelection["unavailableSelection"] == selectedRow)
+  try expect(refusedSelection["changes"] == .array([]))
+  try expect(reopened.item(pencil.logicalID).id == pencil.id)
+  let update = try await restored.converse(
+    "run",
+    arguments: .object([
+      "action": .string("update"), "inputs": .object(["row": .string(pencil.id)]),
+    ]))
+  try expect(update["outcome"] == .string("completed"))
+  try expect(update["updatedRows"] == .array([selectedRow]))
+  let savedPencil = try reopened.item(pencil.logicalID)
+  try expect(savedPencil.id != pencil.id && savedPencil.data["quantity"] == .string("7"))
+  do {
+    _ = try await restored.converse(
+      "select",
+      arguments: .object(["target": .string("Stock review"), "rowID": .string(pencil.id)]))
+    throw SevraError("test", "Stale row version supplied selection-recovery evidence")
+  } catch let error as SevraError { try expect(error.code == "app_row") }
   let cancellation = Cancellation()
   let interrupted = Task {
     try await restored.converse(

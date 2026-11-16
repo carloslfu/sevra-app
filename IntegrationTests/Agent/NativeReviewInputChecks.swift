@@ -6,9 +6,9 @@ func checkNativeReviewInputContracts(
   package: NativeAppPackage, tables: [Dataset], coordinates: [[Int]], header: String
 ) throws {
   let paired = try Value.parse(
-    #"{"probes":[{"action":"ship","inputs":{"quantity":3},"expect":[{"kind":"expect_row","table":"ledger","values":{"reference":"NEW","quantity":"-3"}}]},{"action":"ship","inputs":{"quantity":0},"expect":[{"kind":"reject"}]}]}"#
+    #"{"probes":[{"action":"ship","inputs":{"quantity":3},"inputRoles":{"quantity":{"kind":"number","maximum":null,"minimum":0,"nonzero":true,"whole":false}},"expect":[{"kind":"expect_row","table":"ledger","values":{"reference":"NEW","quantity":"-3"}}]},{"action":"ship","inputs":{"quantity":0},"expect":[{"kind":"reject"}]}]}"#
   )
-  let expanded = try NativeAppReview.actionProbeSteps(paired, actions: ["ship"])
+  let expanded = try NativeAppReview.actionProbes(paired, actions: ["ship"]).steps
   try expectEqual(expanded.count, 3)
   try expectEqual(expanded[0]["kind"], .string("run_action"))
   try expectEqual(expanded[0]["inputs"]["quantity"], .number(3))
@@ -22,11 +22,24 @@ func checkNativeReviewInputContracts(
     .object(["kind": .string("expect_text"), "value": .string("Remaining 7")]),
   ])
   multiple["probes"] = .array([.object(successful), paired["probes"].array[1]])
-  let effects = try NativeAppReview.actionProbeSteps(.object(multiple), actions: ["ship"])
+  let effects = try NativeAppReview.actionProbes(.object(multiple), actions: ["ship"]).steps
   try expectEqual(
     effects.map { $0["kind"].text },
     ["run_action", "expect_row", "expect_text", "run_action"])
   try expectEqual(effects[3]["reject"], .bool(true))
+  let sharedReference = try Value.parse(
+    #"{"probes":[{"action":"plan","inputs":{"reference":"NEW"},"inputRoles":{"reference":{"kind":"value"}},"expect":[{"kind":"expect_row","table":"sheet1","values":{"c1":"NEW"}}]},{"action":"complete","inputs":{"reference":"NEW"},"inputRoles":{"reference":{"kind":"existingKey","table":"sheet1","column":"c1","headerRow":1}},"expect":[{"kind":"expect_row","table":"sheet1","values":{"c1":"NEW","c2":"Completed"}}]}]}"#
+  )
+  let shared = try NativeAppReview.actionProbes(sharedReference, actions: ["plan", "complete"])
+  try expectEqual(shared.inputRoles["plan"]["reference"]["kind"], .string("value"))
+  try expectEqual(shared.inputRoles["complete"]["reference"]["kind"], .string("existingKey"))
+  try expectEqual(
+    shared.steps.map { $0["kind"].text }, ["run_action", "expect_row", "run_action", "expect_row"])
+  var conflicting = sharedReference.object
+  var second = sharedReference["probes"].array[1].object
+  second["action"] = .string("plan")
+  conflicting["probes"] = .array([sharedReference["probes"].array[0], .object(second)])
+  try expectThrows(try NativeAppReview.actionProbes(.object(conflicting), actions: ["plan"]))
   for invalid in [
     #"{"tests":[{"kind":"expect_text","value":"Ready"}]}"#,
     #"{"probes":[]}"#,
@@ -34,21 +47,24 @@ func checkNativeReviewInputContracts(
     #"{"probes":[{"action":"ship","inputs":{},"expect":{"kind":"reject"}}]}"#,
     #"{"probes":[{"action":"ship","inputs":{},"expect":[{"kind":"reject"},{"kind":"expect_text","value":"Done"}]}]}"#,
     #"{"probes":[{"action":"typo","inputs":{},"expect":[{"kind":"reject"}]}]}"#,
-    #"{"probes":[{"action":"ship","inputs":{},"expect":[{"kind":"expect_rows","table":"ledger","count":1}]}]}"#,
-    #"{"probes":[{"action":"ship","inputs":{},"expect":[{"kind":"expect_row","table":"ledger","values":{}}]}]}"#,
-    #"{"probes":[{"action":"ship","inputs":{"quantity":3},"expect":[{"kind":"expect_row","table":"ledger","values":{"quantity":-3}}]}]}"#,
+    #"{"probes":[{"action":"ship","inputs":{},"inputRoles":{},"expect":[{"kind":"expect_rows","table":"ledger","count":1}]}]}"#,
+    #"{"probes":[{"action":"ship","inputs":{},"inputRoles":{},"expect":[{"kind":"expect_row","table":"ledger","values":{}}]}]}"#,
+    #"{"probes":[{"action":"ship","inputs":{"quantity":3},"inputRoles":{"quantity":{"kind":"number"}},"expect":[{"kind":"expect_row","table":"ledger","values":{"quantity":-3}}]}]}"#,
+    #"{"probes":[{"action":"ship","inputs":{"quantity":3},"expect":[{"kind":"expect_text","value":"Saved"}]}]}"#,
+    #"{"probes":[{"action":"ship","inputs":{"quantity":3},"inputRoles":{"wrong":{"kind":"value"}},"expect":[{"kind":"expect_text","value":"Saved"}]}]}"#,
+    #"{"probes":[{"action":"ship","inputs":{},"inputRoles":{},"expect":[{"kind":"reject"}]}]}"#,
     #"{"probes":[{"action":"ship","inputs":{},"expect":[{"kind":"reject","error":false}]}]}"#,
     #"{"probes":[{"action":"ship","inputs":{}}]}"#,
     #"{"probes":[{"action":"ship","inputs":{},"expect":[{"kind":"reject"}],"source":"execute me"}]}"#,
   ] {
-    try expectThrows(try NativeAppReview.actionProbeSteps(Value.parse(invalid), actions: ["ship"]))
+    try expectThrows(try NativeAppReview.actionProbes(Value.parse(invalid), actions: ["ship"]))
   }
   var hiddenCall = paired.object
   hiddenCall["interfaceTests"] = .array([expanded[0]])
-  try expectThrows(try NativeAppReview.actionProbeSteps(.object(hiddenCall), actions: ["ship"]))
+  try expectThrows(try NativeAppReview.actionProbes(.object(hiddenCall), actions: ["ship"]))
   var oversized = paired.object
   oversized["probes"] = .array(Array(repeating: paired["probes"].array[0], count: 9))
-  try expectThrows(try NativeAppReview.actionProbeSteps(.object(oversized), actions: ["ship"]))
+  try expectThrows(try NativeAppReview.actionProbes(.object(oversized), actions: ["ship"]))
   // An unchanged retry gets its own prior diagnostic, never another candidate's
   // fixture/source/test context, another request's state, or a passed check.
   let arguments: Value = .object([
@@ -195,6 +211,17 @@ func checkNativeReviewInputContracts(
   // Replay only setup, never the successful insert itself: its duplicate guard
   // must not make the subsequent invalid key appear to have been rejected.
   try expectEqual(checked[0]["tests"].array.filter { $0["kind"] == .string("run_action") }.count, 1)
+  // A new reference cannot become a fabricated existing-key refusal.
+  let newReference = try Value.parse(
+    #"{"lookup":{"key":{"kind":"existingKey","table":"sheet1","column":"c1","headerRow":1},"reference":{"kind":"existingKey","table":"sheet1","column":"c1","headerRow":1}}}"#
+  )
+  try expectThrows(try probes(newReference))
+  let preceding = try Value.parse(
+    #"[{"kind":"run_action","action":"create","inputs":{"reference":"NEW"}},{"kind":"expect_row","table":"sheet1","values":{"c1":"NEW"}}]"#
+  ).array
+  let existing = try probes(newReference, steps: preceding + steps)
+  try expectEqual(existing.count, 2)
+  try expectEqual(Array(existing[1]["tests"].array.prefix(2)), preceding)
   for invalid in [Value.null, .object([:]), .object(["lookup": .object([:])])] {
     try expectThrows(try probes(invalid))
   }

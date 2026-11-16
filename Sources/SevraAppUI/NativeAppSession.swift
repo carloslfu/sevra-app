@@ -584,6 +584,7 @@ import SwiftUI
     }
     var answer: Value = .null
     var invocationInputContract: Value = .null
+    let commandBaseRevision = revision
     do {
       if operation == "undo" || operation == "redo" {
         try require(operation == "undo" ? canUndo : canRedo, "app_undo",
@@ -649,10 +650,21 @@ import SwiftUI
           : operation == "select"
             ? "onSelect"
             : operation == "drop" ? "onDrop" : node.type == "table" ? "onActivate" : "onClick"
-        try require(
-          interactionCatalog.array.contains {
-            $0["id"].text == node.id && $0["handlers"].array.contains(.string(handler))
-          }, "app_action", "That operation is not available on this input.")
+        let hasHandler = interactionCatalog.array.contains {
+          $0["id"].text == node.id && $0["handlers"].array.contains(.string(handler))
+        }
+        if !hasHandler, operation == "select", node.type == "table", let access {
+          let alias = node.props["table"]
+          let row = try book.nativeAppConversationRow(
+            access, alias: alias.text, id: arguments["rowID"].text)
+          return .object([
+            "id": .string(space.id), "version": .number(Double(space.version)),
+            "outcome": .string("failed"), "changes": .array([]),
+            "errors": .array([.string("This table has no row-selection action.")]),
+            "unavailableSelection": .object(["table": alias, "key": row["key"]]),
+          ])
+        }
+        try require(hasHandler, "app_action", "That operation is not available on this input.")
         var value = arguments["value"]
         var extra: [String: Value] = [:]
         if node.type == "table" {
@@ -698,6 +710,19 @@ import SwiftUI
     snapshot["changes"] = .array(commandReceipts)
     snapshot["errors"] = .array(commandFailures.map(Value.string))
     snapshot["outcome"] = .string(commandFailures.isEmpty ? "completed" : "failed")
+    if operation == "run", commandFailures.isEmpty {
+      let updatedRows: [Value] = commandReceipts
+        .filter { ($0["revision"].int ?? 0) > commandBaseRevision }
+        .flatMap { receipt in
+          receipt["inverse"].array.compactMap { change in
+            guard change["op"] == .string("update"),
+              let saved = try? book.item(change["id"].text)
+            else { return nil }
+            return .object(["table": change["table"], "key": .string(saved.logicalID)])
+          }
+        }
+      if !updatedRows.isEmpty { snapshot["updatedRows"] = .array(updatedRows) }
+    }
     return .object(snapshot)
   }
 

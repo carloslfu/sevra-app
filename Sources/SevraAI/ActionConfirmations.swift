@@ -15,6 +15,15 @@ package struct ActionConfirmations {
     let later = entries.dropFirst(index + 1)
     return (entry["error"].text.contains(Self.repeatRefused) ? entries[...] : later).contains {
       saved in
+      if entry["unavailableSelection"] != .null,
+        saved["appVersion"] == entry["appVersion"],
+        saved["resolvedAppTarget"] == entry["resolvedAppTarget"],
+        saved["updatedRows"].array.contains(entry["unavailableSelection"])
+      {
+        // A supported named action updated the same record after a selection
+        // that never dispatched. The original refusal remains in tool history.
+        return true
+      }
       if let missing = entry["missingAppTarget"].string {
         // Only settle a demonstrated copying error from a known inspection.
         // This never resolves another target or authorizes a worker invocation.
@@ -105,6 +114,11 @@ package struct ActionConfirmations {
         // different payload is a different transaction, even on the same action.
         return "app.run:" + digest(json)
       }
+      if arguments["action"] == .string("app.select"),
+        let json = try? Value.array([inputs["id"], inputs["target"], inputs["rowID"]]).json()
+      {
+        return "app.select:" + digest(json)
+      }
       return arguments["action"].text + ":" + inputs["id"].text + ":"
         + inputs["action"].text + ":" + inputs["target"].text + ":"
         + inputs["inputs"]["name"].text
@@ -120,7 +134,7 @@ package struct ActionConfirmations {
   private static func retryGroup(_ arguments: Value) -> String {
     let inputs = arguments["arguments"]
     return arguments["action"].text + ":" + inputs["id"].text + ":"
-      + inputs["action"].text + ":" + inputs["target"].text
+      + inputs["action"].text + ":" + inputs["target"].text + ":" + inputs["rowID"].text
   }
   private static let envelopeSelectors = ["id", "expectedVersion", "action"]
 
@@ -335,6 +349,12 @@ package struct ActionConfirmations {
         "routedAction": Self.routedAction(tool, arguments),
         "missingAppTarget": appTargetNotFound ? arguments["arguments"]["id"] : .null,
         "resolvedAppTarget": result["outcome"] == .string("failed") ? result["id"] : .null,
+        "appVersion": result["version"],
+        "unavailableSelection": tool == "workspace_action"
+          && arguments["action"] == .string("app.select") && result["id"].string != nil
+          && result["version"].int != nil && result["outcome"] == .string("failed")
+          && result["changes"] == .array([])
+          ? result["unavailableSelection"] : .null,
         "envelopeRepair": Self.envelopeRepair(tool, arguments),
         "excludedEnvelopeInputs": Self.excludedEnvelopeInputs(result),
         "inputRepair": Self.repairableInputs(arguments, result),
@@ -435,6 +455,10 @@ package struct ActionConfirmations {
         "appTarget": Self.appTarget(tool, arguments),
         "routedAction": Self.routedAction(tool, arguments),
         "resolvedAppTarget": result["outcome"] == .string("completed") ? result["id"] : .null,
+        "appVersion": result["version"],
+        "updatedRows": tool == "workspace_action" && arguments["action"] == .string("app.run")
+          && result["outcome"] == .string("completed") && !result["changes"].array.isEmpty
+          ? result["updatedRows"] : .null,
         "excludedEnvelopeInputs": Self.excludedEnvelopeInputs(result),
         "inputDigests": Self.inputDigests(arguments["arguments"]["inputs"]),
       ]))

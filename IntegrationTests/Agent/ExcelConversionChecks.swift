@@ -176,7 +176,16 @@ actor ExcelTestModel: WorkbookInference {
     }
     let action: (String, Value)
     if [.nativeAppReview, .nativeActionReview].contains(toolScope) {
-      reviewInputs.append(try Value.parse(messages.first { $0.role == "user" }!.content))
+      let reviewInput = try Value.parse(messages.first { $0.role == "user" }!.content)
+      reviewInputs.append(reviewInput)
+      let contract = messages.first?.reviewContract ?? .null
+      if toolScope == .nativeActionReview {
+        try expectEqual(contract["actions"], reviewInput["checkedActionInputs"])
+        try expectEqual(Set(contract["columns"].object.keys),
+          Set(reviewInput["hostValidatedBindings"].object.keys))
+      } else {
+        try expectEqual(contract, .null)
+      }
       let review =
         reviews.isEmpty
         ? Value.object(["decision": .string("ready"), "issues": .array([])]) : reviews.removeFirst()
@@ -212,6 +221,7 @@ func pairedActionReviewFixture(_ verdict: Value) -> Value {
   if verdict["probes"] != .null { return verdict }
   var fields = verdict.object
   let tests = fields.removeValue(forKey: "tests")?.array ?? []
+  let roles = fields.removeValue(forKey: "inputRoles") ?? .null
   var probes: [Value] = []
   var interface: [Value] = []
   var index = 0
@@ -223,11 +233,17 @@ func pairedActionReviewFixture(_ verdict: Value) -> Value {
       continue
     }
     var expectations: [Value] = []
+    var probe: [String: Value] = ["action": step["action"], "inputs": step["inputs"]]
     if step["reject"] == .bool(true) || step["error"].string != nil {
       var refusal: [String: Value] = ["kind": .string("reject")]
       if step["error"] != .null { refusal["error"] = step["error"] }
       expectations = [.object(refusal)]
     } else {
+      let declaredRoles = roles[step["action"].text]
+      probe["inputRoles"] =
+        declaredRoles == .null
+        ? .object(step["inputs"].object.mapValues { _ in .object(["kind": .string("value")]) })
+        : declaredRoles
       while index < tests.count,
         ["expect_row", "expect_text", "expect_value"].contains(tests[index]["kind"].text)
       {
@@ -235,13 +251,10 @@ func pairedActionReviewFixture(_ verdict: Value) -> Value {
         index += 1
       }
     }
-    probes.append(
-      .object([
-        "action": step["action"], "inputs": step["inputs"], "expect": .array(expectations),
-      ]))
+    probe["expect"] = .array(expectations)
+    probes.append(.object(probe))
   }
   fields["probes"] = .array(probes)
-  if fields["inputRoles"] == nil { fields["inputRoles"] = .object([:]) }
   if !interface.isEmpty { fields["interfaceTests"] = .array(interface) }
   return .object(fields)
 }
@@ -480,6 +493,26 @@ func checkExcelConversions() async throws {
         try expectEqual(
           error.localizedDescription.contains("worksheet header is not a business entity"), true)
       }
+      var invalidControl = lookup
+      invalidControl.source = lookup.source.replacingOccurrences(
+        of: "const rows=await Sevra.data.all('sheet1');",
+        with: "if(input.key==='INVENTED-ENTITY')throw Error('Invalid review control'); const rows=await Sevra.data.all('sheet1');")
+      var invalidControlArguments = lookupArguments.object
+      invalidControlArguments["package"] = try encoded(invalidControl)
+      let invalidControlReview = ExcelTestModel(
+        [], reviews: Array(repeating: .object(automaticHeaderReview), count: 3))
+      var invalidControlFailure = ""
+      do {
+        _ = try await NativeAppReview.check(
+          request: build.request, requestSourceID: source.id,
+          arguments: .object(invalidControlArguments), workbook: book, model: invalidControlReview,
+          directory: root, cancellation: .init(), progress: { _ in }, excelConversion: build,
+          checkedActions: ["lookup"], checkedActionInputs: observedLookup["actionInputs"])
+      } catch { invalidControlFailure = error.localizedDescription }
+      try expectEqual(
+        invalidControlFailure.contains("did not succeed in the same starting state"), true)
+      try expectEqual(
+        invalidControlFailure.contains("A derived input-refusal probe failed"), false)
       var hiddenLookup = automaticHeaderReview
       hiddenLookup["inputRoles"] = .object([
         "lookup": .object(["key": .object(["kind": .string("value")])])
@@ -737,15 +770,11 @@ func checkExcelConversions() async throws {
           ]))
       } catch { wrongSignFailure = error.localizedDescription }
       try expectEqual(wrongSignFailure.contains("wrong stored sign"), true)
-      // A one-action counterexample may retain roles for the other registered
-      // actions. They confer no coverage, but must not conceal a real defect.
+      // A counterexample for one action is sufficient even in a multi-action app.
       var multiActionOutbound = outbound
       multiActionOutbound.source += "\nSevra.action('other',{title:'Other',inputs:{}},()=>{});"
       var multiActionArgs = outboundArgs
       multiActionArgs["package"] = try encoded(multiActionOutbound)
-      var multiActionReview = outboundReview
-      multiActionReview["inputRoles"] = .object(
-        outboundReview["inputRoles"]!.object.merging(["other": .object([:])]) { _, new in new })
       let multiActionContracts: Value = .object([
         "outbound": .object([
           "amount": .object(["type": .string("decimal"), "valueType": .string("string")])
@@ -757,17 +786,17 @@ func checkExcelConversions() async throws {
           _ = try await NativeAppReview.check(
             request: build.request, requestSourceID: source.id,
             arguments: arguments ?? .object(multiActionArgs),
-            workbook: book, model: ExcelTestModel([], reviews: [review]), directory: root,
+            workbook: book, model: ExcelTestModel([], reviews: Array(repeating: review, count: 3)),
+            directory: root,
             cancellation: .init(), progress: { _ in }, excelConversion: build,
             checkedActions: ["outbound", "other"], checkedActionInputs: multiActionContracts)
           return ""
         } catch { return error.localizedDescription }
       }
       try expectEqual(
-        await multiActionFailure(.object(multiActionReview)).contains("wrong stored sign"), true)
-      // Unexecuted roles must not count as readiness, and misspelled action
-      // IDs must still be reported as protocol errors rather than app defects.
-      var incompleteReady = multiActionReview
+        await multiActionFailure(.object(outboundReview)).contains("wrong stored sign"), true)
+      // A well-formed partial readiness claim cannot cover the other action.
+      var incompleteReady = outboundReview
       incompleteReady["decision"] = .string("ready")
       incompleteReady["issues"] = .array([])
       var correctOutbound = multiActionOutbound
@@ -778,12 +807,11 @@ func checkExcelConversions() async throws {
       try expectEqual(
         await multiActionFailure(.object(incompleteReady), arguments: .object(correctArgs)).isEmpty,
         false)
-      var unknownRole = multiActionReview
-      unknownRole["inputRoles"] = .object(
-        multiActionReview["inputRoles"]!.object.merging(["typo": .object([:])]) { _, new in new })
-      let unknownFailure = await multiActionFailure(.object(unknownRole))
-      try expectEqual(unknownFailure.isEmpty, false)
-      try expectEqual(unknownFailure.contains("wrong stored sign"), false)
+      var misplacedRoles = pairedActionReviewFixture(.object(outboundReview)).object
+      misplacedRoles["inputRoles"] = outboundReview["inputRoles"]
+      let misplacedFailure = await multiActionFailure(.object(misplacedRoles))
+      try expectEqual(misplacedFailure.contains("Allowed fields"), true)
+      try expectEqual(misplacedFailure.contains("Observed failure:"), false)
       try expectEqual(await outboundModel.reviewInputs.first?["tests"], .null)
       try expectEqual(await outboundModel.reviewInputs.first?["proposedPackage"]["source"], .null)
       try expectEqual(await outboundModel.reviewInputs.first?["existingPackage"]["source"], .null)

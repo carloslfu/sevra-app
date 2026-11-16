@@ -50,7 +50,7 @@ public enum ChatOperations {
       ["id", "expectedVersion", "inputs"], host: true),
     .init(
       "app.select",
-      "Select a current exact table row for app operations; rowID comes from rows, never an invented row object.",
+      "Select a current row only on a table with a discovered onSelect handler. Use the exact rowID from app.browse. Run named actions directly with their typed inputs.",
       ["id", "expectedVersion", "target", "rowID"], host: true),
     .init(
       "app.activate",

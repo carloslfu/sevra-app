@@ -285,6 +285,51 @@ private actor ChatOperationModel: WorkbookInference {
       ])
     })
   try expectEqual(recoveredLookup.answer.contains("Couldn’t finish"), false)
+  let selection: Value = .object([
+    "action": .string("app.select"),
+    "arguments": .object([
+      "id": .string(appName), "expectedVersion": .number(1), "target": .string("bookings"),
+      "rowID": .string("selected-version"),
+    ]),
+  ])
+  let selected = Value.object(["table": .string("bookings"), "key": .string("logical-record")])
+  let finish: Value = .object([
+    "answer": .string("Booking cancelled."), "basis": .string("completed_action"),
+    "citations": .array([]),
+  ])
+  for scenario in [
+    "same row", "different row", "different table", "different app", "different version",
+    "no saved update", "handler refused", "partial action", "partial selection", "select only",
+  ] {
+    let calls: [(String, Value)] = [("workspace_action", selection)]
+      + (scenario == "select only" ? [] : [("workspace_action", action)])
+      + [("finish", finish)]
+    let result = try await WorkbookAgent.run(
+      "Cancel this booking.", workbook: book, model: ChatOperationModel(calls),
+      workspaceAction: { name, _, _, _ in
+        if name == "app.select" {
+          return .object([
+            "id": .string(appID), "version": .number(1), "outcome": .string("failed"),
+            "changes": .array(scenario == "partial selection" ? [.object(["id": .string("tx1")])] : []),
+            "unavailableSelection": scenario == "handler refused" ? .null : selected,
+            "errors": .array([.string("Selection could not finish.")]),
+          ])
+        }
+        var row = selected.object
+        if scenario == "different row" { row["key"] = .string("other-record") }
+        if scenario == "different table" { row["table"] = .string("other-table") }
+        return .object([
+          "id": .string(scenario == "different app" ? otherID : appID),
+          "version": .number(scenario == "different version" ? 2 : 1),
+          "outcome": .string(scenario == "partial action" ? "failed" : "completed"),
+          "changes": .array(scenario == "no saved update" ? [] : [.object(["id": .string("tx2")])]),
+          "errors": .array(scenario == "partial action" ? [.string("Could not finish cancellation.")] : []),
+          "updatedRows": .array([.object(row)]),
+        ])
+      })
+    try expectEqual(result.answer.contains("Selection could not finish."), scenario != "same row")
+    try expectEqual(result.answer == "Booking cancelled.", scenario == "same row")
+  }
   var malformed = fixedArguments
   malformed["arguments"] = malformed.removeValue(forKey: "inputs")
   let correctedShape = try await WorkbookAgent.run(

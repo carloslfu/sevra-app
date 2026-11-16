@@ -213,10 +213,11 @@ func checkNativeAppAuthoring() async throws {
     });
     Sevra.mount(Sevra.h(Sevra.Column,{},Sevra.h(Sevra.ActionForm,{action:'post'}),Sevra.h(Sevra.Text,{text:count})));
     """
-  let pairedEffects = try NativeAppReview.actionProbeSteps(
+  let pairedEffects = try NativeAppReview.actionProbes(
     Value.parse(
-      #"{"probes":[{"action":"post","inputs":{"name":"NEW"},"expect":[{"kind":"expect_row","table":"entries","values":{"name":"NEW"}},{"kind":"expect_text","value":"Saved 1"}]},{"action":"post","inputs":{"name":"NEW"},"expect":[{"kind":"reject"}]}]}"#
-    ), actions: ["post"])
+      #"{"probes":[{"action":"post","inputs":{"name":"NEW"},"inputRoles":{"name":{"kind":"value"}},"expect":[{"kind":"expect_row","table":"entries","values":{"name":"NEW"}},{"kind":"expect_text","value":"Saved 1"}]},{"action":"post","inputs":{"name":"NEW"},"expect":[{"kind":"reject"}]}]}"#
+    ), actions: ["post"]
+  ).steps
   let pairedReport = try await NativeAppCheck.run(package: posting, steps: pairedEffects)
   try expectEqual(pairedReport["assertions"], .number(3))
   try expectEqual(pairedReport["transactions"], .number(1))
@@ -812,6 +813,21 @@ private func checkCompleteSavedEffects(_ workspace: NativeAppPackage) async thro
       package: package, steps: tests, fixtures: fixtures, cancellation: .init(),
       excelCoordinates: nil, excelFormulas: nil, expectFinalActionSuccess: false,
       checkActionWrites: true)
+  }
+  var eagerWrite = package
+  eagerWrite.source += """
+
+    Sevra.data.transaction([{op:'insert',table:'reference',values:{name:'Unrequested startup row'}}]);
+    """
+  do {
+    _ = try await NativeAppCheck.run(
+      package: eagerWrite, steps: completion + [changedOpeningBalance], fixtures: fixtures,
+      cancellation: .init(), excelCoordinates: nil, requireUnselectedExcelActions: true,
+      excelFormulas: nil, expectFinalActionSuccess: false, checkActionWrites: true)
+    throw SevraError("test", "Excel publication allowed an unrelated startup write.")
+  } catch let error as SevraError where error.code != "test" {
+    try expectEqual(error.code, "app_check")
+    try expectEqual(error.message.contains("before any user operation"), true)
   }
   let covered = try await run(completion + [changedOpeningBalance], fixtures: fixtures)
   try expectEqual(covered["actionChanges"]["0"], .number(1))

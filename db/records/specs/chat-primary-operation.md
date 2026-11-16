@@ -2,7 +2,7 @@
 type: spec
 id: 01m7e557d8k5f1xwp3t90c69rb
 created: 2026-11-14T23:09:24.264197+00:00
-updated: 2026-11-15T18:33:18.392251+00:00
+updated: 2026-11-16T05:24:34.633001+00:00
 summary: Chat-first workbook and mini-app operations through shared typed actions, durable human approval and native transaction receipts.
 title: Chat-primary operation
 status: implemented
@@ -40,4 +40,4 @@ This is an action-access contract, not proof that every model request succeeds o
 
 ### Completion evidence
 
-Every finished request records unresolvedActionFailure alongside its finish basis. Saved business journeys must have no unresolved failure and use completed_action; persisted state alone does not establish a truthful completion. Reporting can settle a malformed app.run only against the same operation: unambiguous nested envelopes match exact ID/version/action/inputs, and ordinary outer-envelope repairs preserve all supplied business inputs. SDK missing/mistyped-input correction uses the captured pre-invocation contract, requires zero writes and preserves every already-valid value. It never infers validation from an app-selected error code or message. Different transactions, actual handler refusals and partial writes retain their failure evidence. These rules repair reporting only; malformed calls remain refused and are never executed automatically.
+Every finished request records unresolvedActionFailure alongside its finish basis. Saved business journeys must have no unresolved failure and use completed_action; persisted state alone does not establish a truthful completion. Reporting can settle a malformed app.run only against the same operation: unambiguous nested envelopes match exact ID/version/action/inputs, and ordinary outer-envelope repairs preserve all supplied business inputs. SDK missing/mistyped-input correction uses the captured pre-invocation contract, requires zero writes and preserves every already-valid value. It never infers validation from an app-selected error code or message. Different transactions, actual handler refusals and partial writes retain their failure evidence. If a table has no selection handler, the native host can identify the exact current scoped row without dispatching an operation. A later successful named action can settle that failed preparatory selection only with a newly committed update to the same app version, table and logical row. Both receipts remain durable. Malformed calls remain refused and are never executed automatically.

@@ -867,11 +867,11 @@ private func checkExcelActionCoverage(
       package: automatic,
       steps: [.object(["kind": .string("expect_text"), "value": .string("Shipped")])],
       fixtures: fixtures, excelCoordinates: coordinates, requireUnselectedExcelActions: true)
-    throw SevraError("test", "Mount-time action counted as user interaction")
+    throw SevraError("test", "Excel publication allowed a fixed-cell write during startup")
   } catch let error as SevraError {
     try expectEqual(error.code, "app_check")
     try expectEqual(
-      error.message.contains("No successful user-triggered test before table selection"), true)
+      error.message.contains("before any user operation"), true)
   }
   var navigation = package
   navigation.source = navigation.source.replacingOccurrences(

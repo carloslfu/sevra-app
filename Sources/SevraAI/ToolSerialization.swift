@@ -5,14 +5,17 @@ extension NativeTools {
   package static func referenceDefinitions(
     itemReferenceIDs: [String] = [], conversationActions: [String]? = nil,
     toolScope: InferenceToolScope = .all, documentCopyIDs: [String]? = nil,
-    historyReferenceIDs: [String]? = nil, nativeAppAuthoring: Bool = true
+    historyReferenceIDs: [String]? = nil, nativeAppAuthoring: Bool = true,
+    reviewContract: Value = .null
   ) throws
     -> [WorkbookToolDefinition]
   {
     if toolScope == .movementDirection { return [MovementDirectionReview.definition] }
     if toolScope == .actionDirection { return [ActionDirectionReview.definition] }
     if toolScope == .nativeAppReview { return [NativeAppReview.definition] }
-    if toolScope == .nativeActionReview { return [NativeAppReview.actionDefinition] }
+    if toolScope == .nativeActionReview {
+      return [NativeAppReview.actionDefinition(reviewContract)]
+    }
     if toolScope == .excelPlan {
       return [
         ExcelConversionAgent.readDefinition, NativeTools.excelEvidenceDefinition,
@@ -122,12 +125,14 @@ extension NativeTools {
   package static func serializedDefinitions(
     toolScope: InferenceToolScope = .all, itemReferenceIDs: [String] = [],
     conversationActions: [String]? = nil, documentCopyIDs: [String]? = nil,
-    historyReferenceIDs: [String]? = nil, nativeAppAuthoring: Bool = true
+    historyReferenceIDs: [String]? = nil, nativeAppAuthoring: Bool = true,
+    reviewContract: Value = .null
   ) throws -> Data {
     let definitions = try referenceDefinitions(
       itemReferenceIDs: itemReferenceIDs, conversationActions: conversationActions,
       toolScope: toolScope, documentCopyIDs: documentCopyIDs,
-      historyReferenceIDs: historyReferenceIDs, nativeAppAuthoring: nativeAppAuthoring
+      historyReferenceIDs: historyReferenceIDs, nativeAppAuthoring: nativeAppAuthoring,
+      reviewContract: reviewContract
     )
     .filter { toolScope.allows($0.name) }
     let values: [[String: Any]] = try definitions.map {

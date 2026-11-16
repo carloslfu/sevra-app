@@ -161,7 +161,9 @@ struct WorkbookView: View {
             .accessibilityFocused($readingFocus, equals: .status)
             .focusable().focused($keyboardPane, equals: .status)
           Spacer()
-          Button("Review drafts") { state.navigate(.reviews) }
+          if state.pendingReview?.items.isEmpty == false, state.route != .reviews {
+            Button("Review drafts") { state.navigate(.reviews) }
+          }
           Button("Read conversation") { state.requestReadingFocus(.conversation) }
           Button("Dismiss status") { state.terminalStatus = nil }
         }.padding(12)

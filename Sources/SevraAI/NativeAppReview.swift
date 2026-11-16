@@ -255,6 +255,13 @@ package enum NativeAppReview {
       .init(role: "user", content: json),
     ]
     messages[0].nativeAppAuthoring = excelConversion != nil
+    if blindActions {
+      messages[0].reviewContract = .object([
+        "actions": checkedActionInputs,
+        "columns": .object(
+          package.datasets.mapValues { .array($0.columns.map { .string($0.id) }) }),
+      ])
+    }
     var counterexamples: [Value] = []
     var testedActions = Set<String>()
     var readinessChecks: [Value] = []
@@ -318,11 +325,12 @@ package enum NativeAppReview {
       let issues = verdict["issues"].array
       let allowedFields: Set<String> =
         blindActions
-        ? ["decision", "issues", "probes", "interfaceTests", "fixtures", "inputRoles"]
+        ? ["decision", "issues", "probes", "interfaceTests", "fixtures"]
         : ["decision", "issues", "tests", "fixtures", "inputRoles"]
       var tests = verdict["tests"].array
+      let inputRoles: Value
       if blindActions {
-        do { tests = try actionProbeSteps(verdict, actions: Set(checkedActions)) } catch {
+        do { (tests, inputRoles) = try actionProbes(verdict, actions: Set(checkedActions)) } catch {
           try giveFeedback(
             .object([
               "status": .string("invalid_counterexample"),
@@ -333,14 +341,11 @@ package enum NativeAppReview {
             ]))
           continue
         }
+      } else {
+        inputRoles = verdict["inputRoles"]
       }
       let validVerdict =
         Set(verdict.object.keys).isSubset(of: allowedFields)
-        && (!blindActions
-          || {
-            if case .object = verdict["inputRoles"] { return true }
-            return false
-          }())
         && verdict["issues"] == .array(issues) && issues.count <= 4
         && issues.allSatisfy {
           $0.string != nil && !$0.text.isEmpty && $0.text.utf8.count <= 2000
@@ -423,7 +428,7 @@ package enum NativeAppReview {
             ready
               ? "Readiness needs a successful run_action followed by its exact effect assertions for each remaining action, four per batch when needed, within 1..16 steps: "
                 + remainingActions.sorted().joined(separator: ", ")
-                + ". Supply probes pairing action and inputs with an expect array: [{kind:'expect_row',table:'alias',values:{column:'expected'}}] for saved results, or expect_value/expect_text for read-only results. Put multiple effects of one invocation in the same array. Native forms invoke the same actions; filling fields or clicking their buttons does not satisfy named-action coverage. Rejection-only probes, row counts and control-presence checks cannot qualify successful effects. Derive correct values from the request and source; also probe business refusals using the starting fixtures."
+                + ". In each successful probe, pair action and inputs with inputRoles and an expect array: [{kind:'expect_row',table:'alias',values:{column:'expected'}}] for saved results, or expect_value/expect_text for read-only results. Put multiple effects of one invocation in the same array. Native forms invoke the same actions; filling fields or clicking their buttons does not satisfy named-action coverage. Rejection-only probes, row counts and control-presence checks cannot qualify successful effects. Derive correct values from the request and source; also probe business refusals using the starting fixtures."
               : "A revision needs one concrete defect and 1..16 counterexample tests with an expectation. Use the supplied starting fixtures. Provide those tests, or return ready with the required independent action probes if no defect is established. Do not repeat untested claims."
           )
         ])
@@ -454,7 +459,7 @@ package enum NativeAppReview {
           if !ready, !claimedEffects.isEmpty, checkedActionInputs != .null {
             _ = try Self.inputProbes(
               actions: claimedEffects, registeredActions: Set(checkedActions),
-              roles: verdict["inputRoles"], steps: tests,
+              roles: inputRoles, steps: tests,
               fixtures: probeFixtures, inputTypes: declaredTypes, package: package,
               tables: build.tables, coordinates: coordinates,
               inputCell: workbook.excelOriginalInputLookup(
@@ -472,9 +477,6 @@ package enum NativeAppReview {
             // checks first so a broken authored refusal cannot hide a verified rule.
             let initialCheck =
               checkedActionInputs == .null ? try await checkReviewedActions() : .null
-            let inputRoles = Self.actionIndexedRoles(
-              verdict["inputRoles"], actions: probeActions,
-              registeredActions: Set(checkedActions), steps: tests)
             let probes = try Self.inputProbes(
               actions: probeActions, registeredActions: Set(checkedActions),
               roles: inputRoles, steps: tests,
@@ -514,6 +516,27 @@ package enum NativeAppReview {
                 if (error as? SevraError)?.code == "app_check_assertion"
                   && completedDerivedSteps == probeSteps.count - 1
                 {
+                  // A failing substitute can establish a defect only if the
+                  // exact original input succeeds with the same preceding setup.
+                  var control = probeSteps
+                  control[control.count - 1] = .object([
+                    "kind": .string("run_action"), "action": probe["action"],
+                    "inputs": probe["controlInputs"],
+                  ])
+                  do {
+                    _ = try await NativeAppCheck.run(
+                      package: package, steps: control, fixtures: probeFixtures,
+                      cancellation: cancellation, excelCoordinates: coordinates,
+                      excelFormulas: formulas, expectFinalActionSuccess: true)
+                  } catch {
+                    try cancellation.check()
+                    throw SevraError(
+                      "app_review_inputs",
+                      "The original successful input for " + probe["action"].text + "."
+                        + probe["input"].text + " did not succeed in the same starting state. "
+                        + "Correct the review's representative call before deriving a refusal or boundary case. "
+                        + error.localizedDescription)
+                  }
                   let trace =
                     error.localizedDescription
                     + "\nCounterexample tests: " + (try probe["tests"].json())

@@ -360,6 +360,12 @@ public enum NativeAppCheck {
       }
       throw error
     }
+    if requireUnselectedExcelActions {
+      try require(
+        committedTransactions == 0, "app_check",
+        "The app changed workbook records before any user operation. Mount and initial subscriptions should read only. Move the write into the user-triggered action and test its saved effects."
+      )
+    }
     // Describe the initial native controls without source or builder-test results.
     // Independent action review must not learn its expected effects from either.
     let initialInterface: Value = .array(

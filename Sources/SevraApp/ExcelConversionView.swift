@@ -408,7 +408,7 @@ struct ExcelConversionView: View {
 extension WorkspaceState {
   func removeExcelExample(_ id: String, index: Int, version: String) {
     run(
-      "Updating comparison examples",
+      "Updating comparison examples", successStatus: "Comparison example removed.",
       operation: { book, _ in
         try book.removeExcelExample(id, index: index, expectedVersion: version).id
       }, completion: { self.navigate(.excelImport($0)) })
@@ -429,7 +429,7 @@ extension WorkspaceState {
       return
     }
     run(
-      "Adding original-result example",
+      "Adding original-result example", successStatus: "Comparison example added.",
       operation: { book, cancel in
         let inputs = action == "recalculate" ? Value.object([:]) : arguments
         let source = try book.captureIntake(
@@ -451,7 +451,9 @@ extension WorkspaceState {
     let purpose = excelPurposeDrafts[id]
     let path = excelModelDirectory
     Task {
-      defer { finishOperation(ticket, in: book) }
+      defer {
+        finishOperation(ticket, in: book, successStatus: "Workflow summary ready to review.")
+      }
       var expected: String?
       do {
         let draft = try await Task.detached {
@@ -490,7 +492,7 @@ extension WorkspaceState {
     let navigation = itemPreviewIdentity
     let progress = rowProgress()
     run(
-      "Importing Excel data",
+      "Importing Excel data", successStatus: "Excel tables are ready.",
       operation: { book, cancel in
         try book.importExcelConversionTables(id, cancellation: cancel, progress: progress)
           .datasetIDs
@@ -509,7 +511,7 @@ extension WorkspaceState {
     liveActivity = LiveRequestActivity(conversation: chat)
     let progress = rowProgress()
     Task {
-      defer { finishOperation(ticket, in: book) }
+      defer { finishOperation(ticket, in: book, successStatus: "Excel workspace ready to review.") }
       var expected: String?
       do {
         let build = try await Task.detached {

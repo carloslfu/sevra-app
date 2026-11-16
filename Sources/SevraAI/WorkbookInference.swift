@@ -83,6 +83,8 @@ package struct InferenceCall: Sendable {
 package struct InferenceMessage: Sendable {
   /// Host state, reattached after context maintenance; never inferred from model prose.
   package var nativeAppAuthoring = false
+  /// Host-observed action contracts and worksheet columns for independent review.
+  package var reviewContract: Value = .null
   package let role: String
   package let content: String
   /// Ephemeral model state within this request, never evidence or saved history.
