@@ -3,7 +3,7 @@ type: operational
 meta-type: operational
 id: 01m7ebv28bxsk6szwx72sbrcyp
 created: 2026-11-15T01:06:11.339074+00:00
-updated: 2026-11-16T00:22:08.508142+00:00
+updated: 2026-11-16T02:30:02.310588+00:00
 summary: Close realistic Excel business application reconstruction, reliable autonomous generation, and integrated chat/native qualification gaps.
 title: Realistic Excel business applications
 status: in-progress
@@ -48,11 +48,9 @@ Reuse the existing importer, managed tables, formula plans, sandboxed behavior, 
 A finite corpus cannot establish universal Excel compatibility. Production signing, additional hardware, VoiceOver and independent customer/security qualification are separate from closing these three functional gaps. Any remaining concrete functional blocker stays open in this plan; do not label the work complete because a smaller subset passes.
 
 ## Active blockers
-
-1. Zero final fresh cohorts are accepted. Frozen cohort 28 is diagnostic and all publications were made by the local model. Candidate 146 must pass two consecutive fresh six-application cohorts on identical product, acceptance, fixture, model and runtime identities.
-2. Independent formula, saved-state, native journeys, and granted-access/loading/cancellation/keyboard checks remain required on the final generated workspaces. Previous diagnostic checks do not count as final acceptance.
-3. The exact candidate needs the full local and hosted suites, package/install identity and final sanitized evidence. The retained ten-app regression is separate and makes no fresh-generation claim.
-
+1. Two consecutive fresh six-workflow runs must qualify on the updated code. The latest frozen run reproduced the Stock zero-cost, Cash review and Invoicing repair blockers.
+2. The final generated apps still need independently recalculated originals, saved-effect and Undo evidence, and the native visual journeys for all six workflows.
+3. The updated candidate still needs its exact suite, signed package and installation, hosted check and final retained receipts.
 ## Progress
 
 The integrated chat change is committed and the checkout is clean. Previous frozen-code acceptance remains intact. No new live trial is claimed yet.
@@ -1286,3 +1284,24 @@ Job Costing also passes its full fresh diagnostic journey, after four failed dra
 The separately labeled retained regression passes 10/10 on the isolated patched runtime, with 79 saved edit/reopen/Undo cases and ten portable copies, without fresh generation. Predeclared final pair: cohorts 30 then 31, each beginning from new workbooks and conversations and running Stock, Production, Bookings, Cash, Invoicing and Job Costing in that order. The second starts only if the first passes every cohort gate; an intervening trial or product/acceptance change resets the pair.
 The exact packaged preview was installed and verified against its main, CLI, extractor and two worker Mach-O UUIDs, SDK bytes and strict signatures. A separate authored read-only table on a disposable Bookings copy displays business headings and vertically centered rows at 1200×800 and approximately 853×718 points. Filtering to one booking retains headings and full accessibility values; horizontal scrolling shows Customer and Status in the smaller window. Long values can truncate visually. Row 1 of the source remains data in the unfiltered table. The read-only scope listed all three actual tables, access was revoked, and the preview quit. Read-only comparison confirmed every business row and the unchanged generated package; database integrity passed. This is renderer evidence only, not a qualifying fresh business conversion.
 The exact candidate passed the local scripts/check.sh source and integration suite (28 SDK tests, 19 native app groups, core, persisted chat, signed authoring, constrained review grammar, links and db validation). Its source-mtime guard did not auto-select the package: the unchanged CLI was reused while the SDK resource was rebuilt. The signed native package and actual installed bundle were identified separately by UUIDs and exact SDK bytes. Explicit native package, installation and extraction checks pass, including sandboxed workers, 1888 Metal kernels, ten missing-resource refusals, a tampered-resource refusal, packaged XLSX extraction and workbook integrity. This leaves the fresh business conversions and comparisons, final UI journeys and exact hosted check open.
+
+## Cohort 30 and recovery fixes
+Candidate 146 (`4af0b69`) finished the frozen six-workflow diagnostic in 77 minutes. Production, Bookings and Job Costing passed their complete journeys. All six started with new workbooks and conversations. Exported JavaScript matched each completed model submission. The second run did not start after a failed first run. Hosted run 43779963898 passed for this code.
+
+| Workflow | Saved app | Result | Build / total seconds | Independent formula comparisons |
+| --- | --- | --- | --- | --- |
+| Stock | Yes, 3 submissions | A valid zero unit cost was refused after the successful stock movements, explicit price refresh and 205-row growth checks. | 348.9 / 711.4 | 96 across 8 states |
+| Production | Yes, 3 submissions | Passed planned, completed, overdraw refusal and cancellation, with native and conversational state checks. | 500.2 / 745.3 | 135 across 9 states |
+| Bookings | Yes, 4 submissions | Passed overlap refusal, rescheduling, cancellation, seventeen invalid and corrected input pairs, and Undo. | 502.4 / 810.0 | 144 across 12 states |
+| Cash and Loans | No | The builder repaired duplicate fixture tests and the fractional-month handler. The independent review continued to return field-indexed rules in place of roles grouped by action. | — / 1222.7 | — |
+| Invoicing | No | The independent checker proved the Customer worksheet header could be used as a customer key. The repeat guard ended the build before the verified defect reached the builder. | — / 531.2 | — |
+| Job Costing | Yes | Passed held-out edits, input corrections, Undo, reopen and portable copy. | 316.0 / 627.2 | 108 across 12 states |
+
+All 483 independent formula comparisons matched. Stock still failed its valid zero operation. The successful builds took 5.3 to 8.4 minutes and the complete passing journeys took 10.5 to 13.5 minutes on this Mac. These timings include automatic repairs. The failed Cash case spent over 20 minutes trying to generate and review an app.
+
+The next candidate resolves disputed numeric rules with a fresh structured question that sees the original user clarification and bounded original workbook evidence. A forbidden value needs literal original evidence. The host tests any reversed expectation in the same isolated setup before accepting it and retains the result across the remaining review. Worksheet import preserves validation operators and warning metadata so opposite Excel rules with the same operand remain distinguishable. The first review can use these validation notes as evidence too.
+
+The named-action checker points directly to the refusal expectation when the intended test input is invalid. It still runs the submitted test. The host can regroup complete field-indexed roles when each field maps to precisely one exercised action. Ambiguous or incomplete mappings continue through the normal rejection path. The conversion save retry guard counts inconclusive reviews separately from an observed app defect, allowing the builder to see a subsequently verified counterexample. The total conversion step limit remains in force.
+
+Predeclared next fresh pair is cohorts 32 then 33, with the same six applications in the established order and the same acceptance checks. Both independent comparisons and the six generated native interface journeys remain required. Earlier retained and diagnostic evidence stays attributed to its original build.
+The exact next candidate passed `scripts/check.sh`, including 660 core checks, the signed authoring and Excel flow, independent qualification checks, the real review and interpretation grammars, and packaged installation and extraction. Both sandboxed worker identities and the extractor, CLI and native executable match the installed preview. Strict signatures and SDK bytes match. The installed main executable UUID is `671A1D38-31C0-340F-BD1A-C037EEF468DE`. Fresh generation and hosted checks remain pending.

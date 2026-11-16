@@ -86,7 +86,17 @@ func excelFixture(
     "xl/worksheets/sheet1.xml": "<worksheet><sheetData>" + row(business.headers, number: 1)
       + row(business.values, number: 2) + "</sheetData>"
       + (extras
-        ? "<sheetProtection sheet=\"1\"/><mergeCells><mergeCell ref=\"A4:D4\"/></mergeCells><dataValidations><dataValidation type=\"decimal\" sqref=\"B2\"><formula1>0</formula1><formula2>100</formula2></dataValidation></dataValidations><conditionalFormatting sqref=\"D2\"/>"
+        ? """
+        <sheetProtection sheet="1"/><mergeCells><mergeCell ref="A4:D4"/></mergeCells>
+        <dataValidations>
+          <dataValidation type="decimal" sqref="B2" operator="greaterThan" showErrorMessage="1" errorStyle="stop">
+            <formula1>10</formula1>
+          </dataValidation>
+          <dataValidation type="decimal" sqref="C2" operator="lessThan" allowBlank="1" showErrorMessage="0">
+            <formula1>10</formula1>
+          </dataValidation>
+        </dataValidations><conditionalFormatting sqref="D2"/>
+        """
         : "") + "</worksheet>",
   ]
   if extras {
@@ -865,14 +875,28 @@ func checkExcelConversions() async throws {
     let malformedReview: Value = .object([
       "decision": .string("ready"), "issues": .array([.string("Reviewer-only inconsistency")]),
     ])
+    var corrected = minimal
+    corrected["source"] = .string(
+      package.source.replacingOccurrences(
+        of: "Review records", with: "Review inventory"))
+    var correctedCall = args.object
+    correctedCall["package"] = .object(corrected)
+    let observedDefect: Value = .object([
+      "decision": .string("revise"),
+      "issues": .array([.string("Missing heading: Review inventory")]),
+      "tests": .array([
+        .object(["kind": .string("expect_text"), "value": .string("Review inventory")])
+      ]),
+    ])
     let buildModel = ExcelTestModel(
-      Array(repeating: ("save_native_app", args), count: retryReview ? 3 : 2),
-      reviews: retryReview ? Array(repeating: malformedReview, count: 3) : [])
+      (retryReview ? [args, args, args, .object(correctedCall), args] : [args, args])
+        .map { ("save_native_app", $0) },
+      reviews: retryReview ? Array(repeating: malformedReview, count: 6) + [observedDefect] : [])
     let result = try await WorkbookAgent.run(
       build.request, workbook: book, context: build.context,
       model: buildModel, excelConversion: build)
     try expectEqual(result.state, "complete")
-    try expectEqual(result.steps, retryReview ? 2 : 1)
+    try expectEqual(result.steps, retryReview ? 4 : 1)
     try expectEqual(await buildModel.actions.count, 1)
     if retryReview {
       let failure = try expectValue(
@@ -885,10 +909,16 @@ func checkExcelConversions() async throws {
       let retained = try book.toolResultPage(failure["receiptID"].text)
       try expectEqual(
         retained["value"]["reviewDiagnostic"].text.contains("Reviewer-only inconsistency"), true)
-      let resumed = try expectValue(await buildModel.reviewInputs.last)["priorReviewDiagnostic"]
+      let resumed = try expectValue(await buildModel.reviewInputs.dropFirst(3).first)[
+        "priorReviewDiagnostic"]
       try expectEqual(resumed["receiptID"], failure["receiptID"])
       try expectEqual(
         resumed["probe"]["result"]["status"], .string("invalid_verdict"))
+      try expectEqual(
+        await buildModel.toolResults.contains {
+          $0["error"].text.contains("Observed failure:")
+            && $0["error"].text.contains("Missing heading: Review inventory")
+        }, true)
       let actualDefect: Value = .object(["error": .string("Wrong stored sign")])
       try expectEqual(
         NativeAppReview.presentedFailure(actualDefect, receiptID: "defect"), actualDefect)
@@ -1014,6 +1044,12 @@ func checkExcelConversions() async throws {
     "VBA", "Hidden", "Named range", "Validation", "protection", "Pivot", "Charts", "External",
     "Merged", "Conditional",
   ] { try expectEqual(notes.contains(feature), true) }
+  let validations = NativeAppReview.numericWorksheetRules(.object(["original": draft.inspection]))
+  let initialRules = validations.joined(separator: "\n")
+  for rule in [
+    "Validation decimal at B2 (operator=greaterThan, showErrorMessage=1, errorStyle=stop): formula1=10;",
+    "Validation decimal at C2 (operator=lessThan, allowBlank=1, showErrorMessage=0): formula1=10;",
+  ] { try expectEqual(initialRules.contains(rule), true) }
   _ = try book.updateExcelConversion(
     draft.id, expectedVersion: draft.version,
     state: "needs_attention", failure: "The operation was cancelled.")

@@ -180,10 +180,22 @@ package enum NativeAppReview {
       "numericInputs": Self.numericInputs(checkedActionInputs),
       "checkedInterface": checkedInterface,
     ]
+    var numericSourceRules: [String] = []
+    var numericOriginalRequest = ""
     if let build = excelConversion {
       let context = try Value.parse(build.context)
       let clarification = context["userClarification"].text.trimmingCharacters(
         in: .whitespacesAndNewlines)
+      if blindActions {
+        // The generated builder brief is useful for steering, never evidence
+        // that the person requested a numeric restriction.
+        numericOriginalRequest = clarification
+        let worksheetRules = Self.numericWorksheetRules(context)
+        if !worksheetRules.isEmpty {
+          input["originalWorksheetValidation"] = .array(worksheetRules.map(Value.string))
+        }
+        numericSourceRules = Self.numericRuleSources(context, worksheetRules: worksheetRules)
+      }
       input["originalUserRequest"] = .string(
         clarification.isEmpty ? build.request : clarification)
       input["calculationEvidence"] = .object([
@@ -246,6 +258,7 @@ package enum NativeAppReview {
     var counterexamples: [Value] = []
     var testedActions = Set<String>()
     var readinessChecks: [Value] = []
+    var numericRulings: [NumericRuling] = []
     let reviewBudget =
       excelConversion == nil ? 1 : min(24, 3 * max(1, (checkedActions.count + 3) / 4))
     for attempt in 1...reviewBudget {
@@ -445,51 +458,60 @@ package enum NativeAppReview {
                 "The successful action \(tests[index]["action"].text) did not commit a write. An existing matching fixture row does not establish a successful saved effect. Exercise a real write and assert its saved values; use expect_value or expect_text for read-only results."
               )
             }
+            let inputRoles = Self.actionIndexedRoles(
+              verdict["inputRoles"], actions: probeActions,
+              registeredActions: Set(checkedActions), steps: tests)
             let probes = try Self.inputProbes(
               actions: probeActions, registeredActions: Set(checkedActions),
-              roles: verdict["inputRoles"], steps: tests,
+              roles: inputRoles, steps: tests,
               fixtures: probeFixtures, inputTypes: checked["actionInputTypes"],
               contracts: checkedActionInputs, package: package, tables: build.tables,
               coordinates: coordinates,
               inputCell: workbook.excelOriginalInputLookup(
                 build.conversionID, cancellation: cancellation))
+            for ruling in numericRulings where probeActions.contains(ruling.dispute.action) {
+              try require(
+                try ruling.permits(inputRoles), "app_review_inputs",
+                "The separate original-evidence check already resolved " + ruling.dispute.action
+                  + "." + ruling.dispute.field + " for " + (try ruling.dispute.value.json())
+                  + ". Keep that result when you classify the rule; an app's observed behavior is not original evidence."
+              )
+            }
             var inputChecks: [Value] = []
             let started = ProcessInfo.processInfo.systemUptime
             for probe in probes {
               try cancellation.check()
               let allowed = Self.allowedNumberProbeRules.contains(probe["rule"].text)
+              let probeSteps = probe["tests"].array
+              var completedDerivedSteps = 0
               do {
                 let result = try await NativeAppCheck.run(
-                  package: package, steps: probe["tests"].array, fixtures: probeFixtures,
+                  package: package, steps: probeSteps, fixtures: probeFixtures,
                   cancellation: cancellation, excelCoordinates: coordinates,
                   excelFormulas: formulas,
-                  expectFinalActionSuccess: allowed
+                  expectFinalActionSuccess: allowed, testProgress: { completedDerivedSteps = $0 }
                 )
                 var evidence = probe.object
                 evidence["check"] = result
                 inputChecks.append(.object(evidence))
               } catch {
                 try cancellation.check()
-                if (error as? SevraError)?.code == "app_check_assertion" {
-                  let header = probe["rule"] == .string("header")
-                  let diagnosis =
-                    header
-                    ? "The original worksheet header is not a business entity. Exclude header and blank rows from this existing-key lookup before writing; changing numeric validation does not fix this lookup."
-                    : allowed
-                      ? "The independent reviewer classified this value as allowed. Check the specific input's original rule; if allowed, demonstrate its saved effect in a counterexample. Do not add a constraint just because the candidate rejects it."
-                      : "This tests the reviewer's inferred numeric rule; it does not establish that the original request or source requires that rule."
-                  throw SevraError(
-                    header ? "app_review_input" : "app_review_numeric_rule",
-                    (allowed
-                      ? "A derived allowed-input probe failed for "
-                      : "A derived input-refusal probe failed for ")
-                      + probe["action"].text
-                      + "." + probe["input"].text + " (" + probe["rule"].text
-                      + ", value " + (try probe["value"].json()) + ")"
-                      + ". " + diagnosis + " Observed failure: "
-                      + error.localizedDescription
-                      + "\nCounterexample tests: " + (try probe["tests"].json())
-                      + "\nCounterexample fixtures: " + (try probeFixtures.json()))
+                if (error as? SevraError)?.code == "app_check_assertion"
+                  && completedDerivedSteps == probeSteps.count - 1
+                {
+                  let trace =
+                    error.localizedDescription
+                    + "\nCounterexample tests: " + (try probe["tests"].json())
+                    + "\nCounterexample fixtures: " + (try probeFixtures.json())
+                  if probe["rule"] == .string("header") {
+                    throw SevraError(
+                      "app_review_input",
+                      "A derived input-refusal probe failed for " + probe["action"].text
+                        + "." + probe["input"].text
+                        + ". The original worksheet header is not a business entity. Exclude header and blank rows from this existing-key lookup before writing. Observed failure: "
+                        + trace)
+                  }
+                  throw NumericDispute(probe: probe, failure: trace)
                 }
                 throw error
               }
@@ -502,7 +524,7 @@ package enum NativeAppReview {
                 "check": checked, "tests": .array(tests), "fixtures": verdict["fixtures"],
                 // A receipt describes executed coverage, not every proposed role.
                 "inputRoles": .object(
-                  verdict["inputRoles"].object.filter { probeActions.contains($0.key) }),
+                  inputRoles.object.filter { probeActions.contains($0.key) }),
                 "inputChecks": .array(inputChecks),
               ]))
             testedActions.formUnion(probeActions)
@@ -533,15 +555,69 @@ package enum NativeAppReview {
           if (error as? SevraError)?.code == "app_review_input" {
             throw SevraError("app_review", error.localizedDescription)
           }
-          if (error as? SevraError)?.code == "app_review_numeric_rule" {
-            // The reviewer owns the inferred restriction. A failed probe cannot
-            // promote that inference into an instruction to change valid behavior.
+          if let dispute = error as? NumericDispute {
+            // Neither the original reviewer result nor the observed app answer
+            // is available to the fresh question. Both would bias interpretation.
+            progress("Checking the disputed input against the original")
+            let purpose = numericOriginalRequest
+            let question = try Self.numericRuleQuestion(
+              dispute, originalRequest: purpose, sourceRules: numericSourceRules,
+              titles: checkedActionTitles, contracts: checkedActionInputs,
+              model: await model.identity)
+            let interpretation = try await model.interpret(
+              request: question, directory: directory, cancellation: cancellation,
+              progress: progress)
+            try cancellation.check()
+            recordMetrics(await model.lastMetrics)
+            let ruling = try Self.numericRuleDecision(
+              interpretation["response"], originalRequest: purpose, sourceRules: numericSourceRules,
+              inputNames: [
+                dispute.field, checkedActionInputs[dispute.action][dispute.field]["title"].text,
+              ])
+            let label = dispute.action + "." + dispute.field
+            let value = try dispute.value.json()
+            if ruling.accepted == dispute.expectedAcceptance {
+              let instruction =
+                ruling.accepted
+                ? "Accept this value when the other business prerequisites hold. Verify its actual saved effect."
+                : "Refuse this value without a write."
+              throw SevraError(
+                "app_review",
+                "The original-evidence check confirmed the disputed rule for " + label + " ("
+                  + value + "). " + instruction + " Do not relax other requested rules. "
+                  + (ruling.evidence.isEmpty ? "" : "Original evidence: " + ruling.evidence + "\n")
+                  + "Observed isolated failure: " + dispute.failure)
+            }
+            // A legitimate correction must also pass the opposite expectation
+            // on the exact same input and starting state. Type/setup errors
+            // cannot become proof that the original business rule was verified.
+            var opposite = dispute.probe["tests"].array
+            var last = opposite.removeLast().object
+            last["reject"] = ruling.accepted ? nil : .bool(true)
+            opposite.append(.object(last))
+            let confirmed = try await NativeAppCheck.run(
+              package: package, steps: opposite, fixtures: probeFixtures,
+              cancellation: cancellation,
+              excelCoordinates: try workbook.excelCheckCoordinates(build.conversionID),
+              excelFormulas: package.excelBehavior == nil
+                ? try workbook.excelCheckFormulas(build.conversionID) : nil,
+              expectFinalActionSuccess: ruling.accepted)
+            let settled = NumericRuling(dispute: dispute, accepted: ruling.accepted)
+            numericRulings.append(settled)
+            // A later batch may retest an action from an earlier successful
+            // batch. Remove conflicting evidence and require its coverage again.
+            readinessChecks.removeAll(where: settled.invalidatesReadiness)
+            testedActions = Set(readinessChecks.flatMap { $0["inputRoles"].object.keys })
             try giveFeedback(
               .object([
-                "status": .string("unconfirmed_input_rule"),
-                "error": .string(error.localizedDescription),
+                "status": .string("resolved_input_rule"),
+                "action": .string(dispute.action), "input": .string(dispute.field),
+                "value": dispute.value, "allowed": .bool(ruling.accepted),
+                "evidence": .string(ruling.evidence), "check": confirmed,
+                "remainingActions": .array(
+                  Set(checkedActions).subtracting(testedActions).sorted().map(Value.string)),
                 "notice": .string(
-                  "Check this numeric rule against originalUserRequest and original source validation for this specific input. Correct an unsupported classification and rerun all readiness tests. When original behavior requires accepting a value but the app rejects it, return revise with the correct successful invocation and its exact saved effect. When original behavior requires refusing a value but the app accepts it, return revise with the required refusal and its complete inputs. Do not add or remove a business rule merely to pass. No app was saved and these actions have not qualified."
+                  "A fresh check of the original resolved this value. Its corrected expectation passed in the same isolated test. No app has been saved. Correct inputRoles using the original and rerun readiness; the corrected interpretation must still include this result."
                 ),
               ]))
             continue

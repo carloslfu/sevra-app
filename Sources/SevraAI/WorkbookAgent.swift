@@ -1368,7 +1368,14 @@ public enum WorkbookAgent {
               tool: tool, arguments: a, result: result, receiptID: receiptID,
               appTargetNotFound: (appRoutingFailure as? SevraError)?.code == "space_not_found")
           }
-          let key = try action.json()
+          var key = try action.json()
+          if tool == "save_native_app", excelConversion != nil,
+            result["failureStage"] == .string("independent_review")
+          {
+            // The builder is asked to resubmit the same draft when the reviewer
+            // is inconclusive. A later verified defect still needs to reach it.
+            key += "\u{0}inconclusive-review"
+          }
           rejectedActions[key, default: 0] += 1
           try require(
             rejectedActions[key, default: 0] <= 2, "repeated_action",

@@ -337,7 +337,7 @@ private final class SheetXML: NSObject, XMLParserDelegate {
   var formulaType = "", formulaGroup = "", formulaRange = "", inPhonetic = false
   var sharedFormulas: [String: (text: String, column: Int, row: Int)] = [:]
   var fillBudget: Int, filledCells = 0
-  var validation: String?, validationRule = ""
+  var validation: String?, validationRule = "", readingValidationFormula = false
   init(
     shared: [String], styles: StylesXML, epoch1904: Bool, fillBudget: Int,
     cancellation: Cancellation
@@ -358,13 +358,18 @@ private final class SheetXML: NSObject, XMLParserDelegate {
       return
     }
     if name == "dataValidation", notes.count < 40 {
+      let flags = ["operator", "allowBlank", "showErrorMessage", "errorStyle"].compactMap { key in
+        a[key].map { key + "=" + String($0.prefix(40)) }
+      }
       validation =
         "Validation " + String((a["type"] ?? "custom").prefix(40)) + " at "
         + String((a["sqref"] ?? "unknown cells").prefix(160))
+        + (flags.isEmpty ? "" : " (" + flags.joined(separator: ", ") + ")")
       validationRule = ""
     }
     if validation != nil, ["formula1", "formula2"].contains(name) {
       validationRule += name + "="
+      readingValidationFormula = true
     }
     if name == "mergeCell", notes.count < 40 {
       notes.insert(
@@ -428,8 +433,8 @@ private final class SheetXML: NSObject, XMLParserDelegate {
     }
   }
   func parser(_ parser: XMLParser, foundCharacters text: String) {
-    if validation != nil, validationRule.utf8.count < 600 {
-      validationRule += String(text.prefix(600))
+    if readingValidationFormula, validationRule.utf8.count < 600 {
+      validationRule += String(text.prefix(600 - validationRule.utf8.count))
     }
     if reading == "f" { formula += text } else if reading == "v" || reading == "t" { value += text }
   }
@@ -443,7 +448,10 @@ private final class SheetXML: NSObject, XMLParserDelegate {
           + ". Validation behavior requires reconstruction.")
       self.validation = nil
     }
-    if validation != nil, ["formula1", "formula2"].contains(name) { validationRule += "; " }
+    if validation != nil, ["formula1", "formula2"].contains(name) {
+      readingValidationFormula = false
+      validationRule += "; "
+    }
     if ["v", "t", "f"].contains(name) { reading = "" }
     if name == "rPh" { inPhonetic = false }
     if name == "c" {

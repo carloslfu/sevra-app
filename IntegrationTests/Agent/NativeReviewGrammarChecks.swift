@@ -83,6 +83,32 @@ func checkNativeReviewGrammar(frontend: SplashTextFrontend, factory: SplashGramm
       try expectThrows(try invalid.finish(committed: tokens, requireComplete: true))
     }
   }
+  for thinking in [false, true] {
+    let policy = try SplashToolPolicy.interpretationResult(
+      schemaJSON: Data(NativeAppReview.numericRulingSchema.json().utf8), thinking: thinking)
+    func output(_ result: String, tool: String = "interpretation_result") -> [UInt32] {
+      frontend.encode(
+        (thinking ? "Check the original rule.</think>\n" : "")
+          + "<tool_call>\n<function=\(tool)>\n<parameter=result>\n"
+          + result + "\n</parameter>\n</function>\n</tool_call>")
+    }
+    let allowed = output(#"{"decision":"allow","evidence":""}"#)
+    let valid = try factory.create(grammar: policy.grammar)
+    for end in 1...allowed.count {
+      try valid.finish(
+        committed: Array(allowed.prefix(end)), requireComplete: end == allowed.count)
+    }
+    for tokens in [
+      output(#"{"decision":"approve","evidence":""}"#),
+      output(#"{"decision":"forbid"}"#),
+      output(#"{"decision":"allow","evidence":"","writes":true}"#),
+      output(#"{"decision":"allow","evidence":""}"#, tool: "save_native_app"),
+    ] {
+      let invalid = try factory.create(grammar: policy.grammar)
+      try expectThrows(try invalid.finish(committed: tokens, requireComplete: true))
+    }
+  }
+  print("PASS disputed input grammar: exact interpretation only, no publication tool")
   print("PASS independent review grammar: nested input roles, typed headers and no write tools")
   print(
     "PASS blind review grammar: mandatory action/input/effect pairs, refusals, no standalone assertions"

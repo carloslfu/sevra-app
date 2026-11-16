@@ -253,6 +253,10 @@ func checkNativeAppAuthoring() async throws {
       try expectEqual((error as? SevraError)?.code, "app_check_assertion")
       try expectEqual(error.localizedDescription.contains("Duplicate reference"), true)
       try expectEqual(error.localizedDescription.contains(hint), true)
+      if expectedError == .null {
+        try expectEqual(error.localizedDescription.contains("add \"reject\":true"), true)
+        try expectEqual(error.localizedDescription.contains("separate successful call"), true)
+      }
     }
   }
   print(

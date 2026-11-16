@@ -2,7 +2,7 @@
 type: spec
 id: 01m7bd3448sec8weav20n1fyht
 created: 2026-11-13T21:30:20.679849+00:00
-updated: 2026-11-16T00:06:17.974370+00:00
+updated: 2026-11-16T02:14:06.537964+00:00
 summary: Constrained Excel application reconstruction with original-result comparison; ten automatic workflows qualified against 89 independent originals within explicit limits.
 title: Excel application reconstruction
 status: implemented
@@ -116,3 +116,8 @@ Admissible zero and fractional variants also check handler completion when faith
 representable without widening the starting magnitude. The independent business corpus
 still checks their exact saved effects and Undo. Neither review nor reported original
 examples prove universal equivalence.
+
+## Disputed numeric rules
+The first reviewer receives the original worksheet validation operator, formulas and explicit blank or error metadata where available. When a derived numeric action's observed result disagrees with the review, a new structured local interpretation receives only the exact field and typed value, actual user clarification and bounded original worksheet validation or readable VBA evidence. It cannot see candidate source, its observed result or the earlier rule. A decision to forbid requires a literal supporting original passage. A user passage must identify this specific field. An unclear answer blocks publication. The host must independently reproduce a reversed expectation in the same isolated state before it changes the accepted rule. Review coverage records the executed typed probes under their actual action IDs.
+
+The first reviewer may express input roles by field if the fields are unique across its exercised actions and every role maps to one exact supplied input. The saved review always groups those complete roles by action. The ordinary role, evidence, typing and probe checks still apply. An inconclusive independent review remains a retryable review failure. A later verified counterexample from the same draft is a distinct outcome that can be used for repair under the normal build step limit.
