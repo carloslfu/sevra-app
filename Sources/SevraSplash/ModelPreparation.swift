@@ -60,7 +60,7 @@ public struct SplashModelPack: Codable {
     }
     guard
       Set([
-        "config.json", "target/config.json", "tokenizer/config.json", "tokenizer/tokenizer.json",
+        "config.json", "tokenizer/config.json", "tokenizer/tokenizer.json",
         "tokenizer/tokenizer_config.json", "draft/config.json",
       ]).isSubset(of: destinations),
       destinations.contains(where: { $0.hasPrefix("target/") && $0.hasSuffix(".safetensors") }),
@@ -82,7 +82,7 @@ private func safeRelativePath(_ value: String) -> Bool {
   }
 }
 
-/// Matches Splash 1.4.1's immutable text-only MLX-affine assembly contract.
+/// Matches Splash 1.6.1's immutable text-only MLX-affine assembly contract.
 /// This verifies/links original weights; it never changes or deletes their source.
 public enum SplashModelPreparation {
   /// Open the selected installed pack without assuming the draft lives inside a legacy target
@@ -101,7 +101,7 @@ public enum SplashModelPreparation {
       record.sources["target"]?.revision == pack.target.revision,
       record.sources["draft"]?.repo == pack.draft.repository,
       record.sources["draft"]?.revision == pack.draft.revision,
-      let target = record.files["target/config.json"]?.path,
+      let target = record.files["config.json"]?.path,
       let draft = record.files["draft/config.json"]?.path
     else {
       throw SplashError(

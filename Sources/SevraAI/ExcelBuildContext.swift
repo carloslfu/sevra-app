@@ -141,6 +141,7 @@ package enum ExcelBuildContext {
         itemReferences: message.itemReferences, conversationActions: message.conversationActions,
         documentCopyIDs: message.documentCopyIDs, historyReferences: message.historyReferences)
       clean.nativeAppAuthoring = message.nativeAppAuthoring
+      clean.reviewContract = message.reviewContract
       return clean
     }
   }

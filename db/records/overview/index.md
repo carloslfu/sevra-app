@@ -2,9 +2,9 @@
 type: index
 scope: type-folder
 folder: records/overview
-updated: 2026-11-14T23:31:20.813665Z
+updated: 2026-11-16T19:48:08.492640Z
 ---
 
 # records/overview
 
-- [[records/overview/start-here]] — Two consecutive fresh 10/10 local-model Excel batches pass on frozen da3c472; all ten native interfaces checked, with no reused apps or manual source repairs.
+- [[records/overview/start-here]] — Inference/context fixes and Splash 1.6.1 candidate implemented; behavior gates block adoption, retaining 32K/12 GiB and the preserved preview. Earlier accepted Excel checkpoints retain their scope.

@@ -138,7 +138,7 @@ for name, output, thinking, structured, has_tools in output_samples:
     projections.append(dict(name=name, output=output, thinking=thinking, structured=structured, tools=has_tools,
                             text=content, reasoning=''.join(reasoning), calls=[
         dict(name=c['function']['name'], arguments=json.loads(c['function']['arguments'])) for c in calls_out]))
-data = dict(schemaVersion=1, upstreamCommit="1744cfafee415fb463b289449cec59a864e768e9",
+data = dict(schemaVersion=1, upstreamCommit="d8af1054aab0f97de21d043e01aa98af3754f10e",
             tokenizers="0.22.2", transformers="5.15.1", decoders=cases,
             tools=[dict(name='find_evidence', parameters=parameters)], projections=projections)
 path = ROOT / "IntegrationTests/Text/output-fixtures.json"

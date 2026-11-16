@@ -1,0 +1,16 @@
+{
+  "schemaVersion": 1,
+  "state": "preregistered-before-fixture-generation-and-screening",
+  "candidate": "Splash 1.6.1 BF16, int8 KV, fp32 state, ANE on, 512 reasoning, normal shared caches",
+  "cells": [[32768,12],[65536,12],[131072,12],[32768,24],[65536,24],[131072,24]],
+  "engineBudgetIsNotTotalFootprint": true,
+  "startupStatusObservation": true,
+  "ordinaryTask": "Fresh demo workbook: stock 18 brass bolts, all opening/movement citations, original items unchanged, no extra record or action, integrity and release.",
+  "occupiedContextTasks": "Frozen approximately 14K/42K/85K-token purchasing excerpts, with exact code, corrected mass and release decision early/middle/late. Unique receipt content, no random token/padding strings. Same byte inputs in every cell. These direct inference recall probes do not qualify retrieval, full large jobs, p95 or user workload distribution.",
+  "oracle": "MAPLE-27|0.25 kg|HOLD; whitespace/case normalization only",
+  "capacityRule": "Refuse supplied irreducible context at or above its actual mode threshold, before response dispatch. Record refusals. No clipping, alternate smaller output, mid-job expansion or retry.",
+  "resourceRule": "CPU preflight leaves at least 8 GiB outside requested engine budget on this 48 GiB host. Splash planner remains authoritative. Record requested and Ready capacity, actual status/memory plan, physical footprint and thermal/swap/pressure before/after; stop on serious thermal or critical memory pressure, never induce OOM. Missing metrics prevent qualification.",
+  "sampleCount": "One ordinary job and each admitted recall case once per cell, no discarded attempts. At most two research finalists plus 32K/12GiB control; no finalists can be promoted while the engine's behavioral/parity gate fails.",
+  "qualification": false,
+  "limits": "Bounded screening only. Full held-out complete-task and timing cohorts remain gated by P3. A larger recall capacity by itself is no reason to increase the default. No 256K or YaRN arm. No available-RAM-to-context automatic selection."
+}

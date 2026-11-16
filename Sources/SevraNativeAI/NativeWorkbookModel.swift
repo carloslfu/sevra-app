@@ -10,6 +10,7 @@ import SevraSplashText
 /// Internal qualification backend. Production does not depend on this target
 /// until native setup, packaging and application acceptance gates have passed.
 package actor NativeWorkbookModel: WorkbookInference {
+  package enum Activations: String, Sendable { case bf16, auto }
   package enum ModelLayout: Sendable { case localPack, installed }
   package struct Configuration: Sendable {
     package let engine: URL
@@ -18,10 +19,13 @@ package actor NativeWorkbookModel: WorkbookInference {
     package let grammarSHA256: String
     package let modelsRoot: URL
     package let memoryBytes: UInt64
+    package let activations: Activations
     package let contextBudget: ContextBudget
     package let reasoning: NativeReasoning
     package let modelLayout: ModelLayout
     package let contextMaintenanceEnabled: Bool
+    /// Evaluation-only startup status sampling; absent from product and timing cohorts.
+    package let observeAdmission: (@Sendable (Value) -> Void)?
     package let observeRequest: (@Sendable (Value) -> Void)?
     package let observeMask: (@Sendable ([UInt32], [UInt32], UInt32, [UInt32]) -> Void)?
     /// Qualification intervention only. Product callers retain shared caching.
@@ -33,7 +37,8 @@ package actor NativeWorkbookModel: WorkbookInference {
       modelLayout: ModelLayout = .localPack, contextMaintenanceEnabled: Bool = true,
       observeRequest: (@Sendable (Value) -> Void)? = nil,
       observeMask: (@Sendable ([UInt32], [UInt32], UInt32, [UInt32]) -> Void)? = nil,
-      diagnosticRequestCacheIsolation: Bool = false
+      diagnosticRequestCacheIsolation: Bool = false, activations: Activations = .bf16,
+      observeAdmission: (@Sendable (Value) -> Void)? = nil
     ) {
       self.engine = engine
       self.engineFiles = engineFiles
@@ -41,10 +46,12 @@ package actor NativeWorkbookModel: WorkbookInference {
       self.grammarSHA256 = grammarSHA256
       self.modelsRoot = modelsRoot
       self.memoryBytes = memoryBytes
+      self.activations = activations
       self.contextBudget = contextBudget
       self.reasoning = reasoning
       self.modelLayout = modelLayout
       self.contextMaintenanceEnabled = contextMaintenanceEnabled
+      self.observeAdmission = observeAdmission
       self.observeRequest = observeRequest
       self.observeMask = observeMask
       self.diagnosticRequestCacheIsolation = diagnosticRequestCacheIsolation
@@ -62,7 +69,8 @@ package actor NativeWorkbookModel: WorkbookInference {
     worker = NativeWorker(configuration)
     contextMaintenanceEnabled = configuration.contextMaintenanceEnabled
     identity =
-      "Splash 1.4.1; 1744cfafee415fb463b289449cec59a864e768e9; Qwen3.6-35B-A3B-4bit + DFlash2; native Swift candidate"
+      "Splash 1.6.1; d8af1054aab0f97de21d043e01aa98af3754f10e; Qwen3.6-35B-A3B-4bit + DFlash2; native Swift candidate"
+      + "; context \(configuration.contextBudget.contextTokens); memory \(configuration.memoryBytes); activations \(configuration.activations.rawValue); KV int8; state fp32; ANE on"
       + "; reasoning budget \(configuration.reasoning.rawValue); within-request reasoning retained"
   }
 
@@ -321,7 +329,7 @@ private final class NativeWorker: @unchecked Sendable {
       if let helper, helper.isOpen { return helper }
       try require(
         helper?.close() != false, "native_shutdown", "The previous native helper has not stopped.")
-      progress("Preparing local AI. First start may compile native components…")
+      progress("Preparing local AI. The first start can take longer…")
       do {
         let started = try SplashNativeProcess(
           executable: configuration.engine,
@@ -329,13 +337,48 @@ private final class NativeWorker: @unchecked Sendable {
             "serve-native", assembly.path, String(configuration.contextBudget.contextTokens),
             String(configuration.memoryBytes),
             "--persistent-cache", "off", "--idle-sleep", "allow", "--verify-rows", "all",
+            "--kv-format", "int8", "--state-format", "fp32", "--ane", "on",
+            "--activations", configuration.activations.rawValue,
           ],
-          timeout: 360, cancelled: { cancellation.isCancelled || cancellation.isExpired })
+          timeout: 360, cancelled: { cancellation.isCancelled || cancellation.isExpired },
+          warming: { completed, total in
+            progress("Preparing local AI · \(completed) of \(total) steps")
+          }, onLaunch: { self.helper = $0 })
         helper = started
-        try require(
-          started.ready?.context ?? 0 > 0, "model_setup", "Native context capacity is unavailable.")
+        guard let ready = started.ready,
+          ready.vocabulary == SplashTextFrontend.vocabularySize,
+          ready.stopTokens.count == SplashTextFrontend.stopTokens.count,
+          Set(ready.stopTokens) == Set(SplashTextFrontend.stopTokens),
+          ready.maskRows <= 33 && !ready.vision
+        else {
+          _ = started.close()
+          throw SevraError(
+            "model_setup",
+            "The native model vocabulary or mask contract does not match the verified frontend.")
+        }
+        if let observe = configuration.observeAdmission {
+          var status = try Value.parse(
+            String(decoding: started.status(id: UInt64.max), as: UTF8.self)
+          ).object
+          status["probeHostPID"] = .number(Double(getpid()))
+          status["probeHelperPID"] = .number(Double(started.processID))
+          status["servedContextTokens"] = .number(Double(ready.context))
+          observe(.object(status))
+        }
         return started
       } catch {
+        if let failure = error as? SplashWire.StartFailure {
+          configuration.observeAdmission?(
+            .object([
+              "startupFailure": .object([
+                "kind": .number(Double(failure.kind)), "bound": .number(Double(failure.bound)),
+                "requiredBytes": .number(Double(failure.requiredBytes)),
+                "budgetBytes": .number(Double(failure.budgetBytes)),
+                "planContextTokens": .number(Double(failure.planContext)),
+                "message": .string(String(decoding: failure.message, as: UTF8.self)),
+              ])
+            ]))
+        }
         throw nativeFailure(error, helperStopped: helper?.isOpen == false, diagnostic: "")
       }
     }
@@ -462,14 +505,16 @@ private final class NativeWorker: @unchecked Sendable {
     _ value: Value, receiptID: String, directory: URL, cancellation: Cancellation,
     toolScope: InferenceToolScope, nativeAppAuthoring: Bool
   ) async throws -> Value {
-    try await perform(directory: directory, cancellation: cancellation, progress: { _ in }) {
-      session in
-      let reserve = try NativePreparedRequest.toolResultReserve(
-        frontend: session.frontend, toolScope: toolScope, nativeAppAuthoring: nativeAppAuthoring)
-      return try ToolResultProjection.bounded(value, receiptID: receiptID, maximumTokens: reserve) {
-        try NativePreparedRequest.resultTokens($0, frontend: session.frontend)
-      }
-    }
+    try await perform(
+      directory: directory, cancellation: cancellation, progress: { _ in },
+      action: { session in
+        let reserve = try NativePreparedRequest.toolResultReserve(
+          frontend: session.frontend, toolScope: toolScope, nativeAppAuthoring: nativeAppAuthoring)
+        return try ToolResultProjection.bounded(value, receiptID: receiptID, maximumTokens: reserve)
+        {
+          try NativePreparedRequest.resultTokens($0, frontend: session.frontend)
+        }
+      })
   }
   func summarize(
     messages: [InferenceMessage], allowedMessageIDs: [String], directory: URL,
@@ -578,10 +623,8 @@ private final class NativeWorker: @unchecked Sendable {
       request.saltHigh = 0x5345_5652_4149_3200
     }
     try cancellation.check()
-    progress("Processing context · \(prompt.tokens.count) tokens")
-    var generatedCount = 0
-    var generationPhase = "Preparing a response"
-    var lastProgress = -Double.infinity
+    progress("Reading the working context")
+    var generationPhase: String?
     var matchedPromptTokens = 0
     let generated = try helper.generate(
       request,
@@ -595,13 +638,10 @@ private final class NativeWorker: @unchecked Sendable {
       event: { event in
         if case .tokens(_, _, let tokens) = event {
           _ = try output.append(tokens: tokens)
-          generatedCount += tokens.count
-          let phase = output.isReasoning ? "Reasoning" : "Preparing a response"
-          let now = ProcessInfo.processInfo.systemUptime
-          if phase != generationPhase || now - lastProgress >= 0.3 {
+          let phase = output.isReasoning ? "Working through the request" : "Preparing a response"
+          if phase != generationPhase {
             generationPhase = phase
-            lastProgress = now
-            progress("\(phase) · \(generatedCount) tokens generated")
+            progress(phase)
           }
         }
         if case .start(_, _, let matched) = event { matchedPromptTokens = Int(matched) }
@@ -632,6 +672,13 @@ private final class NativeWorker: @unchecked Sendable {
     try cancellation.check()
     let metrics: Value = .object([
       "backend": .string("splash-native-candidate"),
+      "runtimeRelease": .string("1.6.1"),
+      "activations": .string(configuration.activations.rawValue),
+      "requestedContextTokens": .number(Double(budget.contextTokens)),
+      "requestedMemoryBytes": .number(Double(configuration.memoryBytes)),
+      "engineSHA256": .string(configuration.engineFiles["splash"] ?? ""),
+      "grammarSHA256": .string(configuration.grammarSHA256),
+      "templateIdentity": .string(prepared.templateIdentity),
       "toolScope": .string(interpretation == nil ? toolScope.rawValue : "workflow_interpretation"),
       "requestSeconds": .number(generated.requestSeconds),
       "firstTokenSeconds": generated.firstTokenSeconds.map(Value.number) ?? .null,
@@ -686,6 +733,22 @@ private final class NativeWorker: @unchecked Sendable {
 package func nativeFailure(_ error: Error, helperStopped: Bool, diagnostic: String) -> Error {
   let output = diagnostic.isEmpty ? "" : " Last engine output: " + diagnostic
   switch error {
+  case let failure as SplashWire.StartFailure:
+    let message = String(decoding: failure.message, as: UTF8.self)
+      .replacingOccurrences(of: NSHomeDirectory(), with: "~")
+    if [3, 4].contains(failure.kind) {
+      return SevraError(
+        "model_capacity",
+        "Local AI cannot fit this request with its current memory allowance. Saved work is intact. This configuration needs a smaller working context or a larger verified memory allowance. ("
+          + message + ")")
+    }
+    if [1, 2, 8].contains(failure.kind) {
+      return SevraError(
+        "model_capacity",
+        "Local AI could not start with the available memory or context. Saved work is intact. Close other memory-heavy apps, then try again. ("
+          + message + ")")
+    }
+    return SevraError("model_setup", "Local AI could not start: " + message)
   case let failure as SplashWire.Failure where failure.classification == 1:
     guard failure.retryable else {
       return SevraError(

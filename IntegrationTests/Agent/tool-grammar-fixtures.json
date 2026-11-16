@@ -1,8 +1,8 @@
 {
   "schemaVersion": 1,
   "nestedPropertyOrder": "required-then-component-and-definition-selectors",
-  "splashCommit": "1744cfafee415fb463b289449cec59a864e768e9",
-  "toolsSHA256": "ea9af733cdc44d9c74d82c3623f945f45eb3191eadba38c1f7a4d61d92bbf85d",
+  "splashCommit": "d8af1054aab0f97de21d043e01aa98af3754f10e",
+  "toolsSHA256": "98ad315519aa4062f6b5ec6d651e5babdb8cbdc949fb64856d8c4e5c4e27fb51",
   "cases": [
     {
       "name": "required_native_app_sdk",
@@ -733,7 +733,7 @@
             510,
             15704
           ],
-          "maskSHA256": "867a93b7d6a37135a3ac960a7d3d47f33de3558caaa2ee8555f9e20291319799"
+          "maskSHA256": "8dae21df21ffeda08e7a112ce29551d91254971348059e9a0c4bd9d05df00c23"
         },
         {
           "committed": [
@@ -1575,7 +1575,7 @@
             510,
             15704
           ],
-          "maskSHA256": "867a93b7d6a37135a3ac960a7d3d47f33de3558caaa2ee8555f9e20291319799"
+          "maskSHA256": "8dae21df21ffeda08e7a112ce29551d91254971348059e9a0c4bd9d05df00c23"
         },
         {
           "committed": [
@@ -2524,7 +2524,7 @@
             510,
             15704
           ],
-          "maskSHA256": "867a93b7d6a37135a3ac960a7d3d47f33de3558caaa2ee8555f9e20291319799"
+          "maskSHA256": "8dae21df21ffeda08e7a112ce29551d91254971348059e9a0c4bd9d05df00c23"
         },
         {
           "committed": [
@@ -3489,7 +3489,7 @@
             510,
             15704
           ],
-          "maskSHA256": "867a93b7d6a37135a3ac960a7d3d47f33de3558caaa2ee8555f9e20291319799"
+          "maskSHA256": "8dae21df21ffeda08e7a112ce29551d91254971348059e9a0c4bd9d05df00c23"
         },
         {
           "committed": [
@@ -4576,7 +4576,7 @@
             510,
             15704
           ],
-          "maskSHA256": "867a93b7d6a37135a3ac960a7d3d47f33de3558caaa2ee8555f9e20291319799"
+          "maskSHA256": "8dae21df21ffeda08e7a112ce29551d91254971348059e9a0c4bd9d05df00c23"
         },
         {
           "committed": [
@@ -5650,7 +5650,7 @@
             510,
             15704
           ],
-          "maskSHA256": "867a93b7d6a37135a3ac960a7d3d47f33de3558caaa2ee8555f9e20291319799"
+          "maskSHA256": "8dae21df21ffeda08e7a112ce29551d91254971348059e9a0c4bd9d05df00c23"
         },
         {
           "committed": [
@@ -6593,7 +6593,7 @@
             510,
             15704
           ],
-          "maskSHA256": "867a93b7d6a37135a3ac960a7d3d47f33de3558caaa2ee8555f9e20291319799"
+          "maskSHA256": "8dae21df21ffeda08e7a112ce29551d91254971348059e9a0c4bd9d05df00c23"
         },
         {
           "committed": [
@@ -7433,7 +7433,7 @@
             510,
             15704
           ],
-          "maskSHA256": "867a93b7d6a37135a3ac960a7d3d47f33de3558caaa2ee8555f9e20291319799"
+          "maskSHA256": "8dae21df21ffeda08e7a112ce29551d91254971348059e9a0c4bd9d05df00c23"
         },
         {
           "committed": [
@@ -8271,7 +8271,7 @@
             510,
             15704
           ],
-          "maskSHA256": "867a93b7d6a37135a3ac960a7d3d47f33de3558caaa2ee8555f9e20291319799"
+          "maskSHA256": "8dae21df21ffeda08e7a112ce29551d91254971348059e9a0c4bd9d05df00c23"
         },
         {
           "committed": [
@@ -9115,7 +9115,7 @@
             510,
             15704
           ],
-          "maskSHA256": "867a93b7d6a37135a3ac960a7d3d47f33de3558caaa2ee8555f9e20291319799"
+          "maskSHA256": "8dae21df21ffeda08e7a112ce29551d91254971348059e9a0c4bd9d05df00c23"
         },
         {
           "committed": [
@@ -9956,7 +9956,7 @@
             510,
             15704
           ],
-          "maskSHA256": "867a93b7d6a37135a3ac960a7d3d47f33de3558caaa2ee8555f9e20291319799"
+          "maskSHA256": "8dae21df21ffeda08e7a112ce29551d91254971348059e9a0c4bd9d05df00c23"
         },
         {
           "committed": [
@@ -10793,7 +10793,7 @@
             510,
             15704
           ],
-          "maskSHA256": "867a93b7d6a37135a3ac960a7d3d47f33de3558caaa2ee8555f9e20291319799"
+          "maskSHA256": "8dae21df21ffeda08e7a112ce29551d91254971348059e9a0c4bd9d05df00c23"
         },
         {
           "committed": [
@@ -11634,7 +11634,7 @@
             510,
             15704
           ],
-          "maskSHA256": "867a93b7d6a37135a3ac960a7d3d47f33de3558caaa2ee8555f9e20291319799"
+          "maskSHA256": "8dae21df21ffeda08e7a112ce29551d91254971348059e9a0c4bd9d05df00c23"
         },
         {
           "committed": [
@@ -12576,7 +12576,7 @@
             510,
             15704
           ],
-          "maskSHA256": "867a93b7d6a37135a3ac960a7d3d47f33de3558caaa2ee8555f9e20291319799"
+          "maskSHA256": "8dae21df21ffeda08e7a112ce29551d91254971348059e9a0c4bd9d05df00c23"
         },
         {
           "committed": [
@@ -13519,7 +13519,7 @@
             510,
             15704
           ],
-          "maskSHA256": "867a93b7d6a37135a3ac960a7d3d47f33de3558caaa2ee8555f9e20291319799"
+          "maskSHA256": "8dae21df21ffeda08e7a112ce29551d91254971348059e9a0c4bd9d05df00c23"
         },
         {
           "committed": [
@@ -14463,7 +14463,7 @@
             510,
             15704
           ],
-          "maskSHA256": "867a93b7d6a37135a3ac960a7d3d47f33de3558caaa2ee8555f9e20291319799"
+          "maskSHA256": "8dae21df21ffeda08e7a112ce29551d91254971348059e9a0c4bd9d05df00c23"
         },
         {
           "committed": [

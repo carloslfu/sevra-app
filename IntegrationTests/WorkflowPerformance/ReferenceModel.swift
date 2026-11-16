@@ -4,6 +4,7 @@ import Foundation
 import SevraAI
 import SevraCore
 import SevraNativeAI
+import SevraSplashText
 
 final class Observations: @unchecked Sendable {
   private let lock = NSLock()
@@ -66,9 +67,12 @@ actor ReferenceModel: WorkbookInference {
   private(set) var lastMetrics: Value = .null
   private let worker: ReferenceWorker
   private let observations: Observations
+  private let config: Value
+  private var frontend: SplashTextFrontend?
   private var lease: Int32 = -1
   private var leased = false
   init(config: Value, observations: Observations) {
+    self.config = config
     worker = ReferenceWorker(config: config)
     self.observations = observations
   }
@@ -100,6 +104,25 @@ actor ReferenceModel: WorkbookInference {
     }
     return true
   }
+  // The host owns receipt projection on both arms; Python still owns the
+  // independent generation prompt, grammar, decode and response path.
+  func boundToolResult(
+    _ value: Value, receiptID: String, directory: URL, cancellation: Cancellation,
+    toolScope: InferenceToolScope, nativeAppAuthoring: Bool
+  ) async throws -> Value {
+    try cancellation.check()
+    if frontend == nil {
+      frontend = try SplashTextFrontend(
+        modelFolder: URL(fileURLWithPath: config["assembly"].text).appendingPathComponent(
+          "tokenizer"))
+    }
+    let text = frontend!
+    let reserve = try NativePreparedRequest.toolResultReserve(
+      frontend: text, toolScope: toolScope, nativeAppAuthoring: nativeAppAuthoring)
+    return try ToolResultProjection.bounded(value, receiptID: receiptID, maximumTokens: reserve) {
+      try NativePreparedRequest.resultTokens($0, frontend: text)
+    }
+  }
   func respond(
     messages: [InferenceMessage], directory: URL, cancellation: Cancellation,
     progress: @escaping @Sendable (String) -> Void, toolScope: InferenceToolScope,
@@ -108,7 +131,12 @@ actor ReferenceModel: WorkbookInference {
     try require(leased, "busy", "Reference needs a run lease")
     let policy = try NativeCitationPolicy.make(
       citationIDs, toolScope: toolScope, thinking: true,
-      itemReferenceIDs: ItemReferenceCandidates.ids(in: messages))
+      itemReferenceIDs: ItemReferenceCandidates.ids(in: messages),
+      conversationActions: messages.first?.conversationActions,
+      documentCopyIDs: DocumentCopyCandidates.ids(in: messages),
+      historyReferenceIDs: ItemReferenceCandidates.historyIDs(in: messages),
+      nativeAppAuthoring: messages.first?.nativeAppAuthoring == true,
+      reviewContract: messages.first?.reviewContract ?? .null)
     let body: [String: Any] = [
       "messages": try messages.map(nativeTemplateMessage),
       "tools": try JSONSerialization.jsonObject(with: policy.toolsJSON),
@@ -133,7 +161,7 @@ actor ReferenceModel: WorkbookInference {
       "matchedPromptTokens": row["matchedPromptTokens"],
       "deduplicatedKVTokens": row["deduplicatedKVTokens"],
       "diagnosticRequestCacheIsolation": row["diagnosticRequestCacheIsolation"],
-      "contextTokens": .number(32768),
+      "contextTokens": config["contextTokens"],
       "outputBudget": .number(1800), "reasoningBudget": .number(512),
       "requestSeconds": row["completeSeconds"], "firstTokenSeconds": row["firstTokenSeconds"],
       "prefillSeconds": row["prefillSeconds"], "decodeSeconds": row["decodeSeconds"],

@@ -3,14 +3,14 @@ type: spec
 meta-type: conclusion
 id: 01m5wps1qcharh0qv8vq40wbjr
 created: 2026-10-26T18:15:17.996137+00:00
-updated: 2026-11-16T17:24:47.517012+00:00
+updated: 2026-11-16T19:32:09.042205+00:00
 summary: Python-free Swift integration of pinned upstream Splash, explicit behavior mapping, differential verification and measured adoption gates.
 title: Native Splash integration and upgrades
 status: reviewed
 ---
 # Native Splash integration and upgrades
 
-Revision 8, October 27 UTC, 2026. Owner-approved direction; integration not yet qualified.
+Revision 9, November 16, 2026. Splash 1.6.1 is implemented as a source candidate; adoption remains blocked by retained repeatability and application failures. The installed 1.4.1 preview is preserved. Current evidence and follow-up are in [[records/operations/inference-context-execution]].
 Authority: [[sources/notes/2026/10/workbook-primary-splash-direction]].
 The existing Slotstream build is a preserved baseline, not the future architecture.
 
@@ -21,8 +21,9 @@ owns the Swift product, workbook agent and integration. Do not port inference,
 attention, expert routing, speculative verification or GPU scheduling to Swift.
 No runtime Python interpreter, Python server, HTTP proxy or implicit cloud fallback.
 Upstream Python is allowed only in development/reference verification tools.
-I02. Initial candidate is Splash 1.4.1, commit
-`1744cfafee415fb463b289449cec59a864e768e9`, released October 26. Pin source,
+I02. Current candidate is Splash 1.6.1, commit
+`d8af1054aab0f97de21d043e01aa98af3754f10e`. The initial 1.4.1 pin at
+`1744cfafee415fb463b289449cec59a864e768e9` is preserved separately. Pin source,
 runtime archive digest and source-to-binary identity. Retain upstream licenses.
 Do not fetch a moving branch at app startup. Follow newer releases through I11.
 I03. Initial implementation uses Splash's native executable and binary protocol
@@ -415,3 +416,12 @@ and independent hash/process audit: integration/evidence/2026-10-27-prefix-d9-re
 
 ## Reviewed inference and context upgrade plan, November 15
 [[records/plans/inference-context-upgrade]] is revision 5 after three original passes and a complete follow-up review. [[records/reviews/inference-context-plan-full-review]] records every section's coverage and 18 resolved gaps/ambiguities. The plan covers shared exact-scope admission, mode-specific output/result/transition reserves, actual admitted capacity, Splash 1.6.1 and controlled context/memory experiments. The archive and intended native members are hash-verified; runtime behavior is unqualified. The owner authorized implementation on November 16. The common accounting path and mode-aware 75%/reserve policy are now implemented and tested on 1.4.1; the explicit engine/profile adoption gates remain. [[records/operations/inference-context-execution]] records current evidence and gaps. The historical review and qualification failures remain preserved.
+
+## Candidate 1.6.1 execution, November 16
+The owner-authorized [[records/plans/inference-context-upgrade]] is in execution. The candidate pin is Splash 1.6.1, commit `d8af1054aab0f97de21d043e01aa98af3754f10e`, protocol 13/status 8. The previous 1.4.1 pin remains in `integration/splash-1.4.1-preserved.json`; preserved source, workers and bundle identities are recorded in [[records/operations/inference-context-execution]]. This is a source candidate, not an adopted production runtime or an installed-preview replacement.
+
+The Swift adapter handles bounded startup Warming, Ready vocabulary/stop-token/mask-row capabilities, typed StartFailed shortfalls, and successful frontend Stop separately from user Cancel. The lease owner retains the child before readiness can fail; teardown must reap it before releasing ownership. Native assembly matches the pinned upstream record and reuses unchanged target/draft/tokenizer bytes without a new model download. LLGuidance stays 1.8.0 and Swift package pins are unchanged. Qualification fixes BF16 activations, int8 KV, fp32 state, ANE on, 32K context and 12 GiB engine budget. Automatic M5 precision is not enabled by upgrading the default.
+
+Exact prompt/streaming/projection and vocabulary/tool-mask fixtures, 37 protocol/resource/setup checks and native startup/cancel/recovery checks pass. The frozen P2-agent R/N/N/R prefix, before later continuity fixes, passes twelve jobs with exact request and generated-token equality. The historical fixed-input prefix instead retains within-native and within-reference variation. Instrumented comparison finds zero mask differences across 2,830 shared prefixes, but cannot clear the uninstrumented strict parity failure or qualify performance. The first packaged candidate calculator-authoring trial also fails after repeated invalid source; the host refuses to publish a broken app. These failures block adoption and the later larger-context qualification sweep. See `integration/evidence/2026-11-16-splash-upgrade.json` for retained evidence and precise limits.
+
+The accounting and history fixes are independent host behavior: exact scope/output/result budgeting, preserved original receipts, review metadata retention and bounded navigation candidates that do not hide explicit original pointers behind incidental history IDs. Real multi-compaction, portable continuation, false-digest/current-authority, summary cancellation and explicit retry checks pass after documented repairs. User-facing inference progress uses real preparation/reading/response phases rather than token counts. Full profile/performance and final native UI gates remain distinct from these headless results.

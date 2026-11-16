@@ -34,6 +34,10 @@ package enum ItemReferenceCandidates {
         "(?i)(?<![0-9a-z])[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}(?![0-9a-z])")
     var mentioned: [String] = []
     var seen = Set<String>()
+    var navigation: [String] = []
+    let citation = try NSRegularExpression(
+      pattern: "(?i)(?:message:|[?&]message=)"
+        + "([0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12})")
     for message in messages.reversed() {
       // Reading preserves original bytes, including URLs superseded by saved
       // bindings. Those raw routes are not canonical lookup authority. The
@@ -49,9 +53,33 @@ package enum ItemReferenceCandidates {
       } else {
         lookupText = message.content
       }
-      for match in regex.matches(
+      let matches = regex.matches(
         in: lookupText, range: NSRange(lookupText.startIndex..., in: lookupText))
-      {
+      if message.role == "assistant" {
+        // A compacted original may be older than every visible history row.
+        // Preserve explicit navigation pointers ahead of incidental row IDs.
+        // These are lookup candidates only; normal scope and read checks below
+        // still apply, and no summary becomes inspected evidence.
+        navigation += citation.matches(
+          in: lookupText, range: NSRange(lookupText.startIndex..., in: lookupText)
+        ).compactMap { Range($0.range(at: 1), in: lookupText).map { String(lookupText[$0]) } }
+        if let digest = try? Value.parse(lookupText), digest["derivedNotes"] != .null {
+          navigation += ContextDigest.references(digest["derivedNotes"]).sorted()
+        }
+      } else if ["user", "tool"].contains(message.role) {
+        // Current requests and ranked discovery/results take precedence over
+        // IDs merely visible in a historical envelope.
+        navigation += matches.compactMap {
+          Range($0.range, in: lookupText).map { String(lookupText[$0]) }
+        }
+      }
+      // Saved history packs chronological messages into one assistant envelope.
+      // Apply the same newest-first selection inside that envelope: otherwise
+      // older unrelated IDs can fill all 32 history choices and make a visible
+      // recent answer's original citation impossible to read. Discovery tool
+      // results retain their ranked order.
+      let ordered = message.role == "assistant" ? Array(matches.reversed()) : matches
+      for match in ordered {
         guard let range = Range(match.range, in: lookupText) else { continue }
         let id = String(lookupText[range])
         if seen.insert(id).inserted { mentioned.append(id) }
@@ -65,7 +93,10 @@ package enum ItemReferenceCandidates {
     var verified: [String] = []
     var rows: [String] = []
     var earlier: [String] = []
-    for id in mentioned {
+    var visited = Set<String>()
+    // Prioritization cannot add values outside the bounded visible UUID set.
+    for id in navigation.filter({ seen.contains($0) }) + mentioned
+    where visited.insert(id).inserted {
       do {
         if try workbook.item(id).kind == "row" { rows.append(id) } else { verified.append(id) }
       } catch let error as SevraError where error.code == "not_found" {
@@ -87,6 +118,7 @@ package enum ItemReferenceCandidates {
         documentCopyIDs: message.documentCopyIDs,
         historyReferences: index == 0 && history != nil ? earlier.sorted() : nil)
       annotated.nativeAppAuthoring = message.nativeAppAuthoring
+      annotated.reviewContract = message.reviewContract
       return annotated
     }
   }

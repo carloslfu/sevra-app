@@ -3,11 +3,19 @@ type: operational
 meta-type: operational
 id: 01m659x4nd2q89tkpzzsssd7yr
 created: 2026-10-30T02:23:30.477380+00:00
-updated: 2026-11-16T17:02:57.350791+00:00
-summary: Visual plan revision 15 closes eight end-to-end gaps; 28 SDK, 20 signed native and 21 preview groups pass. New feature acceptance remains open.
+updated: 2026-11-16T19:48:08.453895+00:00
+summary: Inference/context implementation retains 32K/12 GiB; Splash 1.6.1 remains unpromoted after behavior failures. Visual plan and earlier accepted checkpoints are preserved.
 title: Minimum-feature continuation handoff
 ---
 # Minimum-feature continuation handoff
+
+## Inference and context checkpoint, November 16
+
+The owner-authorized [[records/plans/inference-context-upgrade]] implements exact scoped prompt accounting, complete output/tool/recovery reserves, CPU-only preflight, continuity citation fixes and candidate Splash 1.6.1/protocol 13/status 8. Default settings remain 32K context, 12 GiB engine memory, BF16 activations, int8 KV, fp32 state and ANE on. See [[records/operations/inference-context-execution]] and the [portable evidence](../../../integration/evidence/2026-11-16-splash-upgrade.json).
+
+**The upgrade is not adopted.** Historical same-engine repeatability fails in both native and reference workers; calculator authoring and repair fail independent outcomes. Current-prefix parity, autonomous jobs, corrected multi-compaction continuity, an invoice case and an unchanged stock-program replay pass. The stock replay succeeds at 32K with production context maintenance, after correcting a disabled-maintenance harness. Startup-only 64K/128K admission does not establish better task quality or speed. Full performance, useful-context and finalist cohorts remain gated; no automatic growth or larger user profile is enabled.
+
+Full local checks and final native package/install/extraction checks pass. An isolated installed evaluation verifies progress, both Stop controls, calculator recovery, saved reopening and the corrected completion footer. Main UUID `50067097-3466-35AF-B1C3-00D75F9D1BB9` matches the package; its separate identity changes the signature, with unsigned code and resources verified. Original installed preview UUID `A4AF21E2-1B9E-3757-B8F2-091C630658FD`, executable bytes, model selection and all preferences remain unchanged. Exact containing-commit hosted Checks is required at publication and cannot substitute for the failed real-model gates. Do not replace the preserved preview. Earlier accepted checkpoints below retain their original identities and scope.
 
 ## Rich visual-system planning checkpoint, November 15
 

@@ -1,0 +1,14 @@
+{
+  "schemaVersion": 1,
+  "date": "2026-11-16",
+  "candidateRelease": "1.6.1",
+  "candidateCommit": "d8af1054aab0f97de21d043e01aa98af3754f10e",
+  "state": "preregistered-before-candidate-workflow-execution",
+  "control": {"contextTokens":32768,"memoryBytes":12884901888,"activations":"bf16","kv":"int8","state":"fp32","ane":"on","reasoningTokens":512},
+  "currentAgentPrerequisite": {"order":["reference","native","native","reference"],"jobs":["prime","formula_review","inventory_evidence"],"seeds":[0,9001,9002],"repetitions":1,"exactRequestsAndGeneratedTokensRequired":true,"scope":"New current-host inputs after accounting corrections, separate from frozen historical D9 replay. No mask/status/cache intervention. Failed inputs or within-backend variation stop full qualification, not selective reruns."},
+  "upgradeComparison": {"control":"frozen P1-corrected 1.4.1 worker","candidate":"1.6.1 corrected host","workloads":["supplier_space","formula_review","inventory_evidence","missing_evidence"],"pilot":"One warmup and one measured job per workload/backend before full cohort; diagnostics cannot qualify timing.","blocks":10,"repetitionsPerWorkloadPerBlock":2,"warmupPerWorkloadPerProcess":1,"maximumMedianRegression":0.05,"maximumObservedP95Regression":0.1,"requiredSemanticSuccessFraction":1.0,"finalOriginalComparison":"Same gates against frozen original preview on common successful jobs; no compounded phase allowances."},
+  "contextScreen": {"contexts":[32768,65536,131072],"memoryGiB":[12,24],"intermediateGiB":18,"intermediateCondition":"Only if 24 GiB is inadmissible; one preregistered follow-up, no budget search.","finalistLimit":2,"controlAlwaysIncluded":true,"256K":"Excluded unless useful simultaneous evidence exceeds 128K after retrieval.","screeningOnly":true},
+  "safety": {"sequentialInference":true,"adapterOwnsLease":true,"noConcurrentBuildsOrDownloads":true,"noOOMOrCriticalPressure":true,"keepCancellationStopped":true,"noMidJobContextGrowth":true,"unknownRequiredMetricsPreventPromotion":true},
+  "precision": "Explicit BF16 first; automatic M5 activation is a separate candidate with the same behavioral gates.",
+  "failurePolicy": "Retain all attempts, warmups, oracles and source/binary/configuration identities. Diagnose an actual defect before a revised candidate retry. No relaxed parity, post-hoc exclusions or full-cohort loop until green. A failed qualification retains the previous runtime/profile. Current installed preview is not a production-qualified fallback."
+}

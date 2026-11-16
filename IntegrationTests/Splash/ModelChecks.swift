@@ -140,7 +140,7 @@ struct ModelFixture {
     let targetFiles = try [
       file(
         target, "config.json", "{\"family\":\"test\"}",
-        ["config.json", "target/config.json", "tokenizer/config.json"]),
+        ["config.json", "tokenizer/config.json"]),
       file(target, "tokenizer.json", "{}", ["tokenizer/tokenizer.json"]),
       file(target, "tokenizer_config.json", "{}", ["tokenizer/tokenizer_config.json"]),
       file(

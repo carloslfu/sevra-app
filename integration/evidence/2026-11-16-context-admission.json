@@ -1,0 +1,222 @@
+{
+  "scope": "Startup and release only, not useful occupied-context or task qualification",
+  "release": "1.6.1",
+  "hardware": "Apple M5 Pro, 48 GiB unified memory",
+  "precision": {
+    "activations": "bf16",
+    "kv": "int8",
+    "state": "fp32",
+    "ane": "on"
+  },
+  "protocol": "integration/performance/context-admission-protocol.json",
+  "results": [
+    {
+      "requestedContextTokens": 32768,
+      "requestedMemoryGiB": 12,
+      "admitted": true,
+      "preflightRefusal": null,
+      "failure": null,
+      "readyContextTokens": 32768,
+      "readySeconds": 3.3705024583032355,
+      "planMaximumContextTokens": 40953,
+      "targetWeightsBytes": 8522065168,
+      "kvCapacityTokens": 40960,
+      "engineMemoryAtReady": {
+        "allocated_bytes": 11737654544,
+        "current_bytes": 11743608832,
+        "peak_bytes": 11743608832
+      },
+      "engineMemoryAfterRelease": {
+        "allocated_bytes": 1558865168,
+        "current_bytes": 1564819456,
+        "peak_bytes": 11743608832
+      },
+      "weightsReleased": true,
+      "closed": true,
+      "criticalPressureStop": false,
+      "sampledMemory": {
+        "sampleCount": 17,
+        "errors": [],
+        "maximumThermalState": 1,
+        "observedPeakSumBytes": 11170368776,
+        "processLifetimePeaks": [
+          3244512,
+          11167124264
+        ]
+      },
+      "generatedRequests": 0,
+      "freePercentageBefore": "System-wide memory free percentage: 71%",
+      "freePercentageAfter": [
+        "System-wide memory free percentage: 64%"
+      ]
+    },
+    {
+      "requestedContextTokens": 65536,
+      "requestedMemoryGiB": 12,
+      "admitted": true,
+      "preflightRefusal": null,
+      "failure": null,
+      "readyContextTokens": 65536,
+      "readySeconds": 4.223189083393663,
+      "planMaximumContextTokens": 73721,
+      "targetWeightsBytes": 8233641232,
+      "kvCapacityTokens": 73728,
+      "engineMemoryAtReady": {
+        "allocated_bytes": 11397915920,
+        "current_bytes": 11403870208,
+        "peak_bytes": 11403870208
+      },
+      "engineMemoryAfterRelease": {
+        "allocated_bytes": 1558865168,
+        "current_bytes": 1564819456,
+        "peak_bytes": 11403870208
+      },
+      "weightsReleased": true,
+      "closed": true,
+      "criticalPressureStop": false,
+      "sampledMemory": {
+        "sampleCount": 21,
+        "errors": [],
+        "maximumThermalState": 0,
+        "observedPeakSumBytes": 11245079960,
+        "processLifetimePeaks": [
+          3260920,
+          11241819040
+        ]
+      },
+      "generatedRequests": 0,
+      "freePercentageBefore": "System-wide memory free percentage: 72%",
+      "freePercentageAfter": [
+        "System-wide memory free percentage: 64%"
+      ]
+    },
+    {
+      "requestedContextTokens": 131072,
+      "requestedMemoryGiB": 12,
+      "admitted": true,
+      "preflightRefusal": null,
+      "failure": null,
+      "readyContextTokens": 131072,
+      "readySeconds": 3.7570677916519344,
+      "planMaximumContextTokens": 139257,
+      "targetWeightsBytes": 7653254416,
+      "kvCapacityTokens": 139264,
+      "engineMemoryAtReady": {
+        "allocated_bytes": 10714899728,
+        "current_bytes": 10720854016,
+        "peak_bytes": 10720854016
+      },
+      "engineMemoryAfterRelease": {
+        "allocated_bytes": 1558865168,
+        "current_bytes": 1564819456,
+        "peak_bytes": 10720854016
+      },
+      "weightsReleased": true,
+      "closed": true,
+      "criticalPressureStop": false,
+      "sampledMemory": {
+        "sampleCount": 19,
+        "errors": [],
+        "maximumThermalState": 0,
+        "observedPeakSumBytes": 10668723632,
+        "processLifetimePeaks": [
+          3293688,
+          10665429944
+        ]
+      },
+      "generatedRequests": 0,
+      "freePercentageBefore": "System-wide memory free percentage: 72%",
+      "freePercentageAfter": [
+        "System-wide memory free percentage: 64%"
+      ]
+    },
+    {
+      "requestedContextTokens": 32768,
+      "requestedMemoryGiB": 24,
+      "admitted": true,
+      "preflightRefusal": null,
+      "failure": null,
+      "readyContextTokens": 32768,
+      "readySeconds": 5.269730708329007,
+      "planMaximumContextTokens": 262144,
+      "targetWeightsBytes": 19520963584,
+      "kvCapacityTokens": 368640,
+      "engineMemoryAtReady": {
+        "allocated_bytes": 21162214400,
+        "current_bytes": 21168177152,
+        "peak_bytes": 21712584704
+      },
+      "engineMemoryAfterRelease": {
+        "allocated_bytes": 1161085952,
+        "current_bytes": 1167048704,
+        "peak_bytes": 21712584704
+      },
+      "weightsReleased": true,
+      "closed": true,
+      "criticalPressureStop": false,
+      "sampledMemory": {
+        "sampleCount": 27,
+        "errors": [],
+        "maximumThermalState": 0,
+        "observedPeakSumBytes": 21990643208,
+        "processLifetimePeaks": [
+          3539424,
+          22040269984
+        ]
+      },
+      "generatedRequests": 0,
+      "freePercentageBefore": "System-wide memory free percentage: 72%",
+      "freePercentageAfter": [
+        "System-wide memory free percentage: 64%"
+      ]
+    },
+    {
+      "requestedContextTokens": 65536,
+      "requestedMemoryGiB": 24,
+      "admitted": null,
+      "preflightRefusal": "Unknown or insufficient available-headroom estimate",
+      "failure": null,
+      "readyContextTokens": null,
+      "readySeconds": null,
+      "planMaximumContextTokens": null,
+      "targetWeightsBytes": null,
+      "kvCapacityTokens": null,
+      "engineMemoryAtReady": null,
+      "engineMemoryAfterRelease": null,
+      "weightsReleased": null,
+      "closed": null,
+      "criticalPressureStop": null,
+      "sampledMemory": null,
+      "generatedRequests": 0,
+      "freePercentageBefore": "System-wide memory free percentage: 64%",
+      "freePercentageAfter": []
+    },
+    {
+      "requestedContextTokens": 131072,
+      "requestedMemoryGiB": 24,
+      "admitted": null,
+      "preflightRefusal": "Unknown or insufficient available-headroom estimate",
+      "failure": null,
+      "readyContextTokens": null,
+      "readySeconds": null,
+      "planMaximumContextTokens": null,
+      "targetWeightsBytes": null,
+      "kvCapacityTokens": null,
+      "engineMemoryAtReady": null,
+      "engineMemoryAfterRelease": null,
+      "weightsReleased": null,
+      "closed": null,
+      "criticalPressureStop": null,
+      "sampledMemory": null,
+      "generatedRequests": 0,
+      "freePercentageBefore": "System-wide memory free percentage: 64%",
+      "freePercentageAfter": []
+    }
+  ],
+  "workerSHA256": "695a255b6a0ec4e3e7458bb8b63c5f5722efe2bc7360ee7d1dc15c0289c6dded",
+  "engineSHA256": "ce771e5f51081a2fd60df0ee0083f982a278a863ffaeab29fd590f55e9e36e89",
+  "taskQualification": false,
+  "performanceQualification": false,
+  "productionAdoption": false,
+  "interpretation": "32K, 64K and 128K all admitted at 12 GiB, with less planned resident target weight memory as context rises. 32K admitted at 24 GiB. The other 24 GiB cells were conservatively refused by the instantaneous available-headroom estimate, not by Splash; they are untested, not permanently impossible. All four started helpers released weights and were reaped. No generated requests, full occupancy, latency benefit or large-task UX is qualified. Retain the existing default while P3 behavior/parity fails."
+}

@@ -21,7 +21,10 @@ from server.constraints import ConstraintFactory
 from server.tool_schema import normalize_tools, tool_grammar
 
 tokenizer = AutoTokenizer.from_pretrained(str(args.model.resolve()), local_files_only=True)
-factory = ConstraintFactory(tokenizer, QWEN)
+from server.protocol import ReadyEvent
+# CPU fixture contract; live qualification separately validates actual Ready metadata.
+ready = ReadyEvent(1, 32768, False, 248320, 33, (248044, 248046))
+factory = ConstraintFactory(tokenizer, ready)
 tools = json.loads((ROOT/'IntegrationTests/Agent/workbook-tools.json').read_text())
 # LLGuidance preserves schema property order. Match the app's required-first
 # ordering for nested JSON while leaving XML argument order unchanged.
@@ -156,7 +159,7 @@ for choice_name, choice, thinking, examples in choices:
         assert constraint.matcher.is_accepting()
         cases.append(dict(name=choice_name+'_'+name, choice=choice_name, thinking=thinking,
                           output=output, arguments=arguments, tokens=tokens, steps=steps))
-result = dict(schemaVersion=1, nestedPropertyOrder='required-then-component-and-definition-selectors', splashCommit='1744cfafee415fb463b289449cec59a864e768e9',
+result = dict(schemaVersion=1, nestedPropertyOrder='required-then-component-and-definition-selectors', splashCommit='d8af1054aab0f97de21d043e01aa98af3754f10e',
               toolsSHA256=hashlib.sha256((ROOT/'IntegrationTests/Agent/workbook-tools.json').read_bytes()).hexdigest(),
               cases=cases)
 path = ROOT/'IntegrationTests/Agent/tool-grammar-fixtures.json'

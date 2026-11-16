@@ -24,7 +24,10 @@ from server.constraints import ConstraintFactory
 from server.tool_schema import json_grammar, tool_grammar, normalize_tools
 
 tokenizer = AutoTokenizer.from_pretrained(str(args.model.resolve()), local_files_only=True)
-factory = ConstraintFactory(tokenizer, QWEN)
+from server.protocol import ReadyEvent
+# CPU fixture contract; live qualification separately validates actual Ready metadata.
+ready = ReadyEvent(1, 32768, False, 248320, 33, (248044, 248046))
+factory = ConstraintFactory(tokenizer, ready)
 simple = {"type": "object", "properties": {"answer": {"const": "ready"}},
           "required": ["answer"], "additionalProperties": False}
 rich = {"type": "object", "properties": {"label": {"type": "string"}, "values": {
@@ -58,7 +61,7 @@ for name, grammar, output in cases:
                       "maskSHA256": hashlib.sha256(masks).hexdigest()})
     constraint.finish()
     assert constraint.matcher.is_accepting()
-    for eos in QWEN.stop_ids:
+    for eos in ready.stop_token_ids:
         terminated = factory.create(grammar)
         terminated.commit(tokens)
         terminated.finish()
@@ -66,7 +69,7 @@ for name, grammar, output in cases:
         terminated.finish()
         assert terminated.matcher.is_accepting()
     invalid = factory.create(grammar)
-    for simulation in [[QWEN.vocabulary], [tokens[0], QWEN.vocabulary, 1],
+    for simulation in [[ready.vocabulary_size], [tokens[0], ready.vocabulary_size, 1],
                        tokenizer.encode("incorrect", add_special_tokens=False)[:8]]:
         masks = invalid.masks(simulation)
         steps.insert(0, {"committed": [], "simulation": simulation,
@@ -75,7 +78,7 @@ for name, grammar, output in cases:
                    "output": output, "tokens": tokens, "steps": steps})
 import struct
 vocabulary = []
-for token in range(QWEN.vocabulary):
+for token in range(ready.vocabulary_size):
     value = factory.tokenizer.decode_bytes([token])
     if factory.tokenizer.is_special_token(token):
         value = b'\xff' + value

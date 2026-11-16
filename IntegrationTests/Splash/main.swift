@@ -60,6 +60,22 @@ func peer(_ mode: String) throws {
     try emit(golden["error_engine"]!)
     return
   }
+  if mode == "start-shortfall" {
+    try emit(golden["start_failed_memory"]!)
+    return
+  }
+  if ["warming", "warming-backwards", "warming-stall"].contains(mode) {
+    try emit(golden["warming"]!)
+    if mode == "warming-stall" {
+      sleep(10)
+      return
+    }
+    if mode == "warming-backwards" {
+      var bytes = golden["warming"]!
+      set(&bytes, 16, 2)
+      try emit(bytes)
+    }
+  }
   if mode == "startup-crash" {
     try FileHandle.standardError.write(contentsOf: Data("first\nno Metal device\n".utf8))
     return
@@ -82,6 +98,13 @@ func peer(_ mode: String) throws {
     if type == 4 || type == 5 {
       var status = golden["status_json"]!
       set(&status, 16, id, width: 8)
+      // The upstream wire golden deliberately keeps an old sample JSON body.
+      // Preserve it for byte parity; our live peer models the actual v8 status.
+      if mode != "status-old" {
+        let json = String(decoding: status.dropFirst(24), as: UTF8.self)
+          .replacingOccurrences(of: "\"schema_version\": 6", with: "\"schema_version\": 8")
+        status = Data(status.prefix(24)) + Data(json.utf8)
+      }
       try emit(status)
       continue
     }
@@ -119,6 +142,20 @@ func peer(_ mode: String) throws {
     var tokens = golden["tokens"]!
     set(&tokens, 16, id, width: 8)
     set(&tokens, 24, mode == "gap" ? 1 : 0)
+    if mode == "mask-rows" || mode == "mask-vocabulary" {
+      var mask = golden["mask_request_initial"]!
+      set(&mask, 16, id, width: 8)
+      if mode == "mask-rows" {
+        // Ready allows nine rows. Request ten, within the wire's global bound.
+        set(&mask, 36, 9)
+        mask.append(Data(repeating: 0, count: 9 * 4))
+        set(&mask, 8, UInt64(mask.count - 16), width: 8)
+      } else {
+        set(&mask, 32, 1)
+      }
+      try emit(start + mask)
+      continue
+    }
     var bytes = start + tokens + done
     if mode == "duplicate" { bytes.append(done) }
     try emit(bytes)
@@ -210,6 +247,8 @@ test("upstream request variants and control frames") {
   r.thinking = nil
   try expect(try r.encoded() == golden["request_score"])
   try expect(try SplashWire.cancel(91) == golden["cancel"])
+  try expect(try SplashWire.stopForSuccess(91) == golden["stop"])
+  try expect(try SplashWire.cancel(91) != SplashWire.stopForSuccess(91))
   try expect(
     try SplashWire.mask(id: 91, maskID: 7, words: [.max, 0, 0xA5A5_A5A5]) == golden["mask_response"]
   )
@@ -218,10 +257,13 @@ test("upstream request variants and control frames") {
 }
 test("every upstream engine golden, fragmented at every byte") {
   let engineNames = golden.keys.filter {
-    !["request", "cancel", "mask_response", "status_request", "release_request"].contains($0)
+    ![
+      "request", "cancel", "stop", "mask_response", "status_request", "release_request",
+      "supervision",
+    ].contains($0)
       && !$0.hasPrefix("request_")
   }.sorted()
-  try expect(engineNames.count == 15)
+  try expect(engineNames.count == 20)
   for name in engineNames {
     let bytes = golden[name]!
     let expected = try decode(bytes)
@@ -231,7 +273,11 @@ test("every upstream engine golden, fragmented at every byte") {
     try decoder.finish()
     try expect(events == [expected], name)
   }
-  try expect(try decode(golden["ready"]!) == .ready(concurrent: 4, context: 524288, vision: false))
+  try expect(
+    try decode(golden["ready"]!)
+      == .ready(
+        concurrent: 4, context: 524288, vision: false, vocabulary: 248320, maskRows: 9,
+        stopTokens: [248044, 248046]))
   try expect(try decode(golden["tokens"]!) == .tokens(id: 91, offset: 17, tokens: [10, 11, 12]))
   if case .done(let d) = try decode(golden["done"]!) {
     try expect(
@@ -263,7 +309,12 @@ test("partial EOF and malformed event bodies are refused") {
     try rejects { try decoder.finish() }
   }
   for (name, offset, value, width) in [
-    ("ready", 24, UInt64(2), 1), ("start", 16, 0, 8), ("tokens", 28, 4000, 4), ("done", 24, 8, 1),
+    ("ready", 24, UInt64(2), 1), ("ready", 25, 0, 4), ("ready", 29, 0, 4),
+    ("ready", 33, 0, 4), ("ready", 37, 248320, 4), ("ready", 41, 248044, 4),
+    ("warming", 16, 10, 4), ("warming", 20, 0, 4),
+    ("start_failed_memory", 16, 9, 1), ("start_failed_memory", 17, 3, 1),
+    ("start_failed_memory", 38, 999999, 4), ("start", 16, 0, 8), ("tokens", 28, 4000, 4),
+    ("done", 24, 8, 1),
     ("done", 25, 1, 1), ("error_request", 16, 2, 1),
     ("mask_request_initial", 32, UInt64(UInt32.max), 4),
   ] {
@@ -322,6 +373,12 @@ test("native pipes run multiple requests, status and idle release") {
   try expect(
     try JSONSerialization.jsonObject(with: p.status(id: 809, release: true)) is [String: Any])
   try rejects { _ = try p.generate(request(91)) }
+}
+test("status from an older schema is refused") {
+  let p = try process("status-old")
+  defer { p.close() }
+  try rejects { _ = try p.status(id: 808) }
+  try expect(!p.isOpen)
 }
 test("request refusal preserves the helper for a succeeding request") {
   let p = try process("refusal")
@@ -387,6 +444,25 @@ test("a stopped helper reads as closed and leaves its last line, without the hom
     try expect(error.description.hasSuffix(": no Metal device"))
   }
 }
+test("structured startup shortfall preserves bounds and warming is bounded") {
+  do {
+    _ = try process("start-shortfall")
+    throw SplashError("Expected a structured startup failure")
+  } catch let failure as SplashWire.StartFailure {
+    try expect(failure.kind == 3 && failure.bound == 1)
+    try expect(failure.requiredBytes == 10_858_659_840 && failure.budgetBytes == 1_073_741_824)
+    try expect(failure.planContext == 0 && !failure.message.isEmpty)
+  }
+  var updates: [(UInt32, UInt32)] = []
+  let warmed = try SplashNativeProcess(
+    executable: URL(fileURLWithPath: CommandLine.arguments[0]).standardizedFileURL,
+    arguments: ["--peer", "warming"], timeout: 5, warming: { updates.append(($0, $1)) })
+  try expect(updates.count == 1 && updates[0].0 == 3 && updates[0].1 == 9)
+  try expect(warmed.ready?.vocabulary == 248320 && warmed.ready?.maskRows == 9)
+  try expect(warmed.close())
+  try rejects { _ = try process("warming-backwards") }
+  try rejects { _ = try process("warming-stall", timeout: 0.1) }
+}
 test("startup failure, partial frame and timeout clean up") {
   for mode in ["startup-fail", "partial", "startup-stall"] {
     try rejects { _ = try process(mode, timeout: 0.15) }
@@ -395,6 +471,18 @@ test("startup failure, partial frame and timeout clean up") {
     _ = try SplashNativeProcess(
       executable: URL(fileURLWithPath: "/missing-sevra-test-helper"), arguments: [])
   }
+}
+test("the lease owner receives a launched child even when readiness fails") {
+  var owned: SplashNativeProcess?
+  try rejects {
+    _ = try SplashNativeProcess(
+      executable: URL(fileURLWithPath: CommandLine.arguments[0]).standardizedFileURL,
+      arguments: ["--peer", "warming-stall"], timeout: 0.1,
+      onLaunch: { owned = $0 })
+  }
+  try expect(owned != nil && owned?.ready == nil)
+  try expect(owned!.close())
+  try expect(kill(owned!.processID, 0) == -1 && errno == ESRCH)
 }
 test("cancelling a long cold start promptly reaps its unresponsive helper") {
   let pidFile = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString)
@@ -421,5 +509,26 @@ test("stderr is continuously drained with a bounded diagnostic tail") {
 }
 checkModelPreparation()
 checkNativeSetup()
+
+test("mask requests obey actual Ready vocabulary and row limits") {
+  for mode in ["mask-rows", "mask-vocabulary"] {
+    let child = try process(mode)
+    defer { child.close() }
+    var request = SplashWire.Request(id: 91, prompt: [1], absoluteDeadline: 1, remainingDeadline: 1)
+    request.maxOutput = 16
+    request.tokenMask = true
+    var supplied = false
+    try rejects {
+      _ = try child.generate(
+        request,
+        mask: { _, _, _ in
+          supplied = true
+          return []
+        })
+    }
+    try expect(!supplied && !child.isOpen)
+  }
+}
+
 print("\(passed) Splash checks passed; \(failed) failed")
 exit(failed == 0 ? 0 : 1)

@@ -33,6 +33,46 @@ func checkItemReferences() async throws {
     [InferenceMessage(role: "assistant", content: "\(said), \(old.id), \(failedReference)")],
     workbook: book, history: ("main", nil))
   try expectEqual(ItemReferenceCandidates.historyIDs(in: lookups), [said])
+  // A packed chronological history must retain the newest answer and the
+  // original it points to even when older messages exhaust the bounded menu.
+  let noise = try (0..<40).map {
+    try book.addMessage("Closed inspection \($0).", role: "assistant")
+  }
+  let answer = try book.addMessage(
+    "You asked to keep receipts. sevra://conversation/main?message=\(said)", role: "assistant")
+  let packed = noise.joined(separator: "\n") + "\n\(answer) message:\(said)"
+  let recent = try ItemReferenceCandidates.annotate(
+    [InferenceMessage(role: "assistant", content: packed)], workbook: book, history: ("main", nil))
+  let historyChoices = ItemReferenceCandidates.historyIDs(in: recent) ?? []
+  try expectEqual(historyChoices.count, 32)
+  try expectEqual(historyChoices.contains(said) && historyChoices.contains(answer), true)
+  try expectEqual(historyChoices.contains(noise[0]), false)
+  try expectEqual(recent[0].content, packed)
+  // Search results are relevance ranked, not a chronological history envelope.
+  let ranked = try ItemReferenceCandidates.annotate(
+    [InferenceMessage(role: "tool", content: packed, toolName: "history_search")],
+    workbook: book, history: ("main", nil))
+  try expectEqual(Set(ItemReferenceCandidates.historyIDs(in: ranked) ?? []), Set(noise.prefix(32)))
+  // The compacted original sits in an older digest, before a newer packed
+  // envelope containing more than 32 unrelated messages.
+  let digest = try Value.object([
+    "derivedNotes": .object([
+      "notes": .array([
+        .object([
+          "kind": .string("fact"), "text": .string("Keep receipts."),
+          "messages": .array([.string(said)]),
+        ])
+      ])
+    ])
+  ]).json()
+  let compacted = try ItemReferenceCandidates.annotate(
+    [
+      InferenceMessage(role: "assistant", content: digest),
+      InferenceMessage(role: "assistant", content: noise.joined(separator: "\n")),
+    ],
+    workbook: book, history: ("main", nil))
+  try expectEqual(ItemReferenceCandidates.historyIDs(in: compacted)?.contains(said), true)
+  try expectEqual(compacted[0].content, digest)
   let offered = try NativeTools.referenceDefinitions(historyReferenceIDs: [said])
   try expectEqual(
     offered.first { $0.name == "history_read" }?.parameters["properties"]["id"]["enum"],

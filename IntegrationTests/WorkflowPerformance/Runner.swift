@@ -343,6 +343,12 @@ func selfCheck() async throws {
       let config = try Value.parse(String(contentsOfFile: CommandLine.arguments[1]))
       let backend = CommandLine.arguments[2]
       let observations = Observations()
+      guard let capacity = config["contextTokens"].int,
+        let profile = ContextBudget.Profile(rawValue: capacity),
+        let memory = config["memoryBytes"].int, memory >= 4 * 1024 * 1024 * 1024,
+        let activations = NativeWorkbookModel.Activations(
+          rawValue: config["activations"].string ?? "bf16")
+      else { throw SevraError("configuration", "Unsupported experiment profile") }
       let underlying: any WorkbookInference
       if backend == "native" {
         let maskObserver: (@Sendable ([UInt32], [UInt32], UInt32, [UInt32]) -> Void)?
@@ -360,13 +366,13 @@ func selfCheck() async throws {
             grammarLibrary: URL(fileURLWithPath: config["grammarLibrary"].text),
             grammarSHA256: config["grammarSHA256"].text,
             modelsRoot: URL(fileURLWithPath: config["modelsRoot"].text),
-            memoryBytes: 12_884_901_888,
-            contextBudget: .init(profile: .evaluation32K), reasoning: .bounded512,
+            memoryBytes: UInt64(memory),
+            contextBudget: .init(profile: profile), reasoning: .bounded512,
             modelLayout: .installed, contextMaintenanceEnabled: false,
             observeRequest: { observations.append($0) },
             observeMask: maskObserver,
             diagnosticRequestCacheIsolation: config["diagnosticRequestCacheIsolation"]
-              == .bool(true)))
+              == .bool(true), activations: activations))
       } else {
         try require(backend == "reference", "usage", "Unknown qualification frontend")
         underlying = ReferenceModel(config: config, observations: observations)

@@ -1,4 +1,6 @@
 import CoreFoundation
+import CryptoKit
+import Darwin
 import Foundation
 import SevraSplash
 import SevraSplashGrammar
@@ -36,6 +38,21 @@ do {
     let memory = config["memoryBytes"] as? UInt64,
     let cases = config["cases"] as? [[String: Any]]
   else { throw SplashError("Usage: sevra-inference-performance CONFIG.json") }
+  var lease: Int32 = -1
+  if config["workerOwnsLease"] as? Bool == true {
+    let path = FileManager.default.homeDirectoryForCurrentUser.appendingPathComponent(
+      "Library/Application Support/Sevra/inference.lock")
+    lease = Darwin.open(path.path, O_CREAT | O_RDWR | O_NOFOLLOW | O_CLOEXEC, 0o600)
+    guard lease >= 0, flock(lease, LOCK_EX | LOCK_NB) == 0 else {
+      throw SplashError("Inference is busy")
+    }
+  }
+  defer {
+    if lease >= 0 {
+      flock(lease, LOCK_UN)
+      Darwin.close(lease)
+    }
+  }
   let start = now()
   let frontend = try SplashTextFrontend(
     modelFolder: URL(fileURLWithPath: assembly).appendingPathComponent("tokenizer"))
@@ -43,13 +60,19 @@ do {
     frontend: frontend, library: URL(fileURLWithPath: grammar), librarySHA256: digest)
   let helper = try SplashNativeProcess(
     executable: URL(fileURLWithPath: engine),
-    arguments: ["serve-native", assembly, String(context), String(memory),
-      "--persistent-cache", "off", "--idle-sleep", "allow", "--verify-rows", "all"],
+    arguments: [
+      "serve-native", assembly, String(context), String(memory),
+      "--persistent-cache", "off", "--idle-sleep", "allow", "--verify-rows", "all",
+      "--activations", config["activations"] as? String ?? "bf16",
+      "--kv-format", "int8", "--state-format", "fp32", "--ane", "on",
+    ],
     timeout: 180)
   defer { helper.close() }
-  try emit(["ready": true, "pid": ProcessInfo.processInfo.processIdentifier,
+  try emit([
+    "ready": true, "pid": ProcessInfo.processInfo.processIdentifier,
     "helperPID": helper.processID, "setupSeconds": now() - start,
-    "thermalState": ProcessInfo.processInfo.thermalState.rawValue])
+    "thermalState": ProcessInfo.processInfo.thermalState.rawValue,
+  ])
   var requestID: UInt64 = 0
   while let line = readLine() {
     guard let command = try JSONSerialization.jsonObject(with: Data(line.utf8)) as? [String: Any]
@@ -64,35 +87,57 @@ do {
       let maximum = body["max_tokens"] as? UInt32
     else { throw SplashError("Invalid request case") }
     let began = now()
-    let thinking = (body["chat_template_kwargs"] as? [String: Any])?["enable_thinking"] as? Bool ?? false
+    let thinking =
+      (body["chat_template_kwargs"] as? [String: Any])?["enable_thinking"] as? Bool ?? false
     var policy: SplashToolPolicy?
     if let tools = body["tools"] as? [[String: Any]] {
       let choice: SplashToolPolicy.Choice
       if let named = body["tool_choice"] as? [String: Any],
-        let function = named["function"] as? [String: Any], let name = function["name"] as? String {
+        let function = named["function"] as? [String: Any], let name = function["name"] as? String
+      {
         choice = .named(name)
-      } else { choice = .required }
+      } else {
+        choice = .required
+      }
       policy = try SplashToolPolicy(
-        toolsJSON: JSONSerialization.data(withJSONObject: tools), choice: choice, thinking: thinking)
+        toolsJSON: JSONSerialization.data(withJSONObject: tools), choice: choice, thinking: thinking
+      )
     }
     let prompt = try frontend.prepare(
       messages: messages.map { try $0.mapValues(sendable) }, tools: policy?.promptTools(),
       thinking: thinking, preserveThinking: false, contextLimit: context)
+    if let expected = cases[index]["expectedPrompt"] as? [UInt32] {
+      guard prompt.tokens == expected,
+        cases[index]["expectedGenerationTokens"] as? UInt32 == prompt.generationTokens
+      else { throw SplashError("Historical request prompt differs before inference") }
+    }
     var constraint: SplashGrammarConstraint?
-    if let policy { constraint = try factory.create(grammar: policy.grammar) }
-    else if let format = body["response_format"] as? [String: Any],
-      var schema = (format["json_schema"] as? [String: Any])?["schema"] as? [String: Any] {
+    if let policy {
+      constraint = try factory.create(grammar: policy.grammar)
+    } else if let format = body["response_format"] as? [String: Any],
+      var schema = (format["json_schema"] as? [String: Any])?["schema"] as? [String: Any]
+    {
       // This frozen schema uses only type/properties/required/const. Match the
       // reference response_format wrapper, including its whitespace bound.
       schema["x-guidance"] = ["lenient": true, "whitespace_pattern": #"[ \t\n\r]{0,64}"#]
-      let encoded = String(decoding: try JSONSerialization.data(withJSONObject: schema, options: [.sortedKeys]), as: UTF8.self)
-      constraint = try factory.create(grammar: "%llguidance {}\nstart: WS %json " + encoded + "\nWS: /[ \\t\\n\\r]{0,64}/\n", type: "lark")
+      let encoded = String(
+        decoding: try JSONSerialization.data(withJSONObject: schema, options: [.sortedKeys]),
+        as: UTF8.self)
+      constraint = try factory.create(
+        grammar: "%llguidance {}\nstart: WS %json " + encoded + "\nWS: /[ \\t\\n\\r]{0,64}/\n",
+        type: "lark")
+    }
+    var maskTrace: [[String: Any]] = []
+    func hashWords(_ words: [UInt32]) -> String {
+      let bytes = words.map(\.littleEndian).withUnsafeBytes { Data($0) }
+      return SHA256.hash(data: bytes).map { String(format: "%02x", $0) }.joined()
     }
     let output = try SplashOutputStream(
       frontend: frontend, tools: policy?.outputTools ?? [], thinking: thinking,
       structured: body["response_format"] != nil)
     requestID += 1
-    var request = SplashWire.Request(id: requestID, prompt: prompt.tokens,
+    var request = SplashWire.Request(
+      id: requestID, prompt: prompt.tokens,
       absoluteDeadline: UInt64((Date().timeIntervalSince1970 + 180) * 1e6),
       remainingDeadline: 180_000_000)
     request.generationTokens = prompt.generationTokens
@@ -103,12 +148,27 @@ do {
     }
     let prepared = now()
     var matchedPrompt = 0
-    let result = try helper.generate(request, cancelled: { false },
+    let result = try helper.generate(
+      request, cancelled: { false },
       mask: constraint.map { constraint in
         { committed, simulation, words in
-          try constraint.masks(committed: committed, simulation: simulation, words: words)
+          let masks = try constraint.masks(
+            committed: committed, simulation: simulation, words: words)
+          if config["diagnosticMasks"] as? Bool == true {
+            for index in 0...simulation.count {
+              let prefix = committed + simulation.prefix(index)
+              let row = Array(masks[(index * Int(words))..<((index + 1) * Int(words))])
+              maskTrace.append([
+                "tokenCount": prefix.count, "prefixSHA256": hashWords(prefix),
+                "maskSHA256": hashWords(row), "committedCount": committed.count,
+                "simulationTokens": Array(simulation.prefix(index)),
+              ])
+            }
+          }
+          return masks
         }
-      }, event: { event in
+      },
+      event: { event in
         if case .tokens(_, _, let tokens) = event { _ = try output.append(tokens: tokens) }
         if case .start(_, _, let matched) = event { matchedPrompt = Int(matched) }
       })
@@ -120,7 +180,8 @@ do {
       // fields and forbids additional properties. Include its terminal check
       // in timing, as the reference does. This is not a general JSON API.
       guard cases[index]["id"] as? String == "unicode_json",
-        let value = try JSONSerialization.jsonObject(with: Data(parsed.text.utf8)) as? [String: Any],
+        let value = try JSONSerialization.jsonObject(with: Data(parsed.text.utf8))
+          as? [String: Any],
         Set(value.keys) == Set(["label", "note", "quantity"]),
         value["label"] is String, value["note"] is String,
         let quantity = value["quantity"] as? NSNumber,
@@ -130,23 +191,40 @@ do {
     let elapsed = now() - began
     // Status is outside request timing. The coordinator samples both process
     // footprints during the request independently of these engine counters.
-    let status = try JSONSerialization.jsonObject(with: helper.status(id: requestID + 1_000_000))
-    let row: [String: Any] = [
+    let status: Any =
+      config["workflowQualification"] as? Bool == true
+      ? NSNull()
+      : try JSONSerialization.jsonObject(with: helper.status(id: requestID + 1_000_000))
+    var observed = request
+    observed.id = 1
+    observed.absoluteDeadline = 1
+    observed.remainingDeadline = 180_000_000
+    var row: [String: Any] = [
       "case": index, "id": cases[index]["id"]!, "completeSeconds": elapsed,
       "prepareSeconds": prepared - began,
-      "firstTokenSeconds": result.firstTokenSeconds.map { $0 + prepared - began } as Any? ?? NSNull(),
+      "firstTokenSeconds": result.firstTokenSeconds.map { $0 + prepared - began } as Any?
+        ?? NSNull(),
       "engineRequestSeconds": result.requestSeconds,
       "prefillSeconds": Double(result.done.prefillMicros) / 1e6,
       "decodeSeconds": Double(result.done.decodeMicros) / 1e6,
       "promptTokens": prompt.tokens, "generationTokens": prompt.generationTokens,
-      "matchedPromptTokens": matchedPrompt,
+      "matchedPromptTokens": matchedPrompt, "deduplicatedKVTokens": result.done.deduplicated,
+      "requestFrame": try observed.encoded().base64EncodedString(),
       "tokens": result.tokens, "text": parsed.text, "reasoning": parsed.reasoning,
-      "calls": try parsed.calls.map { ["name": $0.name,
-        "arguments": try JSONSerialization.jsonObject(with: $0.arguments)] },
+      "calls": try parsed.calls.map {
+        [
+          "name": $0.name,
+          "arguments": try JSONSerialization.jsonObject(with: $0.arguments),
+        ]
+      },
       "finish": result.done.reason.rawValue, "bounded": result.done.bounded,
       "drafted": result.done.drafted, "accepted": result.done.accepted,
       "thermalState": ProcessInfo.processInfo.thermalState.rawValue, "status": status,
     ]
+    if config["diagnosticMasks"] as? Bool == true {
+      row["maskTrace"] = maskTrace
+      row["grammar"] = policy?.grammar ?? ""
+    }
     try emit(row)
   }
 } catch {

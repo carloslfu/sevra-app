@@ -36,7 +36,7 @@ func runNativeAgentProbe(
   let configuredContext =
     ProcessInfo.processInfo.environment["SEVRA_NATIVE_CONTEXT_TOKENS"] ?? "8192"
   guard let tokens = Int(configuredContext), let profile = ContextBudget.Profile(rawValue: tokens)
-  else { throw SplashError("Candidate context must be 8192, 32768 or 65536") }
+  else { throw SplashError("Candidate context must be 8192, 32768, 65536, 131072 or 262144") }
   let budget = ContextBudget(profile: profile)
   var visibleContext = ""
   if occupiedContext {
@@ -70,10 +70,16 @@ func runNativeAgentProbe(
     configuration: try nativeProbeConfiguration(
       library: library, engine: engine, modelsRoot: modelsRoot, budget: budget, reasoning: reasoning
     ))
-  let root = FileManager.default.temporaryDirectory.appendingPathComponent(
-    "sevra-autonomous-" + identifier())
+  let evidence = ProcessInfo.processInfo.environment["SEVRA_NATIVE_PROBE_OUTPUT"].map {
+    URL(fileURLWithPath: $0).standardizedFileURL
+  }
+  let root =
+    evidence
+    ?? FileManager.default.temporaryDirectory.appendingPathComponent(
+      "sevra-autonomous-" + identifier())
+  try require(!FileManager.default.fileExists(atPath: root.path), "fixture", "Probe output exists")
   try FileManager.default.createDirectory(at: root, withIntermediateDirectories: true)
-  defer { try? FileManager.default.removeItem(at: root) }
+  defer { if evidence == nil { try? FileManager.default.removeItem(at: root) } }
   let directory = URL(fileURLWithPath: modelFolder)
   func run(
     _ prompt: String, _ book: Workbook, cancellation: Cancellation = .init(),
@@ -87,7 +93,9 @@ func runNativeAgentProbe(
         cancellation: cancellation,
         progress: { phase in
           fputs("Native agent: \(phase)\n", stderr)
-          if cancelDuringGeneration && phase == "Thinking locally" { cancellation.cancel() }
+          if cancelDuringGeneration && phase == "Reading the working context" {
+            DispatchQueue.global().asyncAfter(deadline: .now() + 0.05) { cancellation.cancel() }
+          }
         }, model: model, enableCompaction: !historyOnly)
     } catch {
       for message in try book.messages() where message.role == "tool" {

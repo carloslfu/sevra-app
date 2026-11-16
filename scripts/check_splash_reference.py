@@ -21,7 +21,7 @@ def main():
     parser.add_argument("draft", type=Path)
     parser.add_argument("--output", type=Path, required=True, help="new evidence directory")
     parser.add_argument("--run-engine", action="store_true")
-    parser.add_argument("--memory-bytes", type=int, default=22 * 1024**3)
+    parser.add_argument("--memory-bytes", type=int, default=12 * 1024**3)
     args = parser.parse_args()
     pin = json.loads((ROOT / "integration/splash.json").read_text())
     upstream = ROOT / ".build/upstream" / ("splash-" + pin["release"])

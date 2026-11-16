@@ -2,13 +2,13 @@
 type: index
 scope: type-folder
 folder: records/specs
-updated: 2026-11-16T17:24:47.517012Z
+updated: 2026-11-16T19:32:09.063884Z
 ---
 
 # records/specs
 
-- [[records/specs/splash-integration]] — Python-free Swift integration of pinned upstream Splash, explicit behavior mapping, differential verification and measured adoption gates.
 - [[records/specs/conversation-context]] — Automatic compaction, preserved conversation history, authoritative continuation state and measured larger-context qualification.
+- [[records/specs/splash-integration]] — Python-free Swift integration of pinned upstream Splash, explicit behavior mapping, differential verification and measured adoption gates.
 - [[records/specs/single-excel-import]] — One native Excel import with reviewed local workflow inference, shared tables and constrained app generation
 - [[records/specs/chat-primary-operation]] — Chat-first workbook and mini-app operations through shared typed actions, durable human approval and native transaction receipts.
 - [[records/specs/excel-application-reconstruction]] — Constrained Excel application reconstruction with original-result comparison; ten automatic workflows qualified against 89 independent originals within explicit limits.

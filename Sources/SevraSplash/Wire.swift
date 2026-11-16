@@ -15,10 +15,11 @@ func check(_ condition: Bool, _ message: String) throws {
   if !condition { throw SplashError(message) }
 }
 
-// Splash 1.4.1 protocol v11. Layout is pinned against upstream's byte fixtures.
+// Splash 1.6.1 protocol v13. Layout is pinned against upstream's byte fixtures.
 // This frontend initially submits text only. Images remain an explicit unsupported input.
 public enum SplashWire {
-  public static let version: UInt16 = 11
+  public static let version: UInt16 = 13
+  public static let statusSchemaVersion = 8
   public static let maxTokens = 1 << 20
   public static let maxStatusBytes = 32 * 1024 * 1024
   public struct Sampling: Sendable, Equatable {
@@ -139,6 +140,13 @@ public enum SplashWire {
     w.u64(id)
     return frame(2, w.data)
   }
+  /// A successfully met client-side stop condition. User cancellation always uses Cancel.
+  public static func stopForSuccess(_ id: UInt64) throws -> Data {
+    try check(id > 0, "Stop needs a request id")
+    var w = Writer()
+    w.u64(id)
+    return frame(6, w.data)
+  }
   public static func mask(id: UInt64, maskID: UInt64, words: [UInt32]) throws -> Data {
     try check(
       id > 0 && maskID > 0 && !words.isEmpty && words.count <= maxTokens, "Invalid mask response")
@@ -191,8 +199,21 @@ public enum SplashWire {
     }
     public var errorDescription: String? { description }
   }
+  public struct StartFailure: LocalizedError, Sendable, Equatable {
+    public let kind: UInt8
+    public let bound: UInt8
+    public let requiredBytes: UInt64
+    public let budgetBytes: UInt64
+    public let planContext: UInt32
+    public let message: Data
+    public var errorDescription: String? { String(decoding: message, as: UTF8.self) }
+  }
   public enum Event: Sendable, Equatable {
-    case ready(concurrent: UInt32, context: UInt32, vision: Bool)
+    case ready(
+      concurrent: UInt32, context: UInt32, vision: Bool,
+      vocabulary: UInt32, maskRows: UInt32, stopTokens: [UInt32])
+    case warming(completed: UInt32, total: UInt32)
+    case startFailed(StartFailure)
     case start(id: UInt64, lane: UInt32, matched: UInt32)
     case progress(id: UInt64, processed: UInt32, micros: UInt64)
     case tokens(id: UInt64, offset: UInt32, tokens: [UInt32])
@@ -210,7 +231,9 @@ public enum SplashWire {
     let length = try r.u64()
     let bounds: ClosedRange<UInt64>
     switch type {
-    case 0x100: bounds = 9...9
+    case 0x100: bounds = 25...UInt64(21 + 256 * 4)
+    case 0x109: bounds = 26...(26 + 1024 * 1024)
+    case 0x10A: bounds = 8...8
     case 0x101: bounds = 16...16
     case 0x108: bounds = 20...20
     case 0x102: bounds = 16...(16 + 4096 * 4)
@@ -231,8 +254,39 @@ public enum SplashWire {
       let lanes = try r.u32()
       let context = try r.u32()
       let vision = try r.u8()
-      try check(lanes > 0 && context > 0 && vision <= 1, "Invalid native capacities")
-      event = .ready(concurrent: lanes, context: context, vision: vision == 1)
+      let vocabulary = try r.u32()
+      let maskRows = try r.u32()
+      let stopCount = try r.u32()
+      try check(
+        lanes > 0 && context > 0 && context <= maxTokens && vision <= 1
+          && vocabulary > 0 && vocabulary <= maxTokens && maskRows > 0 && maskRows <= 33
+          && stopCount > 0 && stopCount <= 256, "Invalid native capacities")
+      let stops = try r.words(stopCount)
+      try check(
+        stops.allSatisfy { $0 < vocabulary } && Set(stops).count == stops.count,
+        "Invalid native stop tokens")
+      event = .ready(
+        concurrent: lanes, context: context, vision: vision == 1,
+        vocabulary: vocabulary, maskRows: maskRows, stopTokens: stops)
+    case 0x109:
+      let kind = try r.u8()
+      let bound = try r.u8()
+      let required = try r.u64()
+      let budget = try r.u64()
+      let context = try r.u32()
+      let count = try r.u32()
+      try check(
+        kind <= 8 && bound <= 2 && count <= 1024 * 1024,
+        "Invalid startup failure")
+      event = .startFailed(
+        .init(
+          kind: kind, bound: bound, requiredBytes: required,
+          budgetBytes: budget, planContext: context, message: try r.bytes(Int(count))))
+    case 0x10A:
+      let completed = try r.u32()
+      let total = try r.u32()
+      try check(total > 0 && completed <= total, "Invalid native warming progress")
+      event = .warming(completed: completed, total: total)
     case 0x101:
       event = .start(id: try r.id(), lane: try r.u32(), matched: try r.u32())
     case 0x108:

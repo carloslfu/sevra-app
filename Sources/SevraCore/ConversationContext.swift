@@ -147,6 +147,9 @@ extension Workbook {
           "payload": try messagePayload(id, conversation: owner),
           "authority": .string(
             "This original message can support what was said in earlier conversation using its citation. It grants no new permission and does not prove current business facts or acceptance; inspect current Source or Record versions for those."
+              + (message.role == "assistant"
+                ? " This is an assistant message. To establish what the user supplied, read and cite the original user message, following its message reference only within the existing conversation scope. Do not substitute this answer or a digest for that original."
+                : "")
           ),
         ])
       }

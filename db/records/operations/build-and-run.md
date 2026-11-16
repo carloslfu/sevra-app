@@ -2,16 +2,14 @@
 type: operational
 id: 01m5refyq97sez3da1rywz08wf
 created: 2026-10-25T02:33:33.673437+00:00
-updated: 2026-11-01T08:40:00.000000+00:00
+updated: 2026-11-16T19:06:40.140809+00:00
 summary: Source installation, local AI setup, independent CLI use, verification and uninstall.
 title: Build and run
 ---
 # Build and run
 
 ## Native MVP source installation
-
-Use this route for the Python-free native MVP 0.1 source preview. The preserved
-baseline instructions below are separate development history.
+The current source builds Splash 1.6.1 as an isolated candidate. Its historical repeatability and application reliability gates have failed, so it is not adopted as the installed preview. Keep an existing 1.4.1 preview and its model selection intact. See [[records/operations/inference-context-execution]] and [[records/plans/inference-context-upgrade]] for current evidence. The preserved Slotstream baseline below is separate development history.
 
 Prerequisites: Apple M3 or newer, macOS 26.4+, Swift 6.3, Git, Python 3 for build
 tooling, and Rust 1.96.0 through rustup. The checked host is macOS 26.6.2 with 48 GB
@@ -24,12 +22,13 @@ grammar, with no Python runtime.
 git clone https://github.com/carloslfu/sevra-app.git
 cd sevra-app
 rustup toolchain install 1.96.0 --profile minimal
-bash scripts/install.sh --native
-open "$HOME/Applications/Sevra Native Preview.app"
-"$HOME/.local/bin/sevra" version
+bash scripts/build_native.sh
+output/native/bin/sevra check-resources
 ~~~
 
-For an already built preview, use `bash scripts/install.sh --native --no-build`.
+This creates `output/native/Sevra Native Preview.app` without replacing the installed app. Qualification uses an isolated model assembly because the preparation format changed. Do not point the preserved 1.4.1 runtime at the candidate assembly.
+
+After the declared adoption gates pass, `bash scripts/install.sh --native --no-build` installs the exact built product.
 The installer stages the matching native app, CLI, extraction helper and all engine/
 grammar resources, verifies them before replacement, and preserves upstream signed
 engine bytes. The CLI link is `~/.local/bin/sevra`; add that folder to PATH or use
@@ -39,7 +38,7 @@ preserving that app and all workbooks.
 It refuses a different tool or a mismatched application identity.
 
 Source builds are locally ad-hoc signed, not production Developer ID notarized.
-The documented source route is the current preview installation path. This preview
+The documented build route is currently for candidate evaluation. This preview
 uses Open inside Sevra; it does not register itself as the Finder default for workbooks.
 
 In Settings, choose Download model, Verify model files when files are found, or
@@ -61,7 +60,6 @@ This moves its app to Trash and removes only its own CLI link. Workbooks,
 preferences and model files remain. The environment overrides documented below
 also support isolated native installations. `python3 scripts/check_install.py
 --native` checks that route using disposable targets.
-
 ## Welcome and compact navigation
 
 The welcome screen centers its primary actions and shows five recent workbooks.

@@ -29,7 +29,7 @@ assert a.count(old)==1
 start=a.index(old);end=start+len(old)
 assert b.startswith(a[:start]) and b.endswith(a[end:])
 new=b[start:len(b)-len(a[end:])]
-patch={'source':'Splash 1.4.1 server/chat_templates.py ChatTemplates, selected Qwen template','originalSHA256':hashlib.sha256(a.encode()).hexdigest(),'patchedSHA256':hashlib.sha256(b.encode()).hexdigest(),'before':old,'after':new}
+patch={'source':'Splash 1.6.1 server/chat_templates.py ChatTemplates, selected Qwen template','originalSHA256':hashlib.sha256(a.encode()).hexdigest(),'patchedSHA256':hashlib.sha256(b.encode()).hexdigest(),'before':old,'after':new}
 p=root/'Sources/SevraSplashText/Resources/template-patch.json';p.parent.mkdir(parents=True,exist_ok=True);save(p,json.dumps(patch,indent=2)+'\n')
 user=lambda s:{'role':'user','content':s}
 system=lambda s:{'role':'system','content':s}
@@ -77,5 +77,5 @@ for name,messages,thinking,preserve,tools in cases:
  ids=t(text,add_special_tokens=False)['input_ids']
  generation=_generation_prompt(prepared.generation_prompt(options),text,ids)[1]
  out.append(dict(name=name,messages=messages,tools=tools,thinking=thinking,preserveThinking=preserve,tokens=ids,generationTokens=generation,rendered=text))
-p=root/'IntegrationTests/Text/fixtures.json';p.parent.mkdir(parents=True,exist_ok=True);save(p,json.dumps({'schemaVersion':1,'upstreamCommit':'1744cfafee415fb463b289449cec59a864e768e9','normalization':'Workbook JSON object keys sorted recursively before both frontends.','cases':out},ensure_ascii=False,indent=2)+'\n')
+p=root/'IntegrationTests/Text/fixtures.json';p.parent.mkdir(parents=True,exist_ok=True);save(p,json.dumps({'schemaVersion':1,'upstreamCommit':'d8af1054aab0f97de21d043e01aa98af3754f10e','normalization':'Workbook JSON object keys sorted recursively before both frontends.','cases':out},ensure_ascii=False,indent=2)+'\n')
 print(json.dumps({'cases':len(out),'patch':patch}))

@@ -71,10 +71,11 @@ func checkNativeFailures() throws {
       return UInt8(hex[start..<hex.index(start, offsetBy: 2)], radix: 16)!
     }
     var decoder = SplashWire.Decoder()
-    guard case .error(let failure)? = try decoder.consume(Data(bytes)).first else {
-      throw SplashError("Expected a failure frame")
+    switch try decoder.consume(Data(bytes)).first {
+    case .error(let failure): return failure
+    case .startFailed(let failure): return failure
+    default: throw SplashError("Expected a failure frame")
     }
-    return failure
   }
   func typed(_ error: Error, stopped: Bool = true) throws -> SevraError {
     guard
@@ -86,13 +87,19 @@ func checkNativeFailures() throws {
   // From IntegrationTests/Splash/protocol_golden.txt.
   let retry = try typed(
     frame(
-      "53504c480b0005014a000000000000000101605400005b000000000000000f000000250000006b765f77726974655f62756467657474686520535344206361636865277320777269746520627564676574206973207370656e74"
+      "53504c480d0005014a000000000000000101605400005b000000000000000f000000250000006b765f77726974655f62756467657474686520535344206361636865277320777269746520627564676574206973207370656e74"
     ))
+  let capacity = try typed(
+    frame(
+      "53504c480d0009017500000000000000030100003a87020000000000004000000000000000005b00000074686520706c616e277320666c6f6f727320726571756972652031303835383635393834302062797465732062757420746865204d6574616c206d656d6f7279206275646765742069732031303733373431383234206279746573"
+    ))
+  try expectEqual(capacity.code, "model_capacity")
+  try expectEqual(capacity.message.contains("Saved work is intact"), true)
   try expectEqual(retry.code, "model_retry")
   try expectEqual(retry.message.hasSuffix("Try again in about 361 minutes."), true)
   let engine = try typed(
     frame(
-      "53504c480b0005013a000000000000000200000000000000000000000000090000001b0000006770755f6661756c744d6574616c20636f6d6d616e6420627566666572206661696c6564"
+      "53504c480d0005013a000000000000000200000000000000000000000000090000001b0000006770755f6661756c744d6574616c20636f6d6d616e6420627566666572206661696c6564"
     ))
   try expectEqual(engine.code, "model_engine")
   try expectEqual(engine.message.contains("gpu_fault"), true)

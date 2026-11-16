@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "splashCommit": "1744cfafee415fb463b289449cec59a864e768e9",
+  "splashCommit": "d8af1054aab0f97de21d043e01aa98af3754f10e",
   "llguidance": "1.8.0",
   "byteVocabularySHA256": "04e98aa773f45d4b1a6fd1d0f10d615df914987d24a7f15627cafee54200a0b5",
   "cases": [
@@ -1023,7 +1023,7 @@
     },
     {
       "name": "reasoning_json",
-      "grammar": "%llguidance {}\nstart: think WS %json {\"type\":\"object\",\"properties\":{\"answer\":{\"const\":\"ready\"}},\"required\":[\"answer\"],\"additionalProperties\":false,\"x-guidance\":{\"lenient\":true,\"whitespace_pattern\":\"[ \\\\t\\\\n\\\\r]{0,64}\"}}\nthink: TEXT <[248069]>\nTEXT: /(?s:.*)/ & ~/(?s:.*)<\\/think>(?s:.*)/\nWS: /[ \\t\\n\\r]{0,64}/\n",
+      "grammar": "%llguidance {}\nstart: think WS %json {\"type\":\"object\",\"properties\":{\"answer\":{\"const\":\"ready\"}},\"required\":[\"answer\"],\"additionalProperties\":false,\"x-guidance\":{\"lenient\":true,\"whitespace_pattern\":\"[ \\\\t\\\\n\\\\r]{0,64}\"}}\nthink: TEXT <[248069]>\nTEXT: /(?s:.*)/ & ~/(?s:.*)(<\\/think>)(?s:.*)/\nWS: /[ \\t\\n\\r]{0,64}/\n",
       "type": "lark",
       "output": "The requested value is ready.</think>\n\n{\"answer\":\"ready\"}",
       "tokens": [

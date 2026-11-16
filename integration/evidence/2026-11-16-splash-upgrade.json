@@ -1,0 +1,4428 @@
+{
+  "scope": "P2/P3 candidate integration and bounded repeatability; no production adoption",
+  "sourceBase": "c6a588c",
+  "release": "1.6.1",
+  "commit": "d8af1054aab0f97de21d043e01aa98af3754f10e",
+  "runtime": {
+    "url": "https://github.com/incoai/splash/releases/download/1.6.1/splash-1.6.1-arm64-macos26.tar.gz",
+    "sha256": "0ed408a781f951a13ff58bed95c9e8c1d1dc67ab9d649fcaf365972b6720ce6c",
+    "archiveBytes": 78670846,
+    "files": {
+      "engine/splash": "ce771e5f51081a2fd60df0ee0083f982a278a863ffaeab29fd590f55e9e36e89",
+      "engine/splash.metallib": "7006f53dedd016809a16f4e5694c78e4f8959f31691e4473a35ad46be45b9b03",
+      "engine/host-step.metallib": "9f94af73a1a7ab440d381268281989cb80698b3921ebec95772e2b889fc54ffb",
+      "LICENSE": "cfc7749b96f63bd31c3c42b5c471bf756814053e847c10f3eb003417bc523d30",
+      "THIRD_PARTY_NOTICES": "b8052712a0bc25a90672127c1ce30b1b55e3cce2c9778652ab76c90e067a31c4"
+    }
+  },
+  "protocol": 13,
+  "statusSchema": 8,
+  "configuration": {
+    "contextTokens": 32768,
+    "memoryGiB": 12,
+    "activations": "bf16",
+    "kv": "int8",
+    "state": "fp32",
+    "ane": "on",
+    "reasoning": 512
+  },
+  "dependencies": {
+    "swiftPackageResolvedSHA256": "fee3429f9824830e1de7f8b413c267d538d6eabf627516de22a532aae85cf332",
+    "llguidance": {
+      "schemaVersion": 1,
+      "state": "candidate",
+      "repository": "https://github.com/guidance-ai/llguidance.git",
+      "version": "1.8.0",
+      "commit": "dbaf504d498b6aeede06ae57adc6f7c2c4848c59",
+      "rustToolchain": "1.96.0",
+      "cargoLockSHA256": "3150f34f7c0e99afab360efe61c28d0ceddc98015e6320993ce7baaaed853e3c",
+      "headerSHA256": "5b2aa56c04421c2f846ab742bd547f15079be98e280b1a7d89838421cc077978",
+      "jsonSlicesSHA256": "f33478978e9e32bf4470cbbe9a732a75073cb81b0cf41ca8a420b3594bdc9b9e",
+      "license": "MIT",
+      "productionDependency": false,
+      "upstreamReference": "Splash 1.6.1 install/requirements.txt and server/constraints.py; unchanged from 1.4.1",
+      "limits": "The native source preview uses this pinned C ABI. Production adoption remains blocked by the separate engine/workflow gates; the Slotstream build and prior native preview are preserved."
+    },
+    "changedForVersionOnly": false
+  },
+  "modelPreparation": {
+    "preparationByteIdentical": true,
+    "recordBytes": 4318,
+    "release": "1.6.1",
+    "commit": "d8af1054aab0f97de21d043e01aa98af3754f10e",
+    "python": "3.13.15 (main, Aug 25 2026, 13:50:12) [Clang 22.1.3 ]",
+    "nativePreparationSeconds": 7.451661166618578
+  },
+  "realSmoke": {
+    "readySeconds": 7.394764750031754,
+    "contextTokens": 32768,
+    "completed": 4,
+    "cancelled": 1,
+    "failed": 0,
+    "weightsReleased": true,
+    "metalHealthy": true,
+    "oversizedRequestRefused": true,
+    "interpretation": "Functional smoke only; not startup or speed qualification"
+  },
+  "currentAgentRepeatability": {
+    "problems": {
+      "0": [],
+      "1": [],
+      "2": [],
+      "3": []
+    },
+    "performanceQualification": false,
+    "productionAdoption": false,
+    "withinNative": {
+      "sameRequests": true,
+      "sameTokens": true,
+      "pairs": [
+        {
+          "job": "prime",
+          "seed": 0,
+          "step": 1,
+          "sameRequest": true,
+          "sameTokens": true,
+          "firstDifference": null,
+          "leftMatchedPrefix": 0,
+          "rightMatchedPrefix": 0
+        },
+        {
+          "job": "formula_review",
+          "seed": 9001,
+          "step": 1,
+          "sameRequest": true,
+          "sameTokens": true,
+          "firstDifference": null,
+          "leftMatchedPrefix": 0,
+          "rightMatchedPrefix": 0
+        },
+        {
+          "job": "formula_review",
+          "seed": 9001,
+          "step": 2,
+          "sameRequest": true,
+          "sameTokens": true,
+          "firstDifference": null,
+          "leftMatchedPrefix": 12256,
+          "rightMatchedPrefix": 12256
+        },
+        {
+          "job": "formula_review",
+          "seed": 9001,
+          "step": 3,
+          "sameRequest": true,
+          "sameTokens": true,
+          "firstDifference": null,
+          "leftMatchedPrefix": 12800,
+          "rightMatchedPrefix": 12800
+        },
+        {
+          "job": "formula_review",
+          "seed": 9001,
+          "step": 4,
+          "sameRequest": true,
+          "sameTokens": true,
+          "firstDifference": null,
+          "leftMatchedPrefix": 13216,
+          "rightMatchedPrefix": 13216
+        },
+        {
+          "job": "inventory_evidence",
+          "seed": 9002,
+          "step": 1,
+          "sameRequest": true,
+          "sameTokens": true,
+          "firstDifference": null,
+          "leftMatchedPrefix": 0,
+          "rightMatchedPrefix": 0
+        },
+        {
+          "job": "inventory_evidence",
+          "seed": 9002,
+          "step": 2,
+          "sameRequest": true,
+          "sameTokens": true,
+          "firstDifference": null,
+          "leftMatchedPrefix": 0,
+          "rightMatchedPrefix": 0
+        }
+      ]
+    },
+    "withinReference": {
+      "sameRequests": true,
+      "sameTokens": true,
+      "pairs": [
+        {
+          "job": "prime",
+          "seed": 0,
+          "step": 1,
+          "sameRequest": true,
+          "sameTokens": true,
+          "firstDifference": null,
+          "leftMatchedPrefix": 0,
+          "rightMatchedPrefix": 0
+        },
+        {
+          "job": "formula_review",
+          "seed": 9001,
+          "step": 1,
+          "sameRequest": true,
+          "sameTokens": true,
+          "firstDifference": null,
+          "leftMatchedPrefix": 0,
+          "rightMatchedPrefix": 0
+        },
+        {
+          "job": "formula_review",
+          "seed": 9001,
+          "step": 2,
+          "sameRequest": true,
+          "sameTokens": true,
+          "firstDifference": null,
+          "leftMatchedPrefix": 12256,
+          "rightMatchedPrefix": 12256
+        },
+        {
+          "job": "formula_review",
+          "seed": 9001,
+          "step": 3,
+          "sameRequest": true,
+          "sameTokens": true,
+          "firstDifference": null,
+          "leftMatchedPrefix": 12800,
+          "rightMatchedPrefix": 12800
+        },
+        {
+          "job": "formula_review",
+          "seed": 9001,
+          "step": 4,
+          "sameRequest": true,
+          "sameTokens": true,
+          "firstDifference": null,
+          "leftMatchedPrefix": 13216,
+          "rightMatchedPrefix": 13216
+        },
+        {
+          "job": "inventory_evidence",
+          "seed": 9002,
+          "step": 1,
+          "sameRequest": true,
+          "sameTokens": true,
+          "firstDifference": null,
+          "leftMatchedPrefix": 0,
+          "rightMatchedPrefix": 0
+        },
+        {
+          "job": "inventory_evidence",
+          "seed": 9002,
+          "step": 2,
+          "sameRequest": true,
+          "sameTokens": true,
+          "firstDifference": null,
+          "leftMatchedPrefix": 0,
+          "rightMatchedPrefix": 0
+        }
+      ]
+    },
+    "paired": [
+      {
+        "sameRequests": true,
+        "sameTokens": true,
+        "pairs": [
+          {
+            "job": "prime",
+            "seed": 0,
+            "step": 1,
+            "sameRequest": true,
+            "sameTokens": true,
+            "firstDifference": null,
+            "leftMatchedPrefix": 0,
+            "rightMatchedPrefix": 0
+          },
+          {
+            "job": "formula_review",
+            "seed": 9001,
+            "step": 1,
+            "sameRequest": true,
+            "sameTokens": true,
+            "firstDifference": null,
+            "leftMatchedPrefix": 0,
+            "rightMatchedPrefix": 0
+          },
+          {
+            "job": "formula_review",
+            "seed": 9001,
+            "step": 2,
+            "sameRequest": true,
+            "sameTokens": true,
+            "firstDifference": null,
+            "leftMatchedPrefix": 12256,
+            "rightMatchedPrefix": 12256
+          },
+          {
+            "job": "formula_review",
+            "seed": 9001,
+            "step": 3,
+            "sameRequest": true,
+            "sameTokens": true,
+            "firstDifference": null,
+            "leftMatchedPrefix": 12800,
+            "rightMatchedPrefix": 12800
+          },
+          {
+            "job": "formula_review",
+            "seed": 9001,
+            "step": 4,
+            "sameRequest": true,
+            "sameTokens": true,
+            "firstDifference": null,
+            "leftMatchedPrefix": 13216,
+            "rightMatchedPrefix": 13216
+          },
+          {
+            "job": "inventory_evidence",
+            "seed": 9002,
+            "step": 1,
+            "sameRequest": true,
+            "sameTokens": true,
+            "firstDifference": null,
+            "leftMatchedPrefix": 0,
+            "rightMatchedPrefix": 0
+          },
+          {
+            "job": "inventory_evidence",
+            "seed": 9002,
+            "step": 2,
+            "sameRequest": true,
+            "sameTokens": true,
+            "firstDifference": null,
+            "leftMatchedPrefix": 0,
+            "rightMatchedPrefix": 0
+          }
+        ]
+      },
+      {
+        "sameRequests": true,
+        "sameTokens": true,
+        "pairs": [
+          {
+            "job": "prime",
+            "seed": 0,
+            "step": 1,
+            "sameRequest": true,
+            "sameTokens": true,
+            "firstDifference": null,
+            "leftMatchedPrefix": 0,
+            "rightMatchedPrefix": 0
+          },
+          {
+            "job": "formula_review",
+            "seed": 9001,
+            "step": 1,
+            "sameRequest": true,
+            "sameTokens": true,
+            "firstDifference": null,
+            "leftMatchedPrefix": 0,
+            "rightMatchedPrefix": 0
+          },
+          {
+            "job": "formula_review",
+            "seed": 9001,
+            "step": 2,
+            "sameRequest": true,
+            "sameTokens": true,
+            "firstDifference": null,
+            "leftMatchedPrefix": 12256,
+            "rightMatchedPrefix": 12256
+          },
+          {
+            "job": "formula_review",
+            "seed": 9001,
+            "step": 3,
+            "sameRequest": true,
+            "sameTokens": true,
+            "firstDifference": null,
+            "leftMatchedPrefix": 12800,
+            "rightMatchedPrefix": 12800
+          },
+          {
+            "job": "formula_review",
+            "seed": 9001,
+            "step": 4,
+            "sameRequest": true,
+            "sameTokens": true,
+            "firstDifference": null,
+            "leftMatchedPrefix": 13216,
+            "rightMatchedPrefix": 13216
+          },
+          {
+            "job": "inventory_evidence",
+            "seed": 9002,
+            "step": 1,
+            "sameRequest": true,
+            "sameTokens": true,
+            "firstDifference": null,
+            "leftMatchedPrefix": 0,
+            "rightMatchedPrefix": 0
+          },
+          {
+            "job": "inventory_evidence",
+            "seed": 9002,
+            "step": 2,
+            "sameRequest": true,
+            "sameTokens": true,
+            "firstDifference": null,
+            "leftMatchedPrefix": 0,
+            "rightMatchedPrefix": 0
+          }
+        ]
+      }
+    ],
+    "sourceScope": "Frozen P2 worker before the later continuity-navigation repairs; actual source and worker manifests are retained. This is not a rerun of final formatted source."
+  },
+  "historicalFixedInputRepeatability": {
+    "completedWorkers": 4,
+    "failures": [
+      null,
+      null,
+      null,
+      null
+    ],
+    "performanceQualification": false,
+    "productionAdoption": false,
+    "withinNative": [
+      {
+        "case": "prime-1",
+        "sameRequest": true,
+        "sameTokens": true,
+        "firstDifference": null,
+        "lengths": [
+          85,
+          85
+        ]
+      },
+      {
+        "case": "formula_review-1",
+        "sameRequest": true,
+        "sameTokens": true,
+        "firstDifference": null,
+        "lengths": [
+          700,
+          700
+        ]
+      },
+      {
+        "case": "inventory_evidence-1",
+        "sameRequest": true,
+        "sameTokens": true,
+        "firstDifference": null,
+        "lengths": [
+          87,
+          87
+        ]
+      },
+      {
+        "case": "inventory_evidence-2",
+        "sameRequest": true,
+        "sameTokens": true,
+        "firstDifference": null,
+        "lengths": [
+          298,
+          298
+        ]
+      },
+      {
+        "case": "inventory_evidence-3",
+        "sameRequest": true,
+        "sameTokens": true,
+        "firstDifference": null,
+        "lengths": [
+          107,
+          107
+        ]
+      },
+      {
+        "case": "inventory_evidence-4",
+        "sameRequest": true,
+        "sameTokens": false,
+        "firstDifference": 15,
+        "lengths": [
+          334,
+          371
+        ]
+      }
+    ],
+    "withinReference": [
+      {
+        "case": "prime-1",
+        "sameRequest": true,
+        "sameTokens": true,
+        "firstDifference": null,
+        "lengths": [
+          85,
+          85
+        ]
+      },
+      {
+        "case": "formula_review-1",
+        "sameRequest": true,
+        "sameTokens": true,
+        "firstDifference": null,
+        "lengths": [
+          700,
+          700
+        ]
+      },
+      {
+        "case": "inventory_evidence-1",
+        "sameRequest": true,
+        "sameTokens": true,
+        "firstDifference": null,
+        "lengths": [
+          87,
+          87
+        ]
+      },
+      {
+        "case": "inventory_evidence-2",
+        "sameRequest": true,
+        "sameTokens": true,
+        "firstDifference": null,
+        "lengths": [
+          298,
+          298
+        ]
+      },
+      {
+        "case": "inventory_evidence-3",
+        "sameRequest": true,
+        "sameTokens": false,
+        "firstDifference": 7,
+        "lengths": [
+          72,
+          107
+        ]
+      },
+      {
+        "case": "inventory_evidence-4",
+        "sameRequest": true,
+        "sameTokens": false,
+        "firstDifference": 15,
+        "lengths": [
+          334,
+          371
+        ]
+      }
+    ],
+    "paired": [
+      [
+        {
+          "case": "prime-1",
+          "sameRequest": true,
+          "sameTokens": true,
+          "firstDifference": null,
+          "lengths": [
+            85,
+            85
+          ]
+        },
+        {
+          "case": "formula_review-1",
+          "sameRequest": true,
+          "sameTokens": true,
+          "firstDifference": null,
+          "lengths": [
+            700,
+            700
+          ]
+        },
+        {
+          "case": "inventory_evidence-1",
+          "sameRequest": true,
+          "sameTokens": true,
+          "firstDifference": null,
+          "lengths": [
+            87,
+            87
+          ]
+        },
+        {
+          "case": "inventory_evidence-2",
+          "sameRequest": true,
+          "sameTokens": true,
+          "firstDifference": null,
+          "lengths": [
+            298,
+            298
+          ]
+        },
+        {
+          "case": "inventory_evidence-3",
+          "sameRequest": true,
+          "sameTokens": false,
+          "firstDifference": 7,
+          "lengths": [
+            72,
+            107
+          ]
+        },
+        {
+          "case": "inventory_evidence-4",
+          "sameRequest": true,
+          "sameTokens": true,
+          "firstDifference": null,
+          "lengths": [
+            334,
+            334
+          ]
+        }
+      ],
+      [
+        {
+          "case": "prime-1",
+          "sameRequest": true,
+          "sameTokens": true,
+          "firstDifference": null,
+          "lengths": [
+            85,
+            85
+          ]
+        },
+        {
+          "case": "formula_review-1",
+          "sameRequest": true,
+          "sameTokens": true,
+          "firstDifference": null,
+          "lengths": [
+            700,
+            700
+          ]
+        },
+        {
+          "case": "inventory_evidence-1",
+          "sameRequest": true,
+          "sameTokens": true,
+          "firstDifference": null,
+          "lengths": [
+            87,
+            87
+          ]
+        },
+        {
+          "case": "inventory_evidence-2",
+          "sameRequest": true,
+          "sameTokens": true,
+          "firstDifference": null,
+          "lengths": [
+            298,
+            298
+          ]
+        },
+        {
+          "case": "inventory_evidence-3",
+          "sameRequest": true,
+          "sameTokens": true,
+          "firstDifference": null,
+          "lengths": [
+            107,
+            107
+          ]
+        },
+        {
+          "case": "inventory_evidence-4",
+          "sameRequest": true,
+          "sameTokens": true,
+          "firstDifference": null,
+          "lengths": [
+            371,
+            371
+          ]
+        }
+      ]
+    ]
+  },
+  "historicalInputReconstruction": {
+    "sourceCommit": "0e45190d886ba84889261614820b58ed03035ff1",
+    "workerSHA256": "8ddf669f7176953a42bcc9666904f462be3203420e84ea8e213704ecca5e3a6e",
+    "method": "Frozen old host consumes recorded replies solely to reconstruct its six original envelopes; candidate prompt arrays and every Request payload byte are verified against historical records, except the protocol version. Actual candidate engines generate every replay output."
+  },
+  "decision": "Keep candidate unpromoted. Current-prefix parity passes, historical within-backend parity fails, common-prefix diagnostic masks match. No full performance cohort or automatic precision/context adoption.",
+  "upstreamChangeMap": [
+    {
+      "path": ".gitattributes",
+      "surface": "build-test-documentation-or-other-upstream",
+      "evidence": "repository pin/archive/license audit; no blind dependency update"
+    },
+    {
+      "path": ".github/workflows/ci.yml",
+      "surface": "build-test-documentation-or-other-upstream",
+      "evidence": "repository pin/archive/license audit; no blind dependency update"
+    },
+    {
+      "path": ".gitignore",
+      "surface": "build-test-documentation-or-other-upstream",
+      "evidence": "repository pin/archive/license audit; no blind dependency update"
+    },
+    {
+      "path": "CONTRIBUTING.md",
+      "surface": "build-test-documentation-or-other-upstream",
+      "evidence": "repository pin/archive/license audit; no blind dependency update"
+    },
+    {
+      "path": "DEVELOPMENT.md",
+      "surface": "build-test-documentation-or-other-upstream",
+      "evidence": "repository pin/archive/license audit; no blind dependency update"
+    },
+    {
+      "path": "Makefile",
+      "surface": "build-test-documentation-or-other-upstream",
+      "evidence": "repository pin/archive/license audit; no blind dependency update"
+    },
+    {
+      "path": "README.md",
+      "surface": "build-test-documentation-or-other-upstream",
+      "evidence": "repository pin/archive/license audit; no blind dependency update"
+    },
+    {
+      "path": "THIRD_PARTY_NOTICES",
+      "surface": "build-test-documentation-or-other-upstream",
+      "evidence": "repository pin/archive/license audit; no blind dependency update"
+    },
+    {
+      "path": "app/AppIcon.icon/Assets/mark.svg",
+      "surface": "upstream-interface-not-sevra",
+      "evidence": "not imported; native Sevra UI has its own gates"
+    },
+    {
+      "path": "app/AppIcon.icon/icon.json",
+      "surface": "upstream-interface-not-sevra",
+      "evidence": "not imported; native Sevra UI has its own gates"
+    },
+    {
+      "path": "app/Package.resolved",
+      "surface": "upstream-interface-not-sevra",
+      "evidence": "not imported; native Sevra UI has its own gates"
+    },
+    {
+      "path": "app/Package.swift",
+      "surface": "upstream-interface-not-sevra",
+      "evidence": "not imported; native Sevra UI has its own gates"
+    },
+    {
+      "path": "app/Sources/Splash/Agents.swift",
+      "surface": "upstream-interface-not-sevra",
+      "evidence": "not imported; native Sevra UI has its own gates"
+    },
+    {
+      "path": "app/Sources/Splash/AppState.swift",
+      "surface": "upstream-interface-not-sevra",
+      "evidence": "not imported; native Sevra UI has its own gates"
+    },
+    {
+      "path": "app/Sources/Splash/Catalog.swift",
+      "surface": "upstream-interface-not-sevra",
+      "evidence": "not imported; native Sevra UI has its own gates"
+    },
+    {
+      "path": "app/Sources/Splash/ChatContext.swift",
+      "surface": "upstream-interface-not-sevra",
+      "evidence": "not imported; native Sevra UI has its own gates"
+    },
+    {
+      "path": "app/Sources/Splash/ChatScreen.swift",
+      "surface": "upstream-interface-not-sevra",
+      "evidence": "not imported; native Sevra UI has its own gates"
+    },
+    {
+      "path": "app/Sources/Splash/Chats.swift",
+      "surface": "upstream-interface-not-sevra",
+      "evidence": "not imported; native Sevra UI has its own gates"
+    },
+    {
+      "path": "app/Sources/Splash/ChildProcess.swift",
+      "surface": "upstream-interface-not-sevra",
+      "evidence": "not imported; native Sevra UI has its own gates"
+    },
+    {
+      "path": "app/Sources/Splash/Composer.swift",
+      "surface": "upstream-interface-not-sevra",
+      "evidence": "not imported; native Sevra UI has its own gates"
+    },
+    {
+      "path": "app/Sources/Splash/Drawer.swift",
+      "surface": "upstream-interface-not-sevra",
+      "evidence": "not imported; native Sevra UI has its own gates"
+    },
+    {
+      "path": "app/Sources/Splash/Grouped.swift",
+      "surface": "upstream-interface-not-sevra",
+      "evidence": "not imported; native Sevra UI has its own gates"
+    },
+    {
+      "path": "app/Sources/Splash/HoverStyle.swift",
+      "surface": "upstream-interface-not-sevra",
+      "evidence": "not imported; native Sevra UI has its own gates"
+    },
+    {
+      "path": "app/Sources/Splash/Installer.swift",
+      "surface": "upstream-interface-not-sevra",
+      "evidence": "not imported; native Sevra UI has its own gates"
+    },
+    {
+      "path": "app/Sources/Splash/LaunchOptions.swift",
+      "surface": "upstream-interface-not-sevra",
+      "evidence": "not imported; native Sevra UI has its own gates"
+    },
+    {
+      "path": "app/Sources/Splash/MainView.swift",
+      "surface": "upstream-interface-not-sevra",
+      "evidence": "not imported; native Sevra UI has its own gates"
+    },
+    {
+      "path": "app/Sources/Splash/Mark.swift",
+      "surface": "upstream-interface-not-sevra",
+      "evidence": "not imported; native Sevra UI has its own gates"
+    },
+    {
+      "path": "app/Sources/Splash/Menus.swift",
+      "surface": "upstream-interface-not-sevra",
+      "evidence": "not imported; native Sevra UI has its own gates"
+    },
+    {
+      "path": "app/Sources/Splash/Motion.swift",
+      "surface": "upstream-interface-not-sevra",
+      "evidence": "not imported; native Sevra UI has its own gates"
+    },
+    {
+      "path": "app/Sources/Splash/Popup.swift",
+      "surface": "upstream-interface-not-sevra",
+      "evidence": "not imported; native Sevra UI has its own gates"
+    },
+    {
+      "path": "app/Sources/Splash/Preferences.swift",
+      "surface": "upstream-interface-not-sevra",
+      "evidence": "not imported; native Sevra UI has its own gates"
+    },
+    {
+      "path": "app/Sources/Splash/Runtime.swift",
+      "surface": "upstream-interface-not-sevra",
+      "evidence": "not imported; native Sevra UI has its own gates"
+    },
+    {
+      "path": "app/Sources/Splash/Scrolling.swift",
+      "surface": "upstream-interface-not-sevra",
+      "evidence": "not imported; native Sevra UI has its own gates"
+    },
+    {
+      "path": "app/Sources/Splash/Server.swift",
+      "surface": "upstream-interface-not-sevra",
+      "evidence": "not imported; native Sevra UI has its own gates"
+    },
+    {
+      "path": "app/Sources/Splash/ServerView.swift",
+      "surface": "upstream-interface-not-sevra",
+      "evidence": "not imported; native Sevra UI has its own gates"
+    },
+    {
+      "path": "app/Sources/Splash/SplashApp.swift",
+      "surface": "upstream-interface-not-sevra",
+      "evidence": "not imported; native Sevra UI has its own gates"
+    },
+    {
+      "path": "app/Sources/Splash/Transcript.swift",
+      "surface": "upstream-interface-not-sevra",
+      "evidence": "not imported; native Sevra UI has its own gates"
+    },
+    {
+      "path": "app/Sources/Splash/Transcript/markdown.css",
+      "surface": "upstream-interface-not-sevra",
+      "evidence": "not imported; native Sevra UI has its own gates"
+    },
+    {
+      "path": "app/Sources/Splash/Transcript/markdown.js",
+      "surface": "upstream-interface-not-sevra",
+      "evidence": "not imported; native Sevra UI has its own gates"
+    },
+    {
+      "path": "app/Sources/Splash/Transcript/page.css",
+      "surface": "upstream-interface-not-sevra",
+      "evidence": "not imported; native Sevra UI has its own gates"
+    },
+    {
+      "path": "app/Sources/Splash/Transcript/page.js",
+      "surface": "upstream-interface-not-sevra",
+      "evidence": "not imported; native Sevra UI has its own gates"
+    },
+    {
+      "path": "app/Sources/Splash/Transcript/transcript.css",
+      "surface": "upstream-interface-not-sevra",
+      "evidence": "not imported; native Sevra UI has its own gates"
+    },
+    {
+      "path": "app/Sources/Splash/Transcript/transcript.html",
+      "surface": "upstream-interface-not-sevra",
+      "evidence": "not imported; native Sevra UI has its own gates"
+    },
+    {
+      "path": "app/Sources/Splash/Transcript/transcript.js",
+      "surface": "upstream-interface-not-sevra",
+      "evidence": "not imported; native Sevra UI has its own gates"
+    },
+    {
+      "path": "app/Sources/Splash/Updates.swift",
+      "surface": "upstream-interface-not-sevra",
+      "evidence": "not imported; native Sevra UI has its own gates"
+    },
+    {
+      "path": "app/Sources/Splash/WebPage.swift",
+      "surface": "upstream-interface-not-sevra",
+      "evidence": "not imported; native Sevra UI has its own gates"
+    },
+    {
+      "path": "app/Tests/SplashTests/AppFlowTests.swift",
+      "surface": "upstream-interface-not-sevra",
+      "evidence": "not imported; native Sevra UI has its own gates"
+    },
+    {
+      "path": "app/Tests/SplashTests/ChatContextFlowTests.swift",
+      "surface": "upstream-interface-not-sevra",
+      "evidence": "not imported; native Sevra UI has its own gates"
+    },
+    {
+      "path": "app/Tests/SplashTests/ChatContextTests.swift",
+      "surface": "upstream-interface-not-sevra",
+      "evidence": "not imported; native Sevra UI has its own gates"
+    },
+    {
+      "path": "app/Tests/SplashTests/ChatScreenTests.swift",
+      "surface": "upstream-interface-not-sevra",
+      "evidence": "not imported; native Sevra UI has its own gates"
+    },
+    {
+      "path": "app/Tests/SplashTests/ChatStoreTests.swift",
+      "surface": "upstream-interface-not-sevra",
+      "evidence": "not imported; native Sevra UI has its own gates"
+    },
+    {
+      "path": "app/Tests/SplashTests/ComposerTests.swift",
+      "surface": "upstream-interface-not-sevra",
+      "evidence": "not imported; native Sevra UI has its own gates"
+    },
+    {
+      "path": "app/Tests/SplashTests/DrawerTests.swift",
+      "surface": "upstream-interface-not-sevra",
+      "evidence": "not imported; native Sevra UI has its own gates"
+    },
+    {
+      "path": "app/Tests/SplashTests/FakeRuntime.swift",
+      "surface": "upstream-interface-not-sevra",
+      "evidence": "not imported; native Sevra UI has its own gates"
+    },
+    {
+      "path": "app/Tests/SplashTests/Fakes/app_bound.py",
+      "surface": "upstream-interface-not-sevra",
+      "evidence": "not imported; native Sevra UI has its own gates"
+    },
+    {
+      "path": "app/Tests/SplashTests/Fakes/chat_server.py",
+      "surface": "upstream-interface-not-sevra",
+      "evidence": "not imported; native Sevra UI has its own gates"
+    },
+    {
+      "path": "app/Tests/SplashTests/Fakes/context_server.py",
+      "surface": "upstream-interface-not-sevra",
+      "evidence": "not imported; native Sevra UI has its own gates"
+    },
+    {
+      "path": "app/Tests/SplashTests/Fakes/refusing_server.py",
+      "surface": "upstream-interface-not-sevra",
+      "evidence": "not imported; native Sevra UI has its own gates"
+    },
+    {
+      "path": "app/Tests/SplashTests/Fakes/stepped_server.py",
+      "surface": "upstream-interface-not-sevra",
+      "evidence": "not imported; native Sevra UI has its own gates"
+    },
+    {
+      "path": "app/Tests/SplashTests/Fakes/streaming_server.py",
+      "surface": "upstream-interface-not-sevra",
+      "evidence": "not imported; native Sevra UI has its own gates"
+    },
+    {
+      "path": "app/Tests/SplashTests/MainViewTests.swift",
+      "surface": "upstream-interface-not-sevra",
+      "evidence": "not imported; native Sevra UI has its own gates"
+    },
+    {
+      "path": "app/Tests/SplashTests/QuitTests.swift",
+      "surface": "upstream-interface-not-sevra",
+      "evidence": "not imported; native Sevra UI has its own gates"
+    },
+    {
+      "path": "app/Tests/SplashTests/ServerScreenTests.swift",
+      "surface": "upstream-interface-not-sevra",
+      "evidence": "not imported; native Sevra UI has its own gates"
+    },
+    {
+      "path": "app/Tests/SplashTests/Showcase.swift",
+      "surface": "upstream-interface-not-sevra",
+      "evidence": "not imported; native Sevra UI has its own gates"
+    },
+    {
+      "path": "app/Tests/SplashTests/Snapshot.swift",
+      "surface": "upstream-interface-not-sevra",
+      "evidence": "not imported; native Sevra UI has its own gates"
+    },
+    {
+      "path": "app/Tests/SplashTests/SplashTests.swift",
+      "surface": "upstream-interface-not-sevra",
+      "evidence": "not imported; native Sevra UI has its own gates"
+    },
+    {
+      "path": "app/Tests/SplashTests/TestSupport.swift",
+      "surface": "upstream-interface-not-sevra",
+      "evidence": "not imported; native Sevra UI has its own gates"
+    },
+    {
+      "path": "app/Tests/SplashTests/TranscriptTests.swift",
+      "surface": "upstream-interface-not-sevra",
+      "evidence": "not imported; native Sevra UI has its own gates"
+    },
+    {
+      "path": "dev/Makefile",
+      "surface": "build-test-documentation-or-other-upstream",
+      "evidence": "repository pin/archive/license audit; no blind dependency update"
+    },
+    {
+      "path": "dev/benchmarks/attention_sweep.mm",
+      "surface": "build-test-documentation-or-other-upstream",
+      "evidence": "repository pin/archive/license audit; no blind dependency update"
+    },
+    {
+      "path": "dev/benchmarks/backend_benchmark.mm",
+      "surface": "build-test-documentation-or-other-upstream",
+      "evidence": "repository pin/archive/license audit; no blind dependency update"
+    },
+    {
+      "path": "dev/benchmarks/backend_regression.py",
+      "surface": "build-test-documentation-or-other-upstream",
+      "evidence": "repository pin/archive/license audit; no blind dependency update"
+    },
+    {
+      "path": "dev/benchmarks/decode_profile.mm",
+      "surface": "build-test-documentation-or-other-upstream",
+      "evidence": "repository pin/archive/license audit; no blind dependency update"
+    },
+    {
+      "path": "dev/benchmarks/gguf_moe_benchmark.mm",
+      "surface": "build-test-documentation-or-other-upstream",
+      "evidence": "repository pin/archive/license audit; no blind dependency update"
+    },
+    {
+      "path": "dev/benchmarks/gguf_projection_benchmark.mm",
+      "surface": "build-test-documentation-or-other-upstream",
+      "evidence": "repository pin/archive/license audit; no blind dependency update"
+    },
+    {
+      "path": "dev/benchmarks/http_regression.py",
+      "surface": "build-test-documentation-or-other-upstream",
+      "evidence": "repository pin/archive/license audit; no blind dependency update"
+    },
+    {
+      "path": "dev/benchmarks/serving/check.py",
+      "surface": "build-test-documentation-or-other-upstream",
+      "evidence": "repository pin/archive/license audit; no blind dependency update"
+    },
+    {
+      "path": "dev/benchmarks/serving/clients.py",
+      "surface": "build-test-documentation-or-other-upstream",
+      "evidence": "repository pin/archive/license audit; no blind dependency update"
+    },
+    {
+      "path": "dev/benchmarks/serving/run.py",
+      "surface": "build-test-documentation-or-other-upstream",
+      "evidence": "repository pin/archive/license audit; no blind dependency update"
+    },
+    {
+      "path": "dev/benchmarks/teacher_logits.mm",
+      "surface": "build-test-documentation-or-other-upstream",
+      "evidence": "repository pin/archive/license audit; no blind dependency update"
+    },
+    {
+      "path": "dev/benchmarks/upstream-loading.md",
+      "surface": "build-test-documentation-or-other-upstream",
+      "evidence": "repository pin/archive/license audit; no blind dependency update"
+    },
+    {
+      "path": "dev/benchmarks/weights.py",
+      "surface": "build-test-documentation-or-other-upstream",
+      "evidence": "repository pin/archive/license audit; no blind dependency update"
+    },
+    {
+      "path": "dev/native.mk",
+      "surface": "build-test-documentation-or-other-upstream",
+      "evidence": "repository pin/archive/license audit; no blind dependency update"
+    },
+    {
+      "path": "dev/tests/attention_sweep_cli.sh",
+      "surface": "build-test-documentation-or-other-upstream",
+      "evidence": "repository pin/archive/license audit; no blind dependency update"
+    },
+    {
+      "path": "dev/tests/engine/AttentionFixture.hpp",
+      "surface": "build-test-documentation-or-other-upstream",
+      "evidence": "repository pin/archive/license audit; no blind dependency update"
+    },
+    {
+      "path": "dev/tests/engine/ClaimScope.hpp",
+      "surface": "build-test-documentation-or-other-upstream",
+      "evidence": "repository pin/archive/license audit; no blind dependency update"
+    },
+    {
+      "path": "dev/tests/engine/EngineHarness.hpp",
+      "surface": "build-test-documentation-or-other-upstream",
+      "evidence": "repository pin/archive/license audit; no blind dependency update"
+    },
+    {
+      "path": "dev/tests/engine/EngineTestSupport.hpp",
+      "surface": "build-test-documentation-or-other-upstream",
+      "evidence": "repository pin/archive/license audit; no blind dependency update"
+    },
+    {
+      "path": "dev/tests/engine/FakeElasticPool.hpp",
+      "surface": "build-test-documentation-or-other-upstream",
+      "evidence": "repository pin/archive/license audit; no blind dependency update"
+    },
+    {
+      "path": "dev/tests/engine/FakeMemory.hpp",
+      "surface": "build-test-documentation-or-other-upstream",
+      "evidence": "repository pin/archive/license audit; no blind dependency update"
+    },
+    {
+      "path": "dev/tests/engine/GgufFixtures.hpp",
+      "surface": "build-test-documentation-or-other-upstream",
+      "evidence": "repository pin/archive/license audit; no blind dependency update"
+    },
+    {
+      "path": "dev/tests/engine/GgufFormatReference.hpp",
+      "surface": "build-test-documentation-or-other-upstream",
+      "evidence": "repository pin/archive/license audit; no blind dependency update"
+    },
+    {
+      "path": "dev/tests/engine/GovernedHost.hpp",
+      "surface": "build-test-documentation-or-other-upstream",
+      "evidence": "repository pin/archive/license audit; no blind dependency update"
+    },
+    {
+      "path": "dev/tests/engine/HostKvExtents.hpp",
+      "surface": "build-test-documentation-or-other-upstream",
+      "evidence": "repository pin/archive/license audit; no blind dependency update"
+    },
+    {
+      "path": "dev/tests/engine/LandingUnit.hpp",
+      "surface": "build-test-documentation-or-other-upstream",
+      "evidence": "repository pin/archive/license audit; no blind dependency update"
+    },
+    {
+      "path": "dev/tests/engine/LinearNumerics.hpp",
+      "surface": "build-test-documentation-or-other-upstream",
+      "evidence": "repository pin/archive/license audit; no blind dependency update"
+    },
+    {
+      "path": "dev/tests/engine/LoopFixture.hpp",
+      "surface": "build-test-documentation-or-other-upstream",
+      "evidence": "repository pin/archive/license audit; no blind dependency update"
+    },
+    {
+      "path": "dev/tests/engine/MemoryChecks.hpp",
+      "surface": "build-test-documentation-or-other-upstream",
+      "evidence": "repository pin/archive/license audit; no blind dependency update"
+    },
+    {
+      "path": "dev/tests/engine/MemoryPasses.hpp",
+      "surface": "build-test-documentation-or-other-upstream",
+      "evidence": "repository pin/archive/license audit; no blind dependency update"
+    },
+    {
+      "path": "dev/tests/engine/MoeExtents.hpp",
+      "surface": "build-test-documentation-or-other-upstream",
+      "evidence": "repository pin/archive/license audit; no blind dependency update"
+    },
+    {
+      "path": "dev/tests/engine/MoeFixture.hpp",
+      "surface": "build-test-documentation-or-other-upstream",
+      "evidence": "repository pin/archive/license audit; no blind dependency update"
+    },
+    {
+      "path": "dev/tests/engine/ProtocolPeer.cpp",
+      "surface": "build-test-documentation-or-other-upstream",
+      "evidence": "repository pin/archive/license audit; no blind dependency update"
+    },
+    {
+      "path": "dev/tests/engine/ProtocolPeer.hpp",
+      "surface": "build-test-documentation-or-other-upstream",
+      "evidence": "repository pin/archive/license audit; no blind dependency update"
+    },
+    {
+      "path": "dev/tests/engine/SyntheticModels.hpp",
+      "surface": "build-test-documentation-or-other-upstream",
+      "evidence": "repository pin/archive/license audit; no blind dependency update"
+    },
+    {
+      "path": "dev/tests/engine/TestAdmission.hpp",
+      "surface": "build-test-documentation-or-other-upstream",
+      "evidence": "repository pin/archive/license audit; no blind dependency update"
+    },
+    {
+      "path": "dev/tests/engine/TestCache.hpp",
+      "surface": "build-test-documentation-or-other-upstream",
+      "evidence": "repository pin/archive/license audit; no blind dependency update"
+    },
+    {
+      "path": "dev/tests/engine/TestEngine.hpp",
+      "surface": "build-test-documentation-or-other-upstream",
+      "evidence": "repository pin/archive/license audit; no blind dependency update"
+    },
+    {
+      "path": "dev/tests/engine/TestExecutor.hpp",
+      "surface": "build-test-documentation-or-other-upstream",
+      "evidence": "repository pin/archive/license audit; no blind dependency update"
+    },
+    {
+      "path": "dev/tests/engine/TestFamilies.hpp",
+      "surface": "build-test-documentation-or-other-upstream",
+      "evidence": "repository pin/archive/license audit; no blind dependency update"
+    },
+    {
+      "path": "dev/tests/engine/TestImmediateTicket.hpp",
+      "surface": "build-test-documentation-or-other-upstream",
+      "evidence": "repository pin/archive/license audit; no blind dependency update"
+    },
+    {
+      "path": "dev/tests/engine/TestJson.hpp",
+      "surface": "build-test-documentation-or-other-upstream",
+      "evidence": "repository pin/archive/license audit; no blind dependency update"
+    },
+    {
+      "path": "dev/tests/engine/TestKvPool.hpp",
+      "surface": "build-test-documentation-or-other-upstream",
+      "evidence": "repository pin/archive/license audit; no blind dependency update"
+    },
+    {
+      "path": "dev/tests/engine/TestKvTier.hpp",
+      "surface": "build-test-documentation-or-other-upstream",
+      "evidence": "repository pin/archive/license audit; no blind dependency update"
+    },
+    {
+      "path": "dev/tests/engine/TestMetalMemory.hpp",
+      "surface": "build-test-documentation-or-other-upstream",
+      "evidence": "repository pin/archive/license audit; no blind dependency update"
+    },
+    {
+      "path": "dev/tests/engine/TestMetalStatistics.hpp",
+      "surface": "build-test-documentation-or-other-upstream",
+      "evidence": "repository pin/archive/license audit; no blind dependency update"
+    },
+    {
+      "path": "dev/tests/engine/TestMethodReplacement.hpp",
+      "surface": "build-test-documentation-or-other-upstream",
+      "evidence": "repository pin/archive/license audit; no blind dependency update"
+    },
+    {
+      "path": "dev/tests/engine/TestModel.hpp",
+      "surface": "build-test-documentation-or-other-upstream",
+      "evidence": "repository pin/archive/license audit; no blind dependency update"
+    },
+    {
+      "path": "dev/tests/engine/TestRegistry.hpp",
+      "surface": "build-test-documentation-or-other-upstream",
+      "evidence": "repository pin/archive/license audit; no blind dependency update"
+    },
+    {
+      "path": "dev/tests/engine/TestWriteBudget.hpp",
+      "surface": "build-test-documentation-or-other-upstream",
+      "evidence": "repository pin/archive/license audit; no blind dependency update"
+    },
+    {
+      "path": "dev/tests/engine/TimingProfile.cpp",
+      "surface": "build-test-documentation-or-other-upstream",
+      "evidence": "repository pin/archive/license audit; no blind dependency update"
+    },
+    {
+      "path": "dev/tests/engine/TimingProfile.hpp",
+      "surface": "build-test-documentation-or-other-upstream",
+      "evidence": "repository pin/archive/license audit; no blind dependency update"
+    },
+    {
+      "path": "dev/tests/engine/ane_ffn_startup_test.cpp",
+      "surface": "build-test-documentation-or-other-upstream",
+      "evidence": "repository pin/archive/license audit; no blind dependency update"
+    },
+    {
+      "path": "dev/tests/engine/ane_ffn_test.mm",
+      "surface": "build-test-documentation-or-other-upstream",
+      "evidence": "repository pin/archive/license audit; no blind dependency update"
+    },
+    {
+      "path": "dev/tests/engine/attention_variants_metal_test.mm",
+      "surface": "build-test-documentation-or-other-upstream",
+      "evidence": "repository pin/archive/license audit; no blind dependency update"
+    },
+    {
+      "path": "dev/tests/engine/cache_property_test.cpp",
+      "surface": "build-test-documentation-or-other-upstream",
+      "evidence": "repository pin/archive/license audit; no blind dependency update"
+    },
+    {
+      "path": "dev/tests/engine/command_limits_test.cpp",
+      "surface": "build-test-documentation-or-other-upstream",
+      "evidence": "repository pin/archive/license audit; no blind dependency update"
+    },
+    {
+      "path": "dev/tests/engine/disk_space_test.cpp",
+      "surface": "build-test-documentation-or-other-upstream",
+      "evidence": "repository pin/archive/license audit; no blind dependency update"
+    },
+    {
+      "path": "dev/tests/engine/draft_preparation_test.mm",
+      "surface": "build-test-documentation-or-other-upstream",
+      "evidence": "repository pin/archive/license audit; no blind dependency update"
+    },
+    {
+      "path": "dev/tests/engine/elastic_kv_pool_test.cpp",
+      "surface": "build-test-documentation-or-other-upstream",
+      "evidence": "repository pin/archive/license audit; no blind dependency update"
+    },
+    {
+      "path": "dev/tests/engine/engine_cache_test.cpp",
+      "surface": "build-test-documentation-or-other-upstream",
+      "evidence": "repository pin/archive/license audit; no blind dependency update"
+    },
+    {
+      "path": "dev/tests/engine/engine_checkpoints_test.cpp",
+      "surface": "build-test-documentation-or-other-upstream",
+      "evidence": "repository pin/archive/license audit; no blind dependency update"
+    },
+    {
+      "path": "dev/tests/engine/engine_commands_test.cpp",
+      "surface": "build-test-documentation-or-other-upstream",
+      "evidence": "repository pin/archive/license audit; no blind dependency update"
+    },
+    {
+      "path": "dev/tests/engine/engine_disk_test.cpp",
+      "surface": "build-test-documentation-or-other-upstream",
+      "evidence": "repository pin/archive/license audit; no blind dependency update"
+    },
+    {
+      "path": "dev/tests/engine/engine_memory_plan_test.cpp",
+      "surface": "build-test-documentation-or-other-upstream",
+      "evidence": "repository pin/archive/license audit; no blind dependency update"
+    },
+    {
+      "path": "dev/tests/engine/engine_memory_rules_test.cpp",
+      "surface": "build-test-documentation-or-other-upstream",
+      "evidence": "repository pin/archive/license audit; no blind dependency update"
+    },
+    {
+      "path": "dev/tests/engine/engine_memory_test.cpp",
+      "surface": "build-test-documentation-or-other-upstream",
+      "evidence": "repository pin/archive/license audit; no blind dependency update"
+    },
+    {
+      "path": "dev/tests/engine/engine_release_property_test.cpp",
+      "surface": "build-test-documentation-or-other-upstream",
+      "evidence": "repository pin/archive/license audit; no blind dependency update"
+    },
+    {
+      "path": "dev/tests/engine/engine_requests_test.cpp",
+      "surface": "build-test-documentation-or-other-upstream",
+      "evidence": "repository pin/archive/license audit; no blind dependency update"
+    },
+    {
+      "path": "dev/tests/engine/engine_sim_test.cpp",
+      "surface": "build-test-documentation-or-other-upstream",
+      "evidence": "repository pin/archive/license audit; no blind dependency update"
+    },
+    {
+      "path": "dev/tests/engine/engine_spill_test.cpp",
+      "surface": "build-test-documentation-or-other-upstream",
+      "evidence": "repository pin/archive/license audit; no blind dependency update"
+    },
+    {
+      "path": "dev/tests/engine/engine_test.cpp",
+      "surface": "build-test-documentation-or-other-upstream",
+      "evidence": "repository pin/archive/license audit; no blind dependency update"
+    },
+    {
+      "path": "dev/tests/engine/engine_test_main.cpp",
+      "surface": "build-test-documentation-or-other-upstream",
+      "evidence": "repository pin/archive/license audit; no blind dependency update"
+    },
+    {
+      "path": "dev/tests/engine/execution_plans_test.cc",
+      "surface": "build-test-documentation-or-other-upstream",
+      "evidence": "repository pin/archive/license audit; no blind dependency update"
+    },
+    {
+      "path": "dev/tests/engine/expert_chunk_layout_test.cpp",
+      "surface": "build-test-documentation-or-other-upstream",
+      "evidence": "repository pin/archive/license audit; no blind dependency update"
+    },
+    {
+      "path": "dev/tests/engine/expert_store_test.mm",
+      "surface": "build-test-documentation-or-other-upstream",
+      "evidence": "repository pin/archive/license audit; no blind dependency update"
+    },
+    {
+      "path": "dev/tests/engine/fake_memory_test.cpp",
+      "surface": "build-test-documentation-or-other-upstream",
+      "evidence": "repository pin/archive/license audit; no blind dependency update"
+    },
+    {
+      "path": "dev/tests/engine/family_values_golden.txt",
+      "surface": "build-test-documentation-or-other-upstream",
+      "evidence": "repository pin/archive/license audit; no blind dependency update"
+    },
+    {
+      "path": "dev/tests/engine/family_values_test.cpp",
+      "surface": "build-test-documentation-or-other-upstream",
+      "evidence": "repository pin/archive/license audit; no blind dependency update"
+    },
+    {
+      "path": "dev/tests/engine/gdn_decode_metal_test.mm",
+      "surface": "build-test-documentation-or-other-upstream",
+      "evidence": "repository pin/archive/license audit; no blind dependency update"
+    },
+    {
+      "path": "dev/tests/engine/gdn_metal_test.mm",
+      "surface": "build-test-documentation-or-other-upstream",
+      "evidence": "repository pin/archive/license audit; no blind dependency update"
+    },
+    {
+      "path": "dev/tests/engine/gguf_file_test.cpp",
+      "surface": "build-test-documentation-or-other-upstream",
+      "evidence": "repository pin/archive/license audit; no blind dependency update"
+    },
+    {
+      "path": "dev/tests/engine/gguf_moe_test.metal",
+      "surface": "build-test-documentation-or-other-upstream",
+      "evidence": "repository pin/archive/license audit; no blind dependency update"
+    },
+    {
+      "path": "dev/tests/engine/gguf_moe_test.mm",
+      "surface": "build-test-documentation-or-other-upstream",
+      "evidence": "repository pin/archive/license audit; no blind dependency update"
+    },
+    {
+      "path": "dev/tests/engine/gguf_planner_test.mm",
+      "surface": "build-test-documentation-or-other-upstream",
+      "evidence": "repository pin/archive/license audit; no blind dependency update"
+    },
+    {
+      "path": "dev/tests/engine/gguf_preparation_test.mm",
+      "surface": "build-test-documentation-or-other-upstream",
+      "evidence": "repository pin/archive/license audit; no blind dependency update"
+    },
+    {
+      "path": "dev/tests/engine/gguf_projection_test.mm",
+      "surface": "build-test-documentation-or-other-upstream",
+      "evidence": "repository pin/archive/license audit; no blind dependency update"
+    },
+    {
+      "path": "dev/tests/engine/gguf_rotation_test.mm",
+      "surface": "build-test-documentation-or-other-upstream",
+      "evidence": "repository pin/archive/license audit; no blind dependency update"
+    },
+    {
+      "path": "dev/tests/engine/json_writer_test.cpp",
+      "surface": "build-test-documentation-or-other-upstream",
+      "evidence": "repository pin/archive/license audit; no blind dependency update"
+    },
+    {
+      "path": "dev/tests/engine/kernel_selection_golden.txt",
+      "surface": "build-test-documentation-or-other-upstream",
+      "evidence": "repository pin/archive/license audit; no blind dependency update"
+    },
+    {
+      "path": "dev/tests/engine/kernel_selection_test.cc",
+      "surface": "build-test-documentation-or-other-upstream",
+      "evidence": "repository pin/archive/license audit; no blind dependency update"
+    },
+    {
+      "path": "dev/tests/engine/kv_block_cache_test.mm",
+      "surface": "build-test-documentation-or-other-upstream",
+      "evidence": "repository pin/archive/license audit; no blind dependency update"
+    },
+    {
+      "path": "dev/tests/engine/kv_history_stream_test.mm",
+      "surface": "build-test-documentation-or-other-upstream",
+      "evidence": "repository pin/archive/license audit; no blind dependency update"
+    },
+    {
+      "path": "dev/tests/engine/kv_page_cache_test.cpp",
+      "surface": "build-test-documentation-or-other-upstream",
+      "evidence": "repository pin/archive/license audit; no blind dependency update"
+    },
+    {
+      "path": "dev/tests/engine/kv_page_tier_host_test.cpp",
+      "surface": "build-test-documentation-or-other-upstream",
+      "evidence": "repository pin/archive/license audit; no blind dependency update"
+    },
+    {
+      "path": "dev/tests/engine/kv_page_tier_test.mm",
+      "surface": "build-test-documentation-or-other-upstream",
+      "evidence": "repository pin/archive/license audit; no blind dependency update"
+    },
+    {
+      "path": "dev/tests/engine/kv_slot_format_test.cpp",
+      "surface": "build-test-documentation-or-other-upstream",
+      "evidence": "repository pin/archive/license audit; no blind dependency update"
+    },
+    {
+      "path": "dev/tests/engine/linear_plan_test.mm",
+      "surface": "build-test-documentation-or-other-upstream",
+      "evidence": "repository pin/archive/license audit; no blind dependency update"
+    },
+    {
+      "path": "dev/tests/engine/memory_audit_test.cpp",
+      "surface": "build-test-documentation-or-other-upstream",
+      "evidence": "repository pin/archive/license audit; no blind dependency update"
+    },
+    {
+      "path": "dev/tests/engine/memory_governor_test.cpp",
+      "surface": "build-test-documentation-or-other-upstream",
+      "evidence": "repository pin/archive/license audit; no blind dependency update"
+    },
+    {
+      "path": "dev/tests/engine/memory_ledger_test.cpp",
+      "surface": "build-test-documentation-or-other-upstream",
+      "evidence": "repository pin/archive/license audit; no blind dependency update"
+    },
+    {
+      "path": "dev/tests/engine/metal_backend_test.metal",
+      "surface": "build-test-documentation-or-other-upstream",
+      "evidence": "repository pin/archive/license audit; no blind dependency update"
+    },
+    {
+      "path": "dev/tests/engine/metal_backend_test.mm",
+      "surface": "build-test-documentation-or-other-upstream",
+      "evidence": "repository pin/archive/license audit; no blind dependency update"
+    },
+    {
+      "path": "dev/tests/engine/metal_stand_in.cpp",
+      "surface": "build-test-documentation-or-other-upstream",
+      "evidence": "repository pin/archive/license audit; no blind dependency update"
+    },
+    {
+      "path": "dev/tests/engine/metal_tsan_suppressions.txt",
+      "surface": "build-test-documentation-or-other-upstream",
+      "evidence": "repository pin/archive/license audit; no blind dependency update"
+    },
+    {
+      "path": "dev/tests/engine/model_boundary_test.cpp",
+      "surface": "build-test-documentation-or-other-upstream",
+      "evidence": "repository pin/archive/license audit; no blind dependency update"
+    },
+    {
+      "path": "dev/tests/engine/model_configuration_test.mm",
+      "surface": "build-test-documentation-or-other-upstream",
+      "evidence": "repository pin/archive/license audit; no blind dependency update"
+    },
+    {
+      "path": "dev/tests/engine/model_execution_plan_test.cpp",
+      "surface": "build-test-documentation-or-other-upstream",
+      "evidence": "repository pin/archive/license audit; no blind dependency update"
+    },
+    {
+      "path": "dev/tests/engine/model_loading_test.cpp",
+      "surface": "build-test-documentation-or-other-upstream",
+      "evidence": "repository pin/archive/license audit; no blind dependency update"
+    },
+    {
+      "path": "dev/tests/engine/model_runtime_oracle_test.mm",
+      "surface": "build-test-documentation-or-other-upstream",
+      "evidence": "repository pin/archive/license audit; no blind dependency update"
+    },
+    {
+      "path": "dev/tests/engine/native_arguments_test.cpp",
+      "surface": "build-test-documentation-or-other-upstream",
+      "evidence": "repository pin/archive/license audit; no blind dependency update"
+    },
+    {
+      "path": "dev/tests/engine/native_command_golden.txt",
+      "surface": "build-test-documentation-or-other-upstream",
+      "evidence": "repository pin/archive/license audit; no blind dependency update"
+    },
+    {
+      "path": "dev/tests/engine/native_fd_transport_test.cpp",
+      "surface": "build-test-documentation-or-other-upstream",
+      "evidence": "repository pin/archive/license audit; no blind dependency update"
+    },
+    {
+      "path": "dev/tests/engine/native_loop_memory_test.cpp",
+      "surface": "build-test-documentation-or-other-upstream",
+      "evidence": "repository pin/archive/license audit; no blind dependency update"
+    },
+    {
+      "path": "dev/tests/engine/native_loop_test_main.cpp",
+      "surface": "build-test-documentation-or-other-upstream",
+      "evidence": "repository pin/archive/license audit; no blind dependency update"
+    },
+    {
+      "path": "dev/tests/engine/native_loop_weights_test.cpp",
+      "surface": "build-test-documentation-or-other-upstream",
+      "evidence": "repository pin/archive/license audit; no blind dependency update"
+    },
+    {
+      "path": "dev/tests/engine/native_loop_wire_test.cpp",
+      "surface": "build-test-documentation-or-other-upstream",
+      "evidence": "repository pin/archive/license audit; no blind dependency update"
+    },
+    {
+      "path": "dev/tests/engine/operator_workspace_test.cc",
+      "surface": "build-test-documentation-or-other-upstream",
+      "evidence": "repository pin/archive/license audit; no blind dependency update"
+    },
+    {
+      "path": "dev/tests/engine/paged_attention_plan_test.mm",
+      "surface": "build-test-documentation-or-other-upstream",
+      "evidence": "repository pin/archive/license audit; no blind dependency update"
+    },
+    {
+      "path": "dev/tests/engine/persistent_cache_test.cpp",
+      "surface": "build-test-documentation-or-other-upstream",
+      "evidence": "repository pin/archive/license audit; no blind dependency update"
+    },
+    {
+      "path": "dev/tests/engine/pressure_serving_test.mm",
+      "surface": "build-test-documentation-or-other-upstream",
+      "evidence": "repository pin/archive/license audit; no blind dependency update"
+    },
+    {
+      "path": "dev/tests/engine/protocol_golden.txt",
+      "surface": "build-test-documentation-or-other-upstream",
+      "evidence": "repository pin/archive/license audit; no blind dependency update"
+    },
+    {
+      "path": "dev/tests/engine/protocol_test.cpp",
+      "surface": "build-test-documentation-or-other-upstream",
+      "evidence": "repository pin/archive/license audit; no blind dependency update"
+    },
+    {
+      "path": "dev/tests/engine/q8_chunked_prefill_metal_test.mm",
+      "surface": "build-test-documentation-or-other-upstream",
+      "evidence": "repository pin/archive/license audit; no blind dependency update"
+    },
+    {
+      "path": "dev/tests/engine/q8_flash_attention_metal_test.mm",
+      "surface": "build-test-documentation-or-other-upstream",
+      "evidence": "repository pin/archive/license audit; no blind dependency update"
+    },
+    {
+      "path": "dev/tests/engine/q8_page_storage_test.mm",
+      "surface": "build-test-documentation-or-other-upstream",
+      "evidence": "repository pin/archive/license audit; no blind dependency update"
+    },
+    {
+      "path": "dev/tests/engine/q8_paged_kv_test.cc",
+      "surface": "build-test-documentation-or-other-upstream",
+      "evidence": "repository pin/archive/license audit; no blind dependency update"
+    },
+    {
+      "path": "dev/tests/engine/qwen4_kernels_test.mm",
+      "surface": "build-test-documentation-or-other-upstream",
+      "evidence": "repository pin/archive/license audit; no blind dependency update"
+    },
+    {
+      "path": "dev/tests/engine/qwen_state_storage_test.mm",
+      "surface": "build-test-documentation-or-other-upstream",
+      "evidence": "repository pin/archive/license audit; no blind dependency update"
+    },
+    {
+      "path": "dev/tests/engine/ragged_scheduler_test.cpp",
+      "surface": "build-test-documentation-or-other-upstream",
+      "evidence": "repository pin/archive/license audit; no blind dependency update"
+    },
+    {
+      "path": "dev/tests/engine/runtime_bootstrap_test.mm",
+      "surface": "build-test-documentation-or-other-upstream",
+      "evidence": "repository pin/archive/license audit; no blind dependency update"
+    },
+    {
+      "path": "dev/tests/engine/runtime_metrics_test.cpp",
+      "surface": "build-test-documentation-or-other-upstream",
+      "evidence": "repository pin/archive/license audit; no blind dependency update"
+    },
+    {
+      "path": "dev/tests/engine/runtime_resources_test.mm",
+      "surface": "build-test-documentation-or-other-upstream",
+      "evidence": "repository pin/archive/license audit; no blind dependency update"
+    },
+    {
+      "path": "dev/tests/engine/runtime_status_test.cpp",
+      "surface": "build-test-documentation-or-other-upstream",
+      "evidence": "repository pin/archive/license audit; no blind dependency update"
+    },
+    {
+      "path": "dev/tests/engine/slot_file_test.cpp",
+      "surface": "build-test-documentation-or-other-upstream",
+      "evidence": "repository pin/archive/license audit; no blind dependency update"
+    },
+    {
+      "path": "dev/tests/engine/slot_recycler_test.cpp",
+      "surface": "build-test-documentation-or-other-upstream",
+      "evidence": "repository pin/archive/license audit; no blind dependency update"
+    },
+    {
+      "path": "dev/tests/engine/sparse_row_store_test.cpp",
+      "surface": "build-test-documentation-or-other-upstream",
+      "evidence": "repository pin/archive/license audit; no blind dependency update"
+    },
+    {
+      "path": "dev/tests/engine/ssd_readers_test.cpp",
+      "surface": "build-test-documentation-or-other-upstream",
+      "evidence": "repository pin/archive/license audit; no blind dependency update"
+    },
+    {
+      "path": "dev/tests/engine/status_golden.json",
+      "surface": "build-test-documentation-or-other-upstream",
+      "evidence": "repository pin/archive/license audit; no blind dependency update"
+    },
+    {
+      "path": "dev/tests/engine/status_variants_golden.jsonl",
+      "surface": "build-test-documentation-or-other-upstream",
+      "evidence": "repository pin/archive/license audit; no blind dependency update"
+    },
+    {
+      "path": "dev/tests/engine/timing_profile_test.cpp",
+      "surface": "build-test-documentation-or-other-upstream",
+      "evidence": "repository pin/archive/license audit; no blind dependency update"
+    },
+    {
+      "path": "dev/tests/engine/verify_budget_test.cpp",
+      "surface": "build-test-documentation-or-other-upstream",
+      "evidence": "repository pin/archive/license audit; no blind dependency update"
+    },
+    {
+      "path": "dev/tests/engine/weight_residency_test.cpp",
+      "surface": "build-test-documentation-or-other-upstream",
+      "evidence": "repository pin/archive/license audit; no blind dependency update"
+    },
+    {
+      "path": "dev/tests/fixture_files.py",
+      "surface": "build-test-documentation-or-other-upstream",
+      "evidence": "repository pin/archive/license audit; no blind dependency update"
+    },
+    {
+      "path": "dev/tests/fixtures/kv-selection-traces/code128.kvst",
+      "surface": "build-test-documentation-or-other-upstream",
+      "evidence": "repository pin/archive/license audit; no blind dependency update"
+    },
+    {
+      "path": "dev/tests/fixtures/kv-selection-traces/novel128.kvst",
+      "surface": "build-test-documentation-or-other-upstream",
+      "evidence": "repository pin/archive/license audit; no blind dependency update"
+    },
+    {
+      "path": "dev/tests/fixtures/kv-selection-traces/novel256.kvst",
+      "surface": "build-test-documentation-or-other-upstream",
+      "evidence": "repository pin/archive/license audit; no blind dependency update"
+    },
+    {
+      "path": "dev/tests/fixtures/model-configs/flint/gguf-metadata.json",
+      "surface": "build-test-documentation-or-other-upstream",
+      "evidence": "repository pin/archive/license audit; no blind dependency update"
+    },
+    {
+      "path": "dev/tests/fixtures/model-configs/qwen3.5-122b-a10b/gguf-metadata.json",
+      "surface": "build-test-documentation-or-other-upstream",
+      "evidence": "repository pin/archive/license audit; no blind dependency update"
+    },
+    {
+      "path": "dev/tests/fixtures/model-configs/qwen3.6-35b-a3b/gguf-metadata.json",
+      "surface": "build-test-documentation-or-other-upstream",
+      "evidence": "repository pin/archive/license audit; no blind dependency update"
+    },
+    {
+      "path": "dev/tests/fixtures/model-configs/qwen3.6-35b-a3b/gguf-tensors.json",
+      "surface": "build-test-documentation-or-other-upstream",
+      "evidence": "repository pin/archive/license audit; no blind dependency update"
+    },
+    {
+      "path": "dev/tests/fixtures/model-configs/qwen3.8-27b/gguf-metadata.json",
+      "surface": "build-test-documentation-or-other-upstream",
+      "evidence": "repository pin/archive/license audit; no blind dependency update"
+    },
+    {
+      "path": "dev/tests/fixtures/model-configs/qwen3.8-flash-next/gguf-metadata.json",
+      "surface": "build-test-documentation-or-other-upstream",
+      "evidence": "repository pin/archive/license audit; no blind dependency update"
+    },
+    {
+      "path": "dev/tests/fixtures/model-configs/qwen3.8-flash-next/gguf-tensors.json",
+      "surface": "build-test-documentation-or-other-upstream",
+      "evidence": "repository pin/archive/license audit; no blind dependency update"
+    },
+    {
+      "path": "dev/tests/install/test_cached.py",
+      "surface": "build-test-documentation-or-other-upstream",
+      "evidence": "repository pin/archive/license audit; no blind dependency update"
+    },
+    {
+      "path": "dev/tests/install/test_clients.py",
+      "surface": "build-test-documentation-or-other-upstream",
+      "evidence": "repository pin/archive/license audit; no blind dependency update"
+    },
+    {
+      "path": "dev/tests/install/test_completion.py",
+      "surface": "build-test-documentation-or-other-upstream",
+      "evidence": "repository pin/archive/license audit; no blind dependency update"
+    },
+    {
+      "path": "dev/tests/install/test_families.py",
+      "surface": "build-test-documentation-or-other-upstream",
+      "evidence": "repository pin/archive/license audit; no blind dependency update"
+    },
+    {
+      "path": "dev/tests/install/test_gguf_flint.py",
+      "surface": "build-test-documentation-or-other-upstream",
+      "evidence": "repository pin/archive/license audit; no blind dependency update"
+    },
+    {
+      "path": "dev/tests/install/test_gguf_metadata.py",
+      "surface": "build-test-documentation-or-other-upstream",
+      "evidence": "repository pin/archive/license audit; no blind dependency update"
+    },
+    {
+      "path": "dev/tests/install/test_hub.py",
+      "surface": "build-test-documentation-or-other-upstream",
+      "evidence": "repository pin/archive/license audit; no blind dependency update"
+    },
+    {
+      "path": "dev/tests/install/test_launcher.py",
+      "surface": "build-test-documentation-or-other-upstream",
+      "evidence": "repository pin/archive/license audit; no blind dependency update"
+    },
+    {
+      "path": "dev/tests/install/test_launcher_local.py",
+      "surface": "build-test-documentation-or-other-upstream",
+      "evidence": "repository pin/archive/license audit; no blind dependency update"
+    },
+    {
+      "path": "dev/tests/install/test_local.py",
+      "surface": "build-test-documentation-or-other-upstream",
+      "evidence": "repository pin/archive/license audit; no blind dependency update"
+    },
+    {
+      "path": "dev/tests/install/test_models.py",
+      "surface": "build-test-documentation-or-other-upstream",
+      "evidence": "repository pin/archive/license audit; no blind dependency update"
+    },
+    {
+      "path": "dev/tests/install/test_suggested_models.py",
+      "surface": "build-test-documentation-or-other-upstream",
+      "evidence": "repository pin/archive/license audit; no blind dependency update"
+    },
+    {
+      "path": "dev/tests/install/test_upstream.py",
+      "surface": "build-test-documentation-or-other-upstream",
+      "evidence": "repository pin/archive/license audit; no blind dependency update"
+    },
+    {
+      "path": "dev/tests/installer_fixtures.py",
+      "surface": "build-test-documentation-or-other-upstream",
+      "evidence": "repository pin/archive/license audit; no blind dependency update"
+    },
+    {
+      "path": "dev/tests/native_peer.py",
+      "surface": "build-test-documentation-or-other-upstream",
+      "evidence": "repository pin/archive/license audit; no blind dependency update"
+    },
+    {
+      "path": "dev/tests/server/log_lines_golden.txt",
+      "surface": "build-test-documentation-or-other-upstream",
+      "evidence": "repository pin/archive/license audit; no blind dependency update"
+    },
+    {
+      "path": "dev/tests/server/serve_record_golden.json",
+      "surface": "build-test-documentation-or-other-upstream",
+      "evidence": "repository pin/archive/license audit; no blind dependency update"
+    },
+    {
+      "path": "dev/tests/server/serve_record_stopped_golden.json",
+      "surface": "build-test-documentation-or-other-upstream",
+      "evidence": "repository pin/archive/license audit; no blind dependency update"
+    },
+    {
+      "path": "dev/tests/server/serve_record_warming_golden.json",
+      "surface": "build-test-documentation-or-other-upstream",
+      "evidence": "repository pin/archive/license audit; no blind dependency update"
+    },
+    {
+      "path": "dev/tests/server/status_transport_golden.json",
+      "surface": "build-test-documentation-or-other-upstream",
+      "evidence": "repository pin/archive/license audit; no blind dependency update"
+    },
+    {
+      "path": "dev/tests/server/test_anthropic_contract.py",
+      "surface": "build-test-documentation-or-other-upstream",
+      "evidence": "repository pin/archive/license audit; no blind dependency update"
+    },
+    {
+      "path": "dev/tests/server/test_chat.py",
+      "surface": "build-test-documentation-or-other-upstream",
+      "evidence": "repository pin/archive/license audit; no blind dependency update"
+    },
+    {
+      "path": "dev/tests/server/test_chat_completions.py",
+      "surface": "build-test-documentation-or-other-upstream",
+      "evidence": "repository pin/archive/license audit; no blind dependency update"
+    },
+    {
+      "path": "dev/tests/server/test_chat_count_tokens.py",
+      "surface": "build-test-documentation-or-other-upstream",
+      "evidence": "repository pin/archive/license audit; no blind dependency update"
+    },
+    {
+      "path": "dev/tests/server/test_chat_formats.py",
+      "surface": "build-test-documentation-or-other-upstream",
+      "evidence": "repository pin/archive/license audit; no blind dependency update"
+    },
+    {
+      "path": "dev/tests/server/test_chat_templates.py",
+      "surface": "build-test-documentation-or-other-upstream",
+      "evidence": "repository pin/archive/license audit; no blind dependency update"
+    },
+    {
+      "path": "dev/tests/server/test_constraint_cache.py",
+      "surface": "build-test-documentation-or-other-upstream",
+      "evidence": "repository pin/archive/license audit; no blind dependency update"
+    },
+    {
+      "path": "dev/tests/server/test_crash_trace.py",
+      "surface": "build-test-documentation-or-other-upstream",
+      "evidence": "repository pin/archive/license audit; no blind dependency update"
+    },
+    {
+      "path": "dev/tests/server/test_custom_tools.py",
+      "surface": "build-test-documentation-or-other-upstream",
+      "evidence": "repository pin/archive/license audit; no blind dependency update"
+    },
+    {
+      "path": "dev/tests/server/test_default_reasoning.py",
+      "surface": "build-test-documentation-or-other-upstream",
+      "evidence": "repository pin/archive/license audit; no blind dependency update"
+    },
+    {
+      "path": "dev/tests/server/test_diagnostics.py",
+      "surface": "build-test-documentation-or-other-upstream",
+      "evidence": "repository pin/archive/license audit; no blind dependency update"
+    },
+    {
+      "path": "dev/tests/server/test_document_worker.py",
+      "surface": "build-test-documentation-or-other-upstream",
+      "evidence": "repository pin/archive/license audit; no blind dependency update"
+    },
+    {
+      "path": "dev/tests/server/test_documents.py",
+      "surface": "build-test-documentation-or-other-upstream",
+      "evidence": "repository pin/archive/license audit; no blind dependency update"
+    },
+    {
+      "path": "dev/tests/server/test_http_body_budget.py",
+      "surface": "build-test-documentation-or-other-upstream",
+      "evidence": "repository pin/archive/license audit; no blind dependency update"
+    },
+    {
+      "path": "dev/tests/server/test_http_boundaries.py",
+      "surface": "build-test-documentation-or-other-upstream",
+      "evidence": "repository pin/archive/license audit; no blind dependency update"
+    },
+    {
+      "path": "dev/tests/server/test_http_transport.py",
+      "surface": "build-test-documentation-or-other-upstream",
+      "evidence": "repository pin/archive/license audit; no blind dependency update"
+    },
+    {
+      "path": "dev/tests/server/test_images.py",
+      "surface": "build-test-documentation-or-other-upstream",
+      "evidence": "repository pin/archive/license audit; no blind dependency update"
+    },
+    {
+      "path": "dev/tests/server/test_json_responses.py",
+      "surface": "build-test-documentation-or-other-upstream",
+      "evidence": "repository pin/archive/license audit; no blind dependency update"
+    },
+    {
+      "path": "dev/tests/server/test_judgments.py",
+      "surface": "build-test-documentation-or-other-upstream",
+      "evidence": "repository pin/archive/license audit; no blind dependency update"
+    },
+    {
+      "path": "dev/tests/server/test_memory_release.py",
+      "surface": "build-test-documentation-or-other-upstream",
+      "evidence": "repository pin/archive/license audit; no blind dependency update"
+    },
+    {
+      "path": "dev/tests/server/test_native_backend.py",
+      "surface": "build-test-documentation-or-other-upstream",
+      "evidence": "repository pin/archive/license audit; no blind dependency update"
+    },
+    {
+      "path": "dev/tests/server/test_output_budget.py",
+      "surface": "build-test-documentation-or-other-upstream",
+      "evidence": "repository pin/archive/license audit; no blind dependency update"
+    },
+    {
+      "path": "dev/tests/server/test_partial_tool_output.py",
+      "surface": "build-test-documentation-or-other-upstream",
+      "evidence": "repository pin/archive/license audit; no blind dependency update"
+    },
+    {
+      "path": "dev/tests/server/test_pdf_protocols.py",
+      "surface": "build-test-documentation-or-other-upstream",
+      "evidence": "repository pin/archive/license audit; no blind dependency update"
+    },
+    {
+      "path": "dev/tests/server/test_preparation.py",
+      "surface": "build-test-documentation-or-other-upstream",
+      "evidence": "repository pin/archive/license audit; no blind dependency update"
+    },
+    {
+      "path": "dev/tests/server/test_prompt_progress.py",
+      "surface": "build-test-documentation-or-other-upstream",
+      "evidence": "repository pin/archive/license audit; no blind dependency update"
+    },
+    {
+      "path": "dev/tests/server/test_prompt_tokenization.py",
+      "surface": "build-test-documentation-or-other-upstream",
+      "evidence": "repository pin/archive/license audit; no blind dependency update"
+    },
+    {
+      "path": "dev/tests/server/test_prompt_tools.py",
+      "surface": "build-test-documentation-or-other-upstream",
+      "evidence": "repository pin/archive/license audit; no blind dependency update"
+    },
+    {
+      "path": "dev/tests/server/test_protocol_python.py",
+      "surface": "build-test-documentation-or-other-upstream",
+      "evidence": "repository pin/archive/license audit; no blind dependency update"
+    },
+    {
+      "path": "dev/tests/server/test_protocol_recovery.py",
+      "surface": "build-test-documentation-or-other-upstream",
+      "evidence": "repository pin/archive/license audit; no blind dependency update"
+    },
+    {
+      "path": "dev/tests/server/test_request_contract.py",
+      "surface": "build-test-documentation-or-other-upstream",
+      "evidence": "repository pin/archive/license audit; no blind dependency update"
+    },
+    {
+      "path": "dev/tests/server/test_request_failures.py",
+      "surface": "build-test-documentation-or-other-upstream",
+      "evidence": "repository pin/archive/license audit; no blind dependency update"
+    },
+    {
+      "path": "dev/tests/server/test_request_lifetime.py",
+      "surface": "build-test-documentation-or-other-upstream",
+      "evidence": "repository pin/archive/license audit; no blind dependency update"
+    },
+    {
+      "path": "dev/tests/server/test_response_lifecycle.py",
+      "surface": "build-test-documentation-or-other-upstream",
+      "evidence": "repository pin/archive/license audit; no blind dependency update"
+    },
+    {
+      "path": "dev/tests/server/test_response_timings.py",
+      "surface": "build-test-documentation-or-other-upstream",
+      "evidence": "repository pin/archive/license audit; no blind dependency update"
+    },
+    {
+      "path": "dev/tests/server/test_responses.py",
+      "surface": "build-test-documentation-or-other-upstream",
+      "evidence": "repository pin/archive/license audit; no blind dependency update"
+    },
+    {
+      "path": "dev/tests/server/test_runtime.py",
+      "surface": "build-test-documentation-or-other-upstream",
+      "evidence": "repository pin/archive/license audit; no blind dependency update"
+    },
+    {
+      "path": "dev/tests/server/test_sampling.py",
+      "surface": "build-test-documentation-or-other-upstream",
+      "evidence": "repository pin/archive/license audit; no blind dependency update"
+    },
+    {
+      "path": "dev/tests/server/test_serve_options.py",
+      "surface": "build-test-documentation-or-other-upstream",
+      "evidence": "repository pin/archive/license audit; no blind dependency update"
+    },
+    {
+      "path": "dev/tests/server/test_serve_record.py",
+      "surface": "build-test-documentation-or-other-upstream",
+      "evidence": "repository pin/archive/license audit; no blind dependency update"
+    },
+    {
+      "path": "dev/tests/server/test_served_model_names.py",
+      "surface": "build-test-documentation-or-other-upstream",
+      "evidence": "repository pin/archive/license audit; no blind dependency update"
+    },
+    {
+      "path": "dev/tests/server/test_server_access.py",
+      "surface": "build-test-documentation-or-other-upstream",
+      "evidence": "repository pin/archive/license audit; no blind dependency update"
+    },
+    {
+      "path": "dev/tests/server/test_server_main.py",
+      "surface": "build-test-documentation-or-other-upstream",
+      "evidence": "repository pin/archive/license audit; no blind dependency update"
+    },
+    {
+      "path": "dev/tests/server/test_server_recovery.py",
+      "surface": "build-test-documentation-or-other-upstream",
+      "evidence": "repository pin/archive/license audit; no blind dependency update"
+    },
+    {
+      "path": "dev/tests/server/test_status_contract.py",
+      "surface": "build-test-documentation-or-other-upstream",
+      "evidence": "repository pin/archive/license audit; no blind dependency update"
+    },
+    {
+      "path": "dev/tests/server/test_stop_with_app.py",
+      "surface": "build-test-documentation-or-other-upstream",
+      "evidence": "repository pin/archive/license audit; no blind dependency update"
+    },
+    {
+      "path": "dev/tests/server/test_stream_keepalive.py",
+      "surface": "build-test-documentation-or-other-upstream",
+      "evidence": "repository pin/archive/license audit; no blind dependency update"
+    },
+    {
+      "path": "dev/tests/server/test_supervision.py",
+      "surface": "build-test-documentation-or-other-upstream",
+      "evidence": "repository pin/archive/license audit; no blind dependency update"
+    },
+    {
+      "path": "dev/tests/server/test_text_completions.py",
+      "surface": "build-test-documentation-or-other-upstream",
+      "evidence": "repository pin/archive/license audit; no blind dependency update"
+    },
+    {
+      "path": "dev/tests/server/test_thinking_key.py",
+      "surface": "build-test-documentation-or-other-upstream",
+      "evidence": "repository pin/archive/license audit; no blind dependency update"
+    },
+    {
+      "path": "dev/tests/server/test_thinking_token_budget.py",
+      "surface": "build-test-documentation-or-other-upstream",
+      "evidence": "repository pin/archive/license audit; no blind dependency update"
+    },
+    {
+      "path": "dev/tests/server/test_token_constraint.py",
+      "surface": "build-test-documentation-or-other-upstream",
+      "evidence": "repository pin/archive/license audit; no blind dependency update"
+    },
+    {
+      "path": "dev/tests/server/test_tokenizer_contract.py",
+      "surface": "build-test-documentation-or-other-upstream",
+      "evidence": "repository pin/archive/license audit; no blind dependency update"
+    },
+    {
+      "path": "dev/tests/server/test_tool_call_reading.py",
+      "surface": "build-test-documentation-or-other-upstream",
+      "evidence": "repository pin/archive/license audit; no blind dependency update"
+    },
+    {
+      "path": "dev/tests/server/test_tool_schema_composition.py",
+      "surface": "build-test-documentation-or-other-upstream",
+      "evidence": "repository pin/archive/license audit; no blind dependency update"
+    },
+    {
+      "path": "dev/tests/server_fixtures.py",
+      "surface": "build-test-documentation-or-other-upstream",
+      "evidence": "repository pin/archive/license audit; no blind dependency update"
+    },
+    {
+      "path": "dev/tests/smoke_real.py",
+      "surface": "build-test-documentation-or-other-upstream",
+      "evidence": "repository pin/archive/license audit; no blind dependency update"
+    },
+    {
+      "path": "dev/tests/tools/test_appcast.py",
+      "surface": "build-test-documentation-or-other-upstream",
+      "evidence": "repository pin/archive/license audit; no blind dependency update"
+    },
+    {
+      "path": "dev/tests/tools/test_architecture.py",
+      "surface": "build-test-documentation-or-other-upstream",
+      "evidence": "repository pin/archive/license audit; no blind dependency update"
+    },
+    {
+      "path": "dev/tests/tools/test_backend_regression.py",
+      "surface": "build-test-documentation-or-other-upstream",
+      "evidence": "repository pin/archive/license audit; no blind dependency update"
+    },
+    {
+      "path": "dev/tests/tools/test_build_identity.py",
+      "surface": "build-test-documentation-or-other-upstream",
+      "evidence": "repository pin/archive/license audit; no blind dependency update"
+    },
+    {
+      "path": "dev/tests/tools/test_http_regression.py",
+      "surface": "build-test-documentation-or-other-upstream",
+      "evidence": "repository pin/archive/license audit; no blind dependency update"
+    },
+    {
+      "path": "dev/tests/tools/test_makefile.py",
+      "surface": "build-test-documentation-or-other-upstream",
+      "evidence": "repository pin/archive/license audit; no blind dependency update"
+    },
+    {
+      "path": "dev/tests/tools/test_package.py",
+      "surface": "build-test-documentation-or-other-upstream",
+      "evidence": "repository pin/archive/license audit; no blind dependency update"
+    },
+    {
+      "path": "dev/tests/tools/test_package_app.py",
+      "surface": "build-test-documentation-or-other-upstream",
+      "evidence": "repository pin/archive/license audit; no blind dependency update"
+    },
+    {
+      "path": "dev/tests/tools/test_packaged_server.py",
+      "surface": "build-test-documentation-or-other-upstream",
+      "evidence": "repository pin/archive/license audit; no blind dependency update"
+    },
+    {
+      "path": "dev/tests/tools/test_release_app.py",
+      "surface": "build-test-documentation-or-other-upstream",
+      "evidence": "repository pin/archive/license audit; no blind dependency update"
+    },
+    {
+      "path": "dev/tests/tools/test_serving_benchmark.py",
+      "surface": "build-test-documentation-or-other-upstream",
+      "evidence": "repository pin/archive/license audit; no blind dependency update"
+    },
+    {
+      "path": "dev/tests/tools/test_smoke_real.py",
+      "surface": "build-test-documentation-or-other-upstream",
+      "evidence": "repository pin/archive/license audit; no blind dependency update"
+    },
+    {
+      "path": "dev/tests/tools/test_weights.py",
+      "surface": "build-test-documentation-or-other-upstream",
+      "evidence": "repository pin/archive/license audit; no blind dependency update"
+    },
+    {
+      "path": "dev/tools/LoadOptions.hpp",
+      "surface": "build-test-documentation-or-other-upstream",
+      "evidence": "repository pin/archive/license audit; no blind dependency update"
+    },
+    {
+      "path": "dev/tools/appcast.py",
+      "surface": "build-test-documentation-or-other-upstream",
+      "evidence": "repository pin/archive/license audit; no blind dependency update"
+    },
+    {
+      "path": "dev/tools/check_architecture.py",
+      "surface": "build-test-documentation-or-other-upstream",
+      "evidence": "repository pin/archive/license audit; no blind dependency update"
+    },
+    {
+      "path": "dev/tools/install.sh",
+      "surface": "build-test-documentation-or-other-upstream",
+      "evidence": "repository pin/archive/license audit; no blind dependency update"
+    },
+    {
+      "path": "dev/tools/installer_restarts.py",
+      "surface": "build-test-documentation-or-other-upstream",
+      "evidence": "repository pin/archive/license audit; no blind dependency update"
+    },
+    {
+      "path": "dev/tools/package.py",
+      "surface": "build-test-documentation-or-other-upstream",
+      "evidence": "repository pin/archive/license audit; no blind dependency update"
+    },
+    {
+      "path": "dev/tools/package_app.py",
+      "surface": "build-test-documentation-or-other-upstream",
+      "evidence": "repository pin/archive/license audit; no blind dependency update"
+    },
+    {
+      "path": "dev/tools/package_brew.py",
+      "surface": "build-test-documentation-or-other-upstream",
+      "evidence": "repository pin/archive/license audit; no blind dependency update"
+    },
+    {
+      "path": "dev/tools/publish_test.py",
+      "surface": "build-test-documentation-or-other-upstream",
+      "evidence": "repository pin/archive/license audit; no blind dependency update"
+    },
+    {
+      "path": "dev/tools/release_app.py",
+      "surface": "build-test-documentation-or-other-upstream",
+      "evidence": "repository pin/archive/license audit; no blind dependency update"
+    },
+    {
+      "path": "dev/tools/vision_reference.py",
+      "surface": "build-test-documentation-or-other-upstream",
+      "evidence": "repository pin/archive/license audit; no blind dependency update"
+    },
+    {
+      "path": "docs/README.md",
+      "surface": "build-test-documentation-or-other-upstream",
+      "evidence": "repository pin/archive/license audit; no blind dependency update"
+    },
+    {
+      "path": "docs/api.md",
+      "surface": "build-test-documentation-or-other-upstream",
+      "evidence": "repository pin/archive/license audit; no blind dependency update"
+    },
+    {
+      "path": "docs/internals.md",
+      "surface": "build-test-documentation-or-other-upstream",
+      "evidence": "repository pin/archive/license audit; no blind dependency update"
+    },
+    {
+      "path": "docs/models.md",
+      "surface": "build-test-documentation-or-other-upstream",
+      "evidence": "repository pin/archive/license audit; no blind dependency update"
+    },
+    {
+      "path": "docs/package.md",
+      "surface": "build-test-documentation-or-other-upstream",
+      "evidence": "repository pin/archive/license audit; no blind dependency update"
+    },
+    {
+      "path": "docs/performance.md",
+      "surface": "build-test-documentation-or-other-upstream",
+      "evidence": "repository pin/archive/license audit; no blind dependency update"
+    },
+    {
+      "path": "docs/release-notes/1.6.0.md",
+      "surface": "build-test-documentation-or-other-upstream",
+      "evidence": "repository pin/archive/license audit; no blind dependency update"
+    },
+    {
+      "path": "docs/release-notes/1.6.1.md",
+      "surface": "build-test-documentation-or-other-upstream",
+      "evidence": "repository pin/archive/license audit; no blind dependency update"
+    },
+    {
+      "path": "docs/server.md",
+      "surface": "build-test-documentation-or-other-upstream",
+      "evidence": "repository pin/archive/license audit; no blind dependency update"
+    },
+    {
+      "path": "docs/validate.md",
+      "surface": "build-test-documentation-or-other-upstream",
+      "evidence": "repository pin/archive/license audit; no blind dependency update"
+    },
+    {
+      "path": "install/assembly.py",
+      "surface": "model-setup-or-reference-packaging",
+      "evidence": "Swift setup/resume/reuse checks; actual 4318-byte model record matches unchanged upstream preparation; removed obsolete target/config alias only; source hashes unchanged"
+    },
+    {
+      "path": "install/cached.py",
+      "surface": "model-setup-or-reference-packaging",
+      "evidence": "Swift setup/resume/reuse checks; actual 4318-byte model record matches unchanged upstream preparation; removed obsolete target/config alias only; source hashes unchanged"
+    },
+    {
+      "path": "install/clients.py",
+      "surface": "model-setup-or-reference-packaging",
+      "evidence": "Swift setup/resume/reuse checks; actual 4318-byte model record matches unchanged upstream preparation; removed obsolete target/config alias only; source hashes unchanged"
+    },
+    {
+      "path": "install/completions/_splash",
+      "surface": "model-setup-or-reference-packaging",
+      "evidence": "Swift setup/resume/reuse checks; actual 4318-byte model record matches unchanged upstream preparation; removed obsolete target/config alias only; source hashes unchanged"
+    },
+    {
+      "path": "install/completions/models",
+      "surface": "model-setup-or-reference-packaging",
+      "evidence": "Swift setup/resume/reuse checks; actual 4318-byte model record matches unchanged upstream preparation; removed obsolete target/config alias only; source hashes unchanged"
+    },
+    {
+      "path": "install/completions/splash.bash",
+      "surface": "model-setup-or-reference-packaging",
+      "evidence": "Swift setup/resume/reuse checks; actual 4318-byte model record matches unchanged upstream preparation; removed obsolete target/config alias only; source hashes unchanged"
+    },
+    {
+      "path": "install/completions/splash.fish",
+      "surface": "model-setup-or-reference-packaging",
+      "evidence": "Swift setup/resume/reuse checks; actual 4318-byte model record matches unchanged upstream preparation; removed obsolete target/config alias only; source hashes unchanged"
+    },
+    {
+      "path": "install/completions/suggested-models.txt",
+      "surface": "model-setup-or-reference-packaging",
+      "evidence": "Swift setup/resume/reuse checks; actual 4318-byte model record matches unchanged upstream preparation; removed obsolete target/config alias only; source hashes unchanged"
+    },
+    {
+      "path": "install/families.py",
+      "surface": "model-setup-or-reference-packaging",
+      "evidence": "Swift setup/resume/reuse checks; actual 4318-byte model record matches unchanged upstream preparation; removed obsolete target/config alias only; source hashes unchanged"
+    },
+    {
+      "path": "install/gguf.py",
+      "surface": "model-setup-or-reference-packaging",
+      "evidence": "Swift setup/resume/reuse checks; actual 4318-byte model record matches unchanged upstream preparation; removed obsolete target/config alias only; source hashes unchanged"
+    },
+    {
+      "path": "install/hub.py",
+      "surface": "model-setup-or-reference-packaging",
+      "evidence": "Swift setup/resume/reuse checks; actual 4318-byte model record matches unchanged upstream preparation; removed obsolete target/config alias only; source hashes unchanged"
+    },
+    {
+      "path": "install/launcher.py",
+      "surface": "model-setup-or-reference-packaging",
+      "evidence": "Swift setup/resume/reuse checks; actual 4318-byte model record matches unchanged upstream preparation; removed obsolete target/config alias only; source hashes unchanged"
+    },
+    {
+      "path": "install/local.py",
+      "surface": "model-setup-or-reference-packaging",
+      "evidence": "Swift setup/resume/reuse checks; actual 4318-byte model record matches unchanged upstream preparation; removed obsolete target/config alias only; source hashes unchanged"
+    },
+    {
+      "path": "install/models.py",
+      "surface": "model-setup-or-reference-packaging",
+      "evidence": "Swift setup/resume/reuse checks; actual 4318-byte model record matches unchanged upstream preparation; removed obsolete target/config alias only; source hashes unchanged"
+    },
+    {
+      "path": "install/requirements.txt",
+      "surface": "model-setup-or-reference-packaging",
+      "evidence": "Swift setup/resume/reuse checks; actual 4318-byte model record matches unchanged upstream preparation; removed obsolete target/config alias only; source hashes unchanged"
+    },
+    {
+      "path": "install/suggested-models.tsv",
+      "surface": "model-setup-or-reference-packaging",
+      "evidence": "Swift setup/resume/reuse checks; actual 4318-byte model record matches unchanged upstream preparation; removed obsolete target/config alias only; source hashes unchanged"
+    },
+    {
+      "path": "install/upstream.py",
+      "surface": "model-setup-or-reference-packaging",
+      "evidence": "Swift setup/resume/reuse checks; actual 4318-byte model record matches unchanged upstream preparation; removed obsolete target/config alias only; source hashes unchanged"
+    },
+    {
+      "path": "runtime/Checked.hpp",
+      "surface": "unchanged-upstream-native-engine",
+      "evidence": "artifact hashes; wire/setup/real-model/lifecycle and admission qualification"
+    },
+    {
+      "path": "runtime/StderrLine.hpp",
+      "surface": "unchanged-upstream-native-engine",
+      "evidence": "artifact hashes; wire/setup/real-model/lifecycle and admission qualification"
+    },
+    {
+      "path": "runtime/Supervision.hpp",
+      "surface": "unchanged-upstream-native-engine",
+      "evidence": "artifact hashes; wire/setup/real-model/lifecycle and admission qualification"
+    },
+    {
+      "path": "runtime/engine/AneFfnStartup.cpp",
+      "surface": "unchanged-upstream-native-engine",
+      "evidence": "artifact hashes; wire/setup/real-model/lifecycle and admission qualification"
+    },
+    {
+      "path": "runtime/engine/AneFfnStartup.hpp",
+      "surface": "unchanged-upstream-native-engine",
+      "evidence": "artifact hashes; wire/setup/real-model/lifecycle and admission qualification"
+    },
+    {
+      "path": "runtime/engine/Bootstrap.hpp",
+      "surface": "unchanged-upstream-native-engine",
+      "evidence": "artifact hashes; wire/setup/real-model/lifecycle and admission qualification"
+    },
+    {
+      "path": "runtime/engine/Bootstrap.mm",
+      "surface": "unchanged-upstream-native-engine",
+      "evidence": "artifact hashes; wire/setup/real-model/lifecycle and admission qualification"
+    },
+    {
+      "path": "runtime/engine/Cache.cpp",
+      "surface": "unchanged-upstream-native-engine",
+      "evidence": "artifact hashes; wire/setup/real-model/lifecycle and admission qualification"
+    },
+    {
+      "path": "runtime/engine/Cache.hpp",
+      "surface": "unchanged-upstream-native-engine",
+      "evidence": "artifact hashes; wire/setup/real-model/lifecycle and admission qualification"
+    },
+    {
+      "path": "runtime/engine/Capture.hpp",
+      "surface": "unchanged-upstream-native-engine",
+      "evidence": "artifact hashes; wire/setup/real-model/lifecycle and admission qualification"
+    },
+    {
+      "path": "runtime/engine/DiskSpace.cpp",
+      "surface": "unchanged-upstream-native-engine",
+      "evidence": "artifact hashes; wire/setup/real-model/lifecycle and admission qualification"
+    },
+    {
+      "path": "runtime/engine/DiskSpace.hpp",
+      "surface": "unchanged-upstream-native-engine",
+      "evidence": "artifact hashes; wire/setup/real-model/lifecycle and admission qualification"
+    },
+    {
+      "path": "runtime/engine/Engine.cpp",
+      "surface": "unchanged-upstream-native-engine",
+      "evidence": "artifact hashes; wire/setup/real-model/lifecycle and admission qualification"
+    },
+    {
+      "path": "runtime/engine/Engine.hpp",
+      "surface": "unchanged-upstream-native-engine",
+      "evidence": "artifact hashes; wire/setup/real-model/lifecycle and admission qualification"
+    },
+    {
+      "path": "runtime/engine/EngineAllocate.hpp",
+      "surface": "unchanged-upstream-native-engine",
+      "evidence": "artifact hashes; wire/setup/real-model/lifecycle and admission qualification"
+    },
+    {
+      "path": "runtime/engine/EngineMemory.cpp",
+      "surface": "unchanged-upstream-native-engine",
+      "evidence": "artifact hashes; wire/setup/real-model/lifecycle and admission qualification"
+    },
+    {
+      "path": "runtime/engine/FdTransport.cpp",
+      "surface": "unchanged-upstream-native-engine",
+      "evidence": "artifact hashes; wire/setup/real-model/lifecycle and admission qualification"
+    },
+    {
+      "path": "runtime/engine/FdTransport.hpp",
+      "surface": "unchanged-upstream-native-engine",
+      "evidence": "artifact hashes; wire/setup/real-model/lifecycle and admission qualification"
+    },
+    {
+      "path": "runtime/engine/Json.hpp",
+      "surface": "unchanged-upstream-native-engine",
+      "evidence": "artifact hashes; wire/setup/real-model/lifecycle and admission qualification"
+    },
+    {
+      "path": "runtime/engine/KvCache.cpp",
+      "surface": "unchanged-upstream-native-engine",
+      "evidence": "artifact hashes; wire/setup/real-model/lifecycle and admission qualification"
+    },
+    {
+      "path": "runtime/engine/KvCache.hpp",
+      "surface": "unchanged-upstream-native-engine",
+      "evidence": "artifact hashes; wire/setup/real-model/lifecycle and admission qualification"
+    },
+    {
+      "path": "runtime/engine/KvPageTier.hpp",
+      "surface": "unchanged-upstream-native-engine",
+      "evidence": "artifact hashes; wire/setup/real-model/lifecycle and admission qualification"
+    },
+    {
+      "path": "runtime/engine/KvPool.cpp",
+      "surface": "unchanged-upstream-native-engine",
+      "evidence": "artifact hashes; wire/setup/real-model/lifecycle and admission qualification"
+    },
+    {
+      "path": "runtime/engine/KvPool.hpp",
+      "surface": "unchanged-upstream-native-engine",
+      "evidence": "artifact hashes; wire/setup/real-model/lifecycle and admission qualification"
+    },
+    {
+      "path": "runtime/engine/KvTier.hpp",
+      "surface": "unchanged-upstream-native-engine",
+      "evidence": "artifact hashes; wire/setup/real-model/lifecycle and admission qualification"
+    },
+    {
+      "path": "runtime/engine/MemoryAudit.cpp",
+      "surface": "unchanged-upstream-native-engine",
+      "evidence": "artifact hashes; wire/setup/real-model/lifecycle and admission qualification"
+    },
+    {
+      "path": "runtime/engine/MemoryAudit.hpp",
+      "surface": "unchanged-upstream-native-engine",
+      "evidence": "artifact hashes; wire/setup/real-model/lifecycle and admission qualification"
+    },
+    {
+      "path": "runtime/engine/MemoryControl.cpp",
+      "surface": "unchanged-upstream-native-engine",
+      "evidence": "artifact hashes; wire/setup/real-model/lifecycle and admission qualification"
+    },
+    {
+      "path": "runtime/engine/MemoryControl.hpp",
+      "surface": "unchanged-upstream-native-engine",
+      "evidence": "artifact hashes; wire/setup/real-model/lifecycle and admission qualification"
+    },
+    {
+      "path": "runtime/engine/MemoryGovernor.cpp",
+      "surface": "unchanged-upstream-native-engine",
+      "evidence": "artifact hashes; wire/setup/real-model/lifecycle and admission qualification"
+    },
+    {
+      "path": "runtime/engine/MemoryGovernor.hpp",
+      "surface": "unchanged-upstream-native-engine",
+      "evidence": "artifact hashes; wire/setup/real-model/lifecycle and admission qualification"
+    },
+    {
+      "path": "runtime/engine/MemoryLedger.cpp",
+      "surface": "unchanged-upstream-native-engine",
+      "evidence": "artifact hashes; wire/setup/real-model/lifecycle and admission qualification"
+    },
+    {
+      "path": "runtime/engine/MemoryLedger.hpp",
+      "surface": "unchanged-upstream-native-engine",
+      "evidence": "artifact hashes; wire/setup/real-model/lifecycle and admission qualification"
+    },
+    {
+      "path": "runtime/engine/MemoryPlan.cpp",
+      "surface": "unchanged-upstream-native-engine",
+      "evidence": "artifact hashes; wire/setup/real-model/lifecycle and admission qualification"
+    },
+    {
+      "path": "runtime/engine/MemoryPlan.hpp",
+      "surface": "unchanged-upstream-native-engine",
+      "evidence": "artifact hashes; wire/setup/real-model/lifecycle and admission qualification"
+    },
+    {
+      "path": "runtime/engine/NativeArguments.cpp",
+      "surface": "unchanged-upstream-native-engine",
+      "evidence": "artifact hashes; wire/setup/real-model/lifecycle and admission qualification"
+    },
+    {
+      "path": "runtime/engine/NativeArguments.hpp",
+      "surface": "unchanged-upstream-native-engine",
+      "evidence": "artifact hashes; wire/setup/real-model/lifecycle and admission qualification"
+    },
+    {
+      "path": "runtime/engine/NativeRuntime.cpp",
+      "surface": "unchanged-upstream-native-engine",
+      "evidence": "artifact hashes; wire/setup/real-model/lifecycle and admission qualification"
+    },
+    {
+      "path": "runtime/engine/NativeRuntime.hpp",
+      "surface": "unchanged-upstream-native-engine",
+      "evidence": "artifact hashes; wire/setup/real-model/lifecycle and admission qualification"
+    },
+    {
+      "path": "runtime/engine/PassCommand.cpp",
+      "surface": "unchanged-upstream-native-engine",
+      "evidence": "artifact hashes; wire/setup/real-model/lifecycle and admission qualification"
+    },
+    {
+      "path": "runtime/engine/PassCommand.hpp",
+      "surface": "unchanged-upstream-native-engine",
+      "evidence": "artifact hashes; wire/setup/real-model/lifecycle and admission qualification"
+    },
+    {
+      "path": "runtime/engine/Protocol.cpp",
+      "surface": "unchanged-upstream-native-engine",
+      "evidence": "artifact hashes; wire/setup/real-model/lifecycle and admission qualification"
+    },
+    {
+      "path": "runtime/engine/Protocol.hpp",
+      "surface": "unchanged-upstream-native-engine",
+      "evidence": "artifact hashes; wire/setup/real-model/lifecycle and admission qualification"
+    },
+    {
+      "path": "runtime/engine/ReclaimClass.hpp",
+      "surface": "unchanged-upstream-native-engine",
+      "evidence": "artifact hashes; wire/setup/real-model/lifecycle and admission qualification"
+    },
+    {
+      "path": "runtime/engine/ReleasableMemory.hpp",
+      "surface": "unchanged-upstream-native-engine",
+      "evidence": "artifact hashes; wire/setup/real-model/lifecycle and admission qualification"
+    },
+    {
+      "path": "runtime/engine/RuntimeMetrics.hpp",
+      "surface": "unchanged-upstream-native-engine",
+      "evidence": "artifact hashes; wire/setup/real-model/lifecycle and admission qualification"
+    },
+    {
+      "path": "runtime/engine/RuntimeResources.hpp",
+      "surface": "unchanged-upstream-native-engine",
+      "evidence": "artifact hashes; wire/setup/real-model/lifecycle and admission qualification"
+    },
+    {
+      "path": "runtime/engine/RuntimeResources.mm",
+      "surface": "unchanged-upstream-native-engine",
+      "evidence": "artifact hashes; wire/setup/real-model/lifecycle and admission qualification"
+    },
+    {
+      "path": "runtime/engine/Scheduler.cpp",
+      "surface": "unchanged-upstream-native-engine",
+      "evidence": "artifact hashes; wire/setup/real-model/lifecycle and admission qualification"
+    },
+    {
+      "path": "runtime/engine/Scheduler.hpp",
+      "surface": "unchanged-upstream-native-engine",
+      "evidence": "artifact hashes; wire/setup/real-model/lifecycle and admission qualification"
+    },
+    {
+      "path": "runtime/engine/StateCache.cpp",
+      "surface": "unchanged-upstream-native-engine",
+      "evidence": "artifact hashes; wire/setup/real-model/lifecycle and admission qualification"
+    },
+    {
+      "path": "runtime/engine/StateCache.hpp",
+      "surface": "unchanged-upstream-native-engine",
+      "evidence": "artifact hashes; wire/setup/real-model/lifecycle and admission qualification"
+    },
+    {
+      "path": "runtime/engine/Status.cpp",
+      "surface": "unchanged-upstream-native-engine",
+      "evidence": "artifact hashes; wire/setup/real-model/lifecycle and admission qualification"
+    },
+    {
+      "path": "runtime/engine/Status.hpp",
+      "surface": "unchanged-upstream-native-engine",
+      "evidence": "artifact hashes; wire/setup/real-model/lifecycle and admission qualification"
+    },
+    {
+      "path": "runtime/engine/StreamedMemoryPlan.cpp",
+      "surface": "unchanged-upstream-native-engine",
+      "evidence": "artifact hashes; wire/setup/real-model/lifecycle and admission qualification"
+    },
+    {
+      "path": "runtime/engine/StreamedMemoryPlan.hpp",
+      "surface": "unchanged-upstream-native-engine",
+      "evidence": "artifact hashes; wire/setup/real-model/lifecycle and admission qualification"
+    },
+    {
+      "path": "runtime/engine/Types.hpp",
+      "surface": "unchanged-upstream-native-engine",
+      "evidence": "artifact hashes; wire/setup/real-model/lifecycle and admission qualification"
+    },
+    {
+      "path": "runtime/engine/WeightResidency.cpp",
+      "surface": "unchanged-upstream-native-engine",
+      "evidence": "artifact hashes; wire/setup/real-model/lifecycle and admission qualification"
+    },
+    {
+      "path": "runtime/engine/WeightResidency.hpp",
+      "surface": "unchanged-upstream-native-engine",
+      "evidence": "artifact hashes; wire/setup/real-model/lifecycle and admission qualification"
+    },
+    {
+      "path": "runtime/engine/WriteBehind.cpp",
+      "surface": "unchanged-upstream-native-engine",
+      "evidence": "artifact hashes; wire/setup/real-model/lifecycle and admission qualification"
+    },
+    {
+      "path": "runtime/engine/WriteBehind.hpp",
+      "surface": "unchanged-upstream-native-engine",
+      "evidence": "artifact hashes; wire/setup/real-model/lifecycle and admission qualification"
+    },
+    {
+      "path": "runtime/main.mm",
+      "surface": "unchanged-upstream-native-engine",
+      "evidence": "artifact hashes; wire/setup/real-model/lifecycle and admission qualification"
+    },
+    {
+      "path": "runtime/metal/Allocation.hpp",
+      "surface": "unchanged-upstream-native-engine",
+      "evidence": "artifact hashes; wire/setup/real-model/lifecycle and admission qualification"
+    },
+    {
+      "path": "runtime/metal/BackendInstrumentation.hpp",
+      "surface": "unchanged-upstream-native-engine",
+      "evidence": "artifact hashes; wire/setup/real-model/lifecycle and admission qualification"
+    },
+    {
+      "path": "runtime/metal/CommandGraph.hpp",
+      "surface": "unchanged-upstream-native-engine",
+      "evidence": "artifact hashes; wire/setup/real-model/lifecycle and admission qualification"
+    },
+    {
+      "path": "runtime/metal/CommandWatchdog.hpp",
+      "surface": "unchanged-upstream-native-engine",
+      "evidence": "artifact hashes; wire/setup/real-model/lifecycle and admission qualification"
+    },
+    {
+      "path": "runtime/metal/DeviceCapabilities.hpp",
+      "surface": "unchanged-upstream-native-engine",
+      "evidence": "artifact hashes; wire/setup/real-model/lifecycle and admission qualification"
+    },
+    {
+      "path": "runtime/metal/MetalBackend.hpp",
+      "surface": "unchanged-upstream-native-engine",
+      "evidence": "artifact hashes; wire/setup/real-model/lifecycle and admission qualification"
+    },
+    {
+      "path": "runtime/metal/MetalBackend.mm",
+      "surface": "unchanged-upstream-native-engine",
+      "evidence": "artifact hashes; wire/setup/real-model/lifecycle and admission qualification"
+    },
+    {
+      "path": "runtime/metal/Residency.hpp",
+      "surface": "unchanged-upstream-native-engine",
+      "evidence": "artifact hashes; wire/setup/real-model/lifecycle and admission qualification"
+    },
+    {
+      "path": "runtime/metal/abi/DraftAttention.h",
+      "surface": "unchanged-upstream-native-engine",
+      "evidence": "artifact hashes; wire/setup/real-model/lifecycle and admission qualification"
+    },
+    {
+      "path": "runtime/metal/abi/ExecutionGeometry.h",
+      "surface": "unchanged-upstream-native-engine",
+      "evidence": "artifact hashes; wire/setup/real-model/lifecycle and admission qualification"
+    },
+    {
+      "path": "runtime/metal/abi/Gguf.h",
+      "surface": "unchanged-upstream-native-engine",
+      "evidence": "artifact hashes; wire/setup/real-model/lifecycle and admission qualification"
+    },
+    {
+      "path": "runtime/metal/abi/MoE.h",
+      "surface": "unchanged-upstream-native-engine",
+      "evidence": "artifact hashes; wire/setup/real-model/lifecycle and admission qualification"
+    },
+    {
+      "path": "runtime/metal/abi/PagedAttention.h",
+      "surface": "unchanged-upstream-native-engine",
+      "evidence": "artifact hashes; wire/setup/real-model/lifecycle and admission qualification"
+    },
+    {
+      "path": "runtime/metal/abi/QuantFormat.h",
+      "surface": "unchanged-upstream-native-engine",
+      "evidence": "artifact hashes; wire/setup/real-model/lifecycle and admission qualification"
+    },
+    {
+      "path": "runtime/metal/kernels/common/gguf_column_tile.h",
+      "surface": "unchanged-upstream-native-engine",
+      "evidence": "artifact hashes; wire/setup/real-model/lifecycle and admission qualification"
+    },
+    {
+      "path": "runtime/metal/kernels/common/gguf_embedding_formats.h",
+      "surface": "unchanged-upstream-native-engine",
+      "evidence": "artifact hashes; wire/setup/real-model/lifecycle and admission qualification"
+    },
+    {
+      "path": "runtime/metal/kernels/common/gguf_sgmatrix.h",
+      "surface": "unchanged-upstream-native-engine",
+      "evidence": "artifact hashes; wire/setup/real-model/lifecycle and admission qualification"
+    },
+    {
+      "path": "runtime/metal/kernels/common/gguf_staged_tile.h",
+      "surface": "unchanged-upstream-native-engine",
+      "evidence": "artifact hashes; wire/setup/real-model/lifecycle and admission qualification"
+    },
+    {
+      "path": "runtime/metal/kernels/common/int8_activations.h",
+      "surface": "unchanged-upstream-native-engine",
+      "evidence": "artifact hashes; wire/setup/real-model/lifecycle and admission qualification"
+    },
+    {
+      "path": "runtime/metal/kernels/common/moe_expert_chunk.h",
+      "surface": "unchanged-upstream-native-engine",
+      "evidence": "artifact hashes; wire/setup/real-model/lifecycle and admission qualification"
+    },
+    {
+      "path": "runtime/metal/kernels/common/moe_expert_slab.h",
+      "surface": "unchanged-upstream-native-engine",
+      "evidence": "artifact hashes; wire/setup/real-model/lifecycle and admission qualification"
+    },
+    {
+      "path": "runtime/metal/kernels/common/moe_gguf_expert_tile.h",
+      "surface": "unchanged-upstream-native-engine",
+      "evidence": "artifact hashes; wire/setup/real-model/lifecycle and admission qualification"
+    },
+    {
+      "path": "runtime/metal/kernels/common/paged_attention_tile.h",
+      "surface": "unchanged-upstream-native-engine",
+      "evidence": "artifact hashes; wire/setup/real-model/lifecycle and admission qualification"
+    },
+    {
+      "path": "runtime/metal/kernels/common/quant_formats.h",
+      "surface": "unchanged-upstream-native-engine",
+      "evidence": "artifact hashes; wire/setup/real-model/lifecycle and admission qualification"
+    },
+    {
+      "path": "runtime/metal/kernels/decode/attention_qkv.metal",
+      "surface": "unchanged-upstream-native-engine",
+      "evidence": "artifact hashes; wire/setup/real-model/lifecycle and admission qualification"
+    },
+    {
+      "path": "runtime/metal/kernels/decode/gdn.metal",
+      "surface": "unchanged-upstream-native-engine",
+      "evidence": "artifact hashes; wire/setup/real-model/lifecycle and admission qualification"
+    },
+    {
+      "path": "runtime/metal/kernels/decode/linear_gguf_sgmatrix.metal",
+      "surface": "unchanged-upstream-native-engine",
+      "evidence": "artifact hashes; wire/setup/real-model/lifecycle and admission qualification"
+    },
+    {
+      "path": "runtime/metal/kernels/decode/paged_attention.metal",
+      "surface": "unchanged-upstream-native-engine",
+      "evidence": "artifact hashes; wire/setup/real-model/lifecycle and admission qualification"
+    },
+    {
+      "path": "runtime/metal/kernels/prefill/attention_qkv.metal",
+      "surface": "unchanged-upstream-native-engine",
+      "evidence": "artifact hashes; wire/setup/real-model/lifecycle and admission qualification"
+    },
+    {
+      "path": "runtime/metal/kernels/prefill/gdn.metal",
+      "surface": "unchanged-upstream-native-engine",
+      "evidence": "artifact hashes; wire/setup/real-model/lifecycle and admission qualification"
+    },
+    {
+      "path": "runtime/metal/kernels/prefill/gguf_prefill_int8.metal",
+      "surface": "unchanged-upstream-native-engine",
+      "evidence": "artifact hashes; wire/setup/real-model/lifecycle and admission qualification"
+    },
+    {
+      "path": "runtime/metal/kernels/prefill/paged_attention.metal",
+      "surface": "unchanged-upstream-native-engine",
+      "evidence": "artifact hashes; wire/setup/real-model/lifecycle and admission qualification"
+    },
+    {
+      "path": "runtime/metal/kernels/shared/embedding.metal",
+      "surface": "unchanged-upstream-native-engine",
+      "evidence": "artifact hashes; wire/setup/real-model/lifecycle and admission qualification"
+    },
+    {
+      "path": "runtime/metal/kernels/shared/gguf_float.metal",
+      "surface": "unchanged-upstream-native-engine",
+      "evidence": "artifact hashes; wire/setup/real-model/lifecycle and admission qualification"
+    },
+    {
+      "path": "runtime/metal/kernels/shared/gguf_linear.metal",
+      "surface": "unchanged-upstream-native-engine",
+      "evidence": "artifact hashes; wire/setup/real-model/lifecycle and admission qualification"
+    },
+    {
+      "path": "runtime/metal/kernels/shared/gguf_repack.metal",
+      "surface": "unchanged-upstream-native-engine",
+      "evidence": "artifact hashes; wire/setup/real-model/lifecycle and admission qualification"
+    },
+    {
+      "path": "runtime/metal/kernels/shared/gguf_rotation.metal",
+      "surface": "unchanged-upstream-native-engine",
+      "evidence": "artifact hashes; wire/setup/real-model/lifecycle and admission qualification"
+    },
+    {
+      "path": "runtime/metal/kernels/shared/hyper_connection.metal",
+      "surface": "unchanged-upstream-native-engine",
+      "evidence": "artifact hashes; wire/setup/real-model/lifecycle and admission qualification"
+    },
+    {
+      "path": "runtime/metal/kernels/shared/moe.metal",
+      "surface": "unchanged-upstream-native-engine",
+      "evidence": "artifact hashes; wire/setup/real-model/lifecycle and admission qualification"
+    },
+    {
+      "path": "runtime/metal/kernels/shared/moe_gguf.metal",
+      "surface": "unchanged-upstream-native-engine",
+      "evidence": "artifact hashes; wire/setup/real-model/lifecycle and admission qualification"
+    },
+    {
+      "path": "runtime/metal/kernels/shared/normalization.metal",
+      "surface": "unchanged-upstream-native-engine",
+      "evidence": "artifact hashes; wire/setup/real-model/lifecycle and admission qualification"
+    },
+    {
+      "path": "runtime/model/CommandCost.hpp",
+      "surface": "unchanged-upstream-native-engine",
+      "evidence": "artifact hashes; wire/setup/real-model/lifecycle and admission qualification"
+    },
+    {
+      "path": "runtime/model/DFlashDraft.cpp",
+      "surface": "unchanged-upstream-native-engine",
+      "evidence": "artifact hashes; wire/setup/real-model/lifecycle and admission qualification"
+    },
+    {
+      "path": "runtime/model/DFlashDraft.hpp",
+      "surface": "unchanged-upstream-native-engine",
+      "evidence": "artifact hashes; wire/setup/real-model/lifecycle and admission qualification"
+    },
+    {
+      "path": "runtime/model/DraftCheckpoint.cpp",
+      "surface": "unchanged-upstream-native-engine",
+      "evidence": "artifact hashes; wire/setup/real-model/lifecycle and admission qualification"
+    },
+    {
+      "path": "runtime/model/DraftContextPlan.cpp",
+      "surface": "unchanged-upstream-native-engine",
+      "evidence": "artifact hashes; wire/setup/real-model/lifecycle and admission qualification"
+    },
+    {
+      "path": "runtime/model/ElasticPool.hpp",
+      "surface": "unchanged-upstream-native-engine",
+      "evidence": "artifact hashes; wire/setup/real-model/lifecycle and admission qualification"
+    },
+    {
+      "path": "runtime/model/ExpertChunkLayout.hpp",
+      "surface": "unchanged-upstream-native-engine",
+      "evidence": "artifact hashes; wire/setup/real-model/lifecycle and admission qualification"
+    },
+    {
+      "path": "runtime/model/ExpertStore.cpp",
+      "surface": "unchanged-upstream-native-engine",
+      "evidence": "artifact hashes; wire/setup/real-model/lifecycle and admission qualification"
+    },
+    {
+      "path": "runtime/model/ExpertStore.hpp",
+      "surface": "unchanged-upstream-native-engine",
+      "evidence": "artifact hashes; wire/setup/real-model/lifecycle and admission qualification"
+    },
+    {
+      "path": "runtime/model/ExpertStoreStats.hpp",
+      "surface": "unchanged-upstream-native-engine",
+      "evidence": "artifact hashes; wire/setup/real-model/lifecycle and admission qualification"
+    },
+    {
+      "path": "runtime/model/Flint.cpp",
+      "surface": "unchanged-upstream-native-engine",
+      "evidence": "artifact hashes; wire/setup/real-model/lifecycle and admission qualification"
+    },
+    {
+      "path": "runtime/model/Flint.hpp",
+      "surface": "unchanged-upstream-native-engine",
+      "evidence": "artifact hashes; wire/setup/real-model/lifecycle and admission qualification"
+    },
+    {
+      "path": "runtime/model/FlintTarget.cpp",
+      "surface": "unchanged-upstream-native-engine",
+      "evidence": "artifact hashes; wire/setup/real-model/lifecycle and admission qualification"
+    },
+    {
+      "path": "runtime/model/FlintTarget.hpp",
+      "surface": "unchanged-upstream-native-engine",
+      "evidence": "artifact hashes; wire/setup/real-model/lifecycle and admission qualification"
+    },
+    {
+      "path": "runtime/model/GgufFile.cpp",
+      "surface": "unchanged-upstream-native-engine",
+      "evidence": "artifact hashes; wire/setup/real-model/lifecycle and admission qualification"
+    },
+    {
+      "path": "runtime/model/GgufFile.hpp",
+      "surface": "unchanged-upstream-native-engine",
+      "evidence": "artifact hashes; wire/setup/real-model/lifecycle and admission qualification"
+    },
+    {
+      "path": "runtime/model/GgufImage.cpp",
+      "surface": "unchanged-upstream-native-engine",
+      "evidence": "artifact hashes; wire/setup/real-model/lifecycle and admission qualification"
+    },
+    {
+      "path": "runtime/model/GgufImage.hpp",
+      "surface": "unchanged-upstream-native-engine",
+      "evidence": "artifact hashes; wire/setup/real-model/lifecycle and admission qualification"
+    },
+    {
+      "path": "runtime/model/GgufImageLayout.hpp",
+      "surface": "unchanged-upstream-native-engine",
+      "evidence": "artifact hashes; wire/setup/real-model/lifecycle and admission qualification"
+    },
+    {
+      "path": "runtime/model/GgufPreparation.cpp",
+      "surface": "unchanged-upstream-native-engine",
+      "evidence": "artifact hashes; wire/setup/real-model/lifecycle and admission qualification"
+    },
+    {
+      "path": "runtime/model/GgufPreparation.hpp",
+      "surface": "unchanged-upstream-native-engine",
+      "evidence": "artifact hashes; wire/setup/real-model/lifecycle and admission qualification"
+    },
+    {
+      "path": "runtime/model/GgufTarget.cpp",
+      "surface": "unchanged-upstream-native-engine",
+      "evidence": "artifact hashes; wire/setup/real-model/lifecycle and admission qualification"
+    },
+    {
+      "path": "runtime/model/GgufTarget.hpp",
+      "surface": "unchanged-upstream-native-engine",
+      "evidence": "artifact hashes; wire/setup/real-model/lifecycle and admission qualification"
+    },
+    {
+      "path": "runtime/model/KvBlockCache.cpp",
+      "surface": "unchanged-upstream-native-engine",
+      "evidence": "artifact hashes; wire/setup/real-model/lifecycle and admission qualification"
+    },
+    {
+      "path": "runtime/model/KvBlockCache.hpp",
+      "surface": "unchanged-upstream-native-engine",
+      "evidence": "artifact hashes; wire/setup/real-model/lifecycle and admission qualification"
+    },
+    {
+      "path": "runtime/model/KvHistoryStream.cpp",
+      "surface": "unchanged-upstream-native-engine",
+      "evidence": "artifact hashes; wire/setup/real-model/lifecycle and admission qualification"
+    },
+    {
+      "path": "runtime/model/KvHistoryStream.hpp",
+      "surface": "unchanged-upstream-native-engine",
+      "evidence": "artifact hashes; wire/setup/real-model/lifecycle and admission qualification"
+    },
+    {
+      "path": "runtime/model/KvReadStats.hpp",
+      "surface": "unchanged-upstream-native-engine",
+      "evidence": "artifact hashes; wire/setup/real-model/lifecycle and admission qualification"
+    },
+    {
+      "path": "runtime/model/LatencyHistogram.hpp",
+      "surface": "unchanged-upstream-native-engine",
+      "evidence": "artifact hashes; wire/setup/real-model/lifecycle and admission qualification"
+    },
+    {
+      "path": "runtime/model/Model.hpp",
+      "surface": "unchanged-upstream-native-engine",
+      "evidence": "artifact hashes; wire/setup/real-model/lifecycle and admission qualification"
+    },
+    {
+      "path": "runtime/model/ModelDescriptor.hpp",
+      "surface": "unchanged-upstream-native-engine",
+      "evidence": "artifact hashes; wire/setup/real-model/lifecycle and admission qualification"
+    },
+    {
+      "path": "runtime/model/ModelDescriptor.mm",
+      "surface": "unchanged-upstream-native-engine",
+      "evidence": "artifact hashes; wire/setup/real-model/lifecycle and admission qualification"
+    },
+    {
+      "path": "runtime/model/ModelFactory.cpp",
+      "surface": "unchanged-upstream-native-engine",
+      "evidence": "artifact hashes; wire/setup/real-model/lifecycle and admission qualification"
+    },
+    {
+      "path": "runtime/model/ModelFactory.hpp",
+      "surface": "unchanged-upstream-native-engine",
+      "evidence": "artifact hashes; wire/setup/real-model/lifecycle and admission qualification"
+    },
+    {
+      "path": "runtime/model/ModelPools.hpp",
+      "surface": "unchanged-upstream-native-engine",
+      "evidence": "artifact hashes; wire/setup/real-model/lifecycle and admission qualification"
+    },
+    {
+      "path": "runtime/model/ModelSizing.cpp",
+      "surface": "unchanged-upstream-native-engine",
+      "evidence": "artifact hashes; wire/setup/real-model/lifecycle and admission qualification"
+    },
+    {
+      "path": "runtime/model/ModelSizing.hpp",
+      "surface": "unchanged-upstream-native-engine",
+      "evidence": "artifact hashes; wire/setup/real-model/lifecycle and admission qualification"
+    },
+    {
+      "path": "runtime/model/Qwen3_8.cpp",
+      "surface": "unchanged-upstream-native-engine",
+      "evidence": "artifact hashes; wire/setup/real-model/lifecycle and admission qualification"
+    },
+    {
+      "path": "runtime/model/Qwen3_8.hpp",
+      "surface": "unchanged-upstream-native-engine",
+      "evidence": "artifact hashes; wire/setup/real-model/lifecycle and admission qualification"
+    },
+    {
+      "path": "runtime/model/Qwen4Exp.cpp",
+      "surface": "unchanged-upstream-native-engine",
+      "evidence": "artifact hashes; wire/setup/real-model/lifecycle and admission qualification"
+    },
+    {
+      "path": "runtime/model/Qwen4Exp.hpp",
+      "surface": "unchanged-upstream-native-engine",
+      "evidence": "artifact hashes; wire/setup/real-model/lifecycle and admission qualification"
+    },
+    {
+      "path": "runtime/model/Qwen4ExpTarget.cpp",
+      "surface": "unchanged-upstream-native-engine",
+      "evidence": "artifact hashes; wire/setup/real-model/lifecycle and admission qualification"
+    },
+    {
+      "path": "runtime/model/Qwen4ExpTarget.hpp",
+      "surface": "unchanged-upstream-native-engine",
+      "evidence": "artifact hashes; wire/setup/real-model/lifecycle and admission qualification"
+    },
+    {
+      "path": "runtime/model/Qwen4Steps.cpp",
+      "surface": "unchanged-upstream-native-engine",
+      "evidence": "artifact hashes; wire/setup/real-model/lifecycle and admission qualification"
+    },
+    {
+      "path": "runtime/model/Qwen4Steps.hpp",
+      "surface": "unchanged-upstream-native-engine",
+      "evidence": "artifact hashes; wire/setup/real-model/lifecycle and admission qualification"
+    },
+    {
+      "path": "runtime/model/QwenHybridLayout.hpp",
+      "surface": "unchanged-upstream-native-engine",
+      "evidence": "artifact hashes; wire/setup/real-model/lifecycle and admission qualification"
+    },
+    {
+      "path": "runtime/model/QwenState.cpp",
+      "surface": "unchanged-upstream-native-engine",
+      "evidence": "artifact hashes; wire/setup/real-model/lifecycle and admission qualification"
+    },
+    {
+      "path": "runtime/model/QwenState.hpp",
+      "surface": "unchanged-upstream-native-engine",
+      "evidence": "artifact hashes; wire/setup/real-model/lifecycle and admission qualification"
+    },
+    {
+      "path": "runtime/model/QwenTarget.cpp",
+      "surface": "unchanged-upstream-native-engine",
+      "evidence": "artifact hashes; wire/setup/real-model/lifecycle and admission qualification"
+    },
+    {
+      "path": "runtime/model/QwenTarget.hpp",
+      "surface": "unchanged-upstream-native-engine",
+      "evidence": "artifact hashes; wire/setup/real-model/lifecycle and admission qualification"
+    },
+    {
+      "path": "runtime/model/QwenTargetFiles.hpp",
+      "surface": "unchanged-upstream-native-engine",
+      "evidence": "artifact hashes; wire/setup/real-model/lifecycle and admission qualification"
+    },
+    {
+      "path": "runtime/model/QwenTargetLoader.cpp",
+      "surface": "unchanged-upstream-native-engine",
+      "evidence": "artifact hashes; wire/setup/real-model/lifecycle and admission qualification"
+    },
+    {
+      "path": "runtime/model/QwenVision.hpp",
+      "surface": "unchanged-upstream-native-engine",
+      "evidence": "artifact hashes; wire/setup/real-model/lifecycle and admission qualification"
+    },
+    {
+      "path": "runtime/model/Runtime.cpp",
+      "surface": "unchanged-upstream-native-engine",
+      "evidence": "artifact hashes; wire/setup/real-model/lifecycle and admission qualification"
+    },
+    {
+      "path": "runtime/model/Runtime.hpp",
+      "surface": "unchanged-upstream-native-engine",
+      "evidence": "artifact hashes; wire/setup/real-model/lifecycle and admission qualification"
+    },
+    {
+      "path": "runtime/model/RuntimeArenas.cpp",
+      "surface": "unchanged-upstream-native-engine",
+      "evidence": "artifact hashes; wire/setup/real-model/lifecycle and admission qualification"
+    },
+    {
+      "path": "runtime/model/RuntimeArenas.hpp",
+      "surface": "unchanged-upstream-native-engine",
+      "evidence": "artifact hashes; wire/setup/real-model/lifecycle and admission qualification"
+    },
+    {
+      "path": "runtime/model/SafetensorsImage.cpp",
+      "surface": "unchanged-upstream-native-engine",
+      "evidence": "artifact hashes; wire/setup/real-model/lifecycle and admission qualification"
+    },
+    {
+      "path": "runtime/model/SafetensorsImage.hpp",
+      "surface": "unchanged-upstream-native-engine",
+      "evidence": "artifact hashes; wire/setup/real-model/lifecycle and admission qualification"
+    },
+    {
+      "path": "runtime/model/SafetensorsTarget.cpp",
+      "surface": "unchanged-upstream-native-engine",
+      "evidence": "artifact hashes; wire/setup/real-model/lifecycle and admission qualification"
+    },
+    {
+      "path": "runtime/model/SlotFile.cpp",
+      "surface": "unchanged-upstream-native-engine",
+      "evidence": "artifact hashes; wire/setup/real-model/lifecycle and admission qualification"
+    },
+    {
+      "path": "runtime/model/SlotFile.hpp",
+      "surface": "unchanged-upstream-native-engine",
+      "evidence": "artifact hashes; wire/setup/real-model/lifecycle and admission qualification"
+    },
+    {
+      "path": "runtime/model/SlotRecycler.cpp",
+      "surface": "unchanged-upstream-native-engine",
+      "evidence": "artifact hashes; wire/setup/real-model/lifecycle and admission qualification"
+    },
+    {
+      "path": "runtime/model/SlotRecycler.hpp",
+      "surface": "unchanged-upstream-native-engine",
+      "evidence": "artifact hashes; wire/setup/real-model/lifecycle and admission qualification"
+    },
+    {
+      "path": "runtime/model/SparseRowStore.cpp",
+      "surface": "unchanged-upstream-native-engine",
+      "evidence": "artifact hashes; wire/setup/real-model/lifecycle and admission qualification"
+    },
+    {
+      "path": "runtime/model/SparseRowStore.hpp",
+      "surface": "unchanged-upstream-native-engine",
+      "evidence": "artifact hashes; wire/setup/real-model/lifecycle and admission qualification"
+    },
+    {
+      "path": "runtime/model/SpilledKvReads.cpp",
+      "surface": "unchanged-upstream-native-engine",
+      "evidence": "artifact hashes; wire/setup/real-model/lifecycle and admission qualification"
+    },
+    {
+      "path": "runtime/model/SpilledKvReads.hpp",
+      "surface": "unchanged-upstream-native-engine",
+      "evidence": "artifact hashes; wire/setup/real-model/lifecycle and admission qualification"
+    },
+    {
+      "path": "runtime/model/SsdReaders.cpp",
+      "surface": "unchanged-upstream-native-engine",
+      "evidence": "artifact hashes; wire/setup/real-model/lifecycle and admission qualification"
+    },
+    {
+      "path": "runtime/model/SsdReaders.hpp",
+      "surface": "unchanged-upstream-native-engine",
+      "evidence": "artifact hashes; wire/setup/real-model/lifecycle and admission qualification"
+    },
+    {
+      "path": "runtime/model/VerifyBudget.cpp",
+      "surface": "unchanged-upstream-native-engine",
+      "evidence": "artifact hashes; wire/setup/real-model/lifecycle and admission qualification"
+    },
+    {
+      "path": "runtime/model/VerifyBudget.hpp",
+      "surface": "unchanged-upstream-native-engine",
+      "evidence": "artifact hashes; wire/setup/real-model/lifecycle and admission qualification"
+    },
+    {
+      "path": "runtime/model/WeightImages.cpp",
+      "surface": "unchanged-upstream-native-engine",
+      "evidence": "artifact hashes; wire/setup/real-model/lifecycle and admission qualification"
+    },
+    {
+      "path": "runtime/model/WeightImages.hpp",
+      "surface": "unchanged-upstream-native-engine",
+      "evidence": "artifact hashes; wire/setup/real-model/lifecycle and admission qualification"
+    },
+    {
+      "path": "runtime/model/WeightMemory.hpp",
+      "surface": "unchanged-upstream-native-engine",
+      "evidence": "artifact hashes; wire/setup/real-model/lifecycle and admission qualification"
+    },
+    {
+      "path": "runtime/model/WeightStore.cpp",
+      "surface": "unchanged-upstream-native-engine",
+      "evidence": "artifact hashes; wire/setup/real-model/lifecycle and admission qualification"
+    },
+    {
+      "path": "runtime/model/WeightStore.hpp",
+      "surface": "unchanged-upstream-native-engine",
+      "evidence": "artifact hashes; wire/setup/real-model/lifecycle and admission qualification"
+    },
+    {
+      "path": "runtime/model/WorkFormulas.hpp",
+      "surface": "unchanged-upstream-native-engine",
+      "evidence": "artifact hashes; wire/setup/real-model/lifecycle and admission qualification"
+    },
+    {
+      "path": "runtime/ops/AneFfn.cpp",
+      "surface": "unchanged-upstream-native-engine",
+      "evidence": "artifact hashes; wire/setup/real-model/lifecycle and admission qualification"
+    },
+    {
+      "path": "runtime/ops/AneFfn.hpp",
+      "surface": "unchanged-upstream-native-engine",
+      "evidence": "artifact hashes; wire/setup/real-model/lifecycle and admission qualification"
+    },
+    {
+      "path": "runtime/ops/AneFfnCalibration.cpp",
+      "surface": "unchanged-upstream-native-engine",
+      "evidence": "artifact hashes; wire/setup/real-model/lifecycle and admission qualification"
+    },
+    {
+      "path": "runtime/ops/AneFfnMeasurement.cpp",
+      "surface": "unchanged-upstream-native-engine",
+      "evidence": "artifact hashes; wire/setup/real-model/lifecycle and admission qualification"
+    },
+    {
+      "path": "runtime/ops/AneFfnMeasurement.hpp",
+      "surface": "unchanged-upstream-native-engine",
+      "evidence": "artifact hashes; wire/setup/real-model/lifecycle and admission qualification"
+    },
+    {
+      "path": "runtime/ops/Embedding.cpp",
+      "surface": "unchanged-upstream-native-engine",
+      "evidence": "artifact hashes; wire/setup/real-model/lifecycle and admission qualification"
+    },
+    {
+      "path": "runtime/ops/ExecutionPlans.cpp",
+      "surface": "unchanged-upstream-native-engine",
+      "evidence": "artifact hashes; wire/setup/real-model/lifecycle and admission qualification"
+    },
+    {
+      "path": "runtime/ops/ExecutionPlans.hpp",
+      "surface": "unchanged-upstream-native-engine",
+      "evidence": "artifact hashes; wire/setup/real-model/lifecycle and admission qualification"
+    },
+    {
+      "path": "runtime/ops/GDN.cpp",
+      "surface": "unchanged-upstream-native-engine",
+      "evidence": "artifact hashes; wire/setup/real-model/lifecycle and admission qualification"
+    },
+    {
+      "path": "runtime/ops/GDN.hpp",
+      "surface": "unchanged-upstream-native-engine",
+      "evidence": "artifact hashes; wire/setup/real-model/lifecycle and admission qualification"
+    },
+    {
+      "path": "runtime/ops/HyperConnection.cpp",
+      "surface": "unchanged-upstream-native-engine",
+      "evidence": "artifact hashes; wire/setup/real-model/lifecycle and admission qualification"
+    },
+    {
+      "path": "runtime/ops/KernelCalibration.hpp",
+      "surface": "unchanged-upstream-native-engine",
+      "evidence": "artifact hashes; wire/setup/real-model/lifecycle and admission qualification"
+    },
+    {
+      "path": "runtime/ops/KernelSelection.cpp",
+      "surface": "unchanged-upstream-native-engine",
+      "evidence": "artifact hashes; wire/setup/real-model/lifecycle and admission qualification"
+    },
+    {
+      "path": "runtime/ops/KernelSelection.hpp",
+      "surface": "unchanged-upstream-native-engine",
+      "evidence": "artifact hashes; wire/setup/real-model/lifecycle and admission qualification"
+    },
+    {
+      "path": "runtime/ops/Linear.cpp",
+      "surface": "unchanged-upstream-native-engine",
+      "evidence": "artifact hashes; wire/setup/real-model/lifecycle and admission qualification"
+    },
+    {
+      "path": "runtime/ops/Linear.hpp",
+      "surface": "unchanged-upstream-native-engine",
+      "evidence": "artifact hashes; wire/setup/real-model/lifecycle and admission qualification"
+    },
+    {
+      "path": "runtime/ops/LinearGguf.cpp",
+      "surface": "unchanged-upstream-native-engine",
+      "evidence": "artifact hashes; wire/setup/real-model/lifecycle and admission qualification"
+    },
+    {
+      "path": "runtime/ops/MoE.cpp",
+      "surface": "unchanged-upstream-native-engine",
+      "evidence": "artifact hashes; wire/setup/real-model/lifecycle and admission qualification"
+    },
+    {
+      "path": "runtime/ops/MoE.hpp",
+      "surface": "unchanged-upstream-native-engine",
+      "evidence": "artifact hashes; wire/setup/real-model/lifecycle and admission qualification"
+    },
+    {
+      "path": "runtime/ops/NgramEmbedding.cpp",
+      "surface": "unchanged-upstream-native-engine",
+      "evidence": "artifact hashes; wire/setup/real-model/lifecycle and admission qualification"
+    },
+    {
+      "path": "runtime/ops/NgramEmbedding.hpp",
+      "surface": "unchanged-upstream-native-engine",
+      "evidence": "artifact hashes; wire/setup/real-model/lifecycle and admission qualification"
+    },
+    {
+      "path": "runtime/ops/PageStorage.cpp",
+      "surface": "unchanged-upstream-native-engine",
+      "evidence": "artifact hashes; wire/setup/real-model/lifecycle and admission qualification"
+    },
+    {
+      "path": "runtime/ops/PageStorage.hpp",
+      "surface": "unchanged-upstream-native-engine",
+      "evidence": "artifact hashes; wire/setup/real-model/lifecycle and admission qualification"
+    },
+    {
+      "path": "runtime/ops/PagedAttention.cpp",
+      "surface": "unchanged-upstream-native-engine",
+      "evidence": "artifact hashes; wire/setup/real-model/lifecycle and admission qualification"
+    },
+    {
+      "path": "runtime/ops/PagedAttention.hpp",
+      "surface": "unchanged-upstream-native-engine",
+      "evidence": "artifact hashes; wire/setup/real-model/lifecycle and admission qualification"
+    },
+    {
+      "path": "runtime/ops/PagedKv.hpp",
+      "surface": "unchanged-upstream-native-engine",
+      "evidence": "artifact hashes; wire/setup/real-model/lifecycle and admission qualification"
+    },
+    {
+      "path": "runtime/ops/Weights.hpp",
+      "surface": "unchanged-upstream-native-engine",
+      "evidence": "artifact hashes; wire/setup/real-model/lifecycle and admission qualification"
+    },
+    {
+      "path": "server/api_shapes.py",
+      "surface": "reference-frontend-or-unsupported-HTTP-surface",
+      "evidence": "24 exact prompts, 80 streaming and 31 projection cases; all 248320 vocabulary entries, 105 base and 817 workbook masks; current and historical same-input replay"
+    },
+    {
+      "path": "server/backend.py",
+      "surface": "reference-frontend-or-unsupported-HTTP-surface",
+      "evidence": "24 exact prompts, 80 streaming and 31 projection cases; all 248320 vocabulary entries, 105 base and 817 workbook masks; current and historical same-input replay"
+    },
+    {
+      "path": "server/chat-assets/markdown-links.js",
+      "surface": "reference-frontend-or-unsupported-HTTP-surface",
+      "evidence": "24 exact prompts, 80 streaming and 31 projection cases; all 248320 vocabulary entries, 105 base and 817 workbook masks; current and historical same-input replay"
+    },
+    {
+      "path": "server/chat.html",
+      "surface": "reference-frontend-or-unsupported-HTTP-surface",
+      "evidence": "24 exact prompts, 80 streaming and 31 projection cases; all 248320 vocabulary entries, 105 base and 817 workbook masks; current and historical same-input replay"
+    },
+    {
+      "path": "server/chat_format.py",
+      "surface": "reference-frontend-or-unsupported-HTTP-surface",
+      "evidence": "24 exact prompts, 80 streaming and 31 projection cases; all 248320 vocabulary entries, 105 base and 817 workbook masks; current and historical same-input replay"
+    },
+    {
+      "path": "server/chat_messages.py",
+      "surface": "reference-frontend-or-unsupported-HTTP-surface",
+      "evidence": "24 exact prompts, 80 streaming and 31 projection cases; all 248320 vocabulary entries, 105 base and 817 workbook masks; current and historical same-input replay"
+    },
+    {
+      "path": "server/chat_templates.py",
+      "surface": "reference-frontend-or-unsupported-HTTP-surface",
+      "evidence": "24 exact prompts, 80 streaming and 31 projection cases; all 248320 vocabulary entries, 105 base and 817 workbook masks; current and historical same-input replay"
+    },
+    {
+      "path": "server/connections.py",
+      "surface": "reference-frontend-or-unsupported-HTTP-surface",
+      "evidence": "24 exact prompts, 80 streaming and 31 projection cases; all 248320 vocabulary entries, 105 base and 817 workbook masks; current and historical same-input replay"
+    },
+    {
+      "path": "server/constraints.py",
+      "surface": "reference-frontend-or-unsupported-HTTP-surface",
+      "evidence": "24 exact prompts, 80 streaming and 31 projection cases; all 248320 vocabulary entries, 105 base and 817 workbook masks; current and historical same-input replay"
+    },
+    {
+      "path": "server/diagnostics.py",
+      "surface": "reference-frontend-or-unsupported-HTTP-surface",
+      "evidence": "24 exact prompts, 80 streaming and 31 projection cases; all 248320 vocabulary entries, 105 base and 817 workbook masks; current and historical same-input replay"
+    },
+    {
+      "path": "server/dialects/__init__.py",
+      "surface": "reference-frontend-or-unsupported-HTTP-surface",
+      "evidence": "24 exact prompts, 80 streaming and 31 projection cases; all 248320 vocabulary entries, 105 base and 817 workbook masks; current and historical same-input replay"
+    },
+    {
+      "path": "server/dialects/anthropic.py",
+      "surface": "reference-frontend-or-unsupported-HTTP-surface",
+      "evidence": "24 exact prompts, 80 streaming and 31 projection cases; all 248320 vocabulary entries, 105 base and 817 workbook masks; current and historical same-input replay"
+    },
+    {
+      "path": "server/dialects/openai.py",
+      "surface": "reference-frontend-or-unsupported-HTTP-surface",
+      "evidence": "24 exact prompts, 80 streaming and 31 projection cases; all 248320 vocabulary entries, 105 base and 817 workbook masks; current and historical same-input replay"
+    },
+    {
+      "path": "server/dialects/responses.py",
+      "surface": "reference-frontend-or-unsupported-HTTP-surface",
+      "evidence": "24 exact prompts, 80 streaming and 31 projection cases; all 248320 vocabulary entries, 105 base and 817 workbook masks; current and historical same-input replay"
+    },
+    {
+      "path": "server/dialects/scoring.py",
+      "surface": "reference-frontend-or-unsupported-HTTP-surface",
+      "evidence": "24 exact prompts, 80 streaming and 31 projection cases; all 248320 vocabulary entries, 105 base and 817 workbook masks; current and historical same-input replay"
+    },
+    {
+      "path": "server/document_worker.py",
+      "surface": "reference-frontend-or-unsupported-HTTP-surface",
+      "evidence": "24 exact prompts, 80 streaming and 31 projection cases; all 248320 vocabulary entries, 105 base and 817 workbook masks; current and historical same-input replay"
+    },
+    {
+      "path": "server/documents.py",
+      "surface": "reference-frontend-or-unsupported-HTTP-surface",
+      "evidence": "24 exact prompts, 80 streaming and 31 projection cases; all 248320 vocabulary entries, 105 base and 817 workbook masks; current and historical same-input replay"
+    },
+    {
+      "path": "server/errors.py",
+      "surface": "reference-frontend-or-unsupported-HTTP-surface",
+      "evidence": "24 exact prompts, 80 streaming and 31 projection cases; all 248320 vocabulary entries, 105 base and 817 workbook masks; current and historical same-input replay"
+    },
+    {
+      "path": "server/favicon.svg",
+      "surface": "reference-frontend-or-unsupported-HTTP-surface",
+      "evidence": "24 exact prompts, 80 streaming and 31 projection cases; all 248320 vocabulary entries, 105 base and 817 workbook masks; current and historical same-input replay"
+    },
+    {
+      "path": "server/frontend.py",
+      "surface": "reference-frontend-or-unsupported-HTTP-surface",
+      "evidence": "24 exact prompts, 80 streaming and 31 projection cases; all 248320 vocabulary entries, 105 base and 817 workbook masks; current and historical same-input replay"
+    },
+    {
+      "path": "server/images.py",
+      "surface": "reference-frontend-or-unsupported-HTTP-surface",
+      "evidence": "24 exact prompts, 80 streaming and 31 projection cases; all 248320 vocabulary entries, 105 base and 817 workbook masks; current and historical same-input replay"
+    },
+    {
+      "path": "server/metrics.py",
+      "surface": "reference-frontend-or-unsupported-HTTP-surface",
+      "evidence": "24 exact prompts, 80 streaming and 31 projection cases; all 248320 vocabulary entries, 105 base and 817 workbook masks; current and historical same-input replay"
+    },
+    {
+      "path": "server/output.py",
+      "surface": "reference-frontend-or-unsupported-HTTP-surface",
+      "evidence": "24 exact prompts, 80 streaming and 31 projection cases; all 248320 vocabulary entries, 105 base and 817 workbook masks; current and historical same-input replay"
+    },
+    {
+      "path": "server/protocol.py",
+      "surface": "native-protocol-lifecycle",
+      "evidence": "36 CPU wire/process/setup groups; real 32K cancellation/recovery smoke"
+    },
+    {
+      "path": "server/request_fields.py",
+      "surface": "reference-frontend-or-unsupported-HTTP-surface",
+      "evidence": "24 exact prompts, 80 streaming and 31 projection cases; all 248320 vocabulary entries, 105 base and 817 workbook masks; current and historical same-input replay"
+    },
+    {
+      "path": "server/runtime.py",
+      "surface": "native-protocol-lifecycle",
+      "evidence": "36 CPU wire/process/setup groups; real 32K cancellation/recovery smoke"
+    },
+    {
+      "path": "server/serve_options.py",
+      "surface": "reference-frontend-or-unsupported-HTTP-surface",
+      "evidence": "24 exact prompts, 80 streaming and 31 projection cases; all 248320 vocabulary entries, 105 base and 817 workbook masks; current and historical same-input replay"
+    },
+    {
+      "path": "server/serve_record.py",
+      "surface": "reference-frontend-or-unsupported-HTTP-surface",
+      "evidence": "24 exact prompts, 80 streaming and 31 projection cases; all 248320 vocabulary entries, 105 base and 817 workbook masks; current and historical same-input replay"
+    },
+    {
+      "path": "server/server.py",
+      "surface": "reference-frontend-or-unsupported-HTTP-surface",
+      "evidence": "24 exact prompts, 80 streaming and 31 projection cases; all 248320 vocabulary entries, 105 base and 817 workbook masks; current and historical same-input replay"
+    },
+    {
+      "path": "server/supervision.py",
+      "surface": "reference-frontend-or-unsupported-HTTP-surface",
+      "evidence": "24 exact prompts, 80 streaming and 31 projection cases; all 248320 vocabulary entries, 105 base and 817 workbook masks; current and historical same-input replay"
+    },
+    {
+      "path": "server/thinking.py",
+      "surface": "reference-frontend-or-unsupported-HTTP-surface",
+      "evidence": "24 exact prompts, 80 streaming and 31 projection cases; all 248320 vocabulary entries, 105 base and 817 workbook masks; current and historical same-input replay"
+    },
+    {
+      "path": "server/tokenization.py",
+      "surface": "reference-frontend-or-unsupported-HTTP-surface",
+      "evidence": "24 exact prompts, 80 streaming and 31 projection cases; all 248320 vocabulary entries, 105 base and 817 workbook masks; current and historical same-input replay"
+    },
+    {
+      "path": "server/tool_schema.py",
+      "surface": "reference-frontend-or-unsupported-HTTP-surface",
+      "evidence": "24 exact prompts, 80 streaming and 31 projection cases; all 248320 vocabulary entries, 105 base and 817 workbook masks; current and historical same-input replay"
+    }
+  ],
+  "retainedAttemptNotes": [
+    "Initial reference Python installation failed because PyPI did not provide the pinned future requirements; used the exact verified release-bundled Python runtime instead.",
+    "Updated fixture generators for Ready-based ConstraintFactory.",
+    "Native lifecycle fake frames initially retained protocol 11; fixed and reran affected checks.",
+    "Actual masks are additionally bounded by the Ready vocabulary and speculative row count."
+  ],
+  "pending": [
+    "Historical same-engine repeatability failure remains unresolved; full performance/adoption cohorts are blocked.",
+    "Calculator authoring and repair failed independent outcomes; broader fresh application qualification remains open.",
+    "Useful-task context sweep and finalist confirmation remain blocked by behavioral prerequisites; startup capacity alone does not justify a larger default.",
+    "Complete remaining P6 phase-specific cancellation timing when engine/application gates reopen; bounded native recovery checks passed.",
+    "Publication and exact containing-commit Checks workflow; engine adoption is not authorized by a green build alone."
+  ],
+  "maskDiagnostic": {
+    "completedWorkers": 2,
+    "failures": [
+      null,
+      null
+    ],
+    "performanceQualification": false,
+    "productionAdoption": false,
+    "maskComparison": [
+      {
+        "case": "prime-1",
+        "commonPrefixes": 217,
+        "mismatches": 0,
+        "referencePrefixes": 217,
+        "nativePrefixes": 217,
+        "identicalGeneratedTokens": true
+      },
+      {
+        "case": "formula_review-1",
+        "commonPrefixes": 1201,
+        "mismatches": 0,
+        "referencePrefixes": 1201,
+        "nativePrefixes": 1201,
+        "identicalGeneratedTokens": true
+      },
+      {
+        "case": "inventory_evidence-1",
+        "commonPrefixes": 169,
+        "mismatches": 0,
+        "referencePrefixes": 169,
+        "nativePrefixes": 169,
+        "identicalGeneratedTokens": true
+      },
+      {
+        "case": "inventory_evidence-2",
+        "commonPrefixes": 529,
+        "mismatches": 0,
+        "referencePrefixes": 529,
+        "nativePrefixes": 529,
+        "identicalGeneratedTokens": true
+      },
+      {
+        "case": "inventory_evidence-3",
+        "commonPrefixes": 153,
+        "mismatches": 0,
+        "referencePrefixes": 153,
+        "nativePrefixes": 153,
+        "identicalGeneratedTokens": true
+      },
+      {
+        "case": "inventory_evidence-4",
+        "commonPrefixes": 561,
+        "mismatches": 0,
+        "referencePrefixes": 561,
+        "nativePrefixes": 561,
+        "identicalGeneratedTokens": true
+      }
+    ],
+    "scope": "Instrumented diagnostic only; cannot clear uninstrumented repeatability or qualify timing"
+  },
+  "candidateBehavior": {
+    "autonomous": {
+      "passed": true,
+      "scope": "proposal/review/reopen/lineage, supplier arithmetic, space creation, hostile/missing evidence, cancellation and subsequent request",
+      "logSHA256": "45c70ecd005a6291e013058469a92610f7276be1cbbc4f395a6287737d879a81"
+    },
+    "continuity": {
+      "passed": true,
+      "scope": "repeated compaction, original-user citation, exact decimal/unit and unspecified currency, portable reopen, false digest versus current draft/accepted estimate, summary cancellation and explicit retry",
+      "logSHA256": "f378fc36449baae24124733b28880aa0ea595314944463c80e5bfa43392103b7",
+      "retainedFailures": [
+        {
+          "attempt": "p3-continuity",
+          "failure": "Reopened answer cited prior assistant instead of original user"
+        },
+        {
+          "attempt": "p3-continuity-r2",
+          "failure": "Repeated irrelevant history reads exhausted step budget"
+        },
+        {
+          "attempt": "p3-continuity-r3",
+          "failure": "Recency-only ordering still excluded the compacted original pointer"
+        }
+      ],
+      "repair": "Preserve review metadata; clarify original-user versus assistant authority; prioritize visible explicit history pointers and discovery results over incidental IDs in chronological envelopes, retaining scope/read validation and ranked search order."
+    },
+    "startupOwnership": {
+      "protocolChecksPassed": 37,
+      "scope": "Owner retains launched helper before throwing readiness; bounded teardown cannot silently detach its lease owner. Synthetic stalled start confirms ownership and reap."
+    },
+    "rollback": {
+      "openedPortableCopy": true,
+      "integrityPassed": true,
+      "scope": "Original 1.4.1 preview CLI against disposable candidate workbook copy; no inference or production qualification."
+    },
+    "authoring": {
+      "passed": false,
+      "case": "Quote calculator",
+      "seconds": 131.09119999408722,
+      "sourceUnchangedDuringRun": true,
+      "failure": "Repeated invalid JavaScript after SDK inspection; guard stopped repeated unsuccessful save. No native app was published; only empty default Home exists.",
+      "interpretation": "Candidate functional failure; version causality is not isolated from later host-history changes. No manual repair or unchanged retry counted as success."
+    },
+    "repair": {
+      "passed": false,
+      "case": "Repair calculator",
+      "seconds": 47.28708803653717,
+      "sourceUnchangedDuringRun": true,
+      "failure": "Independent interaction still produced 7 for 4 and 3 instead of 12. The existing addition behavior was not repaired. Headless navigation was also unavailable.",
+      "interpretation": "Retained semantic failure; no manual edit or repeated attempt counted as success."
+    },
+    "excelBusiness": {
+      "selectedCases": [
+        "stock",
+        "invoices"
+      ],
+      "allSixCasesRun": false,
+      "contextMaintenanceEnabledInConversationHarness": false,
+      "sourceUnchangedAtEnd": true,
+      "resultSHA256": "235b5ee0041381632953850652f727bf5e01e7faf2c89ef6e317cd53fcd243de",
+      "runtimeSHA256": "5bf60f06e229432bdb54b26906c32817e78d16e888b6f5b775db9777afaa4d65",
+      "cases": [
+        {
+          "slug": "stock",
+          "freshModelTrial": true,
+          "passed": false,
+          "seconds": 595.022145986557,
+          "generationSeconds": 344.56448698043823,
+          "error": "This request needs more working room than Sevra has at once, so it stopped here. Your request and the work so far are saved. Ask for the next part to continue.",
+          "heldoutPassed": true
+        },
+        {
+          "slug": "invoices",
+          "freshModelTrial": true,
+          "passed": true,
+          "seconds": 664.4702589511871,
+          "generationSeconds": 465.8805499076843,
+          "heldoutPassed": true,
+          "invalidDirectCases": 21,
+          "invalidRecoveryCases": 21,
+          "unchangedSourceRebuildPassed": true
+        }
+      ],
+      "interpretation": "Stock built and completed five conversational actions, then hit context_limit with maintenance disabled by the harness. This does not establish insufficient production capacity. Invoices passed its selected original-result, action, invalid-input, Undo/reopen and portable-copy checks. A changed-harness stock replay is recorded separately."
+    },
+    "stockMaintenanceReplay": {
+      "slug": "stock",
+      "passed": true,
+      "seconds": 327.44241094589233,
+      "freshModelTrial": false,
+      "contextMaintenanceEnabled": true,
+      "reusedCandidateDigest": "d14c5fdaf26a00406d3ee1c204889222ec082262964ae2a5c0e873bd119bbbd8",
+      "invalidDirectCases": 18,
+      "invalidRecoveryCases": 18,
+      "unchangedSourceRebuildPassed": true,
+      "contextCheckpoints": 1,
+      "runStates": [
+        [
+          "complete",
+          5
+        ],
+        [
+          "complete",
+          3
+        ],
+        [
+          "complete",
+          3
+        ],
+        [
+          "complete",
+          3
+        ],
+        [
+          "complete",
+          3
+        ],
+        [
+          "complete",
+          5
+        ]
+      ],
+      "sourceUnchangedAtEnd": true,
+      "resultSHA256": "4875e70d146ae4f7cb12dcae92e9c3d261c723d89a64f0e6071a0ff980617ba9",
+      "runtimeSHA256": "125c801c86890c611bf6abf4354706ea959d60aa5779f4eec3c250f74a23e0ed",
+      "interpretation": "Diagnostic replay of the unchanged generated stock program with production-default context maintenance. Six conversational journeys, one checkpoint, independent saved-state checks, 18 invalid-input/recovery cases, ledger growth past 200 rows, duplicate protection, Undo/reopen and portable copy pass. No fresh-generation or timing qualification."
+    }
+  },
+  "behavioralPrerequisitesPassed": false,
+  "taskMatrixAllowed": false,
+  "upgradePilot": {
+    "performanceQualification": false,
+    "productionAdoption": false,
+    "arms": [
+      {
+        "arm": "control",
+        "release": "1.4.1",
+        "failure": null,
+        "jobs": [
+          {
+            "id": "supplier_space",
+            "seed": 9001,
+            "warmup": true,
+            "completeSeconds": 69.83590012497734,
+            "errors": [],
+            "validationFailures": 1,
+            "memory": {
+              "sampleCount": 342,
+              "errors": [],
+              "maximumThermalState": 1,
+              "observedPeakSumBytes": 12822073328,
+              "processLifetimePeaks": [
+                362415112,
+                12512726040
+              ],
+              "trace": "9-native-0.memory.json",
+              "roles": [
+                "host",
+                "helper"
+              ]
+            }
+          },
+          {
+            "id": "formula_review",
+            "seed": 9002,
+            "warmup": true,
+            "completeSeconds": 129.47425295843277,
+            "errors": [
+              "This request reached its step limit. Completed changes are saved. Ask to continue, or narrow the question."
+            ],
+            "validationFailures": 0,
+            "memory": {
+              "sampleCount": 634,
+              "errors": [],
+              "maximumThermalState": 1,
+              "observedPeakSumBytes": 12729536640,
+              "processLifetimePeaks": [
+                362415112,
+                12512726040
+              ],
+              "trace": "9-native-1.memory.json",
+              "roles": [
+                "host",
+                "helper"
+              ]
+            }
+          },
+          {
+            "id": "inventory_evidence",
+            "seed": 9003,
+            "warmup": true,
+            "completeSeconds": 21.55576879158616,
+            "errors": [],
+            "validationFailures": 0,
+            "memory": {
+              "sampleCount": 106,
+              "errors": [],
+              "maximumThermalState": 1,
+              "observedPeakSumBytes": 12732665984,
+              "processLifetimePeaks": [
+                362415112,
+                12512726040
+              ],
+              "trace": "9-native-2.memory.json",
+              "roles": [
+                "host",
+                "helper"
+              ]
+            }
+          },
+          {
+            "id": "missing_evidence",
+            "seed": 9004,
+            "warmup": true,
+            "completeSeconds": 18.592712416662835,
+            "errors": [],
+            "validationFailures": 0,
+            "memory": {
+              "sampleCount": 92,
+              "errors": [],
+              "maximumThermalState": 1,
+              "observedPeakSumBytes": 12732027032,
+              "processLifetimePeaks": [
+                362415112,
+                12512726040
+              ],
+              "trace": "9-native-3.memory.json",
+              "roles": [
+                "host",
+                "helper"
+              ]
+            }
+          },
+          {
+            "id": "supplier_space",
+            "seed": 9005,
+            "warmup": false,
+            "completeSeconds": 77.97916183329653,
+            "errors": [],
+            "validationFailures": 1,
+            "memory": {
+              "sampleCount": 381,
+              "errors": [],
+              "maximumThermalState": 1,
+              "observedPeakSumBytes": 12739416216,
+              "processLifetimePeaks": [
+                362415112,
+                12512726040
+              ],
+              "trace": "9-native-4.memory.json",
+              "roles": [
+                "host",
+                "helper"
+              ]
+            }
+          },
+          {
+            "id": "formula_review",
+            "seed": 9006,
+            "warmup": false,
+            "completeSeconds": 49.73613337497227,
+            "errors": [],
+            "validationFailures": 0,
+            "memory": {
+              "sampleCount": 243,
+              "errors": [],
+              "maximumThermalState": 1,
+              "observedPeakSumBytes": 12743299224,
+              "processLifetimePeaks": [
+                362415112,
+                12512726040
+              ],
+              "trace": "9-native-5.memory.json",
+              "roles": [
+                "host",
+                "helper"
+              ]
+            }
+          },
+          {
+            "id": "inventory_evidence",
+            "seed": 9007,
+            "warmup": false,
+            "completeSeconds": 23.136937541654333,
+            "errors": [],
+            "validationFailures": 0,
+            "memory": {
+              "sampleCount": 114,
+              "errors": [],
+              "maximumThermalState": 1,
+              "observedPeakSumBytes": 12743692440,
+              "processLifetimePeaks": [
+                362415112,
+                12512726040
+              ],
+              "trace": "9-native-6.memory.json",
+              "roles": [
+                "host",
+                "helper"
+              ]
+            }
+          },
+          {
+            "id": "missing_evidence",
+            "seed": 9008,
+            "warmup": false,
+            "completeSeconds": 17.93037095828913,
+            "errors": [],
+            "validationFailures": 0,
+            "memory": {
+              "sampleCount": 89,
+              "errors": [],
+              "maximumThermalState": 1,
+              "observedPeakSumBytes": 12744200344,
+              "processLifetimePeaks": [
+                362415112,
+                12512726040
+              ],
+              "trace": "9-native-7.memory.json",
+              "roles": [
+                "host",
+                "helper"
+              ]
+            }
+          }
+        ]
+      },
+      {
+        "arm": "candidate",
+        "release": "1.6.1",
+        "failure": null,
+        "jobs": [
+          {
+            "id": "supplier_space",
+            "seed": 9001,
+            "warmup": true,
+            "completeSeconds": 68.69543612503912,
+            "errors": [],
+            "validationFailures": 1,
+            "memory": {
+              "sampleCount": 337,
+              "errors": [],
+              "maximumThermalState": 1,
+              "observedPeakSumBytes": 12865474520,
+              "processLifetimePeaks": [
+                368067568,
+                12565531720
+              ],
+              "trace": "9-native-0.memory.json",
+              "roles": [
+                "host",
+                "helper"
+              ]
+            }
+          },
+          {
+            "id": "formula_review",
+            "seed": 9002,
+            "warmup": true,
+            "completeSeconds": 77.84849995840341,
+            "errors": [
+              "Missing requested table proposal",
+              "Accepted formula has wrong value",
+              "Formula did not recalculate",
+              "Undo did not restore formula result",
+              "Formula was replaced with a stored number"
+            ],
+            "validationFailures": 0,
+            "memory": {
+              "sampleCount": 381,
+              "errors": [],
+              "maximumThermalState": 1,
+              "observedPeakSumBytes": 12791566440,
+              "processLifetimePeaks": [
+                368067568,
+                12575300064
+              ],
+              "trace": "9-native-1.memory.json",
+              "roles": [
+                "host",
+                "helper"
+              ]
+            }
+          },
+          {
+            "id": "inventory_evidence",
+            "seed": 9003,
+            "warmup": true,
+            "completeSeconds": 19.030686749960296,
+            "errors": [],
+            "validationFailures": 0,
+            "memory": {
+              "sampleCount": 94,
+              "errors": [],
+              "maximumThermalState": 1,
+              "observedPeakSumBytes": 12753673776,
+              "processLifetimePeaks": [
+                368067568,
+                12623092288
+              ],
+              "trace": "9-native-2.memory.json",
+              "roles": [
+                "host",
+                "helper"
+              ]
+            }
+          },
+          {
+            "id": "missing_evidence",
+            "seed": 9004,
+            "warmup": true,
+            "completeSeconds": 60.40949587500654,
+            "errors": [],
+            "validationFailures": 2,
+            "memory": {
+              "sampleCount": 296,
+              "errors": [],
+              "maximumThermalState": 1,
+              "observedPeakSumBytes": 12765437536,
+              "processLifetimePeaks": [
+                368067568,
+                12623092288
+              ],
+              "trace": "9-native-3.memory.json",
+              "roles": [
+                "host",
+                "helper"
+              ]
+            }
+          },
+          {
+            "id": "supplier_space",
+            "seed": 9005,
+            "warmup": false,
+            "completeSeconds": 67.80615924997255,
+            "errors": [],
+            "validationFailures": 0,
+            "memory": {
+              "sampleCount": 332,
+              "errors": [],
+              "maximumThermalState": 1,
+              "observedPeakSumBytes": 12765912696,
+              "processLifetimePeaks": [
+                368067568,
+                12623092288
+              ],
+              "trace": "9-native-4.memory.json",
+              "roles": [
+                "host",
+                "helper"
+              ]
+            }
+          },
+          {
+            "id": "formula_review",
+            "seed": 9006,
+            "warmup": false,
+            "completeSeconds": 46.67137600004207,
+            "errors": [],
+            "validationFailures": 0,
+            "memory": {
+              "sampleCount": 228,
+              "errors": [],
+              "maximumThermalState": 1,
+              "observedPeakSumBytes": 12749331920,
+              "processLifetimePeaks": [
+                368067568,
+                12623092288
+              ],
+              "trace": "9-native-5.memory.json",
+              "roles": [
+                "host",
+                "helper"
+              ]
+            }
+          },
+          {
+            "id": "inventory_evidence",
+            "seed": 9007,
+            "warmup": false,
+            "completeSeconds": 17.708468291675672,
+            "errors": [],
+            "validationFailures": 0,
+            "memory": {
+              "sampleCount": 88,
+              "errors": [],
+              "maximumThermalState": 1,
+              "observedPeakSumBytes": 12751822384,
+              "processLifetimePeaks": [
+                368067568,
+                12623092288
+              ],
+              "trace": "9-native-6.memory.json",
+              "roles": [
+                "host",
+                "helper"
+              ]
+            }
+          },
+          {
+            "id": "missing_evidence",
+            "seed": 9008,
+            "warmup": false,
+            "completeSeconds": 18.283244916587137,
+            "errors": [],
+            "validationFailures": 0,
+            "memory": {
+              "sampleCount": 90,
+              "errors": [],
+              "maximumThermalState": 1,
+              "observedPeakSumBytes": 12751494704,
+              "processLifetimePeaks": [
+                368067568,
+                12623092288
+              ],
+              "trace": "9-native-7.memory.json",
+              "roles": [
+                "host",
+                "helper"
+              ]
+            }
+          }
+        ]
+      }
+    ],
+    "sourceScope": "Frozen P1 and P2 workers isolate the engine update at their recorded source identities; later host continuity fixes are not retroactively included."
+  },
+  "startupAdmissionEvidence": "integration/evidence/2026-11-16-context-admission.json",
+  "contextTaskSweep": {
+    "state": "blocked-before-helper-launch",
+    "reason": "P3 behavioral prerequisites failed",
+    "performanceQualification": false,
+    "productionAdoption": false
+  },
+  "defaultDecision": {
+    "contextTokens": 32768,
+    "engineMemoryGiB": 12,
+    "activations": "bf16",
+    "kv": "int8",
+    "state": "fp32",
+    "ane": "on",
+    "automaticContextGrowth": false,
+    "largerOptionalProductProfile": false,
+    "reason": "Retain the existing fixed profile. Correct accounting and normal maintenance complete the tested stock replay. Higher capacities have startup proof only. Candidate behavioral/parity gates prevent comparative task/timing qualification and promotion. This is not proof that 32K is universally optimal."
+  },
+  "finalVerification": {
+    "fullLocalSuite": {
+      "command": "bash scripts/check.sh",
+      "passed": true,
+      "logSHA256": "b02f66cd784debb3597dd0a4417590ed2b7d3bb5db2699bde7ac2903a7b73d9d",
+      "scope": "Final functional source before the one-line chat completion footer correction. All checks returned zero; stale preserved-baseline packaged journeys were explicitly skipped. Native package journeys passed. Exact containing-commit hosted Checks must verify both freshly built packages."
+    },
+    "finalNativePackage": {
+      "commands": [
+        "bash scripts/build_native.sh",
+        "python3 scripts/check_native_package.py",
+        "python3 scripts/check_install.py --native",
+        "python3 scripts/check_extraction_package.py"
+      ],
+      "passed": true,
+      "logSHA256": "65db14a3011987bb8f9d37af8e02909ab495cfa0855a5bd85dc12a72cd88300b",
+      "source": "Includes the completion-footer correction.",
+      "identity": {
+        "productMainSHA256": "5d2a308390d0a8e15dfda3bd1b5da222c57ad5bb302f0a44ad853ecf79d12340",
+        "evaluationMainSHA256": "de4be2696ab1b5d71aa3bd0711ef8afd56af9fa542f201d8b36310abcd91a0f9",
+        "unsignedMainSHA256": "2383c4ff80ceb0de7ede322a8ae434b2ecf65f09c97f001c44640a6b209dbd4a",
+        "changedFromProduct": [
+          "Contents/Info.plist",
+          "Contents/_CodeSignature/CodeResources",
+          "Contents/MacOS/Sevra"
+        ],
+        "bundleIdentifier": "com.sevra.workbooks.context-evaluation-20261116-r2",
+        "productUUID": "50067097-3466-35AF-B1C3-00D75F9D1BB9",
+        "evaluationUUID": "50067097-3466-35AF-B1C3-00D75F9D1BB9",
+        "resourcesAndHelpersUnchanged": true,
+        "installedCLIIdentical": true,
+        "installedUserPreviewReplaced": false
+      }
+    },
+    "nativeUX": {
+      "scope": "Isolated native evaluation installation with separate preference/schedule domain; not promotion or replacement of the user preview.",
+      "firstIdentity": {
+        "productMainSHA256": "25758a92431949da666c850201f6d54dcaf85a69ef21441f8bab0d05bb8ac31e",
+        "evaluationMainSHA256": "0424bf7e7ef0abbd199cf77b36ac5130eb920803be768e1c149d38caa3d58d0d",
+        "unsignedMainSHA256": "847683a57bdfbe65464064037dd0c5835bb2c08ed3c0f0e87d3fdad090bfc7be",
+        "changedFromProduct": [
+          "Contents/Info.plist",
+          "Contents/_CodeSignature/CodeResources",
+          "Contents/MacOS/Sevra"
+        ],
+        "bundleIdentifier": "com.sevra.workbooks.context-evaluation-20261116",
+        "productUUID": "5804937F-3CC5-3ABD-87EE-BB03DEFDF939",
+        "evaluationUUID": "5804937F-3CC5-3ABD-87EE-BB03DEFDF939",
+        "resourcesAndHelpersUnchanged": true,
+        "installedCLIIdentical": true,
+        "installedUserPreviewReplaced": false,
+        "scope": "Isolated installed candidate with separate preferences/schedule registry; executable code is identical after signature removal. Installer also re-signs normally. Two initial setup assertions incorrectly assumed unchanged signatures and a changed CodeResources file; corrected by comparing unsigned executable and actual sealed resources."
+      },
+      "finalIdentity": {
+        "productMainSHA256": "5d2a308390d0a8e15dfda3bd1b5da222c57ad5bb302f0a44ad853ecf79d12340",
+        "evaluationMainSHA256": "de4be2696ab1b5d71aa3bd0711ef8afd56af9fa542f201d8b36310abcd91a0f9",
+        "unsignedMainSHA256": "2383c4ff80ceb0de7ede322a8ae434b2ecf65f09c97f001c44640a6b209dbd4a",
+        "changedFromProduct": [
+          "Contents/Info.plist",
+          "Contents/_CodeSignature/CodeResources",
+          "Contents/MacOS/Sevra"
+        ],
+        "bundleIdentifier": "com.sevra.workbooks.context-evaluation-20261116-r2",
+        "productUUID": "50067097-3466-35AF-B1C3-00D75F9D1BB9",
+        "evaluationUUID": "50067097-3466-35AF-B1C3-00D75F9D1BB9",
+        "resourcesAndHelpersUnchanged": true,
+        "installedCLIIdentical": true,
+        "installedUserPreviewReplaced": false
+      },
+      "runs": [
+        {
+          "id": "ff80faa1-37ed-4901-aed5-b9b53fb00dd1",
+          "status": "cancelled",
+          "steps": 0
+        },
+        {
+          "id": "eb948c7e-2941-4ea9-9bdf-74f3a0e5b62e",
+          "status": "cancelled",
+          "steps": 0
+        },
+        {
+          "id": "a80f1f13-51d5-43dd-b1be-04a85f0fa46b",
+          "status": "complete",
+          "steps": 3
+        },
+        {
+          "id": "6c59f5ff-14fb-4ca8-83bc-c78a25329464",
+          "status": "complete",
+          "steps": 4
+        }
+      ],
+      "toolCalls": [
+        {
+          "run_id": "a80f1f13-51d5-43dd-b1be-04a85f0fa46b",
+          "tool": "calculate",
+          "state": "completed",
+          "arguments": "{\"expression\":\"17 * 19\"}",
+          "result": "{\"arithmetic\":\"decimal\",\"result\":\"323\"}"
+        },
+        {
+          "run_id": "6c59f5ff-14fb-4ca8-83bc-c78a25329464",
+          "tool": "calculate",
+          "state": "completed",
+          "arguments": "{\"expression\":\"23 * 7\"}",
+          "result": "{\"arithmetic\":\"decimal\",\"result\":\"161\"}"
+        },
+        {
+          "run_id": "6c59f5ff-14fb-4ca8-83bc-c78a25329464",
+          "tool": "workflow_activity",
+          "state": "completed",
+          "arguments": "{}",
+          "result": "{\"nextCursor\":null,\"revision\":29,\"runs\":[],\"snapshot\":\"initial\",\"workbookID\":\"be8a623b-011a-4562-ad31-45568113163b\"}"
+        }
+      ],
+      "observations": [
+        "Normal 1200-point and compact 821-point layouts inspected on first evaluation build; table can scroll horizontally and composer/Stop remain accessible.",
+        "Real Warming progress observed; header Stop afterward saves cancelled status without a completed tool call. Exact cancellation phase was not instrumented.",
+        "Reading and Working phases observed; per-request Stop saves cancelled status without resuming.",
+        "Independent calculator result 323 succeeds after cancellations.",
+        "A completed response incorrectly left the Preparing local AI footer; the ordinary chat success status was corrected to Response ready.",
+        "Fresh final-build request returns 161 and Response ready; an extra read-only workflow_activity call is retained in the receipt.",
+        "Close/reopen preserves both cancelled runs and both correct answers, without resuming work.",
+        "Evaluation app quit; no evaluation helper remains. Original preview continues running."
+      ],
+      "databaseIntegrity": true,
+      "supplierRowsMatchSyntheticOriginal": true,
+      "originalPreviewBytesUnchanged": true,
+      "originalPreviewUUID": "A4AF21E2-1B9E-3757-B8F2-091C630658FD",
+      "originalPreviewPreferencesUnchanged": true,
+      "limits": [
+        "This bounded UI pass does not complete every P6 cancellation injection (tool handling and summarization UI timings remain unqualified).",
+        "No VoiceOver, system-setting change, app-generation cohort or performance claim.",
+        "Idle helper retention for up to 120 seconds is existing product behavior; quit releases it."
+      ]
+    },
+    "changedSourceSHA256": {
+      "IntegrationTests/Agent/ContextProfileProbe.swift": "e38e0969121ef037b7244d4106691777ab13faaa47abecc0ec8ccf4360a26006",
+      "IntegrationTests/Agent/ExcelBusinessProbe.swift": "b6960d6acccd3e838cfade2ea58f7fc316141544e24ce17bba816f28efeb542f",
+      "IntegrationTests/Agent/HistoryToolChecks.swift": "a78cfd96fb0da145e73be4f5ad0c17c76dabab02e30f020fdfadfe34d3d60f42",
+      "IntegrationTests/Agent/ItemReferenceChecks.swift": "1288debed35eee40600cd6e52686c9c576d5c1231006e93b95ce66fc119e13ec",
+      "IntegrationTests/Agent/NativeAgentProbe.swift": "a1fc36b55b2bcea8672a3fc86a4e60a168fa2e040f2c5760c02dbf385ada7507",
+      "IntegrationTests/Agent/NativeLifecycleChecks.swift": "34b7410e05a88f8ba6e7b493fc9cd8d4fc551fbd9ebd0f31bb87c15672b11ce7",
+      "IntegrationTests/Agent/main.swift": "8713f3ea08a0fddd55751f211c4d2c2e73c3af2dc181e045ab78f128594dee2d",
+      "IntegrationTests/Agent/tool-grammar-fixtures.json": "369aba466e00c65194c798aac1573ea0ff7d056de6e6e59e4bbcac1dc2e877ba",
+      "IntegrationTests/Grammar/fixtures.json": "6c95e2def702768d19777b37ba99150a7b59d25873bf374e0c451fa6c057e80b",
+      "IntegrationTests/Performance/main.swift": "f3724700e99c27d5164c838780adbd43c7cd1ab767bf5863a8dc38deddb5aaaf",
+      "IntegrationTests/Splash/ModelChecks.swift": "6f624e307d0fb1e916f90ede78e1bcd3279e8a2da97873602c2d7ea8eeefb9d7",
+      "IntegrationTests/Splash/NativeProbe.swift": "db4e6dafd5607b36a5d4127950ed198647b36140e6efba609b3131e6f8b49aa0",
+      "IntegrationTests/Splash/main.swift": "f88509d03e6841e4624f21c3c90aadaad988179bf5cfa7715e62c670e9cd7e14",
+      "IntegrationTests/Splash/protocol_golden.txt": "7b20f4427a55290bcae3ef11e38ca603495107355e4180179188bcbac4d49ce6",
+      "IntegrationTests/Text/fixtures.json": "f4a4fc25f79d4ff8a963585819329afa10f3a80ba2ebeddb4de547daa0e17d3a",
+      "IntegrationTests/Text/output-fixtures.json": "53f555e6860e0e2c74346bd9430b2a08f5205d09bbb49a564ff4a39e6a7343b6",
+      "IntegrationTests/WorkflowPerformance/ReferenceModel.swift": "32c4f351db56eb63cdfc64e0e107aa5ce3e72e9ef1974f21134c29616682891f",
+      "IntegrationTests/WorkflowPerformance/Runner.swift": "3ee6c69de9f94b14b760b1f99350c5734777403341a31e64f643346f9ccb0333",
+      "Sources/SevraAI/ContextMaintenance.swift": "681ae0818418f8f7adeacdc41d9b77ef75bd949f762348117b3e762960067c7e",
+      "Sources/SevraAI/ExcelBuildContext.swift": "c67b5b9d450e4018b38e996dbda1b12dddb3fb2e2127f7bb6be37d014b7cdf7f",
+      "Sources/SevraAI/ItemReferenceCandidates.swift": "daf73902482587fcd6ccd31e3f1bb48db4e61fe22d2e0a6e13fead0da5c353d3",
+      "Sources/SevraAI/WorkbookAgent.swift": "15e39f3dc1ee79e4c980560ff31f199a28074ddc74215f5781c23fc632bbf6c0",
+      "Sources/SevraApp/WorkspaceState.swift": "802816e4ff1663f074ca5bd6c09423d74180f303f43761ade7bdab0450ad5f2a",
+      "Sources/SevraCore/ConversationContext.swift": "bed30e83e7a2c2b7a1df514bf9890c087a27f062f9001a77dcade24db55d27b4",
+      "Sources/SevraNativeAI/NativeWorkbookModel.swift": "fa19c4d5bc36055bf2b7edc77e20858116874cce36e19c47a4e250b703cbe901",
+      "Sources/SevraProduct/NativeProductResources.swift": "f411ceba845ba8ef4690039efe8b4af5bcf4c7587b5cf068f4c5abae6249c446",
+      "Sources/SevraProduct/ProductAI.swift": "15a393c55c62dcf56f6f322b8fba0e9cbb7e6c9133ce106291c011a2c6c73708",
+      "Sources/SevraSplash/ModelPreparation.swift": "745c74d2eafac66f5caca109e28ab9e2ab1ad65205c5916736ed0676f7d748e6",
+      "Sources/SevraSplash/NativeProcess.swift": "24f877b44e7c0bec0e3472cac4751a9cf87846992026e91969e30cb7d89c63e3",
+      "Sources/SevraSplash/Resources/selected-model.json": "014c3d86d05b18ca7b89f4386f00a9603413502a76dc5031a248f8fe721639e5",
+      "Sources/SevraSplash/Wire.swift": "70f60d39b120cb00735ddadbcd64ced8c36acb5ef1a21d4dd2fd0cee20f97e7f",
+      "Sources/SevraSplashText/OutputParser.swift": "f6452e9d20ac3195fc3c45c3a9095b0d85d1389d8a673f1fb5520602fd5bb717",
+      "Sources/SevraSplashText/Resources/template-patch.json": "faa8e99e6ac7c3f82b4d0c90055dda287952be3a8fa2fd451479b1b9cc7ddb51",
+      "scripts/check_request_cache_isolation.py": "df9638cca6ca985b5053c97b41e4e49855bd39b0d5da2fef55e45291579f1917",
+      "scripts/check_splash_reference.py": "819a5ebf3071f02dbe28ebf864a37927fe42f8f80f9e83dec7755bbec9226b41",
+      "scripts/compare_workflow_performance.py": "d25a9ae991c6ce96fb9e3838c42c69fa593d513d6e3b29b2d820a827db60858f",
+      "scripts/freeze_historical_inference_prefix.py": "2a78612a66c4d6011a2d29887741074c9c7ca24f009d7469493d4101fbcd4532",
+      "scripts/generate_context_profile_fixtures.py": "c5ecd8e632d509eb58ba8d6304a61bcf87210a24fae0da07e4eeaae1176cd378",
+      "scripts/generate_splash_grammar_fixtures.py": "87311bfb65cd983d2a80db838addae43f1af4b50162e60bb1dd3d0a9065c0a6f",
+      "scripts/generate_splash_output_fixtures.py": "b62c2e4ba4e03513d55b0c968f719cc08d25ea03104c89f48993237cd537a109",
+      "scripts/generate_splash_text_fixtures.py": "86bdf5b3eb667833de072db6892621722879f794f2d12c06df9d09a9c1c67756",
+      "scripts/generate_splash_tool_fixtures.py": "4959586418ca9359221a9f7fafde9c8a4249dd04dcadb66e9a5a7e696f49f59d",
+      "scripts/probe_context_admission.py": "4e0ec82cdeb57721bdff4c24b0bdf27661ebc3dd746bbeb2ddeccd6b7a2bcb57",
+      "scripts/probe_context_profiles.py": "50d2aa4f886fcef8f791a7beedf2ed15b823ec7e6af81299ccdfbb0da9a68735",
+      "scripts/probe_historical_inference_prefix.py": "30d656e03f8bbeb8fc1556c595c3826020d532de62a8309af4fa47b3c3fb380a",
+      "scripts/probe_inference_upgrade.py": "fcc92f595f676815610cdeb8f4b524d97f7665c7fbf57e6a3e89a016ff08fc90",
+      "scripts/probe_request_cache_isolation.py": "c47c7b64a07c8ec36f33143b2691949c374ba0f8ef53d3b35f40f76d85e16788",
+      "scripts/probe_splash_upgrade_effect.py": "af83f1cb98581d88581486bd8d146e6d07fa59417adec5bc15f77df4aa4623b8",
+      "scripts/splash_performance_reference.py": "7ce5773d9c39d5a56f32abefce1a1f7ecb3ec62d60dd702c129c488220758d67"
+    },
+    "pythonCompilation": {
+      "modules": 16,
+      "passed": true
+    },
+    "publication": {
+      "workflow": "Checks",
+      "revision": "containing commit",
+      "status": "Required exact-head hosted result recorded by GitHub; not inferred from local checks.",
+      "promotionAllowed": false
+    }
+  }
+}

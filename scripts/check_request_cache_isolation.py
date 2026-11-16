@@ -27,7 +27,7 @@ with tempfile.TemporaryDirectory() as temporary:
                     fields = [1, 0, 1, 1, 180000000, 1800, 1, 0, 0., 1., 0, 0., 0., 1., 0., 42, 0, 0, 0,
                               index if arm == 'isolated' else 0, SALT_HIGH if arm == 'isolated' else 0, 512, 0, 0]
                     payload = REQUEST.pack(*fields) + struct.pack('<I', 99)
-                    frame = struct.pack('<4sHHQ', b'SPLH', 11, 1, len(payload)) + payload
+                    frame = struct.pack('<4sHHQ', b'SPLH', 13, 1, len(payload)) + payload
                     checksum = hashlib.sha256(frame).hexdigest()
                     (folder / (checksum + '.request.json')).write_text(json.dumps({'base64': base64.b64encode(frame).decode()}))
                     request['requestSHA256'] = checksum
@@ -55,6 +55,13 @@ with tempfile.TemporaryDirectory() as temporary:
     # A present file is insufficient: bind it to its hash, framing and salt.
     first = results[2]['ready']['prime']['trace']['requests'][0]
     path = folder / (first['requestSHA256'] + '.request.json')
+    obsolete = bytearray(base64.b64decode(json.loads(path.read_text())['base64']))
+    struct.pack_into('<H', obsolete, 4, 11)
+    checksum = hashlib.sha256(obsolete).hexdigest()
+    (folder / (checksum + '.request.json')).write_text(json.dumps({'base64': base64.b64encode(obsolete).decode()}))
+    changed = copy.deepcopy(results[2])
+    changed['ready']['prime']['trace']['requests'][0]['requestSHA256'] = checksum
+    assert 'Invalid request frame header' in verify_salts(changed, folder, True)['problems']
     path.write_text(json.dumps({'base64': base64.b64encode(b'bad frame').decode()}))
     assert verify_salts(results[2], folder, True)['problems']
 

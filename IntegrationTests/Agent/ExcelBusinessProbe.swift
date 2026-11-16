@@ -40,7 +40,10 @@ import SevraNativeAI
     let started = Date()
     let book = try Workbook.create(
       at: root.appendingPathComponent(slug + ".sevra"), title: example["name"].text)
-    var result: [String: Value] = ["slug": .string(slug), "freshModelTrial": .bool(replay == nil)]
+    var result: [String: Value] = [
+      "slug": .string(slug), "freshModelTrial": .bool(replay == nil),
+      "contextMaintenanceEnabled": .bool(true),
+    ]
     var journeys: [Value] = []
     let suite = "Sevra-business-probe-" + identifier()
     let defaults = UserDefaults(suiteName: suite)!
@@ -212,7 +215,7 @@ import SevraNativeAI
           request, workbook: book,
           context: "Active app: " + space.title + ". Active space ID: " + space.id + "\n"
             + ChatOperations.appOperationGuidance,
-          modelDirectory: URL(fileURLWithPath: modelsRoot), model: model, enableCompaction: false,
+          modelDirectory: URL(fileURLWithPath: modelsRoot), model: model,
           workspaceAction: { action, arguments, readOnly, cancellation in
             _ = try ChatOperations.validate(action, arguments: arguments, readOnly: readOnly)
             let target = try book.spaceTarget(arguments["id"].text)
@@ -262,9 +265,11 @@ import SevraNativeAI
             "A saved action must finish with a truthful completion, without a stale failure.")
           let index = example["sheets"].array.firstIndex(of: journey["sheet"])!
           func fields(_ value: Value) -> Value {
-            .object(Dictionary(uniqueKeysWithValues: value.object.map {
-              ("c\(Int($0.key.utf8.first!) - 64)", $0.value)
-            }))
+            .object(
+              Dictionary(
+                uniqueKeysWithValues: value.object.map {
+                  ("c\(Int($0.key.utf8.first!) - 64)", $0.value)
+                }))
           }
           try checkBusinessSavedEffect(
             before: before, after: after,
@@ -390,6 +395,9 @@ import SevraNativeAI
       result["error"] = .string(error.localizedDescription)
     }
     session?.stop()
+    // Preserve partial attempts when an assertion or context limit stops a case.
+    try Data(Value.array(journeys).json().utf8).write(
+      to: root.appendingPathComponent(slug + "-journeys.json"), options: .atomic)
     result["seconds"] = .number(Date().timeIntervalSince(started))
     results.append(.object(result))
     try Data(Value.array(results).json().utf8).write(

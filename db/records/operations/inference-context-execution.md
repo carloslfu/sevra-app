@@ -3,18 +3,20 @@ type: operational
 meta-type: operational
 id: 01m7jmgpet71503tz8tqy8k3ax
 created: 2026-11-16T16:54:46.490015+00:00
-updated: 2026-11-16T17:26:30.692833+00:00
-summary: Implementing inference/context plan from 6d83320; preserving baseline before accounting, engine and controlled profile qualification.
+updated: 2026-11-16T19:47:34.438012+00:00
+summary: Splash 1.6.1 candidate and context fixes implemented; local/package/UI checks pass, but repeatability and app-quality failures block adoption and larger profiles.
 title: Inference and context implementation
 ---
 # Inference and context implementation
 
 ## Active checkpoint
-P1 is implemented and frozen on Splash 1.4.1, 32K/12 GiB. The original baseline and corrected workers/resources are separate under `.build/inference-context-20261116`; compact portable evidence is `integration/evidence/2026-11-16-context-accounting.json`. The final CPU suite, actual-token accounting/sentinel probe, packaged calculator behavior and all three document composition/portable-copy cases passed. Automatic authoring repairs and two headless navigation failures remain in the evidence; no speed, full-UX or new-profile claim follows from these diagnostic passes.
+The host accounting and continuity fixes are implemented. P1 is committed/frozen at `c6a588c` on Splash 1.4.1. The current source integrates candidate Splash 1.6.1/protocol 13/status 8 with explicit BF16, int8 KV, fp32 state and ANE on at unchanged 32K/12 GiB. Exact model assembly, CPU adapter checks, real startup/responses/cancel/refusal/recovery, autonomous workbook jobs and corrected multi-compaction/portable continuity pass. The preserved original preview CLI opens and verifies a disposable portable copy from the candidate. Portable receipts are `integration/evidence/2026-11-16-splash-upgrade.json` and `integration/evidence/2026-11-16-context-admission.json`.
 
-The current implementation uses exact scope/schema/mode preparation for measurement and dispatch; verifies complete output/result/recovery space before helper startup and again against Ready; and enforces transient result bounds before admitting evidence. The whole SDK contract currently requires 3,612 framed tokens where permitted. Normal 32K maintenance stays 24,576; full-output authoring uses 20,708. The initial stale schema fixture, unbundled authoring attempt and rejected blanket-2K result policy are preserved with their causes and revised candidate identities. Details and appended findings live in [[records/plans/inference-context-upgrade]].
+Current-agent R/N/N/R passes all twelve jobs with exact requests and tokens. Historical fixed-input R/N/N/R varies within both native and reference; an instrumented diagnostic matches all 2,830 common mask prefixes but cannot clear the uninstrumented failure. The old/new pilot retains formula warmup failures in both versions. Candidate calculator authoring and repair fail independent outcomes. Full performance cohorts, engine promotion and the task-quality matrix remain blocked by the preregistered gates. No speedup is claimed.
 
-Implementation began at `6d83320`. The subsequent `383b70f` contains independent visual-planning documentation only and is preserved. P2/P3 now address the pinned 1.6.1 runtime and its protocol/behavior gates before any larger default is selected. The installed native preview remains unchanged.
+The selected invoice business case passes. Stock initially failed its sixth conversational action with maintenance disabled in the harness. The corrected harness uses production defaults; a separate unchanged-program replay passes at 32K after one checkpoint, including the price update, 18 invalid-input cases, growth beyond 200 rows, duplicate protection, Undo/reopen and portable copy. This is replay evidence, not a fresh generated-app cohort.
+
+Startup-only tests admit 32K, 64K and 128K at 12 GiB, with decreasing resident target weights. 32K/24 GiB also admits; two remaining 24 GiB cells were refused by conservative instantaneous headroom and remain untested. All four started helpers release and are reaped. Capacity is not useful-task qualification. Retain 32K/12 GiB; no automatic growth or larger product profile is enabled. Full local checks pass, followed by a fresh package/install/extraction pass and bounded isolated native UI verification. Both Stop controls, recovery to correct calculations and saved conversation reopening pass. A misleading completion footer was fixed and verified in the final build. Exact containing-commit hosted Checks remains a publication gate; no successful build can clear the failed behavior gates. The installed preview and all its preferences remain untouched.
 ## Execution order
 
 - P0: preserve source/binary/resource identity, current failures and frozen workload contracts.
@@ -24,9 +26,14 @@ Implementation began at `6d83320`. The subsequent `383b70f` contains independent
 - P6/P7: native UX/recovery, complete final checks, package/install identity, commit/push and rollback proof.
 
 ## Active blockers
-1. Splash 1.6.1 protocol 13/status 8, model/frontend/grammar/lifecycle qualification is next.
-2. Strict same-engine parity and matched old/new-engine performance remain unqualified; retain the historical failures.
-3. Context/memory/profile selection and final installed-app UX/recovery qualification remain open; no larger default is selected.
+1. Historical same-engine repeatability fails within both native and reference workers despite equal input bytes and matching common-prefix masks. Engine promotion and full qualifying cohorts remain blocked. The unchanged upstream numerical engine has not been patched or qualified by instrumented diagnostic passes.
+2. Candidate calculator creation and repair fail independent outcomes. The old/new pilot retains a formula failure in each engine. The useful-task context sweep and larger/precision profiles remain gated; retain 32K/12 GiB without claiming a global optimum.
+3. Exact containing-commit hosted Checks is required at publication. Local broad checks, final native package/setup/install/extraction and bounded UI recovery pass. The remaining full P6 phase-specific cancellation timings are unqualified, and the installed 1.4.1 preview remains unchanged.
 ## Evidence
 
 Initial local build artifacts and originals are retained under the ignored `.build/inference-context-20261116` directory. Public synthetic receipts will record portable source, artifact and configuration identities without private local paths. Earlier evidence remains at its original frozen identities and is not relabeled as proof of this implementation.
+Final local suite: `bash scripts/check.sh`, exit 0. It ran before the final one-line ordinary-chat completion footer correction; unchanged functional evidence is reused. Its stale preserved-baseline packaged journeys were explicitly skipped. Fresh native build, package/install/extraction checks after the footer correction all pass. Hosted Checks must build and verify both packages on the exact containing commit. The public upgrade receipt records log hashes and changed source hashes, rather than inferring source identity from app names or timestamps.
+
+Isolated native evaluation main UUID `50067097-3466-35AF-B1C3-00D75F9D1BB9` matches the final package. Its separate bundle identity requires re-signing; unsigned executable code, all resources/helpers and installed CLI match. Two cancellations are saved, 17 × 19 = 323 and 23 × 7 = 161 are independently verified through calculator receipts, and all four runs survive reopening. Final UI shows Response ready. Normal/compact layout proof is from the prior same-UI build; only the footer changed. SQLite and CLI integrity pass; synthetic supplier rows remain unchanged. The evaluation app is closed and its helper reaped. Original preview UUID `A4AF21E2-1B9E-3757-B8F2-091C630658FD`, executable bytes and complete preference domain are unchanged. No user workbook, model weights, original app grant or schedule was modified.
+
+The final result is a committed candidate implementation with a documented negative qualification result. P0/P1/P2 are complete; P3/P4 and broader adoption remain open. P5 follows the plan's conservative no-change path, and P6 has bounded UI/lifecycle proof with explicitly untested timing cells. Do not mark the whole plan accepted or install the candidate over the preserved preview merely because CI passes.

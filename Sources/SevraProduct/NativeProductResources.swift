@@ -28,8 +28,8 @@
       try require(data.count < 16384, "resources", "The native runtime manifest is oversized.")
       let manifest = try JSONDecoder().decode(Manifest.self, from: data)
       try require(
-        manifest.schemaVersion == 1 && manifest.release == "1.4.1"
-          && manifest.commit == "1744cfafee415fb463b289449cec59a864e768e9"
+        manifest.schemaVersion == 1 && manifest.release == "1.6.1"
+          && manifest.commit == "d8af1054aab0f97de21d043e01aa98af3754f10e"
           && Set(manifest.engineFiles.keys) == ["splash", "splash.metallib", "host-step.metallib"],
         "resources", "The installed runtime does not match this version of Sevra.")
       let app = Bundle.main.bundleURL.pathExtension == "app"

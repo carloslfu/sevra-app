@@ -165,6 +165,36 @@ func checkHistoryTools() async throws {
   try expectEqual(
     try uncited.messages(limit: 100).filter { $0.role == "assistant" && $0.state == "complete" }
       .count, 1)
+  let assistant = try uncited.addMessage("I recorded MAPLE-27.", role: "assistant")
+  let assistantEvidence = try uncited.readHistoryEvidence(assistant)
+  // An assistant reply remains citable for a question about what it said. It
+  // does not become the original user statement or gain cross-scope access.
+  try expectEqual(assistantEvidence["citation"], .string("message:" + assistant))
+  try expectEqual(assistantEvidence["message"]["role"], .string("assistant"))
+  try expectEqual(try uncited.readHistoryEvidence(original)["message"]["role"], .string("user"))
+  var annotatedMessage = InferenceMessage(
+    role: "system", content: "Review the current application", conversationActions: ["continue"])
+  annotatedMessage.nativeAppAuthoring = true
+  annotatedMessage.reviewContract = .object(["action": .string("ship"), "maximum": .number(4)])
+  let annotated = try ItemReferenceCandidates.annotate([annotatedMessage], workbook: uncited)
+  try expectEqual(annotated[0].reviewContract, annotatedMessage.reviewContract)
+  try expectEqual(annotated[0].nativeAppAuthoring, true)
+  try expectEqual(annotated[0].conversationActions, ["continue"])
+  var retained = InferenceMessage(role: "tool", content: "{}", reasoning: "Temporary reasoning")
+  retained.nativeAppAuthoring = true
+  retained.reviewContract = annotatedMessage.reviewContract
+  let refreshed = ExcelBuildContext.refresh([retained])
+  let maintained = try ContextMaintenance.withProgress(
+    [retained],
+    state: .object([
+      "calls": .array([.object(["tool": .string("read"), "state": .string("completed")])])
+    ]))
+  for message in [refreshed[0], maintained[0]] {
+    try expectEqual(message.reviewContract, retained.reviewContract)
+    try expectEqual(message.nativeAppAuthoring, true)
+  }
+  try expectEqual(refreshed[0].reasoning, "")
+  try expectEqual(maintained[0].reasoning, retained.reasoning)
   let numeric = try Workbook.create(
     at: root.appendingPathComponent("Numeric.sevra"), title: "Invented current-request quantity")
   let numericOriginal = try numeric.addMessage("Purchase code MAPLE-27.", role: "user")

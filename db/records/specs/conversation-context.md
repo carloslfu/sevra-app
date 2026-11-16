@@ -3,19 +3,14 @@ type: spec
 meta-type: conclusion
 id: 01m5x2pp178p3a4ay7hbfx7wdg
 created: 2026-10-26T21:43:43.399273+00:00
-updated: 2026-11-16T17:24:47.494906+00:00
+updated: 2026-11-16T19:32:09.063884+00:00
 summary: Automatic compaction, preserved conversation history, authoritative continuation state and measured larger-context qualification.
 title: Continuing conversation and context management
 status: reviewed
 ---
 # Continuing conversation and context management
 
-Revision 1, October 26, 2026. Reviewed design; implementation and hardware
-qualification remain open. The owner requested continuity through automatic
-compaction and larger-context qualification in a related design conversation.
-That requirement was relayed into this implementation session. The 32K and 64K
-sizes below are evaluation proposals, not established capabilities or a fixed
-owner-selected product default.
+Revision 2, November 16, 2026. Automatic maintenance, exact scoped accounting and original-history navigation are implemented with bounded CPU and real-model checks. The native preview retains 32K context and a 12 GiB engine allowance. Larger useful-context, hardware and engine-adoption qualification remain open; startup admission alone is insufficient. Current results and retained failures are in [[records/operations/inference-context-execution]].
 
 ## Reconstruction and saved history
 
@@ -45,9 +40,9 @@ Do not silently switch to a cloud model or a different workbook.
 
 ## Context profiles and budgeting
 
-C03. The existing 8,192-token native context with at most 1,800 output tokens is
-a development setting. Qualify 32,768 first, then 65,536 where practical on the
-reference hardware. Larger contexts become a default only after complete workbook
+C03. The native preview retains 32,768 tokens and a 12 GiB engine allowance;
+8,192 is an internal development profile. Evaluate 65,536 and 131,072 only after
+the engine prerequisites pass. Larger contexts become a default only after complete workbook
 jobs, input processing latency, memory pressure and correctness pass. A model's
 advertised maximum or an engine accepting a number does not establish usable
 capacity. Keep physical hardware, model/draft revisions, memory/SSD budgets and
@@ -647,3 +642,8 @@ Evidence: [[records/operations/implementation]].
 
 ## Reviewed inference and context upgrade plan, November 15
 [[records/plans/inference-context-upgrade]] is revision 5 after three original passes and a complete follow-up review. [[records/reviews/inference-context-plan-full-review]] records every section's coverage and 18 resolved gaps/ambiguities. The plan covers shared exact-scope admission, mode-specific output/result/transition reserves, actual admitted capacity, Splash 1.6.1 and controlled context/memory experiments. The archive and intended native members are hash-verified; runtime behavior is unqualified. Current implementation, 75% policy and explicit adoption gates remain unchanged until implementation updates the canonical contract and tests together. The historical review and qualification failures remain preserved.
+
+## Exact accounting and bounded history navigation, November 16
+The current implementation follows the actual-scope, complete-output and bounded-result policy in [[records/plans/inference-context-upgrade]]. `ItemReferenceCandidates` preserves review metadata while rebuilding lookup menus. Its bounded history choices prioritize visible original-message citations, checkpoint navigation references and current discovery/results over incidental IDs in chronological history envelopes. It still verifies conversation scope, does not inherit stale candidate annotations and does not turn a summary or unread pointer into evidence. Ranked history-search results retain their order. Assistant originals support what the assistant said; user-supplied facts should cite the original user message.
+
+This repairs an observed failure after portable reopen: old routine messages filled the 32-entry history menu and excluded the original user pointer even though it remained visible. Three failed real-model attempts are retained, including the insufficient recency-only fix. The revised candidate passes repeated compaction, exact early constraints and original citations, portable reopen, false-digest versus current acceptance/estimate state, summary cancellation and explicit retry. Focused CPU checks cover packed history beyond the menu limit and ranked-search ordering. These results do not qualify a larger context profile or clear Splash's separate repeatability/app-authoring failures. [[records/operations/inference-context-execution]] owns current status.

@@ -163,3 +163,6 @@ CPU performance-gate self-check, candidate archive/native-member integrity, Mark
 ## [2026-11-16 17:26] implementation | records/operations/inference-context-execution.md
 P1 scoped accounting and complete-output/result reserves verified on Splash 1.4.1; frozen old-engine workers, CPU sentinel/mode checks, calculator and three portable composition cases retained. Upgrade/profile qualification continues.
 
+## [2026-11-16 19:47] verification | records/operations/inference-context-execution.md
+Full local check.sh passes before one-line success-footer correction; final native build/package/install/extraction and isolated progress/Stop/calculator/reopen UI pass after it. Public upgrade receipt preserves source/binary/log hashes and all failed model cohorts. Historical repeatability and calculator create/repair failures block adoption and larger-context task matrix; retain 32K/12 GiB and unchanged installed preview. Exact containing-commit Checks remains the publication gate.
+

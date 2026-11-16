@@ -237,13 +237,14 @@ package final class ContextMaintenance {
       ? ""
       : "\(reads.count) \(reads.count == 1 ? "read" : "reads") so far. Read again only what you must cite. "
     fields["hostProgress"] = .string(finished + read + "Continue with what remains.")
-    return retained.dropLast() + [
-      InferenceMessage(
-        role: last.role, content: try Value.object(fields).json(), toolCalls: last.toolCalls,
-        toolCallId: last.toolCallId, toolName: last.toolName, reasoning: last.reasoning,
-        itemReferences: last.itemReferences, conversationActions: last.conversationActions,
-        documentCopyIDs: last.documentCopyIDs, historyReferences: last.historyReferences)
-    ]
+    var updated = InferenceMessage(
+      role: last.role, content: try Value.object(fields).json(), toolCalls: last.toolCalls,
+      toolCallId: last.toolCallId, toolName: last.toolName, reasoning: last.reasoning,
+      itemReferences: last.itemReferences, conversationActions: last.conversationActions,
+      documentCopyIDs: last.documentCopyIDs, historyReferences: last.historyReferences)
+    updated.nativeAppAuthoring = last.nativeAppAuthoring
+    updated.reviewContract = last.reviewContract
+    return retained.dropLast() + [updated]
   }
   /// The state the model reads, without host bookkeeping it never uses. A read adds one entry
   /// to every section, so an identifier repeated across them costs real room in a long job.

@@ -55,7 +55,7 @@ public actor ProductAI {
   #if SEVRA_NATIVE_CANDIDATE
     public static let name = "Local AI · Native preview"
     public static let detail = "Qwen3.6 35B · Splash · DFlash 2"
-    public static let revision = "splash-1.4.1-native-candidate"
+    public static let revision = "splash-1.6.1-native-candidate"
     public static let preferenceKey = "nativeModelsRoot"
     public static let canReuseModel = true
     public static var defaultDirectory: URL {

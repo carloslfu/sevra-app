@@ -338,7 +338,7 @@ def main():
               'grammarLibrary': str(ROOT / grammar['library']), 'grammarSHA256': grammar['librarySHA256'],
               'contextTokens': protocol['contextTokens'], 'memoryBytes': protocol['memoryBytes'], 'cases': [], 'workflowQualification': True,
               'diagnosticMasks': args.diagnostic_masks,
-              'modelsRoot': str(args.models_root.resolve()), 'python': str(ROOT / '.build/splash-reference/bin/python'),
+              'modelsRoot': str(args.models_root.resolve()), 'python': str(ROOT / '.build/splash-reference-1.6.1-release/bin/python3'),
               'referenceScript': str(ROOT / 'scripts/splash_performance_reference.py'), 'configPath': str(config_path)}
     save(config_path, config)
     sources = ['IntegrationTests/WorkflowPerformance/Runner.swift', 'IntegrationTests/WorkflowPerformance/ReferenceModel.swift',

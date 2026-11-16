@@ -1,0 +1,10 @@
+{
+  "schemaVersion": 1,
+  "scope": "Startup admission/failure contract only; zero generated requests. This is not the P4 task-quality or performance matrix.",
+  "cells": [[32768,12],[65536,12],[131072,12],[32768,24],[65536,24],[131072,24]],
+  "precision": "BF16 activations, int8 KV, fp32 state, ANE on",
+  "safety": "Leave an estimated 8 GiB outside the requested budget, admit one helper through its planner, observe critical pressure and thermal state, release/reap before the next cell. Retain rejection; no retry or forced allocation.",
+  "purpose": "Verify protocol 13 Ready and typed StartFailed under requested context/memory pairs, including the changed memory planner. Record actual plan, footprint and cleanup. A Ready event does not qualify useful context or a product default.",
+  "performanceQualification": false,
+  "productionAdoption": false
+}

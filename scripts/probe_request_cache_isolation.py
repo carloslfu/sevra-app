@@ -17,7 +17,8 @@ from compare_workflow_performance import worker
 from probe_workflow_isolation import cache_counts, summarize as summarize_jobs
 
 SALT_HIGH = 0x5345565241493200
-# Pinned protocol 11: 16-byte frame header followed by the 114-byte request.
+# Protocol 13 preserves the 114-byte request body after its 16-byte header.
+WIRE_VERSION = json.loads((ROOT / 'integration/splash.json').read_text())['protocolVersion']
 REQUEST = struct.Struct('<QBBQQIIIffIffffQIIIQQIII')
 
 
@@ -34,7 +35,7 @@ def verify_salts(result, directory, isolated):
                 if hashlib.sha256(frame).hexdigest() != checksum:
                     raise ValueError('Request frame hash differs')
                 magic, version, kind, length = struct.unpack_from('<4sHHQ', frame)
-                if magic != b'SPLH' or version != 11 or kind != 1 or length != len(frame) - 16:
+                if magic != b'SPLH' or version != WIRE_VERSION or kind != 1 or length != len(frame) - 16:
                     raise ValueError('Invalid request frame header')
                 fields = REQUEST.unpack_from(frame, 16)
                 low, high = fields[19:21]

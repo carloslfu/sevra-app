@@ -8,6 +8,9 @@ public final class SplashNativeProcess {
     public let concurrent: UInt32
     public let context: UInt32
     public let vision: Bool
+    public let vocabulary: UInt32
+    public let maskRows: UInt32
+    public let stopTokens: [UInt32]
   }
   public struct Result {
     public let tokens: [UInt32]
@@ -43,7 +46,9 @@ public final class SplashNativeProcess {
 
   public init(
     executable: URL, arguments: [String], timeout: Double = 90,
-    cancelled: () -> Bool = { false }
+    cancelled: () -> Bool = { false },
+    warming: (UInt32, UInt32) -> Void = { _, _ in },
+    onLaunch: (SplashNativeProcess) -> Void = { _ in }
   ) throws {
     try check(timeout.isFinite && timeout > 0, "Invalid startup timeout")
     process.executableURL = executable
@@ -56,6 +61,9 @@ public final class SplashNativeProcess {
     do {
       try process.run()
       started = true
+      // Let the lease owner retain the child before readiness can fail. If a
+      // bounded close cannot reap it, ownership must survive this throwing init.
+      onLaunch(self)
       // Parent retains only its ends. EOF and teardown must not depend on Pipe deinit.
       try input.fileHandleForReading.close()
       try output.fileHandleForWriting.close()
@@ -72,14 +80,27 @@ public final class SplashNativeProcess {
         fcntl(input.fileHandleForWriting.fileDescriptor, F_SETNOSIGPIPE, 1) != -1,
         "Cannot protect native pipe writes")
       let deadline = clock + timeout
+      var lastWarming: (UInt32, UInt32)?
       while ready == nil {
         if cancelled() { throw SplashError("Native startup cancelled") }
         let events = try pump(deadline: deadline)
         for event in events {
           switch event {
-          case .ready(let lanes, let context, let vision):
+          case .ready(let lanes, let context, let vision, let vocabulary, let maskRows, let stops):
             try check(ready == nil, "Duplicate native readiness")
-            ready = Ready(concurrent: lanes, context: context, vision: vision)
+            ready = Ready(
+              concurrent: lanes, context: context, vision: vision,
+              vocabulary: vocabulary, maskRows: maskRows, stopTokens: stops)
+          case .warming(let completed, let total):
+            try check(ready == nil, "Warming after native readiness")
+            if let lastWarming {
+              try check(
+                total == lastWarming.1 && completed >= lastWarming.0,
+                "Native warming progress moved backwards")
+            }
+            lastWarming = (completed, total)
+            warming(completed, total)
+          case .startFailed(let failure): throw failure
           case .error(let failure): throw failure
           default: throw SplashError("Unexpected event before native readiness")
           }
@@ -134,6 +155,11 @@ public final class SplashNativeProcess {
           let done = try state.accept(message)
           if case .tokens = message, first == nil { first = clock - started }
           if case .mask(_, let maskID, let words, let simulation) = message {
+            try check(
+              words == (ready!.vocabulary + 31) / 32
+                && simulation.count + 1 <= Int(ready!.maskRows)
+                && simulation.allSatisfy { $0 < ready!.vocabulary },
+              "Mask request exceeds native Ready capabilities")
             guard let mask else { throw SplashError("Missing mask provider") }
             let result = try mask(state.tokens, simulation, words)
             try check(
@@ -173,6 +199,10 @@ public final class SplashNativeProcess {
         switch events[0] {
         case .status(let responseID, let json):
           try check(responseID == id, "Status correlation mismatch")
+          let status = try JSONSerialization.jsonObject(with: json) as? [String: Any]
+          try check(
+            status?["schema_version"] as? Int == SplashWire.statusSchemaVersion,
+            "Unsupported native status schema")
           return json
         case .error(let failure): throw failure
         default: throw SplashError("Unexpected native status response")

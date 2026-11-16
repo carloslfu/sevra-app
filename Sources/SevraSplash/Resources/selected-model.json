@@ -26,7 +26,6 @@
         "sha256": "a822a9e48b0aafbe3144ec37d4fb067e178ed96615ce6e4420b3149893cc5767",
         "destinations": [
           "config.json",
-          "target/config.json",
           "tokenizer/config.json"
         ]
       },

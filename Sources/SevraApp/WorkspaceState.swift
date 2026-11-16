@@ -967,7 +967,7 @@ struct FolderReview {
       UserDefaults.standard.string(forKey: ProductAI.preferenceKey).map { URL(fileURLWithPath: $0) }
       ?? ProductAI.defaultDirectory
     Task {
-      defer { finishOperation(ticket, in: book) }
+      defer { finishOperation(ticket, in: book, successStatus: "Response ready.") }
       var expectedNavigationID = navigationID
       let openRequestedView: @MainActor @Sendable (Route) throws -> Void = { destination in
         guard self.owns(ticket, in: book), self.conversation == chat,

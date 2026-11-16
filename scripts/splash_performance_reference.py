@@ -72,17 +72,23 @@ def main():
     mask_mode, delay = diagnostic_settings(config)
     from splash_reference_identity import verify
     sys.path.insert(0, str(verify(ROOT, Path(config['assembly']) / 'tokenizer')))
+    lease = None
+    if config.get('workerOwnsLease'):
+        import fcntl
+        lease = (Path.home() / 'Library/Application Support/Sevra/inference.lock').open('a+')
+        fcntl.flock(lease.fileno(), fcntl.LOCK_EX | fcntl.LOCK_NB)
     began = time.monotonic()
     from transformers import AutoTokenizer
     from server.backend import NativeBackend
     from server.chat_format import QWEN
     from server.chat_templates import ChatTemplates
-    from server.constraints import ConstraintFactory, validate_tokenizer
+    from server.constraints import ConstraintFactory, validate_tokenizer, check_capabilities
     from server.frontend import Frontend
     from server.runtime import MultiplexedRuntime
     from server.server import FrontendHandler
     from server.thinking import ThinkingCodec
     from server import protocol as wire
+    from server.dialects.responses import ResponseStore
 
     class WorkbookConstraintFactory(ConstraintFactory):
         def create(self, grammar, **kwargs):
@@ -139,10 +145,10 @@ def main():
             return super()._on_event(state, event)
 
     class Collector:
-        _collect = FrontendHandler._collect
+        collect = FrontendHandler.collect
         _finalize_content = FrontendHandler._finalize_content
 
-        def _next_event(self, job, on_idle=None):
+        def next_event(self, job, on_idle=None):
             kind, value = job.events.get(timeout=max(0.001, job.deadline - time.monotonic()))
             if kind == 'error':
                 raise value
@@ -155,13 +161,16 @@ def main():
     runtime = MultiplexedRuntime([
         config['engine'], 'serve-native', config['assembly'], str(config['contextTokens']),
         str(config['memoryBytes']), '--persistent-cache', 'off', '--idle-sleep', 'allow',
-        '--verify-rows', 'all'], startup_timeout=180, pending_limit=64)
+        '--verify-rows', 'all', '--kv-format', 'int8', '--state-format', 'fp32', '--ane', 'on',
+        '--activations', config.get('activations', 'bf16')], startup_timeout=360, pending_limit=64)
     backend = ObservedBackend(runtime, tokenizer, request_logger=lambda *args, **kw: None)
     try:
         runtime.wait_ready()
-        frontend = Frontend(tokenizer, backend, 'benchmark', config['contextTokens'], 180, 1,
-            constraint_factory=WorkbookConstraintFactory(tokenizer, QWEN), chat_templates=templates,
-            chat_format=QWEN, thinking_codec=ThinkingCodec(), vision=False)
+        served = runtime.capabilities
+        check_capabilities(tokenizer, QWEN, served)
+        frontend = Frontend(tokenizer, backend, 'benchmark', 180,
+            constraint_factory=WorkbookConstraintFactory(tokenizer, served), chat_templates=templates,
+            chat_format=QWEN, thinking_codec=ThinkingCodec(), response_store=ResponseStore())
         emit({'ready': True, 'pid': os.getpid(), 'helperPID': runtime._process.pid,
               'setupSeconds': time.monotonic() - began})
         for line in sys.stdin:
@@ -180,10 +189,13 @@ def main():
             job = frontend.prepare(body, deadline=started + 180)
             if command.get('op') == 'workflow' and len(job.prompt_tokens) > 24000:
                 raise ValueError('Workflow qualification exceeds its declared 24000-token prompt bound')
+            if 'expectedPrompt' in case and (list(job.prompt_tokens) != case['expectedPrompt']
+                    or job.generation_prompt_tokens != case['expectedGenerationTokens']):
+                raise ValueError('Historical request prompt differs before inference')
             prepared = time.monotonic()
             backend.tokens, backend.first_token, backend.mask_trace = [], None, []
             backend.submit(job)
-            collected = Collector()._collect(job)
+            collected = Collector().collect(job)
             elapsed = time.monotonic() - started
             result = collected.result
             calls = [{'name': c['function']['name'],
