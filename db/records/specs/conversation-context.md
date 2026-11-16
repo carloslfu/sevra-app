@@ -3,7 +3,7 @@ type: spec
 meta-type: conclusion
 id: 01m5x2pp178p3a4ay7hbfx7wdg
 created: 2026-10-26T21:43:43.399273+00:00
-updated: 2026-11-15T22:07:39.359855+00:00
+updated: 2026-11-16T17:24:47.494906+00:00
 summary: Automatic compaction, preserved conversation history, authoritative continuation state and measured larger-context qualification.
 title: Continuing conversation and context management
 status: reviewed
@@ -162,21 +162,13 @@ faster decode number.
 5. Select a measured product profile, integrate progress/recovery in the app, and
    verify J10 plus the existing J01–J09 before adoption.
 
-The first instrumentation stage now provides internal 8K/32K/64K evaluation
-profiles. Native startup and prompt rendering use the same configured capacity.
-Exact prompt counts determine output allowance. The October 27 owner policy uses
-min(floor(0.75 * configured capacity), capacity - 1,800 output - 2,048 next-result
-- 256 recovery/framing). Native ContextBudget and shared ContextMeasurement use
-the same function. The thresholds are 24,576 at 32K, 49,152 at 64K, and an earlier
-4,088 at 8K because of reserves. These are not newly qualified product capacities.
+The November 16 accounting implementation provides internal 8K/32K/64K/128K/256K evaluation profiles; only the existing 32K/12 GiB preview configuration is retained pending comparison. Exact scoped template output determines admission. The native frontend prepares messages, actual tool schemas, citations, review contracts and reasoning once for dispatch; CPU measurement uses that same preparation path without starting the GPU helper. Generation checks requested capacity before startup and actual Ready capacity before dispatch.
 
-The controller measures complete template output with schemas, retained history,
-digests, receipts and delimiters. Native uses its real frontend/tokenizer; baseline
-uses encodeChat and reads the engine's configured window. Measurements include the
-full workbook tool set, conservatively reserving that schema even when the next
-response is scoped to fewer tools. Actual generation uses its rendered scoped
-prompt and an independent hard capacity check. Baseline now includes its 1,800
-reply tokens in that hard check and records its exact prompt/capacity/threshold.
+The maintenance threshold is `min(floor(0.75*C), C-O-T-256)`, where C is admitted capacity, O is the complete mode output ceiling, and T is the bounded next result including framing. O is 1,800 for ordinary requests, 8,192 for authoring/Excel build phases, 4,096 for Excel review, and 1,400 for tool-free summaries. Reasoning is included in O once. Structured interpretation truthfully retains `min(1800, requested ceiling)` during the controlled accounting comparison. No output ceiling is silently shrunk to fit an incomplete action. The 8K profile therefore cannot run full-output authoring.
+
+T starts at 2,048; a scope that can supply the native SDK, or active authoring, reserves its complete tokenizer-measured guide (currently 3,612 including framing). Native result presentation enforces that bound before admitting evidence. Complete original receipts and their reproducible byte projections stay in the existing journal; larger transient presentations use whole fields or explicit Unicode-scalar pages with original locators and accurate continuation offsets. Missing values never imply absence. Current 32K normal H remains 24,576; full-output authoring H is 20,708. Summaries reserve no fictitious next tool result and fit prompt + 1,400 + 256 without a recursive maintenance trigger.
+
+The preserved baseline uses its canonical scoped measurement interface and remains independently configured. Native profiling and CPU/real-model observations are recorded in [[records/operations/inference-context-execution]]; these do not qualify new product capacities or a general hardware envelope.
 
 After completed tool groups, maintenance compacts only eligible history. Before
 each generation, another measurement catches carried handoff proof or recovery

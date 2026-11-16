@@ -9,6 +9,8 @@ package struct ContextBudget: Sendable {
     case development8K = 8192
     case evaluation32K = 32768
     case evaluation64K = 65536
+    case evaluation128K = 131072
+    case evaluation256K = 262144
   }
   package struct Allowance: Sendable {
     package let outputTokens: Int
@@ -18,16 +20,17 @@ package struct ContextBudget: Sendable {
   package var contextTokens: Int { profile.rawValue }
   package let maximumOutputTokens = 1800
   package let minimumOutputTokens = 256
-  // Provisional instrumentation for C04. The maintenance controller must use
-  // these before dispatch; this budget alone does not compact any history.
+  // Reserved for the next bounded tool result and recovery framing.
   package let nextToolResultReserve = 2048
   package let recoveryReserve = 256
   /// Owner-selected policy, not a qualification of any context capacity.
   /// Integer arithmetic preserves floor(0.75 * capacity) without overflow.
-  package static func maintenanceThreshold(capacity: Int) -> Int {
+  package static func maintenanceThreshold(
+    capacity: Int, outputTokens: Int = 1800, toolResultTokens: Int = 2048
+  ) -> Int {
     guard capacity > 0 else { return 0 }
     let selected = (capacity / 4) * 3 + (capacity % 4) * 3 / 4
-    return max(0, min(selected, capacity - 1800 - 2048 - 256))
+    return max(0, min(selected, capacity - outputTokens - toolResultTokens - 256))
   }
   package var maintenanceThreshold: Int {
     Self.maintenanceThreshold(capacity: contextTokens)
@@ -54,7 +57,10 @@ package struct ContextBudget: Sendable {
       try account(message.reasoning)
       try account(message.toolCallId ?? "")
       try account(message.toolName ?? "")
-      for id in message.documentCopyIDs { try account(id) }
+      for id in message.documentCopyIDs + message.itemReferences
+        + (message.historyReferences ?? []) + (message.conversationActions ?? [])
+      { try account(id) }
+      try account(message.reviewContract.json())
       for call in message.toolCalls {
         try account(call.id)
         try account(call.name)
@@ -63,15 +69,24 @@ package struct ContextBudget: Sendable {
     }
   }
 
-  package func allowance(promptTokens: Int, nativeAppAuthoring: Bool = false) throws -> Allowance {
+  package func allowance(
+    promptTokens: Int, outputTokens: Int = 1800, capacity: Int? = nil,
+    toolResultTokens: Int = 2048
+  ) throws -> Allowance {
+    let capacity = min(capacity ?? contextTokens, contextTokens)
     try require(
-      promptTokens > 0 && promptTokens <= contextTokens, "context_limit",
-      "The rendered prompt is outside the configured context budget.")
-    let output = min(nativeAppAuthoring ? 8192 : maximumOutputTokens, contextTokens - promptTokens)
+      outputTokens >= minimumOutputTokens && outputTokens <= 8192
+        && toolResultTokens >= 0 && toolResultTokens <= 8192,
+      "context_limit", "Invalid response or tool-result budget.")
+    let maximumPrompt = capacity - outputTokens - toolResultTokens - recoveryReserve
     try require(
-      output >= minimumOutputTokens, "context_limit",
-      "This exploration reached its context budget. Completed changes are saved.")
+      promptTokens > 0 && promptTokens <= maximumPrompt, "context_limit",
+      "This request has insufficient space for a complete response and recovery. Original input and completed changes are saved."
+    )
     return Allowance(
-      outputTokens: output, maintenanceRecommended: promptTokens >= maintenanceThreshold)
+      outputTokens: outputTokens,
+      maintenanceRecommended: promptTokens
+        >= Self.maintenanceThreshold(
+          capacity: capacity, outputTokens: outputTokens, toolResultTokens: toolResultTokens))
   }
 }

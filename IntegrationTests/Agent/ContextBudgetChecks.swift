@@ -1,32 +1,45 @@
 import SevraAI
 
 func checkContextBudget() throws {
-  for profile: ContextBudget.Profile in [.development8K, .evaluation32K, .evaluation64K] {
+  for profile: ContextBudget.Profile in [
+    .development8K, .evaluation32K, .evaluation64K, .evaluation128K, .evaluation256K,
+  ] {
     let budget = ContextBudget(profile: profile)
-    let authoring = try budget.allowance(promptTokens: 1000, nativeAppAuthoring: true)
-    try expectEqual(authoring.outputTokens, min(8192, budget.contextTokens - 1000))
-    try expectEqual(
-      try budget.allowance(promptTokens: budget.contextTokens - 256, nativeAppAuthoring: true)
-        .outputTokens, 256)
-    let ready = try budget.allowance(promptTokens: budget.maintenanceThreshold - 1)
-    try expectEqual(ready.outputTokens, 1800)
-    try expectEqual(ready.maintenanceRecommended, false)
-    let maintenance = try budget.allowance(promptTokens: budget.maintenanceThreshold)
-    try expectEqual(maintenance.maintenanceRecommended, true)
-    try expectEqual(maintenance.outputTokens, 1800)
-    try expectEqual(
-      budget.contextTokens - budget.maintenanceThreshold
-        >= maintenance.outputTokens + budget.nextToolResultReserve + budget.recoveryReserve, true)
-    try expectEqual(
-      ContextMeasurement(promptTokens: 1, capacity: budget.contextTokens, templateIdentity: "test")
-        .threshold, budget.maintenanceThreshold)
-    let boundary = try budget.allowance(promptTokens: budget.contextTokens - 256)
-    try expectEqual(boundary.outputTokens, 256)
-    try expectEqual(boundary.maintenanceRecommended, true)
-    for invalid in [-1, 0, budget.contextTokens - 255, budget.contextTokens, Int.max] {
-      try expectThrows(try budget.allowance(promptTokens: invalid))
+    for output in [1400, 1800, 4096, 8192] {
+      let reserve = output == 1400 ? 0 : 2048
+      let maximum = budget.contextTokens - output - reserve - 256
+      if maximum <= 0 {
+        try expectThrows(try budget.allowance(promptTokens: 1, outputTokens: output))
+        continue
+      }
+      let threshold = ContextBudget.maintenanceThreshold(
+        capacity: budget.contextTokens, outputTokens: output, toolResultTokens: reserve)
+      for prompt in [threshold - 1, threshold, threshold + 1] where prompt > 0 && prompt <= maximum
+      {
+        let allowance = try budget.allowance(
+          promptTokens: prompt, outputTokens: output, toolResultTokens: reserve)
+        try expectEqual(allowance.outputTokens, output)
+        try expectEqual(allowance.maintenanceRecommended, prompt >= threshold)
+      }
+      let measurement = ContextMeasurement(
+        promptTokens: maximum, capacity: budget.contextTokens,
+        templateIdentity: "test", outputTokens: output, toolResultTokens: reserve)
+      try expectEqual(measurement.maximumPrompt, maximum)
+      try expectEqual(measurement.threshold, threshold)
+      try expectEqual(
+        try budget.allowance(
+          promptTokens: maximum, outputTokens: output,
+          toolResultTokens: reserve
+        ).outputTokens, output)
+      for invalid in [-1, 0, maximum + 1, budget.contextTokens, Int.max] {
+        try expectThrows(
+          try budget.allowance(
+            promptTokens: invalid, outputTokens: output,
+            toolResultTokens: reserve))
+      }
     }
   }
+  try expectEqual(ContextBudget.maintenanceThreshold(capacity: 32768, outputTokens: 8192), 22272)
   try expectEqual(ContextBudget(profile: .development8K).maintenanceThreshold, 4088)
   try expectEqual(ContextBudget(profile: .evaluation32K).maintenanceThreshold, 24576)
   try expectEqual(ContextBudget(profile: .evaluation64K).maintenanceThreshold, 49152)
@@ -35,6 +48,10 @@ func checkContextBudget() throws {
   try expectEqual(ContextBudget.maintenanceThreshold(capacity: -1), 0)
   try expectEqual(ContextBudget.maintenanceThreshold(capacity: Int.max) > 0, true)
   try expectEqual(ContextBudget.Profile(rawValue: 16384), nil)
+  // Ready may admit less than requested. Never use configured capacity to overrun it.
+  try expectThrows(
+    try ContextBudget(profile: .evaluation64K).allowance(
+      promptTokens: 30000, capacity: 32768))
   try ContextBudget.validateEnvelope([
     InferenceMessage(role: "user", content: String(repeating: "a", count: 96_001))
   ])

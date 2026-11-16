@@ -27,7 +27,8 @@ private actor ThresholdFixture: WorkbookInference {
   ) throws -> NativeReply { throw SevraError("fixture", "No dispatch during maintenance.") }
   func measureContext(
     messages: [InferenceMessage], directory: URL, cancellation: Cancellation,
-    summary: Bool, citationIDs: [String], progress: @escaping @Sendable (String) -> Void
+    summary: Bool, toolScope: InferenceToolScope, citationIDs: [String],
+    progress: @escaping @Sendable (String) -> Void
   ) throws -> ContextMeasurement {
     let text = messages.map(\.content).joined()
     let tokens =
@@ -38,7 +39,9 @@ private actor ThresholdFixture: WorkbookInference {
         : text.contains("derivedNotes") ? reduced : floor
     let cost = !summary && messages.first?.nativeAppAuthoring == true ? authoringCost : 0
     return .init(
-      promptTokens: tokens + cost, capacity: 32768, templateIdentity: "scripted-threshold")
+      promptTokens: tokens + cost, capacity: 32768, templateIdentity: "scripted-threshold",
+      outputTokens: summary ? 1400 : messages.first?.nativeAppAuthoring == true ? 8192 : 1800,
+      toolResultTokens: summary ? 0 : 2048)
   }
   func summarize(
     messages: [InferenceMessage], allowedMessageIDs: [String], directory: URL,
@@ -62,11 +65,11 @@ func checkContextThreshold() async throws {
       conversation: "main", model: "fixture", requestMessageID: request)
     let history = try book.historySlice(limit: 500)
     let model = ThresholdFixture(
-      floor: mode == "authoring" ? 22000 : mode == "floor" ? 24576 : 24000,
+      floor: mode == "authoring" ? 21000 : mode == "floor" ? 24576 : 24000,
       full: mode == "authoring"
-        ? 23632 : mode == "below" ? 24575 : mode == "still-full" ? 26000 : 24576,
+        ? 22000 : mode == "below" ? 24575 : mode == "still-full" ? 26000 : 24576,
       reduced: mode == "authoring"
-        ? 23000 : mode == "no-gain" ? 24576 : mode == "still-full" ? 25000 : 24100,
+        ? 21050 : mode == "no-gain" ? 24576 : mode == "still-full" ? 25000 : 24100,
       authoringCost: mode == "authoring" ? 1145 : 0)
     let controller = try ContextMaintenance(
       workbook: book, conversation: "main", runID: run, requestID: request,
@@ -133,7 +136,8 @@ private actor RetryThresholdFixture: WorkbookInference {
   func endRun() {}
   func measureContext(
     messages: [InferenceMessage], directory: URL, cancellation: Cancellation,
-    summary: Bool, citationIDs: [String], progress: @escaping @Sendable (String) -> Void
+    summary: Bool, toolScope: InferenceToolScope, citationIDs: [String],
+    progress: @escaping @Sendable (String) -> Void
   ) throws -> ContextMeasurement {
     .init(
       promptTokens: messages.contains { $0.content == "BAD_REPLY" } ? 25000 : 1000,

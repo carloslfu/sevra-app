@@ -35,13 +35,22 @@ actor ActiveContextModel: WorkbookInference {
   func beginRun() async throws { try await native.beginRun() }
   func endRun() async { await native.endRun() }
   func releaseResources() async -> Bool { await native.releaseResources() }
+  func boundToolResult(
+    _ value: Value, receiptID: String, directory: URL, cancellation: Cancellation,
+    toolScope: InferenceToolScope, nativeAppAuthoring: Bool
+  ) async throws -> Value {
+    try await native.boundToolResult(
+      value, receiptID: receiptID, directory: directory, cancellation: cancellation,
+      toolScope: toolScope, nativeAppAuthoring: nativeAppAuthoring)
+  }
   func measureContext(
     messages: [InferenceMessage], directory: URL, cancellation: Cancellation,
-    summary: Bool, citationIDs: [String], progress: @escaping @Sendable (String) -> Void
+    summary: Bool, toolScope: InferenceToolScope, citationIDs: [String],
+    progress: @escaping @Sendable (String) -> Void
   ) async throws -> ContextMeasurement {
     try await native.measureContext(
       messages: messages, directory: directory, cancellation: cancellation,
-      summary: summary, citationIDs: citationIDs, progress: progress)
+      summary: summary, toolScope: toolScope, citationIDs: citationIDs, progress: progress)
   }
   func summarize(
     messages: [InferenceMessage], allowedMessageIDs: [String], directory: URL,

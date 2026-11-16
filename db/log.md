@@ -160,3 +160,6 @@ Revision 5 completes full follow-up review: 18 gaps/ambiguities resolved across 
 ## [2026-11-15 22:09] verification | records/reviews/inference-context-plan-full-review.md
 CPU performance-gate self-check, candidate archive/native-member integrity, Markdown links, full dbmd validation and whitespace checks pass. No candidate execution, GPU comparison, installation or product changes.
 
+## [2026-11-16 17:26] implementation | records/operations/inference-context-execution.md
+P1 scoped accounting and complete-output/result reserves verified on Splash 1.4.1; frozen old-engine workers, CPU sentinel/mode checks, calculator and three portable composition cases retained. Upgrade/profile qualification continues.
+

@@ -1,0 +1,264 @@
+{
+  "scope": "P1 accounting on Splash 1.4.1 at 32K/12 GiB; functional diagnostics, not performance or new-engine qualification",
+  "baselineSource": "6d833206dd9b56bf839d0ead2b811124686c57bc",
+  "documentationOnlyInterveningCommit": "383b70f504fea2663822295ca16e662a2560eb43",
+  "accounting": {
+    "boundedResultUnicodePaging": true,
+    "cpuOnlyMeasurement": true,
+    "oversizedRefusedBeforeHelper": true,
+    "scopes": [
+      {
+        "authoring": false,
+        "outputTokens": 1800,
+        "promptTokens": 8507,
+        "reasoningTokens": 512,
+        "scope": "all",
+        "threshold": 24576,
+        "toolResultTokens": 3612
+      },
+      {
+        "authoring": true,
+        "outputTokens": 8192,
+        "promptTokens": 10054,
+        "reasoningTokens": 512,
+        "scope": "all",
+        "threshold": 20708,
+        "toolResultTokens": 3612
+      },
+      {
+        "authoring": false,
+        "outputTokens": 1800,
+        "promptTokens": 3353,
+        "reasoningTokens": 512,
+        "scope": "answer",
+        "threshold": 24576,
+        "toolResultTokens": 3612
+      },
+      {
+        "authoring": true,
+        "outputTokens": 8192,
+        "promptTokens": 3353,
+        "reasoningTokens": 512,
+        "scope": "answer",
+        "threshold": 20708,
+        "toolResultTokens": 3612
+      },
+      {
+        "authoring": false,
+        "outputTokens": 1800,
+        "promptTokens": 457,
+        "reasoningTokens": 512,
+        "scope": "finish",
+        "threshold": 24576,
+        "toolResultTokens": 2048
+      },
+      {
+        "authoring": true,
+        "outputTokens": 8192,
+        "promptTokens": 457,
+        "reasoningTokens": 512,
+        "scope": "finish",
+        "threshold": 20708,
+        "toolResultTokens": 3612
+      },
+      {
+        "authoring": false,
+        "outputTokens": 1800,
+        "promptTokens": 3121,
+        "reasoningTokens": 512,
+        "scope": "inspection",
+        "threshold": 24576,
+        "toolResultTokens": 3612
+      },
+      {
+        "authoring": true,
+        "outputTokens": 8192,
+        "promptTokens": 3121,
+        "reasoningTokens": 512,
+        "scope": "inspection",
+        "threshold": 20708,
+        "toolResultTokens": 3612
+      },
+      {
+        "authoring": false,
+        "outputTokens": 1800,
+        "promptTokens": 699,
+        "reasoningTokens": 512,
+        "scope": "excelPlan",
+        "threshold": 24576,
+        "toolResultTokens": 2048
+      },
+      {
+        "authoring": true,
+        "outputTokens": 8192,
+        "promptTokens": 699,
+        "reasoningTokens": 512,
+        "scope": "excelPlan",
+        "threshold": 20708,
+        "toolResultTokens": 3612
+      },
+      {
+        "authoring": false,
+        "outputTokens": 8192,
+        "promptTokens": 1381,
+        "reasoningTokens": 2048,
+        "scope": "excelBuild",
+        "threshold": 20708,
+        "toolResultTokens": 3612
+      },
+      {
+        "authoring": true,
+        "outputTokens": 8192,
+        "promptTokens": 3449,
+        "reasoningTokens": 2048,
+        "scope": "excelBuild",
+        "threshold": 20708,
+        "toolResultTokens": 3612
+      },
+      {
+        "authoring": false,
+        "outputTokens": 8192,
+        "promptTokens": 1293,
+        "reasoningTokens": 2048,
+        "scope": "excelCalculation",
+        "threshold": 20708,
+        "toolResultTokens": 3612
+      },
+      {
+        "authoring": true,
+        "outputTokens": 8192,
+        "promptTokens": 1293,
+        "reasoningTokens": 2048,
+        "scope": "excelCalculation",
+        "threshold": 20708,
+        "toolResultTokens": 3612
+      },
+      {
+        "authoring": false,
+        "outputTokens": 8192,
+        "promptTokens": 1381,
+        "reasoningTokens": 2048,
+        "scope": "excelInterface",
+        "threshold": 20708,
+        "toolResultTokens": 3612
+      },
+      {
+        "authoring": true,
+        "outputTokens": 8192,
+        "promptTokens": 3071,
+        "reasoningTokens": 2048,
+        "scope": "excelInterface",
+        "threshold": 20708,
+        "toolResultTokens": 3612
+      },
+      {
+        "authoring": false,
+        "outputTokens": 1800,
+        "promptTokens": 2060,
+        "reasoningTokens": 512,
+        "scope": "nativeAppReview",
+        "threshold": 24576,
+        "toolResultTokens": 2048
+      },
+      {
+        "authoring": true,
+        "outputTokens": 4096,
+        "promptTokens": 2060,
+        "reasoningTokens": 2048,
+        "scope": "nativeAppReview",
+        "threshold": 24576,
+        "toolResultTokens": 3612
+      },
+      {
+        "authoring": false,
+        "outputTokens": 1800,
+        "promptTokens": 2475,
+        "reasoningTokens": 512,
+        "scope": "nativeActionReview",
+        "threshold": 24576,
+        "toolResultTokens": 2048
+      },
+      {
+        "authoring": true,
+        "outputTokens": 4096,
+        "promptTokens": 2475,
+        "reasoningTokens": 2048,
+        "scope": "nativeActionReview",
+        "threshold": 24576,
+        "toolResultTokens": 3612
+      },
+      {
+        "authoring": false,
+        "outputTokens": 1800,
+        "promptTokens": 3353,
+        "reasoningTokens": 512,
+        "scope": "save_native_app",
+        "threshold": 24576,
+        "toolResultTokens": 3612
+      },
+      {
+        "authoring": true,
+        "outputTokens": 8192,
+        "promptTokens": 4900,
+        "reasoningTokens": 512,
+        "scope": "save_native_app",
+        "threshold": 20708,
+        "toolResultTokens": 3612
+      }
+    ]
+  },
+  "cpuSuite": "passed",
+  "baselineFixtureFailure": {
+    "currentBytes": 34500,
+    "staleStoredBytes": 34300,
+    "correctedCurrentDeclarations": "passed"
+  },
+  "rejectedDiagnostics": [
+    "Unbundled authoring worker could not contact its XPC service.",
+    "Blanket 2048-token projection split SDK guide; revised to actual complete-guide reserve."
+  ],
+  "authoring": {
+    "passed": true,
+    "seconds": 240.96387600898743,
+    "steps": 10,
+    "independentAssertion": "3 \u00d7 2.40 = 7.2",
+    "automaticRepairsRetained": true,
+    "headlessNavigationFailures": 2,
+    "sourceUnchangedDuringRun": true
+  },
+  "composition": [
+    {
+      "name": "quote",
+      "passed": true,
+      "seconds": 51.74567210674286
+    },
+    {
+      "name": "spanish",
+      "passed": true,
+      "seconds": 51.111981987953186
+    },
+    {
+      "name": "paraphrase",
+      "passed": true,
+      "seconds": 47.537386894226074
+    }
+  ],
+  "portableCopyPassed": true,
+  "sourceSHA256": {
+    "Sources/SevraNativeAI/NativeReasoning.swift": "8078636e0679495657d2b1527a7e7586082cad62967d0c18bac8e022d62c2dc6",
+    "Sources/SevraNativeAI/NativeCitationPolicy.swift": "e3fd10c4eb2e65fb0cb7130a93b0a545c53fe7c679b509eb91376f2e8d9c5319",
+    "Sources/SevraNativeAI/NativeWorkbookModel.swift": "7b16ca88903fdf65d464fd76fec083edccc6e867dfd67181eef3f93b6bc812b0",
+    "Sources/SevraNativeAI/NativePreparedRequest.swift": "b549994f8b8a0c66b3ba33b16fdb527d153e579a5814453d34c6bcb6965a4bb2",
+    "Sources/SevraAI/ContextBudget.swift": "ef150cfe5fd91873d19e6983bbbd01e6df049b5b5a38f757c42a1d5ba4e37294",
+    "Sources/SevraAI/ContextMaintenance.swift": "a031df39715b6994015e5a7e32b40d0bf909f882256374d8d17f1f626efd23b3",
+    "Sources/SevraAI/WorkbookAgent.swift": "a5212af8e34570a7630ba613fea0f4d4721c17149a0bceab5f85316e372112ab",
+    "Sources/SevraCore/ToolReceipts.swift": "9552043adbf1aac3d9e9ee98b6ad85c620b6ff86fe2fce838e36b448fa595f59"
+  },
+  "workerSHA256": {
+    "sevra-agent-checks": "4816c59a6d2e7991e09c55760d329c5279112e8c2d3164372fa2f00d99f2f0e4",
+    "sevra-workflow-performance": "1d2d9fe1df74a50c9df3a6f3f13e0533955642689f3a102d4a4cac5e17e4d42d",
+    "sevra-app-worker": "4e41d86500f3384cfa3f06a4569fe9374fd3ef6641a71395ee625bdec21e0f5a",
+    "sevra-extract": "d1d7ebf8645796baa7f40b144ca1e8c4798ac983f2d011b6f09e384203d7362d"
+  },
+  "localEvidenceDirectory": ".build/inference-context-20261116"
+}

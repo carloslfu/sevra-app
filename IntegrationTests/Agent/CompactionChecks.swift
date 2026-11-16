@@ -28,7 +28,8 @@ private actor DigestFixture: WorkbookInference {
   }
   func measureContext(
     messages: [InferenceMessage], directory: URL, cancellation: Cancellation,
-    summary: Bool, citationIDs: [String], progress: @escaping @Sendable (String) -> Void
+    summary: Bool, toolScope: InferenceToolScope, citationIDs: [String],
+    progress: @escaping @Sendable (String) -> Void
   ) throws -> ContextMeasurement {
     try cancellation.check()
     return ContextMeasurement(
@@ -123,7 +124,8 @@ private actor DurableNotes: WorkbookInference {
   }
   func measureContext(
     messages: [InferenceMessage], directory: URL, cancellation: Cancellation,
-    summary: Bool, citationIDs: [String], progress: @escaping @Sendable (String) -> Void
+    summary: Bool, toolScope: InferenceToolScope, citationIDs: [String],
+    progress: @escaping @Sendable (String) -> Void
   ) throws -> ContextMeasurement {
     .init(
       promptTokens: 1000 + messages.reduce(0) { $0 + $1.content.utf8.count / 4 },
@@ -184,7 +186,8 @@ private func checkBoundedDigest(_ root: URL) async throws {
   try expectEqual(try saved.json().utf8.count <= ContextDigest.maximumBytes, true)
   let pointers = saved["notes"].array.filter { $0["referenceOnly"] == .bool(true) }
   try expectEqual(pointers.isEmpty, false)
-  try expectEqual(pointers.allSatisfy { $0["text"] == .null && !$0["messages"].array.isEmpty }, true)
+  try expectEqual(
+    pointers.allSatisfy { $0["text"] == .null && !$0["messages"].array.isEmpty }, true)
   try expectEqual(saved["notes"].array.suffix(6).allSatisfy { !$0["text"].text.isEmpty }, true)
 }
 
@@ -378,7 +381,8 @@ private actor RunningJobFixture: WorkbookInference {
   func endRun() {}
   func measureContext(
     messages: [InferenceMessage], directory: URL, cancellation: Cancellation,
-    summary: Bool, citationIDs: [String], progress: @escaping @Sendable (String) -> Void
+    summary: Bool, toolScope: InferenceToolScope, citationIDs: [String],
+    progress: @escaping @Sendable (String) -> Void
   ) throws -> ContextMeasurement {
     try cancellation.check()
     // Isolate the fixed policy from growing history in this scripted controller
@@ -566,7 +570,8 @@ func checkRunningCompaction() async throws {
   ])
   let retained = [
     InferenceMessage(role: "assistant", content: ""),
-    InferenceMessage(role: "tool", content: #"{"chunks":[]}"#, toolCallId: "call", toolName: "read"),
+    InferenceMessage(
+      role: "tool", content: #"{"chunks":[]}"#, toolCallId: "call", toolName: "read"),
   ]
   let progress = try ContextMaintenance.withProgress(
     retained,
@@ -581,7 +586,8 @@ func checkRunningCompaction() async throws {
     "Already finished, do not repeat: saved space Receiving review. 1 read so far. Read again only what you must cite. Continue with what remains."
   )
   try expectEqual(
-    try ContextMaintenance.withProgress(retained, state: .object([:]))[1].content, #"{"chunks":[]}"#)
+    try ContextMaintenance.withProgress(retained, state: .object([:]))[1].content, #"{"chunks":[]}"#
+  )
   // What a stopped request saved is finished too, once this request has read that request.
   let stoppedSaves: [Value] = [
     .object(["tool": .string("save_space"), "title": .string("Receiving review")]),
@@ -610,7 +616,8 @@ func checkRunningCompaction() async throws {
     #"{"chunks":[]}"#)
   try expectEqual(
     try Value.parse(
-      ContextMaintenance.withProgress(retained, state: .object(["calls": state["calls"]]))[1].content
+      ContextMaintenance.withProgress(retained, state: .object(["calls": state["calls"]]))[1]
+        .content
     )["hostProgress"].text,
     "1 read so far. Read again only what you must cite. Continue with what remains.")
   // Only the host's own comparison marks a note as the person's exact words.
@@ -665,9 +672,11 @@ func checkRunningCompaction() async throws {
     .object(["id": .string("read"), "tool": .string("read"), "state": .string("completed")]))
   try expectEqual(presented["calls"].array[2], state["calls"].array[2])
   let current = presented["readEvidence"]["entries"].array[0]
-  try expectEqual(Set(current.object.keys), [
-    "versionID", "receiptID", "originalStatus", "originalMeaning", "isCurrentVersion",
-  ])
+  try expectEqual(
+    Set(current.object.keys),
+    [
+      "versionID", "receiptID", "originalStatus", "originalMeaning", "isCurrentVersion",
+    ])
   // An entry that moved on keeps its excerpt and everything that says so.
   let moved = presented["readEvidence"]["entries"].array[1]
   try expectEqual(moved["textPrefix"].text, "Kept excerpt")

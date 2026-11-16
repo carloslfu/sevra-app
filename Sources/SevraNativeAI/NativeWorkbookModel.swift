@@ -136,7 +136,8 @@ package actor NativeWorkbookModel: WorkbookInference {
   package var supportsCompaction: Bool { contextMaintenanceEnabled }
   package func measureContext(
     messages: [InferenceMessage], directory: URL, cancellation: Cancellation,
-    summary: Bool, citationIDs: [String], progress: @escaping @Sendable (String) -> Void
+    summary: Bool, toolScope: InferenceToolScope, citationIDs: [String],
+    progress: @escaping @Sendable (String) -> Void
   ) async throws -> ContextMeasurement {
     try require(leased && !active, "busy", "The native model needs an exclusive workbook run.")
     active = true
@@ -146,10 +147,22 @@ package actor NativeWorkbookModel: WorkbookInference {
       try cancellation.check()
       return try await worker.measureContext(
         messages: messages, directory: directory,
-        cancellation: cancellation, summary: summary, citationIDs: citationIDs, progress: progress)
+        cancellation: cancellation, summary: summary, toolScope: toolScope,
+        citationIDs: citationIDs, progress: progress)
     } onCancel: {
       cancellation.cancel()
     }
+  }
+  package func boundToolResult(
+    _ value: Value, receiptID: String, directory: URL, cancellation: Cancellation,
+    toolScope: InferenceToolScope, nativeAppAuthoring: Bool
+  ) async throws -> Value {
+    try require(leased && !active, "busy", "The native model needs an exclusive workbook run.")
+    active = true
+    defer { active = false }
+    return try await worker.boundToolResult(
+      value, receiptID: receiptID, directory: directory, cancellation: cancellation,
+      toolScope: toolScope, nativeAppAuthoring: nativeAppAuthoring)
   }
   package func summarize(
     messages: [InferenceMessage], allowedMessageIDs: [String], directory: URL,
@@ -243,13 +256,21 @@ private final class NativeWorker: @unchecked Sendable {
     let directory: URL
     let frontend: SplashTextFrontend
     let factory: SplashGrammarFactory
-    let helper: SplashNativeProcess
+    var helper: SplashNativeProcess?
+    let assembly: URL
+    let configuration: NativeWorkbookModel.Configuration
+    var capacity: Int {
+      min(
+        configuration.contextBudget.contextTokens,
+        helper?.ready.map { Int($0.context) } ?? configuration.contextBudget.contextTokens)
+    }
     var requestID: UInt64 = 0
     init(
       directory: URL, configuration: NativeWorkbookModel.Configuration,
       cancellation: Cancellation, progress: @escaping @Sendable (String) -> Void
     ) throws {
       self.directory = directory
+      self.configuration = configuration
       try require(
         configuration.memoryBytes >= 4 * 1024 * 1024 * 1024,
         "model_setup", "Invalid candidate engine memory budget.")
@@ -265,7 +286,6 @@ private final class NativeWorker: @unchecked Sendable {
         "Invalid native executable.")
       progress("Checking local model files")
       let pack = try SplashModelPack.selected()
-      let assembly: URL
       let tokenizer: URL
       switch configuration.modelLayout {
       case .localPack:
@@ -294,11 +314,16 @@ private final class NativeWorker: @unchecked Sendable {
         frontend: frontend, library: configuration.grammarLibrary,
         librarySHA256: configuration.grammarSHA256)
       try cancellation.check()
-      // A cold device/OS shader cache can compile for several minutes. Keep
-      // startup cancellable and bounded, separately from generation deadlines.
+    }
+    func start(
+      cancellation: Cancellation, progress: @escaping @Sendable (String) -> Void
+    ) throws -> SplashNativeProcess {
+      if let helper, helper.isOpen { return helper }
+      try require(
+        helper?.close() != false, "native_shutdown", "The previous native helper has not stopped.")
       progress("Preparing local AI. First start may compile native components…")
       do {
-        helper = try SplashNativeProcess(
+        let started = try SplashNativeProcess(
           executable: configuration.engine,
           arguments: [
             "serve-native", assembly.path, String(configuration.contextBudget.contextTokens),
@@ -306,11 +331,15 @@ private final class NativeWorker: @unchecked Sendable {
             "--persistent-cache", "off", "--idle-sleep", "allow", "--verify-rows", "all",
           ],
           timeout: 360, cancelled: { cancellation.isCancelled || cancellation.isExpired })
+        helper = started
+        try require(
+          started.ready?.context ?? 0 > 0, "model_setup", "Native context capacity is unavailable.")
+        return started
       } catch {
-        throw nativeFailure(error, helperStopped: true, diagnostic: "")
+        throw nativeFailure(error, helperStopped: helper?.isOpen == false, diagnostic: "")
       }
     }
-    deinit { helper.close() }
+    deinit { helper?.close() }
     private static func verify(_ url: URL, _ digest: String, _ cancellation: Cancellation) throws {
       try require(
         url.isFileURL && digest.count == 64, "model_setup", "Missing native runtime identity.")
@@ -332,14 +361,14 @@ private final class NativeWorker: @unchecked Sendable {
 
   func hasSession() async -> Bool {
     await withCheckedContinuation { continuation in
-      queue.async { continuation.resume(returning: self.session != nil) }
+      queue.async { continuation.resume(returning: self.session?.helper != nil) }
     }
   }
 
   func close() async -> Bool {
     await withCheckedContinuation { continuation in
       queue.async {
-        guard self.session?.helper.close() != false else {
+        guard self.session?.helper?.close() != false else {
           continuation.resume(returning: false)
           return
         }
@@ -351,7 +380,7 @@ private final class NativeWorker: @unchecked Sendable {
 
   func shutdown(releasing descriptor: Int32) {
     queue.async {
-      guard self.session?.helper.close() != false else { return }
+      guard self.session?.helper?.close() != false else { return }
       self.session = nil
       if descriptor >= 0 {
         flock(descriptor, LOCK_UN)
@@ -381,9 +410,9 @@ private final class NativeWorker: @unchecked Sendable {
           try cancellation.check()
           let directory = directory.standardizedFileURL.resolvingSymlinksInPath()
           // A helper that died while idle is replaced here, so this request never meets it.
-          if self.session?.directory != directory || self.session?.helper.isOpen == false {
+          if self.session?.directory != directory || self.session?.helper?.isOpen == false {
             try require(
-              self.session?.helper.close() != false, "native_shutdown",
+              self.session?.helper?.close() != false, "native_shutdown",
               "The previous native helper has not stopped. Retry unloading it.")
             self.session = nil
             self.session = try Session(
@@ -408,29 +437,38 @@ private final class NativeWorker: @unchecked Sendable {
   }
   func measureContext(
     messages: [InferenceMessage], directory: URL, cancellation: Cancellation,
-    summary: Bool, citationIDs: [String], progress: @escaping @Sendable (String) -> Void
+    summary: Bool, toolScope: InferenceToolScope, citationIDs: [String],
+    progress: @escaping @Sendable (String) -> Void
   ) async throws -> ContextMeasurement {
     try await perform(directory: directory, cancellation: cancellation, progress: progress) {
       session in
-      let thinking = !summary && self.configuration.reasoning.enabled
-      let tools =
-        summary
-        ? nil
-        : try NativeCitationPolicy.make(
-          citationIDs, thinking: thinking,
-          itemReferenceIDs: ItemReferenceCandidates.ids(in: messages),
-          conversationActions: messages.first?.conversationActions,
-          documentCopyIDs: DocumentCopyCandidates.ids(in: messages),
-          historyReferenceIDs: ItemReferenceCandidates.historyIDs(in: messages),
-          nativeAppAuthoring: messages.first?.nativeAppAuthoring == true
-        ).promptTools()
-      let prompt = try session.frontend.prepare(
-        messages: messages.map(nativeTemplateMessage),
-        tools: tools, thinking: thinking, contextLimit: SplashWire.maxTokens)
-      return ContextMeasurement(
-        promptTokens: prompt.tokens.count,
-        capacity: self.configuration.contextBudget.contextTokens,
-        templateIdentity: session.frontend.templateIdentity)
+      try ContextBudget.validateEnvelope(messages)
+      if summary {
+        let prompt = try session.frontend.prepare(
+          messages: messages.map(nativeTemplateMessage), contextLimit: SplashWire.maxTokens)
+        return .init(
+          promptTokens: prompt.tokens.count, capacity: session.capacity,
+          templateIdentity: session.frontend.templateIdentity,
+          outputTokens: ContextDigest.maximumOutputTokens, toolResultTokens: 0)
+      }
+      return try NativePreparedRequest(
+        messages: messages, frontend: session.frontend,
+        configuredReasoning: self.configuration.reasoning, toolScope: toolScope,
+        citationIDs: citationIDs
+      ).measurement(capacity: session.capacity)
+    }
+  }
+  func boundToolResult(
+    _ value: Value, receiptID: String, directory: URL, cancellation: Cancellation,
+    toolScope: InferenceToolScope, nativeAppAuthoring: Bool
+  ) async throws -> Value {
+    try await perform(directory: directory, cancellation: cancellation, progress: { _ in }) {
+      session in
+      let reserve = try NativePreparedRequest.toolResultReserve(
+        frontend: session.frontend, toolScope: toolScope, nativeAppAuthoring: nativeAppAuthoring)
+      return try ToolResultProjection.bounded(value, receiptID: receiptID, maximumTokens: reserve) {
+        try NativePreparedRequest.resultTokens($0, frontend: session.frontend)
+      }
     }
   }
   func summarize(
@@ -442,13 +480,16 @@ private final class NativeWorker: @unchecked Sendable {
       try require(
         !allowedMessageIDs.isEmpty && allowedMessageIDs.count <= 540,
         "context_digest", "The summary needs a bounded set of original messages.")
+      try ContextBudget.validateEnvelope(messages)
       let prompt = try session.frontend.prepare(
-        messages: messages.map(nativeTemplateMessage),
-        contextLimit: self.configuration.contextBudget.contextTokens)
-      try require(
-        prompt.tokens.count + ContextDigest.maximumOutputTokens
-          <= self.configuration.contextBudget.contextTokens,
-        "context_limit", "The history batch exceeds its summary budget.")
+        messages: messages.map(nativeTemplateMessage), contextLimit: SplashWire.maxTokens)
+      _ = try self.configuration.contextBudget.allowance(
+        promptTokens: prompt.tokens.count, outputTokens: ContextDigest.maximumOutputTokens,
+        capacity: session.capacity, toolResultTokens: 0)
+      let helper = try session.start(cancellation: cancellation, progress: progress)
+      _ = try self.configuration.contextBudget.allowance(
+        promptTokens: prompt.tokens.count, outputTokens: ContextDigest.maximumOutputTokens,
+        capacity: session.capacity, toolResultTokens: 0)
       let constraint = try session.factory.create(
         grammar: ContextDigest.schema(allowedMessageIDs: allowedMessageIDs), type: "json")
       let output = try SplashOutputStream(frontend: session.frontend, structured: true)
@@ -462,7 +503,7 @@ private final class NativeWorker: @unchecked Sendable {
       request.tokenMask = true
       try cancellation.check()
       progress("Keeping conversation context")
-      let generated = try session.helper.generate(
+      let generated = try helper.generate(
         request,
         cancelled: { cancellation.isCancelled || cancellation.isExpired },
         mask: { try constraint.masks(committed: $0, simulation: $1, words: $2) },
@@ -483,7 +524,7 @@ private final class NativeWorker: @unchecked Sendable {
         .object([
           "phase": .string("context_summary"), "backend": .string("splash-native-candidate"),
           "promptTokens": .number(Double(prompt.tokens.count)),
-          "contextTokens": .number(Double(self.configuration.contextBudget.contextTokens)),
+          "contextTokens": .number(Double(session.capacity)),
           "generatedTokens": .number(Double(generated.tokens.count)),
           "requestSeconds": .number(generated.requestSeconds),
           "firstTokenSeconds": generated.firstTokenSeconds.map(Value.number) ?? .null,
@@ -499,41 +540,27 @@ private final class NativeWorker: @unchecked Sendable {
     _ cancellation: Cancellation, _ progress: @escaping @Sendable (String) -> Void,
     _ toolScope: InferenceToolScope, _ citationIDs: [String], _ interpretation: Value? = nil
   ) throws -> (NativeReply, Value) {
-    let excelReview =
-      [.nativeAppReview, .nativeActionReview].contains(toolScope)
-      && messages.first?.nativeAppAuthoring == true
-    // Translation must reason through formulas and failing original scenarios before
-    // emitting code. The ordinary 512-token budget repeatedly cut those repairs short.
-    let excelReasoning =
-      [.excelBuild, .excelCalculation, .excelInterface].contains(toolScope) || excelReview
-    let reasoning =
-      excelReasoning && configuration.reasoning.enabled
-      ? NativeReasoning.bounded2048 : configuration.reasoning
-    let policy: SplashToolPolicy
-    if let interpretation {
-      policy = try SplashToolPolicy.interpretationResult(
-        schemaJSON: Data(interpretation["schema"].json().utf8), thinking: reasoning.enabled)
-    } else {
-      policy = try NativeCitationPolicy.make(
-        citationIDs, toolScope: toolScope, thinking: reasoning.enabled,
-        itemReferenceIDs: ItemReferenceCandidates.ids(in: messages),
-        conversationActions: messages.first?.conversationActions,
-        documentCopyIDs: DocumentCopyCandidates.ids(in: messages),
-        historyReferenceIDs: ItemReferenceCandidates.historyIDs(in: messages),
-        nativeAppAuthoring: messages.first?.nativeAppAuthoring == true,
-        reviewContract: messages.first?.reviewContract ?? .null)
-    }
+    let prepared = try NativePreparedRequest(
+      messages: messages, frontend: session.frontend,
+      configuredReasoning: configuration.reasoning, toolScope: toolScope,
+      citationIDs: citationIDs, interpretation: interpretation)
     let budget = configuration.contextBudget
-    let prompt = try session.frontend.prepare(
-      messages: messages.map(nativeTemplateMessage), tools: policy.promptTools(),
-      thinking: reasoning.enabled, contextLimit: budget.contextTokens)
+    // Refuse an impossible request before allocating the model, then recheck the
+    // actual admitted capacity from Ready before dispatching the same token array.
+    _ = try budget.allowance(
+      promptTokens: prepared.prompt.tokens.count,
+      outputTokens: prepared.outputBudget, capacity: session.capacity,
+      toolResultTokens: prepared.toolResultTokens)
+    let helper = try session.start(cancellation: cancellation, progress: progress)
     let allowance = try budget.allowance(
-      promptTokens: prompt.tokens.count,
-      nativeAppAuthoring: interpretation == nil
-        && messages.first?.nativeAppAuthoring == true)
-    let outputBudget = min(
-      allowance.outputTokens,
-      interpretation?["maxOutputTokens"].int ?? (excelReview ? 4096 : allowance.outputTokens))
+      promptTokens: prepared.prompt.tokens.count,
+      outputTokens: prepared.outputBudget, capacity: session.capacity,
+      toolResultTokens: prepared.toolResultTokens)
+    let measurement = prepared.measurement(capacity: session.capacity)
+    let prompt = prepared.prompt
+    let policy = prepared.policy
+    let reasoning = prepared.reasoning
+    let outputBudget = prepared.outputBudget
     let constraint = try session.factory.create(grammar: policy.grammar)
     let output = try SplashOutputStream(
       frontend: session.frontend, tools: policy.outputTools, thinking: reasoning.enabled)
@@ -556,7 +583,7 @@ private final class NativeWorker: @unchecked Sendable {
     var generationPhase = "Preparing a response"
     var lastProgress = -Double.infinity
     var matchedPromptTokens = 0
-    let generated = try session.helper.generate(
+    let generated = try helper.generate(
       request,
       cancelled: { cancellation.isCancelled || cancellation.isExpired },
       mask: { committed, simulation, words in
@@ -611,12 +638,13 @@ private final class NativeWorker: @unchecked Sendable {
       "promptTokens": .number(Double(prompt.tokens.count)),
       "matchedPromptTokens": .number(Double(matchedPromptTokens)),
       "deduplicatedKVTokens": .number(Double(generated.done.deduplicated)),
-      "contextTokens": .number(Double(budget.contextTokens)),
-      "maintenanceThreshold": .number(Double(budget.maintenanceThreshold)),
+      "contextTokens": .number(Double(session.capacity)),
+      "maintenanceThreshold": .number(Double(measurement.threshold)),
       "maintenanceRecommended": .bool(allowance.maintenanceRecommended),
-      "nextToolResultReserve": .number(Double(budget.nextToolResultReserve)),
+      "nextToolResultReserve": .number(Double(prepared.toolResultTokens)),
       "recoveryReserve": .number(Double(budget.recoveryReserve)),
       "outputBudget": .number(Double(outputBudget)),
+      "requestedOutputBudget": .number(Double(prepared.requestedOutputBudget)),
       "generatedTokens": .number(Double(generated.tokens.count)),
       "reasoningBudget": .number(Double(reasoning.rawValue)),
       "reasoningHistory": .string("within-request"),

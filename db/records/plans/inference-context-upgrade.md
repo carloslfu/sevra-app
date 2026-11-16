@@ -3,7 +3,7 @@ type: spec
 meta-type: conclusion
 id: 01m7gjt1zc6br61a29kn3pf5nz
 created: 2026-11-15T21:46:27.180871+00:00
-updated: 2026-11-15T22:06:54.313667+00:00
+updated: 2026-11-16T17:26:30.730141+00:00
 summary: Staged plan to correct context accounting, upgrade Splash and qualify stable context and memory profiles.
 title: Inference, context accounting and memory policy
 status: reviewed
@@ -12,7 +12,7 @@ status: reviewed
 
 ## Decision and status
 
-Revision 5, after the three original readiness passes and a complete follow-up review of every section against implementation, upstream source and qualification contracts. Ready for staged implementation under the gates below; implementation and runtime qualification remain pending. Planning is authorized by [[sources/notes/2026/11/inference-context-upgrade-plan]] and the follow-up by [[sources/notes/2026/11/inference-context-full-review]]. This record does not upgrade the engine, change the installed app, run a GPU comparison or select a new production default. It connects [[records/specs/splash-integration]] and [[records/specs/conversation-context]]; implementation must update both contracts together. Research: [[records/research/inference-context-upgrade]]. Original review: [[records/reviews/inference-context-plan-readiness]]. Complete follow-up findings and section coverage: [[records/reviews/inference-context-plan-full-review]].
+Revision 5, after the three original readiness passes and a complete follow-up review of every section against implementation, upstream source and qualification contracts. Implementation is authorized by [[sources/notes/2026/11/inference-context-implementation]] and underway in [[records/operations/inference-context-execution]]. P1 accounting is implemented, functionally verified and frozen on the existing engine; engine/profile adoption remains gated below. Planning is authorized by [[sources/notes/2026/11/inference-context-upgrade-plan]] and the follow-up by [[sources/notes/2026/11/inference-context-full-review]]. The owner now authorizes the engine upgrade, GPU/context comparisons and final installation/UI verification. No new default or upgrade is considered qualified merely by implementation. It connects [[records/specs/splash-integration]] and [[records/specs/conversation-context]]; implementation must update both contracts together. Research: [[records/research/inference-context-upgrade]]. Original review: [[records/reviews/inference-context-plan-readiness]]. Complete follow-up findings and section coverage: [[records/reviews/inference-context-plan-full-review]].
 
 Original inspected source baseline: `658f06947867de8a3e4676c9e1edfb8fc65ced76`; complete follow-up at `5b05c5f6127d6956d63c167c7bc2b42812578047`, with unchanged product code. Earlier CPU and historical model evidence have different frozen identities, recorded in the research. Recheck changed inference/agent surfaces before implementation; another workstream's later Excel acceptance is not automatically evidence for this change.
 
@@ -282,7 +282,7 @@ Before the final cohort, set measurable resource/UI bounds from the inspected ba
 Implementation ownership follows existing modules: `SevraAI` owns policy/continuity and tool projections; `SevraNativeAI` owns request preparation/native adaptation; `SevraSplash` owns wire/process/setup/resources; text and grammar modules own exact frontend semantics; product/coordinator owns profile admission and user lifecycle; integration scripts/evidence own reproducible qualification. Reuse existing durable state and inference lease rather than creating a parallel coordinator or memory ledger.
 
 - [ ] P0 baseline, candidate provenance, bounds map and protocols frozen.
-- [ ] P1 actual-scope accounting, output/results/recovery reservations and CPU-only preparation verified on the existing engine.
+- [x] P1 actual-scope accounting, output/results/recovery reservations and CPU-only preparation verified on the existing engine.
 - [ ] P2 protocol 13/status 8 and all affected native/text/grammar/setup surfaces verified at unchanged capacity/budget.
 - [ ] P3 engine and precision comparisons pass semantic, lifecycle and performance gates.
 - [ ] P4 useful-context and memory matrix completed with retained failures and formal finalist evidence.
@@ -291,3 +291,13 @@ Implementation ownership follows existing modules: `SevraAI` owns policy/continu
 - [ ] P7 final checks, exact bundle/resource identity, consistent documentation, commit/push and rollback evidence complete.
 
 Deferred: million-token/YaRN configurations, new model/draft selection, cloud fallback, concurrent inference, upstream HTTP/UI features, blanket dependency upgrades, speculative tokenizer cache rewrites and a general automatic context-growth ladder. Revisit only for a demonstrated product need with a separate measurable acceptance gate. Planning completion means these decisions and implementation gates are ready; it does not mean the upgrades or candidate profiles have passed them.
+
+## Implementation findings, November 16
+
+- Started at `6d83320`; subsequent `383b70f` changed visual-planning records only. Preserve that independent work. The original source/build and the corrected old-engine control remain separate.
+- The original CPU run exposed a stale normalized workbook-tool fixture after the newer Excel changes. Exporting current declarations passed the suite; the fixture is regenerated without reverting those schemas.
+- Common native preparation now measures the actual scope and review contract, includes mode-specific complete output, and reuses its exact tokens for dispatch. CPU-only measurement and rejection before helper launch are covered with a verified sentinel executable. Actual Ready capacity is rechecked before generation.
+- The initial blanket 2,048-token projection was rejected in a packaged diagnostic: it split the 3,612-token SDK result before repeated invalid app-authoring attempts. The revised native reservation is at least 2,048, and includes the entire current SDK result and framing whenever that scope can supply it or authoring is active. This preserves the normal 32K threshold of 24,576 and sets current full-output authoring to 20,708. Other large results use explicit whole-field or exact-offset retrieval pages. The original receipt projection remains unchanged and reproducible.
+- The revised old-engine calculator completed in 240.964 seconds with automatic repairs and one saved app. Independent interaction verified `3 × 2.40 = 7.2`; no business rows were created. Two subsequent headless navigation failures remain visible in its final answer and require actual installed-app UX verification. This is functional diagnostic evidence, not a clean latency or UX qualification.
+- Three ordinary native composition cases passed: exact English and Spanish quote copying, paraphrase without copying, unchanged pending authority, and portable export/reopen. Times including repairs were 51.746, 51.112 and 47.537 seconds. These are diagnostic observations, not comparative speed claims.
+- The initial unbundled authoring attempt could not contact its XPC worker. It and the rejected small-result-budget run remain retained with explicit diagnostic termination; neither is counted as a passing run.

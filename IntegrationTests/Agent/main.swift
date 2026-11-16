@@ -267,6 +267,12 @@ func expectValue<T>(_ value: T?) throws -> T {
   return value
 }
 do {
+  if CommandLine.arguments.count == 5 && CommandLine.arguments[1] == "--context-accounting" {
+    try await runContextAccountingProbe(
+      modelsRoot: CommandLine.arguments[2], library: CommandLine.arguments[3],
+      output: CommandLine.arguments[4])
+    exit(0)
+  }
   if CommandLine.arguments.count == 4 && CommandLine.arguments[1] == "--native-review-grammar" {
     let frontend = try SplashTextFrontend(
       modelFolder: URL(fileURLWithPath: CommandLine.arguments[2]))

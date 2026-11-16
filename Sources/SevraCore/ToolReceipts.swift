@@ -46,6 +46,93 @@ public enum ToolResultProjection {
       ])
     }
   }
+  /// Bound an ephemeral presentation using the selected tokenizer. The journal
+  /// projection stays reproducible and the full result remains retrievable.
+  public static func bounded(
+    _ value: Value, receiptID: String, maximumTokens: Int,
+    tokens: (String) throws -> Int
+  ) throws -> Value {
+    if try tokens(value.json()) <= maximumTokens { return value }
+    let isPage =
+      value["receiptID"].string != nil && value["hash"].string != nil
+      && value["path"].array.count <= 32 && value["offset"].int != nil
+    let source = isPage && value["complete"] == .bool(true) ? value["value"] : value
+    var fields: [String: Value] =
+      isPage
+      ? value.object
+      : [
+        "receiptID": .string(receiptID), "path": .array([]), "offset": .number(0),
+      ]
+    fields["complete"] = .bool(false)
+    fields["value"] = nil
+    fields["notice"] = .string(
+      "The exact result is saved. Omitted values are not evidence of absence. Use tool_result with this receipt ID, path and nextOffset, or rawJSON true. Do not repeat a completed action."
+    )
+    let path = fields["path"]?.array.compactMap(\.string) ?? []
+    let offset = fields["offset"]?.int ?? 0
+    func fits(_ fields: [String: Value]) throws -> Bool {
+      try tokens(Value.object(fields).json()) <= maximumTokens
+    }
+    if isPage && value["complete"] == .bool(false), let text = value["textSegment"].string {
+      fields["textSegment"] = .string(text)
+    } else if case .string(let text) = source {
+      fields["type"] = .string("string")
+      fields["textSegment"] = .string(text)
+      fields["offsetUnit"] = .string("Unicode scalar")
+      fields["total"] = .number(Double(offset + text.unicodeScalars.count))
+    } else {
+      var entries: [Value]
+      if isPage && value["complete"] == .bool(false), case .array(let existing) = value["entries"] {
+        entries = existing
+      } else if case .object(let object) = source {
+        fields["type"] = .string("object")
+        fields["total"] = .number(Double(object.count))
+        entries = object.keys.sorted().map { .object(["key": .string($0), "value": object[$0]!]) }
+      } else if case .array(let array) = source {
+        fields["type"] = .string("array")
+        fields["total"] = .number(Double(array.count))
+        entries = array.enumerated().map {
+          .object(["index": .number(Double($0.offset)), "value": $0.element])
+        }
+      } else {
+        entries = []
+      }
+      var kept: [Value] = []
+      for entry in entries {
+        fields["entries"] = .array(kept + [entry])
+        fields["nextOffset"] = .number(Double(offset + kept.count + 1))
+        if try fits(fields) {
+          kept.append(entry)
+          continue
+        }
+        if !kept.isEmpty { break }
+        var omitted = entry.object
+        let key = entry["key"].string ?? String(entry["index"].int ?? offset)
+        omitted["value"] = description(entry["value"], path: path + [key])
+        kept.append(.object(omitted))
+        break
+      }
+      fields["entries"] = .array(kept)
+      let next = offset + kept.count
+      fields["nextOffset"] = next < (fields["total"]?.int ?? next) ? .number(Double(next)) : .null
+    }
+    if let text = fields["textSegment"]?.string {
+      var scalars = Array(text.unicodeScalars)
+      // No chopped JSON: this is an explicitly partial string with exact offsets.
+      while !scalars.isEmpty {
+        fields["textSegment"] = .string(String(String.UnicodeScalarView(scalars)))
+        let next = offset + scalars.count
+        fields["nextOffset"] = next < (fields["total"]?.int ?? next) ? .number(Double(next)) : .null
+        if try fits(fields) { break }
+        scalars = Array(scalars.prefix(scalars.count / 2))
+      }
+      try require(!scalars.isEmpty, "context_limit", "The result cannot fit a retrieval segment.")
+    }
+    try require(
+      try fits(fields), "context_limit",
+      "The saved tool result cannot fit its retrieval reference. Completed work is saved.")
+    return .object(fields)
+  }
   /// What the model sees of a read. The saved receipt keeps every field. `item.text` opens the
   /// first chunk, and an empty reference page with no coverage note has nothing to navigate.
   public static func presentedRead(_ value: Value) -> Value {
@@ -68,6 +155,7 @@ public enum ToolResultProjection {
   /// Only whole fields/elements actually shown in a generated page count as
   /// observed evidence. Omission descriptors never stand in for source values.
   public static func visibleValue(_ page: Value) -> Value {
+    if page["complete"] == .null { return page }
     if page["complete"] == .bool(true) { return page["value"] }
     let entries = page["entries"].array.filter { $0["value"]["omitted"] != .bool(true) }
     if page["type"].text == "object" {

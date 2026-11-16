@@ -5,9 +5,19 @@ package struct ContextMeasurement: Sendable {
   package let promptTokens: Int
   package let capacity: Int
   package let templateIdentity: String
-  package var threshold: Int { ContextBudget.maintenanceThreshold(capacity: capacity) }
-  package var maximumPrompt: Int { capacity - 256 }
-  package init(promptTokens: Int, capacity: Int, templateIdentity: String) {
+  package let outputTokens: Int
+  package let toolResultTokens: Int
+  package var threshold: Int {
+    ContextBudget.maintenanceThreshold(
+      capacity: capacity, outputTokens: outputTokens, toolResultTokens: toolResultTokens)
+  }
+  package var maximumPrompt: Int { capacity - outputTokens - toolResultTokens - 256 }
+  package init(
+    promptTokens: Int, capacity: Int, templateIdentity: String,
+    outputTokens: Int = 1800, toolResultTokens: Int = 2048
+  ) {
+    self.outputTokens = outputTokens
+    self.toolResultTokens = toolResultTokens
     self.promptTokens = promptTokens
     self.capacity = capacity
     self.templateIdentity = templateIdentity

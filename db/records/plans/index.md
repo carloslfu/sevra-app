@@ -2,15 +2,15 @@
 type: index
 scope: type-folder
 folder: records/plans
-updated: 2026-11-16T17:02:30.309376Z
+updated: 2026-11-16T17:26:30.730141Z
 ---
 
 # records/plans
 
+- [[records/plans/inference-context-upgrade]] — Staged plan to correct context accounting, upgrade Splash and qualify stable context and memory profiles.
 - [[records/plans/rich-native-visuals]] — Revision 15 closes end-to-end publication, source-edit, navigation, transcript, memory and template-export gaps; staged acceptance remains open.
 - [[records/plans/programmable-native-engine]] — Reviewed architecture and implementation gates for sandboxed JavaScript, reactive native UI, scoped workbook data, packaging and end-to-end verification.
 - [[records/plans/excel-business-applications]] — Close realistic Excel business application reconstruction, reliable autonomous generation, and integrated chat/native qualification gaps.
-- [[records/plans/inference-context-upgrade]] — Staged plan to correct context accounting, upgrade Splash and qualify stable context and memory profiles.
 - [[records/plans/home-working-overview]] — Chat-customizable Home with live app views, a useful default, attention and recovery.
 - [[records/plans/chat-primary-operation]] — Implement chat as primary operator for workbook and mini-app actions, inputs, review and undo.
 - [[records/plans/fresh-excel-batches]] — Two consecutive fresh 10/10 local-model Excel batches pass on frozen da3c472; all ten native interfaces checked, with no reused apps or manual source repairs.

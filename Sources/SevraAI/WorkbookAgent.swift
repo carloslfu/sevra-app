@@ -336,6 +336,16 @@ public enum WorkbookAgent {
         content: messages[0].content + "\nHost submission context: " + (try hostRequest.json()),
         conversationActions: messages[0].conversationActions)
       messages[0].nativeAppAuthoring = nativeAppAuthoring
+      func inferenceScopeForNextStep() -> InferenceToolScope {
+        let selected: InferenceToolScope =
+          needsExcelCalculation && excelBehaviorDraft == nil
+          ? .excelCalculation
+          : excelConversion != nil
+            ? .excelInterface
+            : nextToolScope == .all ? phaseScope : nextToolScope
+        if discoveryLimited && (selected == .all || selected == .answer) { return .boundedAnswer }
+        return readOnly && selected == .all ? .answer : selected
+      }
       let maintenance =
         shouldCompact && excelConversion == nil
         ? try ContextMaintenance(
@@ -344,7 +354,8 @@ public enum WorkbookAgent {
           policy: messages[0], request: messages.last!, model: model, directory: modelDirectory,
           cancellation: cancellation, progress: progress) : nil
       if let maintenance {
-        let prepared = try await maintenance.maintain(through: requestMessage)
+        let prepared = try await maintenance.maintain(
+          through: requestMessage, toolScope: inferenceScopeForNextStep())
         messages = prepared.messages
         metrics += prepared.metrics
       }
@@ -417,13 +428,15 @@ public enum WorkbookAgent {
         let toolScope: InferenceToolScope =
           discoveryLimited && (selectedScope == .all || selectedScope == .answer)
           ? .boundedAnswer : selectedScope
+        let inferenceScope = inferenceScopeForNextStep()
         if maintenance != nil {
           // Handoff proof and malformed-response recovery can add context after
           // the last completed-group maintenance. Never dispatch that overflow
           // or discard an in-progress group to manufacture a smaller prompt.
           let prepared = try await model.measureContext(
             messages: messages, directory: modelDirectory, cancellation: cancellation,
-            summary: false, citationIDs: citationChoices(), progress: progress)
+            summary: false, toolScope: inferenceScope, citationIDs: citationChoices(),
+            progress: progress)
           try require(
             prepared.promptTokens < prepared.threshold, "context_limit",
             "The prepared prompt uses \(prepared.promptTokens) tokens, reaching the \(prepared.threshold)-token maintenance threshold. Current request and incomplete work cannot be discarded. Original input and completed work are saved."
@@ -431,7 +444,6 @@ public enum WorkbookAgent {
         }
         // Offer read-only requests no write tools. Core denial remains independent
         // so a malformed/custom inference adapter still gets a recorded refusal.
-        let inferenceScope: InferenceToolScope = readOnly && toolScope == .all ? .answer : toolScope
         messages[0].nativeAppAuthoring = nativeAppAuthoring
         let response: NativeReply
         do {
@@ -760,7 +772,7 @@ public enum WorkbookAgent {
               let updated = try await maintenance.maintain(
                 through: validationMessage,
                 currentMessages: messages, retained: Array(messages.suffix(2)),
-                citationIDs: citationChoices())
+                citationIDs: citationChoices(), toolScope: inferenceScopeForNextStep())
               messages = updated.messages
               metrics += updated.metrics
               if updated.compacted {
@@ -1310,8 +1322,23 @@ public enum WorkbookAgent {
             ? nil : submittedTarget
           recordedResult = .object(fields)
         }
-        let projected = try workbook.completeToolCall(
+        let storedProjection = try workbook.completeToolCall(
           receiptID, result: recordedResult, failed: callFailed)
+        let presentedResult =
+          tool == "workspace_action" && a["action"] == .string("app.inspect") && !callFailed
+          ? AppOperationContext.inspection(
+            storedProjection, receiptID: receiptID, request: prompt,
+            target: a["arguments"]["id"].string)
+          : tool == "workspace_action" && a["action"] == .string("app.run")
+            ? try AppOperationContext.operation(result, receiptID: receiptID, request: prompt)
+            : tool == "save_native_app" && callFailed
+              ? NativeAppReview.presentedFailure(storedProjection, receiptID: receiptID)
+              : tool == "read"
+                ? ToolResultProjection.presentedRead(storedProjection) : storedProjection
+        let projected = try await model.boundToolResult(
+          presentedResult, receiptID: receiptID, directory: modelDirectory,
+          cancellation: cancellation,
+          toolScope: inferenceScope, nativeAppAuthoring: nativeAppAuthoring)
         if excelConversion != nil, tool == "compare_excel_behavior", !callFailed,
           result["status"] == .string("matched")
         {
@@ -1669,19 +1696,10 @@ public enum WorkbookAgent {
               "receiptID": .string(receiptID),
             ]), citations: [id], focus: AgentFocus(kind: "item", id: id))
         }
-        let presentedResult =
-          tool == "workspace_action" && a["action"] == .string("app.inspect") && !callFailed
-          ? AppOperationContext.inspection(
-            projected, receiptID: receiptID, request: prompt, target: a["arguments"]["id"].string)
-          : tool == "workspace_action" && a["action"] == .string("app.run")
-            ? try AppOperationContext.operation(result, receiptID: receiptID, request: prompt)
-            : tool == "save_native_app" && callFailed
-              ? NativeAppReview.presentedFailure(projected, receiptID: receiptID)
-              : tool == "read" ? ToolResultProjection.presentedRead(projected) : projected
         messages.append(
           InferenceMessage(
             role: "tool",
-            content: try presentedResult.json(),
+            content: try projected.json(),
             toolCallId: call.id, toolName: call.name,
             documentCopyIDs: tool == "read" && !callFailed
               ? DocumentCopyCandidates.ids(
@@ -1693,7 +1711,7 @@ public enum WorkbookAgent {
           let updated = try await maintenance.maintain(
             through: end, currentMessages: messages,
             retained: Array(messages.suffix(2)), citationIDs: citationChoices(),
-            retainedCitationIDs: observedThisStep.sorted())
+            retainedCitationIDs: observedThisStep.sorted(), toolScope: inferenceScopeForNextStep())
           messages = updated.messages
           metrics += updated.metrics
           if updated.compacted {

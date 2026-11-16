@@ -24,6 +24,14 @@ actor ObservedModel: WorkbookInference {
   func beginRun() async throws { try await underlying.beginRun() }
   func endRun() async { await underlying.endRun() }
   func releaseResources() async -> Bool { await underlying.releaseResources() }
+  func boundToolResult(
+    _ value: Value, receiptID: String, directory: URL, cancellation: Cancellation,
+    toolScope: InferenceToolScope, nativeAppAuthoring: Bool
+  ) async throws -> Value {
+    try await underlying.boundToolResult(
+      value, receiptID: receiptID, directory: directory,
+      cancellation: cancellation, toolScope: toolScope, nativeAppAuthoring: nativeAppAuthoring)
+  }
   func reset() {
     calls = 0
     responses = []
@@ -101,7 +109,8 @@ func performJob(
     let startingState = try encoded(original)
     let prompt = promptOverride ?? prompts[name]!
     let originalBalance =
-      name == "inventory_evidence" ? try book.balance(subject: "brass bolts", asOf: "2099-12-31") : .null
+      name == "inventory_evidence"
+      ? try book.balance(subject: "brass bolts", asOf: "2099-12-31") : .null
     await model.reset()
     let began = clockNow()
     var result: AgentResult?
@@ -179,7 +188,9 @@ func performJob(
     }
     let newItems = items.filter { !originalIDs.contains($0.id) }
     if name == "inventory_evidence" {
-      check(try book.balance(subject: "brass bolts", asOf: "2099-12-31") == originalBalance, "Stock balance changed")
+      check(
+        try book.balance(subject: "brass bolts", asOf: "2099-12-31") == originalBalance,
+        "Stock balance changed")
     }
     check(
       newItems.filter { $0.category == "source" && $0.kind == "request" }.count == 1,

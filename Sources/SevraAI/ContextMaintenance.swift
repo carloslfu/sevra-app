@@ -21,6 +21,7 @@ package final class ContextMaintenance {
   private let progress: @Sendable (String) -> Void
   private var checkpoint: Value = .null
   private let parent: [Message]
+  private var toolScope: InferenceToolScope = .all
 
   package func enableNativeAppAuthoring() { policy.nativeAppAuthoring = true }
 
@@ -304,7 +305,7 @@ package final class ContextMaintenance {
         history: (conversation, try workbook.runRequestMessage(runID)))
     return try await model.measureContext(
       messages: messages, directory: directory, cancellation: cancellation,
-      summary: summary, citationIDs: citations, progress: progress)
+      summary: summary, toolScope: toolScope, citationIDs: citations, progress: progress)
   }
   private func boundary(_ message: Message) -> Bool {
     (message.role == "assistant"
@@ -315,8 +316,9 @@ package final class ContextMaintenance {
   package func maintain(
     through: String, currentMessages: [InferenceMessage]? = nil,
     retained: [InferenceMessage] = [], citationIDs: [String] = [],
-    retainedCitationIDs: [String] = []
+    retainedCitationIDs: [String] = [], toolScope: InferenceToolScope = .all
   ) async throws -> Result {
+    self.toolScope = toolScope
     var compacted = false
     var metrics: [Value] = []
     var staleRetries = 0
@@ -337,9 +339,10 @@ package final class ContextMaintenance {
       } else {
         full = try await measure(working, citations: citationIDs)
       }
-      let floor = try await measure(messages(checkpoint: .null, history: [], retained: []))
+      let floor = try await measure(
+        messages(checkpoint: .null, history: [], retained: []), citations: citationIDs)
       try require(
-        floor.promptTokens + 1800 <= floor.capacity, "context_limit",
+        floor.promptTokens <= floor.maximumPrompt, "context_limit",
         "The current request and required workbook state exceed this model's working context. Original input and completed work are saved."
       )
       // Do not silently raise the selected trigger to accommodate an irreducible

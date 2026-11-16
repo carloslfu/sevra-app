@@ -149,7 +149,8 @@ public actor LocalModel: WorkbookInference {
   package var supportsCompaction: Bool { contextMaintenanceEnabled }
   package func measureContext(
     messages: [InferenceMessage], directory: URL, cancellation: Cancellation,
-    summary: Bool, citationIDs: [String], progress: @escaping @Sendable (String) -> Void
+    summary: Bool, toolScope: InferenceToolScope, citationIDs: [String],
+    progress: @escaping @Sendable (String) -> Void
   ) async throws -> ContextMeasurement {
     try require(leased && !active, "busy", "The local model needs an exclusive workbook run.")
     active = true
@@ -161,9 +162,11 @@ public actor LocalModel: WorkbookInference {
         ? []
         : try Self.baselineDefinitions(
           itemReferenceIDs: ItemReferenceCandidates.ids(in: messages),
-          conversationActions: messages.first?.conversationActions,
+          conversationActions: messages.first?.conversationActions, toolScope: toolScope,
           documentCopyIDs: DocumentCopyCandidates.ids(in: messages),
-          nativeAppAuthoring: messages.first?.nativeAppAuthoring == true), thinking: false,
+          nativeAppAuthoring: messages.first?.nativeAppAuthoring == true,
+          reviewContract: messages.first?.reviewContract ?? .null
+        ).filter { toolScope.allows($0.name) }, thinking: false,
       effort: nil
     )
     try cancellation.check()
@@ -172,7 +175,11 @@ public actor LocalModel: WorkbookInference {
     }
     return ContextMeasurement(
       promptTokens: tokens.count, capacity: capacity,
-      templateIdentity: "slotstream-" + Self.revision + ";encodeChat;thinking=false;effort=nil")
+      templateIdentity: "slotstream-" + Self.revision + ";encodeChat;thinking=false;effort=nil",
+      outputTokens: summary
+        ? ContextDigest.maximumOutputTokens
+        : messages.first?.nativeAppAuthoring == true ? 8192 : 1800,
+      toolResultTokens: summary ? 0 : 2048)
   }
   package func summarize(
     messages: [InferenceMessage], allowedMessageIDs: [String], directory: URL,
