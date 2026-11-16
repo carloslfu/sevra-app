@@ -110,7 +110,7 @@ let package = Package(
       resources: [.copy("Resources/sdk.js"), .copy("Resources/Signals-LICENSE.txt")],
       swiftSettings: [.swiftLanguageMode(.v5)]),
     .target(
-      name: "SevraAppUI", dependencies: ["SevraCore", "SevraAppProtocol"],
+      name: "SevraAppUI", dependencies: ["SevraCore", "SevraAppProtocol", "SevraPreviewUI"],
       swiftSettings: [.swiftLanguageMode(.v5)]),
     .executableTarget(
       name: "SevraAppWorker", dependencies: ["SevraAppRuntime", "SevraAppProtocol", "SevraCore"],

@@ -28,15 +28,18 @@ extension WorkspaceState {
           "Inspect the current app version before changing it.")
       }
       if name == "app.enable" && !confirmed {
-        let titles = try book.nativeAppTableTitles(space.definition.app!)
-        let access = space.definition.app!.datasets.keys.sorted().map {
+        let package = space.definition.app!
+        let titles = try book.nativeAppTableTitles(package)
+        let images = try book.nativeAppImageTitles(package)
+        let tables = package.datasets.keys.sorted().map {
           (titles[$0] ?? $0)
-            + (space.definition.app!.datasets[$0]!.writable
+            + (package.datasets[$0]!.writable
               ? ": read and change records" : ": read records")
-        }.joined(separator: "\n")
+        }
+        let access = tables + images.values.sorted().map { $0 + ": display image" }
         return try approve(
           "Enable “" + space.title + "” on this Mac?\n"
-            + (access.isEmpty ? "No table access." : access))
+            + (access.isEmpty ? "No workbook data access." : access.joined(separator: "\n")))
       }
       return try await nativeAppSession(space, book: book).converse(
         String(name.dropFirst(4)), arguments: a, readOnly: readOnly, cancellation: cancellation)

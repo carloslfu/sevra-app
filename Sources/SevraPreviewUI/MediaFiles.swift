@@ -29,10 +29,17 @@ public struct PreviewImage: @unchecked Sendable {
   public let points: CGSize
 
   /// Call off the main thread. An unreadable file returns nil.
-  public static func load(_ file: URL) -> PreviewImage? {
+  public static func load(
+    _ file: URL, maximumPixels: Int = maximumPixels, requireImageType: Bool = false
+  ) -> PreviewImage? {
     let cached = [kCGImageSourceShouldCache: false] as CFDictionary
-    guard let source = CGImageSourceCreateWithURL(file as CFURL, cached),
-      let properties = CGImageSourceCopyPropertiesAtIndex(source, 0, cached) as? [CFString: Any],
+    guard let source = CGImageSourceCreateWithURL(file as CFURL, cached) else { return nil }
+    if requireImageType {
+      guard let type = CGImageSourceGetType(source) as String?,
+        UTType(type)?.conforms(to: .image) == true
+      else { return nil }
+    }
+    guard let properties = CGImageSourceCopyPropertiesAtIndex(source, 0, cached) as? [CFString: Any],
       let width = properties[kCGImagePropertyPixelWidth] as? Int, width > 0,
       let height = properties[kCGImagePropertyPixelHeight] as? Int, height > 0,
       let image = CGImageSourceCreateThumbnailAtIndex(

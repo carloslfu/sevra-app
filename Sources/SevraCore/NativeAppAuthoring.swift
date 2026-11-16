@@ -83,7 +83,7 @@ public enum NativeAppAuthoring {
     Toggle: value,title,onChange. Picker: value,options (array of strings),onChange.
     Slider: value,min,max,onChange. DatePicker: value (full ISO date/time string),onChange.
     Progress: value,indeterminate. Tabs: titles,value,onChange and one child per title.
-    Disclosure: title,value,onChange. Image: symbol (SF Symbol). Spacer: common props.
+    Disclosure: title,value,onChange. Image: symbol (SF Symbol) or asset (a declared workbook image alias), plus a meaningful label and optional width/height. For a workbook image, package.images maps alias to the exact included assetID, e.g. images:{logo:'asset-id'}, and h(Sevra.Image,{asset:'logo',label:'Company logo'}). Resolve real asset IDs from workbook item evidence. Never use a path or URL. Isolated checks validate aliases and can assert the labeled Image control; the native host displays the included pixels after access approval. Spacer: common props.
     Table: table (alias),search (string or string signal, NEVER boolean),sort (column ID),descending,columns (column IDs),columnLabels (display-only map from column IDs to short headings),selection (logical row key),onSelect,onActivate; set height:300 or similar. Native paging/search/sort do not pass all rows to JavaScript.
     Canvas: shapes,regions,onClick,onDrop; shape objects use type rect|circle|line|text, x,y,width,height,x2,y2,text,size,color; region objects use id,label,x,y,width,height. Canvas callbacks receive event.value as the region ID and event.x/event.y as MOVEMENT DELTAS, not absolute coordinates. On drop add deltas to the selected region's current position, then clamp to the canvas bounds. Click deltas are zero. Give every shape the same id as its region, including text, for smooth native drag feedback. Use bounds and native accessible regions.
     """
@@ -289,6 +289,7 @@ public enum NativeAppAuthoring {
       "Updates need both the inspected app ID and expectedVersion.")
     let token = try tools.operationToken("save_native_app", arguments)
     if let build = tools.excelConversion {
+      _ = try tools.workbook.nativeAppImageTitles(package)
       try tools.workbook.validateExcelConversionPackage(package, build: build)
       try require(
         Set(checkResult?["tables"].array.map(\.text) ?? []) == Set(package.datasets.keys),
@@ -342,7 +343,7 @@ public enum NativeAppAuthoring {
       "check": checkResult!, "status": .string("saved_disabled"),
       "notice": .string(
         tools.excelConversion == nil
-          ? "Saved app source and empty new tables only. Test fixtures were discarded. Review table access and enable this version to use it. No device permission was granted."
+          ? "Saved the app and any new empty tables. Test fixtures were discarded. Review workbook access and enable this version to use it. No device permission was granted."
           : "Saved the app and compared calculation rules. Original formula cells recalculate from current inputs; input cells are unchanged. Test fixtures were discarded. Review access and enable this version for interactive actions. No device permission was granted."
       ),
     ])

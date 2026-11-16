@@ -7,7 +7,8 @@ public struct NativeAppSpaceView: View {
   private let embedded: Bool
   @State private var showSource = false
   @State private var tableTitles: [String: String]?
-  @State private var tableAccessError: String?
+  @State private var imageTitles: [String: String]?
+  @State private var accessError: String?
   public init(session: NativeAppSession, embedded: Bool = false) {
     self.embedded = embedded
     _session = StateObject(wrappedValue: session)
@@ -36,23 +37,32 @@ public struct NativeAppSpaceView: View {
       if session.status == "disabled" {
         Text("This app is ready to enable").font(.headline)
         Text(
-          "Ask in chat to enable this app, review its access, and supply its inputs. You can also enable it here. This exact version gets access to the following tables on this Mac."
+          "Enable this version here or in chat to grant the workbook access shown below on this Mac."
         )
         ForEach(session.package.datasets.keys.sorted(), id: \.self) { key in
           let binding = session.package.datasets[key]!
           Label(
             (tableTitles?[key]
-              ?? (tableAccessError == nil ? "Loading table…" : "Unavailable table"))
+              ?? (accessError == nil ? "Loading table…" : "Unavailable table"))
               + (binding.writable ? " · Read and change records" : " · Read records"),
             systemImage: binding.writable ? "pencil" : "eye")
         }
-        if session.package.datasets.isEmpty { Text("This app requests no business data access.") }
-        if let tableAccessError {
-          Text(tableAccessError).foregroundStyle(.red)
-          Button("Reload table access") { Task { await loadTableAccess() } }
+        ForEach((session.package.images ?? [:]).keys.sorted(), id: \.self) { key in
+          Label(
+            (imageTitles?[key]
+              ?? (accessError == nil ? "Loading image…" : "Unavailable image"))
+              + " · Display image",
+            systemImage: "photo")
+        }
+        if session.package.datasets.isEmpty && (session.package.images ?? [:]).isEmpty {
+          Text("This app requests no workbook data access.")
+        }
+        if let accessError {
+          Text(accessError).foregroundStyle(.red)
+          Button("Reload access") { Task { await loadAccess() } }
         }
         Button("Enable app") { session.enable() }.buttonStyle(.borderedProminent)
-          .disabled(tableTitles == nil)
+          .disabled(tableTitles == nil || imageTitles == nil)
         Spacer()
       } else if session.status == "starting" {
         ProgressView("Starting app…")
@@ -69,13 +79,13 @@ public struct NativeAppSpaceView: View {
   }
   public var body: some View {
     Group {
-      if embedded && session.status != "running" {
+      if session.status == "disabled" || (embedded && session.status != "running") {
         ScrollView { content.frame(maxWidth: .infinity, alignment: .leading) }
       } else {
         content
       }
     }
-    .task { await loadTableAccess() }
+    .task { await loadAccess() }
     .onAppear { session.start() }
     .sheet(isPresented: $showSource) {
       VStack(alignment: .leading) {
@@ -89,18 +99,22 @@ public struct NativeAppSpaceView: View {
       }.padding().frame(width: 720, height: 520)
     }
   }
-  private func loadTableAccess() async {
+  private func loadAccess() async {
     tableTitles = nil
-    tableAccessError = nil
+    imageTitles = nil
+    accessError = nil
     let book = session.book
     let package = session.package
     do {
-      let titles = try await Task.detached { try book.nativeAppTableTitles(package) }.value
+      let (tables, images) = try await Task.detached {
+        (try book.nativeAppTableTitles(package), try book.nativeAppImageTitles(package))
+      }.value
       guard !Task.isCancelled else { return }
-      tableTitles = titles
+      tableTitles = tables
+      imageTitles = images
     } catch {
       guard !Task.isCancelled else { return }
-      tableAccessError = error.localizedDescription
+      accessError = error.localizedDescription
     }
   }
   private func exportTemplate() {

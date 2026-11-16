@@ -8,7 +8,7 @@ export interface NativeProps {
  text?:Reactive<string>; title?:Reactive<string>; size?:Reactive<number>; weight?:Reactive<'bold'|'regular'>;
  color?:Reactive<string>; value?:Reactive<any>; placeholder?:Reactive<string>; options?:Reactive<string[]>;
  min?:Reactive<number>; max?:Reactive<number>; columns?:Reactive<number|string[]>; table?:string; search?:Reactive<string>; columnLabels?:Reactive<Record<string,string>>;
- selection?:Reactive<string>; sort?:Reactive<string>; descending?:Reactive<boolean>; titles?:Reactive<string[]>; symbol?:Reactive<string>;
+ selection?:Reactive<string>; sort?:Reactive<string>; descending?:Reactive<boolean>; titles?:Reactive<string[]>; symbol?:Reactive<string>; asset?:Reactive<string|null>;
  shapes?:Reactive<any[]>; regions?:Reactive<any[]>; vertical?:Reactive<boolean>; indeterminate?:Reactive<boolean>;
  onClick?:(event:NativeEvent)=>void; onChange?:(event:NativeEvent)=>void; onSelect?:(event:NativeEvent)=>void;
  onActivate?:(event:NativeEvent)=>void; onDrop?:(event:NativeEvent)=>void; children?:any;

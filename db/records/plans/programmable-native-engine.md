@@ -3,7 +3,7 @@ type: operational
 meta-type: operational
 id: 01m78qhn7q81ha6w72smnkerxt
 created: 2026-11-12T20:35:19.415048+00:00
-updated: 2026-11-13T02:19:00.321057+00:00
+updated: 2026-11-16T16:19:41.502910+00:00
 summary: Reviewed architecture and implementation gates for sandboxed JavaScript, reactive native UI, scoped workbook data, packaging and end-to-end verification.
 title: Programmable native app engine implementation
 ---
@@ -175,3 +175,21 @@ integration run retain their exact separate scopes. This final records-only upda
 uses fresh store/link/whitespace checks and reuses unchanged implementation proof.
 Production signing, other hardware, broad assistive technology and AI JavaScript
 package-authoring remain the separately documented product limits.
+
+### Workbook images in mini apps
+
+The Image component now renders approved included images with the same native
+decoder as the workbook preview. The app manifest names the specific assets and
+the enable screen identifies them by workbook filename. The worker receives
+the aliases and the native host retains the files and decoded pixels.
+
+The signed XPC and AppKit check imports a PNG, removes the source path, mounts
+the installed mini app, checks decoded pixel dimensions, switches to an SF Symbol
+and back, and verifies that revocation removes the image. It also refuses an
+external linked image and a direct asset ID supplied in place of an alias.
+All 20 signed native checks and all 28 SDK checks passed.
+
+The native preview was packaged, signed and installed with matching executable
+UUID 97C09DE0-B8DE-38C4-A81C-EBEC46984B15. In a disposable workbook, the access
+screen named the included PNG. The image rendered proportionally after Enable,
+switched to the SF Symbol and back, and disappeared after Disable.

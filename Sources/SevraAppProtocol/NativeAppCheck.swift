@@ -221,6 +221,7 @@ public enum NativeAppCheck {
         "app_check", "Unexpected worker response.")
       sequence += 1
       _ = try tree.apply(result["frame"])
+      try tree.validateImageBindings(package)
       try require(
         result["frame"]["actions"].array.count <= 64, "app_check", "Too many named actions.")
       registeredActions.removeAll()

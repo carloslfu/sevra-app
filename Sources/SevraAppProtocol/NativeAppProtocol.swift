@@ -47,6 +47,11 @@ public struct NativeAppNode: Equatable, Sendable {
       "Unknown property for " + type + ": "
         + Set(props.object.keys).subtracting(allowed).sorted().joined(separator: ", ")
         + ". Allowed properties: " + allowed.sorted().joined(separator: ", "))
+    if type == "image", let asset = props.object["asset"], asset != .null {
+      try require(
+        asset.string?.isEmpty == false && props["symbol"] == .null, "app_tree",
+        "Image asset must be a workbook image alias. Supply only one of asset or symbol.")
+    }
     for key in [
       "width", "height", "gap", "padding", "min", "max", "columns", "size", "editRevision",
     ] {
@@ -144,7 +149,7 @@ public struct NativeAppNode: Equatable, Sendable {
     "date": ["value"], "progress": ["value", "indeterminate"],
     "table": ["table", "search", "sort", "descending", "columns", "columnLabels", "selection"],
     "tabs": ["titles", "value"],
-    "disclosure": ["title", "value"], "canvas": ["shapes", "regions"], "image": ["symbol"],
+    "disclosure": ["title", "value"], "canvas": ["shapes", "regions"], "image": ["symbol", "asset"],
   ]
 }
 
@@ -153,6 +158,14 @@ public struct NativeAppTree: Sendable {
   public private(set) var nodes: [String: NativeAppNode] = [:]
   public private(set) var root: String?
   public init() {}
+  public func validateImageBindings(_ package: NativeAppPackage) throws {
+    for node in nodes.values where node.type == "image" {
+      if let alias = node.props["asset"].string {
+        try require(
+          package.images?[alias] != nil, "app_image", "Image uses an undeclared workbook asset alias.")
+      }
+    }
+  }
   /// Disabled/hidden containers fence their descendants as well as their own controls.
   public var interactionEnabled: [String: Bool] {
     var result: [String: Bool] = [:]

@@ -131,6 +131,11 @@ extension NativeTools {
               "sdkVersion": .object(["type": .string("integer"), "enum": .array([.number(1)])]),
               "name": schema("string", "App name."),
               "source": schema("string", "Plain JavaScript using global Sevra; no JSX or imports."),
+              "images": .object([
+                "type": .string("object"),
+                "additionalProperties": schema("string", "Exact included workbook image asset ID."),
+                "description": .string("Optional image alias to asset ID for native Image controls."),
+              ]),
               "datasets": .object([
                 "type": .string("object"),
                 "description": .string(

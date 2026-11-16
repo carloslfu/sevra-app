@@ -27,12 +27,17 @@ public struct NativeAppPackage: Codable, Equatable, Sendable {
   public var name: String
   public var source: String
   public var datasets: [String: NativeAppDataset]
+  public var images: [String: String]?
   public var excelBehavior: ExcelBehavior?
-  public init(name: String, source: String, datasets: [String: NativeAppDataset] = [:]) {
+  public init(
+    name: String, source: String, datasets: [String: NativeAppDataset] = [:],
+    images: [String: String]? = nil
+  ) {
     sdkVersion = 1
     self.name = name
     self.source = source
     self.datasets = datasets
+    self.images = images
   }
   public var digest: String {
     let data = (try? encoded(self).json()) ?? ""
@@ -48,6 +53,15 @@ public struct NativeAppPackage: Codable, Equatable, Sendable {
       !source.isEmpty && source.utf8.count <= 524_288 && !source.contains("\0"),
       "app_package", "Use bundled JavaScript source up to 512 KiB.")
     try require(datasets.count <= 16, "app_package", "An app can bind up to 16 tables.")
+    if let images {
+      try require(images.count <= 8, "app_package", "An app can bind up to eight images.")
+      for (alias, id) in images {
+        try require(
+          alias.range(of: "^[a-z][a-zA-Z0-9_]{0,63}$", options: .regularExpression) != nil
+            && !id.isEmpty && id.utf8.count <= 256,
+          "app_package", "Use a short image alias and its workbook asset ID.")
+      }
+    }
     for (alias, binding) in datasets {
       try require(
         alias.range(of: "^[a-z][a-zA-Z0-9_]{0,63}$", options: .regularExpression) != nil,
@@ -194,6 +208,36 @@ extension Workbook {
     }
   }
 
+  public func nativeAppImageTitles(_ package: NativeAppPackage) throws -> [String: String] {
+    try package.validate()
+    return try (package.images ?? [:]).mapValues { try nativeAppImageAsset($0).name }
+  }
+
+  public func nativeAppImageURL(_ access: NativeAppAccess, alias: String) throws -> URL {
+    try synchronized {
+      try access.authorized(self) {
+        guard let id = access.package.images?[alias] else {
+          throw SevraError("app_permission", "Use a declared workbook image alias.")
+        }
+        let image = try nativeAppImageAsset(id)
+        let file = try safePath(image.path)
+        try require(
+          try file.resourceValues(forKeys: [.isRegularFileKey]).isRegularFile == true,
+          "app_image", "The included image file is unavailable.")
+        return file
+      }
+    }
+  }
+
+  private func nativeAppImageAsset(_ id: String) throws -> Asset {
+    guard let image = try? asset(id), image.mode == "included", image.path.hasPrefix("assets/"),
+      image.mediaType.hasPrefix("image/")
+    else {
+      throw SevraError("app_image", "Bind an image included in this workbook.")
+    }
+    return image
+  }
+
   /// Installs code without evaluating it. Tables and space are captured in one existing transaction.
   @discardableResult public func installNativeApp(
     _ package: NativeAppPackage, spaceID: String = identifier(), expectedVersion: Int? = nil,
@@ -209,6 +253,7 @@ extension Workbook {
         "excel_scope",
         "Rebuild this workspace from Import details so its calculation rules and original-result checks stay together."
       )
+      _ = try nativeAppImageTitles(package)
       return try installNativeAppContents(
         package, spaceID: spaceID, expectedVersion: expectedVersion,
         token: token, cancellation: cancellation)

@@ -385,6 +385,14 @@ func exchange(
         failed += 1
         print("FAIL Packaged XPC journey: \(error)")
       }
+      do {
+        try await workbookImageCheck(root: root)
+        passed += 1
+        print("PASS Included PNG renders in a signed native mini app and disappears on revoke")
+      } catch {
+        failed += 1
+        print("FAIL Workbook image: \(error)")
+      }
     }
     print("\(passed) passed, \(failed) failed")
     return failed == 0 ? 0 : 1
@@ -620,6 +628,81 @@ func exchange(
     let image = controlsView.view(for: "root/8") as? NSImageView
     try expect(image?.image?.isValid == true, "The native SF Symbol did not render")
   }
+  @MainActor static func workbookImageCheck(root: URL) async throws {
+    let book = try Workbook.create(at: root.appendingPathComponent("Photos.sevra"), title: "Photos")
+    let png = root.appendingPathComponent("Product photo.png")
+    let bitmap = NSBitmapImageRep(
+      bitmapDataPlanes: nil, pixelsWide: 7, pixelsHigh: 5, bitsPerSample: 8,
+      samplesPerPixel: 4, hasAlpha: true, isPlanar: false, colorSpaceName: .deviceRGB, bytesPerRow: 0,
+      bitsPerPixel: 0)!
+    let green = NSColor(deviceRed: 0.1, green: 0.7, blue: 0.3, alpha: 1)
+    for y in 0..<5 {
+      for x in 0..<7 { bitmap.setColor(green, atX: x, y: y) }
+    }
+    try bitmap.representation(using: .png, properties: [:])!.write(to: png)
+    let included = try book.importFile(png)
+    let linked = try book.importFile(png, linked: true)
+    try FileManager.default.removeItem(at: png)
+    guard let photoID = included.assetID, let linkedID = linked.assetID else {
+      throw SevraError("test", "Image import did not return an asset ID")
+    }
+    let source = """
+      const {h,mount,Column,Image,Button,signal}=Sevra;
+      const showPhoto=signal(true);
+      mount(h(Column,{},h(Image,{asset:()=>showPhoto.value?'product':null,
+        symbol:()=>showPhoto.value?null:'star',label:'Product photo',height:120}),
+        h(Button,{title:'Toggle photo',onClick:()=>showPhoto.value=!showPhoto.value})));
+      """
+    let package = NativeAppPackage(
+      name: "Product photos", source: source, images: ["product": photoID])
+    try expect(try book.nativeAppImageTitles(package) == ["product": "Product photo.png"])
+    let space = try book.installNativeApp(package)
+    let denied = NativeAppPackage(name: "Linked photo", source: source, images: ["product": linkedID])
+    try refuses { _ = try book.installNativeApp(denied) }
+    let access = try NativeAppAccess(workbook: book, space: space)
+    try refuses { _ = try book.nativeAppImageURL(access, alias: photoID) }
+    try expect(try book.nativeAppImageURL(access, alias: "product").path.hasPrefix(book.url.path))
+    let domain = "sevra.image-check." + identifier()
+    let defaults = UserDefaults(suiteName: domain)!
+    defer { defaults.removePersistentDomain(forName: domain) }
+    let session = NativeAppSession(book: book, space: space, defaults: defaults)
+    let window = NSWindow(
+      contentRect: NSRect(x: 0, y: 0, width: 380, height: 260), styleMask: [.titled],
+      backing: .buffered, defer: false)
+    let renderer = NativeAppRenderer(session: session)
+    window.contentView = renderer
+    defer { window.orderOut(nil) }
+    defer { session.revoke() }
+    try expect(renderer.view(for: "root/0") == nil, "Image appeared before approval")
+    session.enable()
+    func showsPNG() -> Bool {
+      let image = (renderer.view(for: "root/0") as? NSImageView)?.image
+      guard image?.size == NSSize(width: 7, height: 5),
+        let pixels = image?.cgImage(forProposedRect: nil, context: nil, hints: nil)
+      else { return false }
+      return pixels.width == 7 && pixels.height == 5
+    }
+    try await wait { session.status == "running" || session.status == "failed" }
+    try expect(session.status == "running", session.error ?? "Could not start the image app")
+    do { try await wait { showsPNG() } }
+    catch {
+      let view = renderer.view(for: "root/0") as? NSImageView
+      throw SevraError(
+        "test", "Expected 7 × 5 PNG, got \(String(describing: view?.image)), help: \(view?.toolTip ?? "").")
+    }
+    renderer.layoutSubtreeIfNeeded()
+    try expect(
+      (renderer.view(for: "root/0") as? NSImageView)?.imageScaling == .scaleProportionallyUpOrDown,
+      "Workbook image should fit without distortion")
+    session.event(node: "root/1", handler: "onClick")
+    try await wait { session.tree.nodes["root/0"]?.props["symbol"] == .string("star") }
+    try expect(!showsPNG())
+    session.event(node: "root/1", handler: "onClick")
+    try await wait { showsPNG() }
+    session.revoke()
+    try expect(renderer.view(for: "root/0") == nil, "Revoked image remained visible")
+  }
+
   @MainActor static func wait(_ predicate: () -> Bool) async throws {
     let deadline = Date().addingTimeInterval(8)
     while !predicate() {

@@ -3,6 +3,7 @@ import CryptoKit
 import Foundation
 import SevraAppProtocol
 import SevraCore
+import SevraPreviewUI
 import SwiftUI
 
 @MainActor public final class NativeAppSession: ObservableObject {
@@ -25,6 +26,7 @@ import SwiftUI
   }
   public func removeViewObserver(_ id: UUID) { viewObservers[id] = nil }
   private var tablePresentations: [String: (signature: Value, request: Value)] = [:]
+  private var imageLoads: [String: Task<PreviewImage?, Never>] = [:]
   public private(set) var access: NativeAppAccess?
   private var connection: NSXPCConnection?
   private var sequence = 0
@@ -109,6 +111,27 @@ import SwiftUI
     reversalIsRedo = false
     activeRequests = []
     tablePresentations = [:]
+    for load in imageLoads.values { load.cancel() }
+    imageLoads.removeAll()
+    if tree.root != nil {
+      tree = NativeAppTree()
+      for observer in Array(viewObservers.values) { observer.frame(tree, []) }
+    }
+  }
+  func loadImage(_ alias: String) async -> PreviewImage? {
+    guard let access, grant?.isCurrent == true, access.package.images?[alias] != nil else {
+      return nil
+    }
+    let current = epoch
+    if imageLoads[alias] == nil {
+      imageLoads[alias] = Task.detached(priority: .userInitiated) { [book] in
+        guard !Task.isCancelled, let file = try? book.nativeAppImageURL(access, alias: alias)
+        else { return nil }
+        return PreviewImage.load(file, maximumPixels: 1024, requireImageType: true)
+      }
+    }
+    let image = await imageLoads[alias]?.value
+    return epoch == current && grant?.isCurrent == true ? image : nil
   }
   public func start() {
     guard status != "running" && status != "starting" else { return }
@@ -117,9 +140,7 @@ import SwiftUI
     self.grant = grant
     error = nil
     status = "starting"
-    tree = NativeAppTree()
     sequence = 0
-    for observer in Array(viewObservers.values) { observer.frame(tree, []) }
     budgetStarted = Date()
     budgetFrames = 0
     budgetBytes = 0
@@ -132,7 +153,8 @@ import SwiftUI
         let access = try NativeAppAccess(
           workbook: book, space: space, permission: { grant.isCurrent })
         let state = try await Task.detached { [book] in
-          (
+          _ = try book.nativeAppImageTitles(access.package)
+          return (
             try book.nativeAppDraft(access), try book.revision(),
             try book.nativeAppFingerprints(access), try book.nativeAppLastTransaction(access)
           )
@@ -234,6 +256,7 @@ import SwiftUI
         "app_protocol", "The worker returned an invalid session or sequence.")
       var next = tree
       let changed = try next.apply(response["frame"])
+      try next.validateImageBindings(package)
       for id in changed where tree.nodes[id]?.mountID != next.nodes[id]?.mountID {
         nativeEdits.removeValue(forKey: id)
       }

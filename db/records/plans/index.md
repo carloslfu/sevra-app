@@ -2,11 +2,12 @@
 type: index
 scope: type-folder
 folder: records/plans
-updated: 2026-11-16T15:04:01.237982Z
+updated: 2026-11-16T16:19:41.502910Z
 ---
 
 # records/plans
 
+- [[records/plans/programmable-native-engine]] — Reviewed architecture and implementation gates for sandboxed JavaScript, reactive native UI, scoped workbook data, packaging and end-to-end verification.
 - [[records/plans/excel-business-applications]] — Close realistic Excel business application reconstruction, reliable autonomous generation, and integrated chat/native qualification gaps.
 - [[records/plans/inference-context-upgrade]] — Staged plan to correct context accounting, upgrade Splash and qualify stable context and memory profiles.
 - [[records/plans/rich-native-visuals]] — Revision 13 staged visual and inline-chat plan with concrete agent integration, atomic input publication and immutable historical results.
@@ -18,5 +19,4 @@ updated: 2026-11-16T15:04:01.237982Z
 - [[records/plans/excel-application-reconstruction]] — Engine and native reconstruction flow verified; autonomous local-model reliability remains open
 - [[records/plans/single-excel-import]] — Single Excel import and native workflow reconstruction
 - [[records/plans/local-model-native-apps]] — Local model native-app authoring
-- [[records/plans/programmable-native-engine]] — Reviewed architecture and implementation gates for sandboxed JavaScript, reactive native UI, scoped workbook data, packaging and end-to-end verification.
 - [[records/plans/known-limit-closure-2026-11-12]] — Accessibility code closures have passing headless coverage; AI evidence completeness, Excel expansion, background execution and external qualification remain proposed and paused.

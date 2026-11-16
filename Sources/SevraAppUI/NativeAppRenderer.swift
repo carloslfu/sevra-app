@@ -19,6 +19,53 @@ import SwiftUI
   }
 }
 
+@MainActor private final class AppImageView: NSImageView {
+  private var source: Value?
+  private var load: Task<Void, Never>?
+
+  func update(_ props: Value, session: NativeAppSession) {
+    let label = props["label"].string
+    guard let alias = props["asset"].string else {
+      load?.cancel()
+      load = nil
+      source = nil
+      imageScaling = .scaleProportionallyDown
+      setContentCompressionResistancePriority(.defaultHigh, for: .horizontal)
+      setAccessibilityLabel(label)
+      toolTip = props["help"].string
+      image = NSImage(systemSymbolName: props["symbol"].text, accessibilityDescription: label)
+      return
+    }
+    let request = Value.array([.string(alias), props["label"], props["help"]])
+    guard source != request else { return }
+    source = request
+    load?.cancel()
+    imageScaling = .scaleProportionallyUpOrDown
+    setContentCompressionResistancePriority(.defaultLow, for: .horizontal)
+    setAccessibilityLabel(label)
+    toolTip = props["help"].string
+    image = NSImage(systemSymbolName: "photo", accessibilityDescription: label)
+    load = Task { [weak self] in
+      let preview = await session.loadImage(alias)
+      guard !Task.isCancelled, let self else { return }
+      if let preview {
+        let width = CGFloat(preview.image.width)
+        let height = CGFloat(preview.image.height)
+        let scale = min(1, 320 / width, 240 / height)
+        self.image = NSImage(
+          cgImage: preview.image, size: NSSize(width: width * scale, height: height * scale))
+      } else {
+        self.image = NSImage(
+          systemSymbolName: "photo.badge.exclamationmark", accessibilityDescription: nil)
+        self.toolTip = "Image unavailable"
+        self.setAccessibilityLabel([label, "Image unavailable"].compactMap { $0 }.joined(separator: ". "))
+      }
+    }
+  }
+
+  deinit { load?.cancel() }
+}
+
 public struct NativeAppSurface: NSViewRepresentable {
   public let session: NativeAppSession
   public init(session: NativeAppSession) { self.session = session }
@@ -178,7 +225,7 @@ final class AppElement: NSView, NSTextFieldDelegate, NSTextViewDelegate, NSTabVi
       content = scroll
     case "grid": content = NSGridView()
     case "canvas": content = AppCanvas()
-    case "image": content = NSImageView()
+    case "image": content = AppImageView()
     case "table":
       let view = AppTable(session: session, node: node)
       content = view
@@ -269,9 +316,11 @@ final class AppElement: NSView, NSTextFieldDelegate, NSTextViewDelegate, NSTabVi
     let props = node.props
     applying = true
     defer { applying = false }
-    content.setAccessibilityLabel(props["label"].string ?? props["title"].string)
+    if node.type != "image" {
+      content.setAccessibilityLabel(props["label"].string ?? props["title"].string)
+      content.toolTip = props["help"].string
+    }
     content.setAccessibilityHelp(props["help"].string)
-    content.toolTip = props["help"].string
     isHidden = props["hidden"] == .bool(true)
     if let control = content as? NSControl { control.isEnabled = props["enabled"] != .bool(false) }
     if dimensions.isEmpty || previous["width"] != props["width"]
@@ -383,8 +432,7 @@ final class AppElement: NSView, NSTextFieldDelegate, NSTextViewDelegate, NSTabVi
       disclosureButton?.state = disclosureOpen ? .on : .off
     case "canvas": (content as! AppCanvas).update(props)
     case "image":
-      (content as! NSImageView).image = NSImage(
-        systemSymbolName: props["symbol"].text, accessibilityDescription: props["label"].string)
+      (content as! AppImageView).update(props, session: session)
     case "table": table?.update(next)
     default: break
     }
