@@ -2,11 +2,12 @@
 type: index
 scope: type-folder
 folder: records/reviews
-updated: 2026-11-16T05:24:34.721301Z
+updated: 2026-11-16T16:45:41.020274Z
 ---
 
 # records/reviews
 
+- [[records/reviews/image-support-and-plan-readiness]] — Three-pass image audit: mini apps and embedded Home support images; inline chat and standalone Home need the new P1-image increment.
 - [[records/reviews/excel-business-applications-2026-11-15]] — Shared formula, review, numeric validation, repair and authority fixes pass scoped checks; final fresh cohorts and native visual qualification remain pending.
 - [[records/reviews/inference-context-plan-full-review]] — Complete plan re-review resolves 18 integration, accounting, lifecycle and experiment gaps; revision 5 is ready for staged implementation.
 - [[records/reviews/inference-context-plan-readiness]] — Three sequential plan reviews close architecture, recovery and evaluation gaps while retaining explicit implementation and qualification gates.

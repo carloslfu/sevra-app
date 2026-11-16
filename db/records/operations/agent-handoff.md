@@ -3,8 +3,8 @@ type: operational
 meta-type: operational
 id: 01m659x4nd2q89tkpzzsssd7yr
 created: 2026-10-30T02:23:30.477380+00:00
-updated: 2026-11-15T22:20:53.009773+00:00
-summary: Rich visuals and inline-chat revision 13 closes agent integration gaps; start with native chat inputs, then charts. Implementation remains proposed.
+updated: 2026-11-16T16:44:22.632772+00:00
+summary: Rich visual plan revision 14 adds early chat and standalone Home images, reusing implemented mini-app images; reviewed implementation gates remain open.
 title: Minimum-feature continuation handoff
 ---
 # Minimum-feature continuation handoff
@@ -20,6 +20,12 @@ The owner then requested a complete implementation-readiness review. [[records/r
 The follow-up [[records/reviews/rich-native-visuals-final-audit]] rechecks every section against clean `5b05c5f` and advances the plan to revision 13. It adds a concrete agent prompt/scope/grammar/dispatch contract, visual evaluation/capture route, atomic input publication and compaction-safe continuation. It aligns with the inference/context plan and corrects the earlier restriction on reading immutable answers after app revocation. Transient visual state is explicitly window-scoped. P0-chat/P0a remains the first implementable increment; visual-specific contracts begin in P0-visual/P1.
 
 The plan distinguishes package capabilities from versioned presentation-only edits, reuses exact query/transaction authority and requires chat parity, native visual review and independent data acceptance. ELK/Graphviz selection and performance are explicit implementation gates. This checkpoint changes documentation only: no new component, dependency qualification, UI launch or installed-app change is claimed. The existing accepted Excel, Home and chat-operation checkpoints below retain their original scope.
+
+## Image support planning checkpoint, November 16
+
+The owner-requested [[records/reviews/image-support-and-plan-readiness]] audits c066920 and the subsequent 05d3fe8 viewer follow-up. Mini apps now display included image aliases and offer native enlargement; Home can display them inside those embedded apps. Chat remains text/tables/file links, and standalone Home assets remain Open file buttons. No current installed-bundle verification or new UI run is claimed by this audit.
+
+[[records/plans/rich-native-visuals]] is revision 14 after three image-specific passes. It corrects the stale mini-app inventory and adds P1-image: exact image references, inline imported/assistant images, standalone Home images, explicit file/bitmap-paste capture, chat operations and a common bounded media path. Reuse the existing SDK/grants and shared zoom viewer. The increment needs the common chat publication envelope, not complete question/continuation work, charts or diagrams. Six scenarios gate source/pixel correctness, history/portable copy, retries/revocation, native UX and measured decode/cache limits. This checkpoint changes planning only; separate committed image implementation remains intact.
 
 ## Current Home checkpoint, November 14
 
