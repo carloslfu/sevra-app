@@ -95,7 +95,7 @@ test('string choices reject incompatible input types and share validation betwee
  assert.match(r.flush().messages.find(m=>m.id==='invalid').error,/Choose a listed value/);assert.equal(r.run('saved.length'),0);
  receive(r,{kind:'command',id:'select',node:picker.id,mountID:picker.mountID,handler:'onChange',value:'Two'});await settled();r.flush();
  receive(r,{kind:'command',id:'submit',node:button.id,mountID:button.mountID,handler:'onClick'});await settled();
- assert.equal(r.run('saved[0]'),'Two');assert(r.flush().patches.some(p=>p.node?.props.text==='Completed'));
+ assert.equal(r.run('saved[0]'),'Two');assert(r.flush().patches.some(p=>p.node?.props.text==='Action finished'));
 });
 test('transaction shape errors identify the array contract before sending a write',async()=>{
  const r=runtime(`var failure='';Sevra.data.transaction({op:'insert',table:'t',values:{n:'1'}}).catch(error=>failure=error.message);`);
@@ -157,7 +157,7 @@ test('native action forms share the named operation, retain failed drafts and cl
  assert.equal(r.run('saved.length'),0);
  assert.equal(failed.patches.find(p=>p.node?.id===amount.id).node.props.value,'12.50');
  r.run('fail=false');pending=await submit();page=pending.messages.find(m=>m.method==='page');receive(r,{kind:'result',id:page.id,value:{revision:0,rows:[]}});await settled();
- const success=r.flush();assert(success.patches.some(p=>p.node?.props.text==='Completed'));
+ const success=r.flush();assert(success.patches.some(p=>p.node?.props.text==='Action finished'));
  assert.equal(r.run('saved[0].amount'),'12.50');assert.equal(success.patches.find(p=>p.node?.id===amount.id).node.props.value,'');
  receive(r,{kind:'command',id:'chat',action:'save',arguments:{reference:'R2',amount:'0'}});await settled();page=r.flush().messages.find(m=>m.method==='page');receive(r,{kind:'result',id:page.id,value:{revision:0,rows:[]}});await settled();
  assert.equal(r.flush().messages.find(m=>m.id==='chat').value.reference,'R2');assert.equal(r.run('saved.length'),2);

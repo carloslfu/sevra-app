@@ -63,8 +63,9 @@ extension Workbook {
         access, operations: scoped, expectedRevision: base, token: token, undo: undo)
     }
   }
-  public func nativeAppConversationRow(_ access: NativeAppAccess, alias: String, id: String) throws
-    -> Value
+  public func nativeAppConversationRow(
+    _ access: NativeAppAccess, alias: String, id: String, columnLabels: Value = .null
+  ) throws -> Value
   {
     try synchronized {
       try db.readTransaction {
@@ -73,6 +74,7 @@ extension Workbook {
           let row = try item(id)
           try require(
             row.id == id && item(row.logicalID).id == id && row.status == "accepted"
+              && row.logicalID != nativeAppWorksheetHeading(table, columnLabels: columnLabels)
               && db.scalar(
                 "SELECT count(*) FROM dataset_rows WHERE dataset_id=? AND logical_id=?",
                 [.string(table.id), .string(row.logicalID)]
@@ -97,8 +99,31 @@ extension Workbook {
       "The table schema changed; update this app binding and review access again.")
     return table
   }
+  /// Use the native labels once when they exactly repeat the first worksheet row.
+  /// Formulas and actions keep their original coordinates and raw rows.
+  private func nativeAppWorksheetHeading(_ table: Dataset, columnLabels: Value) throws -> String? {
+    guard table.columns.count >= 2, columnLabels.object.count == table.columns.count,
+      let row = try db.scalar(
+        """
+        SELECT CASE WHEN count(*)=1 THEN min(r.logical_id) END
+        FROM datasets d JOIN items s ON s.id=d.source_id AND s.kind='worksheet'
+        JOIN dataset_rows r ON r.dataset_id=d.id AND r.ordinal=0 WHERE d.id=?
+        """,
+        [.string(table.id)]).string
+    else { return nil }
+    let original = try item(row)
+    guard original.status == "accepted",
+      table.columns.allSatisfy({ column in
+        guard let label = columnLabels[column.id].string, !label.isEmpty else { return false }
+        return original.data[column.id] == .string(label)
+      })
+    else { return nil }
+    return row
+  }
   /// Page data stays in native memory when used by a native table. JS queries use the same scope.
-  public func nativeAppPage(_ access: NativeAppAccess, request: Value) throws -> Value {
+  public func nativeAppPage(
+    _ access: NativeAppAccess, request: Value, columnLabels: Value = .null
+  ) throws -> Value {
     try synchronized {
       try db.readTransaction {
         try access.authorized(self) {
@@ -112,7 +137,8 @@ extension Workbook {
           let page = try tablePage(
             table.id, offset: offset, limit: limit,
             query: request["search"].string ?? "", sort: request["sort"].string,
-            descending: request["descending"] == .bool(true))
+            descending: request["descending"] == .bool(true),
+            omittingRow: nativeAppWorksheetHeading(table, columnLabels: columnLabels))
           let result: Value = .object([
             "revision": .number(Double(page.revision)),
             "columns": try encoded(page.dataset.columns),

@@ -16,6 +16,35 @@ func checkExcelBehaviorReconstruction() async throws {
   defer { try? FileManager.default.removeItem(at: root) }
   do {
     let book = try Workbook.create(
+      at: root.appendingPathComponent("Loan layout.sevra"), title: "Loan layout")
+    let source = try book.importFile(
+      URL(fileURLWithPath: "integration/fixtures/excel-business/cash-0.xlsx"))
+    let conversion = try book.beginExcelConversion(sourceID: source.id)
+    let valid = try Value.parse(
+      #"{"sheet1":[{"c1":"Opening cash","c2":"Principal","c3":"Annual rate","c4":"Months"},{"c1":"0","c2":"12345.60","c3":"0","c4":"24"}]}"#)
+    try expectEqual(
+      try book.excelCheckCoordinates(conversion.id, validatingFixtures: valid).first, [1, 2])
+    var values = valid["sheet1"].array[1].object
+    values["c1"] = .string("Principal")
+    let fakeKey: Value = .object(["sheet1": .array([valid["sheet1"].array[0], .object(values)])])
+    var headings = valid["sheet1"].array[0].object
+    headings["c2"] = .string("12345.60")
+    let changedHeading: Value = .object([
+      "sheet1": .array([.object(headings), valid["sheet1"].array[1]])
+    ])
+    for (invalid, field) in [(fakeKey, "sheet1.c1"), (changedHeading, "sheet1.c2")] {
+      do {
+        _ = try book.excelCheckCoordinates(conversion.id, validatingFixtures: invalid)
+        throw SevraError("test", "A synthetic structure different from the source was accepted.")
+      } catch let error as SevraError {
+        try expectEqual(error.code, "app_check_setup")
+        try expectEqual(error.localizedDescription.contains(field), true)
+      }
+    }
+    print("PASS original numeric input layout rejects an invented loan lookup key")
+  }
+  do {
+    let book = try Workbook.create(
       at: root.appendingPathComponent("Native totals.sevra"), title: "Native totals")
     let source = try book.importFile(
       URL(fileURLWithPath: "integration/fixtures/excel-business/stock-0.xlsx"))

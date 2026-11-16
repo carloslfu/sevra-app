@@ -105,7 +105,7 @@ export function ActionForm(props:{action:string}):Descriptor {
     }else args[id]=raw;
    }
    await entry.run(args);
-   batch(()=>{for(const {input,value} of fields)value.value=input.type==='boolean'?false:'';status.value='Completed';});
+   batch(()=>{for(const {input,value} of fields)value.value=input.type==='boolean'?false:'';status.value='Action finished';});
   }catch(error:any){status.value=String(error?.message||error);}
   finally{busy.value=false;}
  }

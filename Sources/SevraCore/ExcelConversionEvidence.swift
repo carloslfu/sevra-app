@@ -144,8 +144,45 @@ extension Workbook {
     )
   }
 
-  package func excelCheckCoordinates(_ id: String) throws -> [[Int]] {
-    try excelOriginalSheets(excelConversion(id).sourceID).filter { !$0.rows.isEmpty }.map(
-      \.rowNumbers)
+  package func excelCheckCoordinates(
+    _ id: String, validatingFixtures fixtures: Value = .null, cancellation: Cancellation = .init()
+  ) throws -> [[Int]] {
+    let sheets = try excelOriginalSheets(excelConversion(id).sourceID, cancellation: cancellation)
+      .filter { !$0.rows.isEmpty }
+    for (position, sheet) in sheets.enumerated() {
+      try cancellation.check()
+      let alias = "sheet\(position + 1)"
+      let rows = fixtures[alias].array
+      guard !rows.isEmpty, sheet.rows.count == 2, sheet.formulas.isEmpty,
+        sheet.formulaKinds.isEmpty, sheet.unsettled.isEmpty
+      else { continue }
+      let headings = sheet.rows[0]
+      let inputs = sheet.rows[1]
+      // A single row of original numeric inputs has no text lookup key. A
+      // synthetic label in that row can make a broken action appear to work.
+      guard headings.count >= 2, headings.count == inputs.count,
+        headings.allSatisfy({
+          !$0.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
+            && (try? Numbers.decimal($0)) == nil
+        }), inputs.allSatisfy({ (try? Numbers.decimal($0)) != nil })
+      else { continue }
+      try require(rows.count <= 2, "app_check_setup",
+        "\(alias) has a heading and one numeric input row. Remove additional starting rows.")
+      for (index, heading) in headings.enumerated() {
+        let column = "c\(index + 1)"
+        try require(
+          rows[0][column] == .string(heading), "app_check_setup",
+          "\(alias).\(column) needs the original heading \(String(heading.prefix(128))) in fixture row 1. Keep the actual header in its original column."
+        )
+        if rows.count == 2 {
+          let value = rows[1][column].string ?? ""
+          try require(
+            (try? Numbers.decimal(value)) != nil, "app_check_setup",
+            "\(alias).\(column) is numeric in the original data row. Use an invented numeric string in fixture row 2. An invented text label cannot identify this fixed input row."
+          )
+        }
+      }
+    }
+    return sheets.map(\.rowNumbers)
   }
 }

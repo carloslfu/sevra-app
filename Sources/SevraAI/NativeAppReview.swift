@@ -255,11 +255,13 @@ package enum NativeAppReview {
       .init(role: "user", content: json),
     ]
     messages[0].nativeAppAuthoring = excelConversion != nil
+    let writableTables = Set(package.datasets.filter { $0.value.writable }.keys)
     if blindActions {
       messages[0].reviewContract = .object([
         "actions": checkedActionInputs,
         "columns": .object(
           package.datasets.mapValues { .array($0.columns.map { .string($0.id) }) }),
+        "writableTables": .array(writableTables.sorted().map(Value.string)),
       ])
     }
     var counterexamples: [Value] = []
@@ -330,7 +332,10 @@ package enum NativeAppReview {
       var tests = verdict["tests"].array
       let inputRoles: Value
       if blindActions {
-        do { (tests, inputRoles) = try actionProbes(verdict, actions: Set(checkedActions)) } catch {
+        do {
+          (tests, inputRoles) = try actionProbes(
+            verdict, actions: Set(checkedActions), writableTables: writableTables)
+        } catch {
           try giveFeedback(
             .object([
               "status": .string("invalid_counterexample"),
@@ -439,7 +444,8 @@ package enum NativeAppReview {
             : "Checking the review's counterexample in isolation")
         var completedProbeSteps = 0
         do {
-          let coordinates = try workbook.excelCheckCoordinates(build.conversionID)
+          let coordinates = try workbook.excelCheckCoordinates(
+            build.conversionID, validatingFixtures: probeFixtures, cancellation: cancellation)
           let formulas =
             package.excelBehavior == nil
             ? try workbook.excelCheckFormulas(build.conversionID) : nil
@@ -645,7 +651,8 @@ package enum NativeAppReview {
             let confirmed = try await NativeAppCheck.run(
               package: package, steps: opposite, fixtures: probeFixtures,
               cancellation: cancellation,
-              excelCoordinates: try workbook.excelCheckCoordinates(build.conversionID),
+              excelCoordinates: try workbook.excelCheckCoordinates(
+                build.conversionID, validatingFixtures: probeFixtures, cancellation: cancellation),
               excelFormulas: package.excelBehavior == nil
                 ? try workbook.excelCheckFormulas(build.conversionID) : nil,
               expectFinalActionSuccess: ruling.accepted)

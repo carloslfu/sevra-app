@@ -587,7 +587,7 @@ var Sevra = (() => {
         await entry.run(args);
         n(() => {
           for (const { input, value } of fields) value.value = input.type === "boolean" ? false : "";
-          status.value = "Completed";
+          status.value = "Action finished";
         });
       } catch (error) {
         status.value = String(error?.message || error);

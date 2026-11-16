@@ -357,13 +357,12 @@ extension Workbook {
   }
   public func rows(
     _ datasetID: String, offset: Int = 0, limit: Int = 200, query: String = "", sort: String? = nil,
-    descending: Bool = false
+    descending: Bool = false, omittingRow: String? = nil
   ) throws -> [Item] {
     try synchronized {
       try db.readTransaction {
         let schema = try db.managedSchema(datasetID)
-        var (filter, args) = try rowFilter(query, schema: schema)
-        if !filter.isEmpty { filter = " WHERE n.\"_sevra_item\" IN " + filter }
+        var (filter, args) = try rowPredicate(query, schema: schema, omittingRow: omittingRow)
         var order = "n.\"_sevra_ordinal\",n.\"_sevra_row\""
         if let sort {
           guard let column = schema.columns.first(where: { $0.id == sort }) else {
@@ -395,16 +394,30 @@ extension Workbook {
       }
     }
   }
-  public func filteredRowCount(_ datasetID: String, query: String) throws -> Int {
+  public func filteredRowCount(
+    _ datasetID: String, query: String, omittingRow: String? = nil
+  ) throws -> Int {
     try synchronized {
       let schema = try db.managedSchema(datasetID)
-      let (filter, args) = try rowFilter(query, schema: schema)
+      let (filter, args) = try rowPredicate(query, schema: schema, omittingRow: omittingRow)
       if filter.isEmpty { return try dataset(datasetID).rowCount }
       return try db.scalar(
-        "SELECT count(*) FROM " + ChangeFormat.quote(schema.table)
-          + " WHERE \"_sevra_item\" IN " + filter, args
+        "SELECT count(*) FROM " + ChangeFormat.quote(schema.table) + filter, args
       ).int ?? 0
     }
+  }
+  private func rowPredicate(_ query: String, schema: ManagedDatasetSchema, omittingRow: String?)
+    throws -> (String, [Value])
+  {
+    let (filter, filterArguments) = try rowFilter(query, schema: schema)
+    var predicates: [String] = []
+    var arguments = filterArguments
+    if !filter.isEmpty { predicates.append("\"_sevra_item\" IN " + filter) }
+    if let omittingRow {
+      predicates.append("\"_sevra_logical\" <> ?")
+      arguments.append(.string(omittingRow))
+    }
+    return (predicates.isEmpty ? "" : " WHERE " + predicates.joined(separator: " AND "), arguments)
   }
   /// The search index also holds each row's title and column IDs, which every row shares. It
   /// finds the candidates, and the row's own cells decide.
@@ -443,7 +456,7 @@ extension Workbook {
   }
   public func tablePage(
     _ datasetID: String, offset: Int = 0, limit: Int = 200, query: String = "",
-    sort: String? = nil, descending: Bool = false
+    sort: String? = nil, descending: Bool = false, omittingRow: String? = nil
   ) throws -> TablePage {
     try synchronized {
       try db.readTransaction {
@@ -462,12 +475,13 @@ extension Workbook {
         defer { rememberedFilter = nil }
         let rows = try rows(
           datasetID, offset: offset, limit: limit, query: query, sort: sort,
-          descending: descending)
+          descending: descending, omittingRow: omittingRow)
         let formulas = try sheetFormulaPage(datasetID, rows: rows)
         return TablePage(
           dataset: table, rows: rows,
           values: rows.map { calculatedValues($0, columns: table.columns) },
-          total: try filteredRowCount(datasetID, query: query), revision: try revision(),
+          total: try filteredRowCount(datasetID, query: query, omittingRow: omittingRow),
+          revision: try revision(),
           offset: max(0, offset), formulas: formulas?.cells ?? [:], formulaReport: formulas?.report)
       }
     }

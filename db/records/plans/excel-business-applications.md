@@ -3,7 +3,7 @@ type: operational
 meta-type: operational
 id: 01m7ebv28bxsk6szwx72sbrcyp
 created: 2026-11-15T01:06:11.339074+00:00
-updated: 2026-11-16T05:24:34.706741+00:00
+updated: 2026-11-16T07:02:14.809695+00:00
 summary: Close realistic Excel business application reconstruction, reliable autonomous generation, and integrated chat/native qualification gaps.
 title: Realistic Excel business applications
 status: in-progress
@@ -48,7 +48,7 @@ Reuse the existing importer, managed tables, formula plans, sandboxed behavior, 
 A finite corpus cannot establish universal Excel compatibility. Production signing, additional hardware, VoiceOver and independent customer/security qualification are separate from closing these three functional gaps. Any remaining concrete functional blocker stays open in this plan; do not label the work complete because a smaller subset passes.
 
 ## Active blockers
-1. Two consecutive fresh six-workflow runs must qualify on the same code. Cohort 34 exposed inconsistent Production review, stale Booking completion text and incorrectly typed Cash review probes. The revised candidate addresses each reproduced failure.
+1. Two consecutive fresh six-workflow runs must qualify on the same code. Cohort 36 passed four workflows. Bookings did not publish and Cash and Loans failed on the original assumptions layout. The next candidate needs fresh verification of both corrections.
 2. All six final generated apps need independent worksheet comparisons, saved-effect and Undo evidence, and native visual journeys.
 3. The new candidate needs exact local and hosted verification, signed package and installation identity, and final retained receipts.
 ## Progress
@@ -1361,3 +1361,92 @@ Booking saved the requested cancellation and its inverse, then chat replaced tha
 The installed candidate 148 preview routed a synthetic macro-enabled Production original through the single file entry, accepted a second workbook as a comparison example and opened the tables without inference. At 1200 × 800 and approximately 859 × 723 points, the Excel review controls and descriptions remained readable, and compact table rows were vertically centered. A new workbook could lose its filename extension when the name was replaced. The next app uses the workbook package type in every new-workbook save panel. File-only pickers treat packages as directories. Successful Excel intake steps now report the actual result; a review button appears only when drafts exist. The updated signed preview needs a visual recheck.
 
 Predeclared fresh cohorts 36 then 37 use Stock, Production, Bookings, Cash and Loans, Invoicing and Job Costing in the established order. Both start with new workbooks and conversations. Cohort 37 starts after complete qualification of 36. The required independent oracle, refusal/correction tests, exact Undo, reopen and portable copy remain unchanged. All six native journeys and exact-code verification remain separate acceptance gates.
+
+## Frozen cohort 36
+
+The exact candidate `da2cb1c` passed local checks, including 660 core checks,
+signed packaging and extraction, and [hosted verification](https://github.com/carloslfu/sevra-app/actions/runs/43811712746).
+Native Preview UUID `9CAF42F3-0CC6-3BA1-A8B2-79E4112517E1` matched the
+package. Both SDK copies, CLI, extractor and workers matched their corresponding
+products. The separate retained-program regression passed all ten workflows,
+79 saved edit, reopen and Undo checks, and ten portable copies.
+
+The frozen signed runtime generated each program from scratch using the pinned
+local model. No program was manually repaired. Each save attempt and refusal
+was retained. A draft SDK file temporarily replaced the checkout resource and
+was restored byte for byte without rebuilding. Strict signatures and matching
+SDK hashes confirm the already-running package remained unchanged.
+
+| Workflow | Outcome | Save attempts | Generation / total seconds | Independent formula comparisons |
+| --- | --- | --- | --- | --- |
+| Stock | Passed stock operations, explicit price refresh, zero cost, 205 appended rows, refusal, Undo and portable reopen. | 6 | 998.9 / 1354.1 | 216 across 18 states |
+| Production | Passed plan and completion, resource refusal, Undo and portable reopen. The first test used a duplicate reference. | 2 | 280.3 / 561.0 | 135 across 9 states |
+| Bookings | Publication withheld. After fixing a resource-header lookup, independent review used the wrong fixture heading and an incorrect derived total. | 6 | — / 1130.2 | — |
+| Cash and Loans | Published and saved a cash movement. A synthetic-only lookup key prevented the actual zero-rate loan update. No failed update was written. | 2 | 286.5 / 380.0 | 24 across 2 states |
+| Invoicing | Passed invoice, payment, credit, duplicate and unknown-customer refusals, Undo and portable reopen. Repaired syntax and header-key lookup automatically. | 3 | 577.3 / 826.8 | 108 across 12 states |
+| Job Costing | Passed time entry, rate change, unknown employee and invalid hours, another job entry, Undo and portable reopen. Repaired syntax and header-key lookup automatically. | 3 | 365.8 / 608.2 | 108 across 12 states |
+
+The independent oracle matched 591 outputs across 53 saved states. Four of six
+complete workflows passed. Cohort 37 did not start. The aggregate oracle cannot
+substitute for publication and operation checks.
+
+The installed preview intake added a comparison and created a correctly named
+workbook package. Native Stock, Production and Invoicing used disposable copies
+of the generated apps, with the original files and exported programs preserved.
+Compact tables had centered rows. Stock updated value and restored it through
+Undo. Production retained an invalid fraction, saved a two-batch run, refused
+insufficient stock and undid the new run. Its compact Capacity section
+shortened Planned demand. Invoicing retained an unknown-customer draft,
+saved the correction and restored the previous receivable and available credit
+through Undo. Customer and Receivables used generic column letters.
+The Cash and Loans form reproduced the original zero-rate failure and retained
+the draft. All four test grants were revoked.
+
+## Candidate 150
+
+A signed native counterexample admitted a second chat operation while the first
+was enabling the worker. Admission now lasts through startup, settling and
+dispatch. A second write is refused as busy while the first can finish. Named
+actions and native controls still share one session and its transaction fence.
+
+A worksheet's first original row rendered twice when the native table's full set
+of column labels exactly repeated it. The renderer, paging, filters, chat
+selection and isolated checker now share one display projection. Original data
+reads, worksheet coordinates, formulas and saved assertions keep that row. The
+projection requires a unique first worksheet row and at least two exact
+labels covering the full schema. Partial and unrelated labels, other records,
+and ordinary tables retain their previous behavior. Headers now reserve bounded
+space for their measured labels and sort indicators, expose a tooltip and
+scroll horizontally when needed. Forms say Action finished so the message
+clearly refers to the operation.
+
+Bookings review previously asserted a guessed read-only utilization total as
+a directly saved row. The independent grammar and host now limit saved effects
+to the relevant writable aliases. The required exact receipts, separate
+original calculation checks, and held-out business journeys still apply.
+Read-only displays may be tested with their rendered text or value. Positive
+creation probes start from unused references and free slots. Duplicate and
+overlap probes remain separate refusals.
+
+The Cash and Loans reviewer and builder used an invented Principal key in the
+opening-cash column of the only original assumptions record. Both isolated
+reviews then approved a program that could not find the actual numeric row.
+The signed engine now validates fixtures against this narrow original layout:
+one heading followed by one numeric input row, with no formulas or unresolved
+cells. Invented numbers remain available, including zero. The checker refuses
+changed headings, invented text where the original data is numeric, and extra
+starting rows. It does this in both builder and independent review using
+immutable original evidence and without copying original business amounts.
+
+Invoicing and Jobs both had a first save refused because their action handler
+appeared inside an unfinished definition. The guide uses a complete separate
+definition and a third async argument. It also requests exact displayed labels
+for reference and summary tables where the original has a clear heading.
+The guide stays within the existing tool-result budget, and candidate source is
+never edited by the host.
+
+The proposed next pair is cohorts 38 and 39, with the same order, pinned
+local model and unchanged original-oracle and business acceptance criteria.
+Both start from fresh workbooks and conversations. Cohort 39 starts only
+after the exact same code qualifies in 38. Native journeys and the earlier
+retained ten-case regression remain separate evidence.

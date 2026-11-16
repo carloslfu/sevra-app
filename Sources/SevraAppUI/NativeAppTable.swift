@@ -103,12 +103,15 @@ import SevraCore
   func selectionShouldChange(in tableView: NSTableView) -> Bool { applying || interactionEnabled }
   override func layout() {
     super.layout()
-    let available = scroll.contentSize.width
-    if abs(grid.frame.width - available) > 1 {
-      grid.setFrameSize(NSSize(width: available, height: grid.frame.height))
+    let minimum = grid.tableColumns.reduce(CGFloat.zero) {
+      $0 + $1.minWidth + grid.intercellSpacing.width
+    }
+    let width = max(scroll.contentSize.width, minimum)
+    if abs(grid.frame.width - width) > 1 {
+      grid.setFrameSize(NSSize(width: width, height: grid.frame.height))
     }
     if !grid.tableColumns.isEmpty,
-      abs(grid.tableColumns.reduce(0) { $0 + $1.width + grid.intercellSpacing.width } - available)
+      abs(grid.tableColumns.reduce(0) { $0 + $1.width + grid.intercellSpacing.width } - width)
         > 1
     {
       grid.sizeToFit()
@@ -147,7 +150,7 @@ import SevraCore
     offset = request["offset"].int ?? 0
     sorting = request["sort"].string
     descending = request["descending"] == .bool(true)
-    session.page(request) { [weak self] result in
+    session.page(request, columnLabels: node.props["columnLabels"]) { [weak self] result in
       guard let self else { return }
       self.loading = false
       if self.reloadPending || self.generation != current {
@@ -171,15 +174,13 @@ import SevraCore
       for column in columns {
         let view = NSTableColumn(identifier: NSUserInterfaceItemIdentifier(column["id"].text))
         view.width = 140
-        view.minWidth = 80
         grid.addTableColumn(view)
       }
-      grid.sizeToFit()
-      needsLayout = true
     }
     for (view, column) in zip(grid.tableColumns, columns) {
       let id = view.identifier.rawValue
       view.title = node.props["columnLabels"][id].string ?? column["title"].text
+      view.headerToolTip = view.title
       // An AppKit column may be reused for a different table with the same ID.
       view.headerCell.alignment = column["type"].text == "decimal" ? .right : .left
       let sortable = column["formula"] == .null
@@ -187,7 +188,14 @@ import SevraCore
         view.sortDescriptorPrototype =
           sortable ? NSSortDescriptor(key: id, ascending: true) : nil
       }
+      // Leave room for AppKit's header insets and sort indicator.
+      let minimum = min(220, max(80, ceil(view.headerCell.cellSize.width) + (sortable ? 20 : 8)))
+      if view.minWidth != minimum {
+        view.minWidth = minimum
+        if view.width < minimum { view.width = minimum }
+      }
     }
+    needsLayout = true
     grid.headerView?.needsDisplay = true
     rows = page["rows"].array
     total = page["total"].int ?? 0

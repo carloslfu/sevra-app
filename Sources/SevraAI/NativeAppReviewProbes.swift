@@ -6,7 +6,7 @@ extension NativeAppReview {
 
     A successful probe contains action, inputs, inputRoles and expect. For example {action:'actualID',inputs:{reference:'invented value'},inputRoles:{reference:{kind:'value'}},expect:[{kind:'expect_row',table:'actualAlias',values:{actualColumn:'independently expected value'}}]}. Adapt all identifiers, fields and types to checkedActionInputs and bindings. The host invokes that action ONCE, then checks every expectation in order. Put multiple direct effects of that operation in its expect array, such as a new ledger row and a changed status. Do not invoke an operation again merely to inspect another result: that repeats the actual write and can correctly reject a duplicate reference. Probes run sequentially from syntheticFixtures. Every response starts from a fresh copy of those fixtures. Do not assert starting-state totals before exercising operations. Focus on directly saved records with their business keys and changed inputs. The host checks formulas separately against the original. For an operation that explicitly returns a calculated result, use the original formula ranges and actual fixture row positions. A different total does not establish a missing, duplicate or overwritten record. Assert the record's exact identity and saved inputs to test that kind of defect. Check signs and units: a positive entered shipment/payment can require a NEGATIVE saved ledger movement.
 
-    For a successful write, cover every changed input cell with expect_row using its business key and exact saved input values. Include every supplied column of an inserted row. The host checks the exact affected records, so an assertion on a different matching record cannot cover an extra write. Expect only direct inputs the original workflow should change. Original formulas recalculate dependent outputs automatically and do not require a second input edit. For a deletion use expect_rows with count:0 and the original identifying values. Worksheet values are exact JSON strings or null for a missing cell, even when the named action input was a JSON number. Use "12" for a worksheet cell that stores 12. For read-only results use expect_text or expect_value. For a business refusal use expect:[{kind:'reject'}] with complete correctly typed inputs. A refusal is the only expectation in its array. The host requires rejection with no writes. Invalid argument types or missing inputs must not mask a business-rule defect.
+    For a successful write, cover every changed input cell with expect_row using its business key and exact saved input values. Include every supplied column of an inserted row. The host checks the exact affected records, so an assertion on a different matching record cannot cover an extra write. Saved-row expectations must name writable tables and the direct inputs the original workflow should change. Original formulas recalculate dependent outputs automatically and do not require a second input edit. For a deletion use expect_rows with count:0 and the original identifying values. Worksheet values are exact JSON strings or null for a missing cell, even when the named action input was a JSON number. Use "12" for a worksheet cell that stores 12. For read-only results use expect_text or expect_value. For a business refusal use expect:[{kind:'reject'}] with complete correctly typed inputs. A refusal is the only expectation in its array. The host requires rejection with no writes. Invalid argument types or missing inputs must not mask a business-rule defect.
 
     Return decision:'ready',issues:[] with successful effect probes for EVERY checkedActionID, four remaining actions per batch (all when fewer), plus required boundary/refusal probes. Counts, labels, enabled controls and refusals alone do not establish successful behavior. Keep the expanded sequence within 16 steps: successful probes cost one invocation plus 1..4 expectations, refusals cost one, and optional interfaceTests cost their length. The host requests additional batches; tested actions do not replace remaining ones. If a readiness probe fails, correct an invalid expectation/setup or return decision:'revise',issues:['one concrete requested defect'] with a counterexample asserting the CORRECT desired behavior. A passing counterexample establishes no defect. Never ask the builder to change working behavior to satisfy an invented requirement.
 
@@ -16,7 +16,7 @@ extension NativeAppReview {
 
     Probe requested duplicate references, unknown foreign keys, explicit allowed-value sets, conflicts and state-dependent limits. An unknown key differs from an original header key. A conflict probe must actually conflict after the previous probes. Compare all relevant keys and both endpoints. For a same-resource booking rule, use the same resource and day with a positive interval overlap. If the source allows it, test a different resource in the same interval as a successful control. For an overdraw, derive availability after earlier probes and use demand strictly greater than that availability. Preserve the requested input list and read stored quantities/durations/amounts from the target record. Use a unique value for a new reference.
 
-    For saved effects and fixture rows, use the column IDs in hostValidatedBindings (such as c1, c2). Display headings are worksheet values. If syntheticFixtures lack necessary state, use fixtures:{sheet1:[{c1:'Reference'},{c1:'INVENTED-1'}]} with the appropriate aliases and columns. This replaces only the named tables in the disposable probe. Preserve original headers and row positions; at most 32 rows per table and 64 total. Derived cells are recalculated from original formulas. Bad fixture setup does not establish a candidate defect.
+    For saved effects and fixture rows, use the column IDs in hostValidatedBindings (such as c1, c2). Display headings are worksheet values. If syntheticFixtures lack necessary state, use fixtures:{sheet1:[{c1:'Reference'},{c1:'INVENTED-1'}]} with the appropriate aliases and columns. This replaces only the named tables in the disposable probe. Preserve original headers and row positions. Keep a single numeric settings row numeric in every original input column. Use at most 32 rows per table and 64 total. Derived cells are recalculated from original formulas. Bad fixture setup does not establish a candidate defect.
 
     checkedInterface describes actual native controls; checkedActionTitles supplies the registered display titles, not proof those controls exist. Check requested native operations are reachable as well as callable. Optional interfaceTests run AFTER all probes and may reproduce concrete requested interface behavior, but cannot replace successful action coverage. For a missing requested native control, navigate to its appropriate section and use expect_control with its actual title; do not invent labels or demand a form for an intentionally chat-only action. Native ActionForms invoke these same named actions and supply busy state, visible errors, failed-draft retention and successful reset, not business validation. Workspace starts at tab zero; select 'Workspace sections' with a zero-based index to reach another tab. Labels are 'Action title: Field title', submit uses action title. A Table refreshes calculated output and may be searched via a bound TextField; extra labels/calculations are unnecessary. Explicitly requested labels matter, subjective cosmetic preferences do not. Selection and editor drafts clear after successful writes and stay on failure. Do not demand missing fields whose values come from stored records.
 
@@ -50,6 +50,7 @@ extension NativeAppReview {
       fixtures["additionalProperties"] = fixtureRows(.object(["type": .string("object")]))
     }
     properties["fixtures"] = .object(fixtures)
+    let writableTables = contract["writableTables"]
     let effects = NativeTools.nativeAppTestStep["anyOf"].array.compactMap { step -> Value? in
       switch step["properties"]["kind"]["enum"].array.first?.text {
       case "expect_text", "expect_value": return step
@@ -58,6 +59,12 @@ extension NativeAppReview {
         // Exact worksheet cell values are strings, including calculated numbers.
         var effect = step.object
         var fields = step["properties"].object
+        if case .array(let tables) = writableTables {
+          guard !tables.isEmpty else { return nil }
+          var table = fields["table"]?.object ?? [:]
+          table["enum"] = writableTables
+          fields["table"] = .object(table)
+        }
         var values = step["properties"]["values"].object
         values["additionalProperties"] = .object([
           "type": .array([.string("string"), .string("null")])
@@ -136,7 +143,9 @@ extension NativeAppReview {
       parameters: NativeTools.object(properties, required: ["decision", "issues", "probes"]))
   }
 
-  package static func actionProbes(_ verdict: Value, actions: Set<String>) throws -> (
+  package static func actionProbes(
+    _ verdict: Value, actions: Set<String>, writableTables: Set<String>? = nil
+  ) throws -> (
     steps: [Value], inputRoles: Value
   ) {
     guard case .array(let probes) = verdict["probes"], (1...16).contains(probes.count) else {
@@ -206,6 +215,11 @@ extension NativeAppReview {
               expected["kind"].text),
             "app_review_probes", "Expect an exact saved row, text/value result, or rejection.")
           if ["expect_row", "expect_rows"].contains(expected["kind"].text) {
+            try require(
+              writableTables.map { $0.contains(expected["table"].text) } ?? true,
+              "app_review_probes",
+              "A direct saved effect must name a writable table. Check the exact changed input records. Read-only worksheet formulas are compared separately with the original; use expect_text or expect_value for a result displayed by the action."
+            )
             let values = expected["values"].object
             try require(
               !values.isEmpty && values.values.allSatisfy { $0 == .null || $0.string != nil }

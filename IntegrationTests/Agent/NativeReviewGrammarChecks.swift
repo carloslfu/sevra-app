@@ -60,7 +60,9 @@ func checkNativeReviewGrammar(frontend: SplashTextFrontend, factory: SplashGramm
         "columns": .object([
           "ledger": .array([.string("reference"), .string("quantity")]),
           "sheet1": .array([.string("c2"), .string("c3"), .string("c4")]),
+          "summary": .array([.string("reference"), .string("quantity")]),
         ]),
+        "writableTables": .array([.string("ledger"), .string("sheet1")]),
       ]))
     func output(
       _ probes: String, tool: String = "review_native_app", fixtures: String? = nil,
@@ -122,6 +124,7 @@ func checkNativeReviewGrammar(frontend: SplashTextFrontend, factory: SplashGramm
       ),
       output(probes.replacingOccurrences(of: #""quantity":"-3""#, with: #""quantity":-3"#)),
       output(probes.replacingOccurrences(of: "expect_row", with: "run_action")),
+      output(probes.replacingOccurrences(of: #""table":"ledger""#, with: #""table":"summary""#)),
       output(removal.replacingOccurrences(of: #""count":0"#, with: #""count":1"#)),
       output(removal.replacingOccurrences(of: #","values":{"reference":"REMOVE"}"#, with: "")),
       output(probes, tool: "save_native_app"),

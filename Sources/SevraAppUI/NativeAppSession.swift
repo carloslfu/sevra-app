@@ -448,12 +448,15 @@ import SwiftUI
       enqueue(.object(result))
     }
   }
-  public func page(_ request: Value, completion: @escaping (Result<Value, Error>) -> Void) {
+  public func page(
+    _ request: Value, columnLabels: Value,
+    completion: @escaping (Result<Value, Error>) -> Void
+  ) {
     guard let access else { return }
     let current = epoch
     Task {
       let result = await Task.detached { [book] in
-        Result { try book.nativeAppPage(access, request: request) }
+        Result { try book.nativeAppPage(access, request: request, columnLabels: columnLabels) }
       }.value
       guard epoch == current else { return }
       completion(result)
@@ -515,6 +518,19 @@ import SwiftUI
     readOnly: Bool = false, cancellation: Cancellation = .init()
   ) async throws -> Value {
     try require(!conversationBusy, "app_busy", "This app is already handling a request.")
+    conversationBusy = true
+    defer {
+      conversationBusy = false
+      commandResults = [:]
+    }
+    return try await performConversationOperation(
+      operation, arguments: arguments, readOnly: readOnly, cancellation: cancellation)
+  }
+
+  private func performConversationOperation(
+    _ operation: String, arguments: Value, readOnly: Bool, cancellation: Cancellation
+  ) async throws -> Value {
+    try cancellation.check()
     try require(
       ["inspect", "browse"].contains(operation) || !readOnly, "read_only_request",
       "This request forbids changes.")
@@ -532,7 +548,7 @@ import SwiftUI
       var result: Value = .null
       for field in inputs {
         do {
-          result = try await converse(
+          result = try await performConversationOperation(
             "set", arguments: field, readOnly: readOnly, cancellation: cancellation)
           changes += result["changes"].array
           if result["outcome"] == .string("failed") { break }
@@ -574,14 +590,9 @@ import SwiftUI
     await checkRevision()
     try await settleConversation(cancellation)
     if ["inspect", "enable", "restart"].contains(operation) { return conversationSnapshot() }
-    conversationBusy = true
     commandResults = [:]
     commandReceipts = []
     commandFailures = []
-    defer {
-      conversationBusy = false
-      commandResults = [:]
-    }
     var answer: Value = .null
     var invocationInputContract: Value = .null
     let commandBaseRevision = revision
@@ -634,7 +645,7 @@ import SwiftUI
           if query["sort"] == .string("") { query.removeValue(forKey: "sort") }
           let request = Value.object(query)
           let page = try await Task.detached { [book] in
-            try book.nativeAppPage(access, request: request)
+            try book.nativeAppPage(access, request: request, columnLabels: node.props["columnLabels"])
           }.value
           try cancellation.check()
           setTableRequest(node, request: request, notify: true)
@@ -656,7 +667,8 @@ import SwiftUI
         if !hasHandler, operation == "select", node.type == "table", let access {
           let alias = node.props["table"]
           let row = try book.nativeAppConversationRow(
-            access, alias: alias.text, id: arguments["rowID"].text)
+            access, alias: alias.text, id: arguments["rowID"].text,
+            columnLabels: node.props["columnLabels"])
           return .object([
             "id": .string(space.id), "version": .number(Double(space.version)),
             "outcome": .string("failed"), "changes": .array([]),
@@ -670,7 +682,8 @@ import SwiftUI
         if node.type == "table" {
           guard let access else { throw SevraError("app_permission", "Enable this app first.") }
           value = try book.nativeAppConversationRow(
-            access, alias: node.props["table"].text, id: arguments["rowID"].text)
+            access, alias: node.props["table"].text, id: arguments["rowID"].text,
+            columnLabels: node.props["columnLabels"])
         } else if node.type == "canvas" {
           let id = arguments["region"].text
           guard let region = node.props["regions"].array.first(where: { $0["id"].text == id })

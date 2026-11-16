@@ -62,7 +62,18 @@ private actor ConversationWorker {
     homeRenderer.disconnect()
     appRenderer.disconnect()
   }
-  let ready = try await session.converse("enable")
+  // The first operation owns admission across the worker startup await.
+  let enabling = Task { try await session.converse("enable") }
+  try await Checks.wait { session.status == "starting" || session.conversationBusy }
+  do {
+    _ = try await session.converse(
+      "run", arguments: .object([
+        "action": .string("add"),
+        "inputs": .object(["name": .string("Racing write"), "quantity": .string("1")]),
+      ]))
+    throw SevraError("test", "A second conversation entered an in-flight startup")
+  } catch let error as SevraError { try expect(error.code == "app_busy", error.localizedDescription) }
+  let ready = try await enabling.value
   try expect(ready["actions"].array.first?["id"] == .string("add"))
   try expect(ready["actions"].array.first?["inputs"]["quantity"]["valueType"] == .string("string"))
   let nameNode = session.tree.nodes.values.first { $0.type == "textField" }!
@@ -256,7 +267,110 @@ private actor ConversationWorker {
   try expect(
     reopened.rows(dataset).count == 3, "Committed partial results must survive cancellation")
   _ = try await restored.converse("disable")
+  try await worksheetPresentationChecks(book, defaults: defaults, exchange: transport)
   print(
     "PASS conversation: named action, real writes, validation, existing controls, read-only refusal, row selection, canvas deltas, Undo, revoke, reopen and cancellation with preserved partial results without a renderer"
   )
+}
+
+@MainActor private func worksheetPresentationChecks(
+  _ book: Workbook, defaults: UserDefaults, exchange: (@Sendable (Data) async throws -> Data)?
+) async throws {
+  let original = try book.addItem(category: "source", kind: "annotation", title: "Stock fixture")
+  let source = try book.addItem(
+    category: "record", kind: "worksheet", title: "Products", inputs: [original.id])
+  let columns = [Column(id: "a", title: "A"), Column(id: "b", title: "B")]
+  let labels: Value = .object(["a": .string("SKU"), "b": .string("Product description")])
+  let table = try book.createDataset(
+    title: "Products", columns: columns,
+    rows: [
+      labels.object,
+      ["a": .string("P1"), "b": .string("Pipe")],
+      ["a": .string("P2"), "b": .string("Valve")],
+      labels.object,
+    ], sourceID: source.id)
+  let raw = try book.rows(table.id)
+  let package = NativeAppPackage(
+    name: "Products",
+    source: """
+      const S = Sevra, selected = S.signal('');
+      S.mount(S.h(S.Column, {},
+        S.h(S.Table, {table: 'products', label: 'Products', columnLabels: {a: 'SKU', b: 'Product description'}, onSelect: e => selected.value = 'Selected ' + e.value.values.a}),
+        S.h(S.Text, {text: selected}),
+        S.h(S.Table, {table: 'products', label: 'Raw rows'})));
+      """,
+    datasets: [
+      "products": .init(title: table.title, columns: columns, writable: false, datasetID: table.id)
+    ])
+  let space = try book.installNativeApp(package)
+  let session = NativeAppSession(book: book, space: space, defaults: defaults, exchange: exchange)
+  defer { session.stop() }
+  _ = try await session.converse("enable")
+
+  let renderer = NativeAppRenderer(session: session)
+  defer { renderer.disconnect() }
+  let window = NSWindow(
+    contentRect: NSRect(x: 0, y: 0, width: 230, height: 350), styleMask: [.titled],
+    backing: .buffered, defer: false)
+  window.contentView = renderer
+  defer { window.orderOut(nil) }
+  func tableView(in view: NSView) -> NSTableView? {
+    if let grid = view as? NSTableView { return grid }
+    return view.subviews.lazy.compactMap { tableView(in: $0) }.first
+  }
+  guard let grid = tableView(in: renderer) else {
+    throw SevraError("test", "Missing native worksheet table")
+  }
+  try await Checks.wait { grid.numberOfRows == 3 }
+  renderer.layoutSubtreeIfNeeded()
+  guard let heading = grid.tableColumns.last else {
+    throw SevraError("test", "Missing worksheet heading")
+  }
+  try expect(heading.headerToolTip == "Product description")
+  try expect(heading.width >= ceil(heading.headerCell.cellSize.width),
+    "The compact table cut off the native worksheet heading")
+
+  let sorted = try await session.converse("browse", arguments: .object([
+    "target": .string("Products"), "sort": .string("a"), "descending": .bool(true),
+  ]), readOnly: true)
+  try expect(sorted["page"]["total"] == .number(3))
+  try expect(sorted["page"]["rows"].array.map { $0["id"].text } == [raw[3].id, raw[2].id, raw[1].id])
+  let next = try await session.converse("browse", arguments: .object([
+    "target": .string("Products"), "offset": .number(1),
+  ]), readOnly: true)
+  try expect(next["page"]["rows"].array.map { $0["id"].text } == [raw[2].id, raw[1].id])
+  let searched = try await session.converse("browse", arguments: .object([
+    "target": .string("Products"), "offset": .number(0), "search": .string("SKU"),
+  ]), readOnly: true)
+  try expect(searched["page"]["total"] == .number(1))
+  try expect(searched["page"]["rows"].array.map { $0["id"].text } == [raw[3].id])
+  do {
+    _ = try await session.converse("select", arguments: .object([
+      "target": .string("Products"), "rowID": .string(raw[0].id),
+    ]))
+    throw SevraError("test", "The hidden worksheet heading was selectable")
+  } catch let error as SevraError { try expect(error.code == "app_row") }
+  let selected = try await session.converse("select", arguments: .object([
+    "target": .string("Products"), "rowID": .string(raw[3].id),
+  ]))
+  try expect(selected["outcome"] == .string("completed"))
+
+  let access = try NativeAppAccess(workbook: book, space: space)
+  let request: Value = .object(["table": .string("products")])
+  try expect(book.nativeAppPage(access, request: request)["total"] == .number(4))
+  let limited = try book.nativeAppPage(access, request: .object([
+    "table": .string("products"), "limit": .number(1), "offset": .number(1),
+  ]), columnLabels: labels)
+  try expect(limited["rows"].array.map { $0["id"].text } == [raw[2].id])
+  try expect(book.nativeAppPage(access, request: request, columnLabels: .object([
+    "a": .string("Item code"), "b": .string("Product description"),
+  ]))["total"] == .number(4))
+  try expect(book.rows(table.id).map(\.id) == raw.map(\.id))
+  _ = try await NativeAppCheck.run(
+    package: package,
+    steps: [
+      .object(["kind": .string("select"), "target": .string("Products"), "value": .number(0)]),
+      .object(["kind": .string("expect_text"), "value": .string("Selected P1")]),
+      .object(["kind": .string("expect_rows"), "table": .string("products"), "count": .number(4)]),
+    ], fixtures: .object(["products": .array(raw.map(\.data))]), excelCoordinates: [[1, 2, 3, 4]])
 }

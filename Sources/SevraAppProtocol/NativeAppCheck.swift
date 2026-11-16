@@ -63,10 +63,24 @@ public enum NativeAppCheck {
     defer { try? FileManager.default.removeItem(at: root) }
     let book = try Workbook.create(
       at: root.appendingPathComponent("Check.sevra"), title: "Disposable app check")
+    let worksheet: Item?
+    if excelCoordinates != nil {
+      let source = try book.addItem(
+        category: "source", kind: "annotation", title: "Synthetic Excel fixtures")
+      worksheet = try book.addItem(
+        category: "record", kind: "worksheet", title: "Synthetic worksheet", inputs: [source.id])
+    } else {
+      worksheet = nil
+    }
     var isolated = package
-    for alias in isolated.datasets.keys {
-      isolated.datasets[alias]!.datasetID = nil
-      isolated.datasets[alias]!.writable = true
+    for alias in isolated.datasets.keys.sorted() {
+      var binding = isolated.datasets[alias]!
+      binding.datasetID = try worksheet.map {
+        try book.createDataset(
+          title: binding.title, columns: binding.columns, rows: [], sourceID: $0.id).id
+      }
+      binding.writable = true
+      isolated.datasets[alias] = binding
     }
     var space = try book.installNativeAppContents(isolated)
     var access = try NativeAppAccess(workbook: book, space: space)
@@ -743,7 +757,9 @@ public enum NativeAppCheck {
           } else if ["select", "activate"].contains(kind) && node.type == "table" {
             var args = node.props.object
             args["limit"] = .number(200)
-            let rows = try book.nativeAppPage(access, request: .object(args))["rows"].array
+            let rows = try book.nativeAppPage(
+              access, request: .object(args), columnLabels: node.props["columnLabels"]
+            )["rows"].array
             guard let offset = value.int, rows.indices.contains(offset) else {
               throw SevraError("app_check", "Select a valid zero-based row.")
             }
@@ -752,7 +768,7 @@ public enum NativeAppCheck {
             lastSelection =
               "Last table selection: " + step["target"].text + " row \(offset), values "
               + String(try value["values"].json().prefix(1800))
-              + ". Fixture positions include headers; select an editable data row for input changes."
+              + ". Select an editable row using its displayed position after filtering and sorting."
             handler = kind == "activate" ? "onActivate" : "onSelect"
           } else {
             try require(

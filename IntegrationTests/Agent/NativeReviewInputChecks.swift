@@ -8,7 +8,10 @@ func checkNativeReviewInputContracts(
   let paired = try Value.parse(
     #"{"probes":[{"action":"ship","inputs":{"quantity":3},"inputRoles":{"quantity":{"kind":"number","maximum":null,"minimum":0,"nonzero":true,"whole":false}},"expect":[{"kind":"expect_row","table":"ledger","values":{"reference":"NEW","quantity":"-3"}}]},{"action":"ship","inputs":{"quantity":0},"expect":[{"kind":"reject"}]}]}"#
   )
-  let expanded = try NativeAppReview.actionProbes(paired, actions: ["ship"]).steps
+  let expanded = try NativeAppReview.actionProbes(
+    paired, actions: ["ship"], writableTables: ["ledger"]).steps
+  try expectThrows(
+    try NativeAppReview.actionProbes(paired, actions: ["ship"], writableTables: ["other"]))
   try expectEqual(expanded.count, 3)
   try expectEqual(expanded[0]["kind"], .string("run_action"))
   try expectEqual(expanded[0]["inputs"]["quantity"], .number(3))

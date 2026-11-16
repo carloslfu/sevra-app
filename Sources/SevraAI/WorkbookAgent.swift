@@ -1007,6 +1007,11 @@ public enum WorkbookAgent {
             progress("Checking the native app in isolation")
             let checkedArguments = try NativeAppAuthoring.arguments(a, tools: tools)
             let candidate = try NativeAppAuthoring.package(checkedArguments)
+            let fixtures = a["fixtures"] == .null ? Value.object([:]) : a["fixtures"]
+            let coordinates = try excelConversion.map {
+              try workbook.excelCheckCoordinates(
+                $0.conversionID, validatingFixtures: fixtures, cancellation: cancellation)
+            }
             var comparison: Value = .null
             if let excelConversion {
               try workbook.validateExcelConversionPackage(
@@ -1026,12 +1031,9 @@ public enum WorkbookAgent {
               }
             }
             nativeAppCheck = try await NativeAppCheck.run(
-              package: NativeAppAuthoring.package(checkedArguments), steps: a["tests"].array,
-              fixtures: a["fixtures"] == .null ? .object([:]) : a["fixtures"],
-              cancellation: cancellation,
-              excelCoordinates: try excelConversion.map {
-                try workbook.excelCheckCoordinates($0.conversionID)
-              }, requireUnselectedExcelActions: excelConversion != nil,
+              package: candidate, steps: a["tests"].array,
+              fixtures: fixtures, cancellation: cancellation, excelCoordinates: coordinates,
+              requireUnselectedExcelActions: excelConversion != nil,
               excelFormulas: try excelConversion.flatMap {
                 candidate.excelBehavior == nil
                   ? try workbook.excelCheckFormulas($0.conversionID) : nil
