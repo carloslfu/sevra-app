@@ -65,6 +65,10 @@ func checkNativeReviewGrammar(frontend: SplashTextFrontend, factory: SplashGramm
       try valid.finish(
         committed: Array(validTokens.prefix(end)), requireComplete: end == validTokens.count)
     }
+    let removal =
+      #"[{"action":"ship","inputs":{"quantity":3},"expect":[{"kind":"expect_rows","table":"ledger","count":0,"values":{"reference":"REMOVE"}}]}]"#
+    try factory.create(grammar: policy.grammar).finish(
+      committed: output(removal), requireComplete: true)
     for tokens in [
       output("[]"),
       output(#"[{"kind":"expect_text","value":"Ready"}]"#),
@@ -76,6 +80,8 @@ func checkNativeReviewGrammar(frontend: SplashTextFrontend, factory: SplashGramm
       ),
       output(probes.replacingOccurrences(of: #""quantity":"-3""#, with: #""quantity":-3"#)),
       output(probes.replacingOccurrences(of: "expect_row", with: "run_action")),
+      output(removal.replacingOccurrences(of: #""count":0"#, with: #""count":1"#)),
+      output(removal.replacingOccurrences(of: #","values":{"reference":"REMOVE"}"#, with: "")),
       output(probes, tool: "save_native_app"),
       output(probes, includeRoles: false),
     ] {

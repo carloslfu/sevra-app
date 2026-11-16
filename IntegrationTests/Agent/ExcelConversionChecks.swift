@@ -180,6 +180,12 @@ actor ExcelTestModel: WorkbookInference {
       let review =
         reviews.isEmpty
         ? Value.object(["decision": .string("ready"), "issues": .array([])]) : reviews.removeFirst()
+      if review == .null {
+        return .init(text: "", calls: [], refusal: "Invalid nested review fields.")
+      }
+      if review == .string("truncated") {
+        throw SevraError("truncated", "The local review was cut off.")
+      }
       action = (
         "review_native_app",
         toolScope == .nativeActionReview ? pairedActionReviewFixture(review) : review
@@ -454,6 +460,26 @@ func checkExcelConversions() async throws {
       let observedLookup = try await NativeAppCheck.run(
         package: lookup,
         steps: [.object(["kind": .string("expect_control"), "target": .string("Records")])])
+      var blockedByAnotherProbe = automaticHeaderReview
+      blockedByAnotherProbe["tests"] = .array(
+        automaticHeaderReview["tests"]!.array + [
+          .object([
+            "kind": .string("run_action"), "action": .string("lookup"),
+            "inputs": .object(["key": .string("INVENTED-ENTITY")]), "reject": .bool(true),
+          ])
+        ])
+      do {
+        _ = try await NativeAppReview.check(
+          request: build.request, requestSourceID: source.id, arguments: lookupArguments,
+          workbook: book, model: ExcelTestModel([], reviews: [.object(blockedByAnotherProbe)]),
+          directory: root, cancellation: .init(), progress: { _ in }, excelConversion: build,
+          checkedActions: ["lookup"], checkedActionInputs: observedLookup["actionInputs"])
+        throw SevraError("test", "An invalid refusal hid the derived header-key defect.")
+      } catch {
+        try expectEqual((error as? SevraError)?.code, "app_review")
+        try expectEqual(
+          error.localizedDescription.contains("worksheet header is not a business entity"), true)
+      }
       var hiddenLookup = automaticHeaderReview
       hiddenLookup["inputRoles"] = .object([
         "lookup": .object(["key": .object(["kind": .string("value")])])
@@ -581,9 +607,14 @@ func checkExcelConversions() async throws {
       try expectEqual(refusalOnlyFailure.contains("Rejection-only probes"), true)
       let verifiedLookup = try await NativeAppReview.check(
         request: build.request, requestSourceID: source.id, arguments: lookupArguments,
-        workbook: book, model: ExcelTestModel([], reviews: [readiness]),
+        workbook: book,
+        model: ExcelTestModel([], reviews: [.null, .string("truncated"), readiness]),
         directory: root, cancellation: .init(), progress: { _ in }, excelConversion: build,
         checkedActions: ["lookup"])
+      try expectEqual(verifiedLookup["attempts"], .number(3))
+      try expectEqual(
+        verifiedLookup["checkedCounterexamples"].array.map { $0["result"]["error"] },
+        [.string("Invalid nested review fields."), .string("The local review was cut off.")])
       try expectEqual(
         verifiedLookup["independentActionCheck"]["actions"], .array([.string("lookup")]))
       try expectEqual(
@@ -806,6 +837,23 @@ func checkExcelConversions() async throws {
       try expectEqual(
         checkedOutbound["independentActionCheck"]["actions"], .array([.string("outbound")]))
       try expectEqual(checkedOutbound["method"], .string("contract-probes"))
+      var extraWrite = outbound
+      extraWrite.source = extraWrite.source.replacingOccurrences(
+        of: "c2:String(-Number(input.amount))", with: "c2:String(-Number(input.amount)),c3:'6'")
+      var extraWriteArgs = outboundArgs
+      extraWriteArgs["package"] = try encoded(extraWrite)
+      do {
+        _ = try await NativeAppReview.check(
+          request: build.request, requestSourceID: source.id, arguments: .object(extraWriteArgs),
+          workbook: book, model: ExcelTestModel([], reviews: [outboundReady]),
+          directory: root, cancellation: .init(), progress: { _ in }, excelConversion: build,
+          checkedActions: ["outbound"])
+        throw SevraError("test", "Independent review allowed an extra original input write.")
+      } catch {
+        try expectEqual((error as? SevraError)?.code, "app_review")
+        try expectEqual(error.localizedDescription.contains("sheet1.c3"), true)
+        try expectEqual(error.localizedDescription.contains("Independent expected effects"), true)
+      }
       try await checkNativeReviewNumbers(
         package: lookup, workbook: book, build: build,
         requestSourceID: source.id, directory: root)

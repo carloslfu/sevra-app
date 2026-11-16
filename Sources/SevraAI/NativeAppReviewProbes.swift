@@ -6,7 +6,7 @@ extension NativeAppReview {
 
     Use probes: each item pairs action, inputs and an expect array. For example {action:'actualID',inputs:{actualField:'invented value'},expect:[{kind:'expect_row',table:'actualAlias',values:{actualColumn:'independently expected value'}}]}. Adapt all identifiers, fields and types to checkedActionInputs and bindings. The host invokes that action ONCE, then checks every expectation in order. Put multiple effects of that one operation in its expect array, such as its ledger row and calculated balance. Do not invoke an operation again merely to inspect another result: that repeats the actual write and can correctly reject a duplicate reference. Probes run sequentially from syntheticFixtures. Every response starts from a fresh copy of those fixtures. Do not assert starting-state totals before exercising operations. Prefer checking the directly saved record with its business key and changed values; derive any calculated expectations from original formulas and preceding probes. Check signs and units: a positive entered shipment/payment can require a NEGATIVE saved ledger movement.
 
-    For a successful write, expect_row must match exactly one saved row with the business key and changed values. The action must actually commit a write; a matching preexisting row is insufficient. Worksheet values are exact JSON strings, or null for a missing cell. This includes worksheet numbers, even when the named action input was a JSON number. Put "12" in the saved row assertion for a worksheet cell that stores 12. Do not invent padding such as '3.0' when entering '3'. For read-only results use expect_text or expect_value. For a business refusal use expect:[{kind:'reject'}] with complete correctly typed inputs. A refusal is the only expectation in its array. The host requires rejection with no writes; exact error text is unnecessary unless explicitly requested. Invalid argument types or missing inputs must not mask a business-rule defect.
+    For a successful write, cover every changed input cell with expect_row using its business key and exact saved input values. Include every supplied column of an inserted row. The host checks the exact affected records, so an assertion on a different matching record cannot cover an extra write. Expect only direct inputs the original workflow should change. Original formulas recalculate dependent outputs automatically and do not require a second input edit. For a deletion use expect_rows with count:0 and the original identifying values. Worksheet values are exact JSON strings or null for a missing cell, even when the named action input was a JSON number. Use "12" for a worksheet cell that stores 12. For read-only results use expect_text or expect_value. For a business refusal use expect:[{kind:'reject'}] with complete correctly typed inputs. A refusal is the only expectation in its array. The host requires rejection with no writes. Invalid argument types or missing inputs must not mask a business-rule defect.
 
     Return decision:'ready',issues:[] with successful effect probes for EVERY checkedActionID, four remaining actions per batch (all when fewer), plus required boundary/refusal probes. Counts, labels, enabled controls and refusals alone do not establish successful behavior. Keep the expanded sequence within 16 steps: successful probes cost one invocation plus 1..4 expectations, refusals cost one, and optional interfaceTests cost their length. The host requests additional batches; tested actions do not replace remaining ones. If a readiness probe fails, correct an invalid expectation/setup or return decision:'revise',issues:['one concrete requested defect'] with a counterexample asserting the CORRECT desired behavior. A passing counterexample establishes no defect. Never ask the builder to change working behavior to satisfy an invented requirement.
 
@@ -14,7 +14,7 @@ extension NativeAppReview {
 
     Every entered number/decimal needs {kind:'number',maximum:null,minimum:null,nonzero:false,whole:false}, adapted ONLY to a rule for that specific input in originalUserRequest or source validation. Bounds are inclusive; null means unbounded. For requested positive integers use minimum:1,whole:true; for requested positive decimals minimum:0,nonzero:true. Leave unsupported restrictions null/false. Never derive restrictions from example values, row counts, stock, capacity, type alone or another field's rule. Dynamic stock/capacity checks belong in explicit state-dependent probes. A price update without a positivity rule must allow zero. The host verifies both invalid inputs and allowed zero/fractional variants through the same starting setup. Failed numeric probes challenge your inferred rule: verify its original authority, then correct inputRoles or demonstrate the required defect. If a boundary changes a separate state condition such as availability or overlap, choose independent starting fixtures or a successful base call that leaves room to test that boundary. To demonstrate an unexpected refusal, use the allowed value in a successful-effect probe with its exact expected saved values. inputRoles are review metadata, never SDK action metadata or source-repair instructions.
 
-    Probe requested duplicate references, unknown foreign keys, explicit allowed-value sets, conflicts and state-dependent limits. An unknown key differs from an original header key. A conflict probe must actually conflict in its starting state. Ample stock with a small quantity is not insufficient stock. Do not add stronger validation, arbitrary positive-only costs, extra required arguments or cosmetic preferences. When the person specifies an action's input list, preserve it; stored quantities/durations/amounts are read from the target record rather than reentered. A new reference must be unique, not an existing-key lookup.
+    Probe requested duplicate references, unknown foreign keys, explicit allowed-value sets, conflicts and state-dependent limits. An unknown key differs from an original header key. A conflict probe must actually conflict after the previous probes. Compare all relevant keys and both endpoints. For a same-resource booking rule, use the same resource and day with a positive interval overlap. If the source allows it, test a different resource in the same interval as a successful control. For an overdraw, derive availability after earlier probes and use demand strictly greater than that availability. Preserve the requested input list and read stored quantities/durations/amounts from the target record. Use a unique value for a new reference.
 
     If syntheticFixtures lack necessary state, use fixtures:{alias:[rows]} to replace only those tables in the disposable probe. Preserve original headers and row positions; use actual column IDs and invented business values, at most 32 rows per table and 64 total. Derived cells are recalculated from original formulas; invented derived values cannot override calculation. Bad fixture setup does not establish a candidate defect.
 
@@ -33,7 +33,7 @@ extension NativeAppReview {
     let effects = NativeTools.nativeAppTestStep["anyOf"].array.compactMap { step -> Value? in
       switch step["properties"]["kind"]["enum"].array.first?.text {
       case "expect_text", "expect_value": return step
-      case "expect_row":
+      case "expect_row", "expect_rows":
         // This separate grammar only applies to blind Excel action review.
         // Exact worksheet cell values are strings, including calculated numbers.
         var effect = step.object
@@ -43,6 +43,10 @@ extension NativeAppReview {
           "type": .array([.string("string"), .string("null")])
         ])
         fields["values"] = .object(values)
+        if fields["count"] != nil {
+          fields["count"] = .object(["type": .string("integer"), "enum": .array([.number(0)])])
+          effect["required"] = .array(["kind", "table", "count", "values"].map(Value.string))
+        }
         effect["properties"] = .object(fields)
         return .object(effect)
       default: return nil
@@ -143,12 +147,14 @@ extension NativeAppReview {
       } else {
         for expected in expectations {
           try require(
-            ["expect_row", "expect_text", "expect_value"].contains(expected["kind"].text),
+            ["expect_row", "expect_rows", "expect_text", "expect_value"].contains(
+              expected["kind"].text),
             "app_review_probes", "Expect an exact saved row, text/value result, or rejection.")
-          if expected["kind"] == .string("expect_row") {
+          if ["expect_row", "expect_rows"].contains(expected["kind"].text) {
             let values = expected["values"].object
             try require(
-              !values.isEmpty && values.values.allSatisfy { $0 == .null || $0.string != nil },
+              !values.isEmpty && values.values.allSatisfy { $0 == .null || $0.string != nil }
+                && (expected["kind"] == .string("expect_row") || expected["count"] == .number(0)),
               "app_review_probes",
               "A saved worksheet effect requires the business key and exact changed values. Worksheet values are strings (including numbers) or null for a missing cell."
             )

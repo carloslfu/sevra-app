@@ -152,6 +152,10 @@ func checkNativeReviewInputContracts(
   let unclassified = try Value.parse(
     #"{"lookup":{"key":{"kind":"value"},"reference":{"kind":"value"}}}"#)
   try expectThrows(try probes(unclassified, plausibleCustomerKeys, contracts: declaredText))
+  let withoutHeader: Value = .object([
+    "sheet1": .array(Array(plausibleCustomerKeys["sheet1"].array.dropFirst()))
+  ])
+  try expectThrows(try probes(unclassified, withoutHeader, contracts: declaredText))
   try expectEqual(
     try probes(roles, plausibleCustomerKeys, contracts: declaredText).count, 1)
   var newValue = steps
@@ -162,7 +166,7 @@ func checkNativeReviewInputContracts(
   newValue[1] = .object(call)
   try expectEqual(
     try probes(
-      unclassified, plausibleCustomerKeys, steps: newValue, contracts: declaredText
+      unclassified, withoutHeader, steps: newValue, contracts: declaredText
     ).count, 0)
   try expectEqual(
     try probes(

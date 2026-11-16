@@ -2,7 +2,7 @@
 type: review
 id: 01m7fb55rgf0b9rfxcfp0683tx
 created: 2026-11-15T10:13:28.464388+00:00
-updated: 2026-11-16T02:13:22.600191+00:00
+updated: 2026-11-16T03:39:31.354101+00:00
 summary: Shared formula, review, numeric validation, repair and authority fixes pass scoped checks; final fresh cohorts and native visual qualification remain pending.
 title: Excel business application adversarial review
 ---
@@ -464,3 +464,12 @@ The exact candidate passed the local scripts/check.sh source and integration sui
 - Several builders attempted a duplicate reference in a success step while intending to test refusal. On failure the checker explains how to assert refusal for that exact action and preserve a separate successful control. The checker still executes the exact tests, retains observed effects and never rewrites a candidate.
 
 The six-case frozen run passed three business journeys. All 483 formula comparisons matched over 41 captured states. No generated package was repaired by hand. Fresh qualification must include successful saved Stock zero-cost, Cash fractional-month refusal and valid loan boundaries, and Invoicing original-header refusal. The updated review mechanisms establish evidence for the specific inputs and states exercised.
+
+## Cohort 32 adversarial follow-up
+
+- Production completed a run and also reduced opening material balances. The original worksheet already deducts material use from completed runs. The model's ready probe observed the status change alone. The independent isolation check now tracks direct edits by saved logical record and exact input column, including inserted and removed rows. Recalculated formulas are excluded from direct-edit coverage. Missing effects block publication and reach the builder with the executed expectations and synthetic fixture.
+- A same-name record elsewhere cannot witness the changed row. An absence assertion must identify exactly one removed record. A restated idempotent result cannot claim a second write. The signed checks cover a legitimate multi-table update, a partial and misleading assertion, one exact removal, ambiguous multiple removals, and an independent review that sees a wanted value plus an extra input edit on the same worksheet row.
+- Bookings produced both an invalid adjacent-slot refusal probe and an accepted unknown resource. Derived checks now use the runtime-observed input contracts before the complete authored readiness sequence. The signed regression verifies that an invalid authored refusal does not conceal an executable original-header failure. The refusal diagnostic includes the actual call, and the reviewer checks both endpoints and the relevant resource keys against the state after the prior probes.
+- Stock's generated native app was inspected at 1200×800 and 856×722 points on the exact signed candidate 147 preview. The workbook copy opened with the app disabled and listed the exact three table grants. The keyboard reached the cost field from SKU. A negative cost retained both inputs and displayed the error. A zero cost saved and cleared them. Undo restored 3.75; all 228 saved rows matched the untouched portable copy. The app source and exported configuration matched, with workbook-local binding IDs removed by portable export. Search retained the business headings. The raw worksheet header still appears as row 1. The test grant was revoked and the preview closed.
+- Short native tables now omit paging buttons when all matches fit on one page, keeping the record count or empty state. A signed AppKit test checks that they reappear for 201 records, advance to the one-record second page and disappear again after returning to the short table. The new visual check is pending on the next exact package.
+- Invoicing published a correct header filter but its independent reviewer skipped the lookup classification by omitting the Customer heading from synthetic fixtures. Tentative lookup checks now read the matching label directly from the retained workbook, even when the fixture has no heading. An unrelated original heading or a genuinely novel input does not invent a record lookup. Invalid or truncated verdicts get concise feedback within the existing reviewer budget, so the builder does not have to resubmit source solely to recover that response.

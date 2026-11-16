@@ -1,6 +1,94 @@
 import Foundation
 import SevraCore
 
+/// Match business effects to the exact records witnessed by isolated assertions.
+/// Broker receipts distinguish directly edited inputs from recalculated outputs.
+struct NativeAppCheckedWrites {
+  private struct Row: Hashable {
+    let table: String
+    let logicalID: String
+  }
+
+  let action: String
+  private var writes: [Row: Set<String>] = [:]
+  private var insertions: Set<Row> = []
+  private var deletions: [Row: Value] = [:]
+  private var confirmedDeletions: Set<Row> = []
+  private var verified = false
+  private var assertedRow = false
+
+  init(action: String) { self.action = action }
+
+  mutating func record(_ receipt: Value, request: Value, book: Workbook) throws {
+    let inverse = receipt["inverse"].array
+    let requests = Array(request["operations"].array.reversed())
+    for (position, operation) in inverse.enumerated() {
+      let item = try book.item(operation["id"].text)
+      let row = Row(table: operation["table"].text, logicalID: item.logicalID)
+      switch operation["op"].text {
+      case "update":
+        let changed = operation["values"].object.filter { item.data[$0.key] != $0.value }
+        writes[row, default: []].formUnion(changed.keys)
+      case "restore":
+        deletions[row] = item.data
+      case "delete":
+        let explicit = requests.indices.contains(position) ? requests[position] : .null
+        insertions.insert(row)
+        if explicit["op"] == .string("insert") {
+          writes[row, default: []].formUnion(explicit["values"].object.keys)
+        }
+      default:
+        throw SevraError("app_check_effect_tracking", "Unexpected isolated write receipt.")
+      }
+    }
+  }
+
+  mutating func confirm(
+    table: String, matching: [Value], values: [String: Value], expectedCount: Int, book: Workbook
+  ) throws {
+    guard !values.isEmpty else { return }
+    assertedRow = true
+    if expectedCount == 0 {
+      let matchingDeletions = deletions.filter { row, old in
+        row.table == table && values.allSatisfy { old[$0.key] == $0.value }
+      }
+      if matchingDeletions.count == 1, let row = matchingDeletions.keys.first {
+        confirmedDeletions.insert(row)
+        verified = true
+      }
+    } else {
+      for match in matching {
+        let item = try book.item(match["id"].text)
+        let row = Row(table: table, logicalID: item.logicalID)
+        if insertions.remove(row) != nil { verified = true }
+        guard let pending = writes[row] else { continue }
+        let unchecked = pending.subtracting(values.keys)
+        verified = verified || unchecked.count < pending.count
+        writes[row] = unchecked
+      }
+    }
+  }
+
+  func verify() throws {
+    let unchecked = Set(writes.flatMap { row, columns in columns.map { row.table + "." + $0 } })
+      .union(insertions.map { $0.table + " inserted row" })
+      .union(
+        deletions.keys.filter { !confirmedDeletions.contains($0) }.map { $0.table + " deleted row" }
+      )
+    try require(
+      unchecked.isEmpty, "app_check_unverified_write",
+      "Independent checks for " + action + " did not account for direct writes in "
+        + unchecked.sorted().prefix(12).joined(separator: ", ")
+        + ". Compare this action's actual input changes with the original workflow. Preserve unrelated original inputs. Derived formulas update themselves and do not need an input write."
+    )
+    try require(
+      !assertedRow || verified, "app_check_assertion",
+      "The successful action " + action
+        + " did not commit a write that changed an asserted input record. Exercise the requested write with values different from the starting state."
+    )
+  }
+}
+
 extension NativeAppCheck {
   /// Explain the submitted operation and a common form-test ordering mistake.
   /// This never changes the test sequence, candidate code or asserted values.
@@ -16,9 +104,12 @@ extension NativeAppCheck {
         return "\nFailed successful action: " + call
           + ". Decide this from the original rules and starting state. If the input should be refused, add \"reject\":true to this exact run_action step and remove any assertion that it saved a new row. Keep a separate successful call with valid inputs. If the input should succeed, keep the success assertion and fix the handler or invalid setup. Do not change a business rule to pass a test."
       }
-      if step["error"].string != nil {
+      if step["reject"] == .bool(true) || step["error"].string != nil {
         return "\nFailed refusal test: " + call
-          + ". Check that these inputs and the state after earlier steps actually isolate the intended rule. For an unknown record use a key with no matching business row; for a conflict use known records in a conflicting state. When exact wording is not required, use reject:true with valid typed inputs and keep a separate valid success case. Do not change correct validation to match invented wording."
+          + ". Check that these inputs and the state after earlier steps actually isolate the intended rule. An unknown-record test needs a key with no matching business row. A conflict test needs two records that conflict on the relevant keys and intervals. Keep a separate valid success case."
+          + (step["error"] == .null
+            ? ""
+            : " Use reject:true when the request does not require exact error wording.")
       }
     }
     guard ["expect_row", "expect_rows"].contains(step["kind"].text),

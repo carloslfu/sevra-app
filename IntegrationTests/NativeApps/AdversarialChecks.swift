@@ -141,7 +141,8 @@ extension Checks {
       rows: [["name": .string("Zulu")], ["name": .string("Alpha")]], sourceID: source.id)
     let computedColumns = [Column(id: "name", title: "Total", type: "decimal", formula: "2")]
     let computed = try book.createDataset(
-      title: "Computed", columns: computedColumns, rows: [[:], [:]], sourceID: source.id)
+      title: "Computed", columns: computedColumns, rows: Array(repeating: [:], count: 201),
+      sourceID: source.id)
     let selected = try book.rows(table.id)[1].logicalID
     let package = NativeAppPackage(
       name: "Controlled widgets",
@@ -188,10 +189,17 @@ extension Checks {
       if let table = view as? NSTableView { return table }
       return view.subviews.compactMap(findTable).first
     }
+    func pageButton(_ view: NSView, title: String) -> NSButton? {
+      guard !view.isHidden else { return nil }
+      if let button = view as? NSButton, button.title == title { return button }
+      return view.subviews.lazy.compactMap { pageButton($0, title: title) }.first
+    }
     let grid = findTable(renderer)!
     try await wait { grid.numberOfRows == 2 }
     let compactTable = renderer.view(for: "root/10")!
     try await wait { findTable(compactTable)?.numberOfRows == 2 }
+    try expect(pageButton(compactTable, title: "Next") == nil)
+    try expect(pageButton(compactTable, title: "Previous") == nil)
     renderer.layoutSubtreeIfNeeded()
     try expect(
       compactTable.frame.height >= 100 && compactTable.frame.height < 160,
@@ -290,8 +298,17 @@ extension Checks {
     try expect(
       compactGrid.tableColumns.first?.sortDescriptorPrototype == nil,
       "A same-ID replacement exposed unsupported formula sorting")
+    guard let nextPage = pageButton(compactTable, title: "Next"), nextPage.isEnabled else {
+      throw SevraError("test", "A table with more results needs an enabled Next control.")
+    }
+    nextPage.performClick(nil)
+    try await wait { compactGrid.numberOfRows == 1 }
+    try expect(pageButton(compactTable, title: "Previous")?.isEnabled == true)
+    try expect(pageButton(compactTable, title: "Next")?.isEnabled == false)
     session.event(node: "root/11", handler: "onClick")
     try await wait { compactGrid.tableColumns.first?.title == "Name" }
+    try expect(pageButton(compactTable, title: "Previous") == nil)
+    try expect(pageButton(compactTable, title: "Next") == nil)
     try expect(
       compactGrid.tableColumns.first?.headerCell.alignment == .left
         && compactGrid.tableColumns.first?.sortDescriptorPrototype?.key == "name",

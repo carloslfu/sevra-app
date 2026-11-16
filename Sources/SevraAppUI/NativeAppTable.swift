@@ -40,7 +40,10 @@ import SevraCore
   override var intrinsicContentSize: NSSize {
     // Keep short lookup/assumption tables compact while bounding long ledgers.
     // Include the header, horizontal scroller, footer and its eight-point gap.
-    NSSize(width: NSView.noIntrinsicMetric, height: min(260, 76 + CGFloat(max(1, rows.count)) * 28))
+    let chrome: CGFloat = previous.isHidden ? 70 : 76
+    return NSSize(
+      width: NSView.noIntrinsicMetric,
+      height: min(260, chrome + CGFloat(max(1, rows.count)) * grid.rowHeight))
   }
   init(session: NativeAppSession, node: NativeAppNode) {
     self.session = session
@@ -69,6 +72,8 @@ import SevraCore
     let footer = NSStackView(views: [label, previous, next])
     footer.spacing = 8
     footer.alignment = .centerY
+    previous.isHidden = true
+    next.isHidden = true
     previous.target = self
     previous.action = #selector(back)
     next.target = self
@@ -185,8 +190,6 @@ import SevraCore
     }
     grid.headerView?.needsDisplay = true
     rows = page["rows"].array
-    invalidateIntrinsicContentSize()
-    sizeDidChange?()
     total = page["total"].int ?? 0
     if offset >= total && offset > 0 {
       offset = max(0, ((total - 1) / 200) * 200)
@@ -199,9 +202,22 @@ import SevraCore
     grid.reloadData()
     applying = false
     restoreSelection()
-    label.stringValue =
-      total == 0 ? "No matching records" : "\(offset + 1)–\(offset + rows.count) of \(total)"
+    let paged = offset > 0 || rows.count < total
+    previous.isHidden = !paged
+    next.isHidden = !paged
+    if paged {
+      label.stringValue = "\(offset + 1)–\(offset + rows.count) of \(total)"
+    } else {
+      label.stringValue =
+        switch total {
+        case 0: "No matching records"
+        case 1: "1 record"
+        default: "\(total) records"
+        }
+    }
     setInteractionEnabled(interactionEnabled)
+    invalidateIntrinsicContentSize()
+    sizeDidChange?()
   }
   private func restoreSelection() {
     applying = true

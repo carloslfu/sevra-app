@@ -39,7 +39,7 @@ extension NativeAppReview {
     field: String, title: String, value: Value, fixtures: Value,
     package: NativeAppPackage, tables: [Dataset], coordinates: [[Int]],
     inputCell: (String) throws -> Value
-  ) throws -> [String] {
+  ) -> [String] {
     guard let entered = value.string, !entered.isEmpty else { return [] }
     func normalized(_ text: String) -> String {
       text.trimmingCharacters(in: .whitespacesAndNewlines).lowercased()
@@ -48,20 +48,20 @@ extension NativeAppReview {
     var matches: [String] = []
     for (alias, binding) in package.datasets.sorted(by: { $0.key < $1.key }) {
       guard let sheet = tables.firstIndex(where: { $0.id == binding.datasetID }),
-        coordinates.indices.contains(sheet), let row = coordinates[sheet].first,
-        let first = fixtures[alias].array.first
+        coordinates.indices.contains(sheet), let row = coordinates[sheet].first
       else { continue }
-      let rows = fixtures[alias].array.dropFirst()
+      let rows = fixtures[alias].array
       for (index, column) in binding.columns.enumerated() {
-        guard let label = first[column.id].string, names.contains(normalized(label)) else {
-          continue
-        }
         let keys = rows.compactMap { $0[column.id].string }.filter { !$0.isEmpty }
         guard Set(keys).count == keys.count, keys.contains(entered) else {
           continue
         }
+        // Review fixtures can omit the very heading needed to detect a lookup.
+        // The exact original cell supplies the label, even in a headerless sample.
         let cell = "sheet\(sheet + 1)!" + Workbook.spreadsheetColumn(index) + String(row)
-        guard try inputCell(cell) == .string(label) else { continue }
+        guard let label = (try? inputCell(cell))?.string, names.contains(normalized(label)) else {
+          continue
+        }
         matches.append(alias + "." + column.id + " (" + cell + ")")
       }
     }
@@ -177,7 +177,7 @@ extension NativeAppReview {
           if ["text", "record"].contains(type), contract != .null,
             contract["choices"].array.isEmpty
           {
-            let candidates = try Self.possibleLookupColumns(
+            let candidates = Self.possibleLookupColumns(
               field: field, title: contract["title"].text,
               value: inputs[field]!, fixtures: fixtures, package: package,
               tables: tables, coordinates: coordinates, inputCell: inputCell)

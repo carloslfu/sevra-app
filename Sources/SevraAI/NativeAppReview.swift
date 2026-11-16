@@ -261,6 +261,24 @@ package enum NativeAppReview {
     var numericRulings: [NumericRuling] = []
     let reviewBudget =
       excelConversion == nil ? 1 : min(24, 3 * max(1, (checkedActions.count + 3) / 4))
+    func recordIncompleteResponse(_ reason: String, retry: Bool) {
+      let probe: Value = .object([
+        "result": .object([
+          "status": .string("invalid_verdict"),
+          "error": .string(String(decoding: reason.utf8.prefix(1000), as: UTF8.self)),
+        ])
+      ])
+      counterexamples.append(probe)
+      recordMetrics(.object(["host": .string("native_app_review_probe"), "probe": probe]))
+      if retry {
+        messages.append(
+          .init(
+            role: "user",
+            content:
+              "The host could not validate the previous review response. Return one complete review_native_app call. Keep the verdict compact and use only necessary fixture replacements. Preserve required action, input and effect checks. The original request and workbook evidence still determine the business rules."
+          ))
+      }
+    }
     for attempt in 1...reviewBudget {
       let response: NativeReply
       do {
@@ -269,14 +287,23 @@ package enum NativeAppReview {
           toolScope: blindActions ? .nativeActionReview : .nativeAppReview, citationIDs: [])
       } catch {
         recordMetrics(await model.lastMetrics)
+        try cancellation.check()
+        if excelConversion != nil, (error as? SevraError)?.code == "truncated" {
+          recordIncompleteResponse(error.localizedDescription, retry: attempt < reviewBudget)
+          continue
+        }
         throw error
       }
       recordMetrics(await model.lastMetrics)
       try cancellation.check()
-      try require(
-        response.calls.count == 1 && response.calls[0].name == definition.name
-          && response.calls[0].inputJSON.utf8.count <= 12_000, "app_review_inconclusive",
-        "The local app review did not return a complete verdict. No app was saved.")
+      guard response.calls.count == 1, response.calls[0].name == definition.name,
+        response.calls[0].inputJSON.utf8.count <= 12_000
+      else {
+        recordIncompleteResponse(
+          response.refusal ?? "The local app review did not return a complete bounded verdict.",
+          retry: attempt < reviewBudget)
+        continue
+      }
       let verdict = try Value.parse(response.calls[0].inputJSON)
       func giveFeedback(_ feedback: Value) throws {
         let probe = Value.object(["verdict": verdict, "result": feedback])
@@ -411,60 +438,48 @@ package enum NativeAppReview {
           let formulas =
             package.excelBehavior == nil
             ? try workbook.excelCheckFormulas(build.conversionID) : nil
+          let declaredTypes = Value.object(
+            Dictionary(
+              uniqueKeysWithValues: tests.enumerated().map { index, step in
+                (
+                  String(index),
+                  .object(checkedActionInputs[step["action"].text].object.mapValues { $0["type"] })
+                )
+              }))
           // A failed expectation proves nothing when the review shifted the
           // worksheet's headers/coordinates. Validate known action contracts and
           // lookup fixtures before allowing a revise verdict to blame the app.
           let claimedEffects = Set(checkedActions).intersection(
             Self.assertedSuccessfulActions(tests))
           if !ready, !claimedEffects.isEmpty, checkedActionInputs != .null {
-            let types = Value.object(
-              Dictionary(
-                uniqueKeysWithValues: tests.enumerated().map {
-                  index, step in
-                  (
-                    String(index),
-                    Value.object(
-                      checkedActionInputs[step["action"].text].object.mapValues { $0["type"] })
-                  )
-                }))
             _ = try Self.inputProbes(
               actions: claimedEffects, registeredActions: Set(checkedActions),
               roles: verdict["inputRoles"], steps: tests,
-              fixtures: probeFixtures, inputTypes: types, package: package,
+              fixtures: probeFixtures, inputTypes: declaredTypes, package: package,
               tables: build.tables, coordinates: coordinates,
               inputCell: workbook.excelOriginalInputLookup(
                 build.conversionID, cancellation: cancellation))
           }
-          let checked = try await NativeAppCheck.run(
-            package: package, steps: tests,
-            fixtures: probeFixtures,
-            cancellation: cancellation,
-            excelCoordinates: coordinates, excelFormulas: formulas,
-            testProgress: { completedProbeSteps = $0 })
+          func checkReviewedActions() async throws -> Value {
+            try await NativeAppCheck.run(
+              package: package, steps: tests, fixtures: probeFixtures, cancellation: cancellation,
+              excelCoordinates: coordinates, excelFormulas: formulas,
+              expectFinalActionSuccess: false, checkActionWrites: ready && blindActions,
+              testProgress: { completedProbeSteps = $0 })
+          }
           if ready {
-            for index in tests.indices.dropLast()
-            where probeActions.contains(tests[index]["action"].text)
-              && !Self.assertedSuccessfulActions(Array(tests[index...index + 1])).isEmpty
-              && tests.dropFirst(index + 1).prefix(while: {
-                ["expect_row", "expect_rows", "expect_text", "expect_value"].contains(
-                  $0["kind"].text)
-              }).contains(where: {
-                ["expect_row", "expect_rows"].contains($0["kind"].text)
-              })
-            {
-              try require(
-                (checked["actionChanges"][String(index)].int ?? 0) > 0,
-                "app_review_effect",
-                "The successful action \(tests[index]["action"].text) did not commit a write. An existing matching fixture row does not establish a successful saved effect. Exercise a real write and assert its saved values; use expect_value or expect_text for read-only results."
-              )
-            }
+            // The builder check already observed these contracts. Run the derived
+            // checks first so a broken authored refusal cannot hide a verified rule.
+            let initialCheck =
+              checkedActionInputs == .null ? try await checkReviewedActions() : .null
             let inputRoles = Self.actionIndexedRoles(
               verdict["inputRoles"], actions: probeActions,
               registeredActions: Set(checkedActions), steps: tests)
             let probes = try Self.inputProbes(
               actions: probeActions, registeredActions: Set(checkedActions),
               roles: inputRoles, steps: tests,
-              fixtures: probeFixtures, inputTypes: checked["actionInputTypes"],
+              fixtures: probeFixtures,
+              inputTypes: initialCheck == .null ? declaredTypes : initialCheck["actionInputTypes"],
               contracts: checkedActionInputs, package: package, tables: build.tables,
               coordinates: coordinates,
               inputCell: workbook.excelOriginalInputLookup(
@@ -519,6 +534,7 @@ package enum NativeAppReview {
                 ProcessInfo.processInfo.systemUptime - started <= 20,
                 "app_review_inputs", "Independent input probes exceeded their shared time budget.")
             }
+            let checked = initialCheck == .null ? try await checkReviewedActions() : initialCheck
             readinessChecks.append(
               .object([
                 "check": checked, "tests": .array(tests), "fixtures": verdict["fixtures"],
@@ -543,6 +559,7 @@ package enum NativeAppReview {
                   + remaining.sorted().joined(separator: ", ")),
             ])
           } else {
+            let checked = try await checkReviewedActions()
             feedback = .object([
               "status": .string("passed"), "check": checked,
               "notice": .string(
@@ -552,6 +569,13 @@ package enum NativeAppReview {
           }
         } catch {
           try cancellation.check()
+          if (error as? SevraError)?.code == "app_check_unverified_write" {
+            throw SevraError(
+              "app_review",
+              error.localizedDescription
+                + "\nIndependent expected effects: " + (try Value.array(tests).json())
+                + "\nIndependent fixtures: " + (try probeFixtures.json()))
+          }
           if (error as? SevraError)?.code == "app_review_input" {
             throw SevraError("app_review", error.localizedDescription)
           }

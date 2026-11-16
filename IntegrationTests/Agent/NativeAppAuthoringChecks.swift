@@ -262,6 +262,7 @@ func checkNativeAppAuthoring() async throws {
   print(
     "PASS one action checks multiple effects; duplicate refusal and form submission order remain exact"
   )
+  try await checkCompleteSavedEffects(workspace)
   let exactText = try steps(
     #"[{"kind":"expect_rows","table":"entries","count":1,"values":{"name":"42"}}]"#)
   do {
@@ -771,6 +772,73 @@ func checkNativeAppAuthoring() async throws {
   try expectEqual(try branchBook.spaces().filter { $0.definition.app != nil }.count, 1)
   print("PASS native app authoring through a scoped conversation continuation")
 
+}
+
+private func checkCompleteSavedEffects(_ workspace: NativeAppPackage) async throws {
+  var package = workspace
+  package.datasets["reference"]?.writable = true
+  package.source = """
+    Sevra.action('close',{title:'Close'},async()=>{
+      const entries=await Sevra.data.all('entries');
+      const materials=await Sevra.data.all('reference');
+      const edits=[
+        {op:'update',table:'entries',id:entries[0].id,values:{name:'Complete'}},
+        {op:'update',table:'reference',id:materials[0].id,values:{name:'5'}}
+      ];
+      const options={token:'same-write'};
+      await Promise.all([Sevra.data.transaction(edits,options),Sevra.data.transaction(edits,options)]);
+    });
+    Sevra.action('clear',{title:'Clear'},async()=>{
+      const entries=await Sevra.data.all('entries');
+      await Sevra.data.transaction(entries.map(row=>({op:'delete',table:'entries',id:row.id})));
+    });
+    Sevra.mount(Sevra.h(Sevra.Text,{text:'Saved effects'}));
+    """
+  let fixtures = try Value.parse(
+    #"{"entries":[{"name":"Planned"}],"reference":[{"name":"7"},{"name":"9"}]}"#)
+  let completion = try steps(
+    #"[{"kind":"run_action","action":"close"},{"kind":"expect_row","table":"entries","values":{"name":"Complete"}}]"#
+  )
+  let changedOpeningBalance = try Value.parse(
+    #"{"kind":"expect_row","table":"reference","values":{"name":"5"}}"#)
+  let unrelatedExistingRow = try Value.parse(
+    #"{"kind":"expect_row","table":"reference","values":{"name":"9"}}"#)
+  let removal = try steps(
+    #"[{"kind":"run_action","action":"clear"},{"kind":"expect_rows","table":"entries","count":0,"values":{"name":"Planned"}}]"#
+  )
+  let duplicateFixture = try Value.parse(#"{"entries":[{"name":"Planned"},{"name":"Planned"}]}"#)
+  func run(_ tests: [Value], fixtures: Value) async throws -> Value {
+    try await NativeAppCheck.run(
+      package: package, steps: tests, fixtures: fixtures, cancellation: .init(),
+      excelCoordinates: nil, excelFormulas: nil, expectFinalActionSuccess: false,
+      checkActionWrites: true)
+  }
+  let covered = try await run(completion + [changedOpeningBalance], fixtures: fixtures)
+  try expectEqual(covered["actionChanges"]["0"], .number(1))
+  _ = try await run(removal, fixtures: fixtures)
+  do {
+    _ = try await run(
+      steps(#"[{"kind":"run_action","action":"close","reject":true}]"#), fixtures: fixtures)
+    throw SevraError("test", "An accepted operation satisfied a refusal probe.")
+  } catch {
+    try expectEqual((error as? SevraError)?.code, "app_check_assertion")
+    try expectEqual(error.localizedDescription.contains("Failed refusal test: close"), true)
+  }
+  for (tests, data, unverified) in [
+    (completion, fixtures, "reference.name"),
+    (completion + [unrelatedExistingRow], fixtures, "reference.name"),
+    (removal, duplicateFixture, "entries deleted row"),
+  ] {
+    do {
+      _ = try await run(tests, fixtures: data)
+      throw SevraError("test", "An unwitnessed action effect passed independent review.")
+    } catch {
+      try expectEqual((error as? SevraError)?.code, "app_check_unverified_write")
+      try expectEqual(error.localizedDescription.contains(unverified), true)
+    }
+  }
+  print(
+    "PASS independent effects cover each changed worksheet input and uniquely identify removals")
 }
 
 /// Actual installed local model; no supplied actions, source, next-tool selection or mocked inference.

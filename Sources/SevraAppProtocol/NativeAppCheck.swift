@@ -29,7 +29,8 @@ public enum NativeAppCheck {
     package: NativeAppPackage, steps: [Value], fixtures: Value,
     cancellation: Cancellation, excelCoordinates: [[Int]]?,
     requireUnselectedExcelActions: Bool = false, excelFormulas: ExcelCheckFormulas?,
-    expectFinalActionSuccess: Bool, testProgress: (Int) -> Void = { _ in }
+    expectFinalActionSuccess: Bool, checkActionWrites: Bool = false,
+    testProgress: (Int) -> Void = { _ in }
   ) async throws -> Value {
     try cancellation.check()
     try package.validate()
@@ -147,6 +148,7 @@ public enum NativeAppCheck {
     var actionTitles: [String: Value] = [:]
     var actionInputTypes: [String: Value] = [:]
     var actionChanges: [String: Value] = [:]
+    var checkedWrites: NativeAppCheckedWrites?
     var subscriptions: [String: Value] = [:]
     var draft: Value = .object([:])
     func available(_ node: NativeAppNode) -> Bool {
@@ -275,28 +277,39 @@ public enum NativeAppCheck {
               // to exercise each once; request, frame and time budgets still apply.
               try require(transactions <= 32, "app_check", "Too many test transactions.")
               let args = message["args"]
-              reply["value"] = try book.nativeAppTransaction(
+              let revisionBefore = try book.revision()
+              let receipt = try book.nativeAppTransaction(
                 access, operations: args["operations"].array,
                 expectedRevision: args["revision"].int ?? -1, token: args["token"].text,
                 undo: args["undo"].string)
-              committedTransactions += 1
-              // Fixed-cell actions do not receive a selected table row. Publication
-              // must exercise them through an interaction before any table selection,
-              // rather than trusting a model's readiness verdict or self-selected tests.
-              // Failed transactions and mount-time writes cannot satisfy this coverage.
-              if checkingInteraction && !tableRowWasSelected && args["undo"] == .null {
-                unselectedExcelActions.formUnion(
-                  args["operations"].array.filter { $0["op"] == .string("excel_action") }
-                    .map { $0["action"].text })
+              reply["value"] = receipt
+              // A replay returns the original success receipt without a new commit.
+              if let writtenRevision = receipt["revision"].int, writtenRevision > revisionBefore {
+                committedTransactions += 1
+                if checkedWrites != nil {
+                  do { try checkedWrites?.record(receipt, request: args, book: book) } catch {
+                    throw SevraError("app_check_effect_tracking", error.localizedDescription)
+                  }
+                }
+                // Fixed-cell actions need a tested interaction before selecting a row.
+                if checkingInteraction && !tableRowWasSelected && args["undo"] == .null {
+                  unselectedExcelActions.formUnion(
+                    args["operations"].array.filter { $0["op"] == .string("excel_action") }
+                      .map { $0["action"].text })
+                }
+                changed = true
               }
-              changed = true
             default:
               throw SevraError("app_check", "Unsupported SDK request: " + message["method"].text)
             }
           } catch {
             // Invalid action write sets/result types are broken programs, not expected
             // business validation. Catching them in UI code must not hide that defect.
-            if (error as? SevraError)?.code == "excel_behavior_result" { throw error }
+            if ["excel_behavior_result", "app_check_effect_tracking"].contains(
+              (error as? SevraError)?.code ?? "")
+            {
+              throw error
+            }
             reply["error"] = .string(error.localizedDescription)
           }
           replies.append(.object(reply))
@@ -363,6 +376,10 @@ public enum NativeAppCheck {
       do {
         try cancellation.check()
         let kind = step["kind"].text
+        if !["expect_row", "expect_rows", "expect_text", "expect_value"].contains(kind) {
+          try checkedWrites?.verify()
+          checkedWrites = nil
+        }
         func control() throws -> NativeAppNode {
           let target = step["target"].text
           let matches = tree.nodes.values.filter {
@@ -426,6 +443,9 @@ public enum NativeAppCheck {
         }
         switch kind {
         case "run_action":
+          if checkActionWrites, step["reject"] == .null, step["error"] == .null {
+            checkedWrites = NativeAppCheckedWrites(action: step["action"].text)
+          }
           try require(
             (step["reject"] == .null || step["reject"] == .bool(true))
               && (step["reject"] == .null || step["error"] == .null)
@@ -637,12 +657,10 @@ public enum NativeAppCheck {
               observedRows += next["rows"].array
             }
           }
-          let count =
-            values.isEmpty
-            ? page["total"].int
-            : observedRows.filter { row in
-              values.allSatisfy { row["values"][$0.key] == $0.value }
-            }.count
+          let matching = observedRows.filter { row in
+            values.allSatisfy { row["values"][$0.key] == $0.value }
+          }
+          let count = values.isEmpty ? page["total"].int : matching.count
           var typeHint = ""
           if count != expectedCount, !values.isEmpty,
             let row = observedRows.first(where: { row in
@@ -701,6 +719,9 @@ public enum NativeAppCheck {
                   }
                 ).json().prefix(2000))
           )
+          try checkedWrites?.confirm(
+            table: step["table"].text, matching: matching, values: values,
+            expectedCount: expectedCount!, book: book)
           assertions += 1
         case "change", "click", "select", "activate":
           let node = try control()
@@ -799,7 +820,9 @@ public enum NativeAppCheck {
           ? "\nAn array method is being called directly on an asynchronous data read. Await it first: const rows=await data.all('alias'); const records=rows.filter(...); or (await data.all('alias')).filter(...). await data.all('alias').filter(...) calls filter on the Promise before awaiting. data.page also needs await, then use its .rows array. Correct the read, preserving the validation and assertions."
           : ""
         throw SevraError(
-          ["app_check_assertion", "excel_behavior_result"].contains(code) ? code : "app_check",
+          ["app_check_assertion", "excel_behavior_result", "app_check_unverified_write"].contains(
+            code)
+            ? code : "app_check",
           "Test step \(index + 1): \(error.localizedDescription) Controls/text: "
             + String(labels.prefix(1500))
             + asynchronousReadHint
@@ -807,6 +830,7 @@ public enum NativeAppCheck {
             + (lastSelection.isEmpty ? "" : "\n" + lastSelection))
       }
     }
+    try checkedWrites?.verify()
     try cancellation.check()
     if requireUnselectedExcelActions {
       let missing = (package.excelBehavior?.actions ?? []).map(\.id)

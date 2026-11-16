@@ -2,7 +2,7 @@
 type: spec
 id: 01m7bd3448sec8weav20n1fyht
 created: 2026-11-13T21:30:20.679849+00:00
-updated: 2026-11-16T02:14:06.537964+00:00
+updated: 2026-11-16T03:39:31.331147+00:00
 summary: Constrained Excel application reconstruction with original-result comparison; ten automatic workflows qualified against 89 independent originals within explicit limits.
 title: Excel application reconstruction
 status: implemented
@@ -121,3 +121,9 @@ examples prove universal equivalence.
 The first reviewer receives the original worksheet validation operator, formulas and explicit blank or error metadata where available. When a derived numeric action's observed result disagrees with the review, a new structured local interpretation receives only the exact field and typed value, actual user clarification and bounded original worksheet validation or readable VBA evidence. It cannot see candidate source, its observed result or the earlier rule. A decision to forbid requires a literal supporting original passage. A user passage must identify this specific field. An unclear answer blocks publication. The host must independently reproduce a reversed expectation in the same isolated state before it changes the accepted rule. Review coverage records the executed typed probes under their actual action IDs.
 
 The first reviewer may express input roles by field if the fields are unique across its exercised actions and every role maps to one exact supplied input. The saved review always groups those complete roles by action. The ordinary role, evidence, typing and probe checks still apply. An inconclusive independent review remains a retryable review failure. A later verified counterexample from the same draft is a distinct outcome that can be used for repair under the normal build step limit.
+
+A successful isolated named-action probe accounts for every input it changes. The checker reads committed broker receipts, identifies the affected logical records and compares each direct input with the exact saved row asserted by the reviewer. An unrelated row cannot witness a change. The checker requires identifying values for removals and treats an ambiguous match as incomplete evidence. Recomputed formula outputs require no additional input write. A repeated idempotent receipt does not count as a second commit. A saved row that was already present establishes no write by itself.
+
+The host checks derived input variants using contracts already observed in the isolated builder check. An authored refusal with invalid setup cannot block an otherwise executable check of an original worksheet heading. Those derived variants still use the exact earlier setup and run in disposable worksheets. Every submitted ready probe must still pass before publication. The model derives the expected effects from original evidence and clarification, and the held-out operating corpus checks the saved workbook separately.
+
+Tentative lookup detection uses the original heading even when a synthetic fixture omits it. A successful call that reuses a unique fixture key under an exact original heading needs a verified lookup role or a distinct valid free-text example. Unambiguously malformed or truncated review responses use the remaining review attempts. Their diagnostics remain available and no partial verdict can authorize publication.

@@ -3,7 +3,7 @@ type: operational
 meta-type: operational
 id: 01m7ebv28bxsk6szwx72sbrcyp
 created: 2026-11-15T01:06:11.339074+00:00
-updated: 2026-11-16T02:30:02.310588+00:00
+updated: 2026-11-16T03:53:23.497246+00:00
 summary: Close realistic Excel business application reconstruction, reliable autonomous generation, and integrated chat/native qualification gaps.
 title: Realistic Excel business applications
 status: in-progress
@@ -48,9 +48,11 @@ Reuse the existing importer, managed tables, formula plans, sandboxed behavior, 
 A finite corpus cannot establish universal Excel compatibility. Production signing, additional hardware, VoiceOver and independent customer/security qualification are separate from closing these three functional gaps. Any remaining concrete functional blocker stays open in this plan; do not label the work complete because a smaller subset passes.
 
 ## Active blockers
-1. Two consecutive fresh six-workflow runs must qualify on the updated code. The latest frozen run reproduced the Stock zero-cost, Cash review and Invoicing repair blockers.
-2. The final generated apps still need independently recalculated originals, saved-effect and Undo evidence, and the native visual journeys for all six workflows.
-3. The updated candidate still needs its exact suite, signed package and installation, hosted check and final retained receipts.
+
+1. Two consecutive fresh six-workflow runs must qualify on the same code. In cohort 32, Production changed an unrelated opening balance and Bookings accepted an unknown resource during the isolated review. The candidate checks both failure modes.
+2. All six final generated apps need independent worksheet comparisons, saved-effect and Undo evidence, and native visual journeys.
+3. The new candidate needs exact local and hosted verification, signed package and installation identity, and final retained receipts.
+
 ## Progress
 
 The integrated chat change is committed and the checkout is clean. Previous frozen-code acceptance remains intact. No new live trial is claimed yet.
@@ -1305,3 +1307,30 @@ The named-action checker points directly to the refusal expectation when the int
 
 Predeclared next fresh pair is cohorts 32 then 33, with the same six applications in the established order and the same acceptance checks. Both independent comparisons and the six generated native interface journeys remain required. Earlier retained and diagnostic evidence stays attributed to its original build.
 The exact next candidate passed `scripts/check.sh`, including 660 core checks, the signed authoring and Excel flow, independent qualification checks, the real review and interpretation grammars, and packaged installation and extraction. Both sandboxed worker identities and the extractor, CLI and native executable match the installed preview. Strict signatures and SDK bytes match. The installed main executable UUID is `671A1D38-31C0-340F-BD1A-C037EEF468DE`. Fresh generation and hosted checks remain pending.
+
+## Cohort 32 and exact action effects
+
+All six cases began as new workbooks and conversations on `d9bcbad`, with the installed local model and no replay or manual repairs. The source remained unchanged through the run. Hosted run 43792541032 passed on that exact commit.
+
+| Workflow | Outcome | Save submissions | Generation / total seconds | Independent comparisons |
+| --- | --- | --- | --- | --- |
+| Stock | Passed receive and ship, explicit price refresh, 205 new records, zero unit cost, input corrections, Undo and portable reopen. | 2 | 259.6 / 611.4 | 216 across 18 states |
+| Production | Completing a run changed an unrelated opening-balance input in Materials. The worksheet already deducts completed use. | 6 | 591.4 / 670.8 | 30 across 2 states |
+| Bookings | Publication refused. An independent test showed the generated action accepted an unknown resource. Subsequent reviews did not return a usable repair verdict. | 8 | — / 1056.2 | — |
+| Cash and Loans | Passed loan and cash operations including a zero rate, corrections, Undo and portable reopen. | 5 | 511.2 / 711.0 | 144 across 12 states |
+| Invoicing | Passed invoice, payment and credit operations, excluded the source Customer heading and unknown customers, and passed Undo and portable reopen. | 3 | 314.7 / 530.8 | 108 across 12 states |
+| Job Costing | Passed time entry and hourly cost, invalid-input corrections, Undo and portable reopen. | 4 | 352.0 / 543.2 | 108 across 12 states |
+
+4 of six workflows passed. All 606 forced independent worksheet comparisons matched across 56 saved states. The original worksheet oracle covered the retained Production states before the rejected completion. No matching calculation excuses an invalid change. The second cohort did not start.
+
+The next candidate uses broker receipts and exact logical row identities to require coverage for each changed direct input in independent readiness probes. It also checks exact insertions and removals and ignores recalculated outputs. The real reviewer/correct-worker test reproduces a status update with an extra direct input. Counterexamples cover unrelated rows, unchanged fixtures, ambiguous deletion and repeated receipts.
+
+Independent input variants can run from an already observed action contract before the complete authored probe sequence. The host obtains the first heading directly from the original worksheet, including when the synthetic fixture omitted it. Failed authored refusals get the exact tested call in retry feedback. Malformed or truncated responses use only the existing remaining review attempts. Either kind of passing check is still required where applicable.
+
+Native tables hide paging controls when all results fit, retaining the record count. The signed AppKit check covers the short view, a second page when there are 201 rows, and the return to the short view. Visual inspection on the updated installed package remains required.
+
+Predeclared next fresh pair is cohorts 34 then 35. They use the established Stock, Production, Bookings, Cash and Loans, Invoicing and Job Costing order and the existing independent comparison, saved effects, Undo, reopen and portability requirements. Cohort 35 starts only after complete qualification of 34. The native journeys and exact hosted verification are separate gates.
+
+The installed preview UUID `E3CF5856-A335-3D68-AC66-4F84080CE5C8` matches the signed package. The CLI, extractor and both workers match by UUID and bytes. Both packaged and installed SDK resources match the checked source. Native Stock inspection on a disposable copy of the retained cohort 32 app confirms centered rows and aligned controls at 1200×800 and 859×723 points. Products shows four records without paging buttons. The 220-record Movements ledger moves from 1–200 to 201–220 with correctly enabled buttons. One result and zero results each hide paging controls. Clearing search restores the first page. The grant was revoked and the preview quit. A complete row comparison preserved all 228 retained business rows and portable integrity. This verifies the shared renderer on the new package. Fresh app qualification remains open.
+
+The packaged candidate passed `scripts/check.sh`: 660 core checks, 28 SDK checks, 19 signed native checks, signed authoring and Excel checks, constrained review and interpretation grammars, package resource and signature validation, isolated install/update/uninstall, and both packaged extraction helpers. Repository links and store validation passed. The installed package and each copied worker were verified separately. Hosted checks and fresh business qualification remain open.
