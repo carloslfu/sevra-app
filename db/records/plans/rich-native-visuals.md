@@ -3,7 +3,7 @@ type: spec
 meta-type: conclusion
 id: 01m7fxyzjyxhk7wqfy9044qq7y
 created: 2026-11-15T15:42:08.478533+00:00
-updated: 2026-11-16T22:44:16.873055+00:00
+updated: 2026-11-16T22:45:45.893737+00:00
 summary: Native chat inputs, images, charts and work views implemented in source. The document records focused evidence and remaining visual and release work.
 title: Rich native views for Home, mini apps and chat
 status: reviewed
@@ -510,3 +510,5 @@ The adversarial implementation pass found normalized UTC dates being refused as 
 Focused verification used disposable workbooks. The agent and preview check executables passed scripted question/control and typed choice submission, duplicate and stale confirmation refusal, exact attachment capture, incorrect visual receipt refusal, exact Decimal chart results, filtering a Home view while its captured chat result remains stable, app grant revocation, stale app-view version refusal, board move/replay/Undo, and date-backed charts/calendar. The native preview suite also exercised known-color sRGB PNG pixels, same-size changed source refusal, recovery after restoration, and readable chart PNG/PDF output. The existing signed mini-app suite passed 20 groups, including real PNG rendering and grant revocation. The SDK suite passed 28 tests. Desktop, CLI, parser and worker products built locally. The pinned reference generator produced 86 grammar cases and 817 mask checkpoints. The installed-tokenizer, helper-free prepared request check measured 4,030 prompt tokens with a 24,576 prompt threshold at 32K, a 1,800-token output budget and a 3,671-token SDK-aware result reserve. That run measures admission with the scoped widget and visual receipt schemas. It does not generate an answer with the local model.
 
 The baseline and release gates in section 9 remain open where indicated by the remaining scope. The active installed preview was not replaced. No live workspace takeover or model-loaded performance cohort was used for this source checkpoint.
+
+Graphviz fallback inspection fetched the 3.0 MiB Graphviz 16.1.1 arm64 Homebrew bottle into a disposable cache without installing it. The actual libgvc binary declares macOS 26.0 and links dynamically against libltdl and Graphviz libraries. The dot layout plugin adds a separate library. That bottle cannot satisfy the app's macOS 14 target or self-contained signed distribution. A minimal source build targeting macOS 14 remains unqualified. No Graphviz dependency was added.
