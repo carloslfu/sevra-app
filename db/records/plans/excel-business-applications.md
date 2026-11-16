@@ -3,7 +3,7 @@ type: operational
 meta-type: operational
 id: 01m7ebv28bxsk6szwx72sbrcyp
 created: 2026-11-15T01:06:11.339074+00:00
-updated: 2026-11-16T07:02:14.809695+00:00
+updated: 2026-11-16T15:04:01.237982+00:00
 summary: Close realistic Excel business application reconstruction, reliable autonomous generation, and integrated chat/native qualification gaps.
 title: Realistic Excel business applications
 status: in-progress
@@ -1450,3 +1450,67 @@ local model and unchanged original-oracle and business acceptance criteria.
 Both start from fresh workbooks and conversations. Cohort 39 starts only
 after the exact same code qualifies in 38. Native journeys and the earlier
 retained ten-case regression remain separate evidence.
+
+## Frozen cohort 38 and focused verification
+
+The exact signed runtime `aa1c535` generated all six applications from fresh
+workbooks and conversations using the pinned local model. The app sources were
+never edited manually. Each published case passed its shared conversation and
+native action checks, independent saved effects, refusal and recovery checks,
+Undo, reopen, and portable copy. The runtime receipt matched the frozen source
+and fixtures. The separate retained ten-application regression passed 79 saved
+edit, reopen and Undo cases and all ten portable copies. Hosted CI for this
+runtime passed. [Native CI](https://github.com/carloslfu/sevra-app/actions/runs/43823066819)
+
+| Workflow | Save attempts | Saved states | Original formula comparisons |
+| --- | --- | --- | --- |
+| Stock and purchasing | 4 | 18 | 216 |
+| Production planning | 3 | 9 | 135 |
+| Bookings | 3 | 12 | 144 |
+| Cash and loans | 3 | 12 | 144 |
+| Invoicing and payments | 3 | 12 | 108 |
+| Job costing | 3 | 12 | 108 |
+
+The independent spreadsheet oracle matched 855 outputs across 75 states. The
+aggregate verifier initially refused the current host's `controlInputs` receipt
+field. It now checks that the field is present and exactly matches the successful
+control and then validates the derived variation separately. A forensic replay
+of the corrected verifier passed every gate over the retained result. The replay
+checked the original verifier bytes against the frozen commit and used the
+corrected verifier for receipt interpretation. The original output files and
+runtime hash receipt were preserved.
+
+The physical preview verified compact Production and Bookings tables, exact
+table access and draft retention through refusals. Production kept an invalid
+fractional draft, saved the corrected run and restored its count on Undo.
+Bookings refused an unknown reference, cancelled a known booking and restored
+Booked on Undo. Compact utilization displayed three rows with complete labels.
+All UI checks used disposable copies and their temporary grants were revoked.
+
+The fresh Stock app omitted explicit labels, so its original heading appeared as
+a fourth record. Extraction now records clear worksheet headings when the first
+stored row has distinct text across the full width, bold and solid fills, a
+visibly different following row and no first-row merge or formula. Native
+presentation and its isolated checker use those original labels when the live
+row still matches. Explicit label overrides are supported, and original rows
+and formula coordinates remain available to raw data reads. Signed tests cover
+automatic labels, an edited first row, ambiguous formatting and chat selection.
+
+Stock and Bookings also exceeded the 16-step ceiling in independent reviews.
+The ceiling for this review is now 24 expanded steps so exact effects, refusals
+and native checks can fit the same bounded round. Coverage and approval
+requirements remain. Review feedback carries the outcome and original-rule
+evidence while the full executed check remains in the saved audit receipt.
+
+The owner requested lightweight final verification of the actual call and image
+paths and asked to reduce repeat testing. Further fresh cohorts were set aside.
+The retained six-case run covers the earlier exact runtime, with focused
+verification for the subsequent changes.
+
+The signed installed preview matched the packaged binaries. In a disposable
+Stock workbook, the local model called the named Update unit cost action through
+the workspace bridge. The native table showed 4.25 for P1, Undo restored 2.5,
+and the app's test grant was revoked. The native table displayed the original
+worksheet headings once. An imported PNG preview rendered from the workbook's
+stored asset after the source path was moved. The signed native checks also
+verified that a mini-app SF Symbol rendered in an AppKit image view.

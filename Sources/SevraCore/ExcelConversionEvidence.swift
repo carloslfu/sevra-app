@@ -147,11 +147,19 @@ extension Workbook {
   package func excelCheckCoordinates(
     _ id: String, validatingFixtures fixtures: Value = .null, cancellation: Cancellation = .init()
   ) throws -> [[Int]] {
+    try excelCheckLayout(id, validatingFixtures: fixtures, cancellation: cancellation).coordinates
+  }
+
+  package func excelCheckLayout(
+    _ id: String, validatingFixtures fixtures: Value = .null, cancellation: Cancellation = .init()
+  ) throws -> (coordinates: [[Int]], headings: [String: Value]) {
     let sheets = try excelOriginalSheets(excelConversion(id).sourceID, cancellation: cancellation)
       .filter { !$0.rows.isEmpty }
+    var labels: [String: Value] = [:]
     for (position, sheet) in sheets.enumerated() {
       try cancellation.check()
       let alias = "sheet\(position + 1)"
+      if sheet.columnHeadings != nil { labels[alias] = sheet.nativeColumnLabels }
       let rows = fixtures[alias].array
       guard !rows.isEmpty, sheet.rows.count == 2, sheet.formulas.isEmpty,
         sheet.formulaKinds.isEmpty, sheet.unsettled.isEmpty
@@ -183,6 +191,6 @@ extension Workbook {
         }
       }
     }
-    return sheets.map(\.rowNumbers)
+    return (sheets.map(\.rowNumbers), labels)
   }
 }

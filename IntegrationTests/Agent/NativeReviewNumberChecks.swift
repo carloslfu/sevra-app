@@ -356,6 +356,8 @@ func checkNativeReviewNumbers(
     await correctingModel.toolResults.last?["error"].text.contains("already resolved"), true)
   try expectEqual(
     await correctingModel.toolResults.first?["status"], .string("resolved_input_rule"))
+  try expectEqual(await correctingModel.toolResults.first?["check"]["status"], .string("passed"))
+  try expectEqual(await correctingModel.toolResults.first?["check"]["initialInterface"], .null)
   try expectEqual(costAccepted["digest"], .string(cost.digest))
   try expectEqual(costAccepted["checkedCounterexamples"].array.count, 2)
   try expectEqual(
@@ -364,6 +366,9 @@ func checkNativeReviewNumbers(
   try expectEqual(
     costAccepted["checkedCounterexamples"].array[0]["result"]["status"],
     .string("resolved_input_rule"))
+  try expectEqual(
+    costAccepted["checkedCounterexamples"].array[0]["result"]["check"]["digest"],
+    .string(cost.digest))
   let costChecks = costAccepted["independentActionCheck"]["checks"].array
   try expectEqual(costChecks.count, 1)
   try expectEqual(costChecks[0]["tests"], correctedCostReview["tests"])

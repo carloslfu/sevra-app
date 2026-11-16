@@ -65,9 +65,13 @@ func checkNativeReviewInputContracts(
   var hiddenCall = paired.object
   hiddenCall["interfaceTests"] = .array([expanded[0]])
   try expectThrows(try NativeAppReview.actionProbes(.object(hiddenCall), actions: ["ship"]))
-  var oversized = paired.object
-  oversized["probes"] = .array(Array(repeating: paired["probes"].array[0], count: 9))
-  try expectThrows(try NativeAppReview.actionProbes(.object(oversized), actions: ["ship"]))
+  var boundedBatch = paired.object
+  let fullBatch = Array(repeating: paired["probes"].array[0], count: 12)
+  boundedBatch["probes"] = .array(fullBatch)
+  try expectEqual(
+    try NativeAppReview.actionProbes(.object(boundedBatch), actions: ["ship"]).steps.count, 24)
+  boundedBatch["probes"] = .array(fullBatch + [paired["probes"].array[1]])
+  try expectThrows(try NativeAppReview.actionProbes(.object(boundedBatch), actions: ["ship"]))
   // An unchanged retry gets its own prior diagnostic, never another candidate's
   // fixture/source/test context, another request's state, or a passed check.
   let arguments: Value = .object([

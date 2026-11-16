@@ -1008,8 +1008,8 @@ public enum WorkbookAgent {
             let checkedArguments = try NativeAppAuthoring.arguments(a, tools: tools)
             let candidate = try NativeAppAuthoring.package(checkedArguments)
             let fixtures = a["fixtures"] == .null ? Value.object([:]) : a["fixtures"]
-            let coordinates = try excelConversion.map {
-              try workbook.excelCheckCoordinates(
+            let layout = try excelConversion.map {
+              try workbook.excelCheckLayout(
                 $0.conversionID, validatingFixtures: fixtures, cancellation: cancellation)
             }
             var comparison: Value = .null
@@ -1032,7 +1032,8 @@ public enum WorkbookAgent {
             }
             nativeAppCheck = try await NativeAppCheck.run(
               package: candidate, steps: a["tests"].array,
-              fixtures: fixtures, cancellation: cancellation, excelCoordinates: coordinates,
+              fixtures: fixtures, cancellation: cancellation, excelCoordinates: layout?.coordinates,
+              excelHeadings: layout?.headings ?? [:],
               requireUnselectedExcelActions: excelConversion != nil,
               excelFormulas: try excelConversion.flatMap {
                 candidate.excelBehavior == nil

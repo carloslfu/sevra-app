@@ -229,7 +229,10 @@ def require_input_checks(probe, package_digest):
             require(isinstance(check.get('value'), str) and bool(check['value'])
                     and isinstance(check.get('cell'), str) and bool(check['cell']), 'Missing original-header evidence')
             want = {**want, 'value': check['value'], 'cell': check['cell']}
-        actual = {k: v for k, v in check.items() if k not in ['action', 'tests', 'check']}
+        require(check.get('controlInputs') == call['inputs'],
+                'Derived input variant does not preserve the successful control')
+        actual = {k: v for k, v in check.items()
+                  if k not in ['action', 'tests', 'check', 'controlInputs']}
         require(actual == want, 'Derived input variant does not match declared rules')
         changed = {**call, 'inputs': {**call['inputs'], check['input']: check['value']}}
         allowed = want['rule'] in {'allowed_zero', 'allowed_fraction'}

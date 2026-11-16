@@ -64,7 +64,7 @@ extension Workbook {
     }
   }
   public func nativeAppConversationRow(
-    _ access: NativeAppAccess, alias: String, id: String, columnLabels: Value = .null
+    _ access: NativeAppAccess, alias: String, id: String, columnLabels: Value? = nil
   ) throws -> Value
   {
     try synchronized {
@@ -74,7 +74,8 @@ extension Workbook {
           let row = try item(id)
           try require(
             row.id == id && item(row.logicalID).id == id && row.status == "accepted"
-              && row.logicalID != nativeAppWorksheetHeading(table, columnLabels: columnLabels)
+              && row.logicalID != nativeAppWorksheetPresentation(
+                table, columnLabels: columnLabels).heading
               && db.scalar(
                 "SELECT count(*) FROM dataset_rows WHERE dataset_id=? AND logical_id=?",
                 [.string(table.id), .string(row.logicalID)]
@@ -99,30 +100,40 @@ extension Workbook {
       "The table schema changed; update this app binding and review access again.")
     return table
   }
-  /// Use the native labels once when they exactly repeat the first worksheet row.
-  /// Formulas and actions keep their original coordinates and raw rows.
-  private func nativeAppWorksheetHeading(_ table: Dataset, columnLabels: Value) throws -> String? {
-    guard table.columns.count >= 2, columnLabels.object.count == table.columns.count,
-      let row = try db.scalar(
+  /// A native view can use original worksheet labels without changing its raw rows.
+  /// Passing nil keeps JS reads and saved-row assertions in worksheet coordinates.
+  private func nativeAppWorksheetPresentation(_ table: Dataset, columnLabels: Value?) throws
+    -> (labels: Value, heading: String?)
+  {
+    guard let columnLabels else { return (.null, nil) }
+    guard table.columns.count >= 2,
+      let original = try db.execute(
         """
-        SELECT CASE WHEN count(*)=1 THEN min(r.logical_id) END
+        SELECT min(r.logical_id) AS row, json_extract(s.data,'$.columnLabels') AS labels
         FROM datasets d JOIN items s ON s.id=d.source_id AND s.kind='worksheet'
         JOIN dataset_rows r ON r.dataset_id=d.id AND r.ordinal=0 WHERE d.id=?
-        """,
-        [.string(table.id)]).string
-    else { return nil }
-    let original = try item(row)
-    guard original.status == "accepted",
-      table.columns.allSatisfy({ column in
-        guard let label = columnLabels[column.id].string, !label.isEmpty else { return false }
-        return original.data[column.id] == .string(label)
-      })
-    else { return nil }
-    return row
+        GROUP BY s.id HAVING count(*)=1
+        """, [.string(table.id)]
+      ).first, let row = original["row"]?.string
+    else { return (columnLabels, nil) }
+    let item = try item(row)
+    guard item.status == "accepted" else { return (columnLabels, nil) }
+    func matches(_ labels: Value) -> Bool {
+      labels.object.count == table.columns.count && table.columns.allSatisfy { column in
+        guard let label = labels[column.id].string, !label.isEmpty else { return false }
+        return item.data[column.id] == .string(label)
+      }
+    }
+    if let stored = original["labels"]?.string,
+      let labels = try? Value.parse(stored), matches(labels)
+    {
+      return (.object(labels.object.merging(columnLabels.object) { _, label in label }), row)
+    }
+    return (columnLabels, matches(columnLabels) ? row : nil)
   }
   /// Page data stays in native memory when used by a native table. JS queries use the same scope.
   public func nativeAppPage(
-    _ access: NativeAppAccess, request: Value, columnLabels: Value = .null
+    _ access: NativeAppAccess, request: Value, columnLabels: Value? = nil
   ) throws -> Value {
     try synchronized {
       try db.readTransaction {
@@ -134,12 +145,13 @@ extension Workbook {
           try require(
             (0...100_000).contains(offset) && (1...200).contains(limit), "app_query",
             "Invalid page bounds.")
+          let presentation = try nativeAppWorksheetPresentation(table, columnLabels: columnLabels)
           let page = try tablePage(
             table.id, offset: offset, limit: limit,
             query: request["search"].string ?? "", sort: request["sort"].string,
             descending: request["descending"] == .bool(true),
-            omittingRow: nativeAppWorksheetHeading(table, columnLabels: columnLabels))
-          let result: Value = .object([
+            omittingRow: presentation.heading)
+          var fields: [String: Value] = [
             "revision": .number(Double(page.revision)),
             "columns": try encoded(page.dataset.columns),
             "total": .number(Double(page.total)), "offset": .number(Double(offset)),
@@ -149,7 +161,9 @@ extension Workbook {
                   "id": .string(row.id), "key": .string(row.logicalID), "values": .object(values),
                 ])
               }),
-          ])
+          ]
+          if presentation.labels != .null { fields["columnLabels"] = presentation.labels }
+          let result = Value.object(fields)
           try require(
             result.json().utf8.count <= 1_048_576, "app_query",
             "Page exceeds 1 MiB; select fewer rows.")

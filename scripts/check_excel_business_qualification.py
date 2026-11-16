@@ -66,6 +66,7 @@ key_probe = {
     'inputRoles': {'ship': {'sku': {'kind': 'existingKey', 'table': 'products', 'column': 'sku',
                                   'headerRow': 1}, 'reference': {'kind': 'value'}}},
     'inputChecks': [{'action': 'ship', 'input': 'sku', 'rule': 'header', 'value': 'SKU', 'cell': 'sheet1!A1',
+                   'controlInputs': dict(key_call['inputs']),
                    'tests': [setup, {**key_call, 'inputs': {'sku': 'SKU', 'reference': 'R1'}, 'reject': True}],
                    'check': {'status': 'passed', 'digest': 'package'}}],
 }
@@ -92,13 +93,16 @@ numeric_probe['tests'][1]['inputs']['sku'] = 42
 numeric_probe['check']['actionInputTypes']['1']['sku'] = 'number'
 numeric_probe['inputChecks'] = []
 assert require_input_checks(numeric_probe, 'package') == {'ship'}
-for fault in ['missing', 'duplicate', 'digest', 'prefix', 'header', 'roles', 'fields', 'type', 'no_write', 'missing_write']:
+for fault in ['missing', 'duplicate', 'digest', 'prefix', 'header', 'roles', 'fields', 'type', 'no_write', 'missing_write',
+              'wrong_control', 'missing_control']:
     malformed = copy.deepcopy(key_probe)
     if fault == 'missing': malformed['inputChecks'] = []
     if fault == 'duplicate': malformed['inputChecks'] *= 2
     if fault == 'digest': malformed['inputChecks'][0]['check']['digest'] = 'different'
     if fault == 'prefix': malformed['inputChecks'][0]['tests'].insert(1, key_call)
     if fault == 'header': malformed['inputChecks'][0]['value'] = 'different'
+    if fault == 'wrong_control': malformed['inputChecks'][0]['controlInputs']['sku'] = 'R2'
+    if fault == 'missing_control': del malformed['inputChecks'][0]['controlInputs']
     if fault == 'roles': malformed['inputRoles'] = None
     if fault == 'fields': del malformed['inputRoles']['ship']['reference']
     if fault == 'type': del malformed['check']['actionInputTypes']
@@ -130,6 +134,7 @@ number_probe['tests'][1]['inputs']['sku'] = 1
 variants = [{'input': 'sku', 'rule': rule, 'value': value} for rule, value in number_variants(number_role, 1)]
 number_probe['inputChecks'] = [
     {**variant, 'action': 'ship',
+     'controlInputs': dict(number_probe['tests'][1]['inputs']),
      'tests': [setup, {**key_call, 'inputs': {**key_call['inputs'], 'sku': variant['value']}, 'reject': True}],
      'check': {'status': 'passed', 'digest': 'package'}} for variant in variants]
 assert require_input_checks(number_probe, 'package') == {'ship'}
@@ -137,6 +142,7 @@ allowed_probe = copy.deepcopy(number_probe)
 allowed_probe['inputRoles']['ship']['sku'] = unrestricted
 allowed_probe['inputChecks'] = [
     {'input': 'sku', 'rule': rule, 'value': value, 'action': 'ship',
+     'controlInputs': dict(allowed_probe['tests'][1]['inputs']),
      'tests': [setup, {**key_call, 'inputs': {**key_call['inputs'], 'sku': value}}],
      'check': {'status': 'passed', 'digest': 'package', 'assertions': 2, 'actionChanges': {'1': 1}}}
     for rule, value in number_variants(unrestricted, 1)]

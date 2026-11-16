@@ -617,6 +617,8 @@ func exchange(
     try await wait { controls.status == "running" || controls.status == "failed" }
     try expect(controls.status == "running", controls.error ?? "Controls failed")
     window.contentView?.layoutSubtreeIfNeeded()
+    let image = controlsView.view(for: "root/8") as? NSImageView
+    try expect(image?.image?.isValid == true, "The native SF Symbol did not render")
   }
   @MainActor static func wait(_ predicate: () -> Bool) async throws {
     let deadline = Date().addingTimeInterval(8)

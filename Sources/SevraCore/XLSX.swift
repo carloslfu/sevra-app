@@ -14,10 +14,11 @@ public struct ImportedSheet: Codable, Sendable {
   /// Cells only Excel can recalculate: "array", "dataTable" or "shared" for a shared
   /// formula whose first cell is missing. "*" stands for an area too large to list.
   public let formulaKinds: [String: String]
+  public let columnHeadings: [String]?
   public init(
     name: String, rows: [[String]], rowNumbers: [Int], notes: [String],
     formulas: [String: String], unsettled: [String: String] = [:],
-    formulaKinds: [String: String] = [:]
+    formulaKinds: [String: String] = [:], columnHeadings: [String]? = nil
   ) {
     self.name = name
     self.rows = rows
@@ -26,6 +27,13 @@ public struct ImportedSheet: Codable, Sendable {
     self.formulas = formulas
     self.unsettled = unsettled
     self.formulaKinds = formulaKinds
+    self.columnHeadings = columnHeadings
+  }
+  var nativeColumnLabels: Value {
+    guard let columnHeadings else { return .null }
+    return .object(Dictionary(uniqueKeysWithValues: columnHeadings.enumerated().map {
+      ("c\($0.offset + 1)", .string($0.element))
+    }))
   }
 }
 public enum XLSX {
@@ -148,7 +156,8 @@ public enum XLSX {
         .init(
           name: name, rows: sheet.rows, rowNumbers: sheet.rowNumbers,
           notes: Array(sheet.notes).sorted(), formulas: sheet.formulas,
-          unsettled: sheet.unsettled, formulaKinds: sheet.formulaKinds))
+          unsettled: sheet.unsettled, formulaKinds: sheet.formulaKinds,
+          columnHeadings: sheet.columnHeadings))
     }
     if !unread.isEmpty, !result.isEmpty {
       result[0].notes.append(
@@ -265,25 +274,56 @@ private final class SharedStringsXML: NSObject, XMLParserDelegate {
 /// A worksheet saves dates and times as numbers. Its cell format says which one a number is.
 enum SavedNumber { case number, date, timeOfDay, duration }
 private final class StylesXML: NSObject, XMLParserDelegate {
-  var formats: [Int: String] = [:], styleIDs: [Int] = [], inCell = false
+  private struct CellStyle {
+    let number: Int
+    let font: Int?
+    let fill: Int?
+  }
+  private var formats: [Int: String] = [:], cellStyles: [CellStyle] = []
+  private var boldFonts: [Bool] = [], solidFills: [Bool] = []
+  private var path: [String] = []
   func parser(
     _ parser: XMLParser, didStartElement name: String, namespaceURI: String?,
     qualifiedName: String?, attributes a: [String: String]
   ) {
-    if name == "numFmt", let id = Int(a["numFmtId"] ?? ""), let format = a["formatCode"] {
-      formats[id] = format
+    path.append(name)
+    switch path {
+    case ["styleSheet", "numFmts", "numFmt"]:
+      if let id = Int(a["numFmtId"] ?? ""), let format = a["formatCode"] {
+        formats[id] = format
+      }
+    case ["styleSheet", "fonts", "font"]:
+      boldFonts.append(false)
+    case ["styleSheet", "fonts", "font", "b"]:
+      boldFonts[boldFonts.count - 1] = a["val"].map { ["1", "true"].contains($0) } ?? true
+    case ["styleSheet", "fills", "fill"]:
+      solidFills.append(false)
+    case ["styleSheet", "fills", "fill", "patternFill"]:
+      solidFills[solidFills.count - 1] = a["patternType"] == "solid"
+    case ["styleSheet", "cellXfs", "xf"]:
+      cellStyles.append(CellStyle(
+        number: Int(a["numFmtId"] ?? "") ?? 0,
+        font: ["false", "0"].contains(a["applyFont"] ?? "") ? nil : Int(a["fontId"] ?? ""),
+        fill: ["false", "0"].contains(a["applyFill"] ?? "") ? nil : Int(a["fillId"] ?? "")))
+    default: break
     }
-    if name == "cellXfs" { inCell = true }
-    if name == "xf", inCell { styleIDs.append(Int(a["numFmtId"] ?? "") ?? 0) }
   }
   func parser(
     _ parser: XMLParser, didEndElement name: String, namespaceURI: String?, qualifiedName: String?
-  ) { if name == "cellXfs" { inCell = false } }
+  ) { path.removeLast() }
+
+  func hasHeadingStyle(_ style: Int) -> Bool {
+    guard cellStyles.indices.contains(style), let font = cellStyles[style].font,
+      let fill = cellStyles[style].fill, boldFonts.indices.contains(font),
+      solidFills.indices.contains(fill)
+    else { return false }
+    return boldFonts[font] && solidFills[fill]
+  }
   /// What a saved number means under a style. Ids 32-35 and 52-56 are times in some Chinese and
   /// Japanese workbooks and dates in others, and a time of day has no whole days.
   func reading(_ style: Int, serial: Double) -> SavedNumber {
-    guard styleIDs.indices.contains(style) else { return .number }
-    let id = styleIDs[style]
+    guard cellStyles.indices.contains(style) else { return .number }
+    let id = cellStyles[style].number
     if let format = formats[id] { return Self.reading(format: format) }
     switch id {
     case 14...17, 22, 27...31, 36, 50, 51, 57, 58: return .date
@@ -317,7 +357,7 @@ private final class StylesXML: NSObject, XMLParserDelegate {
   }
   /// A format such as 0000 shows 14 as 0014, but only 14 is saved.
   func padsZeros(_ style: Int, _ saved: String) -> Bool {
-    guard !saved.isEmpty, styleIDs.indices.contains(style), let format = formats[styleIDs[style]]
+    guard !saved.isEmpty, cellStyles.indices.contains(style), let format = formats[cellStyles[style].number]
     else { return false }
     let section = format.split(separator: ";", omittingEmptySubsequences: false).first ?? ""
     let plain = String(section).replacingOccurrences(
@@ -335,6 +375,23 @@ private final class SheetXML: NSObject, XMLParserDelegate {
   var current: [Int: String] = [:], number = 0, column = 0, reference = "", type = "", style = 0,
     value = "", formula = "", reading = "", count = 0, savedResult = false
   var formulaType = "", formulaGroup = "", formulaRange = "", inPhonetic = false
+  private var hasFormula = false
+  private var styledTextColumns = Set<Int>()
+  private var hasUnstyledBodyCell = false
+  private var firstRowMerged = false
+  var columnHeadings: [String]? {
+    guard rowNumbers.starts(with: [1, 2]), !firstRowMerged, hasUnstyledBodyCell,
+      let first = rows.first, first.count >= 2,
+      first.count == (rows.map(\.count).max() ?? 0),
+      styledTextColumns.count == first.count,
+      Set(first.map { $0.trimmingCharacters(in: .whitespaces).lowercased() }).count == first.count,
+      first.allSatisfy({
+        !$0.trimmingCharacters(in: .whitespaces).isEmpty && $0.utf8.count <= 128
+          && $0.rangeOfCharacter(from: CharacterSet.controlCharacters.union(.newlines)) == nil
+      })
+    else { return nil }
+    return first
+  }
   var sharedFormulas: [String: (text: String, column: Int, row: Int)] = [:]
   var fillBudget: Int, filledCells = 0
   var validation: String?, validationRule = "", readingValidationFormula = false
@@ -371,9 +428,16 @@ private final class SheetXML: NSObject, XMLParserDelegate {
       validationRule += name + "="
       readingValidationFormula = true
     }
-    if name == "mergeCell", notes.count < 40 {
-      notes.insert(
-        "Merged cells " + String((a["ref"] ?? "").prefix(100)) + "; layout is not preserved.")
+    if name == "mergeCell" {
+      let range = String((a["ref"] ?? "").prefix(100))
+      if range.split(separator: ":").contains(where: {
+        SheetFormulaToken.address(String($0))?.row == 1
+      }) {
+        firstRowMerged = true
+      }
+      if notes.count < 40 {
+        notes.insert("Merged cells " + range + "; layout is not preserved.")
+      }
     }
     if ["conditionalFormatting", "sheetProtection", "tableParts"].contains(name) {
       notes.insert(
@@ -413,6 +477,7 @@ private final class SheetXML: NSObject, XMLParserDelegate {
       value = ""
       formula = ""
       savedResult = false
+      hasFormula = false
       formulaType = ""
       formulaGroup = ""
       formulaRange = ""
@@ -427,6 +492,7 @@ private final class SheetXML: NSObject, XMLParserDelegate {
     if ["v", "t", "f"].contains(name), !inPhonetic { reading = name }
     if name == "v" { savedResult = true }
     if name == "f" {
+      hasFormula = true
       formulaType = a["t"] ?? ""
       formulaGroup = a["si"] ?? ""
       formulaRange = a["ref"] ?? ""
@@ -515,6 +581,17 @@ private final class SheetXML: NSObject, XMLParserDelegate {
       // Formatting can run past the used columns. Only a value there exceeds the limit.
       if column <= 500 {
         current[column - 1] = text
+        if number == 1 {
+          let isStyledText =
+            !hasFormula && ["s", "inlineStr", "str"].contains(type) && styles.hasHeadingStyle(style)
+          if isStyledText {
+            styledTextColumns.insert(column - 1)
+          } else {
+            styledTextColumns.remove(column - 1)
+          }
+        } else if number == 2, !text.isEmpty, !styles.hasHeadingStyle(style) {
+          hasUnstyledBodyCell = true
+        }
       } else if !text.isEmpty || !formula.isEmpty {
         failure = SevraError("xlsx_limit", "Worksheet exceeds 500 columns.")
         parser.abortParsing()
@@ -622,13 +699,15 @@ extension Workbook {
       try cancellation.check()
       let width = sheet.rows.map(\.count).max() ?? 0
       let columns = (0..<width).map { Column(id: "c\($0+1)", title: Self.spreadsheetColumn($0)) }
+      var sourceData: [String: Value] = [
+        "originalRows": .array(sheet.rowNumbers.map { .number(Double($0)) }),
+        "formulas": .object(sheet.formulas.mapValues(Value.string)),
+      ]
+      if sheet.columnHeadings != nil { sourceData["columnLabels"] = sheet.nativeColumnLabels }
       let evidence = try addItem(
         category: "record", kind: "worksheet", title: source.title + " · " + sheet.name,
         text: sheet.notes.joined(separator: "\n"),
-        data: .object([
-          "originalRows": .array(sheet.rowNumbers.map { .number(Double($0)) }),
-          "formulas": .object(sheet.formulas.mapValues(Value.string)),
-        ]), meaning: "actual", status: "accepted", inputs: [source.id],
+        data: .object(sourceData), meaning: "actual", status: "accepted", inputs: [source.id],
         transformation: "xlsx-cached-values-v1",
         token: "xlsx-sheet-\(sourceID)-\(position)-\(sheet.name)")
       let rows = sheet.rows.map { row in

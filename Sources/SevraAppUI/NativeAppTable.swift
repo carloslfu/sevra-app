@@ -179,7 +179,7 @@ import SevraCore
     }
     for (view, column) in zip(grid.tableColumns, columns) {
       let id = view.identifier.rawValue
-      view.title = node.props["columnLabels"][id].string ?? column["title"].text
+      view.title = page["columnLabels"][id].string ?? column["title"].text
       view.headerToolTip = view.title
       // An AppKit column may be reused for a different table with the same ID.
       view.headerCell.alignment = column["type"].text == "decimal" ? .right : .left

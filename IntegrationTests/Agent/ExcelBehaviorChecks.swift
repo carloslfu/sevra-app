@@ -14,6 +14,7 @@ func checkExcelBehaviorReconstruction() async throws {
     "sevra-behavior-check-" + identifier())
   try FileManager.default.createDirectory(at: root, withIntermediateDirectories: true)
   defer { try? FileManager.default.removeItem(at: root) }
+  try checkStyledWorksheetHeadings(root)
   do {
     let book = try Workbook.create(
       at: root.appendingPathComponent("Loan layout.sevra"), title: "Loan layout")
@@ -22,8 +23,9 @@ func checkExcelBehaviorReconstruction() async throws {
     let conversion = try book.beginExcelConversion(sourceID: source.id)
     let valid = try Value.parse(
       #"{"sheet1":[{"c1":"Opening cash","c2":"Principal","c3":"Annual rate","c4":"Months"},{"c1":"0","c2":"12345.60","c3":"0","c4":"24"}]}"#)
-    try expectEqual(
-      try book.excelCheckCoordinates(conversion.id, validatingFixtures: valid).first, [1, 2])
+    let layout = try book.excelCheckLayout(conversion.id, validatingFixtures: valid)
+    try expectEqual(layout.coordinates.first, [1, 2])
+    try expectEqual(layout.headings["sheet1"], valid["sheet1"].array[0])
     var values = valid["sheet1"].array[1].object
     values["c1"] = .string("Principal")
     let fakeKey: Value = .object(["sheet1": .array([valid["sheet1"].array[0], .object(values)])])
@@ -57,6 +59,11 @@ func checkExcelBehaviorReconstruction() async throws {
         "workflows": .array([.string("Receive stock")]), "questions": .array([]),
       ]))
     conversion = try book.importExcelConversionTables(conversion.id)
+    let products = try book.dataset(conversion.datasetIDs[0])
+    let headingRecord = try book.item(expectValue(book.datasetSource(products.id)))
+    let productHeading = try book.rows(products.id)[0]
+    try expectEqual(headingRecord.data["columnLabels"], productHeading.data)
+    try expectEqual(products.columns.first?.title, "A")
     let build = try book.prepareExcelConversionBuild(conversion.id)
     var bindings: [String: NativeAppDataset] = [:]
     for (index, table) in build.tables.enumerated() {
@@ -938,6 +945,57 @@ private func checkExcelActionCoverage(
   print(
     "PASS fixed-cell action coverage: initial interaction, selection gap, rejected/mount writes, picker navigation, 24 actions and automatic repair feedback"
   )
+}
+
+private func checkStyledWorksheetHeadings(_ root: URL) throws {
+  let styles = """
+    <styleSheet><fonts><font/><font><b/></font><font><b val="0"/></font></fonts>
+    <fills><fill/><fill><patternFill patternType="solid"/></fill></fills>
+    <cellXfs><xf/><xf fontId="1" fillId="1"/><xf fontId="2" fillId="1"/></cellXfs></styleSheet>
+    """
+  let header = """
+    <row r="1"><c r="A1" t="inlineStr" s="1"><is><t>Item</t></is></c>
+    <c r="B1" t="s" s="1"><v>0</v></c></row>
+    """
+  let body = """
+    <row r="2"><c r="A2" t="inlineStr"><is><t>Valve</t></is></c><c r="B2"><f>1+1</f><v>2</v></c></row>
+    """
+  let variants: [(name: String, first: String, second: String, suffix: String)] = [
+    ("clear", header, body, ""),
+    ("unstyled", header.replacingOccurrences(of: "s=\"1\"", with: "s=\"0\""), body, ""),
+    ("falseBold", header.replacingOccurrences(of: "s=\"1\"", with: "s=\"2\""), body, ""),
+    ("merged", header, body, #"<mergeCells><mergeCell ref="A1:B1"/></mergeCells>"#),
+    ("computed", header.replacingOccurrences(of: "<v>0</v>", with: "<f>0</f><v>0</v>"), body, ""),
+    ("extraColumn", header, body.replacingOccurrences(of: "</row>",
+      with: #"<c r="C2"><v>7</v></c></row>"#), ""),
+  ]
+  for variant in variants {
+    let file = root.appendingPathComponent(variant.name + ".xlsx")
+    let archive = try Archive(url: file, accessMode: .create)
+    let parts = [
+      "xl/workbook.xml":
+        #"<workbook xmlns:r="r"><sheets><sheet name="Stock" r:id="s"/></sheets></workbook>"#,
+      "xl/_rels/workbook.xml.rels":
+        #"<Relationships><Relationship Id="s" Type="x/worksheet" Target="worksheets/sheet1.xml"/></Relationships>"#,
+      "xl/sharedStrings.xml": "<sst><si><t>Units</t></si></sst>",
+      "xl/styles.xml": styles,
+      "xl/worksheets/sheet1.xml":
+        "<worksheet><sheetData>" + variant.first + variant.second + "</sheetData>"
+        + variant.suffix + "</worksheet>",
+    ]
+    for (name, text) in parts {
+      let bytes = Data(text.utf8)
+      try archive.addEntry(
+        with: name, type: .file, uncompressedSize: Int64(bytes.count)
+      ) { offset, size in bytes.subdata(in: Int(offset)..<(Int(offset) + size)) }
+    }
+    let sheet = try XLSX.read(file)[0]
+    try expectEqual(sheet.columnHeadings, variant.name == "clear" ? ["Item", "Units"] : nil)
+    try expectEqual(sheet.rows[0], ["Item", "Units"])
+    try expectEqual(sheet.formulas["B2"], "1+1")
+    try expectEqual(sheet.rowNumbers, [1, 2])
+  }
+  print("PASS styled Excel column headings preserve raw cells and refuse ambiguous first rows")
 }
 
 private func checkExcelEvidenceBoundaries(_ root: URL) throws {

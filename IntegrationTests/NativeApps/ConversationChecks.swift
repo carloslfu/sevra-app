@@ -277,10 +277,11 @@ private actor ConversationWorker {
   _ book: Workbook, defaults: UserDefaults, exchange: (@Sendable (Data) async throws -> Data)?
 ) async throws {
   let original = try book.addItem(category: "source", kind: "annotation", title: "Stock fixture")
-  let source = try book.addItem(
-    category: "record", kind: "worksheet", title: "Products", inputs: [original.id])
   let columns = [Column(id: "a", title: "A"), Column(id: "b", title: "B")]
   let labels: Value = .object(["a": .string("SKU"), "b": .string("Product description")])
+  let source = try book.addItem(
+    category: "record", kind: "worksheet", title: "Products",
+    data: .object(["columnLabels": labels]), inputs: [original.id])
   let table = try book.createDataset(
     title: "Products", columns: columns,
     rows: [
@@ -295,9 +296,9 @@ private actor ConversationWorker {
     source: """
       const S = Sevra, selected = S.signal('');
       S.mount(S.h(S.Column, {},
-        S.h(S.Table, {table: 'products', label: 'Products', columnLabels: {a: 'SKU', b: 'Product description'}, onSelect: e => selected.value = 'Selected ' + e.value.values.a}),
+        S.h(S.Table, {table: 'products', label: 'Products', onSelect: e => selected.value = 'Selected ' + e.value.values.a}),
         S.h(S.Text, {text: selected}),
-        S.h(S.Table, {table: 'products', label: 'Raw rows'})));
+        S.h(S.Table, {table: 'products', label: 'Override', columnLabels: {a: 'Item code'}})));
       """,
     datasets: [
       "products": .init(title: table.title, columns: columns, writable: false, datasetID: table.id)
@@ -357,14 +358,19 @@ private actor ConversationWorker {
 
   let access = try NativeAppAccess(workbook: book, space: space)
   let request: Value = .object(["table": .string("products")])
-  try expect(book.nativeAppPage(access, request: request)["total"] == .number(4))
+  let rawPage = try book.nativeAppPage(access, request: request)
+  try expect(rawPage["total"] == .number(4) && rawPage["columnLabels"] == .null)
   let limited = try book.nativeAppPage(access, request: .object([
     "table": .string("products"), "limit": .number(1), "offset": .number(1),
   ]), columnLabels: labels)
   try expect(limited["rows"].array.map { $0["id"].text } == [raw[2].id])
-  try expect(book.nativeAppPage(access, request: request, columnLabels: .object([
+  let renamed = try book.nativeAppPage(access, request: request, columnLabels: .object([
+    "a": .string("Item code"),
+  ]))
+  try expect(renamed["total"] == .number(3))
+  try expect(renamed["columnLabels"] == .object([
     "a": .string("Item code"), "b": .string("Product description"),
-  ]))["total"] == .number(4))
+  ]))
   try expect(book.rows(table.id).map(\.id) == raw.map(\.id))
   _ = try await NativeAppCheck.run(
     package: package,
@@ -372,5 +378,13 @@ private actor ConversationWorker {
       .object(["kind": .string("select"), "target": .string("Products"), "value": .number(0)]),
       .object(["kind": .string("expect_text"), "value": .string("Selected P1")]),
       .object(["kind": .string("expect_rows"), "table": .string("products"), "count": .number(4)]),
-    ], fixtures: .object(["products": .array(raw.map(\.data))]), excelCoordinates: [[1, 2, 3, 4]])
+    ], fixtures: .object(["products": .array(raw.map(\.data))]),
+    excelCoordinates: [[1, 2, 3, 4]], excelHeadings: ["products": labels])
+  _ = try book.chatTableTransaction(
+    table.id, expectedDefinitionID: table.definitionID, operations: [
+      .object(["op": .string("update"), "id": .string(raw[0].id),
+        "values": .object(["a": .string("Edited first record")])])
+    ])
+  let edited = try book.nativeAppPage(access, request: request, columnLabels: Value.null)
+  try expect(edited["total"] == .number(4) && edited["columnLabels"] == .null)
 }

@@ -15,19 +15,20 @@ public enum NativeAppCheck {
   public static func run(
     package: NativeAppPackage, steps: [Value], fixtures: Value = .object([:]),
     cancellation: Cancellation = .init(), excelCoordinates: [[Int]]? = nil,
+    excelHeadings: [String: Value] = [:],
     requireUnselectedExcelActions: Bool = false, excelFormulas: ExcelCheckFormulas? = nil,
     testProgress: (Int) -> Void = { _ in }
   ) async throws -> Value {
     try await run(
       package: package, steps: steps, fixtures: fixtures, cancellation: cancellation,
-      excelCoordinates: excelCoordinates,
+      excelCoordinates: excelCoordinates, excelHeadings: excelHeadings,
       requireUnselectedExcelActions: requireUnselectedExcelActions,
       excelFormulas: excelFormulas, expectFinalActionSuccess: false, testProgress: testProgress)
   }
 
   package static func run(
     package: NativeAppPackage, steps: [Value], fixtures: Value,
-    cancellation: Cancellation, excelCoordinates: [[Int]]?,
+    cancellation: Cancellation, excelCoordinates: [[Int]]?, excelHeadings: [String: Value] = [:],
     requireUnselectedExcelActions: Bool = false, excelFormulas: ExcelCheckFormulas?,
     expectFinalActionSuccess: Bool, checkActionWrites: Bool = false,
     testProgress: (Int) -> Void = { _ in }
@@ -63,21 +64,19 @@ public enum NativeAppCheck {
     defer { try? FileManager.default.removeItem(at: root) }
     let book = try Workbook.create(
       at: root.appendingPathComponent("Check.sevra"), title: "Disposable app check")
-    let worksheet: Item?
-    if excelCoordinates != nil {
-      let source = try book.addItem(
-        category: "source", kind: "annotation", title: "Synthetic Excel fixtures")
-      worksheet = try book.addItem(
-        category: "record", kind: "worksheet", title: "Synthetic worksheet", inputs: [source.id])
-    } else {
-      worksheet = nil
+    let fixtureSource = try excelCoordinates.map { _ in
+      try book.addItem(category: "source", kind: "annotation", title: "Synthetic Excel fixtures")
     }
     var isolated = package
     for alias in isolated.datasets.keys.sorted() {
       var binding = isolated.datasets[alias]!
-      binding.datasetID = try worksheet.map {
-        try book.createDataset(
-          title: binding.title, columns: binding.columns, rows: [], sourceID: $0.id).id
+      binding.datasetID = try fixtureSource.map { source in
+        let data: Value = .object(excelHeadings[alias].map { ["columnLabels": $0] } ?? [:])
+        let worksheet = try book.addItem(
+          category: "record", kind: "worksheet", title: binding.title,
+          data: data, inputs: [source.id])
+        return try book.createDataset(
+          title: binding.title, columns: binding.columns, rows: [], sourceID: worksheet.id).id
       }
       binding.writable = true
       isolated.datasets[alias] = binding

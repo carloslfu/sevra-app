@@ -318,10 +318,11 @@ package enum NativeAppReview {
         let probe = Value.object(["verdict": verdict, "result": feedback])
         counterexamples.append(probe)
         recordMetrics(.object(["host": .string("native_app_review_probe"), "probe": probe]))
+        let modelFeedback = NativeAppReviewRetry.reviewerFeedback(feedback)
         messages.append(.init(role: "assistant", content: "", toolCalls: response.calls))
         messages.append(
           .init(
-            role: "tool", content: try feedback.json(),
+            role: "tool", content: try modelFeedback.json(),
             toolCallId: response.calls[0].id, toolName: definition.name))
       }
       let issues = verdict["issues"].array
@@ -420,21 +421,22 @@ package enum NativeAppReview {
           baseFixtures.object.merging(verdict["fixtures"].object) { _, replacement in replacement })
       }
       var feedback: Value
+      let stepLimit = blindActions ? Self.actionReviewStepLimit : 16
       let remainingActions = Set(checkedActions).subtracting(testedActions)
       let probeActions = Set(checkedActions).intersection(Self.assertedSuccessfulActions(tests))
       if (ready
         ? probeActions.intersection(remainingActions).count < min(4, remainingActions.count)
         : issues.count != 1)
-        || !(1...16).contains(tests.count)
+        || !(1...stepLimit).contains(tests.count)
         || !NativeAppCheck.hasAssertion(tests)
       {
         feedback = .object([
           "error": .string(
             ready
-              ? "Readiness needs a successful run_action followed by its exact effect assertions for each remaining action, four per batch when needed, within 1..16 steps: "
+              ? "Readiness needs a successful run_action followed by its exact effect assertions for each remaining action, four per batch when needed, within 1..\(stepLimit) steps: "
                 + remainingActions.sorted().joined(separator: ", ")
                 + ". In each successful probe, pair action and inputs with inputRoles and an expect array: [{kind:'expect_row',table:'alias',values:{column:'expected'}}] for saved results, or expect_value/expect_text for read-only results. Put multiple effects of one invocation in the same array. Native forms invoke the same actions; filling fields or clicking their buttons does not satisfy named-action coverage. Rejection-only probes, row counts and control-presence checks cannot qualify successful effects. Derive correct values from the request and source; also probe business refusals using the starting fixtures."
-              : "A revision needs one concrete defect and 1..16 counterexample tests with an expectation. Use the supplied starting fixtures. Provide those tests, or return ready with the required independent action probes if no defect is established. Do not repeat untested claims."
+              : "A revision needs one concrete defect and 1..\(stepLimit) counterexample tests with an expectation. Use the supplied starting fixtures. Provide those tests, or return ready with the required independent action probes if no defect is established. Do not repeat untested claims."
           )
         ])
       } else {
@@ -444,7 +446,7 @@ package enum NativeAppReview {
             : "Checking the review's counterexample in isolation")
         var completedProbeSteps = 0
         do {
-          let coordinates = try workbook.excelCheckCoordinates(
+          let layout = try workbook.excelCheckLayout(
             build.conversionID, validatingFixtures: probeFixtures, cancellation: cancellation)
           let formulas =
             package.excelBehavior == nil
@@ -467,14 +469,15 @@ package enum NativeAppReview {
               actions: claimedEffects, registeredActions: Set(checkedActions),
               roles: inputRoles, steps: tests,
               fixtures: probeFixtures, inputTypes: declaredTypes, package: package,
-              tables: build.tables, coordinates: coordinates,
+              tables: build.tables, coordinates: layout.coordinates,
               inputCell: workbook.excelOriginalInputLookup(
                 build.conversionID, cancellation: cancellation))
           }
           func checkReviewedActions() async throws -> Value {
             try await NativeAppCheck.run(
               package: package, steps: tests, fixtures: probeFixtures, cancellation: cancellation,
-              excelCoordinates: coordinates, excelFormulas: formulas,
+              excelCoordinates: layout.coordinates, excelHeadings: layout.headings,
+              excelFormulas: formulas,
               expectFinalActionSuccess: false, checkActionWrites: ready && blindActions,
               testProgress: { completedProbeSteps = $0 })
           }
@@ -489,7 +492,7 @@ package enum NativeAppReview {
               fixtures: probeFixtures,
               inputTypes: initialCheck == .null ? declaredTypes : initialCheck["actionInputTypes"],
               contracts: checkedActionInputs, package: package, tables: build.tables,
-              coordinates: coordinates,
+              coordinates: layout.coordinates,
               inputCell: workbook.excelOriginalInputLookup(
                 build.conversionID, cancellation: cancellation))
             for ruling in numericRulings where probeActions.contains(ruling.dispute.action) {
@@ -510,7 +513,8 @@ package enum NativeAppReview {
               do {
                 let result = try await NativeAppCheck.run(
                   package: package, steps: probeSteps, fixtures: probeFixtures,
-                  cancellation: cancellation, excelCoordinates: coordinates,
+                  cancellation: cancellation, excelCoordinates: layout.coordinates,
+                  excelHeadings: layout.headings,
                   excelFormulas: formulas,
                   expectFinalActionSuccess: allowed, testProgress: { completedDerivedSteps = $0 }
                 )
@@ -532,7 +536,8 @@ package enum NativeAppReview {
                   do {
                     _ = try await NativeAppCheck.run(
                       package: package, steps: control, fixtures: probeFixtures,
-                      cancellation: cancellation, excelCoordinates: coordinates,
+                      cancellation: cancellation, excelCoordinates: layout.coordinates,
+                      excelHeadings: layout.headings,
                       excelFormulas: formulas, expectFinalActionSuccess: true)
                   } catch {
                     try cancellation.check()
@@ -648,11 +653,12 @@ package enum NativeAppReview {
             var last = opposite.removeLast().object
             last["reject"] = ruling.accepted ? nil : .bool(true)
             opposite.append(.object(last))
+            let layout = try workbook.excelCheckLayout(
+              build.conversionID, validatingFixtures: probeFixtures, cancellation: cancellation)
             let confirmed = try await NativeAppCheck.run(
               package: package, steps: opposite, fixtures: probeFixtures,
               cancellation: cancellation,
-              excelCoordinates: try workbook.excelCheckCoordinates(
-                build.conversionID, validatingFixtures: probeFixtures, cancellation: cancellation),
+              excelCoordinates: layout.coordinates, excelHeadings: layout.headings,
               excelFormulas: package.excelBehavior == nil
                 ? try workbook.excelCheckFormulas(build.conversionID) : nil,
               expectFinalActionSuccess: ruling.accepted)
@@ -714,10 +720,14 @@ package enum NativeAppReview {
       }
       try giveFeedback(feedback)
     }
+    let last = counterexamples.last ?? .null
+    let lastFeedback = NativeAppReviewRetry.reviewerFeedback(last["result"])
     throw SevraError(
       "app_review_inconclusive",
       "The local reviewer did not establish a consistent verdict within its check budget. No app was saved; unverified review claims were not applied to the source. Invalid counterexamples indicate test setup failures, not established app defects. Last review feedback: "
-        + String((try counterexamples.last?.json() ?? "{}").prefix(6000))
+        + String(decoding: try lastFeedback.json().utf8.prefix(2400), as: UTF8.self)
+        + "\nLast review verdict: "
+        + String(decoding: try last["verdict"].json().utf8.prefix(3600), as: UTF8.self)
     )
   }
 }

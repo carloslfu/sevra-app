@@ -49,6 +49,12 @@ public struct StructuredResult: Codable, Sendable {
         "structured_output", "Worksheet exceeds the import limits.")
       let width = sheet.rows.map(\.count).max() ?? 0
       try require(width <= 500, "structured_output", "Worksheet exceeds 500 columns.")
+      if let labels = sheet.columnHeadings {
+        try require(
+          labels == sheet.rows.first && labels.count == width && width >= 2
+            && labels.allSatisfy { !$0.isEmpty && $0.utf8.count <= 128 },
+          "structured_output", "Invalid worksheet column headings.")
+      }
       // The host fills missing columns. Bound that dense expansion, not just stored cells.
       cells += width * sheet.rows.count
       try require(

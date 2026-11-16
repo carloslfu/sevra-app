@@ -23,7 +23,9 @@ package struct NativeAppReviewRetry {
     guard fingerprint != nil, metric["host"] == .string("native_app_review_probe"),
       case .object = metric["probe"]
     else { return }
-    var probe = metric["probe"]
+    var fields = metric["probe"].object
+    fields["result"] = Self.reviewerFeedback(metric["probe"]["result"])
+    var probe = Value.object(fields)
     if (try? probe.json().utf8.count) ?? Int.max > 16_384 {
       let result = probe["result"]
       probe = .object([
@@ -39,6 +41,16 @@ package struct NativeAppReviewRetry {
       ])
     }
     diagnostic = .object(["receiptID": .string(receiptID), "probe": probe])
+  }
+
+  /// Retain detailed checks in the audit receipt. The reviewer needs their
+  /// outcome, and can use the existing original and interface evidence.
+  static func reviewerFeedback(_ feedback: Value) -> Value {
+    guard case .object(let check) = feedback["check"] else { return feedback }
+    let outcome = Set(["status", "assertions", "steps", "transactions"])
+    var result = feedback.object
+    result["check"] = .object(check.filter { outcome.contains($0.key) })
+    return .object(result)
   }
 
   package mutating func discard() {
