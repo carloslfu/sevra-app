@@ -74,6 +74,7 @@ func checkNativeReviewGrammar(frontend: SplashTextFrontend, factory: SplashGramm
       output(
         #"[{"action":"ship","inputs":{},"expect":[{"kind":"reject"},{"kind":"expect_text","value":"Done"}]}]"#
       ),
+      output(probes.replacingOccurrences(of: #""quantity":"-3""#, with: #""quantity":-3"#)),
       output(probes.replacingOccurrences(of: "expect_row", with: "run_action")),
       output(probes, tool: "save_native_app"),
       output(probes, includeRoles: false),

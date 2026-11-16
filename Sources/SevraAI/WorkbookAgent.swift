@@ -888,8 +888,28 @@ public enum WorkbookAgent {
             state: "complete",
             focus: focus)
         }
+        var routedAppCall: Value?
+        var appRoutingFailure: (any Error)?
+        if tool == "workspace_action", a["action"] == .string("app.run"),
+          (try? ChatOperations.validate("app.run", arguments: a["arguments"], readOnly: readOnly))
+            != nil
+        {
+          do {
+            let target = try workbook.spaceTarget(
+              a["arguments"]["id"].text, cancellation: cancellation)
+            var invocation = a["arguments"].object
+            invocation["id"] = .string(target.id)
+            routedAppCall = .object([
+              "action": .string("app.run"), "arguments": .object(invocation),
+            ])
+          } catch {
+            appRoutingFailure = error
+          }
+        }
+        // The journal hashes the exact dispatched arguments; never hash a
+        // mutable name as a second route to the same action.
         let receiptID = try workbook.prepareToolCall(
-          runID: runID, callID: call.id, tool: tool, arguments: a,
+          runID: runID, callID: call.id, tool: tool, arguments: routedAppCall ?? a,
           assistantText: response.text)
         let activity = ToolActivityLabel.title(tool, arguments: a)
         progress(activity)
@@ -910,6 +930,7 @@ public enum WorkbookAgent {
         var retainedAppCheck: Value?
         var isolatedTestStepsPassed = 0
         do {
+          if let appRoutingFailure { throw appRoutingFailure }
           try require(
             tool != "start_thread_and_continue" || step < stepBudget,
             "step_limit", "There is no response budget left to continue in a new thread.")
@@ -1051,12 +1072,13 @@ public enum WorkbookAgent {
             tool == "prepare_action" ? "commit_action_preview" : tool,
             commitArguments ?? a, receiptID: receiptID, nativeAppCheck: nativeAppCheck)
           if tool == "workspace_action", let action = value["hostAction"].string {
-            let args = value["arguments"]
+            let args = routedAppCall.map { $0["arguments"] } ?? value["arguments"]
             let operation = try ChatOperations.validate(action, arguments: args, readOnly: readOnly)
             let replay =
               operation.readOnly
               ? nil
-              : try workbook.chatActionReplay(runID: runID, arguments: a, excluding: receiptID)
+              : try workbook.chatActionReplay(
+                runID: runID, arguments: routedAppCall ?? a, excluding: receiptID)
             if let replay {
               value = replay
             } else if ["workflow.run", "workflow.continue", "workflow.retry"].contains(action) {
@@ -1223,6 +1245,13 @@ public enum WorkbookAgent {
               "The call did not finish successfully. Completed changes remain saved. Inspect the receipt and workbook state before retrying; do not claim no changes occurred. Fix the reported arguments when applicable."
             ),
           ]
+          if (appRoutingFailure as? SevraError)?.code == "space_not_found" {
+            // This target failed exact lookup BEFORE replay or worker dispatch.
+            failureResult["dispatch"] = .string("app_target_not_found")
+            failureResult["retryInstruction"] = .string(
+              "This action did not run. Use the exact id argument of the successful app.inspect call, which can be the app's exact name. Preserve every business input. If you cannot identify that app, ask the user."
+            )
+          }
           if tool == "read_native_app", !readOnly, !cancellation.isCancelled {
             failureResult["guide"] = .string(NativeAppAuthoring.guide)
           }
@@ -1269,6 +1298,13 @@ public enum WorkbookAgent {
         if let preparationPreviewReceiptID {
           var fields = recordedResult.object
           fields["preparationPreviewReceiptID"] = .string(preparationPreviewReceiptID)
+          recordedResult = .object(fields)
+        }
+        if let routedAppCall, case .object(var fields) = recordedResult {
+          let submittedTarget = a["arguments"]["id"]
+          fields["requestedAppTarget"] =
+            submittedTarget == routedAppCall["arguments"]["id"]
+            ? nil : submittedTarget
           recordedResult = .object(fields)
         }
         let projected = try workbook.completeToolCall(
@@ -1329,7 +1365,8 @@ public enum WorkbookAgent {
         if callFailed {
           if !nothingFailed {
             actionConfirmations.recordFailure(
-              tool: tool, arguments: a, result: result, receiptID: receiptID)
+              tool: tool, arguments: a, result: result, receiptID: receiptID,
+              appTargetNotFound: (appRoutingFailure as? SevraError)?.code == "space_not_found")
           }
           let key = try action.json()
           rejectedActions[key, default: 0] += 1
@@ -1624,7 +1661,8 @@ public enum WorkbookAgent {
         }
         let presentedResult =
           tool == "workspace_action" && a["action"] == .string("app.inspect") && !callFailed
-          ? AppOperationContext.inspection(projected, receiptID: receiptID, request: prompt)
+          ? AppOperationContext.inspection(
+            projected, receiptID: receiptID, request: prompt, target: a["arguments"]["id"].string)
           : tool == "workspace_action" && a["action"] == .string("app.run")
             ? try AppOperationContext.operation(result, receiptID: receiptID, request: prompt)
             : tool == "save_native_app" && callFailed

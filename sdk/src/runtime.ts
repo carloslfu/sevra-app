@@ -126,7 +126,7 @@ export function ActionForm(props:{action:string}):Descriptor {
   h('button',{title:description.title,onClick:submit,enabled:available}));
 }
 /** A conventional native workspace, composed only from the existing controls. */
-export function Workspace(props:{sections:{title:string;table?:string;actions?:string[]}[]}):Descriptor {
+export function Workspace(props:{sections:{title:string;table?:string;columnLabels?:Record<string,string>;actions?:string[]}[]}):Descriptor {
  const sections=props.sections;
  if(!Array.isArray(sections)||!sections.length||sections.length>12)throw Error('Use 1 to 12 workspace sections');
  const titles=new Set<string>();
@@ -145,7 +145,7 @@ export function Workspace(props:{sections:{title:string;table?:string;actions?:s
   return h('column',{gap:16},
    ...(section.table?[
     h('textField',{label:'Filter '+section.title,placeholder:'Filter '+section.title.toLowerCase(),value:search}),
-    h('table',{table:section.table,label:section.title+' records',search})]:[]),
+    h('table',{table:section.table,label:section.title+' records',search,columnLabels:section.columnLabels})]:[]),
    ...(section.actions||[]).map(id=>h(ActionForm,{action:id})));
  });
  return h('tabs',{label:'Workspace sections',titles:sections.map(section=>section.title),value:signal(0)},...children);

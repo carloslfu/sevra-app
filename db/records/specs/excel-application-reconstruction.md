@@ -2,7 +2,7 @@
 type: spec
 id: 01m7bd3448sec8weav20n1fyht
 created: 2026-11-13T21:30:20.679849+00:00
-updated: 2026-11-15T12:52:13.872087+00:00
+updated: 2026-11-16T00:06:17.974370+00:00
 summary: Constrained Excel application reconstruction with original-result comparison; ten automatic workflows qualified against 89 independent originals within explicit limits.
 title: Excel application reconstruction
 status: implemented
@@ -106,3 +106,13 @@ rules; the model can still misunderstand which rules the business actually requi
 
 
 For named-action review, the host provides the executed action input contracts, initial native control identities/labels (without value/text properties), original cells/formulas and available original logic. The reviewer derives expected effects before running the candidate. A saved-row assertion must follow a successful named action with a host-observed committed write; matching a pre-existing row after a no-op does not establish a saved effect. Read-only actions may use value/text assertions. Receipts distinguish contract probes from source review and retain committed-write counts by test-step index. These checks do not establish universal equivalence or replace independent business journeys.
+
+An independent effect on an original worksheet compares exact saved strings or null.
+Named-action input types remain independent of worksheet storage. A reviewer classifying
+a matching original heading and a unique synthetic fixture key as free text must show
+a valid fixture-independent value or classify the lookup against its actual source.
+The hint does not invent a business rule and does not override explicit SDK choices.
+Admissible zero and fractional variants also check handler completion when faithfully
+representable without widening the starting magnitude. The independent business corpus
+still checks their exact saved effects and Undo. Neither review nor reported original
+examples prove universal equivalence.

@@ -368,7 +368,7 @@ func checkExcelConversions() async throws {
       var lookup = package
       lookup.source = """
         const found=Sevra.signal('');
-        Sevra.action('lookup',{title:'Lookup',inputs:{key:{type:'text'}}},async input=>{
+        Sevra.action('lookup',{title:'Lookup',inputs:{key:{type:'text',title:\(try Value.string(business.headers[0]).json())}}},async input=>{
           const rows=await Sevra.data.all('sheet1');
           if(!rows.some(r=>r.values.c1===input.key))throw Error('Unknown entity');
           found.value=input.key;
@@ -440,6 +440,26 @@ func checkExcelConversions() async throws {
       } catch { missedHeader = error.localizedDescription }
       try expectEqual(missedHeader.contains("derived input-refusal probe failed"), true)
       try expectEqual(missedHeader.contains("worksheet header is not a business entity"), true)
+      // A reviewer calling a business key ordinary text must not bypass the refusal.
+      let observedLookup = try await NativeAppCheck.run(
+        package: lookup,
+        steps: [.object(["kind": .string("expect_control"), "target": .string("Records")])])
+      var hiddenLookup = automaticHeaderReview
+      hiddenLookup["inputRoles"] = .object([
+        "lookup": .object(["key": .object(["kind": .string("value")])])
+      ])
+      let contestedLookup = ExcelTestModel(
+        [], reviews: [.object(hiddenLookup), .object(automaticHeaderReview)])
+      var contestedFailure = ""
+      do {
+        _ = try await NativeAppReview.check(
+          request: build.request, requestSourceID: source.id, arguments: lookupArguments,
+          workbook: book, model: contestedLookup,
+          directory: root, cancellation: .init(), progress: { _ in }, excelConversion: build,
+          checkedActions: ["lookup"], checkedActionInputs: observedLookup["actionInputs"])
+      } catch { contestedFailure = error.localizedDescription }
+      try expectEqual(await contestedLookup.reviewInputs.count, 2)
+      try expectEqual(contestedFailure.contains("worksheet header is not a business entity"), true)
       try checkNativeReviewInputContracts(
         package: lookup, tables: build.tables,
         coordinates: book.excelCheckCoordinates(build.conversionID),

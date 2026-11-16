@@ -118,6 +118,11 @@ assert number_variants({**number_role, 'maximum': 1.2}, 1) == [('whole', 1.1), (
 assert number_variants({**number_role, 'minimum': 1.5, 'maximum': 3.25}, 2) == [('whole', 2.5), ('minimum', 1), ('maximum', 4)]
 assert number_variants({**number_role, 'minimum': -3.25, 'maximum': -1.5}, -2) == [('whole', -1.5), ('minimum', -4), ('maximum', -1)]
 assert number_variants({**number_role, 'nonzero': True}, 1) == [('whole', 1.5), ('minimum', -1), ('maximum', 4), ('nonzero', 0)]
+unrestricted = {'kind': 'number', 'minimum': None, 'maximum': None, 'whole': False, 'nonzero': False}
+assert number_variants(unrestricted, '10') == [('allowed_zero', '0'), ('allowed_fraction', '9.5')]
+assert number_variants(unrestricted, -2) == [('allowed_zero', 0), ('allowed_fraction', -1.5)]
+assert number_variants(unrestricted, 1e16) == [('allowed_zero', 0)]
+assert number_variants(unrestricted, 0) == []
 number_probe = copy.deepcopy(key_probe)
 number_probe['inputRoles']['ship']['sku'] = number_role
 number_probe['check']['actionInputTypes']['1']['sku'] = 'number'
@@ -128,6 +133,25 @@ number_probe['inputChecks'] = [
      'tests': [setup, {**key_call, 'inputs': {**key_call['inputs'], 'sku': variant['value']}, 'reject': True}],
      'check': {'status': 'passed', 'digest': 'package'}} for variant in variants]
 assert require_input_checks(number_probe, 'package') == {'ship'}
+allowed_probe = copy.deepcopy(number_probe)
+allowed_probe['inputRoles']['ship']['sku'] = unrestricted
+allowed_probe['inputChecks'] = [
+    {'input': 'sku', 'rule': rule, 'value': value, 'action': 'ship',
+     'tests': [setup, {**key_call, 'inputs': {**key_call['inputs'], 'sku': value}}],
+     'check': {'status': 'passed', 'digest': 'package', 'assertions': 2, 'actionChanges': {'1': 1}}}
+    for rule, value in number_variants(unrestricted, 1)]
+assert require_input_checks(allowed_probe, 'package') == {'ship'}
+for fault in ['missing', 'rejected', 'no_final_action']:
+    malformed = copy.deepcopy(allowed_probe)
+    if fault == 'missing': malformed['inputChecks'].pop(0)
+    if fault == 'rejected': malformed['inputChecks'][0]['tests'][1]['reject'] = True
+    if fault == 'no_final_action': malformed['inputChecks'][0]['check']['actionChanges'] = {}
+    try:
+        require_input_checks(malformed, 'package')
+    except ValueError:
+        pass
+    else:
+        raise AssertionError('An untested allowed input passed: ' + fault)
 independent_order = copy.deepcopy(number_probe)
 independent_order['inputChecks'].reverse()
 assert require_input_checks(independent_order, 'package') == {'ship'}

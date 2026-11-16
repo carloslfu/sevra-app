@@ -2,6 +2,8 @@ import Foundation
 import SevraCore
 
 extension NativeAppReview {
+  package static let allowedNumberProbeRules: Set<String> = ["allowed_zero", "allowed_fraction"]
+
   /// Interpret numeric rules independently, then derive typed counterexamples.
   /// No numeric test value or expected result comes from generated app code.
   package static func numberProbes(role: Value, input: Value) throws -> [(String, Value)] {
@@ -46,7 +48,7 @@ extension NativeAppReview {
       inRange(base) && (role["whole"] != .bool(true) || isWhole(base))
         && (role["nonzero"] != .bool(true) || base != 0),
       "app_review_inputs",
-      "The successful numeric test must satisfy the declared requested rules. Use a valid base call; the host derives invalid variants."
+      "The successful numeric test must satisfy the requested rules. Use a valid base call; the host derives boundary probes."
     )
     var values: [(String, Decimal)] = []
     if role["whole"] == .bool(true) {
@@ -87,12 +89,29 @@ extension NativeAppReview {
       values.append(("maximum", value))
     }
     if role["nonzero"] == .bool(true) { values.append(("nonzero", 0)) }
-    return try values.map { rule, value in
+    // A program can reject every forbidden input yet also reject valid inputs.
+    // Change one value without increasing its magnitude, so the same setup can
+    // exercise permissive rules without manufacturing an overdraw or overload.
+    if base != 0, inRange(0), role["nonzero"] == .bool(false) {
+      values.append(("allowed_zero", 0))
+    }
+    if base != 0, isWhole(base), role["whole"] == .bool(false) {
+      let half = Decimal(string: "0.5")!
+      let fraction = base > 0 ? base - half : base + half
+      if inRange(fraction), !isWhole(fraction) {
+        values.append(("allowed_fraction", fraction))
+      }
+    }
+    return try values.compactMap { rule, value in
       try require(!value.isNaN, "app_review_inputs", "Numeric probe exceeded decimal bounds.")
       if case .string = input { return (rule, .string(Numbers.string(value))) }
       let typed = Value.number(NSDecimalNumber(decimal: value).doubleValue)
+      let exact = (try? number(typed)) == value
+      // An optional allowed sample cannot demonstrate anything if the action's
+      // numeric input would round it to another value before calling the handler.
+      if !exact, allowedNumberProbeRules.contains(rule) { return nil }
       try require(
-        try number(typed) == value, "app_review_inputs",
+        exact, "app_review_inputs",
         "Numeric probe cannot be represented exactly by this input type.")
       return (rule, typed)
     }

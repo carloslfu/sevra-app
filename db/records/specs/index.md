@@ -2,17 +2,17 @@
 type: index
 scope: type-folder
 folder: records/specs
-updated: 2026-11-15T22:07:39.359855Z
+updated: 2026-11-16T00:06:17.988991Z
 ---
 
 # records/specs
 
+- [[records/specs/programmable-native-engine]] — Native programmable spaces: scoped QuickJS/XPC execution, reactive AppKit rendering, shared transactional data, SDK authoring, recovery and bounded capabilities.
+- [[records/specs/excel-application-reconstruction]] — Constrained Excel application reconstruction with original-result comparison; ten automatic workflows qualified against 89 independent originals within explicit limits.
 - [[records/specs/conversation-context]] — Automatic compaction, preserved conversation history, authoritative continuation state and measured larger-context qualification.
 - [[records/specs/splash-integration]] — Python-free Swift integration of pinned upstream Splash, explicit behavior mapping, differential verification and measured adoption gates.
-- [[records/specs/programmable-native-engine]] — Native programmable spaces: scoped QuickJS/XPC execution, reactive AppKit rendering, shared transactional data, SDK authoring, recovery and bounded capabilities.
 - [[records/specs/chat-primary-operation]] — Chat-first workbook and mini-app operations through shared typed actions, durable human approval and native transaction receipts.
 - [[records/specs/local-model-native-apps]] — Local-model native app authoring, isolated checks, independent review and exact-version access.
-- [[records/specs/excel-application-reconstruction]] — Constrained Excel application reconstruction with original-result comparison; ten automatic workflows qualified against 89 independent originals within explicit limits.
 - [[records/specs/single-excel-import]] — One native Excel import with reviewed local workflow inference, shared tables and constrained app generation
 - [[records/specs/contextual-import]] — One contextual intake for starting and ongoing work, role-aware CSV/data use and truthful Excel continuity gates.
 - [[records/specs/distribution]] — Independent source build, native bundle, CLI skill, portable format and end-to-end release gates.

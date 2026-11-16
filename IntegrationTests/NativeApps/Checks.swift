@@ -224,7 +224,8 @@ func exchange(
       readOnly.datasets["rows"]?.writable = false
       let reader = try book.installNativeApp(readOnly)
       let permission = try NativeAppAccess(workbook: book, space: reader)
-      try expect(book.nativeAppLastTransaction(permission) == nil,
+      try expect(
+        book.nativeAppLastTransaction(permission) == nil,
         "Another app cannot inherit this app's reversal history")
       try refuses {
         _ = try book.nativeAppTransaction(
@@ -307,6 +308,35 @@ func exchange(
             && error.localizedDescription.contains("Property size on text at root/1")
             && error.localizedDescription.contains("weight:'bold'"),
           "A rejected native property did not identify the repair target")
+      }
+    }
+    check("Native table headings are bounded display metadata") {
+      let response = try exchange(
+        NativeAppRuntime(),
+        source: """
+          Sevra.mount(Sevra.h(Sevra.Workspace,{sections:[{title:'Bookings',table:'ledger',columnLabels:{c1:'Reference',c2:'Customer'}}]}));
+          """)
+      var tree = NativeAppTree()
+      _ = try tree.apply(response["frame"])
+      guard let table = tree.nodes.values.first(where: { $0.type == "table" }) else {
+        throw SevraError("test", "Workspace did not mount a native table.")
+      }
+      try expect(table.props["table"] == .string("ledger"))
+      try expect(table.props["columnLabels"]["c2"] == .string("Customer"))
+      for labels in [
+        Value.array([.string("Reference")]), .object(["c1": .number(1)]),
+        .object(["c1": .string("Multiple\nlines")]), .object(["c1": .string("  ")]),
+        .object(["c1": .string(String(repeating: "x", count: 257))]),
+      ] {
+        var properties = table.props.object
+        properties["columnLabels"] = labels
+        try refuses {
+          _ = try NativeAppNode(
+            .object([
+              "id": .string(table.id), "type": .string(table.type), "props": .object(properties),
+              "children": .array([]),
+            ]))
+        }
       }
     }
     check("All three example programs mount and use only native controls") {

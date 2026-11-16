@@ -633,7 +633,7 @@ var Sevra = (() => {
         { gap: 16 },
         ...section.table ? [
           h2("textField", { label: "Filter " + section.title, placeholder: "Filter " + section.title.toLowerCase(), value: search }),
-          h2("table", { table: section.table, label: section.title + " records", search })
+          h2("table", { table: section.table, label: section.title + " records", search, columnLabels: section.columnLabels })
         ] : [],
         ...(section.actions || []).map((id) => h2(ActionForm, { action: id }))
       );

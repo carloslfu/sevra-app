@@ -139,15 +139,19 @@ extension Checks {
     let table = try book.createDataset(
       title: "Rows", columns: columns,
       rows: [["name": .string("Zulu")], ["name": .string("Alpha")]], sourceID: source.id)
+    let computedColumns = [Column(id: "name", title: "Total", type: "decimal", formula: "2")]
+    let computed = try book.createDataset(
+      title: "Computed", columns: computedColumns, rows: [[:], [:]], sourceID: source.id)
     let selected = try book.rows(table.id)[1].logicalID
     let package = NativeAppPackage(
       name: "Controlled widgets",
       source: """
-        const S=Sevra,h=S.h; const titles=S.signal(['One','Two']), clicks=S.signal(0), active=S.signal(false); let renamed=0;
+        const S=Sevra,h=S.h; const titles=S.signal(['One','Two']), clicks=S.signal(0), active=S.signal(false);
+        const columnLabels=S.signal({name:'Customer',absent:'Unused'}), compactAlias=S.signal('rows'); let renamed=0;
         S.mount(h(S.Column,{},
           h(S.Tabs,{label:'Panels',titles,value:1},h(S.Text,{text:'First'}),h(S.Text,{text:'Second'})),
-          h(S.Button,{title:'Rename tab',onClick:()=>titles.value=['One','Renamed '+(++renamed)]}),
-        h(S.Table,{label:'Rows',table:'rows',sort:'name',selection:\(try Value.string(selected).json()),height:200}),
+          h(S.Button,{title:'Rename tab',onClick:()=>{titles.value=['One','Renamed '+(++renamed)];columnLabels.value={};}}),
+        h(S.Table,{label:'Rows',table:'rows',sort:'name',columnLabels,selection:\(try Value.string(selected).json()),height:200}),
         h(S.Column,{enabled:active},h(S.Button,{title:'Blocked',onClick:()=>clicks.value++})),
         h(S.Text,{text:()=>String(clicks.value)}),
         h(S.Tabs,{enabled:false,titles:['Locked','Other'],value:0},h(S.Text,{text:'Locked'}),h(S.Text,{text:'Other'})),
@@ -155,8 +159,13 @@ extension Checks {
         h(S.Table,{enabled:false,table:'rows',label:'Disabled rows',height:100}),
         h(S.Button,{title:'Enable action',onClick:()=>active.value=true}),
         h(S.Disclosure,{title:'Working details',value:false},h(S.Text,{text:'Visible details'})),
-        h(S.Table,{table:'rows',label:'Compact rows'})));
-        """, datasets: ["rows": .init(title: "Rows", columns: columns, datasetID: table.id)])
+        h(S.Table,{table:compactAlias,label:'Compact rows'}),
+        h(S.Button,{title:'Alternate table',onClick:()=>compactAlias.value=compactAlias.value==='rows'?'computed':'rows'})));
+        """,
+      datasets: [
+        "rows": .init(title: "Rows", columns: columns, datasetID: table.id),
+        "computed": .init(title: "Computed", columns: computedColumns, datasetID: computed.id),
+      ])
     let space = try book.installNativeApp(package)
     let domain = "sevra.adversarial." + identifier()
     let defaults = UserDefaults(suiteName: domain)!
@@ -201,6 +210,12 @@ extension Checks {
       failures.append("Initial native table sort ignored")
     }
     if grid.selectedRow != 0 { failures.append("Initial controlled row selection ignored") }
+    try expect(
+      grid.tableColumns.map(\.title) == ["Customer"], "Override should change only the real heading"
+    )
+    try expect(
+      first?.textField?.accessibilityLabel() == "Customer: Alpha",
+      "The override should label native cells")
     if grid.sortDescriptors.first?.key != "name" || grid.sortDescriptors.first?.ascending != true {
       failures.append("Initial table sort indicator missing")
     }
@@ -208,6 +223,14 @@ extension Checks {
     try await wait {
       session.tree.nodes["root/0"]?.props["titles"].array.last == .string("Renamed 1")
     }
+    try await wait { grid.tableColumns.first?.title == "Name" }
+    try expect(
+      grid.selectedRow == 0 && grid.sortDescriptors.first?.key == "name",
+      "Changing a heading must preserve selection and order")
+    let renamed = grid.view(atColumn: 0, row: 0, makeIfNecessary: true) as? NSTableCellView
+    try expect(
+      renamed?.textField?.accessibilityLabel() == "Name: Alpha",
+      "Clearing an override should restore the source heading")
     if tabs.tabViewItems.last?.label != "Renamed 1" {
       failures.append("Reactive tab title ignored")
     }
@@ -257,6 +280,22 @@ extension Checks {
     try expect(blocked.isEnabled, "Reenabled descendant remained disabled")
     blocked.performClick(nil)
     try await wait { session.tree.nodes["root/4"]?.props["text"] == .string("1") }
+    let compactGrid = findTable(compactTable)!
+    try expect(compactGrid.tableColumns.first?.sortDescriptorPrototype?.key == "name")
+    session.event(node: "root/11", handler: "onClick")
+    try await wait { compactGrid.tableColumns.first?.title == "Total" }
+    try expect(
+      compactGrid.tableColumns.first?.headerCell.alignment == .right,
+      "A same-ID replacement kept the previous table's text alignment")
+    try expect(
+      compactGrid.tableColumns.first?.sortDescriptorPrototype == nil,
+      "A same-ID replacement exposed unsupported formula sorting")
+    session.event(node: "root/11", handler: "onClick")
+    try await wait { compactGrid.tableColumns.first?.title == "Name" }
+    try expect(
+      compactGrid.tableColumns.first?.headerCell.alignment == .left
+        && compactGrid.tableColumns.first?.sortDescriptorPrototype?.key == "name",
+      "Returning to the original table must restore its text alignment and sort control")
     try expect(failures.isEmpty, failures.joined(separator: "; "))
   }
 

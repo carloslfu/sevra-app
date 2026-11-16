@@ -3,6 +3,7 @@
 import hashlib
 import datetime
 import decimal
+import math
 import json
 import pathlib
 import re
@@ -145,14 +146,29 @@ def number_variants(role, value):
             variants.append(('maximum', upper))
         if role['nonzero']:
             variants.append(('nonzero', decimal.Decimal(0)))
+        zero = decimal.Decimal(0)
+        if base != zero and in_range(zero) and not role['nonzero']:
+            variants.append(('allowed_zero', zero))
+        if base != zero and base == base.to_integral_value() and not role['whole']:
+            half = decimal.Decimal('0.5')
+            fraction = base - half if base > zero else base + half
+            if in_range(fraction) and fraction != fraction.to_integral_value():
+                variants.append(('allowed_fraction', fraction))
         def typed(n):
             if isinstance(value, str):
                 text = format(n, 'f')
                 return text.rstrip('0').rstrip('.') if '.' in text else text
             result = float(n)
-            require(number(result) == n, 'Numeric probe cannot be represented exactly')
             return result
-        return [(rule, typed(n)) for rule, n in variants]
+        typed_variants = []
+        for rule, n in variants:
+            sample = typed(n)
+            if not isinstance(value, str) and (not math.isfinite(sample) or number(sample) != n):
+                if rule in {'allowed_zero', 'allowed_fraction'}:
+                    continue
+                raise ValueError('Numeric probe cannot be represented exactly')
+            typed_variants.append((rule, sample))
+        return typed_variants
 
 
 def require_input_checks(probe, package_digest):
@@ -215,11 +231,19 @@ def require_input_checks(probe, package_digest):
             want = {**want, 'value': check['value'], 'cell': check['cell']}
         actual = {k: v for k, v in check.items() if k not in ['action', 'tests', 'check']}
         require(actual == want, 'Derived input variant does not match declared rules')
-        changed = {**call, 'inputs': {**call['inputs'], check['input']: check['value']}, 'reject': True}
+        changed = {**call, 'inputs': {**call['inputs'], check['input']: check['value']}}
+        allowed = want['rule'] in {'allowed_zero', 'allowed_fraction'}
+        if not allowed:
+            changed['reject'] = True
         require(check['tests'] == steps[:index] + [changed],
                 'Each input variant must preserve exactly the prior setup and run in its own check')
         require(check['check']['status'] == 'passed' and check['check']['digest'] == package_digest,
                 'Input check failed or checked a different package')
+        if allowed:
+            assertions = check['check'].get('assertions')
+            changes = check['check'].get('actionChanges', {}).get(str(index))
+            require(type(assertions) is int and assertions > 0 and type(changes) is int and changes >= 0,
+                    'Allowed-input probe did not complete its final action')
     return set(roles)
 
 

@@ -92,6 +92,21 @@ public struct NativeAppNode: Equatable, Sendable {
           throw SevraError("app_tree", "Table columns must be an array of column ID strings.")
         }
       }
+      if let labels = props.object["columnLabels"] {
+        guard case .object(let entries) = labels, entries.count <= 50,
+          entries.allSatisfy({ id, label in
+            !id.isEmpty && id.utf8.count <= 128
+              && label.string.map { text in
+                !text.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
+                  && text.utf8.count <= 256
+                  && text.rangeOfCharacter(from: .newlines.union(.controlCharacters)) == nil
+              } == true
+          })
+        else {
+          throw SevraError(
+            "app_tree", "Table columnLabels must map column IDs to short, single-line text labels.")
+        }
+      }
     }
     try require(
       props["options"].array.count <= 200 && props["titles"].array.count <= 50,
@@ -127,7 +142,7 @@ public struct NativeAppNode: Equatable, Sendable {
     "toggle": ["value", "title"], "picker": ["value", "options"],
     "slider": ["value", "min", "max"],
     "date": ["value"], "progress": ["value", "indeterminate"],
-    "table": ["table", "search", "sort", "descending", "columns", "selection"],
+    "table": ["table", "search", "sort", "descending", "columns", "columnLabels", "selection"],
     "tabs": ["titles", "value"],
     "disclosure": ["title", "value"], "canvas": ["shapes", "regions"], "image": ["symbol"],
   ]

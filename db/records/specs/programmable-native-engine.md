@@ -3,7 +3,7 @@ type: spec
 meta-type: conclusion
 id: 01m78sah1afmhpr6vzfbkrg1r2
 created: 2026-11-12T21:06:22.890879+00:00
-updated: 2026-11-15T18:33:18.415051+00:00
+updated: 2026-11-16T00:06:17.988991+00:00
 summary: 'Native programmable spaces: scoped QuickJS/XPC execution, reactive AppKit rendering, shared transactional data, SDK authoring, recovery and bounded capabilities.'
 title: Programmable native spaces SDK 1
 status: implemented
@@ -152,3 +152,10 @@ Action availability must produce a synchronous boolean through a literal, signal
 ### Default table density and action references
 
 Tables without an explicit height use their loaded row count for compact sizing, bounded at 260 points for ledgers. Their intrinsic height includes the native header, scrolling and pagination footer; page changes update layout. Explicit heights remain supported. Workspace uses this same default instead of forcing an empty fixed-height viewport. Workspace and ActionForm require exact registered action IDs. Unknown references report the rejected value and available IDs; display titles and handler functions are never implicitly resolved.
+
+A native Table or Workspace table section can set `columnLabels` to a bounded map
+from existing column IDs to short business headings. The labels stay visible when
+records are filtered or scrolled and are included in native cell accessibility labels.
+They do not change IDs, sorting keys, formulas, coordinates, saved data or access
+approval. AppKit updates column presentation when a reactive view switches bindings,
+including between tables with the same column IDs.

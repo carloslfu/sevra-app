@@ -18,6 +18,19 @@ public enum NativeAppCheck {
     requireUnselectedExcelActions: Bool = false, excelFormulas: ExcelCheckFormulas? = nil,
     testProgress: (Int) -> Void = { _ in }
   ) async throws -> Value {
+    try await run(
+      package: package, steps: steps, fixtures: fixtures, cancellation: cancellation,
+      excelCoordinates: excelCoordinates,
+      requireUnselectedExcelActions: requireUnselectedExcelActions,
+      excelFormulas: excelFormulas, expectFinalActionSuccess: false, testProgress: testProgress)
+  }
+
+  package static func run(
+    package: NativeAppPackage, steps: [Value], fixtures: Value,
+    cancellation: Cancellation, excelCoordinates: [[Int]]?,
+    requireUnselectedExcelActions: Bool = false, excelFormulas: ExcelCheckFormulas?,
+    expectFinalActionSuccess: Bool, testProgress: (Int) -> Void = { _ in }
+  ) async throws -> Value {
     try cancellation.check()
     try package.validate()
     guard case .object = fixtures else {
@@ -29,8 +42,15 @@ public enum NativeAppCheck {
         && fixtures.json().utf8.count <= 65_536,
       "app_check",
       "Supply 1 to 32 test steps including an assertion, with small synthetic fixtures.")
+    if expectFinalActionSuccess {
+      let final = steps.last ?? .null
+      try require(
+        final["kind"] == .string("run_action")
+          && final["reject"] == .null && final["error"] == .null,
+        "app_check", "An allowed-input check must end with a successful named action.")
+    }
     try require(
-      hasAssertion(steps), "app_check",
+      hasAssertion(steps) || expectFinalActionSuccess, "app_check",
       "These \(steps.count) test steps contain no assertion. Interactions alone do not verify behavior. Within the 32-step limit, include expect_row with exact saved values, expect_value, expect_text, or run_action with reject:true or an expected error. Remove redundant interactions to make room; do not remove assertions on repair."
     )
     try require(
@@ -472,6 +492,9 @@ public enum NativeAppCheck {
             assertions += 1
           } else {
             try require(result["error"] == .null, "app_check_assertion", result["error"].text)
+            // Host-derived allowed-input checks assert handler completion.
+            // Model-authored tests still need an explicit observed effect.
+            if expectFinalActionSuccess && index == steps.count - 1 { assertions += 1 }
           }
         case "expect_text":
           let text = step["value"].text

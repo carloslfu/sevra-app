@@ -19,6 +19,16 @@ test('workspace and forms identify unknown action IDs without accepting display 
  const empty=runtime('');
  assert.throws(()=>empty.run("Sevra.ActionForm({action:'save'})"),/No actions are registered/);
 });
+test('workspace preserves explicit headings without replacing data and search column IDs',()=>{
+ const r=runtime(`Sevra.mount(Sevra.h(Sevra.Workspace,{sections:[
+  {title:'Bookings',table:'ledger',columnLabels:{c1:'Booking reference',c2:'Room'}},
+  {title:'Raw worksheet',table:'original'}
+ ]}));`);
+ const tables=r.flush().patches.filter(p=>p.node?.type==='table').map(p=>p.node.props);
+ assert.deepEqual(tables.map(p=>[p.table,p.columnLabels,p.search]),[
+  ['ledger',{c1:'Booking reference',c2:'Room'},''],['original',undefined,'']
+ ]);
+});
 test('action registration explains a misplaced handler and preserves the three-argument contract',async()=>{
  const r=runtime('');
  for(const description of ["undefined","null","{title:42}","{title:'Add',handler:()=>{}}"]){

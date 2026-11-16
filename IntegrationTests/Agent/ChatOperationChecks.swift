@@ -42,8 +42,14 @@ private actor ChatOperationModel: WorkbookInference {
     "sevra-chat-agent-" + identifier())
   defer { try? FileManager.default.removeItem(at: root) }
   let book = try Workbook.create(at: root, title: "Chat agent")
+  let appID = "8719dbfc-af56-4a4c-a4c4-6651f7abddce"
+  let appName = "Synthetic app"
+  let otherID = "8719dbfc-af56-4a4c-a4c5-6651f7abddce"
+  let otherName = "Synthetic other app"
+  try book.saveSpace(id: otherID, title: otherName, definition: .init(components: []))
+  try book.saveSpace(id: appID, title: appName, definition: .init(components: []))
   let inspection: Value = .object([
-    "id": .string("synthetic-app"), "version": .number(1),
+    "id": .string(appID), "version": .number(1),
     "actions": .array([
       .object([
         "id": .string("add"),
@@ -60,7 +66,7 @@ private actor ChatOperationModel: WorkbookInference {
       "workspace_action",
       .object([
         "action": .string("app.inspect"),
-        "arguments": .object(["id": .string("synthetic-app")]),
+        "arguments": .object(["id": .string(appName)]),
       ])
     )
   ])
@@ -70,6 +76,11 @@ private actor ChatOperationModel: WorkbookInference {
     workspaceAction: { _, _, _, _ in inspection })
   let presented = try Value.parse(await inspectionModel.latestToolContent)
   try expectEqual(presented["actions"], inspection["actions"])
+  try expectEqual(
+    presented["runArguments"],
+    .object([
+      "id": .string(appName), "expectedVersion": .number(1),
+    ]))
   try expectEqual(presented["currentUserRequest"], .string(supplied))
   try expectEqual(presented["inputs"]["omitted"], .bool(true))
   let receipt = try book.toolResultPage(presented["inputs"]["receiptID"].text)
@@ -89,7 +100,7 @@ private actor ChatOperationModel: WorkbookInference {
   let action: Value = .object([
     "action": .string("app.run"),
     "arguments": .object([
-      "id": .string("synthetic-app"), "expectedVersion": .number(1), "action": .string("add"),
+      "id": .string(appName), "expectedVersion": .number(1), "action": .string("add"),
       "inputs": .object(["name": .string("Paper")]),
     ]),
   ])
@@ -132,24 +143,109 @@ private actor ChatOperationModel: WorkbookInference {
     try expectEqual(bounded["currentUserRequest"], .null)
     try expectEqual(try bounded.json().utf8.count <= ToolResultProjection.byteLimit, true)
   }
+  func target(_ name: String, from call: Value = action) -> Value {
+    var fields = call.object
+    var arguments = call["arguments"].object
+    arguments["id"] = .string(name)
+    fields["arguments"] = .object(arguments)
+    return .object(fields)
+  }
   var invocations = 0
   let model = ChatOperationModel([
     ("workspace_actions", .object(["domain": .string("app")])), ("workspace_action", action),
-    ("workspace_action", action),
+    ("workspace_action", target(appID)),
   ])
   _ = try await WorkbookAgent.run(
     "Add Paper in my app.", workbook: book, model: model,
     workspaceAction: { name, arguments, readOnly, cancellation in
       try expectEqual(name, "app.run")
+      try expectEqual(arguments["id"], .string(appID))
       try expectEqual(arguments["inputs"]["name"].text, "Paper")
       try expectEqual(readOnly, false)
       try cancellation.check()
       invocations += 1
       return .object([
-        "outcome": .string("completed"), "result": .object(["saved": .string("Paper")]),
+        "id": .string(appID), "outcome": .string("completed"),
+        "result": .object(["saved": .string("Paper")]), "changes": .array([]), "errors": .array([]),
       ])
     })
   try expectEqual(invocations, 1)
+  let replay = try Value.parse(await model.latestToolContent)
+  try expectEqual(replay["replayed"], .bool(true))
+  let replayReceipt = try book.toolCall(replay["receiptID"].text)
+  try expectEqual(replayReceipt["arguments"]["arguments"]["id"], .string(appID))
+  try expectEqual(
+    try book.toolResultPage(replay["receiptID"].text)["value"]["requestedAppTarget"], .null)
+  for failure in [
+    "copied-id", "copied-digit", "unrelated", "changed-input", "changed-version", "unseen",
+    "ambiguous-inspections", "handler-refuses",
+  ] {
+    let missing: String
+    switch failure {
+    case "unrelated": missing = "Missing inventory app"
+    case "copied-digit":
+      missing = "8719dbfc-af56-4a4c-a4c4-6651f7abddce".replacingOccurrences(
+        of: "af56", with: "af57")
+    default: missing = "8719dbfc-af56-4a4c-6651f7abddce"
+    }
+    var invalid = target(missing).object
+    if failure == "changed-input" {
+      var arguments = invalid["arguments"]!.object
+      arguments["inputs"] = .object(["name": .string("Different")])
+      invalid["arguments"] = .object(arguments)
+    }
+    if failure == "changed-version" {
+      var arguments = invalid["arguments"]!.object
+      arguments["expectedVersion"] = .number(2)
+      invalid["arguments"] = .object(arguments)
+    }
+    var calls: [(String, Value)] =
+      failure == "unseen"
+      ? []
+      : [
+        (
+          "workspace_action",
+          .object([
+            "action": .string("app.inspect"), "arguments": .object(["id": .string(appName)]),
+          ])
+        )
+      ]
+    if failure == "ambiguous-inspections" {
+      calls.append(
+        (
+          "workspace_action",
+          .object([
+            "action": .string("app.inspect"), "arguments": .object(["id": .string(otherName)]),
+          ])
+        ))
+    }
+    calls += [("workspace_action", .object(invalid)), ("workspace_action", action)]
+    var runs = 0
+    let result = try await WorkbookAgent.run(
+      "Add Paper in the app.", workbook: book, model: ChatOperationModel(calls),
+      workspaceAction: { name, args, _, _ in
+        if name == "app.inspect" {
+          if args["id"] != .string(otherName) { return inspection }
+          var other = inspection.object
+          other["id"] = .string(otherID)
+          return .object(other)
+        }
+        try expectEqual(args["id"], .string(appID))
+        runs += 1
+        return .object([
+          "id": .string(appID),
+          "outcome": .string(failure == "handler-refuses" ? "failed" : "completed"),
+          "errors": .array(failure == "handler-refuses" ? [.string("Duplicate name")] : []),
+          "changes": .array([]),
+        ])
+      })
+    try expectEqual(runs, 1)
+    try expectEqual(
+      result.answer.contains("No space has that exact name"),
+      ["unrelated", "changed-input", "changed-version", "unseen", "ambiguous-inspections"]
+        .contains(failure))
+    try expectEqual(result.answer.contains("Duplicate name"), failure == "handler-refuses")
+  }
   var fixed = action.object
   var fixedArguments = action["arguments"].object
   fixedArguments["inputs"] = .object(["name": .string("Paper"), "quantity": .string("2")])
@@ -177,7 +273,7 @@ private actor ChatOperationModel: WorkbookInference {
   try expectEqual(repaired.answer.contains("Couldn’t finish"), false)
   let lookup: Value = .object([
     "action": .string("app.browse"),
-    "arguments": .object(["id": .string("synthetic-app"), "target": .string("wrong-table")]),
+    "arguments": .object(["id": .string(appName), "target": .string("wrong-table")]),
   ])
   let recoveredLookup = try await WorkbookAgent.run(
     "Add Paper with quantity 2 in my app.", workbook: book,

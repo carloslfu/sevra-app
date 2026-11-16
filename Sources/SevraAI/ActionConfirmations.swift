@@ -6,6 +6,7 @@ import SevraCore
 /// of the generated content. Keep confirmation text within that boundary.
 package struct ActionConfirmations {
   private var entries: [Value] = []
+  private var inspectedApps = Set<String>()
   package init() {}
   package var evidence: Value { .array(entries) }
   private func recoveredFailure(_ entry: Value, at index: Int) -> Bool {
@@ -14,6 +15,15 @@ package struct ActionConfirmations {
     let later = entries.dropFirst(index + 1)
     return (entry["error"].text.contains(Self.repeatRefused) ? entries[...] : later).contains {
       saved in
+      if let missing = entry["missingAppTarget"].string {
+        // Only settle a demonstrated copying error from a known inspection.
+        // This never resolves another target or authorizes a worker invocation.
+        guard let actual = saved["resolvedAppTarget"].string,
+          inspectedApps.contains(actual), entry["routedAction"] != .null,
+          entry["routedAction"] == saved["routedAction"]
+        else { return false }
+        return inspectedApps.filter { Self.isCopiedID(missing, of: $0) } == [actual]
+      }
       if entry["validationOnly"] == .bool(true), entry["envelopeRepair"] != .null {
         let repair = entry["envelopeRepair"]
         let removable = Set(repair["removableFields"].array.map(\.text))
@@ -139,6 +149,30 @@ package struct ActionConfirmations {
     else { return .null }
     return .string(digest(json))
   }
+  private static func isCopiedID(_ supplied: String, of actual: String) -> Bool {
+    guard UUID(uuidString: actual) != nil, supplied.utf8.count <= 36 else { return false }
+    let exact = actual.lowercased()
+    let value = supplied.lowercased()
+    let groups = exact.split(separator: "-")
+    // A local model may drop one whole UUID group, or miscopy one hex digit.
+    if groups.indices.dropFirst().dropLast().contains(where: { removed in
+      groups.indices.filter { $0 != removed }.map { groups[$0] }.joined(separator: "-") == value
+    }) {
+      return true
+    }
+    return UUID(uuidString: value) != nil
+      && zip(value.utf8, exact.utf8).filter { $0 != $1 }.count == 1
+  }
+
+  private static func routedAction(_ tool: String, _ arguments: Value) -> Value {
+    let call = arguments["arguments"]
+    guard tool == "workspace_action", arguments["action"] == .string("app.run"),
+      (try? ChatOperations.validate("app.run", arguments: call, readOnly: false)) != nil,
+      let json = try? Value.array([call["expectedVersion"], call["action"], call["inputs"]]).json()
+    else { return .null }
+    return .string(digest(json))
+  }
+
   private static func appTarget(_ tool: String, _ arguments: Value) -> Value {
     let call = arguments["arguments"]
     guard tool == "workspace_action", arguments["action"] == .string("app.run"),
@@ -253,7 +287,8 @@ package struct ActionConfirmations {
   }
 
   package mutating func recordFailure(
-    tool: String, arguments: Value, result: Value, receiptID: String
+    tool: String, arguments: Value, result: Value, receiptID: String,
+    appTargetNotFound: Bool = false
   ) {
     let task: String
     switch tool {
@@ -297,6 +332,9 @@ package struct ActionConfirmations {
         "retryGroup": .string(Self.retryGroup(arguments)),
         "invocation": Self.invocation(tool, arguments),
         "appTarget": Self.appTarget(tool, arguments),
+        "routedAction": Self.routedAction(tool, arguments),
+        "missingAppTarget": appTargetNotFound ? arguments["arguments"]["id"] : .null,
+        "resolvedAppTarget": result["outcome"] == .string("failed") ? result["id"] : .null,
         "envelopeRepair": Self.envelopeRepair(tool, arguments),
         "excludedEnvelopeInputs": Self.excludedEnvelopeInputs(result),
         "inputRepair": Self.repairableInputs(arguments, result),
@@ -322,6 +360,9 @@ package struct ActionConfirmations {
     var qualifier = ""
     switch tool {
     case "workspace_action":
+      if arguments["action"] == .string("app.inspect"), let id = result["id"].string {
+        inspectedApps.insert(id)
+      }
       if result["status"] == .string("confirmation_required") {
         kind = "chat_approval"
       } else {
@@ -392,6 +433,8 @@ package struct ActionConfirmations {
         "retryGroup": .string(Self.retryGroup(arguments)),
         "invocation": Self.invocation(tool, arguments),
         "appTarget": Self.appTarget(tool, arguments),
+        "routedAction": Self.routedAction(tool, arguments),
+        "resolvedAppTarget": result["outcome"] == .string("completed") ? result["id"] : .null,
         "excludedEnvelopeInputs": Self.excludedEnvelopeInputs(result),
         "inputDigests": Self.inputDigests(arguments["arguments"]["inputs"]),
       ]))

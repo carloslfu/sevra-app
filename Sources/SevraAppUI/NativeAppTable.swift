@@ -113,6 +113,7 @@ import SevraCore
     let changed = ["table", "search", "sort", "descending", "columns"].contains {
       node.props[$0] != next.props[$0]
     }
+    let labelsChanged = node.props["columnLabels"] != next.props["columnLabels"]
     let selectionChanged = node.props["selection"] != next.props["selection"]
     node = next
     grid.setAccessibilityLabel(next.props["label"].string ?? "App table")
@@ -126,8 +127,8 @@ import SevraCore
       offset = 0
       sorting = next.props["sort"].string
       descending = next.props["descending"] == .bool(true)
-      reload()
     }
+    if changed || labelsChanged { reload() }
   }
   func reload() {
     generation += 1
@@ -164,18 +165,25 @@ import SevraCore
       for column in grid.tableColumns { grid.removeTableColumn(column) }
       for column in columns {
         let view = NSTableColumn(identifier: NSUserInterfaceItemIdentifier(column["id"].text))
-        view.title = column["title"].text
         view.width = 140
         view.minWidth = 80
-        view.headerCell.alignment = column["type"].text == "decimal" ? .right : .left
-        if column["formula"] == .null {
-          view.sortDescriptorPrototype = NSSortDescriptor(key: column["id"].text, ascending: true)
-        }
         grid.addTableColumn(view)
       }
       grid.sizeToFit()
       needsLayout = true
     }
+    for (view, column) in zip(grid.tableColumns, columns) {
+      let id = view.identifier.rawValue
+      view.title = node.props["columnLabels"][id].string ?? column["title"].text
+      // An AppKit column may be reused for a different table with the same ID.
+      view.headerCell.alignment = column["type"].text == "decimal" ? .right : .left
+      let sortable = column["formula"] == .null
+      if sortable != (view.sortDescriptorPrototype != nil) {
+        view.sortDescriptorPrototype =
+          sortable ? NSSortDescriptor(key: id, ascending: true) : nil
+      }
+    }
+    grid.headerView?.needsDisplay = true
     rows = page["rows"].array
     invalidateIntrinsicContentSize()
     sizeDidChange?()

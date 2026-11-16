@@ -13,7 +13,7 @@ package enum AppOperationContext {
     else { return try ToolResultProjection.project(value, receiptID: receiptID) }
     let keys = [
       "id", "name", "version", "outcome", "result", "changes", "errors", "status",
-      "runtimeNotice", "canUndo", "enabled", "invocationInputContract",
+      "runtimeNotice", "canUndo", "enabled", "invocationInputContract", "replayed", "replayNotice",
     ]
     var fields: [String: Value] = [:]
     for key in keys {
@@ -44,14 +44,22 @@ package enum AppOperationContext {
       ? presented : ToolResultProjection.project(value, receiptID: receiptID)
   }
 
-  package static func inspection(_ value: Value, receiptID: String, request: String) -> Value {
+  package static func inspection(
+    _ value: Value, receiptID: String, request: String, target: String? = nil
+  ) -> Value {
     guard !value["actions"].array.isEmpty, case .array = value["inputs"] else { return value }
     var fields = value.object
+    fields["runArguments"] = nil
+    if let target, let version = value["version"].int {
+      fields["runArguments"] = .object([
+        "id": .string(target), "expectedVersion": .number(Double(version)),
+      ])
+    }
     fields["inputs"] = .object([
       "omitted": .bool(true), "receiptID": .string(receiptID),
       "path": .array([.string("inputs")]),
       "notice": .string(
-        "Visual control drafts are separate from named-action inputs. Use actions for app.run; map its typed fields to the current user request. An empty visual draft does not mean a chat value is missing. Use tool_result at this path only when you need to inspect or operate visual controls."
+        "Visual control drafts are separate from named-action inputs. Reuse runArguments for app.run's routing fields, then choose the action ID from actions. Map its typed fields to the current user request. An empty visual draft does not mean a chat value is missing. Use tool_result at this path only when you need to inspect or operate visual controls."
       ),
     ])
     // A short request can stay adjacent to the discovered contract. Never truncate

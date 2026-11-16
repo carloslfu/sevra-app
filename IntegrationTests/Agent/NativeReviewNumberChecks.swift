@@ -57,6 +57,20 @@ func checkNativeReviewNumbers(
   try expectEqual(
     try NativeAppReview.numberProbes(role: .object(positive), input: .string("2.25")).map(\.1),
     [.string("-1"), .string("0")])
+  try expectEqual(
+    try NativeAppReview.numberProbes(role: .object(positive), input: .string("2")).map(\.0),
+    ["minimum", "nonzero", "allowed_fraction"])
+  var permissive = positive
+  permissive["minimum"] = .null
+  permissive["nonzero"] = .bool(false)
+  try expectEqual(
+    try NativeAppReview.numberProbes(role: .object(permissive), input: .number(-2)).map(\.1),
+    [.number(0), .number(-1.5)])
+  try expectEqual(
+    try NativeAppReview.numberProbes(role: .object(permissive), input: .string("0")).count, 0)
+  try expectEqual(
+    try NativeAppReview.numberProbes(role: .object(permissive), input: .number(1e16)).map(\.0),
+    ["allowed_zero"])
   for invalid in [
     Value.number(0), .number(1.5), .number(4), .number(.infinity), .string("bad"), .bool(true),
   ] {
@@ -268,7 +282,42 @@ func checkNativeReviewNumbers(
   let costChecks = costAccepted["independentActionCheck"]["checks"].array
   try expectEqual(costChecks.count, 1)
   try expectEqual(costChecks[0]["tests"], correctedCostReview["tests"])
-  try expectEqual(costChecks[0]["inputChecks"], .array([]))
+  let costBoundary = try expectValue(costChecks[0]["inputChecks"].array.first)
+  try expectEqual(costBoundary["rule"], .string("allowed_zero"))
+  try expectEqual(costBoundary["tests"].array.count, 1)
+  try expectEqual(costBoundary["tests"].array[0]["reject"], .null)
+  try expectEqual(costBoundary["tests"].array[0]["inputs"]["cost"], .string("0"))
+  try expectEqual(costBoundary["check"]["assertions"], .number(1))
+  // Live Stock accepted a normal price but unconditionally refused zero.
+  // It must fail independent review even if the reviewer only supplies a normal price.
+  var strictCost = cost
+  strictCost.source = strictCost.source.replacingOccurrences(
+    of: "result.value='Cost '+input.cost;",
+    with:
+      "if(Number(input.cost)<=0)throw Error('Cost must be positive');result.value='Cost '+input.cost;"
+  )
+  var strictVerdict = correctedCostReview
+  strictVerdict["tests"] = costTests
+  let unprovenCost = ExcelTestModel(
+    [], reviews: Array(repeating: .object(strictVerdict), count: 3))
+  var allowedFailure = ""
+  do {
+    _ = try await NativeAppReview.check(
+      request: "Update unit cost using the explicit supplied price.",
+      requestSourceID: requestSourceID,
+      arguments: .object([
+        "package": try encoded(strictCost), "tests": costTests, "fixtures": .object([:]),
+      ]),
+      workbook: workbook, model: unprovenCost, directory: directory, cancellation: .init(),
+      progress: { _ in }, excelConversion: build, checkedActions: ["updateCost"],
+      checkedActionInputs: costContracts["actionInputs"])
+    throw SevraError("regression", "A positive-only price passed its allowed zero probe.")
+  } catch {
+    try expectEqual((error as? SevraError)?.code, "app_review_inconclusive")
+    allowedFailure = error.localizedDescription
+  }
+  try expectEqual(allowedFailure.contains("derived allowed-input probe failed"), true)
+  try expectEqual(allowedFailure.contains("Cost must be positive"), true)
   candidate.source = candidate.source.replacingOccurrences(
     of: "parseInt(input.month,10)", with: "input.month")
   let accepted = try await check(candidate)

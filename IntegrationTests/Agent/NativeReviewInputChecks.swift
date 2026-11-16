@@ -36,6 +36,7 @@ func checkNativeReviewInputContracts(
     #"{"probes":[{"action":"typo","inputs":{},"expect":[{"kind":"reject"}]}]}"#,
     #"{"probes":[{"action":"ship","inputs":{},"expect":[{"kind":"expect_rows","table":"ledger","count":1}]}]}"#,
     #"{"probes":[{"action":"ship","inputs":{},"expect":[{"kind":"expect_row","table":"ledger","values":{}}]}]}"#,
+    #"{"probes":[{"action":"ship","inputs":{"quantity":3},"expect":[{"kind":"expect_row","table":"ledger","values":{"quantity":-3}}]}]}"#,
     #"{"probes":[{"action":"ship","inputs":{},"expect":[{"kind":"reject","error":false}]}]}"#,
     #"{"probes":[{"action":"ship","inputs":{}}]}"#,
     #"{"probes":[{"action":"ship","inputs":{},"expect":[{"kind":"reject"}],"source":"execute me"}]}"#,
@@ -116,7 +117,7 @@ func checkNativeReviewInputContracts(
   let evidence: Value = .object(["sheet1!A1": .string(header)])
   func probes(
     _ classification: Value, _ rows: Value = fixtures, _ cells: Value = evidence,
-    steps calls: [Value] = steps
+    steps calls: [Value] = steps, contracts: Value = .null
   ) throws
     -> [Value]
   {
@@ -131,9 +132,53 @@ func checkNativeReviewInputContracts(
     }
     return try NativeAppReview.inputProbes(
       actions: ["lookup"], roles: classification, steps: calls, fixtures: rows,
-      inputTypes: .object(types), package: package, tables: tables, coordinates: coordinates,
+      inputTypes: .object(types), contracts: contracts, package: package, tables: tables,
+      coordinates: coordinates,
       inputCell: { cells[$0] })
   }
+  let plausibleCustomerKeys: Value = .object([
+    "sheet1": .array([
+      .object(["c1": .string(header)]),
+      .object(["c1": .string("ENTITY")]),
+      .object(["c1": .string("SECOND")]),
+    ])
+  ])
+  let declaredText: Value = .object([
+    "lookup": .object([
+      "key": .object(["title": .string(header), "type": .string("text")]),
+      "reference": .object(["title": .string("Reference"), "type": .string("text")]),
+    ])
+  ])
+  let unclassified = try Value.parse(
+    #"{"lookup":{"key":{"kind":"value"},"reference":{"kind":"value"}}}"#)
+  try expectThrows(try probes(unclassified, plausibleCustomerKeys, contracts: declaredText))
+  try expectEqual(
+    try probes(roles, plausibleCustomerKeys, contracts: declaredText).count, 1)
+  var newValue = steps
+  var call = newValue[1].object
+  var fields = newValue[1]["inputs"].object
+  fields["key"] = .string("Novel text")
+  call["inputs"] = .object(fields)
+  newValue[1] = .object(call)
+  try expectEqual(
+    try probes(
+      unclassified, plausibleCustomerKeys, steps: newValue, contracts: declaredText
+    ).count, 0)
+  try expectEqual(
+    try probes(
+      unclassified, plausibleCustomerKeys, .object(["sheet1!A1": .string("Another field")]),
+      contracts: declaredText
+    ).count, 0)
+  let finiteValues: Value = .object([
+    "lookup": .object([
+      "key": .object([
+        "title": .string(header), "type": .string("text"),
+        "choices": .array([.string("ENTITY"), .string("SECOND")]),
+      ]),
+      "reference": declaredText["lookup"]["reference"],
+    ])
+  ])
+  try expectEqual(try probes(unclassified, plausibleCustomerKeys, contracts: finiteValues).count, 0)
   let checked = try probes(roles)
   try expectEqual(checked.count, 1)
   try expectEqual(checked[0]["tests"].array.count, 2)

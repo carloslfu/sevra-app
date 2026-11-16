@@ -33,12 +33,48 @@ extension NativeAppReview {
     return .object(fields)
   }
 
+  /// An exact title match with an original heading and a unique inventory of
+  /// fixture keys is enough to demand a disambiguating test, not to infer a rule.
+  private static func possibleLookupColumns(
+    field: String, title: String, value: Value, fixtures: Value,
+    package: NativeAppPackage, tables: [Dataset], coordinates: [[Int]],
+    inputCell: (String) throws -> Value
+  ) throws -> [String] {
+    guard let entered = value.string, !entered.isEmpty else { return [] }
+    func normalized(_ text: String) -> String {
+      text.trimmingCharacters(in: .whitespacesAndNewlines).lowercased()
+    }
+    let names = Set([normalized(field), normalized(title)]).subtracting([""])
+    var matches: [String] = []
+    for (alias, binding) in package.datasets.sorted(by: { $0.key < $1.key }) {
+      guard let sheet = tables.firstIndex(where: { $0.id == binding.datasetID }),
+        coordinates.indices.contains(sheet), let row = coordinates[sheet].first,
+        let first = fixtures[alias].array.first
+      else { continue }
+      let rows = fixtures[alias].array.dropFirst()
+      for (index, column) in binding.columns.enumerated() {
+        guard let label = first[column.id].string, names.contains(normalized(label)) else {
+          continue
+        }
+        let keys = rows.compactMap { $0[column.id].string }.filter { !$0.isEmpty }
+        guard Set(keys).count == keys.count, keys.contains(entered) else {
+          continue
+        }
+        let cell = "sheet\(sheet + 1)!" + Workbook.spreadsheetColumn(index) + String(row)
+        guard try inputCell(cell) == .string(label) else { continue }
+        matches.append(alias + "." + column.id + " (" + cell + ")")
+      }
+    }
+    return matches
+  }
+
   /// The reviewer classifies business meaning. The host verifies its references
   /// and derives the actual probes, so a declared lookup cannot skip its header.
   package static func inputProbes(
     actions: Set<String>, registeredActions: Set<String>? = nil,
     roles: Value, steps: [Value], fixtures: Value,
-    inputTypes: Value, package: NativeAppPackage, tables: [Dataset], coordinates: [[Int]],
+    inputTypes: Value, contracts: Value = .null, package: NativeAppPackage, tables: [Dataset],
+    coordinates: [[Int]],
     inputCell: (String) throws -> Value
   ) throws -> [Value] {
     try require(
@@ -99,6 +135,21 @@ extension NativeAppReview {
             action + "." + field + " is " + type
               + ". Numeric inputs require kind:number with whole, minimum, maximum and nonzero rules; other value roles only have kind."
           )
+          let contract = contracts[action][field]
+          if ["text", "record"].contains(type), contract != .null,
+            contract["choices"].array.isEmpty
+          {
+            let candidates = try Self.possibleLookupColumns(
+              field: field, title: contract["title"].text,
+              value: inputs[field]!, fixtures: fixtures, package: package,
+              tables: tables, coordinates: coordinates, inputCell: inputCell)
+            try require(
+              candidates.isEmpty, "app_review_inputs",
+              action + "." + field + " repeats an existing key from "
+                + candidates.prefix(4).joined(separator: ", ")
+                + " under a matching original heading. If the request needs an existing record, classify it as existingKey, choosing the actual source. If the request allows an independently entered value, repeat your successful test with a valid value that is not a fixture key. This is a review-only classification; it does not establish a code defect."
+            )
+          }
           continue
         }
         if role["kind"] == .string("number") {
@@ -163,12 +214,14 @@ extension NativeAppReview {
       for variant in variants {
         var changed = inputs
         changed[variant["input"].text] = variant["value"]
-        var rejected = call.object
-        rejected["inputs"] = .object(changed)
-        rejected["reject"] = .bool(true)
+        var revised = call.object
+        revised["inputs"] = .object(changed)
+        if !Self.allowedNumberProbeRules.contains(variant["rule"].text) {
+          revised["reject"] = .bool(true)
+        }
         var probe = variant.object
         probe["action"] = .string(action)
-        probe["tests"] = .array(Array(steps.prefix(index)) + [.object(rejected)])
+        probe["tests"] = .array(Array(steps.prefix(index)) + [.object(revised)])
         probes.append(.object(probe))
       }
     }

@@ -7,7 +7,7 @@ export interface NativeProps {
  width?:Reactive<number>; height?:Reactive<number>; padding?:Reactive<number>; gap?:Reactive<number>;
  text?:Reactive<string>; title?:Reactive<string>; size?:Reactive<number>; weight?:Reactive<'bold'|'regular'>;
  color?:Reactive<string>; value?:Reactive<any>; placeholder?:Reactive<string>; options?:Reactive<string[]>;
- min?:Reactive<number>; max?:Reactive<number>; columns?:Reactive<number|string[]>; table?:string; search?:Reactive<string>;
+ min?:Reactive<number>; max?:Reactive<number>; columns?:Reactive<number|string[]>; table?:string; search?:Reactive<string>; columnLabels?:Reactive<Record<string,string>>;
  selection?:Reactive<string>; sort?:Reactive<string>; descending?:Reactive<boolean>; titles?:Reactive<string[]>; symbol?:Reactive<string>;
  shapes?:Reactive<any[]>; regions?:Reactive<any[]>; vertical?:Reactive<boolean>; indeterminate?:Reactive<boolean>;
  onClick?:(event:NativeEvent)=>void; onChange?:(event:NativeEvent)=>void; onSelect?:(event:NativeEvent)=>void;
@@ -15,6 +15,7 @@ export interface NativeProps {
 }
 export function h(type:any,props:NativeProps|null,...children:any[]):any;
 export function mount(view:any):void;
+export function Workspace(props:{sections:{title:string;table?:string;columnLabels?:Record<string,string>;actions?:string[]}[]}):any;
 export function draftSignal<T>(key:string,initial:T):Signal<T>;
 export function liveQuery(query:Reactive<Record<string,any>>,kind?:'page'|'query'):Signal<any>;
 export function For(props:{each:Reactive<any[]>;by:(item:any)=>string;layout?:string;gap?:number;children:any}):any;
