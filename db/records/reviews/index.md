@@ -2,11 +2,12 @@
 type: index
 scope: type-folder
 folder: records/reviews
-updated: 2026-11-16T16:45:41.020274Z
+updated: 2026-11-16T17:03:50.164226Z
 ---
 
 # records/reviews
 
+- [[records/reviews/rich-native-visuals-end-to-end-audit]] — Three-pass code and plan audit closes eight handoff gaps; 28 SDK, 20 signed native and 21 preview groups pass within existing scope.
 - [[records/reviews/image-support-and-plan-readiness]] — Three-pass image audit: mini apps and embedded Home support images; inline chat and standalone Home need the new P1-image increment.
 - [[records/reviews/excel-business-applications-2026-11-15]] — Shared formula, review, numeric validation, repair and authority fixes pass scoped checks; final fresh cohorts and native visual qualification remain pending.
 - [[records/reviews/inference-context-plan-full-review]] — Complete plan re-review resolves 18 integration, accounting, lifecycle and experiment gaps; revision 5 is ready for staged implementation.

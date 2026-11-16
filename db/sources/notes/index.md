@@ -2,11 +2,12 @@
 type: index
 scope: type-folder
 folder: sources/notes
-updated: 2026-11-16T16:44:21.995988Z
+updated: 2026-11-16T17:02:30.261520Z
 ---
 
 # sources/notes
 
+- [[sources/notes/2026/11/rich-visual-end-to-end-review]] — Owner requests an end-to-end code and plan recheck with several review passes.
 - [[sources/notes/2026/11/image-support-plan]] — Owner requests current image-support checks across chat, mini apps and Home, plus reviewed planning for missing support.
 - [[sources/notes/2026/11/rich-visual-plan-final-audit]] — Owner requests another detail-by-detail audit of the complete visual and inline-chat plan.
 - [[sources/notes/2026/11/inference-context-full-review]] — Owner requests complete re-review and correction of every detail of the inference and context implementation plan.

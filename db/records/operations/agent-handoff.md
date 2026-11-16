@@ -3,8 +3,8 @@ type: operational
 meta-type: operational
 id: 01m659x4nd2q89tkpzzsssd7yr
 created: 2026-10-30T02:23:30.477380+00:00
-updated: 2026-11-16T16:44:22.632772+00:00
-summary: Rich visual plan revision 14 adds early chat and standalone Home images, reusing implemented mini-app images; reviewed implementation gates remain open.
+updated: 2026-11-16T17:02:57.350791+00:00
+summary: Visual plan revision 15 closes eight end-to-end gaps; 28 SDK, 20 signed native and 21 preview groups pass. New feature acceptance remains open.
 title: Minimum-feature continuation handoff
 ---
 # Minimum-feature continuation handoff
@@ -26,6 +26,12 @@ The plan distinguishes package capabilities from versioned presentation-only edi
 The owner-requested [[records/reviews/image-support-and-plan-readiness]] audits c066920 and the subsequent 05d3fe8 viewer follow-up. Mini apps now display included image aliases and offer native enlargement; Home can display them inside those embedded apps. Chat remains text/tables/file links, and standalone Home assets remain Open file buttons. No current installed-bundle verification or new UI run is claimed by this audit.
 
 [[records/plans/rich-native-visuals]] is revision 14 after three image-specific passes. It corrects the stale mini-app inventory and adds P1-image: exact image references, inline imported/assistant images, standalone Home images, explicit file/bitmap-paste capture, chat operations and a common bounded media path. Reuse the existing SDK/grants and shared zoom viewer. The increment needs the common chat publication envelope, not complete question/continuation work, charts or diagrams. Six scenarios gate source/pixel correctness, history/portable copy, retries/revocation, native UX and measured decode/cache limits. This checkpoint changes planning only; separate committed image implementation remains intact.
+
+## End-to-end visual-plan audit, November 16
+
+The latest owner request is [[sources/notes/2026/11/rich-visual-end-to-end-review]]. [[records/reviews/rich-native-visuals-end-to-end-audit]] records three passes over the affected code paths and every plan section, advancing [[records/plans/rich-native-visuals]] to revision 15. It resolves source replacement versus presentation authority, exactly-once attachment publication, image discovery/navigation, bounded transcript hydration, media memory admission, independent pixel checks, early-stage contract ownership and image-template export portability. The plan is ready to begin staged implementation; all new feature acceptance remains open.
+
+On source `6d833206dd9b56bf839d0ead2b811124686c57bc`, 28 SDK tests, 20 signed native-app groups and 21 preview/conversation groups pass. The checks use synthetic test hosts/offscreen views; no installed app was controlled or replaced. These results qualify existing foundations only, not the unimplemented cross-surface image/chat system, actual-model cohort or hard media limits. This revision changes documentation only and preserves separate inference/context work. Earlier checkpoint statements retain their original scope; revision 15 owns the current sequence and contracts.
 
 ## Current Home checkpoint, November 14
 

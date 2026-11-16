@@ -2,12 +2,12 @@
 type: index
 scope: type-folder
 folder: records/plans
-updated: 2026-11-16T16:44:22.505774Z
+updated: 2026-11-16T17:02:30.309376Z
 ---
 
 # records/plans
 
-- [[records/plans/rich-native-visuals]] — Revision 14 visual/chat plan with early cross-surface images, existing mini-app image reuse, exact references and bounded media acceptance.
+- [[records/plans/rich-native-visuals]] — Revision 15 closes end-to-end publication, source-edit, navigation, transcript, memory and template-export gaps; staged acceptance remains open.
 - [[records/plans/programmable-native-engine]] — Reviewed architecture and implementation gates for sandboxed JavaScript, reactive native UI, scoped workbook data, packaging and end-to-end verification.
 - [[records/plans/excel-business-applications]] — Close realistic Excel business application reconstruction, reliable autonomous generation, and integrated chat/native qualification gaps.
 - [[records/plans/inference-context-upgrade]] — Staged plan to correct context accounting, upgrade Splash and qualify stable context and memory profiles.
