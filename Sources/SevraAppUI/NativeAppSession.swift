@@ -118,19 +118,29 @@ import SwiftUI
       for observer in Array(viewObservers.values) { observer.frame(tree, []) }
     }
   }
-  func loadImage(_ alias: String) async -> PreviewImage? {
+  func loadImage(_ alias: String, enlarged: Bool = false) async -> PreviewImage? {
     guard let access, grant?.isCurrent == true, access.package.images?[alias] != nil else {
       return nil
     }
     let current = epoch
-    if imageLoads[alias] == nil {
-      imageLoads[alias] = Task.detached(priority: .userInitiated) { [book] in
+    let load: Task<PreviewImage?, Never>
+    if !enlarged, let cached = imageLoads[alias] {
+      load = cached
+    } else {
+      load = Task.detached(priority: .userInitiated) { [book] in
         guard !Task.isCancelled, let file = try? book.nativeAppImageURL(access, alias: alias)
         else { return nil }
-        return PreviewImage.load(file, maximumPixels: 1024, requireImageType: true)
+        return PreviewImage.load(
+          file, maximumPixels: enlarged ? PreviewImage.maximumPixels : 1024,
+          requireImageType: true)
       }
+      if !enlarged { imageLoads[alias] = load }
     }
-    let image = await imageLoads[alias]?.value
+    let image = await withTaskCancellationHandler {
+      await load.value
+    } onCancel: {
+      if enlarged { load.cancel() }
+    }
     return epoch == current && grant?.isCurrent == true ? image : nil
   }
   public func start() {

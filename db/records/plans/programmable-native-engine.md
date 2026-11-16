@@ -3,7 +3,7 @@ type: operational
 meta-type: operational
 id: 01m78qhn7q81ha6w72smnkerxt
 created: 2026-11-12T20:35:19.415048+00:00
-updated: 2026-11-16T16:19:41.502910+00:00
+updated: 2026-11-16T16:40:47.552139+00:00
 summary: Reviewed architecture and implementation gates for sandboxed JavaScript, reactive native UI, scoped workbook data, packaging and end-to-end verification.
 title: Programmable native app engine implementation
 ---
@@ -193,3 +193,14 @@ The native preview was packaged, signed and installed with matching executable
 UUID 97C09DE0-B8DE-38C4-A81C-EBEC46984B15. In a disposable workbook, the access
 screen named the included PNG. The image rendered proportionally after Enable,
 switched to the SF Symbol and back, and disappeared after Disable.
+
+### Click to enlarge
+
+The inline photo opens a sheet with the same ImageViewer used by workbook
+documents. It decodes the same approved asset at the viewer's larger resolution
+and initially fits the photo in the sheet. Done or Escape returns to the mini app.
+The signed native checks verify both mouse and accessibility actions resolve the
+displayed alias and a symbol offers neither action. All 20 checks passed.
+The installed preview matched UUID A4AF21E2-1B9E-3757-B8F2-091C630658FD.
+The disposable PNG demo opened from the inline photo, offered the native zoom
+controls, returned on Escape and removed the enlarge action after Disable.

@@ -669,7 +669,8 @@ func exchange(
     let window = NSWindow(
       contentRect: NSRect(x: 0, y: 0, width: 380, height: 260), styleMask: [.titled],
       backing: .buffered, defer: false)
-    let renderer = NativeAppRenderer(session: session)
+    var openedImages: [String] = []
+    let renderer = NativeAppRenderer(session: session) { openedImages.append($0) }
     window.contentView = renderer
     defer { window.orderOut(nil) }
     defer { session.revoke() }
@@ -694,9 +695,22 @@ func exchange(
     try expect(
       (renderer.view(for: "root/0") as? NSImageView)?.imageScaling == .scaleProportionallyUpOrDown,
       "Workbook image should fit without distortion")
+    guard let inlinePhoto = renderer.view(for: "root/0"),
+      let enlarge = inlinePhoto.subviews.compactMap({ $0 as? NSButton }).first
+    else {
+      throw SevraError("test", "Missing native image button")
+    }
+    try expect(!enlarge.isHidden && enlarge.isEnabled)
+    enlarge.performClick(nil)
+    try expect(openedImages == ["product"], "The viewer must open the displayed asset alias")
+    try expect(inlinePhoto.accessibilityLabel() == "Enlarge Product photo")
+    try expect(inlinePhoto.accessibilityPerformPress())
+    try expect(openedImages == ["product", "product"])
     session.event(node: "root/1", handler: "onClick")
     try await wait { session.tree.nodes["root/0"]?.props["symbol"] == .string("star") }
     try expect(!showsPNG())
+    try expect(enlarge.isHidden, "An SF Symbol offered photo enlargement")
+    try expect(!inlinePhoto.accessibilityPerformPress())
     session.event(node: "root/1", handler: "onClick")
     try await wait { showsPNG() }
     session.revoke()

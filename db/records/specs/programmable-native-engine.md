@@ -42,7 +42,10 @@ each file. The native host decodes its included copy with ImageIO, up to 1,024
 pixels on the longest side, and renders it proportionally in AppKit. An app
 can bind up to eight images and receives only its declared aliases. Linked
 files, URLs and raw paths are outside the capability. A missing or unreadable
-included file has an unavailable image indicator. Isolated authoring checks
+included file has an unavailable image indicator. Clicking an inline photo
+opens the workbook's native image viewer with zoom controls. It uses a larger
+decode of the same approved asset. Dismissing the viewer returns to the app
+without restarting its session. Isolated authoring checks
 validate the alias and control without opening the user's image.
 
 Layout properties use native points, gap/padding, bounded optional width/height and semantic controls. There is no CSS. Labels/help, keyboard controls, system colors and native accessibility are part of the renderer. Canvas authors must name hit regions. Custom control semantics and broad assistive-technology behavior still need real user qualification.

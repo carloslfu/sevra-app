@@ -20,8 +20,65 @@ import SwiftUI
 }
 
 @MainActor private final class AppImageView: NSImageView {
+  var openImage: ((String) -> Void)?
   private var source: Value?
   private var load: Task<Void, Never>?
+  private lazy var enlargeButton = AppButton(title: "", target: self, action: #selector(enlarge))
+
+  override init(frame frameRect: NSRect) {
+    super.init(frame: frameRect)
+    enlargeButton.isBordered = false
+    enlargeButton.isTransparent = true
+    enlargeButton.focusRingType = .exterior
+    enlargeButton.isHidden = true
+    enlargeButton.toolTip = "Click to enlarge"
+    enlargeButton.setAccessibilityElement(false)
+    addSubview(enlargeButton)
+  }
+  required init?(coder: NSCoder) { fatalError("init(coder:) has not been implemented") }
+
+  override func layout() {
+    super.layout()
+    if !enlargeButton.isHidden, let size = image?.size, size.width > 0, size.height > 0 {
+      let scale = min(bounds.width / size.width, bounds.height / size.height)
+      let width = size.width * scale
+      let height = size.height * scale
+      enlargeButton.frame = NSRect(
+        x: bounds.midX - width / 2, y: bounds.midY - height / 2, width: width, height: height)
+    }
+    window?.invalidateCursorRects(for: self)
+  }
+
+  override func resetCursorRects() {
+    super.resetCursorRects()
+    if !enlargeButton.isHidden, enlargeButton.isEnabled {
+      addCursorRect(enlargeButton.frame, cursor: .pointingHand)
+    }
+  }
+
+  func setExpansionEnabled(_ enabled: Bool) {
+    enlargeButton.isEnabled = enabled
+    window?.invalidateCursorRects(for: self)
+  }
+
+  private func showEnlarge(_ show: Bool) {
+    enlargeButton.isHidden = !show
+    needsLayout = true
+  }
+
+  override func accessibilityRole() -> NSAccessibility.Role? {
+    enlargeButton.isHidden ? super.accessibilityRole() : .button
+  }
+
+  override func accessibilityPerformPress() -> Bool {
+    guard !enlargeButton.isHidden, enlargeButton.isEnabled,
+      let alias = source?.array.first?.string, let openImage
+    else { return false }
+    openImage(alias)
+    return true
+  }
+
+  @objc private func enlarge() { _ = accessibilityPerformPress() }
 
   func update(_ props: Value, session: NativeAppSession) {
     let label = props["label"].string
@@ -29,6 +86,7 @@ import SwiftUI
       load?.cancel()
       load = nil
       source = nil
+      showEnlarge(false)
       imageScaling = .scaleProportionallyDown
       setContentCompressionResistancePriority(.defaultHigh, for: .horizontal)
       setAccessibilityLabel(label)
@@ -40,6 +98,7 @@ import SwiftUI
     guard source != request else { return }
     source = request
     load?.cancel()
+    showEnlarge(false)
     imageScaling = .scaleProportionallyUpOrDown
     setContentCompressionResistancePriority(.defaultLow, for: .horizontal)
     setAccessibilityLabel(label)
@@ -54,6 +113,10 @@ import SwiftUI
         let scale = min(1, 320 / width, 240 / height)
         self.image = NSImage(
           cgImage: preview.image, size: NSSize(width: width * scale, height: height * scale))
+        if self.openImage != nil {
+          self.setAccessibilityLabel(label.map { "Enlarge " + $0 } ?? "Enlarge photo")
+          self.showEnlarge(true)
+        }
       } else {
         self.image = NSImage(
           systemSymbolName: "photo.badge.exclamationmark", accessibilityDescription: nil)
@@ -68,11 +131,15 @@ import SwiftUI
 
 public struct NativeAppSurface: NSViewRepresentable {
   public let session: NativeAppSession
-  public init(session: NativeAppSession) { self.session = session }
-  public func makeNSView(context: Context) -> NativeAppRenderer {
-    NativeAppRenderer(session: session)
+  let openImage: ((String) -> Void)?
+  public init(session: NativeAppSession, openImage: ((String) -> Void)? = nil) {
+    self.session = session
+    self.openImage = openImage
   }
-  public func updateNSView(_ view: NativeAppRenderer, context: Context) {}
+  public func makeNSView(context: Context) -> NativeAppRenderer {
+    NativeAppRenderer(session: session, openImage: openImage)
+  }
+  public func updateNSView(_ view: NativeAppRenderer, context: Context) { view.openImage = openImage }
   public func sizeThatFits(
     _ proposal: ProposedViewSize, nsView: NativeAppRenderer, context: Context
   ) -> CGSize? {
@@ -85,13 +152,15 @@ public struct NativeAppSurface: NSViewRepresentable {
 
 @MainActor public final class NativeAppRenderer: NSView {
   private let session: NativeAppSession
+  var openImage: ((String) -> Void)?
   private var elements: [String: AppElement] = [:]
   private var observerID: UUID?
   private var rootID: String?
   private let scroll = NSScrollView()
   private var documentWidth: NSLayoutConstraint?
-  public init(session: NativeAppSession) {
+  public init(session: NativeAppSession, openImage: ((String) -> Void)? = nil) {
     self.session = session
+    self.openImage = openImage
     super.init(frame: .zero)
     scroll.hasVerticalScroller = true
     scroll.autohidesScrollers = true
@@ -131,6 +200,9 @@ public struct NativeAppSurface: NSViewRepresentable {
       }
       if elements[id] == nil {
         elements[id] = AppElement(node: node, session: session)
+        if openImage != nil, let image = elements[id]?.content as? AppImageView {
+          image.openImage = { [weak self] in self?.openImage?($0) }
+        }
         elements[id]?.table?.sizeDidChange = { [weak self] in self?.needsLayout = true }
       }
       elements[id]?.update(node)
@@ -225,7 +297,7 @@ final class AppElement: NSView, NSTextFieldDelegate, NSTextViewDelegate, NSTabVi
       content = scroll
     case "grid": content = NSGridView()
     case "canvas": content = AppCanvas()
-    case "image": content = AppImageView()
+    case "image": content = AppImageView(frame: .zero)
     case "table":
       let view = AppTable(session: session, node: node)
       content = view
@@ -290,6 +362,7 @@ final class AppElement: NSView, NSTextFieldDelegate, NSTextViewDelegate, NSTabVi
   func setInteractionEnabled(_ enabled: Bool) {
     interactionEnabled = enabled
     if let control = content as? NSControl { control.isEnabled = enabled }
+    (content as? AppImageView)?.setExpansionEnabled(enabled)
     if let editor = (content as? NSScrollView)?.documentView as? NSTextView {
       editor.isEditable = enabled
     }

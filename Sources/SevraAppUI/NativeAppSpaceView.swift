@@ -1,14 +1,21 @@
 import AppKit
 import SevraCore
+import SevraPreviewUI
 import SwiftUI
 
 public struct NativeAppSpaceView: View {
+  private struct ExpandedImage: Identifiable {
+    let id: String
+    let title: String
+  }
+
   @StateObject private var session: NativeAppSession
   private let embedded: Bool
   @State private var showSource = false
   @State private var tableTitles: [String: String]?
   @State private var imageTitles: [String: String]?
   @State private var accessError: String?
+  @State private var expandedImage: ExpandedImage?
   public init(session: NativeAppSession, embedded: Bool = false) {
     self.embedded = embedded
     _session = StateObject(wrappedValue: session)
@@ -68,7 +75,9 @@ public struct NativeAppSpaceView: View {
         ProgressView("Starting app…")
         Spacer()
       } else if session.status == "running" {
-        NativeAppSurface(session: session).frame(maxWidth: .infinity, maxHeight: .infinity)
+        NativeAppSurface(session: session) { alias in
+          expandedImage = .init(id: alias, title: imageTitles?[alias] ?? "Photo")
+        }.frame(maxWidth: .infinity, maxHeight: .infinity)
           .disabled(session.conversationBusy)
       } else {
         Text("Saved records remain in your workbook. Your draft will be restored when you restart.")
@@ -87,6 +96,12 @@ public struct NativeAppSpaceView: View {
     }
     .task { await loadAccess() }
     .onAppear { session.start() }
+    .onChange(of: session.status) { _, status in
+      if status != "running" { expandedImage = nil }
+    }
+    .sheet(item: $expandedImage) { photo in
+      NativeAppImageSheet(session: session, alias: photo.id, title: photo.title)
+    }
     .sheet(isPresented: $showSource) {
       VStack(alignment: .leading) {
         Text("App source · SDK \(session.package.sdkVersion)").font(.headline)
@@ -131,5 +146,42 @@ public struct NativeAppSpaceView: View {
       alert.informativeText = error.localizedDescription
       alert.runModal()
     }
+  }
+}
+
+private struct NativeAppImageSheet: View {
+  let session: NativeAppSession
+  let alias: String
+  let title: String
+  @Environment(\.dismiss) private var dismiss
+  @State private var image: NSImage?
+  @State private var unavailable = false
+
+  var body: some View {
+    VStack(spacing: 0) {
+      HStack {
+        Text(title).font(.headline).lineLimit(1)
+        Spacer()
+        Button("Done") { dismiss() }.keyboardShortcut(.cancelAction)
+      }.padding(16)
+      Divider()
+      if let image {
+        ImageViewer(image: image, title: title, fitInitially: true)
+      } else if unavailable {
+        ContentUnavailableView("Image unavailable", systemImage: "photo.badge.exclamationmark")
+          .frame(maxWidth: .infinity, maxHeight: .infinity)
+      } else {
+        ProgressView("Opening image…").frame(maxWidth: .infinity, maxHeight: .infinity)
+      }
+    }.frame(idealWidth: 720, idealHeight: 560)
+      .task(id: alias) {
+        let preview = await session.loadImage(alias, enlarged: true)
+        guard !Task.isCancelled else { return }
+        if let preview {
+          image = NSImage(cgImage: preview.image, size: preview.points)
+        } else {
+          unavailable = true
+        }
+      }
   }
 }

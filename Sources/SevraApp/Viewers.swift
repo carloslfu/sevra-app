@@ -849,7 +849,9 @@ struct ImageFileViewer: View {
     VStack(spacing: 0) {
       Group {
         if let image {
-          ImageViewer(image: image, title: title)
+          ImageViewer(
+            image: image, title: title,
+            imageHint: "Read extracted text for recognized words. An optional description can be saved below.")
         } else if unreadable {
           QuickLookViewer(url: file).accessibilityLabel("Image: " + title)
         } else {
@@ -868,32 +870,6 @@ struct ImageFileViewer: View {
         image = NSImage(cgImage: loaded.image, size: loaded.points)
       } else {
         unreadable = true
-      }
-    }
-  }
-}
-struct ImageViewer: View {
-  let image: NSImage
-  let title: String
-  @State private var scale = 1.0
-  var body: some View {
-    VStack {
-      HStack {
-        Button("Zoom out") { scale = max(0.25, scale / 1.25) }
-          .disabled(scale <= 0.25)
-        Button("Zoom in") { scale = min(6, scale * 1.25) }
-          .disabled(scale >= 6)
-        if scale != 1 {
-          Button("Reset zoom") { scale = 1 }
-        }
-        Spacer()
-      }.padding(12)
-      ScrollView([.horizontal, .vertical]) {
-        Image(nsImage: image).resizable().scaledToFit().frame(
-          width: min(1000, image.size.width) * scale
-        ).padding(20).accessibilityLabel("Image: " + title)
-          .accessibilityHint(
-            "Read extracted text for recognized words. An optional description can be saved below.")
       }
     }
   }
