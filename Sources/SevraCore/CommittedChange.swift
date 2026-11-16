@@ -100,6 +100,7 @@ enum ChangeFormat {
   static func isPresentation(_ key: String) -> Bool {
     key.hasPrefix("native-app-draft:") || key == "space-navigation"
       || key.hasPrefix("conversation-view:") || key.hasPrefix("form-draft:")
+      || key.hasPrefix("conversation-input-draft:")
       || key.hasPrefix("workflow-clarification-draft:") || key.hasPrefix("table-update-draft:")
   }
   static func portable(_ row: ChangeRow?, table: String) -> ChangeRow? {

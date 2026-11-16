@@ -3,12 +3,14 @@ import CryptoKit
 import Foundation
 import SevraAppProtocol
 import SevraCore
+import SevraMedia
 import SevraPreviewUI
 import SwiftUI
 
 @MainActor public final class NativeAppSession: ObservableObject {
   @Published public private(set) var status = "disabled"
   @Published public private(set) var error: String?
+  @Published public private(set) var visualRevision = 0
   @Published public private(set) var tree = NativeAppTree()
   public let book: Workbook
   public let space: Space
@@ -26,7 +28,7 @@ import SwiftUI
   }
   public func removeViewObserver(_ id: UUID) { viewObservers[id] = nil }
   private var tablePresentations: [String: (signature: Value, request: Value)] = [:]
-  private var imageLoads: [String: Task<PreviewImage?, Never>] = [:]
+  private var imageLoads: [String: Task<SevraMedia.PreviewImage?, Never>] = [:]
   public private(set) var access: NativeAppAccess?
   private var connection: NSXPCConnection?
   private var sequence = 0
@@ -118,21 +120,19 @@ import SwiftUI
       for observer in Array(viewObservers.values) { observer.frame(tree, []) }
     }
   }
-  func loadImage(_ alias: String, enlarged: Bool = false) async -> PreviewImage? {
+  func loadImage(_ alias: String, enlarged: Bool = false) async -> SevraMedia.PreviewImage? {
     guard let access, grant?.isCurrent == true, access.package.images?[alias] != nil else {
       return nil
     }
     let current = epoch
-    let load: Task<PreviewImage?, Never>
+    let load: Task<SevraMedia.PreviewImage?, Never>
     if !enlarged, let cached = imageLoads[alias] {
       load = cached
     } else {
       load = Task.detached(priority: .userInitiated) { [book] in
-        guard !Task.isCancelled, let file = try? book.nativeAppImageURL(access, alias: alias)
+        guard !Task.isCancelled, let input = try? book.nativeAppImageRead(access, alias: alias)
         else { return nil }
-        return PreviewImage.load(
-          file, maximumPixels: enlarged ? PreviewImage.maximumPixels : 1024,
-          requireImageType: true)
+        return try? await WorkbookImageDecoder.shared.load(input, enlarged: enlarged)
       }
       if !enlarged { imageLoads[alias] = load }
     }
@@ -141,8 +141,26 @@ import SwiftUI
     } onCancel: {
       if enlarged { load.cancel() }
     }
-    return epoch == current && grant?.isCurrent == true ? image : nil
+    guard epoch == current && grant?.isCurrent == true else { return nil }
+    if !enlarged { imageLoads[alias] = nil }
+    return image
   }
+  func loadVisual(_ viewID: String) async throws -> VisualResult {
+    guard let grant = NativeAppDeviceGrant(defaults: defaults, key: grantKey) else {
+      throw SevraError("app_permission", "Enable the saved app before opening its chart.")
+    }
+    let book = self.book
+    let space = self.space
+    let visual = try await Task.detached {
+      let access = try NativeAppAccess(
+        workbook: book, space: space, permission: { grant.isCurrent })
+      return try book.nativeAppVisual(access, view: viewID)
+    }.value
+    try Task.checkCancellation()
+    try require(grant.isCurrent, "app_permission", "The app's access changed.")
+    return visual
+  }
+
   public func start() {
     guard status != "running" && status != "starting" else { return }
     guard let grant = NativeAppDeviceGrant(defaults: defaults, key: grantKey) else { return }
@@ -266,7 +284,7 @@ import SwiftUI
         "app_protocol", "The worker returned an invalid session or sequence.")
       var next = tree
       let changed = try next.apply(response["frame"])
-      try next.validateImageBindings(package)
+      try next.validateVisualBindings(package)
       for id in changed where tree.nodes[id]?.mountID != next.nodes[id]?.mountID {
         nativeEdits.removeValue(forKey: id)
       }
@@ -631,8 +649,10 @@ import SwiftUI
     let commandBaseRevision = revision
     do {
       if operation == "undo" || operation == "redo" {
-        try require(operation == "undo" ? canUndo : canRedo, "app_undo",
-          "There is no app change to \(operation). Only the latest saved transaction can be reversed.")
+        try require(
+          operation == "undo" ? canUndo : canRedo, "app_undo",
+          "There is no app change to \(operation). Only the latest saved transaction can be reversed."
+        )
         if operation == "undo" { undo() } else { redo() }
         try await settleConversation(cancellation)
       } else if operation == "run" {
@@ -678,7 +698,8 @@ import SwiftUI
           if query["sort"] == .string("") { query.removeValue(forKey: "sort") }
           let request = Value.object(query)
           let page = try await Task.detached { [book] in
-            try book.nativeAppPage(access, request: request, columnLabels: node.props["columnLabels"])
+            try book.nativeAppPage(
+              access, request: request, columnLabels: node.props["columnLabels"])
           }.value
           try cancellation.check()
           setTableRequest(node, request: request, notify: true)
@@ -757,7 +778,8 @@ import SwiftUI
     snapshot["errors"] = .array(commandFailures.map(Value.string))
     snapshot["outcome"] = .string(commandFailures.isEmpty ? "completed" : "failed")
     if operation == "run", commandFailures.isEmpty {
-      let updatedRows: [Value] = commandReceipts
+      let updatedRows: [Value] =
+        commandReceipts
         .filter { ($0["revision"].int ?? 0) > commandBaseRevision }
         .flatMap { receipt in
           receipt["inverse"].array.compactMap { change in
@@ -845,6 +867,17 @@ import SwiftUI
             "request": tableRequest($0),
           ])
         }),
+      "declaredImages": .array((package.images ?? [:]).keys.sorted().map(Value.string)),
+      "declaredViews": .array((package.views ?? [:]).keys.sorted().map(Value.string)),
+      "mountedImages": .array(
+        status == "running" && isGranted
+          ? tree.nodes.values.filter { $0.type == "image" && $0.props["asset"].string != nil }
+            .sorted { $0.id < $1.id }.prefix(8).map {
+              .object([
+                "target": .string($0.id), "alias": $0.props["asset"], "label": $0.props["label"],
+              ])
+            }
+          : []),
       "access": .object(
         package.datasets.mapValues { binding in
           .object([
@@ -914,6 +947,7 @@ import SwiftUI
             ? [args["table"].text] : args["sources"].array.map { $0["table"].text })
         if !changed.isDisjoint(with: dependencies) { refreshSubscription(id) }
       }
+      if !changed.isEmpty && package.views?.isEmpty == false { visualRevision += 1 }
       for observer in Array(viewObservers.values) { observer.data(changed) }
     } catch { fail(error.localizedDescription, epoch: current) }
   }

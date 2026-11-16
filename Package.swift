@@ -58,14 +58,17 @@ let package = Package(
     .executableTarget(
       name: "SevraAutomationUIChecks", dependencies: ["SevraCore", "SevraAutomationUI"],
       path: "IntegrationTests/AutomationUI", swiftSettings: [.swiftLanguageMode(.v5)]),
+    .target(name: "SevraMedia", dependencies: ["SevraCore"]),
+    .target(name: "SevraVisualUI", dependencies: ["SevraCore", "SevraMedia"]),
     .target(
       name: "SevraPreviewUI",
       dependencies: [
-        "SevraCore", "SevraTableUI",
+        "SevraCore", "SevraTableUI", "SevraMedia", "SevraVisualUI",
         .product(name: "Markdown", package: "swift-markdown"),
       ], swiftSettings: [.swiftLanguageMode(.v5)]),
     .executableTarget(
-      name: "SevraPreviewChecks", dependencies: ["SevraCore", "SevraPreviewUI", "SevraTableUI"],
+      name: "SevraPreviewChecks",
+      dependencies: ["SevraCore", "SevraMedia", "SevraPreviewUI", "SevraTableUI", "SevraVisualUI"],
       path: "IntegrationTests/Preview", swiftSettings: [.swiftLanguageMode(.v5)]),
     .target(
       name: "SevraDocumentUI", dependencies: ["SevraCore"], swiftSettings: [.swiftLanguageMode(.v5)]
@@ -110,7 +113,10 @@ let package = Package(
       resources: [.copy("Resources/sdk.js"), .copy("Resources/Signals-LICENSE.txt")],
       swiftSettings: [.swiftLanguageMode(.v5)]),
     .target(
-      name: "SevraAppUI", dependencies: ["SevraCore", "SevraAppProtocol", "SevraPreviewUI"],
+      name: "SevraAppUI",
+      dependencies: [
+        "SevraCore", "SevraAppProtocol", "SevraPreviewUI", "SevraMedia", "SevraVisualUI",
+      ],
       swiftSettings: [.swiftLanguageMode(.v5)]),
     .executableTarget(
       name: "SevraAppWorker", dependencies: ["SevraAppRuntime", "SevraAppProtocol", "SevraCore"],
@@ -209,6 +215,7 @@ let package = Package(
     .executableTarget(
       name: "SevraApp",
       dependencies: [
+        "SevraVisualUI",
         "SevraCore", "SevraAI", "SevraProduct", "SevraTableUI", "SevraSearchUI", "SevraVoice",
         "SevraDocumentUI", "SevraPreviewUI", "SevraAutomationUI", "SevraAppUI",
       ],

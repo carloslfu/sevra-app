@@ -2,21 +2,44 @@ import Foundation
 import SevraCore
 
 /// Host-selected scope, never inferred from untrusted retrieved content.
-package enum InferenceToolScope: String, Sendable {
+package enum InferenceToolScope: String, CaseIterable, Sendable {
   // Tool scopes retain the public tool names as their raw values.
   // swift-format-ignore: AlwaysUseLowerCamelCase
   case all, finish, inspection, movementDirection, actionDirection, nativeAppReview,
     nativeActionReview, excelPlan,
     excelBuild, excelCalculation, excelInterface, workflowAnswer,
-    answer,
-    boundedAnswer, draft,
+    answer, conversationAnswer,
+    boundedAnswer, boundedConversationAnswer, draft,
     save_space, save_native_app,
     edit_space,
     restore_space, propose_movement,
     propose_record,
     propose_table, propose_table_edit
 
-  package func allows(_ tool: String) -> Bool {
+  package var workspaceOperations: [ChatOperations.Operation] {
+    switch self {
+    case .all: return ChatOperations.operations
+    case .conversationAnswer, .boundedConversationAnswer:
+      return ChatOperations.operations.filter {
+        $0.readOnly && (!$0.host || $0.name == "visual.open_source")
+      }
+    default: return []
+    }
+  }
+
+  package func allows(_ tool: String, conversationInput: Bool = false) -> Bool {
+    if tool == "request_input" {
+      guard conversationInput else { return false }
+      switch self {
+      case .all, .finish, .answer, .boundedAnswer, .conversationAnswer, .boundedConversationAnswer,
+        .draft, .save_space, .save_native_app,
+        .edit_space, .restore_space, .propose_movement, .propose_record, .propose_table,
+        .propose_table_edit:
+        return true
+      default:
+        return false
+      }
+    }
     switch self {
     case .all:
       // The host commits a preview itself, after prepare_action reviews every direction.
@@ -50,9 +73,14 @@ package enum InferenceToolScope: String, Sendable {
       ].contains(tool)
     case .finish: return tool == "finish"
     case .inspection: return WorkbookTools.readOnlyTools.contains(tool)
-    case .answer: return tool == "finish" || WorkbookTools.readOnlyTools.contains(tool)
+    case .answer:
+      return tool == "finish" || WorkbookTools.readOnlyTools.contains(tool)
+    case .conversationAnswer:
+      return Self.answer.allows(tool) || tool == "workspace_action"
     case .boundedAnswer:
       return Self.answer.allows(tool) && !["search", "history_search"].contains(tool)
+    case .boundedConversationAnswer:
+      return Self.boundedAnswer.allows(tool) || tool == "workspace_action"
     case .propose_movement:
       // Saved inventory actions still pass the complete movement review. A
       // future primitive without movements refuses there before submission.
@@ -83,6 +111,8 @@ package struct InferenceCall: Sendable {
 package struct InferenceMessage: Sendable {
   /// Host state, reattached after context maintenance; never inferred from model prose.
   package var nativeAppAuthoring = false
+  package var conversationInput = false
+  package var visualCaptureIDs: [String] = []
   /// Host-observed action contracts and worksheet columns for independent review.
   package var reviewContract: Value = .null
   package let role: String

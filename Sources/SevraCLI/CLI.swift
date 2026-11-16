@@ -710,12 +710,7 @@ import SevraProduct
           expectedVersion: args.count == 5 ? integer(4) : nil))
     case "app-export":
       try require(args.count == 4, "usage", "app-export WORKBOOK SPACE_ID DESTINATION")
-      guard var package = try book.space(arg(2)).definition.app else {
-        throw SevraError("app", "This space has no native app.")
-      }
-      for key in package.datasets.keys { package.datasets[key]?.datasetID = nil }
-      try Data(encoded(package).json().utf8).write(to: url(3), options: .atomic)
-      return .string(try url(3).path)
+      return .string(try book.exportNativeAppTemplate(arg(2), to: url(3)).path)
     case "spaces": return try encoded(book.spaces())
     case "space-history":
       return try encoded(book.spaceHistory(arg(2), before: args.count > 3 ? integer(3) : nil))

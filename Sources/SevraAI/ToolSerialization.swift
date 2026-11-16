@@ -6,7 +6,7 @@ extension NativeTools {
     itemReferenceIDs: [String] = [], conversationActions: [String]? = nil,
     toolScope: InferenceToolScope = .all, documentCopyIDs: [String]? = nil,
     historyReferenceIDs: [String]? = nil, nativeAppAuthoring: Bool = true,
-    reviewContract: Value = .null
+    reviewContract: Value = .null, conversationInput: Bool = false, visualCaptureIDs: [String] = []
   ) throws
     -> [WorkbookToolDefinition]
   {
@@ -31,9 +31,39 @@ extension NativeTools {
     }
     let available =
       definitions
+      + (toolScope.allows("request_input", conversationInput: conversationInput)
+        ? [inputDefinition] : [])
       + ([.excelBuild, .excelCalculation, .excelInterface].contains(toolScope)
         ? [excelEvidenceDefinition, excelBehaviorDefinition] : [])
     return try available.compactMap { definition in
+      if definition.name == "workspace_action" {
+        let operations = toolScope.workspaceOperations
+        guard !operations.isEmpty else { return nil }
+        var parameters = definition.parameters.object
+        var properties = definition.parameters["properties"].object
+        var action = properties["action"]!.object
+        action["enum"] = .array(operations.map { .string($0.name) })
+        properties["action"] = .object(action)
+        parameters["properties"] = .object(properties)
+        return .init(
+          name: definition.name, description: definition.description,
+          parameters: .object(parameters))
+      }
+      if definition.name == "finish", !visualCaptureIDs.isEmpty {
+        var parameters = definition.parameters.object
+        var properties = definition.parameters["properties"].object
+        properties["visuals"] = .object([
+          "type": .string("array"), "maxItems": .number(2),
+          "description": .string("Inspected visual capture receipt IDs from this run."),
+          "items": .object([
+            "type": .string("string"), "enum": .array(visualCaptureIDs.map(Value.string)),
+          ]),
+        ])
+        parameters["properties"] = .object(properties)
+        return .init(
+          name: definition.name, description: definition.description,
+          parameters: .object(parameters))
+      }
       if definition.name == "save_native_app", !nativeAppAuthoring { return nil }
       if definition.name == "save_native_app", [.excelBuild, .excelInterface].contains(toolScope) {
         var parameters = definition.parameters.object
@@ -126,15 +156,16 @@ extension NativeTools {
     toolScope: InferenceToolScope = .all, itemReferenceIDs: [String] = [],
     conversationActions: [String]? = nil, documentCopyIDs: [String]? = nil,
     historyReferenceIDs: [String]? = nil, nativeAppAuthoring: Bool = true,
-    reviewContract: Value = .null
+    reviewContract: Value = .null, conversationInput: Bool = false, visualCaptureIDs: [String] = []
   ) throws -> Data {
     let definitions = try referenceDefinitions(
       itemReferenceIDs: itemReferenceIDs, conversationActions: conversationActions,
       toolScope: toolScope, documentCopyIDs: documentCopyIDs,
       historyReferenceIDs: historyReferenceIDs, nativeAppAuthoring: nativeAppAuthoring,
-      reviewContract: reviewContract
+      reviewContract: reviewContract, conversationInput: conversationInput,
+      visualCaptureIDs: visualCaptureIDs
     )
-    .filter { toolScope.allows($0.name) }
+    .filter { toolScope.allows($0.name, conversationInput: conversationInput) }
     let values: [[String: Any]] = try definitions.map {
       [
         "type": "function",

@@ -33,7 +33,8 @@ extension LocalModel {
   package static func baselineDefinitions(
     itemReferenceIDs: [String] = [], conversationActions: [String]? = nil,
     toolScope: InferenceToolScope = .all, documentCopyIDs: [String]? = nil,
-    nativeAppAuthoring: Bool = true, reviewContract: Value = .null
+    nativeAppAuthoring: Bool = true, reviewContract: Value = .null, conversationInput: Bool = false,
+    visualCaptureIDs: [String] = []
   ) throws -> [Slotstream
     .ToolDefinition]
   {
@@ -50,7 +51,8 @@ extension LocalModel {
     return try NativeTools.referenceDefinitions(
       itemReferenceIDs: itemReferenceIDs, conversationActions: conversationActions,
       toolScope: toolScope, documentCopyIDs: documentCopyIDs,
-      nativeAppAuthoring: nativeAppAuthoring, reviewContract: reviewContract
+      nativeAppAuthoring: nativeAppAuthoring, reviewContract: reviewContract,
+      conversationInput: conversationInput, visualCaptureIDs: visualCaptureIDs
     ).map {
       .init(name: $0.name, description: $0.description, parameters: schemaValue($0.parameters))
     }

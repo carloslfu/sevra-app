@@ -195,13 +195,27 @@ struct HomeAppView: View {
           Button("Open app") { state.navigate(.space(app.id)) }.buttonStyle(.link)
             .accessibilityLabel("Open " + app.title)
         }
-        NativeAppSpaceView(session: state.nativeAppSession(app, book: book), embedded: true)
-          .id(app.id + ":" + String(app.version))
-          .frame(height: 420)
-          .background(
-            Color(nsColor: .controlBackgroundColor), in: RoundedRectangle(cornerRadius: 8)
-          )
-          .overlay(RoundedRectangle(cornerRadius: 8).strokeBorder(.quaternary))
+        let session = state.nativeAppSession(app, book: book)
+        if let viewID = component.viewID {
+          if component.viewVersion == app.version {
+            NativeAppDeclaredView(
+              session: session, viewID: viewID, datasetSnapshot: state.datasetSnapshot
+            ) {
+              state.navigate(.item($0))
+            }.id(app.id + ":" + String(app.version) + ":" + viewID)
+          } else {
+            Label("This saved view belongs to another app version.", systemImage: "chart.bar.xaxis")
+              .foregroundStyle(.secondary)
+          }
+        } else {
+          NativeAppSpaceView(session: session, embedded: true)
+            .id(app.id + ":" + String(app.version))
+            .frame(height: 420)
+            .background(
+              Color(nsColor: .controlBackgroundColor), in: RoundedRectangle(cornerRadius: 8)
+            )
+            .overlay(RoundedRectangle(cornerRadius: 8).strokeBorder(.quaternary))
+        }
       }
     } else {
       VStack(alignment: .leading, spacing: 8) {

@@ -119,6 +119,8 @@ package enum ItemReferenceCandidates {
         historyReferences: index == 0 && history != nil ? earlier.sorted() : nil)
       annotated.nativeAppAuthoring = message.nativeAppAuthoring
       annotated.reviewContract = message.reviewContract
+      annotated.conversationInput = message.conversationInput
+      annotated.visualCaptureIDs = message.visualCaptureIDs
       return annotated
     }
   }

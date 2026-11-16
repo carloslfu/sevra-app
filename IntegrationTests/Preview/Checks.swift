@@ -58,6 +58,10 @@ private actor ReadGate {
         try renderTableSnapshots(in: URL(fileURLWithPath: CommandLine.arguments[2]))
         return
       }
+      if CommandLine.arguments.dropFirst() == ["--visual-media"] {
+        try await checkVisualMedia()
+        return
+      }
       try require(
         CommandLine.arguments.count == 1, "arguments",
         "Use --large-asset NEW_DIRECTORY, --render-tables DIRECTORY or no arguments.")
@@ -73,6 +77,7 @@ private actor ReadGate {
       try checkConversationPresentation()
       try checkLongText()
       try checkMediaFiles()
+      try await checkVisualMedia()
       try checkReadableTables()
       try await checkConversationState()
       try await checkHistorySearch()

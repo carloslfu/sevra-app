@@ -386,7 +386,8 @@ extension Workbook {
 
   private func validateCheckpointBoundary(_ message: Message, conversation: String) throws {
     if message.role == "assistant"
-      && ["complete", "needs_review", "failed", "cancelled", "interrupted"].contains(message.state)
+      && ["complete", "needs_review", "needs_input", "failed", "cancelled", "interrupted"].contains(
+        message.state)
     {
       return
     }

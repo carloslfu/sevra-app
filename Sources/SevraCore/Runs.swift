@@ -88,31 +88,38 @@ extension Workbook {
   {
     let id = identifier()
     _ = try mutation("agent_run", request: .string(id)) {
-      if let requestMessageID {
-        try require(
-          try db.scalar(
-            "SELECT count(*) FROM messages WHERE id=? AND conversation_id=? AND role='user'",
-            [.string(requestMessageID), .string(conversation)]
-          ).int == 1,
-          "run_request", "The run needs a user message in this conversation.")
-      }
-      try db.execute(
-        "UPDATE agent_runs SET status='interrupted',updated=? WHERE status='running'",
-        [.string(timestamp())])
-      try db.execute(
-        "INSERT INTO agent_runs VALUES(?,?,?,?,?,?,?,?)",
-        [
-          .string(id), .string(conversation), .string("running"), .string(model), .number(0),
-          .string("[]"), .string(timestamp()), .string(timestamp()),
-        ])
-      if let requestMessageID {
-        try db.execute(
-          "INSERT INTO run_requests VALUES(?,?)", [.string(id), .string(requestMessageID)])
-      }
+      try createAgentRun(
+        id, conversation: conversation, model: model, requestMessageID: requestMessageID)
       return .string(id)
     }
     return id
   }
+  func createAgentRun(
+    _ id: String, conversation: String, model: String, requestMessageID: String?
+  ) throws {
+    if let requestMessageID {
+      try require(
+        try db.scalar(
+          "SELECT count(*) FROM messages WHERE id=? AND conversation_id=? AND role='user'",
+          [.string(requestMessageID), .string(conversation)]
+        ).int == 1,
+        "run_request", "The run needs a user message in this conversation.")
+    }
+    try db.execute(
+      "UPDATE agent_runs SET status='interrupted',updated=? WHERE status='running'",
+      [.string(timestamp())])
+    try db.execute(
+      "INSERT INTO agent_runs VALUES(?,?,?,?,?,?,?,?)",
+      [
+        .string(id), .string(conversation), .string("running"), .string(model), .number(0),
+        .string("[]"), .string(timestamp()), .string(timestamp()),
+      ])
+    if let requestMessageID {
+      try db.execute(
+        "INSERT INTO run_requests VALUES(?,?)", [.string(id), .string(requestMessageID)])
+    }
+  }
+
   public func finishAgentRun(_ id: String, status: String, steps: Int, metrics: Value) throws {
     try require(
       ["complete", "needs_review", "failed", "cancelled", "interrupted"].contains(status), "run",
@@ -121,7 +128,7 @@ extension Workbook {
       "agent_terminal", request: .object(["id": .string(id), "status": .string(status)])
     ) {
       try db.execute(
-        "UPDATE agent_runs SET status=?,steps=?,metrics=?,updated=? WHERE id=?",
+        "UPDATE agent_runs SET status=?,steps=?,metrics=?,updated=? WHERE id=? AND status='running'",
         [
           .string(status), .number(Double(steps)), .string(try metrics.json()),
           .string(timestamp()), .string(id),
@@ -129,6 +136,40 @@ extension Workbook {
       return .string(id)
     }
   }
+  @discardableResult package func finishAgentAnswer(
+    _ body: String, payload: Value, runID: String, conversation: String,
+    steps: Int, metrics: Value, cancellation: Cancellation
+  ) throws -> String {
+    let id = identifier()
+    let data = try payload.json()
+    let recordedMetrics = try metrics.json()
+    try require(
+      data.utf8.count <= 128_000 && body.utf8.count <= 128_000, "message_limit",
+      "The answer exceeds the saved message limit.")
+    return try mutation(
+      "agent_answer", token: runID + "-answer",
+      request: .object(["body": .string(body), "payload": payload]),
+      cancellation: cancellation, commitGuard: { try cancellation.check() }
+    ) {
+      try require(
+        try db.scalar(
+          "SELECT status FROM agent_runs WHERE id=? AND conversation_id=?",
+          [.string(runID), .string(conversation)]) == .string("running"),
+        "run", "This request is no longer running.")
+      try db.execute(
+        "INSERT INTO messages VALUES(?,?,?,?,?,?)",
+        [
+          .string(id), .string(conversation), .string("assistant"), .string(body),
+          .string("complete"), .string(timestamp()),
+        ])
+      try db.execute("INSERT INTO message_payloads VALUES(?,?)", [.string(id), .string(data)])
+      try db.execute(
+        "UPDATE agent_runs SET status='complete',steps=?,metrics=?,updated=? WHERE id=?",
+        [.number(Double(steps)), .string(recordedMetrics), .string(timestamp()), .string(runID)])
+      return .string(id)
+    }.text
+  }
+
   public func agentRuns() throws -> [Value] {
     try synchronized {
       try db.execute(

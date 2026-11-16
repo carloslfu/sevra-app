@@ -47,6 +47,32 @@ func runContextAccountingProbe(modelsRoot: String, library: String, output: Stri
         ]))
     }
   }
+  var withWidget = [
+    InferenceMessage(role: "system", content: "Ask for the missing date."),
+    InferenceMessage(role: "user", content: "Compare the invoices for Málaga and Bogotá."),
+  ]
+  withWidget[0].conversationInput = true
+  withWidget[0].visualCaptureIDs = ["receipt-12345678"]
+  let widgetPreparation = try NativePreparedRequest(
+    messages: withWidget, frontend: frontend,
+    configuredReasoning: .bounded512, toolScope: .conversationAnswer, citationIDs: [])
+  let widgetMeasurement = widgetPreparation.measurement(capacity: 32768)
+  try expectEqual(widgetPreparation.outputBudget, 1800)
+  let ordinaryAnswerReserve = try NativePreparedRequest.toolResultReserve(
+    frontend: frontend, toolScope: .answer, nativeAppAuthoring: false)
+  try expectEqual(widgetMeasurement.toolResultTokens, ordinaryAnswerReserve)
+  try require(ordinaryAnswerReserve >= 2048, "probe", "The answer reserve fell below its floor.")
+  try require(
+    widgetMeasurement.promptTokens < widgetMeasurement.threshold,
+    "probe", "The prepared widget request exceeds its context threshold.")
+  rows.append(
+    .object([
+      "scope": .string("answer-with-widget-and-visual"), "authoring": .bool(false),
+      "promptTokens": .number(Double(widgetMeasurement.promptTokens)),
+      "outputTokens": .number(Double(widgetMeasurement.outputTokens)),
+      "toolResultTokens": .number(Double(widgetMeasurement.toolResultTokens)),
+      "threshold": .number(Double(widgetMeasurement.threshold)),
+    ]))
   var review = [InferenceMessage(role: "user", content: "Review the action.")]
   review[0].nativeAppAuthoring = true
   review[0].reviewContract = .object(["columns": .object(["ledger": .array([.string("amount")])])])

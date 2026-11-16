@@ -7,6 +7,9 @@ public struct Component: Codable, Identifiable, Equatable, Sendable {
   public var datasetID: String?
   public var itemID: String?
   public var spaceID: String?
+  public var visual: VisualDefinition?
+  public var viewID: String?
+  public var viewVersion: Int?
   public var query: String?
   public var x: String?
   public var y: String?
@@ -27,7 +30,8 @@ public struct Component: Codable, Identifiable, Equatable, Sendable {
     unit: String? = nil, children: [Component]? = nil, snapshot: ComponentSnapshot? = nil,
     searchSnapshot: ComponentSearchSnapshot? = nil, definitionBinding: Value? = nil,
     arguments: Value? = nil, evaluationSnapshot: DefinitionResultSnapshot? = nil,
-    spaceID: String? = nil
+    spaceID: String? = nil, visual: VisualDefinition? = nil, viewID: String? = nil,
+    viewVersion: Int? = nil
   ) {
     self.id = id
     self.type = type
@@ -35,6 +39,9 @@ public struct Component: Codable, Identifiable, Equatable, Sendable {
     self.datasetID = datasetID
     self.itemID = itemID
     self.spaceID = spaceID
+    self.visual = visual
+    self.viewID = viewID
+    self.viewVersion = viewVersion
     self.query = query
     self.x = x
     self.y = y
@@ -151,10 +158,40 @@ extension Workbook {
       try require(
         Set([
           "table", "chart", "metric", "comparison", "document", "asset", "search", "text", "form",
-          "calculation", "query", "app",
+          "calculation", "query", "app", "image", "visual",
         ])
         .union(SpaceDefinition.sectionTypes).contains(c.type), "view",
         "Unknown native component: \(c.type)")
+      if c.type == "image" {
+        guard let visual = c.visual, let image = visual.image else {
+          throw SevraError("visual_image", "Choose an included image for this component.")
+        }
+        try require(
+          c.itemID == nil && c.datasetID == nil && c.snapshot == nil && c.searchSnapshot == nil,
+          "visual_image", "Use the image’s exact source binding.")
+        try visual.validate()
+        _ = try validateImageReference(image.reference)
+      } else if c.type == "visual" {
+        guard let visual = c.visual, let query = visual.chart?.query ?? visual.work?.query else {
+          throw SevraError("visual_chart", "Choose a typed chart definition.")
+        }
+        try require(
+          definition.pinnedAt == nil && c.itemID == nil && c.datasetID == nil
+            && c.snapshot == nil && c.searchSnapshot == nil, "visual",
+          "Use the chart's typed query in a live layout.")
+        try visual.validate()
+        if !unchanged.contains(c) {
+          _ = try compileDatasetQuery(DatasetQuery(query))
+        }
+      } else {
+        try require(
+          c.visual == nil, "visual", "This kind of component does not accept a visual definition.")
+      }
+      try require(
+        (c.viewID == nil && c.viewVersion == nil)
+          || (c.type == "app" && c.viewID != nil && c.viewVersion != nil),
+        "visual", "A declared view requires an exact app version.")
+
       if c.type == "app" {
         try require(
           definition.pinnedAt == nil && c.datasetID == nil && c.itemID == nil
@@ -166,8 +203,15 @@ extension Workbook {
         }
         // Existing unavailable bindings remain removable and restorable.
         if !unchanged.contains(c) {
-          try require(
-            try space(id).definition.app != nil, "view", "Choose a programmable app space.")
+          let app = try space(id)
+          guard let package = app.definition.app else {
+            throw SevraError("view", "Choose a programmable app space.")
+          }
+          if let view = c.viewID {
+            try require(
+              package.views?[view] != nil && c.viewVersion == app.version, "view",
+              "Choose a declared app view at its current app version.")
+          }
         }
       } else {
         try require(c.spaceID == nil, "view", "Only a live app component uses spaceID.")

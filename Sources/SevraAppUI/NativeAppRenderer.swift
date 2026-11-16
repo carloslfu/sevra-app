@@ -121,7 +121,8 @@ import SwiftUI
         self.image = NSImage(
           systemSymbolName: "photo.badge.exclamationmark", accessibilityDescription: nil)
         self.toolTip = "Image unavailable"
-        self.setAccessibilityLabel([label, "Image unavailable"].compactMap { $0 }.joined(separator: ". "))
+        self.setAccessibilityLabel(
+          [label, "Image unavailable"].compactMap { $0 }.joined(separator: ". "))
       }
     }
   }
@@ -139,7 +140,9 @@ public struct NativeAppSurface: NSViewRepresentable {
   public func makeNSView(context: Context) -> NativeAppRenderer {
     NativeAppRenderer(session: session, openImage: openImage)
   }
-  public func updateNSView(_ view: NativeAppRenderer, context: Context) { view.openImage = openImage }
+  public func updateNSView(_ view: NativeAppRenderer, context: Context) {
+    view.openImage = openImage
+  }
   public func sizeThatFits(
     _ proposal: ProposedViewSize, nsView: NativeAppRenderer, context: Context
   ) -> CGSize? {
@@ -298,6 +301,10 @@ final class AppElement: NSView, NSTextFieldDelegate, NSTextViewDelegate, NSTabVi
     case "grid": content = NSGridView()
     case "canvas": content = AppCanvas()
     case "image": content = AppImageView(frame: .zero)
+    case "view":
+      content = NSHostingView(
+        rootView: NativeAppDeclaredView(
+          session: session, viewID: node.props["viewID"].text))
     case "table":
       let view = AppTable(session: session, node: node)
       content = view
@@ -506,6 +513,12 @@ final class AppElement: NSView, NSTextFieldDelegate, NSTextViewDelegate, NSTabVi
     case "canvas": (content as! AppCanvas).update(props)
     case "image":
       (content as! AppImageView).update(props, session: session)
+    case "view":
+      if previous["viewID"] != props["viewID"],
+        let host = content as? NSHostingView<NativeAppDeclaredView>
+      {
+        host.rootView = NativeAppDeclaredView(session: session, viewID: props["viewID"].text)
+      }
     case "table": table?.update(next)
     default: break
     }

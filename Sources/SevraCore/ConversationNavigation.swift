@@ -116,7 +116,8 @@ extension Workbook {
   }
   // Caller owns the workbook lock and a coherent, budgeted read transaction.
   func readConversationWindow(
-    conversation: String, around anchor: String?, cancellation: Cancellation
+    conversation: String, around anchor: String?, cancellation: Cancellation,
+    reservedPresentationBytes: Int = 0
   ) throws -> ConversationWindow {
     try require(
       try db.scalar("SELECT count(*) FROM conversations WHERE id=?", [.string(conversation)])
@@ -152,7 +153,7 @@ extension Workbook {
     let later =
       position == .null ? [] : try candidates("AND rowid>=?", descending: false, limit: 50)
     var selected: [[String: Value]] = []
-    var bytes = 0
+    var bytes = reservedPresentationBytes
     var full = [false, false]
     // Start with the anchor and alternate outward so the byte budget does
     // not silently exclude the very message the user chose to inspect.

@@ -25,6 +25,40 @@ public enum ChatOperations {
   }
   public static let operations: [Operation] = [
     .init(
+      "visual.open_source",
+      "Open an exact captured image's source or a captured visual's referenced row in the workbook window.",
+      ["messageID", "index"], ["sourceID"], readOnly: true, host: true),
+    .init(
+      "visual.export", "Export a captured chart from an exact chat message as PNG, PDF or CSV.",
+      ["messageID", "index", "path"], host: true),
+    .init(
+      "visual.inspect", "Inspect a saved visual and current work record versions.",
+      ["id", "componentID"], readOnly: true),
+    .init(
+      "visual.change_record", "Move or reschedule a record through a saved work view.",
+      ["id", "componentID", "expectedVersion", "recordID", "value"], ["end"]),
+    .init("visual.schema", "Read the native visual authoring contract.", readOnly: true),
+    .init(
+      "visual.evaluate", "Capture a native visual for this chat answer.", [],
+      ["sourceID", "chart", "work", "caption", "accessibilityDescription"], readOnly: true),
+    .init(
+      "visual.pin",
+      "Add an included image or typed live visual to Home at its exact current version.",
+      ["expectedVersion"],
+      ["sourceID", "chart", "work", "title", "caption", "accessibilityDescription"]),
+    .init(
+      "visual.promote", "Add the exact visual from a saved chat message as a live Home view.",
+      ["messageID", "index", "expectedVersion"]),
+    .init(
+      "visual.configure",
+      "Update a saved visual's labels, chart mark or calendar month without replacing its binding.",
+      ["id", "componentID", "expectedVersion"],
+      ["title", "caption", "accessibilityDescription", "style", "threshold", "month"]),
+    .init(
+      "visual.filter",
+      "Replace the typed presentation filters on a saved workbook chart or work view. Use an empty array to clear the filters. Workbook source scope stays fixed.",
+      ["id", "componentID", "expectedVersion", "filters"]),
+    .init(
       "app.browse",
       "Filter, sort or page a mini-app table without clicking. Use a table target from app.inspect. sort is a column ID (empty clears sorting), offset is a zero-based row offset; each page has at most 200 rows. The optional view uses the same state.",
       ["id", "target"], ["search", "sort", "descending", "offset"], readOnly: true, host: true),
@@ -61,10 +95,12 @@ public enum ChatOperations {
       "Move a named canvas region by movement deltas x,y through its saved drop handler.",
       ["id", "expectedVersion", "target", "region", "x", "y"], host: true),
     .init(
-      "app.undo", "Undo the app's latest saved transaction when canUndo is true. After Undo, use app.redo to restore it; a second Undo never redoes it.",
+      "app.undo",
+      "Undo the app's latest saved transaction when canUndo is true. After Undo, use app.redo to restore it; a second Undo never redoes it.",
       ["id", "expectedVersion"], host: true),
     .init(
-      "app.redo", "Restore the app's last undone transaction when canRedo is true. A new saved transaction replaces that Redo.",
+      "app.redo",
+      "Restore the app's last undone transaction when canRedo is true. A new saved transaction replaces that Redo.",
       ["id", "expectedVersion"], host: true),
     .init(
       "app.enable",
@@ -221,12 +257,12 @@ public enum ChatOperations {
       })
   }
   private static func argumentType(_ name: String, _ key: String) -> String {
-    if key == "value" { return "value" }
+    if key == "value" { return name == "visual.change_record" ? "string" : "value" }
     if key == "expectedVersion" { return name.hasPrefix("excel.") ? "string" : "integer" }
     if key == "inputs" { return name == "app.fill" ? "array" : "object" }
     if key == "target" && name == "workflow.answer" { return "object" }
-    if ["values", "preview"].contains(key) { return "object" }
-    if ["columns", "operations", "mapping", "keys"].contains(key) { return "array" }
+    if ["values", "preview", "chart", "work"].contains(key) { return "object" }
+    if ["columns", "operations", "mapping", "keys", "filters"].contains(key) { return "array" }
     if ["archived", "separate", "allowAI", "fromNow", "descending"].contains(key) {
       return "boolean"
     }
@@ -304,6 +340,7 @@ extension WorkbookTools {
       }
       return value
     }
+    if name.hasPrefix("visual.") { return try executeVisualOperation(name, a, token: token) }
     switch name {
     case "chat.pending":
       guard let approval = try workbook.pendingChatApproval(conversation: conversation) else {

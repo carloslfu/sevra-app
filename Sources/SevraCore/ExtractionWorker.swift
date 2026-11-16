@@ -107,7 +107,7 @@ public struct ExtractionWorker: Sendable {
     }
   }
 
-  private func run<Result: Codable>(
+  func run<Result: Codable>(
     _ url: URL, mode: [String], cancellation: Cancellation
   ) throws -> Result {
     try require(
@@ -265,7 +265,10 @@ public struct ExtractionWorker: Sendable {
     let listing = arguments.count == 2 && arguments[0] == "--zip-members"
     let evidence = arguments.count == 2 && arguments[0] == "--excel-evidence"
     let calculating = arguments.count == 2 && arguments[0] == "--excel-behavior"
-    if arguments.count == 1 || listing || evidence || calculating {
+    let imageSize =
+      arguments.count == 3 && arguments[0].hasPrefix("--image-preview=")
+      ? Int(arguments[0].dropFirst("--image-preview=".count)) : nil
+    if arguments.count == 1 || listing || evidence || calculating || imageSize != nil {
       format = nil
     } else if arguments.count == 2, arguments[0].hasPrefix("--structured="),
       let selected = StructuredFormat(rawValue: String(arguments[0].dropFirst(13)))
@@ -285,6 +288,11 @@ public struct ExtractionWorker: Sendable {
     }
     watchdog.resume()
     let status: Int32 = withExtendedLifetime(watchdog) {
+      if let imageSize {
+        return writeReply {
+          try ImagePreviewPixels.decode(url, dimension: imageSize, hash: arguments[1])
+        }
+      }
       if calculating {
         return writeReply {
           guard let behavior else {

@@ -44,6 +44,7 @@ var Sevra = (() => {
     TextEditor: () => TextEditor,
     TextField: () => TextField,
     Toggle: () => Toggle,
+    View: () => View,
     Workspace: () => Workspace,
     __flush: () => __flush,
     __initialize: () => __initialize,
@@ -661,6 +662,7 @@ var Sevra = (() => {
   var Disclosure = "disclosure";
   var Canvas = "canvas";
   var Image = "image";
+  var View = "view";
   var Spacer = "spacer";
   var eventProps = { button: ["onClick"], textField: ["onChange"], textEditor: ["onChange"], toggle: ["onChange"], picker: ["onChange"], slider: ["onChange"], date: ["onChange"], tabs: ["onChange"], disclosure: ["onChange"], table: ["onSelect", "onActivate"], canvas: ["onClick", "onDrop"] };
   function cleanup(id) {

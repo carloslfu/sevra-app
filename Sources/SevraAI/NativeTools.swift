@@ -39,6 +39,44 @@ package enum NativeTools {
     default: return value
     }
   }
+  static let inputDefinition = WorkbookToolDefinition(
+    name: "request_input",
+    description: "Pause to ask for only the missing user input. No business action is executed.",
+    parameters: object(
+      [
+        "kind": .object([
+          "type": .string("string"), "enum": .array([.string("question"), .string("input")]),
+        ]),
+        "purpose": schema("string", "Short description of what the input is for."),
+        "question": schema("string", "Ask the person directly."),
+        "fields": .object([
+          "type": .string("array"), "minItems": .number(1), "maxItems": .number(5),
+          "items": object(
+            [
+              "id": schema("string", "Lowercase letters, digits and underscore."),
+              "label": schema("string", "Visible field name."),
+              "type": .object([
+                "type": .string("string"),
+                "enum": .array(
+                  ["text", "boolean", "decimal", "date"].map(Value.string)),
+              ]),
+              "required": schema("boolean", "Must the person supply it?"),
+            ], required: ["id", "label", "type", "required"]),
+        ]),
+        "choices": .object([
+          "type": .string("array"), "maxItems": .number(6),
+          "items": object(
+            [
+              "id": schema("string", "Lowercase letters, digits and underscore."),
+              "label": schema("string", "Visible choice."),
+              "values": schema(
+                "object", "Literal values keyed by declared fields. Decimals and dates are strings."
+              ),
+            ], required: ["id", "label", "values"]),
+        ]),
+        "allowTextReply": schema("boolean", "Accept a typed answer as well."),
+      ], required: ["kind", "purpose", "question", "fields", "choices", "allowTextReply"]))
+
   static func componentSchema(depth: Int) -> Value {
     var fields: [String: Value] = [
 
@@ -49,7 +87,7 @@ package enum NativeTools {
           [
             "table", "chart", "metric", "document", "asset", "search", "text", "input", "reviews",
             "shortcuts", "tables", "intake", "recent", "form", "calculation", "query", "app",
-            "attention", "continue",
+            "attention", "continue", "image", "visual",
           ].map(
             Value.string)),
       ]),
@@ -60,7 +98,13 @@ package enum NativeTools {
       ),
       "spaceID": schema(
         "string", "App component: exact programmable space ID; same live data and actions."),
+      "viewID": schema("string", "Optional declared app view ID. Include its exact viewVersion."),
+      "viewVersion": schema("integer", "The current saved app version that owns viewID."),
       "itemID": schema("string", "REQUIRED for document/asset. Exact evidence item ID."),
+      "visual": .object([
+        "type": .string("object"),
+        "description": .string("Exact visual definition from visual.evaluate."),
+      ]),
       "definitionBinding": .object(["type": .string("object")]),
       "arguments": .object(["type": .string("object")]),
       "chartStyle": schema("string", "bar or line; default bar."),

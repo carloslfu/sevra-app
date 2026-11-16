@@ -4,6 +4,7 @@ import Foundation
 /// included in the recent catalog; the existing conversation window stays bounded.
 public struct WorkspaceSnapshot: Sendable {
   public let revision: Int
+  public let datasetSnapshot: String
   public let spaces: [Space]
   public let spaceNavigation: SpaceNavigationState
   public let items: [ItemSummary]
@@ -23,6 +24,9 @@ public struct WorkspaceSnapshot: Sendable {
   public let homeDocuments: [ItemSummary]
   public let pendingWorkflows: [Value]
   public let chatApproval: ChatApproval?
+  public let pendingInput: ConversationSurface?
+  public let visuals: [String: [VisualResult]]
+  public let resumableAnswer: String?
   public let excelImports: [Value]
 }
 
@@ -79,9 +83,11 @@ extension Workbook {
               "history_scope", "The message is not in this conversation.")
           }
           let history = try readConversationWindow(
-            conversation: conversation, around: messageAnchor, cancellation: control)
+            conversation: conversation, around: messageAnchor, cancellation: control,
+            reservedPresentationBytes: 128 * 1024)
           return try WorkspaceSnapshot(
-            revision: current, spaces: spaces(), spaceNavigation: spaceNavigation,
+            revision: current, datasetSnapshot: datasetReadSnapshot(), spaces: spaces(),
+            spaceNavigation: spaceNavigation,
             items: recentItemSummaries(), datasets: datasets(),
             archivedDatasets: datasets(archived: true),
             messages: history.messages,
@@ -98,6 +104,10 @@ extension Workbook {
             pendingExtractions: pendingExtractions(), intakeStatus: intakeStatus(),
             homeDocuments: homeRecentDocuments(), pendingWorkflows: homeWorkflowAttention(),
             chatApproval: pendingChatApproval(conversation: conversation),
+            pendingInput: pendingConversationInput(conversation: conversation),
+            visuals: conversationVisuals(
+              history.messages, conversation: conversation, anchor: messageAnchor),
+            resumableAnswer: resumableConversationAnswer(conversation: conversation),
             excelImports: excelConversionSummaries())
         }
       }

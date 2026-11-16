@@ -38,7 +38,7 @@ extension WorkbookAgent {
           message.role == "assistant"
           && ["cancelled", "failed", "interrupted"].contains(message.state)
         guard ["user", "assistant"].contains(message.role),
-          ["complete", "needs_review"].contains(message.state) || ended
+          ["complete", "needs_review", "needs_input"].contains(message.state) || ended
         else { continue }
         var content = String(message.body.prefix(1600))
         let stoppedRequest = try stoppedRequestReference(workbook, message: message)

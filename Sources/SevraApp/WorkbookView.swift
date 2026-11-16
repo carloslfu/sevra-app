@@ -45,6 +45,7 @@ struct WorkbookView: View {
           Button("Include files…") { state.importPanel() }
           Button("Link external files…") { state.importPanel(linked: true) }
           Button("Add a folder…", action: state.folderPanel)
+          Button("Paste image", action: state.pasteImage)
           Button("Paste table data…", action: state.pasteTableData)
         } label: {
           Label("Add files…", systemImage: "plus")
@@ -432,7 +433,12 @@ struct WorkbookView: View {
               VStack(alignment: .leading, spacing: 12) {
                 ConversationMessageRow(
                   state: state, message: message, content: state.messageContent(message),
-                  review: state.proposalReviews[message.id]
+                  review: state.proposalReviews[message.id],
+                  inputSurface: state.pendingInput?.id == message.id ? state.pendingInput : nil,
+                  approval: state.chatApproval?.id == message.id ? state.chatApproval : nil,
+                  visuals: state.conversationVisuals[message.id] ?? [],
+                  resumable: state.resumableAnswer == message.id,
+                  controlsEnabled: !state.busy && !state.changingConversation
                 ).equatable()
                 ForEach(state.requestActivities.filter { $0.requestID == message.id }) { activity in
                   AgentActivityView(

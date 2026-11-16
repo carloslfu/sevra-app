@@ -14,7 +14,7 @@ extension NativeTools {
             "enum": .array(
               [
                 "chat", "app", "record", "form", "document", "table", "workflow", "automation",
-                "file", "intake", "excel",
+                "file", "intake", "excel", "visual",
               ].map(Value.string)),
           ])
         ], required: [])),

@@ -11,6 +11,7 @@ import SevraSearchUI
 import SevraTableUI
 import SevraVoice
 import SwiftUI
+import UniformTypeIdentifiers
 import os
 
 typealias WorkbookReadingTarget = ReadingTarget
@@ -69,7 +70,11 @@ struct FolderReview {
   @Published var archivedDatasets: [Dataset] = []
   @Published var homeDocuments: [ItemSummary] = []
   @Published var pendingWorkflows: [Value] = []
+  @Published var datasetSnapshot = "initial"
   @Published var chatApproval: ChatApproval?
+  @Published var pendingInput: ConversationSurface?
+  @Published var conversationVisuals: [String: [VisualResult]] = [:]
+  @Published var resumableAnswer: String?
   @Published var excelImports: [Value] = []
   @Published var excelPurposeDrafts: [String: String] = [:]
   func dataset(_ id: String) -> Dataset? {
@@ -217,7 +222,11 @@ struct FolderReview {
   let speech = SpeechInput(pausePlayback: { PlaybackRegistry.shared.pauseAll() })
   func open(_ url: URL) async throws {
     // Opening checks the whole schema and can wait for another process to let go of the workbook.
-    let opened = try await Task.detached(priority: .userInitiated) { try Workbook(url) }.value
+    let opened = try await Task.detached(priority: .userInitiated) {
+      let book = try Workbook(url)
+      try book.recoverConversationAttachments()
+      return book
+    }.value
     try require(
       documentDrafts.flush(), "document_save",
       "Save or preserve the current draft before opening another workbook.")
@@ -255,6 +264,9 @@ struct FolderReview {
     homeDocuments = []
     pendingWorkflows = []
     chatApproval = nil
+    pendingInput = nil
+    conversationVisuals = [:]
+    resumableAnswer = nil
     excelImports = []
     excelPurposeDrafts = [:]
     messages = []
@@ -386,7 +398,11 @@ struct FolderReview {
         self.archivedDatasets = snapshot.archivedDatasets
         self.homeDocuments = snapshot.homeDocuments
         self.pendingWorkflows = snapshot.pendingWorkflows
+        self.datasetSnapshot = snapshot.datasetSnapshot
         self.chatApproval = snapshot.chatApproval
+        self.pendingInput = snapshot.pendingInput
+        self.conversationVisuals = snapshot.visuals
+        self.resumableAnswer = snapshot.resumableAnswer
         self.excelImports = snapshot.excelImports
         self.messages = snapshot.messages
         self.contents.retain(snapshot.messages)
@@ -566,6 +582,27 @@ struct FolderReview {
     if ticket.cancellation.isCancelled, (failure as? SevraError)?.code == "cancelled" { return }
     error = failure.localizedDescription
   }
+  func promoteVisual(_ messageID: String, index: Int) {
+    guard !busy, let expected = spaces.first(where: { $0.id == "home" })?.version,
+      let (book, ticket) = beginOperation("Adding view to Home")
+    else { return }
+    let chat = conversation
+    Task {
+      var saved = false
+      defer {
+        finishOperation(ticket, in: book, successStatus: saved ? "View added to Home." : nil)
+      }
+      do {
+        _ = try await Task.detached(priority: .userInitiated) {
+          try ticket.cancellation.check()
+          return try book.promoteConversationVisual(
+            messageID, index: index, conversation: chat, expectedVersion: expected)
+        }.value
+        saved = true
+      } catch { report(error, for: ticket, in: book) }
+    }
+  }
+
   func pinSpace(_ id: String, title: String) {
     guard !busy, documentDrafts.flush(), let (book, ticket) = beginOperation("Saving a snapshot")
     else { return }
@@ -618,7 +655,8 @@ struct FolderReview {
       finished: "Compared folder " + plan.folder + ": " + plan.summary + ". Nothing was deleted.")
   }
   func importFiles(
-    _ urls: [URL], linked: Bool = false, tokens: [URL: String] = [:], finished: String? = nil
+    _ urls: [URL], linked: Bool = false, tokens: [URL: String] = [:], finished: String? = nil,
+    removing staging: URL? = nil
   ) {
     let chat = conversation
     let navigation = itemPreviewIdentity
@@ -626,6 +664,7 @@ struct FolderReview {
       linked ? "Linking files" : "Including files",
       successStatus: finished ?? (linked ? "Files linked." : "Files added."),
       operation: { book, cancel in
+        defer { if let staging { try? FileManager.default.removeItem(at: staging) } }
         var failures: [String] = []
         var excel: [String] = []
         for url in urls {
@@ -633,13 +672,9 @@ struct FolderReview {
           do {
             // Capturing a file is enough to make it evidence. Table conversion
             // remains an explicit later request, never an import prerequisite.
-            let job = try book.captureIntake(
-              url, linked: linked, role: .reference, token: tokens[url] ?? UUID().uuidString,
+            let job = try book.captureConversationAttachment(
+              url, linked: linked, conversation: chat, token: tokens[url] ?? identifier(),
               cancellation: cancel)
-            let item = try book.item(job.sourceID)
-            _ = try book.addMessage(
-              (linked ? "Linked " : "Included ") + item.referenceMarkdown, role: "event",
-              conversation: chat)
             _ = try book.runIntake(job.id, cancellation: cancel)
             if ["xlsx", "xlsm"].contains(url.pathExtension.lowercased()) {
               excel.append(
@@ -821,6 +856,49 @@ struct FolderReview {
     let saved = importProgress?.saved ?? table.rowCount
     return "\(saved.formatted()) of \((importProgress?.total ?? source).formatted()) rows saved"
   }
+  func pasteImage() {
+    guard interactionActive, !busy, !changingConversation else { return }
+    let clipboard = NSPasteboard.general
+    if let files = clipboard.readObjects(
+      forClasses: [NSURL.self], options: [.urlReadingFileURLsOnly: true]) as? [URL],
+      !files.isEmpty
+    {
+      guard
+        files.allSatisfy({ url in
+          UTType(filenameExtension: url.pathExtension)?.conforms(to: .image) == true
+        })
+      else {
+        error = "Choose image files to paste."
+        return
+      }
+      importFiles(files)
+      return
+    }
+    let formats: [(NSPasteboard.PasteboardType, String)] = [(.png, "png"), (.tiff, "tiff")]
+    guard let format = formats.first(where: { clipboard.types?.contains($0.0) == true }),
+      let data = clipboard.data(forType: format.0)
+    else {
+      error = "Copy an image or image file first."
+      return
+    }
+    guard !data.isEmpty && data.count <= 32 * 1024 * 1024 else {
+      error = "Paste an image under 32 MB."
+      return
+    }
+    let temporary = FileManager.default.temporaryDirectory.appendingPathComponent(identifier())
+    do {
+      try FileManager.default.createDirectory(
+        at: temporary, withIntermediateDirectories: false,
+        attributes: [.posixPermissions: 0o700])
+      let file = temporary.appendingPathComponent("Pasted image." + format.1)
+      try data.write(to: file, options: .withoutOverwriting)
+      importFiles([file], removing: temporary)
+    } catch {
+      try? FileManager.default.removeItem(at: temporary)
+      self.error = error.localizedDescription
+    }
+  }
+
   func pasteTableData() {
     guard interactionActive, !busy else { return }
     guard let text = NSPasteboard.general.string(forType: .string), TableClipboard.holdsTable(text)
@@ -887,6 +965,26 @@ struct FolderReview {
         return
       }
     }
+    if input.lowercased().hasPrefix("answer:") {
+      guard let surface = pendingInput, surface.conversation == conversation else {
+        error = "There is no question waiting in this conversation."
+        return
+      }
+      let reply = input.dropFirst("answer:".count).trimmingCharacters(in: .whitespacesAndNewlines)
+      if submitInput(surface, response: .text(reply)) { prompt = "" }
+      return
+    }
+    if input.lowercased() == "cancel question", let surface = pendingInput,
+      surface.conversation == conversation
+    {
+      if submitInput(surface, response: .cancel) { prompt = "" }
+      return
+    }
+    if input.lowercased() == "retry continuation", let answerID = resumableAnswer {
+      prompt = ""
+      retryInput(answerID)
+      return
+    }
     if let answerCommand = WorkflowAnswerCommand.parse(input) {
       prompt = ""
       workflowAnswerCommand(answerCommand, input: input, book: book)
@@ -951,7 +1049,39 @@ struct FolderReview {
       refresh()
       return
     }
-    unsent = (input, conversation, book)
+    runChat(input, book: book)
+  }
+
+  @discardableResult func submitInput(
+    _ surface: ConversationSurface, response: ConversationInputResponse, draftRevision: Int? = nil
+  ) -> Bool {
+    guard interactionActive, !busy, !changingConversation, let book = workbook,
+      surface.conversation == conversation
+    else { return false }
+    do {
+      let answer = try book.submitConversationInput(
+        surface, response: response, draftRevision: draftRevision)
+      pendingInput = nil
+      resumableAnswer = answer
+      refresh()
+      if let answer { retryInput(answer) }
+      return true
+    } catch {
+      self.error = error.localizedDescription
+      refresh()
+      return false
+    }
+  }
+
+  func retryInput(_ id: String) {
+    guard interactionActive, !busy, !changingConversation, let book = workbook,
+      resumableAnswer == id
+    else { return }
+    runChat("", book: book, inputAnswerID: id)
+  }
+
+  private func runChat(_ input: String, book: Workbook, inputAnswerID: String? = nil) {
+    if inputAnswerID == nil { unsent = (input, conversation, book) }
     guard let (_, ticket) = beginOperation("Preparing local AI") else {
       returnUnsent()
       return
@@ -1023,7 +1153,7 @@ struct FolderReview {
             return try await self.performChatAction(
               action, arguments: arguments, book: book, readOnly: readOnly,
               cancellation: cancellation)
-          })
+          }, conversationInput: true, inputAnswerID: inputAnswerID)
         unsent = nil
         guard owns(ticket, in: book) else { return }
         refresh()
@@ -1586,7 +1716,13 @@ struct FolderReview {
     conversationDraft = nil
     summaryDraft = nil
     showingHistorySearch = false
-    if conversation != id { historySearch.reset() }
+    if conversation != id {
+      historySearch.reset()
+      pendingInput = nil
+      conversationVisuals = [:]
+      resumableAnswer = nil
+      chatApproval = nil
+    }
     conversation = id
     conversationNavigationIdentity = UUID()
     if let workbook {
@@ -1666,6 +1802,9 @@ struct FolderReview {
     homeDocuments = []
     pendingWorkflows = []
     chatApproval = nil
+    pendingInput = nil
+    conversationVisuals = [:]
+    resumableAnswer = nil
     excelImports = []
     excelPurposeDrafts = [:]
     messages = []

@@ -11,7 +11,8 @@ package enum NativeCitationPolicy {
     _ citationIDs: [String], toolScope: InferenceToolScope = .all, thinking: Bool = false,
     itemReferenceIDs: [String] = [], conversationActions: [String]? = nil,
     documentCopyIDs: [String] = [], historyReferenceIDs: [String]? = nil,
-    nativeAppAuthoring: Bool = true, reviewContract: Value = .null
+    nativeAppAuthoring: Bool = true, reviewContract: Value = .null, conversationInput: Bool = false,
+    visualCaptureIDs: [String] = []
   ) throws
     -> SplashToolPolicy
   {
@@ -24,7 +25,8 @@ package enum NativeCitationPolicy {
       toolScope: toolScope, itemReferenceIDs: itemReferenceIDs,
       conversationActions: conversationActions, documentCopyIDs: documentCopyIDs,
       historyReferenceIDs: historyReferenceIDs, nativeAppAuthoring: nativeAppAuthoring,
-      reviewContract: reviewContract)
+      reviewContract: reviewContract, conversationInput: conversationInput,
+      visualCaptureIDs: visualCaptureIDs)
     if !toolScope.allows("finish") {
       return try SplashToolPolicy(toolsJSON: serialized, choice: .required, thinking: thinking)
     }

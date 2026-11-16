@@ -154,7 +154,7 @@ export const Fragment='column';
 export const Column='column', Row='row', Grid='grid', Split='split', Scroll='scroll', Section='section';
 export const Text='text', Button='button', TextField='textField', TextEditor='textEditor', Toggle='toggle';
 export const Picker='picker', Slider='slider', DatePicker='date', Progress='progress', Table='table';
-export const Tabs='tabs', Disclosure='disclosure', Canvas='canvas', Image='image', Spacer='spacer';
+export const Tabs='tabs', Disclosure='disclosure', Canvas='canvas', Image='image', View='view', Spacer='spacer';
 const eventProps:Record<string,string[]>={button:['onClick'],textField:['onChange'],textEditor:['onChange'],toggle:['onChange'],picker:['onChange'],slider:['onChange'],date:['onChange'],tabs:['onChange'],disclosure:['onChange'],table:['onSelect','onActivate'],canvas:['onClick','onDrop']};
 function cleanup(id:string) {
  const node=nodes.get(id); if(!node)return;

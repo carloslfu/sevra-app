@@ -252,7 +252,8 @@ public actor ProductAI {
     openSpace: SpaceOpener? = nil,
     openReviews: ReviewQueueOpener? = nil,
     workspaceAction: WorkspaceActionHandler? = nil,
-    excelConversion: ExcelConversionBuild? = nil
+    excelConversion: ExcelConversionBuild? = nil,
+    conversationInput: Bool = false, inputAnswerID: String? = nil
   ) async throws -> AgentResult {
     try await perform(cancellation: cancellation) {
       #if SEVRA_NATIVE_CANDIDATE
@@ -268,7 +269,8 @@ public actor ProductAI {
         modelDirectory: modelDirectory, cancellation: cancellation, progress: progress,
         model: model, requestStarted: requestStarted,
         openSpace: openSpace, openReviews: openReviews, workspaceAction: workspaceAction,
-        excelConversion: excelConversion
+        excelConversion: excelConversion, conversationInput: conversationInput,
+        inputAnswerID: inputAnswerID
       )
     }
   }

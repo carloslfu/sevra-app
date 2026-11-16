@@ -2,6 +2,7 @@ import AppKit
 import SevraCore
 import SevraPreviewUI
 import SevraTableUI
+import SevraVisualUI
 import SwiftUI
 
 /// Takes plain values, so only a changed message or review draws this row again.
@@ -10,15 +11,25 @@ struct ConversationMessageRow: View, Equatable {
   let message: Message
   let content: ConversationMessageContent
   let review: ProposalReviewState?
+  let inputSurface: ConversationSurface?
+  let approval: ChatApproval?
+  let visuals: [VisualResult]
+  let resumable: Bool
+  let controlsEnabled: Bool
   static func == (left: Self, right: Self) -> Bool {
     left.message.id == right.message.id && left.message.body == right.message.body
       && left.message.state == right.message.state && left.message.role == right.message.role
-      && left.review == right.review
+      && left.review == right.review && left.inputSurface == right.inputSurface
+      && left.visuals == right.visuals && left.approval == right.approval
+      && left.resumable == right.resumable && left.controlsEnabled == right.controlsEnabled
   }
   private var speaker: String {
     message.role == "user" ? "You" : message.role == "event" ? "Activity" : "Sevra"
   }
   private var status: String {
+    if message.state == "needs_input" {
+      return inputSurface == nil ? "Question" : "Waiting for your answer"
+    }
     guard message.state == "needs_review" else { return message.state }
     guard let review else { return "Review requested" }
     switch review.status {
@@ -55,14 +66,22 @@ struct ConversationMessageRow: View, Equatable {
         }
       }
       VStack(alignment: .leading, spacing: 10) {
-        ForEach(Array(content.blocks.enumerated()), id: \.offset) { _, block in
-          switch block {
-          case .text(let text):
-            Text(text).textSelection(.enabled).lineSpacing(4)
-          case .table(let table):
-            ReadOnlyTableView(
-              content: table, label: "Comparison table", inline: true,
-              open: { state.openConversationLink($0, returningTo: .message(message.id)) })
+        if let input = inputSurface?.input {
+          Text(input.question).textSelection(.enabled).lineSpacing(4)
+          if input.allowTextReply {
+            Text("You can also type Answer: followed by your response.")
+              .font(.caption).foregroundStyle(.secondary)
+          }
+        } else {
+          ForEach(Array(content.blocks.enumerated()), id: \.offset) { _, block in
+            switch block {
+            case .text(let text):
+              Text(text).textSelection(.enabled).lineSpacing(4)
+            case .table(let table):
+              ReadOnlyTableView(
+                content: table, label: "Comparison table", inline: true,
+                open: { state.openConversationLink($0, returningTo: .message(message.id)) })
+            }
           }
         }
       }
@@ -72,6 +91,50 @@ struct ConversationMessageRow: View, Equatable {
             state.openConversationLink(link.url, returningTo: .message(message.id))
           }
         }
+      }
+      if let book = state.workbook {
+        ForEach(Array(visuals.enumerated()), id: \.offset) { index, visual in
+          if let image = visual.image {
+            WorkbookImageView(book: book, presentation: image) {
+              state.navigate(.item(image.reference.sourceID), returningTo: .message(message.id))
+            }
+          } else if let chart = visual.chart, let data = visual.chartData {
+            VisualChartView(definition: chart, data: data) {
+              state.navigate(.item($0), returningTo: .message(message.id))
+            }
+          } else if let work = visual.work, let data = visual.workData {
+            WorkVisualView(
+              definition: work, data: data,
+              openRecord: {
+                state.navigate(.item($0), returningTo: .message(message.id))
+              })
+          }
+          Button("Add live view to Home") { state.promoteVisual(message.id, index: index) }
+            .buttonStyle(.link).font(.caption).disabled(!controlsEnabled)
+        }
+      }
+      if let inputSurface, let input = inputSurface.input, let book = state.workbook {
+        ConversationInputView(input: input, surface: inputSurface, book: book) {
+          response, revision in
+          state.submitInput(inputSurface, response: response, draftRevision: revision)
+        }
+        .id(inputSurface.id)
+        .disabled(!controlsEnabled)
+      }
+      if let approval {
+        VStack(alignment: .leading, spacing: 8) {
+          HStack {
+            Button("Confirm change") { state.respondToApproval(approval, cancel: false) }
+              .buttonStyle(.borderedProminent)
+            Button("Cancel approval") { state.respondToApproval(approval, cancel: true) }
+          }
+        }.disabled(!controlsEnabled)
+      }
+      if resumable {
+        HStack {
+          Text("Answer saved").foregroundStyle(.secondary)
+          Button("Retry continuation") { state.retryInput(message.id) }
+        }.readingFont(.caption).disabled(!controlsEnabled)
       }
     }.environment(
       \.openURL,

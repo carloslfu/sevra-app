@@ -15,6 +15,7 @@ struct AgentActivityView: View {
     if let live { return live.title }
     switch activity?.state {
     case "complete": return "Finished"
+    case "needs_input": return "Waiting for your answer"
     case "needs_review": return "Needs your review"
     case "cancelled": return "Stopped"
     case "failed": return "Stopped with an error"

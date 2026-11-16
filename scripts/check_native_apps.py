@@ -9,6 +9,7 @@ def main():
         app=pathlib.Path(temporary)/'Native App Checks.app'
         (app/'Contents/MacOS').mkdir(parents=True);(app/'Contents/Resources').mkdir()
         shutil.copy2(binary/'sevra-native-app-checks',app/'Contents/MacOS/checks')
+        shutil.copy2(binary/'sevra-extract',app/'Contents/MacOS/sevra-extract')
         shutil.copytree(binary/'Sevra_SevraAppRuntime.bundle',app/'Contents/Resources/Sevra_SevraAppRuntime.bundle')
         (app/'Contents/Info.plist').write_bytes(plistlib.dumps({'CFBundleIdentifier':'com.sevra.native-app-checks','CFBundleExecutable':'checks','CFBundleName':'Native App Checks','CFBundlePackageType':'APPL'}))
         package(app,binary)

@@ -28,16 +28,18 @@ public struct NativeAppPackage: Codable, Equatable, Sendable {
   public var source: String
   public var datasets: [String: NativeAppDataset]
   public var images: [String: String]?
+  public var views: [String: VisualDefinition]?
   public var excelBehavior: ExcelBehavior?
   public init(
     name: String, source: String, datasets: [String: NativeAppDataset] = [:],
-    images: [String: String]? = nil
+    images: [String: String]? = nil, views: [String: VisualDefinition]? = nil
   ) {
     sdkVersion = 1
     self.name = name
     self.source = source
     self.datasets = datasets
     self.images = images
+    self.views = views
   }
   public var digest: String {
     let data = (try? encoded(self).json()) ?? ""
@@ -60,6 +62,15 @@ public struct NativeAppPackage: Codable, Equatable, Sendable {
           alias.range(of: "^[a-z][a-zA-Z0-9_]{0,63}$", options: .regularExpression) != nil
             && !id.isEmpty && id.utf8.count <= 256,
           "app_package", "Use a short image alias and its workbook asset ID.")
+      }
+    }
+    if let views {
+      try require(views.count <= 8, "app_package", "An app can declare up to eight views.")
+      for (alias, view) in views {
+        try require(
+          alias.range(of: "^[a-z][a-zA-Z0-9_]{0,63}$", options: .regularExpression) != nil,
+          "app_package", "Use a short letter-based view alias.")
+        try view.validate(appAliases: Set(datasets.keys))
       }
     }
     for (alias, binding) in datasets {
@@ -225,6 +236,18 @@ extension Workbook {
           try file.resourceValues(forKeys: [.isRegularFileKey]).isRegularFile == true,
           "app_image", "The included image file is unavailable.")
         return file
+      }
+    }
+  }
+
+  public func nativeAppImageRead(_ access: NativeAppAccess, alias: String) throws -> ImageAssetRead
+  {
+    try synchronized {
+      try access.authorized(self) {
+        guard let id = access.package.images?[alias] else {
+          throw SevraError("app_permission", "Use a declared workbook image alias.")
+        }
+        return try imageAssetRead(includedImage(id))
       }
     }
   }

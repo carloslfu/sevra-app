@@ -61,6 +61,8 @@ package struct ContextBudget: Sendable {
         + (message.historyReferences ?? []) + (message.conversationActions ?? [])
       { try account(id) }
       try account(message.reviewContract.json())
+      for id in message.visualCaptureIDs { try account(id) }
+      if message.conversationInput { try account("request_input") }
       for call in message.toolCalls {
         try account(call.id)
         try account(call.name)

@@ -2,6 +2,7 @@ import Foundation
 import SevraAppUI
 import SevraAutomationUI
 import SevraCore
+import SevraVisualUI
 
 extension WorkspaceState {
   func performChatAction(
@@ -15,7 +16,7 @@ extension WorkspaceState {
         action: name, arguments: arguments ?? a, title: title, conversation: conversation)
       return .object([
         "status": .string("confirmation_required"), "preview": .string(title),
-        "instruction": .string("Ask the user to type Confirm. No action has been applied."),
+        "instruction": .string("Show the review in chat and wait for the person to confirm."),
       ])
     }
     if name.hasPrefix("app.") {
@@ -45,6 +46,41 @@ extension WorkspaceState {
         String(name.dropFirst(4)), arguments: a, readOnly: readOnly, cancellation: cancellation)
     }
     switch name {
+    case "visual.open_source":
+      let chat = conversation
+      let messageID = a["messageID"].text
+      let source = try await Task.detached {
+        let result = try book.conversationVisual(
+          messageID, index: a["index"].int!, conversation: chat)
+        return try result.sourceForInspection(a["sourceID"].string)
+      }.value
+      try cancellation.check()
+      try require(
+        workbook === book && conversation == chat && !changingConversation,
+        "visual", "Return to the conversation for this visual.")
+      try require(
+        navigate(.item(source), returningTo: .message(messageID)),
+        "visual", "Resolve the open draft before opening the captured source.")
+      return .object(["status": .string("opened"), "sourceID": .string(source)])
+    case "visual.export":
+      let destination = URL(fileURLWithPath: (a["path"].text as NSString).expandingTildeInPath)
+      try require(
+        (a["path"].text.hasPrefix("/") || a["path"].text.hasPrefix("~/"))
+          && !a["path"].text.contains("\0"), "export_path", "Supply the full destination filename.")
+      let chat = conversation
+      let capture = try await Task.detached {
+        try book.conversationVisual(a["messageID"].text, index: a["index"].int!, conversation: chat)
+      }.value
+      guard let chart = capture.chart, let saved = capture.chartData else {
+        throw SevraError("visual_export", "Choose a captured chart to export.")
+      }
+      try cancellation.check()
+      let data = try VisualChartExport.data(
+        chart: chart, captured: saved, format: destination.pathExtension.lowercased())
+      let file = try await Task.detached {
+        try book.publishSmallExport(data, to: destination, cancellation: cancellation)
+      }.value
+      return .object(["status": .string("saved"), "path": .string(file.path)])
     case "file.export_workbook", "file.export_table", "file.export_app", "file.export_original":
       let path = (a["path"].text as NSString).expandingTildeInPath
       try require(
@@ -59,13 +95,8 @@ extension WorkspaceState {
         } else if name == "file.export_original" {
           try book.copyAsset(a["id"].text, to: destination, cancellation: cancellation)
         } else {
-          let space = try book.space(book.spaceTarget(a["id"].text).id)
-          guard var package = space.definition.app else {
-            throw SevraError("app_package", "Choose a mini app.")
-          }
-          for key in package.datasets.keys { package.datasets[key]?.datasetID = nil }
-          try Data(encoded(package).json().utf8).write(
-            to: destination, options: .withoutOverwriting)
+          try book.exportNativeAppTemplate(
+            book.spaceTarget(a["id"].text).id, to: destination, cancellation: cancellation)
         }
       }.value
       return .object(["status": .string("saved"), "path": .string(destination.path)])
@@ -186,16 +217,35 @@ extension WorkspaceState {
     let command = input.trimmingCharacters(in: .whitespacesAndNewlines).lowercased()
       .trimmingCharacters(in: CharacterSet(charactersIn: ".!"))
     guard ["confirm", "confirm change", "cancel approval"].contains(command) else { return false }
-    guard let (_, ticket) = beginOperation("Applying your confirmed change") else { return true }
+    guard let approval = chatApproval else {
+      error = "No change in this conversation is waiting for your confirmation."
+      return true
+    }
+    applyChatApproval(approval, book: book, cancel: command == "cancel approval", humanText: input)
+    return true
+  }
+
+  func respondToApproval(_ approval: ChatApproval, cancel: Bool) {
+    guard let book = workbook else { return }
+    applyChatApproval(
+      approval, book: book, cancel: cancel, humanText: cancel ? "Cancel approval" : "Confirm change"
+    )
+  }
+
+  private func applyChatApproval(
+    _ expected: ChatApproval, book: Workbook, cancel: Bool, humanText: String
+  ) {
+    guard !changingConversation,
+      let (_, ticket) = beginOperation(cancel ? "Cancelling approval" : "Applying confirmed change")
+    else { return }
     let chat = conversation
     Task {
       defer { finishOperation(ticket, in: book) }
       var approval: ChatApproval?
       do {
-        let messageID = try book.addMessage(input, role: "user", conversation: chat)
         let claimed = try book.claimChatApproval(
-          conversation: chat, messageID: messageID, cancel: command == "cancel approval")
-        if command == "cancel approval" {
+          expected, conversation: chat, cancel: cancel, humanText: humanText)
+        if cancel {
           refresh()
           return
         }
@@ -213,6 +263,5 @@ extension WorkspaceState {
         report(error, for: ticket, in: book)
       }
     }
-    return true
   }
 }

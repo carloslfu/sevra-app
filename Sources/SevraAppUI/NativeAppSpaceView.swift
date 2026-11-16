@@ -137,9 +137,7 @@ public struct NativeAppSpaceView: View {
     panel.nameFieldStringValue = session.package.name + ".sevraapp"
     guard panel.runModal() == .OK, let url = panel.url else { return }
     do {
-      var package = session.package
-      for key in package.datasets.keys { package.datasets[key]?.datasetID = nil }
-      try Data(encoded(package).json().utf8).write(to: url, options: .atomic)
+      try session.book.exportNativeAppTemplate(session.space.id, to: url)
     } catch {
       let alert = NSAlert()
       alert.messageText = "Cannot export app"

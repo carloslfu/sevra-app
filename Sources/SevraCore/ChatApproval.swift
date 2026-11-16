@@ -1,12 +1,18 @@
+import CryptoKit
 import Foundation
 
 /// An exact host-prepared change. A model cannot approve it through workspace_action.
 /// Append-only conversation receipts preserve the preview, human input and outcome.
-public struct ChatApproval: Sendable {
+public struct ChatApproval: Equatable, Sendable {
   public let id: String
   public let action: String
   public let arguments: Value
   public let title: String
+  public var revision: Int { 1 }
+  public func effectDigest() throws -> String {
+    let effect = try Value.object(["action": .string(action), "arguments": arguments]).json()
+    return SHA256.hash(data: Data(effect.utf8)).map { String(format: "%02x", $0) }.joined()
+  }
 }
 
 extension Workbook {
@@ -15,7 +21,7 @@ extension Workbook {
   ) throws -> String {
     _ = try ChatOperations.validate(action, arguments: arguments, readOnly: false)
     return try addMessage(
-      "Prepared a change for your confirmation.",
+      title,
       role: "event", conversation: conversation,
       payload: .object([
         "kind": .string("chat_approval"), "action": .string(action),
@@ -56,15 +62,7 @@ extension Workbook {
   public func claimChatApproval(conversation: String, messageID: String, cancel: Bool = false)
     throws -> ChatApproval
   {
-    var claimed: ChatApproval?
-    _ = try mutation(
-      "chat_approval_claim", request: .string(messageID), actor: .human("Sevra.chat-confirmation")
-    ) {
-      guard let approval = try pendingChatApproval(conversation: conversation) else {
-        throw SevraError(
-          "chat_approval",
-          "There is no pending change in this conversation. Ask Sevra to prepare it again.")
-      }
+    try claimChatApproval(conversation: conversation, cancel: cancel, expected: nil) { approval in
       guard
         let message = try db.execute(
           "SELECT role,body FROM messages WHERE id=? AND conversation_id=? AND rowid>(SELECT rowid FROM messages WHERE id=?)",
@@ -79,6 +77,44 @@ extension Workbook {
         message["role"] == .string("user")
           && (cancel ? body == "cancel approval" : ["confirm", "confirm change"].contains(body)),
         "chat_approval", "A new human confirmation is required.")
+      return messageID
+    }
+  }
+
+  /// Native controls pass the exact effect displayed to the human. Save their
+  /// confirmation and claim together, before dispatching the effect.
+  public func claimChatApproval(
+    _ expected: ChatApproval, conversation: String, cancel: Bool = false, humanText: String
+  ) throws -> ChatApproval {
+    try claimChatApproval(conversation: conversation, cancel: cancel, expected: expected) {
+      approval in
+      let id = identifier()
+      try insertSurfaceMessage(
+        id, conversation: conversation, role: "user", body: humanText, state: "complete",
+        payload: .object([
+          "kind": .string("chat_approval_response"), "approvalID": .string(approval.id),
+          "revision": .number(Double(approval.revision)),
+          "effectDigest": .string(try approval.effectDigest()),
+        ]))
+      return id
+    }
+  }
+
+  private func claimChatApproval(
+    conversation: String, cancel: Bool, expected: ChatApproval?,
+    humanMessage: (ChatApproval) throws -> String
+  ) throws -> ChatApproval {
+    var claimed: ChatApproval?
+    _ = try mutation(
+      "chat_approval_claim", request: .string(expected?.id ?? conversation),
+      actor: .human("Sevra.chat-confirmation")
+    ) {
+      guard let approval = try pendingChatApproval(conversation: conversation),
+        expected == nil || expected == approval
+      else {
+        throw SevraError("chat_approval", "This change is no longer waiting for confirmation.")
+      }
+      let messageID = try humanMessage(approval)
       let receiptID = identifier()
       try db.execute(
         "INSERT INTO messages VALUES(?,?,?,?,?,?)",
@@ -92,6 +128,8 @@ extension Workbook {
       let payload: Value = .object([
         "kind": .string(cancel ? "chat_approval_cancelled" : "chat_approval_started"),
         "approvalID": .string(approval.id), "messageID": .string(messageID),
+        "revision": .number(Double(approval.revision)),
+        "effectDigest": .string(try approval.effectDigest()),
       ])
       try db.execute(
         "INSERT INTO message_payloads VALUES(?,?)",

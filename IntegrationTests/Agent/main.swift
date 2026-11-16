@@ -351,6 +351,10 @@ do {
     try checks.testActualWorkbookSchemas()
     exit(0)
   }
+  if CommandLine.arguments.dropFirst() == ["--conversation-surfaces"] {
+    try await checkConversationSurfaces()
+    exit(0)
+  }
   if CommandLine.arguments.dropFirst() == ["--chat-checks"] {
     try await checkChatAgentOperations()
     exit(0)
@@ -382,6 +386,7 @@ do {
   try await checkInventoryAutomationAuthoring()
   try await checkWorkflowAgentTools()
   try await checkChatAgentOperations()
+  try await checkConversationSurfaces()
   try await checkWorkflowAnswerAgent()
   try await checkComputationTools()
   try await checkCitationVersions()

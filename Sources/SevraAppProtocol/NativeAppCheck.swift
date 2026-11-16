@@ -76,7 +76,8 @@ public enum NativeAppCheck {
           category: "record", kind: "worksheet", title: binding.title,
           data: data, inputs: [source.id])
         return try book.createDataset(
-          title: binding.title, columns: binding.columns, rows: [], sourceID: worksheet.id).id
+          title: binding.title, columns: binding.columns, rows: [], sourceID: worksheet.id
+        ).id
       }
       binding.writable = true
       isolated.datasets[alias] = binding
@@ -221,7 +222,7 @@ public enum NativeAppCheck {
         "app_check", "Unexpected worker response.")
       sequence += 1
       _ = try tree.apply(result["frame"])
-      try tree.validateImageBindings(package)
+      try tree.validateVisualBindings(package)
       try require(
         result["frame"]["actions"].array.count <= 64, "app_check", "Too many named actions.")
       registeredActions.removeAll()

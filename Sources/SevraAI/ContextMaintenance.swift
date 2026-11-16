@@ -244,6 +244,8 @@ package final class ContextMaintenance {
       documentCopyIDs: last.documentCopyIDs, historyReferences: last.historyReferences)
     updated.nativeAppAuthoring = last.nativeAppAuthoring
     updated.reviewContract = last.reviewContract
+    updated.conversationInput = last.conversationInput
+    updated.visualCaptureIDs = last.visualCaptureIDs
     return retained.dropLast() + [updated]
   }
   /// The state the model reads, without host bookkeeping it never uses. A read adds one entry
@@ -310,7 +312,8 @@ package final class ContextMaintenance {
   }
   private func boundary(_ message: Message) -> Bool {
     (message.role == "assistant"
-      && ["complete", "needs_review", "failed", "cancelled", "interrupted"].contains(message.state))
+      && ["complete", "needs_review", "needs_input", "failed", "cancelled", "interrupted"].contains(
+        message.state))
       || (message.role == "tool" && message.state == "complete")
   }
 

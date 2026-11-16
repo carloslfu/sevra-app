@@ -3,8 +3,8 @@ type: spec
 meta-type: conclusion
 id: 01m7fxyzjyxhk7wqfy9044qq7y
 created: 2026-11-15T15:42:08.478533+00:00
-updated: 2026-11-16T21:16:45.892966+00:00
-summary: Revision 16 integrates current prepared inference, bounded receipts, original-human submissions and 32K/64K preview qualification; ready for staged implementation.
+updated: 2026-11-16T22:44:16.873055+00:00
+summary: Native chat inputs, images, charts and work views implemented in source. The document records focused evidence and remaining visual and release work.
 title: Rich native views for Home, mini apps and chat
 status: reviewed
 ---
@@ -21,6 +21,8 @@ Build one native visual component system that ordinary workbook spaces, Home, pr
 Keep the product centered on completed business work: the conversation changes the work; the visual surface explains its state and supports fast inspection. Direct manipulation remains a useful optional shortcut. A user should never have to drag a card, click a chart or select a hidden tab to make a business operation possible through chat.
 
 The first usable chat increment supplies structured questions, compact inputs and exact review/outcome controls. The next bounded increment is P1-image: included images in chat and standalone Home views, reusing the existing mini-app support. It does not wait for chart queries or diagram layout. The chart-and-exceptions workflow then spans inline chat, a mini app and Home. The full program also includes boards, timelines/calendar views, relationship/process diagrams, images, richer tables and flexible composition. Finish each usable increment before advancing. Do not treat this document as authorization to replace the active installed app, toggle VoiceOver or change system settings; those existing operating boundaries remain.
+
+**November 16 implementation checkpoint.** The code now includes chat questions, typed inputs and exact approval claims, included images, typed native charts, and board, timeline, agenda and calendar views. Workbook-owned views can be captured in chat, promoted to Home, filtered, and edited by committed version. Named mini-app views are granted through their saved app package. Home references an exact app version. Immutable chat answers retain the captured values through live edits. See the implementation evidence below. The full plan remains reviewed, with implementation and acceptance gaps kept explicit.
 
 ## 1. What exists and what is missing
 
@@ -492,3 +494,19 @@ No unanswered product/architecture decision prevents starting P0-chat/P0a. Perfo
 - [ ] Final source/package/CI identity and honest supported-feature documentation.
 
 The desired outcome is not a larger widget list. It is a small set of dependable native representations that the agent composes into useful, readable business tools and Home views, with their correctness and interaction behavior preserved.
+
+## November 16 implementation evidence
+
+| Stage | Implemented behavior | Remaining scope |
+| --- | --- | --- |
+| P0-chat and P0a | Atomic question/terminal and answer/receipt publication, resume under the original request and read-only scope, optimistic field drafts, exact confirmation identities, typed choice resolution and a bounded history projection. Chat-only operations stay out of internal handoff scopes. | General record pickers, full typed/native and two-window draft UX qualification, receipt-bound reversals for every action family, and the live-model scenarios. |
+| P1-image | Included-image drop and explicit Paste image, exact attachment publication recovery, immutable image references, shared/native rendering and enlargement, caption edits on workbook-owned images, and image-bearing template refusal. The existing isolated parser now produces bounded sRGB premultiplied pixels for these surfaces. The host and helper verify the bytes. One in-flight decode, 32 MiB encoded input, 48 megapixels, 1,024px inline and up to 3,072px expanded. The helper uses a three-second deadline and monitors physical footprint against 384 MiB. Cache targets 48 MiB and excludes each entry above 16 MiB. | Explicit bounds for queued and mounted pixels, supported-format and memory cohorts, app image captions, full chat fit/zoom/retry parity, and observer/keyboard qualification. |
+| P0-visual and P1 | Shared chart records over the typed query engine with exact decimal values, complete-result admission at 100 marks, Date-backed time axes, named app views, live Home promotion, stable captured values, versioned filters, exact sources for row-backed data, grouped bars and lines, thresholds and optional chart export. Aggregate joins refuse until fan-out can be certified. | Typed Excel projections with header/total exclusion, bounded coherent multi-query views, shared preset/selection ownership and cross-filtering, full aggregate drill-down, and both native/model journeys. |
+| P2 and P3 | Stacked bars, area, scatter and donut plus CSV/PNG/PDF export. Board, timeline, agenda and monthly calendar use typed records. Board/date mutations check exact row and space versions, reuse the table commit path and support Undo. | Histograms, heatmaps, wider layout and rich-text/annotation composition, linked filters and selection, paged work views, fuller date navigation, and remaining native checks. |
+| P4 and P5 | Dependency spike executed. ELK.js 0.12.1 bundle SHA-256 `b1032b7cfd2a57c54c6f0e8369d7665e19a579954f7cd20a6dae28f1912ea0d7`; linked to the current QuickJS runtime with its 512 KiB stack, 64 MiB memory budget and requested 500 ms evaluation timeout. A 24-node acyclic example and a 100-node cyclic example both failed with stack overflow after approximately 13 ms of layout, after approximately 654 ms of initialization. The initial 24-node cyclic example failed the same way. No new dependency was added. | Qualify a diagram engine, repeated media, and the full local-model, native UI, accessibility and release cohorts. |
+
+The adversarial implementation pass found normalized UTC dates being refused as civil days, a chat tool unintentionally exposed to internal handoff, and app-view references that could silently follow a new app version. The fixes preserve date-only semantics, the existing handoff scope, and the exact app version. Watch for read-only responses, incomplete query results, stale row/space versions, untrusted/changed image bytes and historical answers that must stay immutable.
+
+Focused verification used disposable workbooks. The agent and preview check executables passed scripted question/control and typed choice submission, duplicate and stale confirmation refusal, exact attachment capture, incorrect visual receipt refusal, exact Decimal chart results, filtering a Home view while its captured chat result remains stable, app grant revocation, stale app-view version refusal, board move/replay/Undo, and date-backed charts/calendar. The native preview suite also exercised known-color sRGB PNG pixels, same-size changed source refusal, recovery after restoration, and readable chart PNG/PDF output. The existing signed mini-app suite passed 20 groups, including real PNG rendering and grant revocation. The SDK suite passed 28 tests. Desktop, CLI, parser and worker products built locally. The pinned reference generator produced 86 grammar cases and 817 mask checkpoints. The installed-tokenizer, helper-free prepared request check measured 4,030 prompt tokens with a 24,576 prompt threshold at 32K, a 1,800-token output budget and a 3,671-token SDK-aware result reserve. That run measures admission with the scoped widget and visual receipt schemas. It does not generate an answer with the local model.
+
+The baseline and release gates in section 9 remain open where indicated by the remaining scope. The active installed preview was not replaced. No live workspace takeover or model-loaded performance cohort was used for this source checkpoint.

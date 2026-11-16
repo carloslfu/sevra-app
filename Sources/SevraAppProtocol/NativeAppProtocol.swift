@@ -52,6 +52,10 @@ public struct NativeAppNode: Equatable, Sendable {
         asset.string?.isEmpty == false && props["symbol"] == .null, "app_tree",
         "Image asset must be a workbook image alias. Supply only one of asset or symbol.")
     }
+    if type == "view" {
+      try require(
+        props["viewID"].string?.isEmpty == false, "app_tree", "Choose a declared view ID.")
+    }
     for key in [
       "width", "height", "gap", "padding", "min", "max", "columns", "size", "editRevision",
     ] {
@@ -134,7 +138,7 @@ public struct NativeAppNode: Equatable, Sendable {
   public static let types: Set<String> = [
     "column", "row", "grid", "split", "scroll", "section", "text", "button", "textField",
     "textEditor", "toggle", "picker", "slider", "date", "progress", "table", "tabs", "disclosure",
-    "canvas", "image", "spacer",
+    "canvas", "image", "view", "spacer",
   ]
   static let common: Set<String> = [
     "label", "help", "enabled", "hidden", "width", "height", "padding", "gap", "editRevision",
@@ -149,7 +153,9 @@ public struct NativeAppNode: Equatable, Sendable {
     "date": ["value"], "progress": ["value", "indeterminate"],
     "table": ["table", "search", "sort", "descending", "columns", "columnLabels", "selection"],
     "tabs": ["titles", "value"],
-    "disclosure": ["title", "value"], "canvas": ["shapes", "regions"], "image": ["symbol", "asset"],
+    "disclosure": ["title", "value"], "canvas": ["shapes", "regions"],
+    "image": ["symbol", "asset"],
+    "view": ["viewID"],
   ]
 }
 
@@ -158,12 +164,18 @@ public struct NativeAppTree: Sendable {
   public private(set) var nodes: [String: NativeAppNode] = [:]
   public private(set) var root: String?
   public init() {}
-  public func validateImageBindings(_ package: NativeAppPackage) throws {
+  public func validateVisualBindings(_ package: NativeAppPackage) throws {
     for node in nodes.values where node.type == "image" {
       if let alias = node.props["asset"].string {
         try require(
-          package.images?[alias] != nil, "app_image", "Image uses an undeclared workbook asset alias.")
+          package.images?[alias] != nil, "app_image",
+          "Image uses an undeclared workbook asset alias.")
       }
+    }
+    for node in nodes.values where node.type == "view" {
+      try require(
+        package.views?[node.props["viewID"].text] != nil,
+        "visual_chart", "View uses an undeclared app view ID.")
     }
   }
   /// Disabled/hidden containers fence their descendants as well as their own controls.

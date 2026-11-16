@@ -5,6 +5,7 @@ import SevraCore
 import SevraPreviewUI
 import SevraSearchUI
 import SevraTableUI
+import SevraVisualUI
 import SwiftUI
 
 struct SearchView: View {
@@ -210,7 +211,7 @@ struct SpaceView: View {
           .foregroundStyle(.secondary)
         }
         ForEach(visibleComponents) { component in
-          NativeComponent(component: component, state: state).id(component.id)
+          NativeComponent(component: component, state: state, owner: space).id(component.id)
         }
         if space.id == "home" {
           Divider()
@@ -388,6 +389,7 @@ struct WorkbookSection: View {
 struct NativeComponent: View {
   let component: Component
   @ObservedObject var state: WorkspaceState
+  var owner: Space? = nil
   @State private var data: ComponentSnapshot?
   @State private var metric: String?
   @State private var failure: String?
@@ -403,7 +405,10 @@ struct NativeComponent: View {
   }
   var body: some View {
     VStack(alignment: .leading, spacing: 12) {
-      Text(component.title).readingFont(.title3, weight: .medium).accessibilityAddTraits(.isHeader)
+      if component.type != "visual" {
+        Text(component.title).readingFont(.title3, weight: .medium).accessibilityAddTraits(
+          .isHeader)
+      }
       if let snapshot = component.snapshot {
         Text("Pinned as of " + DisplayText.date(snapshot.captured)).readingFont(.caption)
           .foregroundStyle(
@@ -423,12 +428,13 @@ struct NativeComponent: View {
         ViewThatFits(in: .horizontal) {
           HStack(alignment: .top, spacing: 20) {
             ForEach(component.children ?? []) { child in
-              AnyView(NativeComponent(component: child, state: state)).frame(minWidth: 260)
+              AnyView(NativeComponent(component: child, state: state, owner: owner)).frame(
+                minWidth: 260)
             }
           }
           VStack(alignment: .leading, spacing: 20) {
             ForEach(component.children ?? []) { child in
-              AnyView(NativeComponent(component: child, state: state))
+              AnyView(NativeComponent(component: child, state: state, owner: owner))
             }
           }
         }
@@ -482,6 +488,35 @@ struct NativeComponent: View {
           }
           if !unitSuffix.isEmpty {
             Text(unitSuffix).readingFont(.caption).foregroundStyle(.secondary)
+          }
+        }
+      case "visual":
+        if let chart = component.visual?.chart, let book = state.workbook {
+          LiveVisualChartView(
+            definition: chart, revision: state.datasetSnapshot,
+            load: { try await Task.detached { try book.chartData(chart) }.value },
+            openOriginal: { state.navigate(.item($0)) })
+        } else if let work = component.visual?.work, let book = state.workbook {
+          LiveWorkVisualView(
+            definition: work, revision: state.datasetSnapshot,
+            load: { try await Task.detached { try book.workVisualData(work) }.value },
+            openRecord: { state.navigate(.item($0)) },
+            change: owner.map { owner in
+              { record, value, end in
+                let componentID = component.id
+                state.run("Updating record") { book, cancellation in
+                  _ = try book.changeWorkRecord(
+                    spaceID: owner.id, componentID: componentID, expectedVersion: owner.version,
+                    recordID: record.id, value: value, end: end, cancellation: cancellation,
+                    actor: .human("Sevra.work-view"))
+                }
+              }
+            })
+        }
+      case "image":
+        if let book = state.workbook, let image = component.visual?.image {
+          WorkbookImageView(book: book, presentation: image) {
+            state.navigate(.item(image.reference.sourceID))
           }
         }
       case "document", "asset":

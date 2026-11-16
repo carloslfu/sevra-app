@@ -64,7 +64,9 @@ package struct NativePreparedRequest {
         documentCopyIDs: DocumentCopyCandidates.ids(in: messages),
         historyReferenceIDs: ItemReferenceCandidates.historyIDs(in: messages),
         nativeAppAuthoring: messages.first?.nativeAppAuthoring == true,
-        reviewContract: messages.first?.reviewContract ?? .null)
+        reviewContract: messages.first?.reviewContract ?? .null,
+        conversationInput: messages.first?.conversationInput == true,
+        visualCaptureIDs: messages.first?.visualCaptureIDs ?? [])
     }
     let prompt = try frontend.prepare(
       messages: messages.map(nativeTemplateMessage), tools: policy.promptTools(),

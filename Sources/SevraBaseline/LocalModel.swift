@@ -165,8 +165,12 @@ public actor LocalModel: WorkbookInference {
           conversationActions: messages.first?.conversationActions, toolScope: toolScope,
           documentCopyIDs: DocumentCopyCandidates.ids(in: messages),
           nativeAppAuthoring: messages.first?.nativeAppAuthoring == true,
-          reviewContract: messages.first?.reviewContract ?? .null
-        ).filter { toolScope.allows($0.name) }, thinking: false,
+          reviewContract: messages.first?.reviewContract ?? .null,
+          conversationInput: messages.first?.conversationInput == true,
+          visualCaptureIDs: messages.first?.visualCaptureIDs ?? []
+        ).filter {
+          toolScope.allows($0.name, conversationInput: messages.first?.conversationInput == true)
+        }, thinking: false,
       effort: nil
     )
     try cancellation.check()
@@ -238,9 +242,13 @@ public actor LocalModel: WorkbookInference {
         conversationActions: messages.first?.conversationActions, toolScope: toolScope,
         documentCopyIDs: DocumentCopyCandidates.ids(in: messages),
         nativeAppAuthoring: messages.first?.nativeAppAuthoring == true,
-        reviewContract: messages.first?.reviewContract ?? .null
+        reviewContract: messages.first?.reviewContract ?? .null,
+        conversationInput: messages.first?.conversationInput == true,
+        visualCaptureIDs: messages.first?.visualCaptureIDs ?? []
       )
-      .filter { toolScope.allows($0.name) }
+      .filter {
+        toolScope.allows($0.name, conversationInput: messages.first?.conversationInput == true)
+      }
     let tokens = try engine.encodeChat(
       try Self.baselineMessages(messages), tools: available, thinking: false, effort: nil)
     // The engine window includes the reply. Keep this hard bound independent
