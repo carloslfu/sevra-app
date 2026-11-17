@@ -177,7 +177,7 @@ extension Workbook {
   }
   public func editSpace(
     _ id: String, expectedVersion: Int, edits: [SpaceEdit], token: String = identifier(),
-    actor: ChangeActor? = nil
+    actor: ChangeActor? = nil, commitGuard: (() throws -> Void)? = nil
   ) throws -> Space {
     try require((1...64).contains(edits.count), "view", "Use one to 64 layout edits.")
     let result = try mutation(
@@ -185,7 +185,7 @@ extension Workbook {
       request: .object([
         "id": .string(id), "expectedVersion": .number(Double(expectedVersion)),
         "edits": try encoded(edits),
-      ]), actor: actor
+      ]), actor: actor, commitGuard: commitGuard
     ) {
       let current = try space(id)
       try checkSpaceBase(current, expectedVersion: expectedVersion)

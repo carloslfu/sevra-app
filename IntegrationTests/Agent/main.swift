@@ -267,6 +267,13 @@ func expectValue<T>(_ value: T?) throws -> T {
   return value
 }
 do {
+  if CommandLine.arguments.count == 7 && CommandLine.arguments[1] == "--visual-journeys" {
+    try await runVisualJourneyProbe(
+      modelsRoot: CommandLine.arguments[2],
+      library: CommandLine.arguments[3], engine: CommandLine.arguments[4],
+      output: CommandLine.arguments[5], large: CommandLine.arguments[6] == "64K")
+    exit(0)
+  }
   if CommandLine.arguments.count == 4 && CommandLine.arguments[1] == "--context-profile" {
     try await runContextProfileProbe(
       configPath: CommandLine.arguments[2], output: CommandLine.arguments[3])

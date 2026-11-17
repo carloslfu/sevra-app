@@ -27,25 +27,77 @@ public enum ChatOperations {
     .init(
       "visual.open_source",
       "Open an exact captured image's source or a captured visual's referenced row in the workbook window.",
-      ["messageID", "index"], ["sourceID"], readOnly: true, host: true),
+      ["messageID", "index"], ["sourceID", "point", "panel", "offset"], readOnly: true, host: true),
+    .init(
+      "visual.expand", "Open the exact captured chart in the workbook window.",
+      ["messageID", "index"], readOnly: true, host: true),
+    .init(
+      "visual.open_current",
+      "Open the corresponding live Home or enabled app view, if still available.",
+      ["messageID", "index"], readOnly: true, host: true),
+    .init(
+      "visual.image_view", "Open, fit, zoom or retry a captured image in the workbook window.",
+      ["messageID", "index", "mode"], ["zoom"], readOnly: true, host: true),
     .init(
       "visual.export", "Export a captured chart from an exact chat message as PNG, PDF or CSV.",
       ["messageID", "index", "path"], host: true),
     .init(
       "visual.inspect", "Inspect a saved visual and current work record versions.",
-      ["id", "componentID"], readOnly: true),
+      ["id", "componentID"], ["cursor"], readOnly: true),
+    .init(
+      "visual.relationships",
+      "Inspect one captured diagram’s records and incident relationships. Optionally filter by exact node key.",
+      ["messageID", "index"], ["node", "offset"], readOnly: true),
+    .init(
+      "visual.live_sources",
+      "Page exact contributors to a live Home chart point. Refresh after a data or filter change.",
+      ["id", "componentID", "snapshot", "queryHash", "point"], ["offset"], readOnly: true),
     .init(
       "visual.change_record", "Move or reschedule a record through a saved work view.",
-      ["id", "componentID", "expectedVersion", "recordID", "value"], ["end"]),
-    .init("visual.schema", "Read the native visual authoring contract.", readOnly: true),
+      ["id", "componentID", "expectedVersion", "recordID", "value"], ["end", "cursor"]),
+    .init(
+      "visual.app_capture", "Capture a declared view through its active app permission.",
+      ["id", "expectedVersion", "viewID"], ["presentationID"], readOnly: true, host: true),
+    .init(
+      "visual.app_sources", "Page exact contributors to a currently enabled app chart point.",
+      ["id", "expectedVersion", "viewID", "snapshot", "queryHash", "point"],
+      ["presentationID", "offset"], readOnly: true, host: true),
+    .init(
+      "visual.app_pin", "Pin the enabled app's declared view to Home with the same access.",
+      ["id", "expectedVersion", "viewID", "homeVersion"], ["presentationID"], host: true),
+    .init(
+      "visual.app_select",
+      "Select a labeled group in an enabled app chart or clear it. Changes linked views in this window.",
+      ["id", "expectedVersion", "viewID"], ["presentationID", "point", "snapshot", "queryHash"],
+      host: true),
+    .init(
+      "visual.app_preset",
+      "Save a separate chart presentation or edit an exact saved preset version.",
+      ["id", "expectedVersion", "viewID"],
+      ["presetVersionID", "title", "style", "filters"], host: true),
+    .init(
+      "visual.app_restore_preset",
+      "Restore a prior display preset as a new version. Business data stays the same.",
+      ["id", "expectedVersion", "viewID", "presetVersionID", "restoreVersionID"], host: true),
+    .init(
+      "visual.schema", "Read the native visual authoring contract.", [], ["family"], readOnly: true),
     .init(
       "visual.evaluate", "Capture a native visual for this chat answer.", [],
-      ["sourceID", "chart", "work", "caption", "accessibilityDescription"], readOnly: true),
+      [
+        "sourceID", "chart", "work", "diagram", "overview", "text", "aggregate", "caption",
+        "accessibilityDescription",
+      ], readOnly: true),
+    .init(
+      "visual.sources", "Inspect one captured chart point’s exact contributing source versions.",
+      ["messageID", "index", "point"], ["offset", "panel"], readOnly: true),
     .init(
       "visual.pin",
       "Add an included image or typed live visual to Home at its exact current version.",
       ["expectedVersion"],
-      ["sourceID", "chart", "work", "title", "caption", "accessibilityDescription"]),
+      [
+        "sourceID", "chart", "work", "diagram", "overview", "text", "aggregate", "title", "caption",
+        "accessibilityDescription",
+      ]),
     .init(
       "visual.promote", "Add the exact visual from a saved chat message as a live Home view.",
       ["messageID", "index", "expectedVersion"]),
@@ -53,7 +105,10 @@ public enum ChatOperations {
       "visual.configure",
       "Update a saved visual's labels, chart mark or calendar month without replacing its binding.",
       ["id", "componentID", "expectedVersion"],
-      ["title", "caption", "accessibilityDescription", "style", "threshold", "month"]),
+      [
+        "title", "caption", "accessibilityDescription", "style", "threshold", "month",
+        "annotations", "columns", "blocks", "dataBars",
+      ]),
     .init(
       "visual.filter",
       "Replace the typed presentation filters on a saved workbook chart or work view. Use an empty array to clear the filters. Workbook source scope stays fixed.",
@@ -96,12 +151,12 @@ public enum ChatOperations {
       ["id", "expectedVersion", "target", "region", "x", "y"], host: true),
     .init(
       "app.undo",
-      "Undo the app's latest saved transaction when canUndo is true. After Undo, use app.redo to restore it; a second Undo never redoes it.",
-      ["id", "expectedVersion"], host: true),
+      "Undo the app's latest saved transaction when canUndo is true. Pass transaction for an exact receipt. After Undo, use app.redo to restore it; a second Undo never redoes it.",
+      ["id", "expectedVersion"], ["transaction"], host: true),
     .init(
       "app.redo",
-      "Restore the app's last undone transaction when canRedo is true. A new saved transaction replaces that Redo.",
-      ["id", "expectedVersion"], host: true),
+      "Restore the app's last undone transaction when canRedo is true. Pass its reversal transaction for an exact receipt.",
+      ["id", "expectedVersion"], ["transaction"], host: true),
     .init(
       "app.enable",
       "Prepare exact-version table-access approval in chat. The user confirms in conversation.",
@@ -261,12 +316,23 @@ public enum ChatOperations {
     if key == "expectedVersion" { return name.hasPrefix("excel.") ? "string" : "integer" }
     if key == "inputs" { return name == "app.fill" ? "array" : "object" }
     if key == "target" && name == "workflow.answer" { return "object" }
-    if ["values", "preview", "chart", "work"].contains(key) { return "object" }
-    if ["columns", "operations", "mapping", "keys", "filters"].contains(key) { return "array" }
-    if ["archived", "separate", "allowAI", "fromNow", "descending"].contains(key) {
+    if ["values", "preview", "chart", "work", "diagram", "overview", "aggregate"].contains(key) {
+      return "object"
+    }
+    if key == "text" && ["visual.evaluate", "visual.pin"].contains(name) { return "object" }
+    if key == "columns" && name == "visual.configure" { return "integer" }
+    if ["blocks", "columns", "operations", "mapping", "keys", "filters", "annotations"].contains(
+      key)
+    {
+      return "array"
+    }
+    if ["archived", "separate", "allowAI", "fromNow", "descending", "dataBars"].contains(key) {
       return "boolean"
     }
-    if ["beforeVersion", "headerRow", "expectedRevision", "generation", "index", "offset"].contains(
+    if [
+      "beforeVersion", "headerRow", "expectedRevision", "generation", "index", "point", "offset",
+      "panel", "homeVersion",
+    ].contains(
       key)
     {
       return "integer"

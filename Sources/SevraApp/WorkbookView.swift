@@ -1,16 +1,41 @@
 import AVKit
 import AppKit
+import SevraAppUI
 import SevraCore
+import SevraMedia
 import SevraPreviewUI
 import SevraTableUI
+import SevraVisualUI
 import SevraVoice
 import SwiftUI
+
+struct ConversationImageInspection: Identifiable {
+  let id = UUID()
+  let title: String
+  let preview: PreviewImage
+  let zoom: Double
+}
+
+struct ConversationVisualInspection: Identifiable {
+  enum Content {
+    case captured(VisualResult)
+    case current(NativeAppSession, VisualAppReference)
+  }
+  let id = UUID()
+  let messageID: String
+  let index: Int
+  let conversation: String
+  let content: Content
+}
 
 struct WorkbookView: View {
   @ObservedObject var state: WorkspaceState
   @State private var showSpaces = false
   @State private var editingSpace: Space?
   @State private var conversationFrames: [String: CGRect] = [:]
+  @State private var visibleMessages: [String] = []
+  @State private var hydratedChat: String?
+  @State private var hydratedVisuals: [String: [VisualResult]] = [:]
   @FocusState private var composerFocused: Bool
   @AccessibilityFocusState private var readingFocus: WorkbookReadingTarget?
   @FocusState private var keyboardPane: WorkbookReadingTarget?
@@ -436,7 +461,8 @@ struct WorkbookView: View {
                   review: state.proposalReviews[message.id],
                   inputSurface: state.pendingInput?.id == message.id ? state.pendingInput : nil,
                   approval: state.chatApproval?.id == message.id ? state.chatApproval : nil,
-                  visuals: state.conversationVisuals[message.id] ?? [],
+                  visuals: (hydratedChat == state.conversation ? hydratedVisuals[message.id] : nil)
+                    ?? state.conversationVisuals[message.id] ?? [],
                   resumable: state.resumableAnswer == message.id,
                   controlsEnabled: !state.busy && !state.changingConversation
                 ).equatable()
@@ -481,7 +507,13 @@ struct WorkbookView: View {
               ConversationScrollObserver(
                 frames: conversationFrames,
                 position: state.conversationSession.state.reading, request: state.readingRequest,
-                canFollowLatest: state.messageAnchor == nil
+                canFollowLatest: state.messageAnchor == nil,
+                visible: { ids in
+                  let byID = Set(
+                    state.messages.filter { ["assistant", "event"].contains($0.role) }.map(\.id))
+                  let messages = Array(ids.filter(byID.contains).prefix(4))
+                  if messages != visibleMessages { visibleMessages = messages }
+                }
               ) { [chat = state.conversation, owner = state.interactionIdentity] position in
                 guard state.interactionActive, !state.changingConversation,
                   state.conversation == chat, state.interactionIdentity == owner
@@ -492,13 +524,96 @@ struct WorkbookView: View {
             .onPreferenceChange(ConversationRowFrames.self) { conversationFrames = $0 }
         }
       }.id(state.conversation)
+        .task(id: [state.conversation] + visibleMessages) {
+          guard let book = state.workbook else { return }
+          let chat = state.conversation
+          let ids = visibleMessages
+          let cancellation = Cancellation()
+          await withTaskCancellationHandler {
+            do {
+              let values = try await Task.detached {
+                try book.hydrateConversationVisuals(
+                  ids, conversation: chat, cancellation: cancellation)
+              }.value
+              try Task.checkCancellation()
+              guard state.workbook === book && state.conversation == chat else { return }
+              hydratedChat = chat
+              hydratedVisuals = values
+            } catch {
+              guard !Task.isCancelled else { return }
+              hydratedVisuals = [:]
+            }
+          } onCancel: {
+            cancellation.cancel()
+          }
+        }
       if state.messageAnchor != nil || state.conversationSession.state.reading.message != nil {
         Button("Return to latest", action: state.latestConversationMessages).padding(.bottom, 8)
       }
       Divider()
       composer.padding(14)
     }.accessibilityElement(children: .contain).accessibilityLabel("Conversation")
+      .sheet(item: $state.visualInspection) { inspection in
+        visualInspection(inspection)
+      }
+      .sheet(item: $state.imageInspection) { inspection in
+        VStack(spacing: 0) {
+          HStack {
+            Text(inspection.title).font(.headline).lineLimit(1)
+            Spacer()
+            Button("Done") { state.imageInspection = nil }.keyboardShortcut(.cancelAction)
+          }.padding(16)
+          Divider()
+          ImageViewer(
+            image: NSImage(cgImage: inspection.preview.image, size: inspection.preview.points),
+            title: inspection.title, fitInitially: true, initialScale: inspection.zoom)
+        }.frame(minWidth: 480, idealWidth: 720, minHeight: 360, idealHeight: 560)
+      }
   }
+  private func visualInspection(_ inspection: ConversationVisualInspection) -> some View {
+    let open: (String) -> Void = { source in
+      state.visualInspection = nil
+      state.navigate(.item(source), returningTo: .message(inspection.messageID))
+    }
+    return VStack(alignment: .leading, spacing: 0) {
+      HStack {
+        Text("Visual detail").font(.headline)
+        Spacer()
+        Button("Done") { state.visualInspection = nil }.keyboardShortcut(.cancelAction)
+      }.padding(16)
+      Divider()
+      ScrollView {
+        VStack(alignment: .leading, spacing: 12) {
+          switch inspection.content {
+          case .captured(let result):
+            if let chart = result.chart, let data = result.chartData {
+              VisualChartView(
+                definition: chart, data: data, openOriginal: open,
+                loadSources: { point, offset in
+                  guard let book = state.workbook else {
+                    throw SevraError("visual", "Reopen the workbook for this visual.")
+                  }
+                  return try await Task.detached {
+                    try book.chartGroupSources(
+                      messageID: inspection.messageID, index: inspection.index,
+                      conversation: inspection.conversation, point: point, offset: offset)
+                  }.value
+                })
+            } else if let overview = result.overview, let data = result.overviewData {
+              VisualOverviewView(definition: overview, panels: data, openOriginal: open)
+            } else if let diagram = result.diagram, let data = result.diagramData {
+              VisualDiagramView(definition: diagram, data: data, openRecord: open)
+            }
+          case .current(let session, let reference):
+            NativeAppDeclaredView(
+              session: session, viewID: reference.viewID, presetID: reference.presetID,
+              datasetSnapshot: state.datasetSnapshot, openOriginal: open)
+          }
+        }.padding(18).frame(maxWidth: .infinity, alignment: .leading)
+      }
+    }.frame(minWidth: 420, idealWidth: 760, minHeight: 360, idealHeight: 560)
+  }
+
   var composer: some View {
     VStack(alignment: .leading, spacing: 8) {
       if state.changingConversation {

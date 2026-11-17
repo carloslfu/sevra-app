@@ -31,7 +31,7 @@ for bundle in "$ROOT/output/bin/"*.bundle; do
 done
 # Only resources used by the active Slotstream baseline. Candidate adapters and
 # test fixtures remain in .build until the production integration is qualified.
-for resource in swift-transformers_Hub ZIPFoundation_ZIPFoundation swift-crypto_Crypto; do
+for resource in swift-transformers_Hub ZIPFoundation_ZIPFoundation swift-crypto_Crypto Sevra_SevraExtractionWorker; do
   bundle="$BIN/$resource.bundle"
   [ -d "$bundle" ] || { echo "Required resource bundle missing: $resource" >&2; exit 1; }
   # All app resources stay in the standard sealed macOS resource location.

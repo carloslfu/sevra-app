@@ -259,16 +259,19 @@ public struct ExtractionWorker: Sendable {
   }
 
   /// Dedicated helper entry point. No workbook or network service is opened.
-  public static func runMain(behavior: ((URL) throws -> Value)? = nil) -> Never {
+  public static func runMain(
+    behavior: ((URL) throws -> Value)? = nil, layout: ((URL) throws -> Value)? = nil
+  ) -> Never {
     let arguments = Array(CommandLine.arguments.dropFirst())
     let format: StructuredFormat?
     let listing = arguments.count == 2 && arguments[0] == "--zip-members"
     let evidence = arguments.count == 2 && arguments[0] == "--excel-evidence"
     let calculating = arguments.count == 2 && arguments[0] == "--excel-behavior"
+    let diagram = arguments.count == 2 && arguments[0] == "--diagram-layout"
     let imageSize =
       arguments.count == 3 && arguments[0].hasPrefix("--image-preview=")
       ? Int(arguments[0].dropFirst("--image-preview=".count)) : nil
-    if arguments.count == 1 || listing || evidence || calculating || imageSize != nil {
+    if arguments.count == 1 || listing || evidence || calculating || diagram || imageSize != nil {
       format = nil
     } else if arguments.count == 2, arguments[0].hasPrefix("--structured="),
       let selected = StructuredFormat(rawValue: String(arguments[0].dropFirst(13)))
@@ -291,6 +294,14 @@ public struct ExtractionWorker: Sendable {
       if let imageSize {
         return writeReply {
           try ImagePreviewPixels.decode(url, dimension: imageSize, hash: arguments[1])
+        }
+      }
+      if diagram {
+        return writeReply {
+          guard let layout else {
+            throw SevraError("diagram_layout", "Diagram layout is unavailable.")
+          }
+          return try layout(url)
         }
       }
       if calculating {

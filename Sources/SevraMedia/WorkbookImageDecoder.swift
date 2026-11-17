@@ -8,18 +8,21 @@ import SevraCore
 /// buffer, and the very bytes passed to ImageIO must match the saved hash.
 public actor WorkbookImageDecoder {
   public static let shared = WorkbookImageDecoder()
-  private let cache = NSCache<NSString, ImageEntry>()
+  private var cache: [String: PreviewImage] = [:]
+  private var recency: [String] = []
+  private nonisolated let ledger = ImageLedger()
   public static let byteLimit = 32 * 1024 * 1024
 
-  private init() {
-    cache.totalCostLimit = 48 * 1024 * 1024
-    cache.countLimit = 24
-  }
+  private init() {}
 
-  public func load(_ asset: ImageAssetRead, enlarged: Bool = false) async throws -> PreviewImage {
+  public nonisolated func load(_ asset: ImageAssetRead, enlarged: Bool = false) async throws
+    -> PreviewImage
+  {
+    try require(ledger.enter(), "visual_image_limit", "Image previews are busy. Retry this image.")
+    defer { ledger.leave() }
     let cancellation = Cancellation()
     return try await withTaskCancellationHandler {
-      try load(asset, enlarged: enlarged, cancellation: cancellation)
+      try await load(asset, enlarged: enlarged, cancellation: cancellation)
     } onCancel: {
       cancellation.cancel()
     }
@@ -58,9 +61,24 @@ public actor WorkbookImageDecoder {
         && hash.finalize().map { String(format: "%02x", $0) }.joined() == asset.hash,
       "visual_image_hash", "The included image file changed.")
     let size = enlarged ? ImagePreviewPixels.maximumDimension : 1024
-    let key = (asset.hash + "/" + String(size)) as NSString
-    if let cached = cache.object(forKey: key) { return cached.preview }
+    let key = asset.hash + "/" + String(size)
+    if let cached = cache[key] {
+      recency.removeAll { $0 == key }
+      recency.append(key)
+      return cached
+    }
 
+    // Reserve before launching the helper. References retained by mounted
+    // views remain charged after their entries are evicted from the cache.
+    let maximumCost = size * size * 4
+    var memory = ledger.reserve(maximumCost)
+    while memory == nil, !recency.isEmpty {
+      cache.removeValue(forKey: recency.removeFirst())
+      memory = ledger.reserve(maximumCost)
+    }
+    guard let memory else {
+      throw SevraError("visual_image_limit", "Too many images are open. Close an image and retry.")
+    }
     let pixels = try ExtractionWorker.previewImage(
       data, hash: asset.hash, enlarged: enlarged, cancellation: cancellation)
     try cancellation.check()
@@ -74,17 +92,59 @@ public actor WorkbookImageDecoder {
         bitmapInfo: CGBitmapInfo(rawValue: CGImageAlphaInfo.premultipliedLast.rawValue),
         provider: provider, decode: nil, shouldInterpolate: true, intent: .defaultIntent)
     else { throw SevraError("visual_image_decode", "The image preview returned invalid pixels.") }
-    let preview = PreviewImage(
-      image: image, points: CGSize(width: image.width, height: image.height))
     let cost = image.bytesPerRow * image.height
+    memory.shrink(to: cost)
+    let preview = PreviewImage(
+      image: image, points: CGSize(width: image.width, height: image.height), memory: memory)
     if cost <= 16 * 1024 * 1024 {
-      cache.setObject(ImageEntry(preview), forKey: key, cost: cost)
+      if recency.count == 24 { cache.removeValue(forKey: recency.removeFirst()) }
+      cache[key] = preview
+      recency.append(key)
     }
     return preview
   }
 
-  private final class ImageEntry: NSObject {
-    let preview: PreviewImage
-    init(_ preview: PreviewImage) { self.preview = preview }
+}
+
+final class ImageLedger: @unchecked Sendable {
+  private let lock = NSLock()
+  private var callers = 0
+  private var bytes = 0
+
+  func enter() -> Bool {
+    lock.withLock {
+      guard callers < 8 else { return false }
+      callers += 1
+      return true
+    }
   }
+
+  func leave() { lock.withLock { callers -= 1 } }
+
+  func reserve(_ cost: Int) -> ImageMemoryLease? {
+    lock.withLock {
+      guard bytes + cost <= 48 * 1024 * 1024 else { return nil }
+      bytes += cost
+      return ImageMemoryLease(cost: cost, ledger: self)
+    }
+  }
+
+  func release(_ cost: Int) { lock.withLock { bytes -= cost } }
+}
+
+final class ImageMemoryLease: @unchecked Sendable {
+  private var cost: Int
+  private let ledger: ImageLedger
+  init(cost: Int, ledger: ImageLedger) {
+    self.cost = cost
+    self.ledger = ledger
+  }
+
+  // Called once by the decoder before publishing the preview.
+  func shrink(to bytes: Int) {
+    ledger.release(cost - bytes)
+    cost = bytes
+  }
+
+  deinit { ledger.release(cost) }
 }

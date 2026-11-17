@@ -1,7 +1,9 @@
+import CryptoKit
 import Foundation
 import SevraAppUI
 import SevraAutomationUI
 import SevraCore
+import SevraMedia
 import SevraVisualUI
 
 extension WorkspaceState {
@@ -46,10 +48,147 @@ extension WorkspaceState {
         String(name.dropFirst(4)), arguments: a, readOnly: readOnly, cancellation: cancellation)
     }
     switch name {
+    case "visual.app_select":
+      let space = try book.space(a["id"].text)
+      try require(
+        space.version == a["expectedVersion"].int && space.definition.app != nil,
+        "stale_app", "Use the current exact app version and declared view ID.")
+      let view = a["viewID"].text
+      let preset = a["presentationID"].string
+      let session = nativeAppSession(space, book: book)
+      var point: VisualChartData.Point?
+      if let id = a["point"].int {
+        let result = try await session.loadVisual(
+          view, presetID: preset, cancellation: cancellation)
+        guard let chart = result.chartData,
+          a["snapshot"] == .string(chart.snapshot),
+          a["queryHash"] == .string(chart.queryHash),
+          let exact = chart.points.first(where: { $0.id == id })
+        else { throw SevraError("visual_links", "Refresh the chart before selecting a group.") }
+        point = exact
+      }
+      try cancellation.check()
+      try session.selectVisualPoint(view, presetID: preset, point: point)
+      return .object([
+        "status": .string(point == nil ? "cleared" : "selected"),
+        "label": point.map { .string($0.label) } ?? .null,
+      ])
+    case "visual.app_capture", "visual.app_pin", "visual.app_preset", "visual.app_restore_preset",
+      "visual.app_sources":
+      let space = try book.space(a["id"].text)
+      try require(
+        space.version == a["expectedVersion"].int && space.definition.app != nil,
+        "stale_app", "Use the current exact app version and declared view ID.")
+      let view = a["viewID"].text
+      let preset = a["presentationID"].string
+      let session = nativeAppSession(space, book: book)
+      let filters = session.visualFilters(view, presetID: preset)
+      return try await session.withVisualAccess(
+        committing: ["visual.app_pin", "visual.app_preset", "visual.app_restore_preset"].contains(
+          name)
+      ) { book, access in
+        try cancellation.check()
+        if name == "visual.app_sources" {
+          return try book.nativeAppChartSources(
+            access, view: view, presetID: preset, filters: filters,
+            snapshot: a["snapshot"].text, queryHash: a["queryHash"].text, point: a["point"].int!,
+            offset: a["offset"].int ?? 0, cancellation: cancellation)
+        }
+        if name == "visual.app_pin" {
+          return try encoded(
+            book.pinNativeAppView(
+              access, view: view, presetID: preset,
+              expectedHomeVersion: a["homeVersion"].int!))
+        }
+        if ["visual.app_preset", "visual.app_restore_preset"].contains(name) {
+          let style = a["style"].string.flatMap(VisualChart.Style.init(rawValue:))
+          try require(
+            a["style"] == .null || style != nil, "visual_preset", "Choose a known chart style.")
+          let saved = try book.saveNativeAppPreset(
+            access, view: view, title: a["title"].string,
+            style: style, filters: a["filters"] == .null ? nil : a["filters"].array,
+            expectedPresetVersion: a["presetVersionID"].string,
+            restoring: a["restoreVersionID"].string,
+            cancellation: cancellation)
+          return .object([
+            "status": .string("saved"), "presentationID": .string(saved.logicalID),
+            "versionID": .string(saved.id), "version": .number(Double(saved.version)),
+          ])
+        }
+        let visual = try book.nativeAppVisual(
+          access, view: view, presetID: preset,
+          capture: true, filters: filters, cancellation: cancellation)
+        let captured = try encoded(visual)
+        try require(
+          captured.json().utf8.count <= 24 * 1024, "visual_limit",
+          "This view is too large to capture. Narrow its scope and try again.")
+        let title = visual.definition.title ?? view
+        let marks: [Value] = (visual.chartData?.points ?? []).prefix(12).map { point in
+          .object(["id": .number(Double(point.id)), "label": .string(point.label)])
+        }
+        let digest = SHA256.hash(data: Data(try captured.json().utf8))
+          .map { String(format: "%02x", $0) }.joined()
+        let summary: Value = .object([
+          "kind": .string(visual.definition.kind.rawValue), "title": .string(title),
+          "snapshot": visual.chartData.map { .string($0.snapshot) } ?? .null,
+          "queryHash": visual.chartData.map { .string($0.queryHash) } ?? .null,
+          "points": .array(marks), "hash": .string(digest),
+        ])
+        return .object([
+          "status": .string("captured"), "capture": captured, "visualSummary": summary,
+          "notice": .string("Attach the capture receipt using finish.visuals."),
+        ])
+      }
+    case "visual.expand", "visual.open_current":
+      return try await openChatVisual(
+        a["messageID"].text, index: a["index"].int!,
+        current: name == "visual.open_current", book: book, cancellation: cancellation)
+    case "visual.image_view":
+      let chat = conversation
+      let messageID = a["messageID"].text
+      let mode = a["mode"].text
+      try require(
+        ["open", "fit", "zoom", "retry"].contains(mode), "visual_image",
+        "Choose open, fit, zoom or retry.")
+      let zoom = a["zoom"].string.flatMap(Double.init) ?? 1
+      try require(
+        zoom.isFinite && (0.25...6).contains(zoom)
+          && (mode == "zoom" ? a["zoom"].string.flatMap(Double.init) != nil : a["zoom"] == .null),
+        "visual_image", "Choose a zoom between 0.25 and 6 for zoom mode.")
+      let image = try await Task.detached {
+        let result = try book.conversationVisual(
+          messageID, index: a["index"].int!, conversation: chat)
+        guard let image = result.image else {
+          throw SevraError("visual_image", "Choose an exact captured image.")
+        }
+        return image
+      }.value
+      let asset = try await Task.detached { try book.imageAssetRead(image.reference) }.value
+      let preview = try await WorkbookImageDecoder.shared.load(asset, enlarged: true)
+      try cancellation.check()
+      try require(
+        workbook === book && conversation == chat && !changingConversation,
+        "visual_image", "Return to the conversation for this image.")
+      imageInspection = ConversationImageInspection(
+        title: image.accessibilityDescription,
+        preview: preview, zoom: zoom)
+      return .object([
+        "status": .string("opened"), "sourceID": .string(image.reference.sourceID),
+        "zoom": .number(zoom),
+      ])
     case "visual.open_source":
       let chat = conversation
       let messageID = a["messageID"].text
       let source = try await Task.detached {
+        if let point = a["point"].int, let sourceID = a["sourceID"].string {
+          let sources = try book.chartGroupSources(
+            messageID: messageID, index: a["index"].int!,
+            conversation: chat, point: point, offset: a["offset"].int ?? 0, panel: a["panel"].int)
+          try require(
+            sources["rows"].array.contains { $0.array.contains(.string(sourceID)) },
+            "visual_source", "Choose a source version from the exact captured page.")
+          return sourceID
+        }
         let result = try book.conversationVisual(
           messageID, index: a["index"].int!, conversation: chat)
         return try result.sourceForInspection(a["sourceID"].string)
@@ -262,6 +401,72 @@ extension WorkspaceState {
         }
         report(error, for: ticket, in: book)
       }
+    }
+  }
+}
+
+extension WorkspaceState {
+  func openChatVisual(
+    _ messageID: String, index: Int, current: Bool, book: Workbook,
+    cancellation: Cancellation = .init()
+  ) async throws -> Value {
+    let chat = conversation
+    let result = try await Task.detached {
+      try book.conversationVisual(messageID, index: index, conversation: chat)
+    }.value
+    try cancellation.check()
+    try require(
+      workbook === book && conversation == chat && !changingConversation,
+      "visual", "Return to the conversation for this visual.")
+    if current {
+      if let reference = result.appReference {
+        let space = try book.space(reference.spaceID)
+        try require(
+          space.version == reference.version && space.definition.app?.digest == reference.digest,
+          "stale_app", "The app view has changed. Open the current app to inspect it.")
+        let session = nativeAppSession(space, book: book)
+        _ = try await session.withVisualAccess { book, access in
+          try book.nativeAppPresentation(
+            access, view: reference.viewID, presetID: reference.presetID)
+        }
+        try cancellation.check()
+        try require(
+          workbook === book && conversation == chat && !changingConversation,
+          "visual", "Return to the conversation for this visual.")
+        visualInspection = .init(
+          messageID: messageID, index: index, conversation: chat,
+          content: .current(session, reference))
+      } else {
+        let home = try book.space("home")
+        let origin = VisualOrigin(messageID: messageID, index: index, conversation: chat)
+        let matching = home.definition.components.filter {
+          $0.visualOrigin == origin || ($0.visualOrigin == nil && $0.visual == result.definition)
+        }
+        guard matching.count == 1, let component = matching.first else {
+          throw SevraError("visual", "Choose the corresponding saved view in Home.")
+        }
+        try require(
+          navigate(.space(home.id), returningTo: .message(messageID)),
+          "visual", "Resolve the open draft before opening Home.")
+        spaceScroll[home.id] = component.id
+      }
+    } else {
+      try require(
+        result.chart != nil || result.overview != nil || result.diagram != nil,
+        "visual", "Choose a captured chart, overview or diagram to expand.")
+      visualInspection = .init(
+        messageID: messageID, index: index, conversation: chat,
+        content: .captured(result))
+    }
+    return .object(["status": .string("opened"), "mode": .string(current ? "live" : "captured")])
+  }
+
+  func showChatVisual(_ messageID: String, index: Int, current: Bool) {
+    guard let workbook else { return }
+    Task {
+      do {
+        _ = try await openChatVisual(messageID, index: index, current: current, book: workbook)
+      } catch { self.error = error.localizedDescription }
     }
   }
 }

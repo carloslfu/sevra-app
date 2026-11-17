@@ -73,6 +73,8 @@ struct FolderReview {
   @Published var datasetSnapshot = "initial"
   @Published var chatApproval: ChatApproval?
   @Published var pendingInput: ConversationSurface?
+  @Published var imageInspection: ConversationImageInspection?
+  @Published var visualInspection: ConversationVisualInspection?
   @Published var conversationVisuals: [String: [VisualResult]] = [:]
   @Published var resumableAnswer: String?
   @Published var excelImports: [Value] = []
@@ -266,6 +268,8 @@ struct FolderReview {
     chatApproval = nil
     pendingInput = nil
     conversationVisuals = [:]
+    imageInspection = nil
+    visualInspection = nil
     resumableAnswer = nil
     excelImports = []
     excelPurposeDrafts = [:]
@@ -593,11 +597,30 @@ struct FolderReview {
         finishOperation(ticket, in: book, successStatus: saved ? "View added to Home." : nil)
       }
       do {
-        _ = try await Task.detached(priority: .userInitiated) {
+        let visual = try await Task.detached(priority: .userInitiated) {
           try ticket.cancellation.check()
-          return try book.promoteConversationVisual(
-            messageID, index: index, conversation: chat, expectedVersion: expected)
+          return try book.conversationVisual(messageID, index: index, conversation: chat)
         }.value
+        if let reference = visual.appReference {
+          let app = try book.space(reference.spaceID)
+          try require(
+            app.version == reference.version && app.definition.app?.digest == reference.digest,
+            "stale_app", "Reopen the app and capture its current view.")
+          _ = try await nativeAppSession(app, book: book).withVisualAccess(committing: true) {
+            book, access in
+            try ticket.cancellation.check()
+            return try book.pinNativeAppView(
+              access, view: reference.viewID,
+              presetID: reference.presetID, expectedHomeVersion: expected)
+          }
+        } else {
+          _ = try await Task.detached {
+            try ticket.cancellation.check()
+            return try book.promoteConversationVisual(
+              messageID, index: index,
+              conversation: chat, expectedVersion: expected)
+          }.value
+        }
         saved = true
       } catch { report(error, for: ticket, in: book) }
     }
@@ -1720,6 +1743,8 @@ struct FolderReview {
       historySearch.reset()
       pendingInput = nil
       conversationVisuals = [:]
+      imageInspection = nil
+      visualInspection = nil
       resumableAnswer = nil
       chatApproval = nil
     }
@@ -1804,6 +1829,8 @@ struct FolderReview {
     chatApproval = nil
     pendingInput = nil
     conversationVisuals = [:]
+    imageInspection = nil
+    visualInspection = nil
     resumableAnswer = nil
     excelImports = []
     excelPurposeDrafts = [:]

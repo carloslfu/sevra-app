@@ -1,6 +1,7 @@
 import AppKit
 import SevraAppProtocol
 import SevraCore
+import SevraMedia
 import SwiftUI
 
 /// Keyboard traversal must reveal the focused control inside the native app viewport.
@@ -23,6 +24,7 @@ import SwiftUI
   var openImage: ((String) -> Void)?
   private var source: Value?
   private var load: Task<Void, Never>?
+  private var retainedPreview: SevraMedia.PreviewImage?
   private lazy var enlargeButton = AppButton(title: "", target: self, action: #selector(enlarge))
 
   override init(frame frameRect: NSRect) {
@@ -85,6 +87,7 @@ import SwiftUI
     guard let alias = props["asset"].string else {
       load?.cancel()
       load = nil
+      retainedPreview = nil
       source = nil
       showEnlarge(false)
       imageScaling = .scaleProportionallyDown
@@ -99,6 +102,7 @@ import SwiftUI
     source = request
     load?.cancel()
     showEnlarge(false)
+    retainedPreview = nil
     imageScaling = .scaleProportionallyUpOrDown
     setContentCompressionResistancePriority(.defaultLow, for: .horizontal)
     setAccessibilityLabel(label)
@@ -108,6 +112,7 @@ import SwiftUI
       let preview = await session.loadImage(alias)
       guard !Task.isCancelled, let self else { return }
       if let preview {
+        self.retainedPreview = preview
         let width = CGFloat(preview.image.width)
         let height = CGFloat(preview.image.height)
         let scale = min(1, 320 / width, 240 / height)
@@ -130,17 +135,50 @@ import SwiftUI
   deinit { load?.cancel() }
 }
 
+@MainActor private final class AppCaptionedImage: NSStackView {
+  let picture = AppImageView(frame: .zero)
+  let caption = NSTextField(wrappingLabelWithString: "")
+
+  override init(frame frameRect: NSRect) {
+    super.init(frame: frameRect)
+    orientation = .vertical
+    alignment = .leading
+    spacing = 6
+    caption.font = .systemFont(ofSize: NSFont.smallSystemFontSize)
+    caption.textColor = .secondaryLabelColor
+    caption.isSelectable = true
+    addArrangedSubview(picture)
+    addArrangedSubview(caption)
+    picture.widthAnchor.constraint(equalTo: widthAnchor).isActive = true
+    caption.widthAnchor.constraint(lessThanOrEqualTo: widthAnchor).isActive = true
+  }
+
+  required init?(coder: NSCoder) { fatalError("init(coder:) has not been implemented") }
+
+  func update(_ props: Value, session: NativeAppSession) {
+    picture.update(props, session: session)
+    caption.stringValue = props["caption"].text
+    caption.isHidden = caption.stringValue.isEmpty
+  }
+}
+
 public struct NativeAppSurface: NSViewRepresentable {
   public let session: NativeAppSession
   let openImage: ((String) -> Void)?
-  public init(session: NativeAppSession, openImage: ((String) -> Void)? = nil) {
+  let openOriginal: ((String) -> Void)?
+  public init(
+    session: NativeAppSession, openOriginal: ((String) -> Void)? = nil,
+    openImage: ((String) -> Void)? = nil
+  ) {
     self.session = session
+    self.openOriginal = openOriginal
     self.openImage = openImage
   }
   public func makeNSView(context: Context) -> NativeAppRenderer {
-    NativeAppRenderer(session: session, openImage: openImage)
+    NativeAppRenderer(session: session, openOriginal: openOriginal, openImage: openImage)
   }
   public func updateNSView(_ view: NativeAppRenderer, context: Context) {
+    view.openOriginal = openOriginal
     view.openImage = openImage
   }
   public func sizeThatFits(
@@ -156,13 +194,18 @@ public struct NativeAppSurface: NSViewRepresentable {
 @MainActor public final class NativeAppRenderer: NSView {
   private let session: NativeAppSession
   var openImage: ((String) -> Void)?
+  var openOriginal: ((String) -> Void)?
   private var elements: [String: AppElement] = [:]
   private var observerID: UUID?
   private var rootID: String?
   private let scroll = NSScrollView()
   private var documentWidth: NSLayoutConstraint?
-  public init(session: NativeAppSession, openImage: ((String) -> Void)? = nil) {
+  public init(
+    session: NativeAppSession, openOriginal: ((String) -> Void)? = nil,
+    openImage: ((String) -> Void)? = nil
+  ) {
     self.session = session
+    self.openOriginal = openOriginal
     self.openImage = openImage
     super.init(frame: .zero)
     scroll.hasVerticalScroller = true
@@ -190,7 +233,10 @@ public struct NativeAppSurface: NSViewRepresentable {
     if let observerID { session.removeViewObserver(observerID) }
     observerID = nil
   }
-  public func view(for id: String) -> NSView? { elements[id]?.content }
+  public func view(for id: String) -> NSView? {
+    let content = elements[id]?.content
+    return (content as? AppCaptionedImage)?.picture ?? content
+  }
   private func apply(_ tree: NativeAppTree, changed: Set<String>) {
     for id in elements.keys where tree.nodes[id] == nil {
       elements.removeValue(forKey: id)?.removeFromSuperview()
@@ -202,9 +248,16 @@ public struct NativeAppSurface: NSViewRepresentable {
         elements[id] = nil
       }
       if elements[id] == nil {
-        elements[id] = AppElement(node: node, session: session)
-        if openImage != nil, let image = elements[id]?.content as? AppImageView {
-          image.openImage = { [weak self] in self?.openImage?($0) }
+        let openSource: ((String) -> Void)? =
+          openOriginal == nil
+          ? nil
+          : { [weak self] source in
+            guard let self, self.session.isGranted else { return }
+            self.openOriginal?(source)
+          }
+        elements[id] = AppElement(node: node, session: session, openOriginal: openSource)
+        if openImage != nil, let image = elements[id]?.content as? AppCaptionedImage {
+          image.picture.openImage = { [weak self] in self?.openImage?($0) }
         }
         elements[id]?.table?.sizeDidChange = { [weak self] in self?.needsLayout = true }
       }
@@ -252,6 +305,7 @@ final class AppElement: NSView, NSTextFieldDelegate, NSTextViewDelegate, NSTabVi
   var node: NativeAppNode
   let session: NativeAppSession
   let content: NSView
+  let openOriginal: ((String) -> Void)?
   var table: AppTable?
   private var arranged: [String] = []
   private var childConstraints: [NSLayoutConstraint] = []
@@ -264,8 +318,9 @@ final class AppElement: NSView, NSTextFieldDelegate, NSTextViewDelegate, NSTabVi
   private var disclosureBody: NSStackView?
   private var disclosureButton: NSButton?
   private var disclosureTitle: NSTextField?
-  init(node: NativeAppNode, session: NativeAppSession) {
+  init(node: NativeAppNode, session: NativeAppSession, openOriginal: ((String) -> Void)? = nil) {
     self.node = node
+    self.openOriginal = openOriginal
     self.session = session
     switch node.type {
     case "text": content = NSTextField(wrappingLabelWithString: "")
@@ -300,11 +355,11 @@ final class AppElement: NSView, NSTextFieldDelegate, NSTextViewDelegate, NSTabVi
       content = scroll
     case "grid": content = NSGridView()
     case "canvas": content = AppCanvas()
-    case "image": content = AppImageView(frame: .zero)
+    case "image": content = AppCaptionedImage(frame: .zero)
     case "view":
       content = NSHostingView(
         rootView: NativeAppDeclaredView(
-          session: session, viewID: node.props["viewID"].text))
+          session: session, viewID: node.props["viewID"].text, openOriginal: openOriginal))
     case "table":
       let view = AppTable(session: session, node: node)
       content = view
@@ -369,7 +424,7 @@ final class AppElement: NSView, NSTextFieldDelegate, NSTextViewDelegate, NSTabVi
   func setInteractionEnabled(_ enabled: Bool) {
     interactionEnabled = enabled
     if let control = content as? NSControl { control.isEnabled = enabled }
-    (content as? AppImageView)?.setExpansionEnabled(enabled)
+    (content as? AppCaptionedImage)?.picture.setExpansionEnabled(enabled)
     if let editor = (content as? NSScrollView)?.documentView as? NSTextView {
       editor.isEditable = enabled
     }
@@ -512,12 +567,13 @@ final class AppElement: NSView, NSTextFieldDelegate, NSTextViewDelegate, NSTabVi
       disclosureButton?.state = disclosureOpen ? .on : .off
     case "canvas": (content as! AppCanvas).update(props)
     case "image":
-      (content as! AppImageView).update(props, session: session)
+      (content as! AppCaptionedImage).update(props, session: session)
     case "view":
       if previous["viewID"] != props["viewID"],
         let host = content as? NSHostingView<NativeAppDeclaredView>
       {
-        host.rootView = NativeAppDeclaredView(session: session, viewID: props["viewID"].text)
+        host.rootView = NativeAppDeclaredView(
+          session: session, viewID: props["viewID"].text, openOriginal: openOriginal)
       }
     case "table": table?.update(next)
     default: break

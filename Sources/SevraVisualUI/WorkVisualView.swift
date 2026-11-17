@@ -1,24 +1,30 @@
 import Charts
 import SevraCore
+import SevraMedia
 import SwiftUI
 
 public struct WorkVisualView: View {
   let definition: WorkVisual
   let data: WorkVisualData
   let openRecord: ((String) -> Void)?
+  let thumbnail: (@MainActor (String) async throws -> PreviewImage)?
   let change: ((WorkVisualData.Record, String, String?) -> Void)?
   @State private var day: String?
+  @State private var displayedMonth: Date?
+  @State private var weekOnly = false
   @State private var reschedule: WorkVisualData.Record?
   @State private var startText = ""
   @State private var endText = ""
 
   public init(
     definition: WorkVisual, data: WorkVisualData, openRecord: ((String) -> Void)? = nil,
+    thumbnail: (@MainActor (String) async throws -> PreviewImage)? = nil,
     change: ((WorkVisualData.Record, String, String?) -> Void)? = nil
   ) {
     self.definition = definition
     self.data = data
     self.openRecord = openRecord
+    self.thumbnail = thumbnail
     self.change = change
   }
 
@@ -35,16 +41,25 @@ public struct WorkVisualView: View {
           timeline
           DisclosureGroup("Events and records") { agenda }
         case .calendar:
-          if let month = definition.month, let date = Self.date(month) {
-            ViewThatFits(in: .horizontal) {
-              monthGrid(date).frame(minWidth: 420)
-              agenda
+          if let date = displayedMonth ?? definition.month.flatMap(Self.date) {
+            calendarControls(date)
+            if weekOnly {
+              selectedWeek(date)
+            } else {
+              ViewThatFits(in: .horizontal) {
+                monthGrid(date).frame(minWidth: 395)
+                agenda
+              }
             }
           }
         case .agenda: agenda
         }
       }
-    }.sheet(item: $reschedule) { record in
+    }.onChange(of: definition.month) { _, _ in
+      displayedMonth = nil
+      day = nil
+    }
+    .sheet(item: $reschedule) { record in
       VStack(alignment: .leading, spacing: 12) {
         Text("Reschedule " + record.title).font(.headline)
         TextField("Start date · YYYY-MM-DD", text: $startText)
@@ -78,7 +93,8 @@ public struct WorkVisualView: View {
 
   private func column(_ title: String, records: [WorkVisualData.Record]) -> some View {
     VStack(alignment: .leading, spacing: 8) {
-      Text(title).font(.subheadline.weight(.semibold)).accessibilityAddTraits(.isHeader)
+      Text(title + " · " + records.count.formatted()).font(.subheadline.weight(.semibold))
+        .accessibilityAddTraits(.isHeader)
       if records.isEmpty {
         Text("No records").font(.caption).foregroundStyle(.secondary)
       } else {
@@ -115,6 +131,44 @@ public struct WorkVisualView: View {
     .accessibilityLabel(definition.title)
   }
 
+  private func calendarControls(_ date: Date) -> some View {
+    HStack {
+      Button {
+        navigateCalendar(date, offset: -1)
+      } label: {
+        Image(systemName: "chevron.left")
+      }
+      .accessibilityLabel(weekOnly ? "Previous week" : "Previous month")
+      Text(Self.monthLabel(date)).font(.subheadline.weight(.semibold)).lineLimit(1)
+      Button {
+        navigateCalendar(date, offset: 1)
+      } label: {
+        Image(systemName: "chevron.right")
+      }
+      .accessibilityLabel(weekOnly ? "Next week" : "Next month")
+      Spacer(minLength: 0)
+      Toggle("Week", isOn: $weekOnly).toggleStyle(.switch).controlSize(.small)
+    }
+  }
+
+  private func navigateCalendar(_ date: Date, offset: Int) {
+    displayedMonth = Self.calendar.date(
+      byAdding: weekOnly ? .day : .month,
+      value: weekOnly ? offset * 7 : offset, to: date)
+    day = nil
+  }
+
+  private func selectedWeek(_ date: Date) -> some View {
+    let start = Self.calendar.dateInterval(of: .weekOfYear, for: date)?.start ?? date
+    return LazyVStack(alignment: .leading, spacing: 7) {
+      ForEach(0..<7) { offset in
+        if let date = Self.calendar.date(byAdding: .day, value: offset, to: start) {
+          selectedDay(date.formatted(Self.iso))
+        }
+      }
+    }
+  }
+
   private func monthGrid(_ month: Date) -> some View {
     let calendar = Self.calendar
     let weekday = calendar.component(.weekday, from: month)
@@ -122,8 +176,6 @@ public struct WorkVisualView: View {
     let days = calendar.range(of: .day, in: .month, for: month)?.count ?? 0
     let columns = Array(repeating: GridItem(.flexible(), spacing: 4), count: 7)
     return VStack(alignment: .leading, spacing: 8) {
-      Text(Self.monthLabel(month))
-        .font(.subheadline.weight(.semibold))
       LazyVGrid(columns: columns, spacing: 4) {
         ForEach(["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"], id: \.self) { label in
           Text(label).font(.caption).foregroundStyle(.secondary)
@@ -178,7 +230,10 @@ public struct WorkVisualView: View {
   }
 
   private func card(_ record: WorkVisualData.Record, showsDate: Bool) -> some View {
-    HStack(alignment: .firstTextBaseline, spacing: 4) {
+    HStack(alignment: .firstTextBaseline, spacing: 6) {
+      if let key = record.imageKey, let thumbnail {
+        RecordThumbnail(key: key, load: thumbnail)
+      }
       VStack(alignment: .leading, spacing: 3) {
         if let openRecord {
           Button(record.title) { openRecord(record.id) }.buttonStyle(.link)
@@ -231,46 +286,108 @@ public struct WorkVisualView: View {
   private static var calendar: Calendar {
     var value = Calendar(identifier: .gregorian)
     value.timeZone = TimeZone(secondsFromGMT: 0)!
+    value.firstWeekday = 2
+    value.minimumDaysInFirstWeek = 4
     return value
+  }
+}
+
+private struct RecordThumbnail: View {
+  let key: String
+  let load: @MainActor (String) async throws -> PreviewImage
+  @State private var preview: PreviewImage?
+
+  var body: some View {
+    ZStack {
+      RoundedRectangle(cornerRadius: 5).fill(.quaternary)
+      if let preview {
+        Image(decorative: preview.image, scale: 1).resizable().scaledToFit()
+          .accessibilityHidden(true)
+      } else {
+        Image(systemName: "photo").font(.caption).foregroundStyle(.secondary)
+          .accessibilityLabel("Thumbnail unavailable")
+      }
+    }
+    .frame(width: 34, height: 34)
+    .task(id: key) {
+      preview = nil
+      guard let result = try? await load(key), !Task.isCancelled else { return }
+      preview = result
+    }
+    .onDisappear { preview = nil }
   }
 }
 
 public struct LiveWorkVisualView: View {
   let definition: WorkVisual
   let revision: String
-  let load: @MainActor () async throws -> WorkVisualData
+  let load: @MainActor (String?) async throws -> WorkVisualData
   let openRecord: ((String) -> Void)?
-  let change: ((WorkVisualData.Record, String, String?) -> Void)?
+  let thumbnail: (@MainActor (String) async throws -> PreviewImage)?
+  let change: ((WorkVisualData.Record, String, String?, String?) -> Void)?
   @State private var data: WorkVisualData?
   @State private var error: String?
+  @State private var pages: [String] = []
+  @State private var page = 0
 
   public init(
     definition: WorkVisual, revision: String,
-    load: @escaping @MainActor () async throws -> WorkVisualData,
+    load: @escaping @MainActor (String?) async throws -> WorkVisualData,
     openRecord: ((String) -> Void)? = nil,
-    change: ((WorkVisualData.Record, String, String?) -> Void)? = nil
+    thumbnail: (@MainActor (String) async throws -> PreviewImage)? = nil,
+    change: ((WorkVisualData.Record, String, String?, String?) -> Void)? = nil
   ) {
     self.definition = definition
     self.revision = revision
     self.load = load
     self.openRecord = openRecord
+    self.thumbnail = thumbnail
     self.change = change
   }
+
+  private var cursor: String? { page > 0 && pages.count >= page ? pages[page - 1] : nil }
 
   public var body: some View {
     Group {
       if let error {
         Label(error, systemImage: "rectangle.on.rectangle").foregroundStyle(.secondary)
       } else if let data {
-        WorkVisualView(definition: definition, data: data, openRecord: openRecord, change: change)
+        VStack(alignment: .leading, spacing: 9) {
+          WorkVisualView(
+            definition: definition, data: data, openRecord: openRecord,
+            thumbnail: thumbnail,
+            change: (page == 0 || pages.count >= page)
+              ? change.map { action in
+                { record, value, end in action(record, value, end, cursor) }
+              } : nil)
+          if page > 0 || data.nextCursor != nil {
+            HStack {
+              Button("Previous page") { page -= 1 }.disabled(page == 0)
+              Text("Page " + (page + 1).formatted()).font(.caption).foregroundStyle(.secondary)
+              Button("Next page") {
+                guard let next = data.nextCursor else { return }
+                if pages.count == page { pages.append(next) }
+                page += 1
+              }.disabled(data.nextCursor == nil || page >= 999)
+            }
+          }
+        }
       } else {
         ProgressView("Loading records…")
       }
-    }.task(id: revision + "/" + ((try? encoded(definition).json()) ?? "")) {
+    }.onChange(of: revision) { _, _ in
+      pages = []
+      page = 0
+    }
+    .onChange(of: definition) { _, _ in
+      pages = []
+      page = 0
+    }
+    .task(id: [revision, (try? encoded(definition).json()) ?? "", cursor ?? ""]) {
       data = nil
       error = nil
       do {
-        let result = try await load()
+        let result = try await load(cursor)
         try Task.checkCancellation()
         data = result
       } catch {

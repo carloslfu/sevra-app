@@ -113,7 +113,7 @@ def main():
     info.pop("UTExportedTypeDeclarations", None)
     (app / "Contents/Info.plist").write_bytes(plistlib.dumps(info))
     copy(ROOT / "Resources/Sevra.icns", resources / "Sevra.icns")
-    bundles = ["swift-transformers_Hub", "ZIPFoundation_ZIPFoundation", "swift-crypto_Crypto",
+    bundles = ["Sevra_SevraExtractionWorker", "swift-transformers_Hub", "ZIPFoundation_ZIPFoundation", "swift-crypto_Crypto",
                "Sevra_SevraSplash", "Sevra_SevraSplashText", "Sevra_SevraSplashGrammar"]
     for name in bundles:
         copy(binary / (name + ".bundle"), resources / (name + ".bundle"))

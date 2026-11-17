@@ -17,15 +17,18 @@ public struct ConversationScrollObserver: NSViewRepresentable {
   public var request: UUID
   public var canFollowLatest: Bool
   public var changed: (ConversationReadingPosition) -> Void
+  public var visible: ([String]) -> Void
   public init(
     frames: [String: CGRect], position: ConversationReadingPosition, request: UUID,
-    canFollowLatest: Bool, changed: @escaping (ConversationReadingPosition) -> Void
+    canFollowLatest: Bool, visible: @escaping ([String]) -> Void = { _ in },
+    changed: @escaping (ConversationReadingPosition) -> Void
   ) {
     self.frames = frames
     self.position = position
     self.request = request
     self.canFollowLatest = canFollowLatest
     self.changed = changed
+    self.visible = visible
   }
   public func makeNSView(context: Context) -> ObserverView { ObserverView() }
   public func updateNSView(_ view: ObserverView, context: Context) {
@@ -99,12 +102,24 @@ public struct ConversationScrollObserver: NSViewRepresentable {
       restoring = false
       applied = config.request
       previousFrames = config.frames
+      reportVisible(config, clip: clip, document: document)
+    }
+    private func reportVisible(
+      _ config: ConversationScrollObserver, clip: NSClipView, document: NSView
+    ) {
+      let top = convert(clip.bounds.origin, from: document).y
+      let bottom = top + clip.bounds.height
+      let nearest = config.frames
+        .filter { $0.value.maxY > top && $0.value.minY < bottom }
+        .sorted { $0.value.minY < $1.value.minY }
+      config.visible(nearest.map(\.key))
     }
     private func report() {
       guard !restoring, let config = configuration, applied == config.request,
         let scroll, let document = scroll.documentView
       else { return }
       let clip = scroll.contentView
+      reportVisible(config, clip: clip, document: document)
       if config.canFollowLatest && document.bounds.height - clip.bounds.maxY < 8 {
         config.changed(.init())
         return

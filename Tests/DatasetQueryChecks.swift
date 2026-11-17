@@ -75,6 +75,53 @@ func checkDatasetQueries(at root: URL) {
     try expect(all[2]["values"]["cost"] == .null && all[3]["values"]["cost"] == .string(""))
     try expect(try book.revision() == revision && book.committedHistory(limit: 1000) == commits)
   }
+  check("visual queries exclude declared Excel headers and totals before exact projections") {
+    let (book, _) = try fixture("QueryExcelBody")
+    let sheet = try book.addItem(
+      category: "record", kind: "worksheet", title: "Orders · Sheet",
+      data: .object(["originalRows": .array([.number(1), .number(4), .number(5), .number(9)])]),
+      inputs: [try book.addItem(category: "source", kind: "note", title: "Excel evidence").id])
+    let table = try book.importDataset(
+      title: sheet.title,
+      columns: [.init(id: "cost", title: "Cost"), .init(id: "date", title: "Date")],
+      rows: [
+        ["cost": .string("Cost"), "date": .string("Date")],
+        ["cost": .string("-1.234,50"), "date": .string("28/02/1900")],
+        ["cost": .string("4,75"), "date": .string("01/02/1900")],
+        ["cost": .string("Subtotal"), "date": .string("Total")],
+      ], sourceID: sheet.id)
+    var raw = request(
+      table, select: [field("date"), field("cost", aggregate: "sum")],
+      groups: [ref("date")]
+    ).object
+    var source = raw["sources"]!.array[0].object
+    source["excelRows"] = .object([
+      "firstRow": .number(1), "lastRow": .number(9),
+      "excludeRows": .array([.number(1), .number(9)]),
+    ])
+    raw["sources"] = .array([.object(source)])
+    raw["projections"] = .array([
+      .object(["column": ref("cost"), "format": .string("de-DE")]),
+      .object(["column": ref("date"), "format": .string("dmy"), "bucket": .string("month")]),
+    ])
+    let result = try book.queryDatasetSet([.object(raw), .object(raw)], captureLineage: true)
+    let values = result[0]["rows"].array.first!
+    try expect(result[0] == result[1] && values["values"]["cost"] == .string("-1229.75"))
+    try expect(
+      values["values"]["date"] == .string("1900-02-01T00:00:00.000Z")
+        && values["contributing"].array.count == 2)
+    source["excelRows"] = nil
+    raw["sources"] = .array([.object(source)])
+    try refuses("query_projection") { _ = try book.queryDataset(.object(raw)) }
+    let bin = try QueryProjection(
+      .object([
+        "column": ref("cost"), "format": .string("decimal"),
+        "binWidth": .string("2"), "binOrigin": .string("0"),
+      ]))
+    try expect(try bin.apply("-0.01") == "-2" && bin.apply("2") == "2")
+    try expect(ExcelDate.serial(60, epoch1904: false) == nil)
+    try expect(ExcelDate.serial(0, epoch1904: true)?.formatted(.iso8601) == "1904-01-01T00:00:00Z")
+  }
   check("managed grouped aggregates avoid binary floats and count known versus joined values") {
     let (book, table) = try fixture("QueryGroups")
     let query = request(
@@ -233,6 +280,14 @@ func checkDatasetQueries(at root: URL) {
       try book.datasetQueryPlan(.object(query))["plan"].array.allSatisfy {
         !$0.text.contains("MATERIALIZE") && !$0.text.contains("AUTOMATIC")
       })
+    var join = query["joins"]!.array[0].object
+    join["cardinality"] = .string("manyToOne")
+    query["joins"] = .array([.object(join)])
+    try expect(try book.queryDataset(.object(query))["rows"].array.count == 4)
+    rightScope["scope"] = nil
+    query["sources"] = .array([query["sources"]!.array[0], .object(rightScope)])
+    try refuses("query_fanout") { _ = try book.queryDataset(.object(query)) }
+
   }
   check("managed query budgets and precision failure leave later queries usable") {
     let (book, table) = try fixture(

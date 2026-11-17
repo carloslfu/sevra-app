@@ -199,7 +199,8 @@ struct HomeAppView: View {
         if let viewID = component.viewID {
           if component.viewVersion == app.version {
             NativeAppDeclaredView(
-              session: session, viewID: viewID, datasetSnapshot: state.datasetSnapshot
+              session: session, viewID: viewID, presetID: component.presentationID,
+              datasetSnapshot: state.datasetSnapshot
             ) {
               state.navigate(.item($0))
             }.id(app.id + ":" + String(app.version) + ":" + viewID)
@@ -208,7 +209,7 @@ struct HomeAppView: View {
               .foregroundStyle(.secondary)
           }
         } else {
-          NativeAppSpaceView(session: session, embedded: true)
+          NativeAppSpaceView(session: session, embedded: true) { state.navigate(.item($0)) }
             .id(app.id + ":" + String(app.version))
             .frame(height: 420)
             .background(

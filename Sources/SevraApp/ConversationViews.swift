@@ -1,5 +1,6 @@
 import AppKit
 import SevraCore
+import SevraMedia
 import SevraPreviewUI
 import SevraTableUI
 import SevraVisualUI
@@ -93,24 +94,75 @@ struct ConversationMessageRow: View, Equatable {
         }
       }
       if let book = state.workbook {
+        let conversation = state.conversation
         ForEach(Array(visuals.enumerated()), id: \.offset) { index, visual in
           if let image = visual.image {
             WorkbookImageView(book: book, presentation: image) {
               state.navigate(.item(image.reference.sourceID), returningTo: .message(message.id))
             }
           } else if let chart = visual.chart, let data = visual.chartData {
-            VisualChartView(definition: chart, data: data) {
-              state.navigate(.item($0), returningTo: .message(message.id))
-            }
+            VisualChartView(
+              definition: chart, data: data,
+              openOriginal: { state.navigate(.item($0), returningTo: .message(message.id)) },
+              loadSources: { point, offset in
+                let messageID = message.id
+                return try await Task.detached {
+                  try book.chartGroupSources(
+                    messageID: messageID, index: index,
+                    conversation: conversation, point: point, offset: offset)
+                }.value
+              })
           } else if let work = visual.work, let data = visual.workData {
             WorkVisualView(
               definition: work, data: data,
               openRecord: {
                 state.navigate(.item($0), returningTo: .message(message.id))
+              },
+              thumbnail: (visual.thumbnailReferences ?? work.thumbnailAssets).map { refs in
+                { @MainActor @Sendable key in
+                  guard let ref = refs[key] else {
+                    throw SevraError("visual_image", "No bound image.")
+                  }
+                  let asset = try await Task.detached { try book.imageAssetRead(ref) }.value
+                  return try await WorkbookImageDecoder.shared.load(asset)
+                }
               })
           }
-          Button("Add live view to Home") { state.promoteVisual(message.id, index: index) }
-            .buttonStyle(.link).font(.caption).disabled(!controlsEnabled)
+          if let text = visual.definition.text {
+            VisualTextView(definition: text) {
+              state.navigate(.item($0), returningTo: .message(message.id))
+            }
+          }
+          if let overview = visual.overview, let panels = visual.overviewData {
+            VisualOverviewView(
+              definition: overview, panels: panels,
+              openOriginal: { state.navigate(.item($0), returningTo: .message(message.id)) })
+          }
+          if let diagram = visual.diagram, let data = visual.diagramData {
+            VisualDiagramView(definition: diagram, data: data) {
+              state.navigate(.item($0), returningTo: .message(message.id))
+            }
+          }
+          HStack(spacing: 14) {
+            let origin = VisualOrigin(
+              messageID: message.id, index: index, conversation: conversation)
+            if visual.chart != nil || visual.overview != nil || visual.diagram != nil {
+              Button("Expand") { state.showChatVisual(message.id, index: index, current: false) }
+            }
+            if visual.appReference != nil
+              || state.spaces.first(where: { $0.id == "home" })?
+                .definition.components.contains(where: {
+                  $0.visualOrigin == origin
+                    || ($0.visualOrigin == nil && $0.visual == visual.definition)
+                }) == true
+            {
+              Button("Open current view") {
+                state.showChatVisual(message.id, index: index, current: true)
+              }
+            }
+            Button("Add live view to Home") { state.promoteVisual(message.id, index: index) }
+              .disabled(!controlsEnabled)
+          }.buttonStyle(.link).font(.caption)
         }
       }
       if let inputSurface, let input = inputSurface.input, let book = state.workbook {
@@ -130,6 +182,9 @@ struct ConversationMessageRow: View, Equatable {
           }
         }.disabled(!controlsEnabled)
       }
+      if message.role == "assistant" && message.state == "complete" {
+        ConversationReversalView(state: state, messageID: message.id)
+      }
       if resumable {
         HStack {
           Text("Answer saved").foregroundStyle(.secondary)
@@ -148,6 +203,86 @@ struct ConversationMessageRow: View, Equatable {
       .contextMenu {
         ConversationMessageActions(state: state, message: message, content: content.presentation)
       }
+  }
+}
+
+private struct ConversationReversalView: View {
+  @ObservedObject var state: WorkspaceState
+  let messageID: String
+  @State private var receipt: ConversationAppReceipt?
+  @State private var current: (token: String, redo: Bool)?
+  @State private var busy = false
+  @State private var failure: String?
+
+  var body: some View {
+    Group {
+      if let receipt {
+        HStack {
+          Text(
+            current?.redo == true
+              ? "Change undone" : (receipt.partial ? "Some changes were saved" : "Change saved")
+          )
+          .foregroundStyle(.secondary)
+          if let current {
+            Button(current.redo ? "Redo this change" : "Undo this change") {
+              Task { await reverse(receipt, token: current.token, redo: current.redo) }
+            }.buttonStyle(.link).disabled(busy || state.busy)
+          }
+        }.font(.caption)
+        if let failure { Text(failure).font(.caption).foregroundStyle(.secondary) }
+      }
+    }
+    .task(id: [state.conversation, state.datasetSnapshot, String(state.spaces.count)]) {
+      await refresh()
+    }
+  }
+
+  private func refresh() async {
+    guard let book = state.workbook else { return }
+    let chat = state.conversation
+    do {
+      let saved = try await Task.detached {
+        try book.conversationAppReceipt(messageID, conversation: chat)
+      }.value
+      try Task.checkCancellation()
+      guard state.workbook === book && state.conversation == chat else { return }
+      receipt = saved
+      guard let saved, let app = state.spaces.first(where: { $0.id == saved.appID }),
+        app.version == saved.version && app.definition.app != nil
+      else {
+        current = nil
+        return
+      }
+      current = try await state.nativeAppSession(app, book: book).withVisualAccess { book, access in
+        try book.nativeAppReversal(access, original: saved.transaction)
+      }
+    } catch {
+      guard !Task.isCancelled else { return }
+      current = nil
+    }
+  }
+
+  private func reverse(_ receipt: ConversationAppReceipt, token: String, redo: Bool) async {
+    guard let (book, operation) = state.beginOperation(redo ? "Redoing change" : "Undoing change")
+    else { return }
+    busy = true
+    defer {
+      busy = false
+      state.finishOperation(operation, in: book)
+    }
+    do {
+      _ = try await state.performChatAction(
+        redo ? "app.redo" : "app.undo",
+        arguments: .object([
+          "id": .string(receipt.appID), "expectedVersion": .number(Double(receipt.version)),
+          "transaction": .string(token),
+        ]), book: book, readOnly: false, cancellation: operation.cancellation)
+      failure = nil
+      await refresh()
+    } catch {
+      failure = error.localizedDescription
+      await refresh()
+    }
   }
 }
 

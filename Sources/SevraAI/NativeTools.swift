@@ -39,6 +39,10 @@ package enum NativeTools {
     default: return value
     }
   }
+  private static let inputID: Value = .object([
+    "type": .string("string"), "minLength": .number(1), "maxLength": .number(40),
+    "description": .string("Use a unique snake_case ID."),
+  ])
   static let inputDefinition = WorkbookToolDefinition(
     name: "request_input",
     description: "Pause to ask for only the missing user input. No business action is executed.",
@@ -53,28 +57,39 @@ package enum NativeTools {
           "type": .string("array"), "minItems": .number(1), "maxItems": .number(5),
           "items": object(
             [
-              "id": schema("string", "Lowercase letters, digits and underscore."),
+              "id": inputID,
               "label": schema("string", "Visible field name."),
               "type": .object([
                 "type": .string("string"),
                 "enum": .array(
-                  ["text", "boolean", "decimal", "date"].map(Value.string)),
+                  ["text", "boolean", "decimal", "date", "record"].map(Value.string)),
               ]),
               "required": schema("boolean", "Must the person supply it?"),
+              "records": object(
+                [
+                  "datasetID": schema("string", "Exact dataset ID."),
+                  "definitionID": schema("string", "Exact dataset definition ID."),
+                  "labelColumn": schema("string", "Title column for verified labels."),
+                  "rowIDs": .object([
+                    "type": .string("array"), "minItems": .number(1),
+                    "maxItems": .number(12),
+                    "items": schema("string", "Exact current row version ID."),
+                  ]),
+                ], required: ["datasetID", "definitionID", "labelColumn", "rowIDs"]),
             ], required: ["id", "label", "type", "required"]),
         ]),
         "choices": .object([
           "type": .string("array"), "maxItems": .number(6),
           "items": object(
             [
-              "id": schema("string", "Lowercase letters, digits and underscore."),
+              "id": inputID,
               "label": schema("string", "Visible choice."),
               "values": schema(
                 "object", "Literal values keyed by declared fields. Decimals and dates are strings."
               ),
             ], required: ["id", "label", "values"]),
         ]),
-        "allowTextReply": schema("boolean", "Accept a typed answer as well."),
+        "allowTextReply": .object(["type": .string("boolean"), "const": .bool(true)]),
       ], required: ["kind", "purpose", "question", "fields", "choices", "allowTextReply"]))
 
   static func componentSchema(depth: Int) -> Value {
@@ -100,6 +115,7 @@ package enum NativeTools {
         "string", "App component: exact programmable space ID; same live data and actions."),
       "viewID": schema("string", "Optional declared app view ID. Include its exact viewVersion."),
       "viewVersion": schema("integer", "The current saved app version that owns viewID."),
+      "presentationID": schema("string", "Optional saved presentation for this exact app view."),
       "itemID": schema("string", "REQUIRED for document/asset. Exact evidence item ID."),
       "visual": .object([
         "type": .string("object"),

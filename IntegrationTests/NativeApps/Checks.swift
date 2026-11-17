@@ -633,7 +633,8 @@ func exchange(
     let png = root.appendingPathComponent("Product photo.png")
     let bitmap = NSBitmapImageRep(
       bitmapDataPlanes: nil, pixelsWide: 7, pixelsHigh: 5, bitsPerSample: 8,
-      samplesPerPixel: 4, hasAlpha: true, isPlanar: false, colorSpaceName: .deviceRGB, bytesPerRow: 0,
+      samplesPerPixel: 4, hasAlpha: true, isPlanar: false, colorSpaceName: .deviceRGB,
+      bytesPerRow: 0,
       bitsPerPixel: 0)!
     let green = NSColor(deviceRed: 0.1, green: 0.7, blue: 0.3, alpha: 1)
     for y in 0..<5 {
@@ -650,14 +651,15 @@ func exchange(
       const {h,mount,Column,Image,Button,signal}=Sevra;
       const showPhoto=signal(true);
       mount(h(Column,{},h(Image,{asset:()=>showPhoto.value?'product':null,
-        symbol:()=>showPhoto.value?null:'star',label:'Product photo',height:120}),
+        symbol:()=>showPhoto.value?null:'star',label:'Product photo',caption:'Front view',height:120}),
         h(Button,{title:'Toggle photo',onClick:()=>showPhoto.value=!showPhoto.value})));
       """
     let package = NativeAppPackage(
       name: "Product photos", source: source, images: ["product": photoID])
     try expect(try book.nativeAppImageTitles(package) == ["product": "Product photo.png"])
     let space = try book.installNativeApp(package)
-    let denied = NativeAppPackage(name: "Linked photo", source: source, images: ["product": linkedID])
+    let denied = NativeAppPackage(
+      name: "Linked photo", source: source, images: ["product": linkedID])
     try refuses { _ = try book.installNativeApp(denied) }
     let access = try NativeAppAccess(workbook: book, space: space)
     try refuses { _ = try book.nativeAppImageURL(access, alias: photoID) }
@@ -685,11 +687,11 @@ func exchange(
     }
     try await wait { session.status == "running" || session.status == "failed" }
     try expect(session.status == "running", session.error ?? "Could not start the image app")
-    do { try await wait { showsPNG() } }
-    catch {
+    do { try await wait { showsPNG() } } catch {
       let view = renderer.view(for: "root/0") as? NSImageView
       throw SevraError(
-        "test", "Expected 7 × 5 PNG, got \(String(describing: view?.image)), help: \(view?.toolTip ?? "").")
+        "test",
+        "Expected 7 × 5 PNG, got \(String(describing: view?.image)), help: \(view?.toolTip ?? "").")
     }
     renderer.layoutSubtreeIfNeeded()
     try expect(
@@ -700,6 +702,10 @@ func exchange(
     else {
       throw SevraError("test", "Missing native image button")
     }
+    try expect(
+      inlinePhoto.superview?.subviews.compactMap { $0 as? NSTextField }
+        .contains { $0.stringValue == "Front view" && !$0.isHidden } == true,
+      "The source caption did not render beside the image.")
     try expect(!enlarge.isHidden && enlarge.isEnabled)
     enlarge.performClick(nil)
     try expect(openedImages == ["product"], "The viewer must open the displayed asset alias")

@@ -9,6 +9,13 @@ public struct PreviewImage: @unchecked Sendable {
   public let image: CGImage
   /// The size the original would have on screen, whatever size it was decoded at.
   public let points: CGSize
+  let memory: ImageMemoryLease?
+
+  init(image: CGImage, points: CGSize, memory: ImageMemoryLease? = nil) {
+    self.image = image
+    self.points = points
+    self.memory = memory
+  }
 
   /// Call off the main thread. An unreadable file returns nil.
   public static func load(

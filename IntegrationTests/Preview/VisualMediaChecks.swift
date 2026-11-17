@@ -45,7 +45,7 @@ import UniformTypeIdentifiers
   try assertPixel(restored.image, red: 1, blue: 0)
   print("PASS included image pixel identities, same-size corruption refusal and restored original")
   try checkGroupedChartExport(workbook, sourceID: sourceID)
-
+  try checkDiagram(workbook, sourceID: sourceID)
 }
 
 @MainActor private func checkGroupedChartExport(_ workbook: Workbook, sourceID: String) throws {
@@ -83,7 +83,82 @@ import UniformTypeIdentifiers
     pngImage?.width == 1640 && pngImage?.height == 800
       && CGDataProvider(data: pdf as CFData).flatMap({ CGPDFDocument($0) })?.numberOfPages == 1,
     "preview_check", "The captured chart did not export to readable PNG and PDF.")
-  print("PASS grouped values and rendered captured chart PNG/PDF exports")
+  let overview = try VisualOverview.parse(
+    .object([
+      "title": .string("Stock overview"), "columns": .number(2),
+      "panels": .array([try encoded(chart), try encoded(chart)]),
+    ]))
+  let panels = try workbook.overviewData(overview)
+  let current = try workbook.liveChartSources(
+    chart, snapshot: captured.snapshot,
+    queryHash: captured.queryHash, point: 0, offset: 0)
+  try require(
+    panels.count == 2 && panels.allSatisfy { $0.snapshot == captured.snapshot }
+      && current["total"] == .number(1) && current["rows"].array.first?.array.count == 1,
+    "preview_check", "The overview or source drill-down used another read.")
+  do {
+    _ = try workbook.liveChartSources(
+      chart, snapshot: captured.snapshot, queryHash: "obsolete",
+      point: 0, offset: 0)
+    throw SevraError("preview_check", "A stale source query was accepted.")
+  } catch let error as SevraError where error.code == "visual_source" {}
+  print("PASS grouped values, coherent overview, exact source and retained chart PNG/PDF exports")
+}
+
+private func checkDiagram(_ book: Workbook, sourceID: String) throws {
+  let nodes = try book.createDataset(
+    title: "Stages",
+    columns: [
+      .init(id: "key", title: "Key"), .init(id: "label", title: "Label"),
+    ],
+    rows: ["a", "b", "c", "separate"].map {
+      ["key": .string($0), "label": .string($0.uppercased())]
+    },
+    sourceID: sourceID)
+  let edges = try book.createDataset(
+    title: "Dependencies",
+    columns: [
+      .init(id: "from", title: "Before"), .init(id: "to", title: "After"),
+    ],
+    rows: [["a", "b"], ["b", "a"], ["a", "c"]].map {
+      ["from": .string($0[0]), "to": .string($0[1])]
+    },
+    sourceID: sourceID)
+  func query(_ table: Dataset, fields: [String]) -> Value {
+    .object([
+      "sources": .array([
+        .object([
+          "datasetID": .string(table.id),
+          "definitionID": .string(table.definitionID),
+        ])
+      ]), "limit": .number(20),
+      "select": .array(
+        fields.map {
+          .object([
+            "id": .string($0), "column": .object(["source": .number(0), "column": .string($0)]),
+          ])
+        }),
+    ])
+  }
+  let descriptor: Value = .object([
+    "title": .string("Dependencies"),
+    "nodes": query(nodes, fields: ["key", "label"]), "edges": query(edges, fields: ["from", "to"]),
+    "key": .string("key"), "label": .string("label"), "from": .string("from"), "to": .string("to"),
+  ])
+  let view = try JSONDecoder().decode(VisualDiagram.self, from: Data(descriptor.json().utf8))
+  let result = try book.diagramData(view)
+  let geometry = try result.layout()
+  try require(
+    result.cyclicNodes == ["a", "b"] && result.componentCount == 2
+      && geometry.nodes.count == 4 && geometry.edges.count == 3,
+    "diagram_check", "Incorrect layout connectivity.")
+  let stopped = Cancellation()
+  stopped.cancel()
+  do {
+    _ = try result.layout(cancellation: stopped)
+    throw SevraError("diagram_check", "Cancelled layout succeeded.")
+  } catch let error as SevraError where error.code == "cancelled" {}
+  print("PASS isolated diagram layout with branch, cycle and disconnected record")
 }
 
 private func solidPNG(red: CGFloat, blue: CGFloat) throws -> Data {

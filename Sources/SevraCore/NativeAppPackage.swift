@@ -71,7 +71,35 @@ public struct NativeAppPackage: Codable, Equatable, Sendable {
           alias.range(of: "^[a-z][a-zA-Z0-9_]{0,63}$", options: .regularExpression) != nil,
           "app_package", "Use a short letter-based view alias.")
         try view.validate(appAliases: Set(datasets.keys))
+        if let mappings = view.work?.thumbnailAliases {
+          try require(
+            mappings.values.allSatisfy { images?[$0] != nil },
+            "visual_image", "Record thumbnails may only use declared app image aliases.")
+        }
+        let descriptors = view.queries
+        for descriptor in descriptors {
+          let query = try visualQuery(descriptor, appAliases: Set(datasets.keys))
+          let references = Set(
+            query.selections.compactMap(\.column)
+              + query.filters.map(\.column) + query.groups + Array(query.projections.keys)
+              + query.joins.map(\.left))
+          for ref in references {
+            try require(
+              query.sources.indices.contains(ref.source)
+                && datasets[query.sources[ref.source].dataset]?.columns.contains(where: {
+                  $0.id == ref.column && $0.formula == nil
+                }) == true, "visual_query",
+              "The view selects a field outside its declared stored columns.")
+          }
+          for (index, join) in query.joins.enumerated() {
+            try require(
+              datasets[query.sources[index + 1].dataset]?.columns.contains(where: {
+                $0.id == join.right && $0.formula == nil
+              }) == true, "visual_query", "Use a declared right-hand join key.")
+          }
+        }
       }
+      try validateVisualLinks(views)
     }
     for (alias, binding) in datasets {
       try require(
@@ -89,6 +117,48 @@ public struct NativeAppPackage: Codable, Equatable, Sendable {
       }
     }
   }
+  private func validateVisualLinks(_ views: [String: VisualDefinition]) throws {
+    func type(_ query: DatasetQuery, column: QueryColumn) -> String? {
+      query.projections[column]?.type
+        ?? datasets[query.sources[column.source].dataset]?
+        .columns.first(where: { $0.id == column.column })?.type
+    }
+    var drivenFilters: Set<String> = []
+    for (id, view) in views {
+      guard let chart = view.chart, let links = chart.links, !links.isEmpty else { continue }
+      let source = try visualQuery(chart.query, appAliases: Set(datasets.keys))
+      for link in links {
+        try require(
+          drivenFilters.insert(link.viewID + "/" + String(link.filterIndex)).inserted,
+          "visual_links", "Each linked filter has one selection source.")
+        guard let destination = views[link.viewID]?.chart else {
+          throw SevraError("visual_links", "Choose another declared chart as the link target.")
+        }
+        let target = try visualQuery(destination.query, appAliases: Set(datasets.keys))
+        guard target.filters.indices.contains(link.filterIndex),
+          let selection = source.selections.first(where: {
+            $0.id == (link.field == "x" ? chart.x : chart.series)
+          }),
+          selection.aggregate == nil, let reference = selection.column,
+          target.filters[link.filterIndex].op == "eq",
+          type(source, column: reference)
+            == type(target, column: target.filters[link.filterIndex].column)
+        else {
+          throw SevraError(
+            "visual_links", "Link compatible category fields to declared equality filters.")
+        }
+      }
+      var visited: Set<String> = []
+      var stack = links.map(\.viewID)
+      while let target = stack.popLast() {
+        try require(target != id, "visual_links", "Linked chart filters cannot contain a cycle.")
+        if visited.insert(target).inserted {
+          stack += views[target]?.chart?.links?.map(\.viewID) ?? []
+        }
+      }
+    }
+  }
+
   public static func load(from url: URL) throws -> Self {
     let handle = try FileHandle(forReadingFrom: url)
     defer { try? handle.close() }
@@ -248,6 +318,24 @@ extension Workbook {
           throw SevraError("app_permission", "Use a declared workbook image alias.")
         }
         return try imageAssetRead(includedImage(id))
+      }
+    }
+  }
+
+  func nativeAppImageReference(_ access: NativeAppAccess, alias: String) throws -> ImageReference {
+    try synchronized {
+      try access.authorized(self) {
+        guard let id = access.package.images?[alias] else {
+          throw SevraError("app_permission", "Use a declared workbook image alias.")
+        }
+        _ = try includedImage(id)
+        guard
+          let source = try db.scalar(
+            "SELECT id FROM items WHERE asset_id=? AND category='source' ORDER BY rowid LIMIT 1",
+            [.string(id)]
+          ).string
+        else { throw SevraError("visual_image", "This image has no captured source.") }
+        return ImageReference(sourceID: source, assetID: id)
       }
     }
   }

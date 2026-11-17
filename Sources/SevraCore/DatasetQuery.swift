@@ -26,6 +26,7 @@ struct QueryJoin {
   let kind: String
   let left: QueryColumn
   let right: String
+  let manyToOne: Bool
 }
 struct QuerySort {
   let field: String
@@ -34,6 +35,8 @@ struct QuerySort {
 struct DatasetQuery {
   let value: Value
   let sources: [(dataset: String, definition: String, scope: [String: String])]
+  let domains: [QueryDomain?]
+  let projections: [QueryColumn: QueryProjection]
   let joins: [QueryJoin]
   let selections: [QuerySelection]
   let filters: [QueryFilter]
@@ -46,7 +49,8 @@ struct DatasetQuery {
   init(_ value: Value) throws {
     try require(try value.json().utf8.count <= 64_000, "query", "Query exceeds 64,000 bytes.")
     let object = try queryObject(
-      value, keys: ["sources", "joins", "select", "filters", "groupBy", "sort", "limit"])
+      value,
+      keys: ["sources", "joins", "select", "filters", "groupBy", "sort", "limit", "projections"])
     func array(_ key: String, maximum: Int, required: Bool = false) throws -> [Value] {
       guard let raw = object[key] else {
         try require(!required, "query", "Missing query field: " + key)
@@ -60,7 +64,7 @@ struct DatasetQuery {
     }
     self.value = value
     sources = try array("sources", maximum: 3, required: true).map {
-      let object = try queryObject($0, keys: ["datasetID", "definitionID", "scope"])
+      let object = try queryObject($0, keys: ["datasetID", "definitionID", "scope", "excelRows"])
       guard let dataset = object["datasetID"]?.string,
         let definition = object["definitionID"]?.string,
         dataset.utf8.count <= 256, definition.utf8.count <= 256
@@ -77,12 +81,28 @@ struct DatasetQuery {
       }
       return (dataset, definition, fields)
     }
+    domains = try array("sources", maximum: 3).map {
+      try $0.object["excelRows"].map(QueryDomain.init)
+    }
+    var projected: [QueryColumn: QueryProjection] = [:]
+    for value in try array("projections", maximum: 12) {
+      let projection = try QueryProjection(value)
+      try require(
+        projected.updateValue(projection, forKey: projection.reference) == nil,
+        "query_projection", "Declare one projection per source column.")
+    }
+    projections = projected
     joins = try array("joins", maximum: 2).map {
-      let object = try queryObject($0, keys: ["kind", "left", "right"])
+      let object = try queryObject($0, keys: ["kind", "left", "right", "cardinality"])
       guard let kind = object["kind"]?.string, ["inner", "left"].contains(kind),
         let left = object["left"], let right = object["right"]?.string
       else { throw SevraError("query", "Use an inner or left equality join with stable keys.") }
-      return try QueryJoin(kind: kind, left: QueryColumn(left), right: right)
+      try require(
+        object["cardinality"] == nil || object["cardinality"] == .string("manyToOne"),
+        "query_join", "Use manyToOne to require a unique right-hand key.")
+      return try QueryJoin(
+        kind: kind, left: QueryColumn(left), right: right,
+        manyToOne: object["cardinality"] != nil)
     }
     selections = try array("select", maximum: 50, required: true).map {
       let object = try queryObject($0, keys: ["id", "column", "aggregate"])
@@ -159,6 +179,7 @@ struct CompiledDatasetQuery {
   let columns: [Column]
   let sql: String
   let arguments: [Value]
+  let cardinalityChecks: [(sql: String, arguments: [Value])]
   func plan(_ db: Database) throws -> [String] {
     let automatic = try db.scalar("PRAGMA automatic_index").int == 1
     try db.execute("PRAGMA automatic_index=OFF")

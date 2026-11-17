@@ -52,6 +52,11 @@ public struct NativeAppNode: Equatable, Sendable {
         asset.string?.isEmpty == false && props["symbol"] == .null, "app_tree",
         "Image asset must be a workbook image alias. Supply only one of asset or symbol.")
     }
+    if let caption = props.object["caption"] {
+      try require(
+        caption.string.map { $0.utf8.count <= 400 } == true, "app_tree",
+        "Image caption must be text up to 400 bytes.")
+    }
     if type == "view" {
       try require(
         props["viewID"].string?.isEmpty == false, "app_tree", "Choose a declared view ID.")
@@ -154,7 +159,7 @@ public struct NativeAppNode: Equatable, Sendable {
     "table": ["table", "search", "sort", "descending", "columns", "columnLabels", "selection"],
     "tabs": ["titles", "value"],
     "disclosure": ["title", "value"], "canvas": ["shapes", "regions"],
-    "image": ["symbol", "asset"],
+    "image": ["symbol", "asset", "caption"],
     "view": ["viewID"],
   ]
 }

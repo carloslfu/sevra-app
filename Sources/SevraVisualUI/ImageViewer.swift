@@ -9,12 +9,14 @@ public struct ImageViewer: View {
   @State private var scale = 1.0
 
   public init(
-    image: NSImage, title: String, fitInitially: Bool = false, imageHint: String = ""
+    image: NSImage, title: String, fitInitially: Bool = false, imageHint: String = "",
+    initialScale: Double = 1
   ) {
     self.image = image
     self.title = title
     self.fitInitially = fitInitially
     self.imageHint = imageHint
+    _scale = State(initialValue: min(6, max(0.25, initialScale)))
   }
 
   public var body: some View {

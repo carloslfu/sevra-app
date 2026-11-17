@@ -14,6 +14,7 @@ public struct ConversationInputView: View {
   @State private var persistenceError: String?
   @State private var ready = false
   @State private var saving = false
+  @FocusState private var focusedField: String?
 
   public init(
     input: ConversationSurface.Input, surface: ConversationSurface, book: Workbook,
@@ -34,36 +35,7 @@ public struct ConversationInputView: View {
         }
       }
       if editing || input.choices.isEmpty {
-        ForEach(input.fields) { field in
-          if field.type == .boolean {
-            Picker(
-              field.label,
-              selection: Binding<Bool?>(
-                get: {
-                  if case .bool(let flag) = values[field.id] { return flag }
-                  return nil
-                },
-                set: { values[field.id] = $0.map(Value.bool) })
-            ) {
-              Text("Choose").tag(nil as Bool?)
-              Text("Yes").tag(true as Bool?)
-              Text("No").tag(false as Bool?)
-            }
-            .pickerStyle(.menu)
-          } else {
-            VStack(alignment: .leading, spacing: 4) {
-              Text(field.label).font(.callout)
-              TextField(
-                field.type == .date ? "YYYY-MM-DD" : field.label,
-                text: Binding(
-                  get: { values[field.id]?.text ?? "" },
-                  set: { values[field.id] = $0.isEmpty ? nil : .string($0) })
-              )
-              .textFieldStyle(.roundedBorder)
-              .accessibilityLabel(field.label)
-            }
-          }
-        }
+        ForEach(input.fields) { field in fieldControl(field) }
       }
       HStack {
         if editing || input.choices.isEmpty {
@@ -73,7 +45,10 @@ public struct ConversationInputView: View {
               saving || input.fields.contains { $0.required && values[$0.id] == nil }
                 || values.isEmpty)
         } else {
-          Button("Enter an answer") { editing = true }
+          Button("Enter an answer") {
+            editing = true
+            focusedField = input.fields.first { ![.boolean, .record].contains($0.type) }?.id
+          }
         }
         if !values.isEmpty { Button("Clear fields") { values = [:] }.buttonStyle(.link) }
         Button("Cancel question") { submit(.cancel, saved?.revision ?? 0) }.buttonStyle(.link)
@@ -81,6 +56,7 @@ public struct ConversationInputView: View {
       }
       if let persistenceError {
         Text(persistenceError).font(.callout).foregroundStyle(.secondary)
+        Button("Load saved fields") { Task { await restoreDraft() } }.buttonStyle(.link)
       }
     }
     .disabled(!ready)
@@ -122,4 +98,60 @@ public struct ConversationInputView: View {
     .accessibilityElement(children: .contain)
     .accessibilityLabel(input.purpose)
   }
+
+  private func restoreDraft() async {
+    do {
+      let draft = try await Task.detached { try book.conversationInputDraft(surface) }.value
+      saved = draft
+      values = draft?.values ?? [:]
+      persistenceError = nil
+    } catch {
+      persistenceError = error.localizedDescription
+    }
+  }
+
+  @ViewBuilder private func fieldControl(_ field: ConversationSurface.Field) -> some View {
+    if field.type == .boolean {
+      Picker(
+        field.label,
+        selection: Binding<Bool?>(
+          get: {
+            if case .bool(let flag) = values[field.id] { return flag }
+            return nil
+          },
+          set: { values[field.id] = $0.map(Value.bool) })
+      ) {
+        Text("Choose").tag(nil as Bool?)
+        Text("Yes").tag(true as Bool?)
+        Text("No").tag(false as Bool?)
+      }
+      .pickerStyle(.menu)
+    } else if let records = field.records {
+      Picker(
+        field.label,
+        selection: Binding(
+          get: { values[field.id]?.string ?? "" },
+          set: { values[field.id] = $0.isEmpty ? nil : .string($0) })
+      ) {
+        Text("Choose a record").tag("")
+        ForEach(records.rowIDs, id: \.self) { id in
+          Text(records.labels?[id] ?? id).tag(id)
+        }
+      }
+    } else {
+      VStack(alignment: .leading, spacing: 4) {
+        Text(field.label).font(.callout)
+        TextField(
+          field.type == .date ? "YYYY-MM-DD" : field.label,
+          text: Binding(
+            get: { values[field.id]?.text ?? "" },
+            set: { values[field.id] = $0.isEmpty ? nil : .string($0) })
+        )
+        .textFieldStyle(.roundedBorder)
+        .accessibilityLabel(field.label)
+        .focused($focusedField, equals: field.id)
+      }
+    }
+  }
+
 }

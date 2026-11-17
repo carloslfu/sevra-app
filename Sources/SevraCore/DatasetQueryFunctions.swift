@@ -7,6 +7,7 @@ final class DatasetQueryControl {
   var rows = 0
   var bytes = 0
   var failure: SevraError?
+  var projections: [String: QueryProjection] = [:]
   init(_ cancellation: Cancellation) { self.cancellation = cancellation }
   func check() throws {
     if let failure { throw failure }
@@ -57,6 +58,38 @@ extension Database {
         }
       }, nil, nil, nil)
     try require(result == SQLITE_OK, "query_function", "Cannot install query input accounting.")
+    let project = sqlite3_create_function_v2(
+      handle, "SEVRA_PROJECT", 2, flags, pointer,
+      { context, _, values in
+        guard let context, let values, let pointer = sqlite3_user_data(context),
+          let control = Unmanaged<Database>.fromOpaque(pointer).takeUnretainedValue().queryControl
+        else { return }
+        guard let cell = sqlite3_value_text(values[0]), sqlite3_value_bytes(values[0]) > 0,
+          let spec = sqlite3_value_text(values[1])
+        else {
+          sqlite3_result_null(context)
+          return
+        }
+        do {
+          try control.check()
+          let descriptor = String(cString: spec)
+          let projection =
+            try control.projections[descriptor]
+            ?? QueryProjection(Value.parse(descriptor))
+          control.projections[descriptor] = projection
+          let input = String(
+            decoding: UnsafeBufferPointer(
+              start: cell,
+              count: Int(sqlite3_value_bytes(values[0]))), as: UTF8.self)
+          let output = try projection.apply(input)
+          sqlite3_result_text(
+            context, output, -1, unsafeBitCast(-1, to: sqlite3_destructor_type.self))
+        } catch {
+          control.fail(error)
+          sqlite3_result_error(context, "A projected cell does not match its declared format.", -1)
+        }
+      }, nil, nil, nil)
+    try require(project == SQLITE_OK, "query_function", "Cannot install typed query projections.")
     let rowHolds = sqlite3_create_function_v2(
       handle, "SEVRA_ROW_HOLDS", 3, flags, nil,
       { context, _, values in
@@ -64,7 +97,8 @@ extension Database {
         let texts = (0..<3).map { index -> String in
           guard let bytes = sqlite3_value_text(values[index]) else { return "" }
           return String(
-            decoding: UnsafeBufferPointer(start: bytes, count: Int(sqlite3_value_bytes(values[index]))),
+            decoding: UnsafeBufferPointer(
+              start: bytes, count: Int(sqlite3_value_bytes(values[index]))),
             as: UTF8.self)
         }
         sqlite3_result_int(

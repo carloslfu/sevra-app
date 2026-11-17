@@ -14,8 +14,15 @@ public enum VisualChartExport {
         VStack(alignment: .leading, spacing: 14) {
           VisualChartView(definition: chart, data: captured, showsInspection: false)
           Spacer(minLength: 0)
-          Text("Captured " + captured.captured)
-            .font(.caption).foregroundStyle(.secondary)
+          Text(
+            [
+              "Captured " + captured.captured,
+              captured.revision.map { "Workbook revision " + String($0) },
+              "Snapshot " + String(captured.snapshot.prefix(12)),
+              chart.query["filters"].array.isEmpty ? nil : "Filtered",
+            ].compactMap { $0 }.joined(separator: " · ")
+          )
+          .font(.caption).foregroundStyle(.secondary)
         }
         .padding(24).frame(width: size.width, height: size.height, alignment: .topLeading)
         .background(.white).environment(\.colorScheme, .light)

@@ -11,13 +11,17 @@ public struct NativeAppSpaceView: View {
 
   @StateObject private var session: NativeAppSession
   private let embedded: Bool
+  private let openOriginal: ((String) -> Void)?
   @State private var showSource = false
   @State private var tableTitles: [String: String]?
   @State private var imageTitles: [String: String]?
   @State private var accessError: String?
   @State private var expandedImage: ExpandedImage?
-  public init(session: NativeAppSession, embedded: Bool = false) {
+  public init(
+    session: NativeAppSession, embedded: Bool = false, openOriginal: ((String) -> Void)? = nil
+  ) {
     self.embedded = embedded
+    self.openOriginal = openOriginal
     _session = StateObject(wrappedValue: session)
   }
   private var content: some View {
@@ -75,7 +79,7 @@ public struct NativeAppSpaceView: View {
         ProgressView("Starting app…")
         Spacer()
       } else if session.status == "running" {
-        NativeAppSurface(session: session) { alias in
+        NativeAppSurface(session: session, openOriginal: openOriginal) { alias in
           expandedImage = .init(id: alias, title: imageTitles?[alias] ?? "Photo")
         }.frame(maxWidth: .infinity, maxHeight: .infinity)
           .disabled(session.conversationBusy)

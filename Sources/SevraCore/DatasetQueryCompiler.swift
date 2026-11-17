@@ -2,7 +2,8 @@ import Foundation
 
 extension Workbook {
   func compileDatasetQuery(
-    _ request: DatasetQuery, offset: Int = 0, historicalDefinitions: Bool = false
+    _ request: DatasetQuery, offset: Int = 0, historicalDefinitions: Bool = false,
+    captureLineage: Bool = false
   ) throws -> CompiledDatasetQuery {
     let schemas = try request.sources.map { source in
       if historicalDefinitions {
@@ -17,7 +18,46 @@ extension Workbook {
       return try db.managedSchema(source.dataset)
     }
     let quote = ChangeFormat.quote
-    func column(_ ref: QueryColumn) throws -> Column {
+    func literal(_ value: String) -> String {
+      "'" + value.replacingOccurrences(of: "'", with: "''") + "'"
+    }
+    // Resolve Excel coordinates against immutable import evidence. The lineage
+    // and original ordinal check excludes newly inserted rows even if an ordinal
+    // was reused after deleting the last imported row.
+    let domains = try request.domains.enumerated().map { index, domain -> String? in
+      guard let domain else { return nil }
+      let source = request.sources[index]
+      let original = try db.scalar(
+        "SELECT source_id FROM datasets WHERE id=?", [.string(source.dataset)])
+      let worksheet = try item(original.text)
+      let rows = worksheet.data["originalRows"].array
+      try require(
+        worksheet.kind == "worksheet" && !rows.isEmpty && rows.count <= 100_000,
+        "query_domain", "Choose a table with original Excel row coordinates.")
+      let numbered = rows.compactMap(\.int)
+      try require(
+        numbered.count == rows.count
+          && zip(numbered, numbered.dropFirst()).allSatisfy { $0 < $1 },
+        "query_domain", "The original Excel rows cannot be matched unambiguously.")
+      guard let first = numbered.firstIndex(where: { $0 >= domain.first }),
+        let last = numbered.lastIndex(where: { $0 <= domain.last }), first <= last
+      else { return "0=1" }
+      let ordinal = "t\(index)._sevra_ordinal"
+      let exclusions = Set(domain.excluded)
+      let omitted = (first...last).filter { exclusions.contains(numbered[$0]) }
+      let omit =
+        omitted.isEmpty
+        ? ""
+        : " AND " + ordinal + " NOT IN ("
+          + omitted.map(String.init).joined(separator: ",") + ")"
+      let label = literal(String(worksheet.title.prefix(500)) + ", row ")
+      return ordinal + " BETWEEN \(first) AND \(last)" + omit
+        + " AND EXISTS(SELECT 1 FROM items root JOIN lineage imported ON imported.child=root.id"
+        + " WHERE root.logical_id=t\(index)._sevra_logical AND root.version=1 AND root.title="
+        + label + "||(" + ordinal + "+1) AND imported.parent=" + literal(worksheet.id)
+        + " AND imported.transformation='structured-import-v1')"
+    }
+    func storedColumn(_ ref: QueryColumn) throws -> Column {
       guard schemas.indices.contains(ref.source),
         let column = schemas[ref.source].stored.first(where: { $0.id == ref.column })
       else {
@@ -27,10 +67,30 @@ extension Workbook {
       }
       return column
     }
-    func field(_ ref: QueryColumn) throws -> String {
-      _ = try column(ref)
+    func column(_ ref: QueryColumn) throws -> Column {
+      let stored = try storedColumn(ref)
+      guard let projection = request.projections[ref] else { return stored }
+      try require(
+        stored.type == "text" || stored.type == projection.type, "query_projection",
+        "Project text or a value of the same declared type.")
+      return Column(id: stored.id, title: stored.title, type: projection.type, unit: stored.unit)
+    }
+    func rawField(_ ref: QueryColumn) throws -> String {
+      _ = try storedColumn(ref)
       return "t\(ref.source)." + quote(schemas[ref.source].field(ref.column))
     }
+    func field(_ ref: QueryColumn) throws -> String {
+      let raw = try rawField(ref)
+      guard let projection = request.projections[ref] else { return raw }
+      _ = try column(ref)
+      let expression =
+        "SEVRA_PROJECT(" + raw + "," + literal(try projection.descriptor.json()) + ")"
+        + (projection.type == "decimal" ? " COLLATE SEVRA_DECIMAL" : "")
+      guard let domain = domains[ref.source] else { return expression }
+      return "(CASE WHEN " + domain + " THEN " + expression + " END)"
+        + (projection.type == "decimal" ? " COLLATE SEVRA_DECIMAL" : "")
+    }
+    for reference in request.projections.keys { _ = try column(reference) }
     func known(_ ref: QueryColumn) throws -> String {
       let raw = try field(ref)
       return try column(ref).type == "text" ? raw : "NULLIF(" + raw + ",'')"
@@ -64,9 +124,10 @@ extension Workbook {
       if lhs.type != "text" {
         from += " AND " + (try field(join.left)) + "<>'' AND " + (try field(right)) + "<>''"
       }
+      if let domain = domains[index + 1] { from += " AND (" + domain + ")" }
       if let predicate = scopePredicate(index + 1) { from += " AND " + predicate }
     }
-    var predicates: [String] = []
+    var predicates = domains[0].map { [$0] } ?? []
     if let predicate = scopePredicate(0) { predicates.append(predicate) }
     for filter in request.filters {
       let definition = try column(filter.column)
@@ -142,7 +203,7 @@ extension Workbook {
         }))
     var guarded = try refs.sorted {
       $0.source == $1.source ? $0.column < $1.column : $0.source < $1.source
-    }.map(field)
+    }.map(rawField)
     for index in schemas.indices {
       // Every join must be resolved before charging its contributing row. This
       // also bounds countRows, which otherwise references no user value.
@@ -158,6 +219,10 @@ extension Workbook {
               + quote("m\(index)_" + key))
         }
       }
+    }
+    if captureLineage && request.grouped {
+      let versions = schemas.indices.map { "t\($0)._sevra_item" }.joined(separator: ",")
+      selected.append("json_group_array(json_array(" + versions + ")) AS contributing")
     }
     predicates.append("SEVRA_QUERY_GUARD(" + guarded.joined(separator: ",") + ")=1")
     var sql =
@@ -181,7 +246,31 @@ extension Workbook {
     if !order.isEmpty { sql += " ORDER BY " + order.joined(separator: ",") }
     sql += " LIMIT ? OFFSET ?"
     arguments += [.number(Double(request.limit + 1)), .number(Double(offset))]
+    let bindings = arguments
+    let checks = try request.joins.enumerated().compactMap {
+      index, join
+        -> (sql: String, arguments: [Value])? in
+      guard join.manyToOne else { return nil }
+      let source = index + 1
+      let ref = try QueryColumn(
+        .object(["source": .number(Double(source)), "column": .string(join.right)]))
+      let key = try field(ref)
+      arguments = []
+      var conditions = domains[source].map { [$0] } ?? []
+      if let scope = scopePredicate(source) { conditions.append(scope) }
+      conditions.append(key + " IS NOT NULL")
+      if try column(ref).type != "text" { conditions.append(key + "<>''") }
+      conditions.append(
+        "SEVRA_QUERY_GUARD(" + (try rawField(ref))
+          + ",t\(source)._sevra_item)=1")
+      let check =
+        "SELECT 1 AS duplicate FROM " + quote(schemas[source].table) + " t\(source)"
+        + " WHERE " + conditions.joined(separator: " AND ")
+        + " GROUP BY " + key + " HAVING count(*)>1 LIMIT 1"
+      return (check, arguments)
+    }
     return .init(
-      request: request, schemas: schemas, columns: columns, sql: sql, arguments: arguments)
+      request: request, schemas: schemas, columns: columns, sql: sql,
+      arguments: bindings, cardinalityChecks: checks)
   }
 }

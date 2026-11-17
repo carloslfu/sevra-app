@@ -31,9 +31,11 @@ public struct ImportedSheet: Codable, Sendable {
   }
   var nativeColumnLabels: Value {
     guard let columnHeadings else { return .null }
-    return .object(Dictionary(uniqueKeysWithValues: columnHeadings.enumerated().map {
-      ("c\($0.offset + 1)", .string($0.element))
-    }))
+    return .object(
+      Dictionary(
+        uniqueKeysWithValues: columnHeadings.enumerated().map {
+          ("c\($0.offset + 1)", .string($0.element))
+        }))
   }
 }
 public enum XLSX {
@@ -301,10 +303,11 @@ private final class StylesXML: NSObject, XMLParserDelegate {
     case ["styleSheet", "fills", "fill", "patternFill"]:
       solidFills[solidFills.count - 1] = a["patternType"] == "solid"
     case ["styleSheet", "cellXfs", "xf"]:
-      cellStyles.append(CellStyle(
-        number: Int(a["numFmtId"] ?? "") ?? 0,
-        font: ["false", "0"].contains(a["applyFont"] ?? "") ? nil : Int(a["fontId"] ?? ""),
-        fill: ["false", "0"].contains(a["applyFill"] ?? "") ? nil : Int(a["fillId"] ?? "")))
+      cellStyles.append(
+        CellStyle(
+          number: Int(a["numFmtId"] ?? "") ?? 0,
+          font: ["false", "0"].contains(a["applyFont"] ?? "") ? nil : Int(a["fontId"] ?? ""),
+          fill: ["false", "0"].contains(a["applyFill"] ?? "") ? nil : Int(a["fillId"] ?? "")))
     default: break
     }
   }
@@ -357,7 +360,8 @@ private final class StylesXML: NSObject, XMLParserDelegate {
   }
   /// A format such as 0000 shows 14 as 0014, but only 14 is saved.
   func padsZeros(_ style: Int, _ saved: String) -> Bool {
-    guard !saved.isEmpty, cellStyles.indices.contains(style), let format = formats[cellStyles[style].number]
+    guard !saved.isEmpty, cellStyles.indices.contains(style),
+      let format = formats[cellStyles[style].number]
     else { return false }
     let section = format.split(separator: ";", omittingEmptySubsequences: false).first ?? ""
     let plain = String(section).replacingOccurrences(
@@ -622,12 +626,7 @@ private final class SheetXML: NSObject, XMLParserDelegate {
         notes.insert("Excel's nonexistent February 29, 1900 was preserved as text.")
         return "1900-02-29 (Excel-only date)"
       }
-      let formatter = ISO8601DateFormatter()
-      formatter.formatOptions = [.withInternetDateTime]
-      formatter.timeZone = TimeZone(secondsFromGMT: 0)
-      let base = formatter.date(from: epoch1904 ? "1904-01-01T00:00:00Z" : "1899-12-31T00:00:00Z")!
-      return formatter.string(
-        from: base.addingTimeInterval((serial - (!epoch1904 && serial >= 61 ? 1 : 0)) * 86400))
+      return ExcelDate.serial(serial, epoch1904: epoch1904)?.formatted(.iso8601)
     }
   }
   private func recordFilledCells() {
@@ -736,5 +735,18 @@ extension Workbook {
       n /= 26
     }
     return s
+  }
+}
+
+enum ExcelDate {
+  static func serial(_ number: Double, epoch1904: Bool) -> Date? {
+    guard number.isFinite, abs(number) < 3_000_000,
+      epoch1904 || !(60..<61).contains(number)
+    else { return nil }
+    // Unix offsets for 1904-01-01 and 1899-12-31, respectively.
+    let days =
+      number - (epoch1904 ? 24_107 : 25_568)
+      - (!epoch1904 && number >= 61 ? 1 : 0)
+    return Date(timeIntervalSince1970: days * 86_400)
   }
 }

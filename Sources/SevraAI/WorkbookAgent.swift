@@ -227,6 +227,7 @@ public enum WorkbookAgent {
     var completedSteps = 0
     var attemptedEffect = false
     var visualCaptures: [String: Value] = [:]
+    var reversibleOutcome: Value = .null
     var handedOff = false
     var rejectedActions: [String: Int] = [:]
     var computed = false
@@ -297,14 +298,20 @@ public enum WorkbookAgent {
         answer: answer, citations: citations, steps: step, state: state, focus: focus,
         conversationAction: conversationAction)
     }
+    let wantsInlineChart =
+      conversationInput && handoff == nil && excelConversion == nil
+      && requestTask.range(
+        of:
+          #"(?i)\b(?:show|draw|plot|render) (?:me )?(?:an? |the )?(?:(?:bar|line|scatter|stacked|area|donut) )?chart\b"#,
+        options: .regularExpression) != nil
     do {
       if conversationInput && handoff == nil && excelConversion == nil {
         policy +=
-          "\nFor an included image, chart or work view, discover visual operations and capture with visual.evaluate. Attach its receipt with finish.visuals when offered. Add it to Home only when asked."
+          "\nTo actually show a chart, image, work view, overview or diagram in chat, call workspace_action with action=visual.schema and arguments {family:chart|image|work|overview|diagram}. Then call workspace_action with action=visual.evaluate and that descriptor. For totals grouped by a single field, prefer visual.schema family=aggregate and pass that short aggregate descriptor to visual.evaluate. Use dataset ID and definition ID from datasets. For a declared app view use visual.app_capture. Finish with the receipt ID in finish.visuals. Prose or Markdown alone does not create a chart. Add it to Home only when asked."
       }
       if canAsk {
         policy +=
-          "\nUse request_input to ask for genuinely missing business values before applying changes. Offer choices with literal values when appropriate. The run pauses until a human replies. Never ask again for values already supplied. Do not supply or approve the answer yourself."
+          "\nUse request_input to ask for genuinely missing business values before applying changes. Offer choices with literal values when appropriate. Set a short snake_case field ID such as include_shipping. Use type=boolean when the choices contain true and false. Reuse each field ID as a key in literal choice values and give each choice its own ID. The run pauses until a human replies. Never ask again for values already supplied. Do not supply or approve the answer yourself."
       }
       if let continuation = inputContinuation {
         policy +=
@@ -565,15 +572,47 @@ public enum WorkbookAgent {
           try require(
             inferenceScope.allows(tool, conversationInput: canAsk && !attemptedEffect),
             "tool_scope", "This step cannot publish a question.")
-          let input = try ConversationSurface.Input.parse(a)
-          let publication = try workbook.publishConversationInput(
-            input, runID: runID, conversation: conversation, readOnly: readOnly,
-            steps: step, metrics: .array(metrics), cancellation: cancellation)
-          return AgentResult(
-            answer: publication.body, citations: [], steps: step, state: "needs_input", focus: nil)
+          do {
+            let input = try ConversationSurface.Input.parse(a)
+            try require(
+              input.allowTextReply, "conversation_input", "Allow the person to reply in chat.")
+            let publication = try workbook.publishConversationInput(
+              input, runID: runID, conversation: conversation, readOnly: readOnly,
+              steps: step, metrics: .array(metrics), cancellation: cancellation)
+            return AgentResult(
+              answer: publication.body, citations: [], steps: step, state: "needs_input", focus: nil
+            )
+          } catch {
+            try cancellation.check()
+            failures += 1
+            let receipt = try workbook.prepareToolCall(
+              runID: runID, callID: call.id,
+              tool: tool, arguments: a, assistantText: response.text)
+            let failure: Value = .object([
+              "error": .string(String(error.localizedDescription.prefix(400))),
+              "notice": .string(
+                "Nothing was published. Correct the fields, use distinct short IDs, and match field type to its literal choice values (e.g. boolean for true or false)."
+              ),
+            ])
+            _ = try workbook.completeToolCall(receipt, result: failure, failed: true)
+            if failures >= 3 { throw error }
+            messages.append(
+              InferenceMessage(
+                role: "tool", content: try failure.json(),
+                toolCallId: call.id, toolName: tool))
+            continue
+          }
         }
         if tool == "finish" {
-          let visualIDs = a["visuals"].array.compactMap(\.string)
+          let suppliedVisualIDs = a["visuals"].array.compactMap(\.string)
+          let chartReceipts = visualCaptures.filter {
+            !$0.value["chartData"]["points"].array.isEmpty
+          }
+          let visualIDs =
+            a["visuals"] == .null && wantsInlineChart && chartReceipts.count == 1
+              && a["basis"] != .string("unresolved")
+            ? chartReceipts.keys.sorted()
+            : suppliedVisualIDs
           let visuals = visualIDs.compactMap { visualCaptures[$0] }
           if a.object["visuals"] != nil {
             try require(
@@ -592,10 +631,16 @@ public enum WorkbookAgent {
             if let work = visual["definition"]["work"]["title"].string {
               return work + " (\(visual["workData"]["records"].array.count) records)"
             }
+            if let overview = visual["definition"]["overview"]["title"].string {
+              return overview + " (\(visual["overviewData"].array.count) panels)"
+            }
+            if let diagram = visual["definition"]["diagram"]["title"].string {
+              return diagram + " (\(visual["diagramData"]["nodes"].array.count) nodes)"
+            }
             guard let chart = visual["definition"]["chart"]["title"].string else { return nil }
             let count = visual["chartData"]["points"].array.count
             let missing = visual["chartData"]["unknown"].int ?? 0
-            let omitted = missing == 0 ? "" : "; \(missing) missing category or measure"
+            let omitted = missing == 0 ? "" : ", \(missing) missing category or measure"
             return chart + " (\(count) plotted values" + omitted + ")"
           }
           let visualLabels = visualLinks + chartLabels
@@ -640,6 +685,11 @@ public enum WorkbookAgent {
             carried.isEmpty && !citations.isEmpty
             && citations.allSatisfy { $0 == requestSource.id }
           var problems: [String] = []
+          if wantsInlineChart && visuals.isEmpty && basis != "unresolved" {
+            problems.append(
+              "The user requested an inline chart. Discover visual.schema family=aggregate for totals by category or family=chart for other plots, capture with visual.evaluate, and pass its receipt to finish.visuals. If the data cannot support it, explain with basis=unresolved."
+            )
+          }
           if pendingActionPreview != nil && basis != "preview" {
             problems.append(
               pendingActionPreview?.plan["primitive"]["id"].text == "records.draftDocument"
@@ -948,6 +998,7 @@ public enum WorkbookAgent {
               "receiptVersion": .number(1), "tool": .string("finish"), "arguments": a,
               "visuals": .array(visuals), "captureReceipts": .array(visualIDs.map(Value.string)),
               "runID": .string(runID), "callID": .string(call.id),
+              "reversibleOutcome": reversibleOutcome,
               "assistantText": .string(response.text),
               "coverageEvidence": .array(coverageEvidence),
               "citationVersions": .object(
@@ -1418,6 +1469,22 @@ public enum WorkbookAgent {
             ? nil : submittedTarget
           recordedResult = .object(fields)
         }
+        if tool == "workspace_action", a["action"].text.hasPrefix("app."),
+          !["app.undo", "app.redo"].contains(a["action"].text),
+          result["changes"].array.count == 1,
+          let transaction = result["changes"].array.first?["token"].string,
+          result["reversibleTransaction"] == .string(transaction),
+          result["canUndo"] == .bool(true), let space = result["id"].string,
+          let version = result["version"].int
+        {
+          reversibleOutcome =
+            reversibleOutcome == .null
+            ? .object([
+              "appID": .string(space), "version": .number(Double(version)),
+              "transaction": .string(transaction), "action": a["action"],
+              "partial": .bool(callFailed || result["errors"].array.count > 0),
+            ]) : .object([:])
+        }
         let storedProjection = try workbook.completeToolCall(
           receiptID, result: recordedResult, failed: callFailed)
         let presentedResult =
@@ -1425,7 +1492,8 @@ public enum WorkbookAgent {
           ? AppOperationContext.inspection(
             storedProjection, receiptID: receiptID, request: requestFacts,
             target: a["arguments"]["id"].string)
-          : tool == "workspace_action" && a["action"] == .string("visual.evaluate") && !callFailed
+          : tool == "workspace_action"
+            && ["visual.evaluate", "visual.app_capture"].contains(a["action"].text) && !callFailed
             ? .object([
               "visualSummary": result["visualSummary"], "receiptID": .string(receiptID),
               "notice": result["notice"],
@@ -1440,7 +1508,8 @@ public enum WorkbookAgent {
           presentedResult, receiptID: receiptID, directory: modelDirectory,
           cancellation: cancellation,
           toolScope: inferenceScope, nativeAppAuthoring: nativeAppAuthoring)
-        if tool == "workspace_action", a["action"] == .string("visual.evaluate"), !callFailed,
+        if tool == "workspace_action",
+          ["visual.evaluate", "visual.app_capture"].contains(a["action"].text), !callFailed,
           visualCaptures.count < 8,
           projected["visualSummary"]["hash"].string != nil,
           projected["visualSummary"] == result["visualSummary"], result["capture"] != .null

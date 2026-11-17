@@ -2,7 +2,7 @@
   "schemaVersion": 1,
   "nestedPropertyOrder": "required-then-component-and-definition-selectors",
   "splashCommit": "d8af1054aab0f97de21d043e01aa98af3754f10e",
-  "toolsSHA256": "cc890930fe69b1dda8fe7d66259f01b2403047282a3061e872e6b1b5dd8c5a60",
+  "toolsSHA256": "af8c8c48e64870c4f2880c225f840dd5663f48277042086d792c91b3e8660e22",
   "cases": [
     {
       "name": "required_native_app_sdk",
@@ -25305,7 +25305,7 @@
             887,
             3147
           ],
-          "maskSHA256": "4aec76900418857ba7ead4a0b4835aab57120bf08010cd2c90b5b0bd1af47681"
+          "maskSHA256": "5a289ed2de300768b879ab684a903a273bcdda14125b101fcab127e379c9d66b"
         },
         {
           "committed": [
@@ -25368,7 +25368,7 @@
             24037,
             56658
           ],
-          "maskSHA256": "b60e9c70759c6c89d976cb4d0d1538c0e7fd13f371038de8250712af806f3c08"
+          "maskSHA256": "7a0d4d50fec7568e0f0bfbee79fd0dee6f0b646fcc7e047db1ce03c8186088a3"
         },
         {
           "committed": [
@@ -25439,7 +25439,7 @@
             24634,
             198
           ],
-          "maskSHA256": "314d622b7d7437bf7f9dd59169f48f081d979bd7eb9e3a364dcfad178c67f7a7"
+          "maskSHA256": "d2ddae83c8282af9043cea882156413b972c1024136a06317a8d4a1a52f66653"
         },
         {
           "committed": [
@@ -26380,7 +26380,7 @@
             3147,
             17829
           ],
-          "maskSHA256": "6b17982cbc5c211392b0ca946b1ddae4835049a7cacd42e3b6f21450062afadb"
+          "maskSHA256": "d3dc7f823ac23b092fb91e42fbdf06276880f05f9b2b39ca2b657990ef55cff4"
         },
         {
           "committed": [
@@ -26443,7 +26443,7 @@
             56658,
             15889
           ],
-          "maskSHA256": "de2192b55cfc42b622e98852e15a8e961d9eb5f27aa4552764afa318a82753e5"
+          "maskSHA256": "67c78fafa9043412b92e7f67c695c9659d356274c4590e7ae94df31006548877"
         },
         {
           "committed": [
@@ -27675,7 +27675,7 @@
             1938,
             12
           ],
-          "maskSHA256": "022eb70b7b4ee3c72fdb1931d20ffe7d182bff556ddac55c2e5ab8e02d4b3bee"
+          "maskSHA256": "70e2ce59e29a24267e82563cc79328b8220537b5d5206f23f14247a02e956da8"
         },
         {
           "committed": [
@@ -28229,7 +28229,7 @@
             21624,
             29269
           ],
-          "maskSHA256": "9076e4911e46803acb4b0d396631f51d31157988912efc0a41290e95dbc3417b"
+          "maskSHA256": "c382543c09c6c9b9b797e14b3884f3bd551a3805a1a57b9a0614b4ae57c7fc48"
         },
         {
           "committed": [
@@ -28347,7 +28347,7 @@
             18,
             29958
           ],
-          "maskSHA256": "077010204d7c2ec659a40a6e023a165077b939cd8999a07cd9ded856c96a4bb5"
+          "maskSHA256": "5915c7c930b114a894cc19a418f089468cf135543a0ef459f9e88df1bca811e0"
         },
         {
           "committed": [
@@ -28960,7 +28960,7 @@
             29269,
             887
           ],
-          "maskSHA256": "24679a9e41b50b8a2d6fd7144abc5691b20dcba7c8291bb3488da1c19faacda3"
+          "maskSHA256": "bd5dbdd6d7a9d2ec1d0758fd4b02edfddb8c74daa84bbd606855e9bc0e3fd6d0"
         },
         {
           "committed": [
@@ -29078,7 +29078,7 @@
             29958,
             13587
           ],
-          "maskSHA256": "4784b95d804d4806b63689def7240de412ad8534a302adcc70ddabf50caf480e"
+          "maskSHA256": "d3775439b2acf55def3bc8a7b335f33e0e3214696237abcf19e910396aeffc7c"
         },
         {
           "committed": [
@@ -38077,7 +38077,7 @@
             198,
             28263
           ],
-          "maskSHA256": "76583ff04c1f7d08e389dca16834e1935c379eff865742ec720d3971463b677b"
+          "maskSHA256": "4a3f1d831ebad5a33270cfbe96de0a55438451f39105d8e964e9c8da4a2decd6"
         },
         {
           "committed": [
@@ -38108,7 +38108,7 @@
             198,
             27
           ],
-          "maskSHA256": "69d09b04fa968d39229171b48aa6ffe4e6747a7cc5916be61cbf446a8d6b13cf"
+          "maskSHA256": "a64e30e8eb119f129b3b8b4b0c3901d0c244f4cb7612e121e5857542b08b7f37"
         },
         {
           "committed": [

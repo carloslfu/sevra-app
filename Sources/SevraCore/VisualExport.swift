@@ -40,15 +40,20 @@ extension Workbook {
     token: String = identifier()
   ) throws -> Space {
     let capture = try conversationVisual(messageID, index: index, conversation: conversation)
+    try require(
+      capture.appReference == nil, "app_permission",
+      "Open the enabled app view and pin it with its existing access.")
     return try addVisualToHome(
-      capture.definition, title: nil, expectedVersion: expectedVersion, token: token)
+      capture.definition, title: nil, expectedVersion: expectedVersion, token: token,
+      origin: VisualOrigin(messageID: messageID, index: index, conversation: conversation))
   }
 
   func addVisualToHome(
-    _ visual: VisualDefinition, title: String?, expectedVersion: Int, token: String
+    _ visual: VisualDefinition, title: String?, expectedVersion: Int, token: String,
+    origin: VisualOrigin? = nil
   ) throws -> Space {
     let name: String
-    if let title = title ?? visual.chart?.title ?? visual.work?.title {
+    if let title = title ?? visual.title {
       name = title
     } else if let image = visual.image {
       name = try item(image.reference.sourceID).title
@@ -57,7 +62,7 @@ extension Workbook {
     }
     let component = Component(
       id: "visual-" + token, type: visual.kind == .image ? "image" : "visual", title: name,
-      visual: visual)
+      visual: visual, visualOrigin: origin)
     return try editSpace(
       "home", expectedVersion: expectedVersion,
       edits: [.init(operation: "insert", at: "last", component: component)], token: token)
@@ -99,15 +104,24 @@ extension VisualChartData {
       [
         field(chart.x), field(chart.y), field(chart.series ?? "series"), field("unit"),
         field("source versions"),
-        field("capture snapshot"), field("query hash"),
+        field("capture snapshot"), field("query hash"), field("capture revision"),
+        field("source scope"),
+        field("filters"), field("period start"), field("period end (exclusive)"),
+        field("observed through (exclusive)"), field("missing value count"),
+        field("source manifest"),
       ].joined(separator: ",")
     ]
     rows += points.map { point in
-      [
+      let period = [chart.periods?.current, chart.periods?.baseline].compactMap { $0 }
+        .first { $0.key == point.label }
+      return [
         field(point.label, numeric: chart.style == .scatter),
-        field(point.amount, numeric: true), field(point.series ?? ""), field(unit ?? ""),
+        field(point.amount, numeric: !isTextValue), field(point.series ?? ""), field(unit ?? ""),
         field(point.sourceIDs.joined(separator: " ")),
-        field(snapshot), field(queryHash),
+        field(snapshot), field(queryHash), field(revision.map(String.init) ?? "", numeric: true),
+        field((try? scope.json()) ?? ""), field((try? chart.query["filters"].json()) ?? ""),
+        field(period?.start ?? ""), field(period?.end ?? ""), field(period?.observedThrough ?? ""),
+        field(String(unknown), numeric: true), field(manifestID ?? ""),
       ].joined(separator: ",")
     }
     return Data((rows.joined(separator: "\r\n") + "\r\n").utf8)

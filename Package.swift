@@ -165,6 +165,10 @@ let package = Package(
       swiftSettings: [.swiftLanguageMode(.v5)]),
     .executableTarget(
       name: "SevraExtractionWorker", dependencies: ["SevraCore", "CQuickJS"],
+      resources: [
+        .copy("Resources/elk.bundled.js"), .copy("Resources/ELK-LICENSE.md"),
+        .copy("Resources/ELK-NOTICE.txt"),
+      ],
       swiftSettings: [.swiftLanguageMode(.v5)]),
     .executableTarget(
       name: "SevraExtractionChecks", dependencies: ["SevraCore"],

@@ -11,6 +11,9 @@ import SwiftUI
   @Published public private(set) var status = "disabled"
   @Published public private(set) var error: String?
   @Published public private(set) var visualRevision = 0
+  @Published public private(set) var presentationRevision = 0
+  private var viewFilters: [String: [Value]] = [:]
+  private var viewSelections: [String: VisualChartData.Point] = [:]
   @Published public private(set) var tree = NativeAppTree()
   public let book: Workbook
   public let space: Space
@@ -89,6 +92,9 @@ import SwiftUI
   }
   public func revoke() {
     defaults.removeObject(forKey: grantKey)
+    viewFilters = [:]
+    viewSelections = [:]
+    presentationRevision &+= 1
     stop()
     status = "disabled"
   }
@@ -145,20 +151,112 @@ import SwiftUI
     if !enlarged { imageLoads[alias] = nil }
     return image
   }
-  func loadVisual(_ viewID: String) async throws -> VisualResult {
+  private func presentationKey(_ view: String, _ preset: String?) -> String {
+    view + "/" + (preset ?? "")
+  }
+
+  public func visualFilters(_ view: String, presetID: String? = nil) -> [Value]? {
+    isGranted ? viewFilters[presentationKey(view, presetID)] : nil
+  }
+
+  public func loadRecordThumbnail(_ alias: String) async throws -> PreviewImage {
     guard let grant = NativeAppDeviceGrant(defaults: defaults, key: grantKey) else {
-      throw SevraError("app_permission", "Enable the saved app before opening its chart.")
+      throw SevraError("app_permission", "Enable this exact app version to use its images.")
+    }
+    let read = try await withVisualAccess { book, access in
+      try book.nativeAppImageRead(access, alias: alias)
+    }
+    let preview = try await WorkbookImageDecoder.shared.load(read)
+    try Task.checkCancellation()
+    try require(grant.isCurrent, "app_permission", "Image access changed.")
+    return preview
+  }
+
+  public func selectedVisualPoint(_ view: String, presetID: String? = nil) -> VisualChartData.Point?
+  {
+    isGranted ? viewSelections[presentationKey(view, presetID)] : nil
+  }
+
+  public func selectVisualPoint(
+    _ view: String, presetID: String? = nil,
+    point: VisualChartData.Point?
+  ) throws {
+    try require(
+      isGranted && package.views?[view]?.chart != nil, "app_permission",
+      "Enable this declared chart before selecting a group.")
+    // Independent presets retain their own selections. Explicit links apply to
+    // the default views they name in this same workspace session.
+    let key = presentationKey(view, presetID)
+    try require(
+      point == nil || viewSelections[key] != nil || viewSelections.count < 16,
+      "visual_links", "Clear a selection before opening more independent views.")
+    let links = package.views?[view]?.chart?.links ?? []
+    if presetID == nil {
+      var updates = viewFilters
+      for link in links {
+        guard let query = package.views?[link.viewID]?.chart?.query else { continue }
+        let target = presentationKey(link.viewID, nil)
+        var filters = updates[target] ?? query["filters"].array
+        let value = link.field == "x" ? point?.label : point?.series
+        var filter = filters[link.filterIndex].object
+        if let value {
+          if case .bool = filter["value"] {
+            try require(
+              ["true", "false"].contains(value), "visual_links",
+              "The selected value is not a boolean.")
+            filter["value"] = .bool(value == "true")
+          } else {
+            filter["value"] = .string(value)
+          }
+        } else {
+          filter["value"] = query["filters"].array[link.filterIndex]["value"]
+        }
+        filters[link.filterIndex] = .object(filter)
+        updates[target] = filters
+      }
+      viewFilters = updates
+    }
+    viewSelections[key] = point
+    presentationRevision &+= 1
+  }
+
+  public func withVisualAccess<T: Sendable>(
+    committing: Bool = false,
+    _ operation: @escaping @Sendable (Workbook, NativeAppAccess) throws -> T
+  ) async throws -> T {
+    guard let grant = NativeAppDeviceGrant(defaults: defaults, key: grantKey) else {
+      throw SevraError("app_permission", "Enable this exact app version to use its view.")
     }
     let book = self.book
     let space = self.space
-    let visual = try await Task.detached {
+    let result = try await Task.detached {
       let access = try NativeAppAccess(
         workbook: book, space: space, permission: { grant.isCurrent })
-      return try book.nativeAppVisual(access, view: viewID)
+      defer { access.revoke() }
+      return try operation(book, access)
     }.value
-    try Task.checkCancellation()
-    try require(grant.isCurrent, "app_permission", "The app's access changed.")
-    return visual
+    if !committing {
+      try Task.checkCancellation()
+      try require(grant.isCurrent, "app_permission", "The app's access changed.")
+    }
+    return result
+  }
+
+  public func loadVisual(
+    _ viewID: String, presetID: String? = nil, cursor: String? = nil,
+    cancellation: Cancellation = .init()
+  ) async throws -> VisualResult {
+    let filters = visualFilters(viewID, presetID: presetID)
+    let presentation = presentationRevision
+    let result = try await withVisualAccess { book, access in
+      try book.nativeAppVisual(
+        access, view: viewID, presetID: presetID, cursor: cursor, filters: filters,
+        cancellation: cancellation)
+    }
+    try require(
+      presentation == presentationRevision, "visual_stale", "The view changed. Refresh its results."
+    )
+    return result
   }
 
   public func start() {
@@ -444,7 +542,8 @@ import SwiftUI
             return try book.nativeAppTransaction(
               access, operations: args["operations"].array,
               expectedRevision: args["revision"].int ?? -1, token: args["token"].text,
-              undo: args["undo"].string)
+              undo: args["undo"].string,
+              reverseRedo: requestID == "native-undo" ? args["reverseRedo"] == .bool(true) : nil)
           default:
             throw SevraError("app_permission", "The app requested an unavailable capability.")
           }
@@ -558,6 +657,7 @@ import SwiftUI
         "args": .object([
           "operations": .array([]), "undo": .string(lastUndo),
           "revision": .number(Double(revision)), "token": .string(UUID().uuidString),
+          "reverseRedo": .bool(reversalIsRedo),
         ]),
       ]), epoch: epoch)
   }
@@ -653,6 +753,11 @@ import SwiftUI
           operation == "undo" ? canUndo : canRedo, "app_undo",
           "There is no app change to \(operation). Only the latest saved transaction can be reversed."
         )
+        if let expected = arguments["transaction"].string {
+          try require(
+            lastUndo == expected, "app_undo",
+            "This saved transaction is no longer the current change to reverse.")
+        }
         if operation == "undo" { undo() } else { redo() }
         try await settleConversation(cancellation)
       } else if operation == "run" {
@@ -847,6 +952,7 @@ import SwiftUI
           ? "Approved but stopped. app.restart starts it for requested work. Inspection does not execute saved code."
           : ""),
       "actions": actionCatalog, "canUndo": .bool(canUndo), "canRedo": .bool(canRedo),
+      "reversibleTransaction": lastUndo.map(Value.string) ?? .null,
       "inputs": .array(
         interactionCatalog.array.compactMap { item in
           guard let node = tree.nodes[item["id"].text] else { return nil }

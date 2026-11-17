@@ -6,11 +6,20 @@ public struct ConversationSurface: Codable, Equatable, Identifiable, Sendable {
   public enum Kind: String, Codable, Sendable { case question, input, review, result }
 
   public struct Field: Codable, Equatable, Identifiable, Sendable {
-    public enum Kind: String, Codable, Sendable { case text, boolean, decimal, date }
+    public enum Kind: String, Codable, Sendable { case text, boolean, decimal, date, record }
+
+    public struct RecordOptions: Codable, Equatable, Sendable {
+      public let datasetID: String
+      public let definitionID: String
+      public let labelColumn: String
+      public let rowIDs: [String]
+      public var labels: [String: String]?
+    }
     public let id: String
     public let label: String
     public let type: Kind
     public let required: Bool
+    public var records: RecordOptions?
 
     fileprivate func validate(_ value: Value) throws {
       if type == .boolean {
@@ -24,6 +33,10 @@ public struct ConversationSurface: Codable, Equatable, Identifiable, Sendable {
       else { throw SevraError("conversation_input", "Enter a value for “\(label)”.") }
       switch type {
       case .text, .boolean: break
+      case .record:
+        try require(
+          records?.rowIDs.contains(text) == true, "conversation_input",
+          "Choose a listed record for “\(label)”.")
       case .decimal: _ = try Numbers.decimal(text)
       case .date:
         let format = Date.ISO8601FormatStyle().year().month().day().dateSeparator(.dash)
@@ -44,11 +57,11 @@ public struct ConversationSurface: Codable, Equatable, Identifiable, Sendable {
     public let kind: Kind
     public let purpose: String
     public let question: String
-    public let fields: [Field]
+    public var fields: [Field]
     public let choices: [Choice]
     public let allowTextReply: Bool
 
-    package static func parse(_ value: Value) throws -> Self {
+    package static func parse(_ value: Value, resolved: Bool = false) throws -> Self {
       let shape: Set<String> = [
         "kind", "purpose", "question", "fields", "choices", "allowTextReply",
       ]
@@ -56,7 +69,14 @@ public struct ConversationSurface: Codable, Equatable, Identifiable, Sendable {
       let choiceShape: Set<String> = ["id", "label", "values"]
       try require(
         Set(value.object.keys) == shape
-          && value["fields"].array.allSatisfy { Set($0.object.keys) == fieldShape }
+          && value["fields"].array.allSatisfy {
+            Set($0.object.keys).subtracting(["records"]) == fieldShape
+              && Set($0["records"].object.keys).isSubset(
+                of:
+                  resolved
+                  ? ["datasetID", "definitionID", "labelColumn", "rowIDs", "labels"]
+                  : ["datasetID", "definitionID", "labelColumn", "rowIDs"])
+          }
           && value["choices"].array.allSatisfy { Set($0.object.keys) == choiceShape }
           && value.json().utf8.count <= 8192,
         "conversation_input", "The input request has unsupported fields or exceeds its size limit.")
@@ -67,12 +87,22 @@ public struct ConversationSurface: Codable, Equatable, Identifiable, Sendable {
           && Self.validText(input.question, maximum: 640)
           && (1...5).contains(input.fields.count) && input.choices.count <= 6,
         "conversation_input", "Use a short question and one to five fields.")
-      let ids = input.fields.map(\.id)
-      let choiceIDs = input.choices.map(\.id)
+      let ids = input.fields.map { $0.id.lowercased() }
+      let choiceIDs = input.choices.map { $0.id.lowercased() }
       try require(
         Set(ids).count == ids.count && Set(choiceIDs).count == choiceIDs.count
           && input.fields.allSatisfy {
             Self.validID($0.id) && Self.validText($0.label, maximum: 120)
+          }
+          && input.fields.allSatisfy { field in
+            guard let records = field.records else { return field.type != .record }
+            return field.type == .record && (1...12).contains(records.rowIDs.count)
+              && Set(records.rowIDs).count == records.rowIDs.count
+              && records.rowIDs.allSatisfy { Self.validText($0, maximum: 128) }
+              && [records.datasetID, records.definitionID, records.labelColumn].allSatisfy {
+                Self.validText($0, maximum: 128)
+              }
+              && (!resolved || Set(records.labels?.keys.map { $0 } ?? []) == Set(records.rowIDs))
           }
           && input.choices.allSatisfy {
             Self.validID($0.id) && Self.validText($0.label, maximum: 120)
@@ -92,7 +122,8 @@ public struct ConversationSurface: Codable, Equatable, Identifiable, Sendable {
     private static func validID(_ id: String) -> Bool {
       !id.isEmpty && id.utf8.count <= 40
         && id.utf8.allSatisfy {
-          (97...122).contains($0) || (48...57).contains($0) || $0 == 95
+          (97...122).contains($0) || (65...90).contains($0) || (48...57).contains($0)
+            || $0 == 95 || $0 == 45
         }
     }
 
@@ -110,24 +141,59 @@ public struct ConversationSurface: Codable, Equatable, Identifiable, Sendable {
 
     fileprivate func values(forText text: String) -> [String: Value] {
       let reply = text.trimmingCharacters(in: .whitespacesAndNewlines)
+      func normalizedChoice(_ text: String) -> String {
+        // Ignore a final sentence mark in a literal choice. Keep the original
+        // reply verbatim, including custom conditions and qualifications.
+        let trimmed = text.trimmingCharacters(in: .whitespacesAndNewlines)
+        return trimmed.last.map { ".!?".contains($0) } == true
+          ? String(trimmed.dropLast()) : trimmed
+      }
       let matches = choices.filter {
         $0.id.caseInsensitiveCompare(reply) == .orderedSame
-          || $0.label.caseInsensitiveCompare(reply) == .orderedSame
+          || normalizedChoice($0.label).caseInsensitiveCompare(normalizedChoice(reply))
+            == .orderedSame
       }
       if matches.count == 1 { return matches[0].values }
-      guard matches.isEmpty, fields.count == 1, let field = fields.first else { return [:] }
+      guard matches.isEmpty else { return [:] }
+      if fields.count == 1, let field = fields.first, choices.isEmpty || field.type == .boolean {
+        return typedValue(reply, field: field).map { [field.id: $0] } ?? [:]
+      }
+      var result: [String: Value] = [:]
+      for line in reply.split(whereSeparator: \.isNewline) {
+        let parts = line.split(separator: ":", maxSplits: 1)
+        guard parts.count == 2 else { return [:] }
+        let key = parts[0].trimmingCharacters(in: .whitespaces)
+        let matches = fields.filter {
+          $0.id.caseInsensitiveCompare(key) == .orderedSame
+            || $0.label.caseInsensitiveCompare(key) == .orderedSame
+        }
+        guard matches.count == 1, let field = matches.first, result[field.id] == nil,
+          let value = typedValue(parts[1].trimmingCharacters(in: .whitespaces), field: field)
+        else { return [:] }
+        result[field.id] = value
+      }
+      return result
+    }
+
+    private func typedValue(_ text: String, field: Field) -> Value? {
       let value: Value
       switch field.type {
       case .boolean:
-        guard ["true", "false"].contains(reply.lowercased()) else { return [:] }
-        value = .bool(reply.lowercased() == "true")
-      case .decimal, .date: value = .string(reply)
-      case .text:
-        guard choices.isEmpty else { return [:] }
-        value = .string(text)
+        switch text.lowercased() {
+        case "true", "yes": value = .bool(true)
+        case "false", "no": value = .bool(false)
+        default: return nil
+        }
+      case .record:
+        guard let records = field.records else { return nil }
+        let matches = records.rowIDs.filter {
+          $0 == text || records.labels?[$0]?.caseInsensitiveCompare(text) == .orderedSame
+        }
+        guard matches.count == 1 else { return nil }
+        value = .string(matches[0])
+      case .decimal, .date, .text: value = .string(text)
       }
-      guard (try? field.validate(value)) != nil else { return [:] }
-      return [field.id: value]
+      return (try? field.validate(value)) != nil ? value : nil
     }
 
     fileprivate var fallback: String {
@@ -135,7 +201,11 @@ public struct ConversationSurface: Codable, Equatable, Identifiable, Sendable {
       if !choices.isEmpty {
         lines += choices.map { "• " + $0.label }
       } else {
-        lines += fields.map { "• " + $0.label + ($0.type == .date ? " (YYYY-MM-DD)" : "") }
+        lines += fields.map { field in
+          let labels = field.records?.rowIDs.compactMap { field.records?.labels?[$0] } ?? []
+          return "• " + field.label + (field.type == .date ? " (YYYY-MM-DD)" : "")
+            + (labels.isEmpty ? "" : " (" + labels.joined(separator: ", ") + ")")
+        }
       }
       if allowTextReply {
         lines.append("You can also reply with Answer: followed by your response.")
@@ -176,39 +246,78 @@ package struct ConversationContinuation: Sendable {
 
 extension Workbook {
   package func publishConversationInput(
-    _ input: ConversationSurface.Input, runID: String, conversation: String, readOnly: Bool,
+    _ descriptor: ConversationSurface.Input, runID: String, conversation: String, readOnly: Bool,
     steps: Int, metrics: Value, cancellation: Cancellation
   ) throws -> (id: String, body: String) {
     let id = identifier()
-    let body = input.fallback
+    var body = ""
     let saved = try mutation(
-      "conversation_input", token: runID + "-input", request: try encoded(input),
-      cancellation: cancellation, commitGuard: { try cancellation.check() }
-    ) {
-      guard
-        let request = try db.execute(
-          """
-          SELECT a.status,r.message_id FROM agent_runs a JOIN run_requests r ON r.run_id=a.id
-          WHERE a.id=? AND a.conversation_id=? AND a.status='running'
-          """, [.string(runID), .string(conversation)]
-        ).first
-      else {
-        throw SevraError("conversation_input", "This request is no longer running.")
-      }
-      let descriptor = ConversationSurface(
-        id: id, version: 1, revision: 1, kind: input.kind, conversation: conversation,
-        runID: runID, requestID: request["message_id"]!.text, readOnly: readOnly, input: input)
-      try insertSurfaceMessage(
-        id, conversation: conversation, role: "assistant", body: body, state: "needs_input",
-        payload: .object([
-          "kind": .string("conversation_surface"), "surface": try encoded(descriptor),
-        ]))
-      try db.execute(
-        "UPDATE agent_runs SET status='needs_input',steps=?,metrics=?,updated=? WHERE id=?",
-        [.number(Double(steps)), .string(try metrics.json()), .string(timestamp()), .string(runID)])
-      return .string(id)
-    }
+      "conversation_input", token: runID + "-input", request: try encoded(descriptor),
+      cancellation: cancellation, commitGuard: { try cancellation.check() },
+      {
+        guard
+          let request = try db.execute(
+            """
+            SELECT a.status,r.message_id FROM agent_runs a JOIN run_requests r ON r.run_id=a.id
+            WHERE a.id=? AND a.conversation_id=? AND a.status='running'
+            """, [.string(runID), .string(conversation)]
+          ).first
+        else {
+          throw SevraError("conversation_input", "This request is no longer running.")
+        }
+        var input = descriptor
+        for index in input.fields.indices {
+          guard var records = input.fields[index].records else { continue }
+          var labels: [String: String] = [:]
+          for rowID in records.rowIDs {
+            let row = try validateInputRecord(records, rowID: rowID)
+            let label = row.data[records.labelColumn].text
+            try require(
+              !label.isEmpty && label.utf8.count <= 120
+                && !label.unicodeScalars.contains(where: CharacterSet.controlCharacters.contains),
+              "conversation_input", "Choose a short label field for the listed records.")
+            labels[rowID] = label
+          }
+          records.labels = labels
+          input.fields[index].records = records
+        }
+        _ = try ConversationSurface.Input.parse(encoded(input), resolved: true)
+        body = input.fallback
+        let surface = ConversationSurface(
+          id: id, version: 1, revision: 1, kind: input.kind, conversation: conversation,
+          runID: runID, requestID: request["message_id"]!.text, readOnly: readOnly, input: input)
+        try insertSurfaceMessage(
+          id, conversation: conversation, role: "assistant", body: body, state: "needs_input",
+          payload: .object([
+            "kind": .string("conversation_surface"), "surface": try encoded(surface),
+          ]))
+        try db.execute(
+          "UPDATE agent_runs SET status='needs_input',steps=?,metrics=?,updated=? WHERE id=?",
+          [
+            .number(Double(steps)), .string(try metrics.json()), .string(timestamp()),
+            .string(runID),
+          ])
+        return .string(id)
+      })
+    if body.isEmpty { body = try historyMessage(saved.text, conversation: conversation).body }
     return (saved.text, body)
+  }
+
+  private func validateInputRecord(
+    _ records: ConversationSurface.Field.RecordOptions, rowID: String
+  ) throws -> Item {
+    let dataset = try dataset(records.datasetID)
+    let row = try item(rowID)
+    try require(
+      !dataset.archived && dataset.definitionID == records.definitionID
+        && dataset.columns.contains { $0.id == records.labelColumn }
+        && row.id == rowID && row.status == "accepted" && item(row.logicalID).id == rowID
+        && db.scalar(
+          "SELECT count(*) FROM dataset_rows WHERE dataset_id=? AND logical_id=?",
+          [.string(records.datasetID), .string(row.logicalID)]
+        ).int == 1,
+      "conversation_input_record", "A listed record has changed. Ask for new record choices.")
+    return row
   }
 
   public func pendingConversationInput(conversation: String) throws -> ConversationSurface? {
@@ -251,7 +360,9 @@ extension Workbook {
       surface.id == id, surface.conversation == conversation, surface.revision == 1,
       let input = surface.input, input.kind == surface.kind
     else { return nil }
-    guard (try? ConversationSurface.Input.parse(encoded(input))) != nil else { return nil }
+    guard (try? ConversationSurface.Input.parse(encoded(input), resolved: true)) != nil else {
+      return nil
+    }
     return surface
   }
 
@@ -321,6 +432,14 @@ extension Workbook {
         kind = "conversation_input_answer"
         body = text
         values = input.values(forText: text)
+        if input.fields.contains(where: { $0.type == .record }) {
+          try input.validate(values)
+        }
+      }
+      for field in input.fields {
+        if let records = field.records, let rowID = values[field.id]?.string {
+          _ = try validateInputRecord(records, rowID: rowID)
+        }
       }
       try insertSurfaceMessage(
         id, conversation: surface.conversation, role: "user", body: body, state: "complete",
@@ -340,7 +459,7 @@ extension Workbook {
     -> String
   {
     input.fields.compactMap { field in
-      values[field.id].map { field.label + ": " + $0.text }
+      values[field.id].map { field.label + ": " + (field.records?.labels?[$0.text] ?? $0.text) }
     }.joined(separator: "\n")
   }
 
@@ -358,43 +477,44 @@ extension Workbook {
           answer: receipt["answer"].text, values: receipt["values"],
           priorAnswers: receipt["priorAnswers"],
           readOnly: receipt["readOnly"] == .bool(true))
-      }
-    ) {
-      let answer = try conversationInputAnswer(answerID, conversation: conversation)
-      try require(
-        try resumableConversationAnswer(conversation: conversation) == answerID,
-        "conversation_input", "This answer already started or the conversation moved on.")
-      let surface = answer.surface
-      var originalRequest = try historyMessage(surface.requestID, conversation: conversation)
-      var readOnly = surface.readOnly
-      var priorAnswers: [Value] = []
-      while try messagePayload(originalRequest.id, conversation: conversation)["kind"]
-        == .string("conversation_input_answer")
+      },
       {
+        let answer = try conversationInputAnswer(answerID, conversation: conversation)
         try require(
-          priorAnswers.count < 4, "conversation_input", "Start a new request to continue this task."
-        )
-        let parent = try conversationInputAnswer(originalRequest.id, conversation: conversation)
-        priorAnswers.append(
-          .object([
-            "messageID": .string(originalRequest.id), "answer": .string(parent.body),
-            "question": .string(parent.surface.input!.question), "values": parent.values,
-          ]))
-        readOnly = readOnly || parent.surface.readOnly
-        originalRequest = try historyMessage(parent.surface.requestID, conversation: conversation)
-      }
-      let runID = identifier()
-      try createAgentRun(
-        runID, conversation: conversation, model: model, requestMessageID: answerID)
-      return .object([
-        "runID": .string(runID), "questionID": .string(surface.id),
-        "originalRequestID": .string(originalRequest.id),
-        "originalTask": .string(originalRequest.body),
-        "question": .string(surface.input!.question), "answer": .string(answer.body),
-        "values": answer.values,
-        "readOnly": .bool(readOnly), "priorAnswers": .array(priorAnswers.reversed()),
-      ])
-    }
+          try resumableConversationAnswer(conversation: conversation) == answerID,
+          "conversation_input", "This answer already started or the conversation moved on.")
+        let surface = answer.surface
+        var originalRequest = try historyMessage(surface.requestID, conversation: conversation)
+        var readOnly = surface.readOnly
+        var priorAnswers: [Value] = []
+        while try messagePayload(originalRequest.id, conversation: conversation)["kind"]
+          == .string("conversation_input_answer")
+        {
+          try require(
+            priorAnswers.count < 4, "conversation_input",
+            "Start a new request to continue this task."
+          )
+          let parent = try conversationInputAnswer(originalRequest.id, conversation: conversation)
+          priorAnswers.append(
+            .object([
+              "messageID": .string(originalRequest.id), "answer": .string(parent.body),
+              "question": .string(parent.surface.input!.question), "values": parent.values,
+            ]))
+          readOnly = readOnly || parent.surface.readOnly
+          originalRequest = try historyMessage(parent.surface.requestID, conversation: conversation)
+        }
+        let runID = identifier()
+        try createAgentRun(
+          runID, conversation: conversation, model: model, requestMessageID: answerID)
+        return .object([
+          "runID": .string(runID), "questionID": .string(surface.id),
+          "originalRequestID": .string(originalRequest.id),
+          "originalTask": .string(originalRequest.body),
+          "question": .string(surface.input!.question), "answer": .string(answer.body),
+          "values": answer.values,
+          "readOnly": .bool(readOnly), "priorAnswers": .array(priorAnswers.reversed()),
+        ])
+      })
   }
 
   private func conversationInputAnswer(

@@ -2,6 +2,7 @@ import AppKit
 import Charts
 import SevraAppUI
 import SevraCore
+import SevraMedia
 import SevraPreviewUI
 import SevraSearchUI
 import SevraTableUI
@@ -187,7 +188,9 @@ struct SpaceView: View {
     if space.definition.app != nil, let book = state.workbook {
       VStack(spacing: 0) {
         ExcelAppOriginView(spaceID: space.id, state: state)
-        NativeAppSpaceView(session: state.nativeAppSession(space, book: book)).id(
+        NativeAppSpaceView(session: state.nativeAppSession(space, book: book)) {
+          state.navigate(.item($0))
+        }.id(
           space.id + ":" + String(space.version))
       }
     } else {
@@ -495,23 +498,60 @@ struct NativeComponent: View {
           LiveVisualChartView(
             definition: chart, revision: state.datasetSnapshot,
             load: { try await Task.detached { try book.chartData(chart) }.value },
-            openOriginal: { state.navigate(.item($0)) })
+            openOriginal: { state.navigate(.item($0)) },
+            loadSources: { data, point, offset in
+              try await Task.detached {
+                try book.liveChartSources(
+                  chart, snapshot: data.snapshot, queryHash: data.queryHash,
+                  point: point, offset: offset)
+              }.value
+            })
         } else if let work = component.visual?.work, let book = state.workbook {
           LiveWorkVisualView(
             definition: work, revision: state.datasetSnapshot,
-            load: { try await Task.detached { try book.workVisualData(work) }.value },
+            load: { cursor in
+              try await Task.detached { try book.workVisualData(work, cursor: cursor) }.value
+            },
             openRecord: { state.navigate(.item($0)) },
+            thumbnail: work.thumbnailAssets.map { refs in
+              { @MainActor @Sendable key in
+                guard let ref = refs[key] else {
+                  throw SevraError("visual_image", "No bound image.")
+                }
+                let asset = try await Task.detached { try book.imageAssetRead(ref) }.value
+                return try await WorkbookImageDecoder.shared.load(asset)
+              }
+            },
             change: owner.map { owner in
-              { record, value, end in
+              { record, value, end, cursor in
                 let componentID = component.id
                 state.run("Updating record") { book, cancellation in
                   _ = try book.changeWorkRecord(
                     spaceID: owner.id, componentID: componentID, expectedVersion: owner.version,
-                    recordID: record.id, value: value, end: end, cancellation: cancellation,
+                    recordID: record.id, value: value, end: end, cursor: cursor,
+                    cancellation: cancellation,
                     actor: .human("Sevra.work-view"))
                 }
               }
             })
+        }
+        if let text = component.visual?.text {
+          VisualTextView(definition: text) { state.navigate(.item($0)) }
+        }
+        if let overview = component.visual?.overview, let book = state.workbook {
+          LiveVisualOverviewView(
+            definition: overview, revision: state.datasetSnapshot,
+            load: { cancellation in
+              try await Task.detached {
+                try book.overviewData(overview, cancellation: cancellation)
+              }.value
+            }, openOriginal: { state.navigate(.item($0)) })
+        }
+        if let diagram = component.visual?.diagram, let book = state.workbook {
+          LiveVisualDiagramView(
+            definition: diagram, revision: state.datasetSnapshot,
+            load: { try await Task.detached { try book.diagramData(diagram) }.value },
+            openRecord: { state.navigate(.item($0)) })
         }
       case "image":
         if let book = state.workbook, let image = component.visual?.image {

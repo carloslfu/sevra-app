@@ -21,7 +21,12 @@ package enum InferenceToolScope: String, CaseIterable, Sendable {
     case .all: return ChatOperations.operations
     case .conversationAnswer, .boundedConversationAnswer:
       return ChatOperations.operations.filter {
-        $0.readOnly && (!$0.host || $0.name == "visual.open_source")
+        $0.readOnly
+          && (!$0.host
+            || [
+              "visual.open_source", "visual.image_view", "visual.app_capture", "visual.app_sources",
+              "visual.open_current", "visual.expand",
+            ].contains($0.name))
       }
     default: return []
     }

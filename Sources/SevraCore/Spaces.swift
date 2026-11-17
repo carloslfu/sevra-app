@@ -1,5 +1,17 @@
 import Foundation
 
+public struct VisualOrigin: Codable, Equatable, Sendable {
+  public let messageID: String
+  public let index: Int
+  public let conversation: String
+
+  public init(messageID: String, index: Int, conversation: String) {
+    self.messageID = messageID
+    self.index = index
+    self.conversation = conversation
+  }
+}
+
 public struct Component: Codable, Identifiable, Equatable, Sendable {
   public var id: String
   public var type: String
@@ -10,6 +22,8 @@ public struct Component: Codable, Identifiable, Equatable, Sendable {
   public var visual: VisualDefinition?
   public var viewID: String?
   public var viewVersion: Int?
+  public var presentationID: String?
+  public var visualOrigin: VisualOrigin?
   public var query: String?
   public var x: String?
   public var y: String?
@@ -31,7 +45,7 @@ public struct Component: Codable, Identifiable, Equatable, Sendable {
     searchSnapshot: ComponentSearchSnapshot? = nil, definitionBinding: Value? = nil,
     arguments: Value? = nil, evaluationSnapshot: DefinitionResultSnapshot? = nil,
     spaceID: String? = nil, visual: VisualDefinition? = nil, viewID: String? = nil,
-    viewVersion: Int? = nil
+    viewVersion: Int? = nil, presentationID: String? = nil, visualOrigin: VisualOrigin? = nil
   ) {
     self.id = id
     self.type = type
@@ -42,6 +56,8 @@ public struct Component: Codable, Identifiable, Equatable, Sendable {
     self.visual = visual
     self.viewID = viewID
     self.viewVersion = viewVersion
+    self.presentationID = presentationID
+    self.visualOrigin = visualOrigin
     self.query = query
     self.x = x
     self.y = y
@@ -79,6 +95,14 @@ public struct SpaceDefinition: Codable, Equatable, Sendable {
         !component.id.isEmpty && component.id.utf8.count <= 256
           && component.title.utf8.count <= 500,
         "view", "Use bounded component IDs and labels.")
+      if let origin = component.visualOrigin {
+        try require(
+          (component.type == "visual" || component.type == "image")
+            && (0...1).contains(origin.index) && !origin.messageID.isEmpty
+            && !origin.conversation.isEmpty
+            && origin.messageID.utf8.count <= 128 && origin.conversation.utf8.count <= 128,
+          "visual", "Use an exact captured answer origin.")
+      }
       for child in component.children ?? [] { try visit(child, depth: depth + 1) }
     }
     for component in components { try visit(component, depth: 1) }
@@ -172,23 +196,28 @@ extension Workbook {
         try visual.validate()
         _ = try validateImageReference(image.reference)
       } else if c.type == "visual" {
-        guard let visual = c.visual, let query = visual.chart?.query ?? visual.work?.query else {
-          throw SevraError("visual_chart", "Choose a typed chart definition.")
+        guard let visual = c.visual, visual.kind != .image else {
+          throw SevraError("visual", "Choose a typed visual definition.")
         }
         try require(
           definition.pinnedAt == nil && c.itemID == nil && c.datasetID == nil
             && c.snapshot == nil && c.searchSnapshot == nil, "visual",
-          "Use the chart's typed query in a live layout.")
+          "Use the visual’s typed queries in a live layout.")
         try visual.validate()
         if !unchanged.contains(c) {
-          _ = try compileDatasetQuery(DatasetQuery(query))
+          if let text = visual.text { try validateVisualTextSources(text) }
+          let queries = visual.queries
+          for query in queries { _ = try compileDatasetQuery(DatasetQuery(query)) }
+          for reference in visual.work?.thumbnailAssets?.values.map({ $0 }) ?? [] {
+            _ = try validateImageReference(reference)
+          }
         }
       } else {
         try require(
           c.visual == nil, "visual", "This kind of component does not accept a visual definition.")
       }
       try require(
-        (c.viewID == nil && c.viewVersion == nil)
+        (c.viewID == nil && c.viewVersion == nil && c.presentationID == nil)
           || (c.type == "app" && c.viewID != nil && c.viewVersion != nil),
         "visual", "A declared view requires an exact app version.")
 
@@ -211,6 +240,11 @@ extension Workbook {
             try require(
               package.views?[view] != nil && c.viewVersion == app.version, "view",
               "Choose a declared app view at its current app version.")
+            if let preset = c.presentationID {
+              _ = try readVisualPreset(
+                item(preset), spaceID: app.id,
+                version: app.version, digest: package.digest, view: view)
+            }
           }
         }
       } else {

@@ -3,30 +3,39 @@ import Foundation
 extension Workbook {
   /// The optional view and chat share one reversible transaction. Derive its
   /// direction from saved receipt ancestry, including after reopening.
-  public func nativeAppLastTransaction(_ access: NativeAppAccess) throws -> (token: String, redo: Bool)? {
+  public func nativeAppLastTransaction(_ access: NativeAppAccess) throws -> (
+    token: String, redo: Bool
+  )? {
+    try nativeAppReversal(access).map { ($0.token, $0.redo) }
+  }
+
+  public func nativeAppReversal(_ access: NativeAppAccess, original: String? = nil)
+    throws -> (token: String, redo: Bool)?
+  {
     try synchronized {
       try access.authorized(self) {
         let bindings: [Value] = [.string(access.spaceID), .string(access.package.digest)]
-        guard let row = try db.execute(
-          """
-          WITH RECURSIVE latest AS (
-            SELECT id,request,revision FROM operations WHERE kind='native_app_transaction'
-            AND json_extract(request,'$.arguments.space')=?
-            AND json_extract(request,'$.arguments.digest')=?
-            ORDER BY revision DESC LIMIT 1
-          ), history(id,parent,revision,depth) AS (
-            SELECT id,json_extract(request,'$.arguments.undo'),revision,0 FROM latest
-            UNION ALL
-            SELECT o.id,json_extract(o.request,'$.arguments.undo'),o.revision,h.depth+1
-            FROM operations o JOIN history h ON o.id=h.parent AND o.revision<h.revision
-            WHERE o.kind='native_app_transaction'
-            AND json_extract(o.request,'$.arguments.space')=?
-            AND json_extract(o.request,'$.arguments.digest')=? AND h.depth<1024
-          )
-          SELECT (SELECT id FROM latest) AS token,parent,depth FROM history ORDER BY depth DESC LIMIT 1
-          """, bindings + bindings
-        ).first, row["parent"] == .null, let token = row["token"]?.string,
-          let depth = row["depth"]?.int
+        guard
+          let row = try db.execute(
+            """
+            WITH RECURSIVE latest AS (
+              SELECT id,request,revision FROM operations WHERE kind='native_app_transaction'
+              AND json_extract(request,'$.arguments.space')=?
+              AND json_extract(request,'$.arguments.digest')=?
+              ORDER BY revision DESC LIMIT 1
+            ), history(id,parent,revision,depth) AS (
+              SELECT id,json_extract(request,'$.arguments.undo'),revision,0 FROM latest
+              UNION ALL
+              SELECT o.id,json_extract(o.request,'$.arguments.undo'),o.revision,h.depth+1
+              FROM operations o JOIN history h ON o.id=h.parent AND o.revision<h.revision
+              WHERE o.kind='native_app_transaction'
+              AND json_extract(o.request,'$.arguments.space')=?
+              AND json_extract(o.request,'$.arguments.digest')=? AND h.depth<1024
+            )
+            SELECT (SELECT id FROM latest) AS token,id,parent,depth FROM history ORDER BY depth DESC LIMIT 1
+            """, bindings + bindings
+          ).first, row["parent"] == .null, let token = row["token"]?.string,
+          let depth = row["depth"]?.int, original == nil || row["id"]?.string == original
         else { return nil }
         return (token, depth % 2 == 1)
       }
@@ -65,8 +74,7 @@ extension Workbook {
   }
   public func nativeAppConversationRow(
     _ access: NativeAppAccess, alias: String, id: String, columnLabels: Value? = nil
-  ) throws -> Value
-  {
+  ) throws -> Value {
     try synchronized {
       try db.readTransaction {
         try access.authorized(self) {
@@ -74,8 +82,10 @@ extension Workbook {
           let row = try item(id)
           try require(
             row.id == id && item(row.logicalID).id == id && row.status == "accepted"
-              && row.logicalID != nativeAppWorksheetPresentation(
-                table, columnLabels: columnLabels).heading
+              && row.logicalID
+                != nativeAppWorksheetPresentation(
+                  table, columnLabels: columnLabels
+                ).heading
               && db.scalar(
                 "SELECT count(*) FROM dataset_rows WHERE dataset_id=? AND logical_id=?",
                 [.string(table.id), .string(row.logicalID)]
@@ -119,10 +129,11 @@ extension Workbook {
     let item = try item(row)
     guard item.status == "accepted" else { return (columnLabels, nil) }
     func matches(_ labels: Value) -> Bool {
-      labels.object.count == table.columns.count && table.columns.allSatisfy { column in
-        guard let label = labels[column.id].string, !label.isEmpty else { return false }
-        return item.data[column.id] == .string(label)
-      }
+      labels.object.count == table.columns.count
+        && table.columns.allSatisfy { column in
+          guard let label = labels[column.id].string, !label.isEmpty else { return false }
+          return item.data[column.id] == .string(label)
+        }
     }
     if let stored = original["labels"]?.string,
       let labels = try? Value.parse(stored), matches(labels)
@@ -175,23 +186,36 @@ extension Workbook {
 
   /// Typed query sources name aliases, never raw SQL or an ungranted workbook/table.
   public func nativeAppQuery(_ access: NativeAppAccess, request: Value) throws -> Value {
-    try synchronized {
+    try nativeAppQuerySet(access, requests: [request], byteLimit: 1_048_576)[0]
+  }
+
+  func nativeAppQuerySet(
+    _ access: NativeAppAccess, requests: [Value], byteLimit: Int = 8_388_608,
+    captureLineage: Bool = false, cursor: String? = nil, cancellation: Cancellation = .init()
+  ) throws -> [Value] {
+    try synchronized(cancellation: cancellation) {
       try db.readTransaction {
         try access.authorized(self) {
-          var object = request.object
-          object["sources"] = .array(
-            try request["sources"].array.map { source in
-              let binding = try access.binding(source["table"].text)
-              let table = try nativeAppBoundTable(binding)
-              return .object([
-                "datasetID": .string(table.id), "definitionID": .string(table.definitionID),
-                "scope": source["scope"] == .null ? .object([:]) : source["scope"],
-              ])
-            })
-          let result = try queryDataset(.object(object))
+          let normalized = try requests.map { request -> Value in
+            var object = request.object
+            object["sources"] = .array(
+              try request["sources"].array.map { source in
+                var source = try queryObject(source, keys: ["table", "scope", "excelRows"])
+                let binding = try access.binding(source.removeValue(forKey: "table")?.text ?? "")
+                let table = try nativeAppBoundTable(binding)
+                source["datasetID"] = .string(table.id)
+                source["definitionID"] = .string(table.definitionID)
+                return .object(source)
+              })
+            return .object(object)
+          }
+          let result = try queryDatasetSet(
+            normalized, cursor: cursor, captureLineage: captureLineage,
+            cancellation: cancellation)
           try require(
-            result.json().utf8.count <= 1_048_576, "app_query",
-            "Query exceeds 1 MiB; narrow its result.")
+            try result.reduce(0) { total, value in total + (try value.json().utf8.count) }
+              <= byteLimit,
+            "app_query", "Narrow this view’s results to fit the app’s query limit.")
           return result
         }
       }
@@ -201,7 +225,7 @@ extension Workbook {
   /// All operations either commit together with existing captured history, or none do.
   public func nativeAppTransaction(
     _ access: NativeAppAccess, operations: [Value], expectedRevision: Int, token: String,
-    undo: String? = nil
+    undo: String? = nil, reverseRedo: Bool? = nil
   ) throws -> Value {
     try require(
       token.utf8.count <= 256 && !token.isEmpty && expectedRevision >= 0,
@@ -209,11 +233,12 @@ extension Workbook {
     try require(
       operations.count <= 64 && (undo == nil ? !operations.isEmpty : operations.isEmpty),
       "app_command", "Use 1 to 64 operations, or undo one receipt.")
-    let request: Value = .object([
-      "space": .string(access.spaceID), "digest": .string(access.package.digest),
-      "operations": .array(operations), "expectedRevision": .number(Double(expectedRevision)),
-      "undo": undo.map(Value.string) ?? .null,
-    ])
+    let request: Value = .object(
+      [
+        "space": .string(access.spaceID), "digest": .string(access.package.digest),
+        "operations": .array(operations), "expectedRevision": .number(Double(expectedRevision)),
+        "undo": undo.map(Value.string) ?? .null,
+      ].merging(reverseRedo.map { ["reverseRedo": .bool($0)] } ?? [:]) { _, new in new })
     // The guard also executes for idempotent replays: a cached receipt never bypasses revocation.
     return try synchronized {
       try access.authorized(self) {
@@ -227,6 +252,12 @@ extension Workbook {
           var requested = operations
           var behaviorCommand = false
           if let undo {
+            if let reverseRedo {
+              let current = try nativeAppLastTransaction(access)
+              try require(
+                current?.token == undo && current?.redo == reverseRedo, "app_undo",
+                "A different transaction is now available. Inspect the latest saved change.")
+            }
             guard
               let original = try db.execute(
                 "SELECT request,result FROM operations WHERE id=? AND kind='native_app_transaction'",
