@@ -169,3 +169,9 @@ Full local check.sh passes before one-line success-footer correction; final nati
 ## [2026-11-16 21:05] verification | records/operations/inference-context-execution.md
 Matched Splash 1.6.1 32K and 64K at 12 GiB using sevra-agent-checks --context-profile. Both shorter tasks passed. The 42K audit only fit at 64K and passed. Rebuilt and checked native packaging, installed with reused weights, and verified the installed 64K calculator receipt and workbook integrity.
 
+## [2026-11-17 13:02] design | records/plans/native-storybook.md
+Audited source 4414522 and wrote the planning-only native UI catalog design. Four review passes cover real renderer reuse, SDK declaration gaps, isolated host services, state/composition coverage and focused verification. No implementation or app control.
+
+## [2026-11-17 13:02] verification | records/plans/native-storybook.md
+Planning-only validation passed: dbmd index rebuild, dbmd validate --all (zero findings), python3 scripts/check_links.py and git diff --check. Canonical capability counts and source references checked statically. No application build, UI session or runtime test performed.
+
