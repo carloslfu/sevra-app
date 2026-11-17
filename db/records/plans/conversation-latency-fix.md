@@ -2,7 +2,7 @@
 type: operational
 id: 01m7nc1jrbsfn0cmkjmzpk4w1r
 created: 2026-11-17T18:24:25.867198+00:00
-updated: 2026-11-17T19:01:22.873696+00:00
+updated: 2026-11-17T20:09:05.033909+00:00
 summary: Bounded product conversation, stable prompt vocabulary and provisional answer delivery with measured replay and preserved authority.
 title: Conversation latency and answer quality
 ---
@@ -22,7 +22,7 @@ Improve simple conversation without weakening business evidence, calculations or
 - [x] Replay hey, what can you do for me?, tell me more and tldr. Record cold/warm timing, prompt/reasoning tokens, tool calls, actual answers and first-preview latency. Preserve failed iterations.
 - [x] Verify an actual business-evidence counterexample and strict ID/citation refusal.
 - [x] Run relevant regression, native package/install and installed UI checks.
-- [ ] Commit/push and verify the exact code CI.
+- [x] Commit/push and verify the exact code CI.
 
 ## Findings
 
@@ -52,3 +52,7 @@ The installed app replayed the same four introductory messages in a disposable w
 A separate full-UI cold stock question returned the correct 18 with both original citations, but took 38 seconds/four model calls, including two additional original-source reads. Its context includes native UI actions and differs from the minimal agent probe. Stop on another real request closed as cancelled, restored controls and saved no completed answer. No provisional text survived completion or Stop. This work solves the four introductory delays, reduces a measured history-repair loop and adds provisional delivery; it does not solve universal model latency.
 
 The original user workbook's inspect, history and run snapshots remain unchanged. Disposable replay and stock workbooks both pass integrity. The updated preview is left open on the completed introductory replay. Portable synthetic evidence: [conversation latency receipt](../../../integration/evidence/2026-11-17-conversation-latency.json). Raw failed experiments and UI captures remain local and ignored.
+
+## Publication verification
+
+Code commit `1c97ab0b4038fae0b4f6a90568f7482eac56cd1c` is pushed to main and [hosted Checks](https://github.com/carloslfu/sevra-app/actions/runs/44154194013) passed. The portable receipt retains exact changed-code hashes, matching the measured and installed candidate. This publication receipt changes documentation only; installed UUID `66DE9F08-606F-3EF6-A388-2B4B73EDC5D3`, model, engine and tested behavior are unchanged. General model-latency, hardware and distribution limits above remain.

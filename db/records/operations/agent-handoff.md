@@ -3,7 +3,7 @@ type: operational
 meta-type: operational
 id: 01m659x4nd2q89tkpzzsssd7yr
 created: 2026-10-30T02:23:30.477380+00:00
-updated: 2026-11-17T19:01:23.014784+00:00
+updated: 2026-11-17T20:09:05.050710+00:00
 summary: Native UI Catalog implemented and locally verified, with durable agent maintenance instructions and preserved product/model qualification limits.
 title: Minimum-feature continuation handoff
 ---
@@ -15,7 +15,7 @@ The owner authorized [[records/plans/conversation-latency-fix|implementation and
 
 Three agent replays measured 5.5–7.6 ms per introductory reply; installed UI observed all four complete by its first checks, 0.59–0.66 seconds including automation overhead, versus the original 19/14/23/20-second activity durations. Maintained product help is not model inference. A real-model warm stock follow-up improved from 33.67 seconds/four calls to 14.55 seconds/two calls after the history-format repair. The full installed UI cold stock case still took 38 seconds/four calls and returned the correct cited balance. General model latency remains a limit.
 
-Local repository, native package/install/extraction and scoped visual/functional verification pass, including actual Stop and original-workbook preservation. Installed main UUID `66DE9F08-606F-3EF6-A388-2B4B73EDC5D3` matches the package. The updated preview is open on a disposable conversation replay. [Portable synthetic receipt](../../../integration/evidence/2026-11-17-conversation-latency.json) records timings, rejected iterations and limits. Hosted verification is pending publication; no production-signing, VoiceOver or additional-hardware claim is made.
+Local repository, native package/install/extraction and scoped visual/functional verification pass, including actual Stop and original-workbook preservation. Installed main UUID `66DE9F08-606F-3EF6-A388-2B4B73EDC5D3` matches the package. The updated preview is open on a disposable conversation replay. [Portable synthetic receipt](../../../integration/evidence/2026-11-17-conversation-latency.json) records timings, rejected iterations and limits. Code commit `1c97ab0b4038fae0b4f6a90568f7482eac56cd1c` is pushed to main and [hosted Checks](https://github.com/carloslfu/sevra-app/actions/runs/44154194013) passed. The receipt update changes documentation only; measured and installed code hashes remain exact. No production-signing, VoiceOver or additional-hardware claim is made.
 
 ## Native UI Catalog implementation, November 17
 

@@ -1,6 +1,6 @@
 {
   "date": "2026-11-17",
-  "status": "Local scoped acceptance passed; hosted verification pending publication",
+  "status": "Scoped acceptance passed, installed and published; exact code hosted Checks passed",
   "baseSource": "fe1afdcd64363f8fddd4480cd2ec8436b3757a08",
   "measurement": {
     "machine": "M5 Pro, 48 GiB unified memory, AC power",
@@ -491,12 +491,73 @@
       "stopPassed": true,
       "cancelledRunHasNoCompletedAnswer": true,
       "previewClearOnCompletion": true,
-      "integrityPassed": true
+      "integrityPassed": true,
+      "modelTimings": {
+        "prefillSeconds": 10.925832999999999,
+        "decodeSeconds": 18.845465,
+        "firstPassPromptTokens": 9988,
+        "matchedPromptTokens": [
+          0,
+          9952,
+          10400,
+          11200
+        ],
+        "reasoningTokens": 458,
+        "note": "The rest of the 38-second observed activity duration includes cold setup and host overhead; the activity duration is rounded."
+      }
     },
     "originalUserWorkbook": {
       "inspectUnchanged": true,
       "historyUnchanged": true,
       "runsUnchanged": true
+    },
+    "hostedCI": {
+      "url": "https://github.com/carloslfu/sevra-app/actions/runs/44154194013",
+      "headSha": "1c97ab0b4038fae0b4f6a90568f7482eac56cd1c",
+      "conclusion": "success",
+      "updatedAt": "2026-11-17T20:08:20Z",
+      "successfulSteps": [
+        "Set up job",
+        "Run actions/checkout@v4",
+        "Select current Xcode",
+        "Check programmable native app engine and sandbox",
+        "Check documentation links",
+        "Check dictation ownership and delayed callbacks",
+        "Check device-local scheduling and physical workbook identity",
+        "Build core checks",
+        "Check isolated extraction and parser failure recovery",
+        "Run invariant and integration checks",
+        "Check exact historical inventory bounds",
+        "Check incremental inventory projection bounds",
+        "Check real condition change-input bounds",
+        "Check search-scale fixture recall, paging and reports",
+        "Retain search-scale fixture evidence",
+        "Check document draft durability and native close guards",
+        "Check file-preview cancellation and stale reads",
+        "Check large linked-file verification and memory bound",
+        "Retain large-file verification evidence",
+        "Check checkpoint publication across process death",
+        "Retain checkpoint process-death evidence",
+        "Check native table identity and refresh races",
+        "Check foreground automation dispatch across process death",
+        "Retain automation process-death evidence",
+        "Check manual workflow recovery across process death",
+        "Retain manual workflow recovery evidence",
+        "Check native search navigation and stale reads",
+        "Check active model memory-pressure lifecycle",
+        "Check the native Splash adapter",
+        "Check pinned native prompts and streamed outputs",
+        "Check complete-workbook performance fixtures and evidence gate",
+        "Check native speculative grammar masks",
+        "Validate independent knowledge store",
+        "Build native app and CLI",
+        "Exercise packaged CLI and installation",
+        "Build and check the isolated Splash preview",
+        "Retain automatic admission race evidence",
+        "Retain condition change-input evidence",
+        "Post Run actions/checkout@v4",
+        "Complete job"
+      ]
     }
   },
   "limits": [
@@ -533,5 +594,6 @@
     "Sources/SevraSplashGrammar/ToolPolicy.swift": "25c15ec09a94eb608edc98c95899d2dbdc8b24e62764f7237e73ccc5f956a8fa",
     "Sources/SevraSplashText/OutputParser.swift": "f837f5efd3efcf9c8e63893549b363a591423a35263d6158049e010085d5764a",
     "Sources/SevraSplashText/OutputStream.swift": "2f424b9098444c9e39f855338ddfbb7807c2be36d33272b7bd3d028d7e527dae"
-  }
+  },
+  "codeCommit": "1c97ab0b4038fae0b4f6a90568f7482eac56cd1c"
 }
