@@ -320,14 +320,14 @@ extension WorkspaceState {
       }
       return .object(["status": .string("completed"), "item": try encoded(result)])
     case "file.transcribe":
-      try await book.transcribe(a["id"].text, cancellation: cancellation)
+      try await AppHost.transcribe(book, id: a["id"].text, cancellation: cancellation)
       return .object(["status": .string("completed"), "sourceID": a["id"]])
     case "automation.inspect", "automation.enable", "automation.pause":
       let definition = try book.applicationDefinition(a["id"].text)
       try require(
         definition.kind == "automation" && definition.id == a["id"].text, "automation",
         "Use an exact automation version.")
-      let controller = NativeAutomationHost.shared.controller
+      let controller = automation.controller
       let grants = try controller.registry.grants().filter {
         $0.sourceID == definition.id
           && (try? controller.registry.matches($0, workbook: book)) == true

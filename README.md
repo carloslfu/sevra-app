@@ -148,6 +148,7 @@ file is a portable copy. Cloud sync is not part of the current app.
 For contributors:
 
 - [Build, run and verification commands](db/records/operations/build-and-run.md)
+- [Native UI Catalog](db/records/operations/native-ui-catalog.md) for components, states and replayable workflows
 - [Native app SDK](sdk/README.md) and [architecture](db/records/specs/programmable-native-engine.md)
 - [Visuals plan and verification](db/records/plans/rich-native-visuals.md)
 - [Inference configuration and qualification](db/records/operations/inference-context-execution.md)

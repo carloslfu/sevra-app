@@ -8,13 +8,17 @@ export interface NativeProps {
  text?:Reactive<string>; title?:Reactive<string>; size?:Reactive<number>; weight?:Reactive<'bold'|'regular'>;
  color?:Reactive<string>; value?:Reactive<any>; placeholder?:Reactive<string>; options?:Reactive<string[]>;
  min?:Reactive<number>; max?:Reactive<number>; columns?:Reactive<number|string[]>; table?:string; search?:Reactive<string>; columnLabels?:Reactive<Record<string,string>>;
- selection?:Reactive<string>; sort?:Reactive<string>; descending?:Reactive<boolean>; titles?:Reactive<string[]>; symbol?:Reactive<string>; asset?:Reactive<string|null>; caption?:Reactive<string>;
+ selection?:Reactive<string>; sort?:Reactive<string>; descending?:Reactive<boolean>; titles?:Reactive<string[]>; symbol?:Reactive<string>; asset?:Reactive<string|null>; viewID?:string; role?:string; caption?:Reactive<string>;
  shapes?:Reactive<any[]>; regions?:Reactive<any[]>; vertical?:Reactive<boolean>; indeterminate?:Reactive<boolean>;
  onClick?:(event:NativeEvent)=>void; onChange?:(event:NativeEvent)=>void; onSelect?:(event:NativeEvent)=>void;
  onActivate?:(event:NativeEvent)=>void; onDrop?:(event:NativeEvent)=>void; children?:any;
 }
 export function h(type:any,props:NativeProps|null,...children:any[]):any;
 export function mount(view:any):void;
+export interface ActionInput {type:'text'|'decimal'|'boolean'|'number'|'date'|'record';title?:string;required?:boolean;choices?:string[];}
+export interface ActionDescription {title:string;description?:string;inputs?:Record<string,ActionInput>;enabled?:Reactive<boolean>;}
+export function action(id:string,description:ActionDescription,handler:(args:Record<string,any>)=>any): (args?:Record<string,any>)=>Promise<any>;
+export function ActionForm(props:{action:string}):any;
 export function Workspace(props:{sections:{title:string;table?:string;columnLabels?:Record<string,string>;actions?:string[]}[]}):any;
 export function draftSignal<T>(key:string,initial:T):Signal<T>;
 export function liveQuery(query:Reactive<Record<string,any>>,kind?:'page'|'query'):Signal<any>;

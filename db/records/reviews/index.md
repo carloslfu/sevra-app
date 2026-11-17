@@ -2,11 +2,12 @@
 type: index
 scope: type-folder
 folder: records/reviews
-updated: 2026-11-17T17:27:44.658044Z
+updated: 2026-11-17T18:11:34.819878Z
 ---
 
 # records/reviews
 
+- [[records/reviews/native-ui-catalog]] — Implemented native catalog: 176 stories, real workbook/XPC paths, isolated services, ten compositions, native capture and scoped acceptance.
 - [[records/reviews/readme-launch-copy]] — Four-pass README review: natural launch copy, local AI and workbook differentiation, factual limits and preserved setup links.
 - [[records/reviews/rich-native-visuals-recent-changes]] — Revision 16 accounts for all three recent inference commits, 95 changed files, token/receipt and human-answer contracts; 53 CPU agent groups pass.
 - [[records/reviews/rich-native-visuals-end-to-end-audit]] — Three-pass code and plan audit closes eight handoff gaps; 28 SDK, 20 signed native and 21 preview groups pass within existing scope.

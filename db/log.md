@@ -190,3 +190,6 @@ Relocation follow-up documentation checks pass: full dbmd validation, repository
 ## [2026-11-17 17:24] update | records/reviews/readme-launch-copy.md
 Review public README for launch, remove visible MVP labels and preserve actual distribution and capability limits.
 
+## [2026-11-17 18:12] implementation | records/plans/native-storybook.md
+Implemented all five native catalog phases; 176 fixtures, 12 focused interactions, 10 flows, 16 extra states and native UX verification pass. Repository check and ordinary native build pass; limits and reused evidence recorded in records/reviews/native-ui-catalog.md.
+

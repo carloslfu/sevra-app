@@ -2,12 +2,12 @@
 type: index
 scope: type-folder
 folder: records/plans
-updated: 2026-11-17T16:51:49.044101Z
+updated: 2026-11-17T18:12:12.486255Z
 ---
 
 # records/plans
 
-- [[records/plans/native-storybook]] — Reviewed native UI catalog plan covering app, Home, mini apps and chat, with current-checkout discovery, portable build paths and isolated fixtures.
+- [[records/plans/native-storybook]] — Implemented native catalog: 176 entries across app, Home, mini apps, chat and visuals, isolated fixtures, ten compositions and scoped local acceptance.
 - [[records/plans/rich-native-visuals]] — Native chat inputs, images, charts and work views implemented in source. The document records focused evidence and remaining visual and release work.
 - [[records/plans/inference-context-upgrade]] — Context fixes and Splash 1.6.1 native preview installed. The focused context comparison selects 64K on the 48 GiB test host.
 - [[records/plans/programmable-native-engine]] — Reviewed architecture and implementation gates for sandboxed JavaScript, reactive native UI, scoped workbook data, packaging and end-to-end verification.

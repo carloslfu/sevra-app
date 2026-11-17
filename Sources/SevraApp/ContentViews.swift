@@ -188,7 +188,9 @@ struct SpaceView: View {
     if space.definition.app != nil, let book = state.workbook {
       VStack(spacing: 0) {
         ExcelAppOriginView(spaceID: space.id, state: state)
-        NativeAppSpaceView(session: state.nativeAppSession(space, book: book)) {
+        NativeAppSpaceView(
+          session: state.nativeAppSession(space, book: book), chooseTemplateURL: AppHost.templateURL
+        ) {
           state.navigate(.item($0))
         }.id(
           space.id + ":" + String(space.version))
@@ -905,7 +907,7 @@ struct DatasetView: View {
     } catch { state.error = error.localizedDescription }
   }
   func export() {
-    let panel = NSSavePanel()
+    let panel = AppHost.savePanel()
     panel.nameFieldStringValue = table.title + ".csv"
     if panel.runModal() == .OK, let url = panel.url {
       state.run("Exporting table") { book, control in

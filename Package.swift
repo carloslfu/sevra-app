@@ -6,6 +6,9 @@ import PackageDescription
 // migration switch, never a user-selectable runtime backend.
 let nativeCandidate = ProcessInfo.processInfo.environment["SEVRA_NATIVE_CANDIDATE"] == "1"
 
+let uiCatalog = ProcessInfo.processInfo.environment["SEVRA_UI_CATALOG"] == "1"
+precondition(!uiCatalog || nativeCandidate, "The UI catalog requires SEVRA_NATIVE_CANDIDATE=1")
+
 let package = Package(
   name: "Sevra", platforms: [.macOS(.v14)],
   products: [
@@ -221,9 +224,10 @@ let package = Package(
       dependencies: [
         "SevraVisualUI",
         "SevraCore", "SevraAI", "SevraProduct", "SevraTableUI", "SevraSearchUI", "SevraVoice",
-        "SevraDocumentUI", "SevraPreviewUI", "SevraAutomationUI", "SevraAppUI",
+        "SevraDocumentUI", "SevraPreviewUI", "SevraAutomationUI", "SevraAppUI", "SevraAppProtocol",
       ],
-      swiftSettings: [.swiftLanguageMode(.v5)]),
+      exclude: uiCatalog ? [] : ["Catalog"],
+      swiftSettings: [.swiftLanguageMode(.v5)] + (uiCatalog ? [.define("SEVRA_UI_CATALOG")] : [])),
     .executableTarget(
       name: "SevraCLI", dependencies: ["SevraCore", "SevraAI", "SevraProduct"],
       swiftSettings: [.swiftLanguageMode(.v5)]),

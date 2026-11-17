@@ -10,6 +10,7 @@ public struct NativeAppSpaceView: View {
   }
 
   @StateObject private var session: NativeAppSession
+  private let chooseTemplateURL: ((String) -> URL?)?
   private let embedded: Bool
   private let openOriginal: ((String) -> Void)?
   @State private var showSource = false
@@ -18,8 +19,10 @@ public struct NativeAppSpaceView: View {
   @State private var accessError: String?
   @State private var expandedImage: ExpandedImage?
   public init(
-    session: NativeAppSession, embedded: Bool = false, openOriginal: ((String) -> Void)? = nil
+    session: NativeAppSession, embedded: Bool = false, chooseTemplateURL: ((String) -> URL?)? = nil,
+    openOriginal: ((String) -> Void)? = nil
   ) {
+    self.chooseTemplateURL = chooseTemplateURL
     self.embedded = embedded
     self.openOriginal = openOriginal
     _session = StateObject(wrappedValue: session)
@@ -137,9 +140,16 @@ public struct NativeAppSpaceView: View {
     }
   }
   private func exportTemplate() {
-    let panel = NSSavePanel()
-    panel.nameFieldStringValue = session.package.name + ".sevraapp"
-    guard panel.runModal() == .OK, let url = panel.url else { return }
+    let url: URL
+    if let chooseTemplateURL {
+      guard let selected = chooseTemplateURL(session.package.name) else { return }
+      url = selected
+    } else {
+      let panel = NSSavePanel()
+      panel.nameFieldStringValue = session.package.name + ".sevraapp"
+      guard panel.runModal() == .OK, let selected = panel.url else { return }
+      url = selected
+    }
     do {
       try session.book.exportNativeAppTemplate(session.space.id, to: url)
     } catch {

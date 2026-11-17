@@ -3,7 +3,9 @@ import Foundation
 /// A bounded record view. Time views use workbook civil dates and retain exact
 /// row versions so presentation controls can call the ordinary table editor.
 public struct WorkVisual: Codable, Equatable, Sendable {
-  public enum Style: String, Codable, Sendable { case board, timeline, agenda, calendar }
+  public enum Style: String, Codable, CaseIterable, Sendable {
+    case board, timeline, agenda, calendar
+  }
 
   public let title: String
   public let style: Style

@@ -1,2 +1,4 @@
 # The exact upstream ELK.js bundle is verified by SHA-256 before use.
 Sources/SevraExtractionWorker/Resources/elk.bundled.js -text -diff
+# PDF cross-reference rows have format-significant spacing and are not source text.
+examples/catalog/assets/*.pdf binary

@@ -1,0 +1,61 @@
+{
+  "schema": "sevra-ui-catalog-acceptance-v1",
+  "date": "2026-11-17",
+  "baseCommit": "966e3eb7eff7af85fdf0940a3f22a7396e5a24ba",
+  "codeSHA256": "f3076d4f890924dfe41d87fcbb5588f3709bcbf4facf4064bac355156f425e41",
+  "catalogBinaryUUID": "915379D6-42AE-357D-975A-1E7510EFF8D9",
+  "normalNativeBinaryUUID": "E2507324-E6CE-3767-866A-86B3E9358B89",
+  "sdk": "26.5",
+  "os": "26.6.2",
+  "registeredStories": 176,
+  "defaultFixturesPassed": 176,
+  "focusedInteractionPathsPassed": 12,
+  "compositionsPassed": 10,
+  "additionalStateCapturesPassed": 16,
+  "checks": {
+    "repositoryCheckScript": "passed; stale production package journeys explicitly skipped by existing freshness gate",
+    "normalNativeBuild": "passed",
+    "normalBinaryCatalogExclusion": "passed",
+    "catalogPackageDeepSignature": "passed",
+    "sdkTypecheck": "passed",
+    "invalidGridConfigurationRefusal": "passed",
+    "actualNativeMinimumDimensions": "passed",
+    "nativeBrowserReplayAndReset": "passed",
+    "nativeFormInvalidSaveUndoRedo": "passed",
+    "configurationRestoreAndVisibleValidation": "passed",
+    "visualReviewRevisionInvalidation": "passed",
+    "gracefulQuit": "passed",
+    "opaqueComponentCapture": "passed after final capture-only change"
+  },
+  "visualReview": [
+    "main.table",
+    "home.component.table",
+    "chat.field.boolean",
+    "chat.field.record Draft",
+    "mini.helper.ActionForm compact",
+    "visual.chart.bar grouped dark 150%",
+    "visual.diagram",
+    "visual.overview",
+    "visual.image",
+    "home.comparison long labels compact 150%",
+    "catalog browser and coverage sheet"
+  ],
+  "controlledServices": [
+    "inference",
+    "model setup",
+    "dictation/transcription",
+    "file selection/export destinations",
+    "external opens",
+    "device schedule timers"
+  ],
+  "limits": [
+    "No actual-model reliability qualification",
+    "No VoiceOver/OS accessibility or additional hardware qualification",
+    "No normal app installation/replacement or production distribution qualification",
+    "Separate sheets/popovers and Quick Look/media layers need live review",
+    "Not all selectable states or arbitrary arrangements are visually approved"
+  ],
+  "evidencePolicy": "Unchanged default/flow proof reused after browser/evidence-only fixes. Latest semantic binary exercised focused interactions/native UI; final catalog binary adds only opaque capture background, verified with a real table-window capture.",
+  "codeSHA256Algorithm": "SHA256 of sorted relative path + NUL + file bytes + NUL; Sources/**/*.swift, Package.swift, catalog/check tooling, workflow, SDK build/declarations/package files and examples/catalog assets",
+  "semanticEvidenceBinaryUUID": "54DBF18A-A090-3644-9E0C-042C958E1097"
+}

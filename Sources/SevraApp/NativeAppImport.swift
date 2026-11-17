@@ -5,7 +5,7 @@ import SwiftUI
 extension WorkspaceState {
   func importNativeApp(replacing space: Space? = nil) {
     guard let book = workbook else { return }
-    let panel = NSOpenPanel()
+    let panel = AppHost.openPanel(for: workbook)
     panel.title = space == nil ? "Add a native app" : "Update native app"
     panel.allowedContentTypes = [.json, .data]
     panel.allowsMultipleSelection = false

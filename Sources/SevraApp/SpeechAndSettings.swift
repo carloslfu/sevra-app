@@ -6,6 +6,24 @@ import SevraVoice
 import SwiftUI
 
 struct ModelSettingsView: View {
+  // Scoped initial presentation for deterministic developer previews. Effects
+  // still use the app host; ordinary settings have no override.
+  private let initialState: String?
+  init(initialState: String? = nil) {
+    self.initialState = initialState
+    _busy = State(initialValue: initialState == "Installing" || initialState == "Loading")
+    _filesFound = State(initialValue: initialState == "Installed")
+    _status = State(
+      initialValue: initialState == "Installing"
+        ? "Downloading model files…"
+        : initialState == "Loading"
+          ? "Loading local model…"
+          : initialState == "Cancelled"
+            ? "Setup cancelled. Downloaded files are kept so you can resume." : "")
+    _error = State(
+      initialValue: initialState == "Failure"
+        ? "Synthetic setup failed. Retry preserves downloaded files." : nil)
+  }
   @AppStorage(ReadingStyle.preference) private var textScale = 1.0
   @AppStorage("appearance") private var appearance = "system"
   @AppStorage(ProductAI.preferenceKey) private var modelDirectory = ProductAI.defaultDirectory.path
@@ -53,7 +71,7 @@ struct ModelSettingsView: View {
           .disabled(busy)
           HStack {
             Button("Choose folder…") {
-              let panel = NSOpenPanel()
+              let panel = AppHost.openPanel()
               panel.canChooseDirectories = true
               panel.canChooseFiles = false
               if panel.runModal() == .OK, let url = panel.url { modelDirectory = url.path }
@@ -61,7 +79,7 @@ struct ModelSettingsView: View {
           }
           if ProductAI.canReuseModel {
             Button("Use existing model files…") {
-              let panel = NSOpenPanel()
+              let panel = AppHost.openPanel()
               panel.title = "Choose the model folder containing its dflash folder"
               panel.directoryURL = ProductAI.suggestedReuseDirectory
               panel.canChooseDirectories = true
@@ -75,7 +93,7 @@ struct ModelSettingsView: View {
           }
           Button("Unload model from memory") {
             Task {
-              let released = await ProductAI.shared.unload()
+              let released = await AppHost.ai.unload()
               status =
                 released
                 ? "Idle model released."
@@ -100,8 +118,9 @@ struct ModelSettingsView: View {
     )
     .announceStatus(error ?? (busy || status.isEmpty ? nil : status))
     .task(id: modelDirectory) {
+      guard initialState == nil else { return }
       filesFound = false
-      let found = await ProductAI.shared.installed(at: URL(fileURLWithPath: modelDirectory))
+      let found = await AppHost.installed(at: URL(fileURLWithPath: modelDirectory))
       guard !Task.isCancelled else { return }
       filesFound = found
     }
@@ -116,7 +135,7 @@ struct ModelSettingsView: View {
     let folder = URL(fileURLWithPath: modelDirectory)
     Task {
       do {
-        try await ProductAI.shared.setup(
+        try await AppHost.setup(
           at: folder, reusing: source, cancellation: cancel,
           progress: { text in
             Task { @MainActor in

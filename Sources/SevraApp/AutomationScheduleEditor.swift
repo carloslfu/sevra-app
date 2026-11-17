@@ -203,9 +203,9 @@ struct AutomationScheduleEditor: View {
           ?? (!working && preview != nil
             ? "Automation preview is ready. Review it before saving." : nil)
       )
-      .onAppear { NativeAutomationHost.shared.setBusy(editingOwner, true) }
+      .onAppear { workspace.automation.setBusy(editingOwner, true) }
       .onDisappear {
-        NativeAutomationHost.shared.setBusy(editingOwner, false)
+        workspace.automation.setBusy(editingOwner, false)
         choices.cancel()
       }
       .task { await open() }

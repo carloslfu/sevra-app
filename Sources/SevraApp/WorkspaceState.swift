@@ -30,6 +30,10 @@ struct FolderReview {
 }
 
 @MainActor final class WorkspaceState: ObservableObject {
+  let ai: ProductAI
+  let appExchange: (@Sendable (Data) async throws -> Data)?
+  let automation: NativeAutomationHost
+  let defaults: UserDefaults
   private var nativeAppSessions: [String: NativeAppSession] = [:]
   func nativeAppSession(_ space: Space, book: Workbook) -> NativeAppSession {
     if let session = nativeAppSessions[space.id], session.book === book,
@@ -38,7 +42,8 @@ struct FolderReview {
       return session
     }
     nativeAppSessions[space.id]?.stop()
-    let session = NativeAppSession(book: book, space: space)
+    let session = NativeAppSession(
+      book: book, space: space, defaults: defaults, exchange: appExchange)
     nativeAppSessions[space.id] = session
     return session
   }
@@ -169,7 +174,7 @@ struct FolderReview {
   }
   private let automationBusyOwner = UUID()
   @Published var busy = false {
-    didSet { NativeAutomationHost.shared.setBusy(automationBusyOwner, busy) }
+    didSet { automation.setBusy(automationBusyOwner, busy) }
   }
   @Published var status = ""
   @Published var error: String?
@@ -224,7 +229,7 @@ struct FolderReview {
   private var applyingDictation = false
   /// The submitted message until its conversation has saved it. Only one operation runs at a time.
   private var unsent: (input: String, chat: String, book: Workbook)?
-  let speech = SpeechInput(pausePlayback: { PlaybackRegistry.shared.pauseAll() })
+  let speech: SpeechInput
   func open(_ url: URL) async throws {
     // Opening checks the whole schema and can wait for another process to let go of the workbook.
     let opened = try await Task.detached(priority: .userInitiated) {
@@ -246,7 +251,7 @@ struct FolderReview {
     speech.stop()
     let restored = await conversationSession.open(
       opened,
-      conversation: UserDefaults.standard.string(forKey: "lastConversation:" + opened.url.path)
+      conversation: defaults.string(forKey: "lastConversation:" + opened.url.path)
         ?? "main")
     try require(
       restored, "conversation_save",
@@ -320,7 +325,16 @@ struct FolderReview {
     beginInteraction()
     refresh()
   }
-  init() {
+  init(
+    ai: ProductAI? = nil, defaults: UserDefaults = .standard,
+    automation: NativeAutomationHost? = nil,
+    appExchange: (@Sendable (Data) async throws -> Data)? = nil, speech: SpeechInput? = nil
+  ) {
+    self.ai = ai ?? AppHost.ai
+    self.defaults = defaults
+    self.automation = automation ?? .shared
+    self.appExchange = appExchange
+    self.speech = speech ?? AppHost.speech()
     formDrafts.changed = { [weak self] in self?.objectWillChange.send() }
     clarificationDrafts.changed = { [weak self] in self?.objectWillChange.send() }
     spaceNavigation.changed = { [weak self] in self?.objectWillChange.send() }
@@ -498,7 +512,7 @@ struct FolderReview {
   func continueWorkflow(_ runID: String, retry: Bool = false) {
     guard let (book, ticket) = beginOperation("Continuing workflow") else { return }
     let path =
-      UserDefaults.standard.string(forKey: ProductAI.preferenceKey).map { URL(fileURLWithPath: $0) }
+      defaults.string(forKey: ProductAI.preferenceKey).map { URL(fileURLWithPath: $0) }
       ?? ProductAI.defaultDirectory
     Task {
       defer { finishOperation(ticket, in: book) }
@@ -512,9 +526,9 @@ struct FolderReview {
           }
           return session
         }.value
-        await NativeAutomationHost.shared.yieldForInteractive()
+        await automation.yieldForInteractive()
         try ticket.cancellation.check()
-        _ = try await ProductAI.shared.continueWorkflow(
+        _ = try await ai.continueWorkflow(
           workbook: book, session: session, owner: "native:" + identifier(),
           modelDirectory: path, cancellation: ticket.cancellation,
           progress: { update in
@@ -662,7 +676,7 @@ struct FolderReview {
     guard interactionActive, !busy, let book = workbook else { return }
     let chat = conversation
     let identity = interactionIdentity
-    let panel = NSOpenPanel()
+    let panel = AppHost.openPanel(for: workbook)
     panel.canChooseFiles = true
     panel.canChooseDirectories = false
     panel.treatsFilePackagesAsDirectories = true
@@ -675,7 +689,7 @@ struct FolderReview {
   /// One explicit comparison of a folder, shown before anything is added.
   func folderPanel() {
     guard interactionActive, !busy, workbook != nil else { return }
-    let panel = NSOpenPanel()
+    let panel = AppHost.openPanel(for: workbook)
     panel.canChooseFiles = false
     panel.canChooseDirectories = true
     panel.message = "Sevra compares this folder once, now. It does not watch it."
@@ -966,7 +980,7 @@ struct FolderReview {
   func exportPanel() {
     guard interactionActive, !busy, let book = workbook, documentDrafts.flush() else { return }
     let identity = interactionIdentity
-    let panel = NSSavePanel()
+    let panel = AppHost.savePanel()
     panel.title = "Make a shareable copy"
     panel.message =
       "Includes the workbook, conversations and saved unsent drafts. Review them before sharing."
@@ -1156,7 +1170,7 @@ struct FolderReview {
     let context = agentContext + (selectedContext.isEmpty ? "" : "\nSelection: " + selectedContext)
     let conversationOrigin = conversationNavigationIdentity
     let path =
-      UserDefaults.standard.string(forKey: ProductAI.preferenceKey).map { URL(fileURLWithPath: $0) }
+      defaults.string(forKey: ProductAI.preferenceKey).map { URL(fileURLWithPath: $0) }
       ?? ProductAI.defaultDirectory
     Task {
       defer { finishOperation(ticket, in: book, successStatus: "Response ready.") }
@@ -1189,9 +1203,9 @@ struct FolderReview {
           )
         }
         try ticket.cancellation.check()
-        await NativeAutomationHost.shared.yieldForInteractive()
+        await automation.yieldForInteractive()
         try ticket.cancellation.check()
-        let result = try await ProductAI.shared.run(
+        let result = try await ai.run(
           input, workbook: book, conversation: chat, context: context, modelDirectory: path,
           cancellation: ticket.cancellation,
           progress: { value in
@@ -1550,7 +1564,7 @@ struct FolderReview {
     Task { @MainActor in
       defer { self.finishOperation(ticket, in: book) }
       do {
-        try await book.transcribe(id, cancellation: ticket.cancellation) { value in
+        try await AppHost.transcribe(book, id: id, cancellation: ticket.cancellation) { value in
           Task { @MainActor in
             if self.owns(ticket, in: book) { self.status = value }
           }
@@ -1632,7 +1646,7 @@ struct FolderReview {
       error = "Open an external file reference first."
       return
     }
-    let panel = NSOpenPanel()
+    let panel = AppHost.openPanel(for: workbook)
     panel.title = "Find the original file"
     panel.canChooseFiles = true
     panel.canChooseDirectories = false
@@ -1657,7 +1671,7 @@ struct FolderReview {
       let name = URL(fileURLWithPath: asset.name).lastPathComponent
       let fileName = URL(fileURLWithPath: name)
       let suffix = fileName.pathExtension.isEmpty ? "" : "." + fileName.pathExtension
-      let panel = NSSavePanel()
+      let panel = AppHost.savePanel()
       panel.title = "Open a copy in another app"
       panel.prompt = "Save and Open"
       panel.message =
@@ -1699,7 +1713,7 @@ struct FolderReview {
             conversation: chat)
           guard owns(ticket, in: book), !ticket.cancellation.isCancelled else { return }
           try Workbook.quarantineCopy(copy)
-          if !NSWorkspace.shared.open(copy) {
+          if !AppHost.openExternal(copy) {
             error =
               "The copy was saved, but no app opened it. You can find it in the folder you chose."
           }
@@ -1713,7 +1727,7 @@ struct FolderReview {
     case .evidence(let id, let locator):
       openEvidence(id, locator: locator, returningTo: returningTo)
     case .message(let id): jumpToMessage(id)
-    case .external: NSWorkspace.shared.open(url)
+    case .external: AppHost.openExternal(url)
     case nil: break
     }
   }
@@ -1792,7 +1806,7 @@ struct FolderReview {
     conversation = id
     conversationNavigationIdentity = UUID()
     if let workbook {
-      UserDefaults.standard.set(id, forKey: "lastConversation:" + workbook.url.path)
+      defaults.set(id, forKey: "lastConversation:" + workbook.url.path)
     }
     selectedContext = ""
     if let anchor { conversationSession.updateReading(.init(message: anchor)) }

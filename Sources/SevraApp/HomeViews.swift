@@ -210,13 +210,15 @@ struct HomeAppView: View {
               .foregroundStyle(.secondary)
           }
         } else {
-          NativeAppSpaceView(session: session, embedded: true) { state.navigate(.item($0)) }
-            .id(app.id + ":" + String(app.version))
-            .frame(height: 420)
-            .background(
-              Color(nsColor: .controlBackgroundColor), in: RoundedRectangle(cornerRadius: 8)
-            )
-            .overlay(RoundedRectangle(cornerRadius: 8).strokeBorder(.quaternary))
+          NativeAppSpaceView(
+            session: session, embedded: true, chooseTemplateURL: AppHost.templateURL
+          ) { state.navigate(.item($0)) }
+          .id(app.id + ":" + String(app.version))
+          .frame(height: 420)
+          .background(
+            Color(nsColor: .controlBackgroundColor), in: RoundedRectangle(cornerRadius: 8)
+          )
+          .overlay(RoundedRectangle(cornerRadius: 8).strokeBorder(.quaternary))
         }
       }
     } else {

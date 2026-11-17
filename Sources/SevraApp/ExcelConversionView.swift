@@ -416,7 +416,7 @@ extension WorkspaceState {
   func addExcelExample(_ id: String, action: String, arguments: Value) {
     guard interactionActive, !busy, let book = workbook, let draft = try? book.excelConversion(id)
     else { return }
-    let panel = NSOpenPanel()
+    let panel = AppHost.openPanel(for: workbook)
     panel.canChooseFiles = true
     panel.canChooseDirectories = false
     panel.allowsMultipleSelection = false
@@ -442,7 +442,7 @@ extension WorkspaceState {
       }, completion: { self.navigate(.excelImport($0)) })
   }
   var excelModelDirectory: URL {
-    UserDefaults.standard.string(forKey: ProductAI.preferenceKey).map { URL(fileURLWithPath: $0) }
+    defaults.string(forKey: ProductAI.preferenceKey).map { URL(fileURLWithPath: $0) }
       ?? ProductAI.defaultDirectory
   }
 
@@ -462,9 +462,9 @@ extension WorkspaceState {
             id, expectedVersion: old.version, state: "analyzing", purpose: purpose)
         }.value
         expected = draft.version
-        await NativeAutomationHost.shared.yieldForInteractive()
+        await automation.yieldForInteractive()
         try ticket.cancellation.check()
-        let result = try await ProductAI.shared.analyzeExcel(
+        let result = try await ai.analyzeExcel(
           draft, workbook: book, modelDirectory: path,
           cancellation: ticket.cancellation,
           progress: { value in
@@ -522,9 +522,9 @@ extension WorkspaceState {
           return try book.prepareExcelConversionBuild(id)
         }.value
         expected = build.conversionVersion
-        await NativeAutomationHost.shared.yieldForInteractive()
+        await automation.yieldForInteractive()
         try ticket.cancellation.check()
-        let result = try await ProductAI.shared.run(
+        let result = try await ai.run(
           build.request, workbook: book, conversation: chat,
           context: build.context, modelDirectory: path, cancellation: ticket.cancellation,
           progress: { update in

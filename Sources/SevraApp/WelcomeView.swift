@@ -7,7 +7,8 @@ struct WelcomeView: View {
   let create: () -> Void
   let demo: () -> Void
   let openRecent: (String) -> Void
-  @State private var recents = UserDefaults.standard.stringArray(forKey: "recentWorkbooks") ?? []
+  var defaults: UserDefaults = .standard
+  @State private var recents: [String] = []
   @State private var showingAll = false
 
   var body: some View {
@@ -70,9 +71,10 @@ struct WelcomeView: View {
           .frame(maxWidth: .infinity, minHeight: geometry.size.height, alignment: .center)
       }
     }.background(Color(nsColor: .windowBackgroundColor))
+      .onAppear { recents = defaults.stringArray(forKey: "recentWorkbooks") ?? [] }
       .onReceive(NotificationCenter.default.publisher(for: UserDefaults.didChangeNotification)) {
         _ in
-        let saved = UserDefaults.standard.stringArray(forKey: "recentWorkbooks") ?? []
+        let saved = defaults.stringArray(forKey: "recentWorkbooks") ?? []
         if saved != recents { recents = saved }
       }
   }

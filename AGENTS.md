@@ -107,3 +107,17 @@ Inspect spacing, alignment, density, hierarchy, empty/loading/error states, nati
 keyboard behavior and constrained-window layouts, not only compilation or saved
 data. Fix observed issues and inspect the result. This task has explicit app/UI
 authorization; VoiceOver and system-setting changes remain outside scope.
+
+## Native UI Catalog maintenance
+
+The owner's [end-to-end catalog implementation request](db/sources/notes/2026/11/native-storybook-implementation.md)
+authorizes the isolated developer app and its focused native visual/functional
+verification. Read [Native UI Catalog](db/records/operations/native-ui-catalog.md)
+when changing UI, navigation, Home/space components, mini-app protocol/SDK, visuals,
+chat interactions or their lifecycle. Update the matching registry/fixture in the
+same change; add a bounded state/composition for new capabilities. Exercise the
+production path and one nearby refusal. Separate registration, rendering,
+interaction evidence and visual review; never count an early-exiting runner as a
+pass. Keep fixtures, scripts and controlled services out of normal packaging and
+the shipped agent's prompt/tools. Do not open an active user workbook, download a
+model, start product schedules or change OS settings for catalog checks.

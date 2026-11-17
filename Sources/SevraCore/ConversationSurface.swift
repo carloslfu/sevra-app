@@ -6,7 +6,9 @@ public struct ConversationSurface: Codable, Equatable, Identifiable, Sendable {
   public enum Kind: String, Codable, Sendable { case question, input, review, result }
 
   public struct Field: Codable, Equatable, Identifiable, Sendable {
-    public enum Kind: String, Codable, Sendable { case text, boolean, decimal, date, record }
+    public enum Kind: String, Codable, CaseIterable, Sendable {
+      case text, boolean, decimal, date, record
+    }
 
     public struct RecordOptions: Codable, Equatable, Sendable {
       public let datasetID: String

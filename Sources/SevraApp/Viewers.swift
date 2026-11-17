@@ -828,6 +828,9 @@ struct QuickLookViewer: NSViewRepresentable {
   func makeNSView(context: Context) -> QLPreviewView {
     let view = QLPreviewView(frame: .zero, style: .normal)!
     view.autostarts = false
+    // SwiftUI owns disposal. The default window-close observer can otherwise
+    // close this same view before dismantleNSView and crash Quick Look twice.
+    view.shouldCloseWithWindow = false
     view.previewItem = url as NSURL
     return view
   }
@@ -851,7 +854,9 @@ struct ImageFileViewer: View {
         if let image {
           ImageViewer(
             image: image, title: title,
-            imageHint: "Read extracted text for recognized words. An optional description can be saved below.")
+            imageHint:
+              "Read extracted text for recognized words. An optional description can be saved below."
+          )
         } else if unreadable {
           QuickLookViewer(url: file).accessibilityLabel("Image: " + title)
         } else {

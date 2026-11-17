@@ -3,11 +3,19 @@ type: operational
 meta-type: operational
 id: 01m659x4nd2q89tkpzzsssd7yr
 created: 2026-10-30T02:23:30.477380+00:00
-updated: 2026-11-17T16:51:49.060586+00:00
-summary: Native UI catalog planning and relocated-checkout execution guidance, with preserved preview, visual-system and local-state verification limits.
+updated: 2026-11-17T18:12:12.626046+00:00
+summary: Native UI Catalog implemented and locally verified, with durable agent maintenance instructions and preserved product/model qualification limits.
 title: Minimum-feature continuation handoff
 ---
 # Minimum-feature continuation handoff
+
+## Native UI Catalog implementation, November 17
+
+The owner subsequently authorized [[sources/notes/2026/11/native-storybook-implementation|end-to-end implementation]], superseding the documentation-only restriction below. The isolated native catalog is implemented in `Sources/SevraApp/Catalog`, built by `scripts/build_ui_catalog.sh` to `output/ui-catalog/Sevra UI Catalog.app`. Read [[records/operations/native-ui-catalog]] before UI/schema/SDK/chat work and maintain the matching registry/fixture with each change. AGENTS.md now requires this maintenance.
+
+Local acceptance is complete: 176 default fixtures, twelve focused interaction paths, all ten uninterrupted compositions, sixteen additional state captures, the repository gate and ordinary native compilation pass. Native visual/functional review covered the browser, replay/reset, configuration restore/refusal, ActionForm invalid input/save/Undo/Redo, coverage invalidation and graceful Quit. [[records/reviews/native-ui-catalog]] and its portable receipt preserve exact identities, reused evidence and limits. Ordinary native compilation excludes catalog code; the separate catalog package is signed. No active user workbook, installed preview, model files or product schedule registry was changed.
+
+Use the catalog for future UI work; keep its registry/fixtures in the same change as capabilities and exercise the production path plus a nearby refusal. Scripted checks do not qualify actual-model reliability, OS accessibility, other hardware or production distribution. Historical planning-only statements below describe their dated checkpoint and are superseded by the implementation request above.
 
 ## Native UI catalog planning, November 17
 

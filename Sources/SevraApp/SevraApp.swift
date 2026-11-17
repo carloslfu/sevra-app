@@ -8,87 +8,90 @@ import SevraTableUI
 import SwiftUI
 import UniformTypeIdentifiers
 
-@main struct SevraApp: App {
-  init() {
-    // macOS otherwise opens contact AutoFill over fields it takes for a person's title.
-    UserDefaults.standard.register(defaults: ["NSAutoFillHeuristicsEnabled": false])
-    if CommandLine.arguments.contains("--check-resources") {
-      Task.detached {
-        do {
-          print(
-            try await ProductAI.checkResources(
-              validateMetal: !CommandLine.arguments.contains("--paths-only")
-            ).json())
-          exit(0)
-        } catch {
-          fputs(error.localizedDescription + "\n", stderr)
-          exit(1)
-        }
-      }
-    }
-  }
-  @NSApplicationDelegateAdaptor(DocumentDelegate.self) private var documentDelegate
-  @AppStorage("appearance") private var appearance = "system"
-  @FocusedValue(\.conversationWorkspace) private var workspace
-  var body: some Scene {
-    WindowGroup("Sevra", for: String.self) { $path in
-      WorkspaceWindow(path: $path, inbox: documentDelegate).readingFont(.body)
-        .preferredColorScheme(appearance == "dark" ? .dark : appearance == "light" ? .light : nil)
-    }
-    .defaultSize(width: 1200, height: 800)
-    .commands {
-      CommandGroup(replacing: .appTermination) {
-        Button(
-          "Quit \(Bundle.main.object(forInfoDictionaryKey: "CFBundleName") as? String ?? "Sevra")"
-        ) {
-          documentDelegate.quit()
-        }.keyboardShortcut("q")
-      }
-      CommandMenu("Reading") {
-        ReadingSizeCommands()
-        Divider()
-        if let workspace { ReadingWorkspaceCommands(state: workspace) }
-      }
-      ConversationCommands()
-      WorkbookFileCommands()
-      CommandMenu("Workbook") {
-        Button("Add Native App…") { workspace?.importNativeApp() }.disabled(
-          workspace?.workbook == nil)
-        Button("Update Native App…") {
-          if let workspace, case .space(let id) = workspace.route,
-            let saved = workspace.spaces.first(where: { $0.id == id && $0.definition.app != nil })
-          {
-            workspace.importNativeApp(replacing: saved)
+#if !SEVRA_UI_CATALOG
+  @main struct SevraApp: App {
+    init() {
+      // macOS otherwise opens contact AutoFill over fields it takes for a person's title.
+      UserDefaults.standard.register(defaults: ["NSAutoFillHeuristicsEnabled": false])
+      if CommandLine.arguments.contains("--check-resources") {
+        Task.detached {
+          do {
+            print(
+              try await ProductAI.checkResources(
+                validateMetal: !CommandLine.arguments.contains("--paths-only")
+              ).json())
+            exit(0)
+          } catch {
+            fputs(error.localizedDescription + "\n", stderr)
+            exit(1)
           }
-        }.disabled(workspace?.workbook == nil)
-        Divider()
-        Button("Add Files…") { NotificationCenter.default.post(name: .sevraImport, object: nil) }
-          .keyboardShortcut("i")
-        Button("Search Workbook") {
-          NotificationCenter.default.post(name: .sevraSearch, object: nil)
-        }.keyboardShortcut("f", modifiers: [.command, .shift])
-        Button("Drafts to Review") {
-          NotificationCenter.default.post(name: .sevraReviews, object: nil)
         }
-        Button("Workflow Runs") {
-          NotificationCenter.default.post(name: .sevraActivity, object: nil)
-        }.keyboardShortcut("y", modifiers: [.command, .shift])
-        Divider()
-        if let workspace {
-          ReferenceCommandContent(state: workspace)
-        } else {
-          Button("Links in This Document") {}.disabled(true)
-          Button("Where Is This Mentioned?") {}.disabled(true)
-        }
-        Divider()
-        Button("Make Shareable Copy…") {
-          NotificationCenter.default.post(name: .sevraExport, object: nil)
-        }.keyboardShortcut("e", modifiers: [.command, .shift])
       }
     }
-    Settings { ModelSettingsView().readingFont(.body) }
+    @NSApplicationDelegateAdaptor(DocumentDelegate.self) private var documentDelegate
+    @AppStorage("appearance") private var appearance = "system"
+    @FocusedValue(\.conversationWorkspace) private var workspace
+    var body: some Scene {
+      WindowGroup("Sevra", for: String.self) { $path in
+        WorkspaceWindow(path: $path, inbox: documentDelegate).readingFont(.body)
+          .preferredColorScheme(appearance == "dark" ? .dark : appearance == "light" ? .light : nil)
+      }
+      .defaultSize(width: 1200, height: 800)
+      .commands {
+        CommandGroup(replacing: .appTermination) {
+          Button(
+            "Quit \(Bundle.main.object(forInfoDictionaryKey: "CFBundleName") as? String ?? "Sevra")"
+          ) {
+            documentDelegate.quit()
+          }.keyboardShortcut("q")
+        }
+        CommandMenu("Reading") {
+          ReadingSizeCommands()
+          Divider()
+          if let workspace { ReadingWorkspaceCommands(state: workspace) }
+        }
+        ConversationCommands()
+        WorkbookFileCommands()
+        CommandMenu("Workbook") {
+          Button("Add Native App…") { workspace?.importNativeApp() }.disabled(
+            workspace?.workbook == nil)
+          Button("Update Native App…") {
+            if let workspace, case .space(let id) = workspace.route,
+              let saved = workspace.spaces.first(where: { $0.id == id && $0.definition.app != nil })
+            {
+              workspace.importNativeApp(replacing: saved)
+            }
+          }.disabled(workspace?.workbook == nil)
+          Divider()
+          Button("Add Files…") { NotificationCenter.default.post(name: .sevraImport, object: nil) }
+            .keyboardShortcut("i")
+          Button("Search Workbook") {
+            NotificationCenter.default.post(name: .sevraSearch, object: nil)
+          }.keyboardShortcut("f", modifiers: [.command, .shift])
+          Button("Drafts to Review") {
+            NotificationCenter.default.post(name: .sevraReviews, object: nil)
+          }
+          Button("Workflow Runs") {
+            NotificationCenter.default.post(name: .sevraActivity, object: nil)
+          }.keyboardShortcut("y", modifiers: [.command, .shift])
+          Divider()
+          if let workspace {
+            ReferenceCommandContent(state: workspace)
+          } else {
+            Button("Links in This Document") {}.disabled(true)
+            Button("Where Is This Mentioned?") {}.disabled(true)
+          }
+          Divider()
+          Button("Make Shareable Copy…") {
+            NotificationCenter.default.post(name: .sevraExport, object: nil)
+          }.keyboardShortcut("e", modifiers: [.command, .shift])
+        }
+      }
+      Settings { ModelSettingsView().readingFont(.body) }
+    }
   }
-}
+
+#endif
 
 /// New and Open belong to the app, so they work with no window open or another window in front.
 private struct WorkbookFileCommands: Commands {
@@ -106,7 +109,7 @@ private struct WorkbookFileCommands: Commands {
 @MainActor struct WorkbookFiles {
   let openWindow: OpenWindowAction
   static func workbookSavePanel(title: String, name: String) -> NSSavePanel {
-    let panel = NSSavePanel()
+    let panel = AppHost.savePanel()
     panel.title = title
     panel.nameFieldStringValue = name
     panel.allowedContentTypes = [UTType(filenameExtension: "sevra", conformingTo: .package)]
@@ -121,7 +124,7 @@ private struct WorkbookFileCommands: Commands {
     build(url) { _ = try Workbook.create(at: url, title: title) }
   }
   func open() {
-    let panel = NSOpenPanel()
+    let panel = AppHost.openPanel()
     panel.canChooseDirectories = true
     panel.canChooseFiles = true
     panel.treatsFilePackagesAsDirectories = false
@@ -398,7 +401,7 @@ struct WorkspaceWindow: View {
   }
   func startFromFiles() {
     guard let owner = ownWindow, owner.isVisible else { return }
-    let input = NSOpenPanel()
+    let input = AppHost.openPanel()
     input.title = "Start a workbook from your files"
     input.canChooseFiles = true
     input.canChooseDirectories = false

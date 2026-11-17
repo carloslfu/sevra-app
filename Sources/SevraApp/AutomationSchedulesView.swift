@@ -5,8 +5,12 @@ import SevraTableUI
 import SwiftUI
 
 struct AutomationSchedulesView: View {
+  init(workspace: WorkspaceState) {
+    self.workspace = workspace
+    _owner = ObservedObject(wrappedValue: workspace.automation.controller)
+  }
   @ObservedObject var workspace: WorkspaceState
-  @ObservedObject private var owner = NativeAutomationHost.shared.controller
+  @ObservedObject private var owner: NativeAutomationController
   @StateObject private var pages = DefinitionResultSession()
   @State private var query = ""
   @State private var selected: ApplicationDefinition?
@@ -125,7 +129,7 @@ struct AutomationSchedulesView: View {
       .sheet(isPresented: $creating) { AutomationScheduleEditor(workspace: workspace) }
   }
   private func importTemplate() {
-    let panel = NSOpenPanel()
+    let panel = AppHost.openPanel()
     panel.allowedContentTypes = [.json]
     guard panel.runModal() == .OK, let file = panel.url, let book = workspace.workbook else {
       return
@@ -167,10 +171,16 @@ struct AutomationSchedulesView: View {
 }
 
 struct AutomationScheduleDetail: View {
+  init(definition: ApplicationDefinition, workspace: WorkspaceState, onClose: (() -> Void)? = nil) {
+    self.definition = definition
+    self.workspace = workspace
+    self.onClose = onClose
+    _owner = ObservedObject(wrappedValue: workspace.automation.controller)
+  }
   let definition: ApplicationDefinition
   @ObservedObject var workspace: WorkspaceState
   var onClose: (() -> Void)? = nil
-  @ObservedObject private var owner = NativeAutomationHost.shared.controller
+  @ObservedObject private var owner: NativeAutomationController
   @Environment(\.dismiss) private var dismiss
   @State private var preview: Value?
   @State private var state: Value = .null
@@ -442,12 +452,12 @@ struct AutomationScheduleDetail: View {
     changeNotice = nil
     // Automatic work waits for this change only. It must not wait for the page to close.
     let owner = inspectionOwner
-    NativeAutomationHost.shared.setBusy(owner, true)
+    workspace.automation.setBusy(owner, true)
     Task {
       do { try await operation() } catch {
         failure = "Could not confirm the requested state. " + error.localizedDescription
       }
-      NativeAutomationHost.shared.setBusy(owner, false)
+      workspace.automation.setBusy(owner, false)
       await load()
       workspace.refresh()
       if failure == nil {
@@ -457,7 +467,7 @@ struct AutomationScheduleDetail: View {
     }
   }
   private func exportTemplate() {
-    let panel = NSSavePanel()
+    let panel = AppHost.savePanel()
     panel.allowedContentTypes = [.json]
     panel.nameFieldStringValue = shown.title + " template.json"
     guard panel.runModal() == .OK, let file = panel.url, let book = workspace.workbook else {

@@ -180,11 +180,8 @@ extension Workbook {
     }
     func validate(_ c: Component, depth: Int) throws {
       try require(
-        Set([
-          "table", "chart", "metric", "comparison", "document", "asset", "search", "text", "form",
-          "calculation", "query", "app", "image", "visual",
-        ])
-        .union(SpaceDefinition.sectionTypes).contains(c.type), "view",
+        SpaceDefinition.contentTypes
+          .union(SpaceDefinition.sectionTypes).contains(c.type), "view",
         "Unknown native component: \(c.type)")
       if c.type == "image" {
         guard let visual = c.visual, let image = visual.image else {

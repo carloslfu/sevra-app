@@ -3,10 +3,10 @@ type: spec
 meta-type: conclusion
 id: 01m7mskdhjs58amvzbavb8xqpf
 created: 2026-11-17T13:02:07.410203+00:00
-updated: 2026-11-17T16:51:49.044101+00:00
-summary: Reviewed native UI catalog plan covering app, Home, mini apps and chat, with current-checkout discovery, portable build paths and isolated fixtures.
+updated: 2026-11-17T18:12:12.486255+00:00
+summary: 'Implemented native catalog: 176 entries across app, Home, mini apps, chat and visuals, isolated fixtures, ten compositions and scoped local acceptance.'
 title: Native Storybook for Sevra
-status: reviewed
+status: implemented
 ---
 # Native Storybook for Sevra
 
@@ -16,7 +16,7 @@ Build **Sevra UI Catalog**, a separate native development application that displ
 
 Cover four surfaces: the main application, ordinary spaces and Home, programmable mini apps, and chat. Browse components, change their inputs, inspect states, assemble supported compositions, and replay representative interactions. A gallery of screenshots alone does not meet this requirement.
 
-**Planning only. No implementation is authorized by this record.** Source audit baseline: `4414522951ce36cfc19a727c3be8378296c71f16`, November 17, 2026. Working tree was clean when inspected. No app was launched, installed or controlled, and no existing functional test was rerun for this plan. The source inventory is current to that commit, not a claim about uninspected future changes.
+**Implementation authorized November 17.** [[sources/notes/2026/11/native-storybook-implementation]] supersedes the earlier planning-only direction. All five phases are implemented and locally accepted for the catalog scope; see [[records/reviews/native-ui-catalog]] and [[records/operations/native-ui-catalog]]. The historical planning audit below is retained as the source baseline. Source audit baseline: `4414522951ce36cfc19a727c3be8378296c71f16`, November 17, 2026. Working tree was clean when inspected. No app was launched, installed or controlled, and no existing functional test was rerun for this plan. The source inventory is current to that commit, not a claim about uninspected future changes.
 
 Authority: [[sources/notes/2026/11/native-storybook-planning]]. Related contracts: [[records/plans/rich-native-visuals]], [[records/specs/chat-primary-operation]], [[records/specs/programmable-native-engine]], [[records/specs/local-model-native-apps]], [[records/specs/distribution]]. Those records retain their existing qualification limits. A catalog does not qualify model reliability or a production release.
 
@@ -26,7 +26,7 @@ Before implementation, follow the Checkout context section in [[records/operatio
 
 The owner requested that this plan follow the relocated checkout in [[sources/notes/2026/11/native-storybook-checkout-update]]. The former checkout location is retired. Do not recreate it, add a compatibility symlink or use a historical worktree to satisfy an old command or cache. For nested workspaces, read optional parent instructions and their relocation/preservation receipt. Standalone public clones remain supported without a private parent repository. Machine-specific locations stay in the owning workspace's local instructions, not in this public plan.
 
-All file paths and commands in this plan are relative to the verified app root. Proposed catalog tooling must derive that root from its own script location instead of a remembered absolute path or the caller's working directory. Use `.build/ui-catalog/` for its generated build tree and `output/ui-catalog/Sevra UI Catalog.app` for its packaged application, with captures under `output/ui-catalog/captures/`. These are proposed paths, not existing artifacts. Keep catalog output separate from `output/native/` and from parent-workspace output. Commit/push app changes only from the independent app repository.
+All file paths and commands in this plan are relative to the verified app root. Proposed catalog tooling must derive that root from its own script location instead of a remembered absolute path or the caller's working directory. Use `.build/ui-catalog/` for its generated build tree and `output/ui-catalog/Sevra UI Catalog.app` for its packaged application, with captures under `output/ui-catalog/captures/`. These are the implemented catalog paths, separate from the product build. Keep catalog output separate from `output/native/` and from parent-workspace output. Commit/push app changes only from the independent app repository.
 
 Relocated generated Swift caches can still contain prior absolute paths. Rebuild affected generated catalog artifacts when needed; preserve model files, workbooks, unpublished refs, historical worktrees and recovery evidence. Relocation does not rebuild the app or make the installed bundle match the packaged candidate. Any later launch still requires current build-identity verification.
 
@@ -333,7 +333,7 @@ Do not introduce a new snapshot-testing dependency, broad per-pixel CI gate, gia
 
 ## 13. Ordered implementation and acceptance
 
-All phases below are planned, not begun. First verify the current primary checkout using the checkout and execution context above; then reconcile the source inventory against the actual implementation-start commit. Do not start from a path remembered from this conversation.
+All five phases below are implemented. Checkout/remote discovery was repeated in the relocated primary checkout; implementation reconciled the planning inventory against source through `966e3eb`. The acceptance review records the actual finite coverage and qualification limits. Future changes still require current-checkout discovery rather than a remembered path.
 
 ### Phase 1: Registry, isolation and four-surface slice
 
@@ -392,18 +392,31 @@ Compared the SDK runtime exports with the public declarations and found the miss
 
 ### Implementation checklist
 
-- [ ] Current primary app root and remote verified; tooling derives paths from that root and does not recreate the retired location.
-- [ ] All four surfaces mount actual production views.
-- [ ] Every canonical primitive/type and user-facing route/secondary surface has an explicit coverage entry.
-- [ ] Inputs, state variants and actions are explorable with bounded native controls.
-- [ ] Supported compositions use production schemas, validation and runtime.
-- [ ] Chat controls and semantic actions reach real mutations/receipts in synthetic workbooks.
-- [ ] Captured/current and ownership/permission distinctions remain visible and correct.
-- [ ] Missing/unsupported product states are reported, not concealed by gallery-only UI.
-- [ ] Reset, teardown, drafts, competing edits and late callbacks have focused evidence.
-- [ ] Real user files, model loading, device schedules and OS permissions are outside default story execution.
-- [ ] Catalog packaging is separate and ordinary production packaging remains unaffected.
-- [ ] Captures/configurations are reproducible and labeled with their evidence limits.
-- [ ] Documentation and focused final checks pass; remaining qualification gaps are explicitly listed.
+- [x] Current primary app root and remote verified; tooling derives paths from that root and does not recreate the retired location.
+- [x] All four surfaces mount actual production views.
+- [x] Every canonical primitive/type and user-facing route/secondary surface has an explicit coverage entry.
+- [x] Inputs, state variants and actions are explorable with bounded native controls.
+- [x] Supported compositions use production schemas, validation and runtime.
+- [x] Chat controls and semantic actions reach real mutations/receipts in synthetic workbooks.
+- [x] Captured/current and ownership/permission distinctions remain visible and correct.
+- [x] Missing/unsupported product states are reported, not concealed by gallery-only UI.
+- [x] Reset, teardown, drafts, competing edits and late callbacks have focused evidence.
+- [x] Real user files, model loading, device schedules and OS permissions are outside default story execution.
+- [x] Catalog packaging is separate and ordinary production packaging remains unaffected.
+- [x] Captures/configurations are reproducible and labeled with their evidence limits.
+- [x] Documentation and focused final checks pass; remaining qualification gaps are explicitly listed.
 
-The design is ready to implement in this order once implementation is requested. Packaging/injection work is a first-phase acceptance gate, not something claimed to have been prototyped during planning. Exact story count is derived from the registry as coverage is implemented; it must not replace the explicit coverage checklist above.
+All checklist items have scoped implementation evidence in [[records/reviews/native-ui-catalog]]. The registry currently contains 176 entries, including explicitly unsupported/manual boundaries. Registration is distinct from rendering, interaction proof and visual review; this count does not qualify every possible arrangement.
+
+
+## Implementation progress, November 17
+
+The owner authorized complete implementation and focused verification in [[sources/notes/2026/11/native-storybook-implementation]]. [[records/operations/native-ui-catalog]] is the durable developer/agent guide. The native host, registry, controlled service seams, real synthetic workbooks/XPC fixtures, replay recipes, configuration round-trip and capture receipts are implemented. Final local verification passes: 176 default fixtures, twelve focused interaction paths, ten complete compositions, sixteen additional state captures, the repository gate and ordinary native compilation. The native browser, configuration refusal/restore, replay/reset, ActionForm validation/save/Undo/Redo, evidence invalidation and graceful Quit were reviewed in the isolated catalog. See [[records/reviews/native-ui-catalog]] for exact boundaries and the portable receipt.
+
+Implementation review found and corrected invalid synthetic chart categories, non-UUID definition identities, a form incorrectly targeting a function, mismatched owning workbook connections, and an early batch exit when the last capture window closed. The runner now requires explicit completion. It also exposed a production Quick Look double-close path; SwiftUI now owns closure with `shouldCloseWithWindow = false`. These are findings, not claims that all catalog configurations are qualified.
+
+## Implementation completion review, November 17
+
+Three implementation passes checked source/coverage, lifecycle/authority and native UX/evidence. Additional fixes cover bounded configuration validation inside its sheet, owning-workbook file selection, native minimum dimensions, review invalidation after workbook changes, pending-worker teardown, explicit batch completion, and opaque component captures. SDK declarations now include the runtime's action/ActionForm/viewID contract and are checked with a pinned TypeScript dependency. SDK builds ignore parent-project TypeScript configuration, preserving reproducible output in nested checkouts.
+
+The actual production views, schemas, SQLite mutations/history and signed XPC services are used. Inference and external services are controlled and labeled. Ordinary native builds exclude the catalog; no installed preview, real workbook, model selection or product schedule was changed. The catalog is a developer tool, not a new production feature or model reliability qualification. VoiceOver, other hardware, arbitrary compositions and unreviewed OS/media surfaces remain outside acceptance. AGENTS.md and [[records/operations/native-ui-catalog]] require future coding agents to maintain the registry/fixtures with UI and protocol changes.

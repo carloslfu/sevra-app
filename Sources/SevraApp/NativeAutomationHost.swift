@@ -17,23 +17,29 @@ import SevraProduct
   private var memoryConstrained = false
   private var stopping = false
   private var terminating = false
-  private init() {
+  init(directory: URL? = nil, ai: ProductAI? = nil, defaults: UserDefaults = .standard) {
+    let inference = ai ?? AppHost.ai
+    let modelDirectory: @MainActor @Sendable () -> URL = {
+      defaults.string(forKey: ProductAI.preferenceKey)
+        .map { URL(fileURLWithPath: $0) } ?? ProductAI.defaultDirectory
+    }
     let support = FileManager.default.urls(for: .applicationSupportDirectory, in: .userDomainMask)[
       0
     ]
     .appendingPathComponent(Bundle.main.bundleIdentifier ?? "app.sevra.native", isDirectory: true)
     .appendingPathComponent("DeviceSchedules", isDirectory: true)
-    controller = NativeAutomationController(registry: .init(directory: support)) {
+    controller = NativeAutomationController(
+      registry: .init(directory: directory ?? AppHost.automationDirectory ?? support)
+    ) {
       book, session, control in
-      let path =
-        UserDefaults.standard.string(forKey: ProductAI.preferenceKey)
-        .map { URL(fileURLWithPath: $0) } ?? ProductAI.defaultDirectory
-      return try await ProductAI.shared.continueWorkflow(
+      let path = await modelDirectory()
+      return try await inference.continueWorkflow(
         workbook: book, session: session, owner: "schedule:" + identifier(),
         modelDirectory: path, cancellation: control)
     }
   }
   func start() {
+    guard AppHost.allowsBackgroundServices else { return }
     guard timer == nil, !CommandLine.arguments.contains("--check-resources") else { return }
     let local = NotificationCenter.default
     let workspace = NSWorkspace.shared.notificationCenter

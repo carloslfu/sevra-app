@@ -38,7 +38,9 @@ extension VisualResult {
 
 /// Native visuals use workbook-owned references and bounded presentation values.
 public struct VisualDefinition: Codable, Equatable, Sendable {
-  public enum Kind: String, Codable, Sendable { case image, chart, work, diagram, overview, text }
+  public enum Kind: String, Codable, CaseIterable, Sendable {
+    case image, chart, work, diagram, overview, text
+  }
   public let version: Int
   public let kind: Kind
   public var image: ImagePresentation?

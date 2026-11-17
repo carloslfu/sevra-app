@@ -9,6 +9,10 @@ extension SpaceDefinition {
       .init(id: "shortcuts", type: "shortcuts", title: "Pinned spaces"),
     ])
   }
+  public static let contentTypes: Set<String> = [
+    "table", "chart", "metric", "comparison", "document", "asset", "search", "text",
+    "form", "calculation", "query", "app", "image", "visual",
+  ]
   public static let sectionTypes: Set<String> = [
     "input", "reviews", "shortcuts", "tables", "intake", "recent", "attention", "continue",
   ]

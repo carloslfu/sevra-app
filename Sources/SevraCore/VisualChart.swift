@@ -1,7 +1,7 @@
 import Foundation
 
 public struct VisualChart: Codable, Equatable, Sendable {
-  public enum Style: String, Codable, Sendable {
+  public enum Style: String, Codable, CaseIterable, Sendable {
     case bar, horizontalBar, stackedBar, line, area, scatter, donut, histogram, heatmap
     case metric, table, records
   }
