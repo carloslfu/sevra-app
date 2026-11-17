@@ -121,8 +121,15 @@ func checkRequestActivity() throws {
     live.runID == request.runID && live.status.contains("25") && live.title == "Reasoning",
     "activity_check",
     "Live progress was not attached to its request")
+  live.preview("An unfinished answer", sequence: 1)
+  live.preview(nil, sequence: 3)
+  live.preview("A delayed old answer", sequence: 2)
+  try require(live.answerPreview == nil, "activity_check", "A retry clear was undone by late text")
+  live.preview("New answer", sequence: 4)
   live.stop()
   live.update("Old generation callback")
+  live.preview("Late answer", sequence: 5)
+  try require(live.answerPreview == nil, "activity_check", "Late answer undid Stop")
   try require(
     live.stopping && live.status == "Stopping…", "activity_check", "Late progress undid Stop")
   var continuation = LiveRequestActivity(conversation: "main")

@@ -234,6 +234,16 @@ package actor NativeWorkbookModel: WorkbookInference {
     progress: @escaping @Sendable (String) -> Void, toolScope: InferenceToolScope,
     citationIDs: [String]
   ) async throws -> NativeReply {
+    try await respondStreaming(
+      messages: messages, directory: directory, cancellation: cancellation,
+      progress: progress, toolScope: toolScope, citationIDs: citationIDs, answerPreview: { _ in })
+  }
+
+  package func respondStreaming(
+    messages: [InferenceMessage], directory: URL, cancellation: Cancellation,
+    progress: @escaping @Sendable (String) -> Void, toolScope: InferenceToolScope,
+    citationIDs: [String], answerPreview: @escaping @Sendable (String) -> Void
+  ) async throws -> NativeReply {
     try require(leased && !active, "busy", "The native model needs an exclusive workbook run.")
     active = true
     lastMetrics = .null
@@ -243,7 +253,8 @@ package actor NativeWorkbookModel: WorkbookInference {
       try cancellation.check()
       let result = try await worker.respond(
         messages: messages, directory: directory, cancellation: cancellation,
-        progress: progress, toolScope: toolScope, citationIDs: citationIDs)
+        progress: progress, toolScope: toolScope, citationIDs: citationIDs,
+        answerPreview: answerPreview)
       try cancellation.check()
       lastMetrics = result.1
       return result.0
@@ -435,12 +446,14 @@ private final class NativeWorker: @unchecked Sendable {
   func respond(
     messages: [InferenceMessage], directory: URL, cancellation: Cancellation,
     progress: @escaping @Sendable (String) -> Void, toolScope: InferenceToolScope,
-    citationIDs: [String], interpretation: Value? = nil
+    citationIDs: [String], interpretation: Value? = nil,
+    answerPreview: @escaping @Sendable (String) -> Void = { _ in }
   ) async throws -> (NativeReply, Value) {
     try await perform(directory: directory, cancellation: cancellation, progress: progress) {
       session in
       try self.generate(
-        messages, session, cancellation, progress, toolScope, citationIDs, interpretation)
+        messages, session, cancellation, progress, toolScope, citationIDs, interpretation,
+        answerPreview)
     }
   }
   private func perform<T>(
@@ -583,7 +596,8 @@ private final class NativeWorker: @unchecked Sendable {
   private func generate(
     _ messages: [InferenceMessage], _ session: Session,
     _ cancellation: Cancellation, _ progress: @escaping @Sendable (String) -> Void,
-    _ toolScope: InferenceToolScope, _ citationIDs: [String], _ interpretation: Value? = nil
+    _ toolScope: InferenceToolScope, _ citationIDs: [String], _ interpretation: Value? = nil,
+    _ answerPreview: @escaping @Sendable (String) -> Void = { _ in }
   ) throws -> (NativeReply, Value) {
     let prepared = try NativePreparedRequest(
       messages: messages, frontend: session.frontend,
@@ -626,6 +640,8 @@ private final class NativeWorker: @unchecked Sendable {
     progress("Reading the working context")
     var generationPhase: String?
     var matchedPromptTokens = 0
+    var lastPreview = ""
+    var lastPreviewAt = ProcessInfo.processInfo.systemUptime
     let generated = try helper.generate(
       request,
       cancelled: { cancellation.isCancelled || cancellation.isExpired },
@@ -638,6 +654,16 @@ private final class NativeWorker: @unchecked Sendable {
       event: { event in
         if case .tokens(_, _, let tokens) = event {
           _ = try output.append(tokens: tokens)
+          if let text = output.answerPreview, text != lastPreview,
+            !cancellation.isCancelled && !cancellation.isExpired
+          {
+            let now = ProcessInfo.processInfo.systemUptime
+            if lastPreview.isEmpty || now - lastPreviewAt >= 0.08 {
+              lastPreview = text
+              lastPreviewAt = now
+              answerPreview(text)
+            }
+          }
           let phase = output.isReasoning ? "Working through the request" : "Preparing a response"
           if phase != generationPhase {
             generationPhase = phase

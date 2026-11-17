@@ -690,11 +690,18 @@ import SwiftUI
     ws.focus =
       variant == "Focused" || id.hasPrefix("mini.") || id.hasPrefix("visual.")
       || id == "home.comparison"
-    if variant == "Busy" || variant == "Analyzing" || variant == "Building" {
+    if variant == "Busy" || variant == "Analyzing" || variant == "Building"
+      || variant == "Streaming"
+    {
       ws.busy = true
       ws.status = "Reading synthetic evidence…"
       var live = LiveRequestActivity(conversation: "main", started: Date(timeIntervalSinceNow: -12))
       live.update(ws.status)
+      if variant == "Streaming" {
+        live.preview(
+          "I can help compare supplier quotes with source citations, organize inventory…",
+          sequence: 1)
+      }
       ws.liveActivity = live
     }
     if variant == "Failure" { ws.error = "Synthetic service failure. Reset or retry this example." }

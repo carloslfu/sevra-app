@@ -9,6 +9,7 @@ public final class SplashOutputStream {
   private let parser: SplashOutputParser
   private var terminal = false
   public var isReasoning: Bool { parser.isReasoning }
+  public var answerPreview: String? { parser.answerPreview }
   public var matchedStop: String? { decoder.matchedStop }
 
   public init(

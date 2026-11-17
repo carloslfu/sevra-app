@@ -54,6 +54,13 @@ struct AgentActivityView: View {
             .disabled(live.stopping).accessibilityLabel("Stop this request")
         }
       }
+      if let preview = live?.answerPreview, !preview.isEmpty {
+        VStack(alignment: .leading, spacing: 6) {
+          Text("Writing · not final").readingFont(.caption).foregroundStyle(.secondary)
+          Text(preview).readingFont(.body).textSelection(.enabled)
+        }.padding(.leading, 15)
+          .accessibilityIdentifier("answer-preview")
+      }
       if expanded {
         VStack(alignment: .leading, spacing: 12) {
           if let activity {

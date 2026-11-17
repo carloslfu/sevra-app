@@ -374,6 +374,17 @@ do {
     try await inferenceLeaseChild()
     exit(0)
   }
+  if CommandLine.arguments.dropFirst() == ["--conversation-latency-checks"] {
+    try await checkConversationLatency()
+    exit(0)
+  }
+  if CommandLine.arguments.count == 6 && CommandLine.arguments[1] == "--conversation-latency-live" {
+    try await runConversationLatencyProbe(
+      modelsRoot: CommandLine.arguments[2], library: CommandLine.arguments[3],
+      engine: CommandLine.arguments[4], output: CommandLine.arguments[5])
+    exit(0)
+  }
+  try await checkConversationLatency()
   try checkInferenceLease()
   try checkNativeFailures()
   try checkContextBudget()

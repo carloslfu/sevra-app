@@ -195,6 +195,11 @@ package protocol WorkbookInference: Actor {
     request: Value, directory: URL, cancellation: Cancellation,
     progress: @escaping @Sendable (String) -> Void
   ) async throws -> Value
+  func respondStreaming(
+    messages: [InferenceMessage], directory: URL, cancellation: Cancellation,
+    progress: @escaping @Sendable (String) -> Void, toolScope: InferenceToolScope,
+    citationIDs: [String], answerPreview: @escaping @Sendable (String) -> Void
+  ) async throws -> NativeReply
   func respond(
     messages: [InferenceMessage], directory: URL, cancellation: Cancellation,
     progress: @escaping @Sendable (String) -> Void, toolScope: InferenceToolScope,
@@ -202,8 +207,28 @@ package protocol WorkbookInference: Actor {
   ) async throws -> NativeReply
 }
 
+/// A provisional answer, never a saved result or action receipt. Sequence numbers
+/// let UI delivery discard delayed updates after a retry or final clear.
+public struct AnswerPreview: Sendable {
+  public let sequence: Int
+  public let text: String?
+  public init(sequence: Int, text: String?) {
+    self.sequence = sequence
+    self.text = text
+  }
+}
+
 // Synthetic inference fixtures must explicitly opt in to context maintenance.
 extension WorkbookInference {
+  package func respondStreaming(
+    messages: [InferenceMessage], directory: URL, cancellation: Cancellation,
+    progress: @escaping @Sendable (String) -> Void, toolScope: InferenceToolScope,
+    citationIDs: [String], answerPreview: @escaping @Sendable (String) -> Void
+  ) async throws -> NativeReply {
+    try await respond(
+      messages: messages, directory: directory, cancellation: cancellation,
+      progress: progress, toolScope: toolScope, citationIDs: citationIDs)
+  }
   // CPU fixtures preserve their scripted presentation. Native inference applies
   // the actual selected tokenizer before any evidence is admitted.
   package func boundToolResult(

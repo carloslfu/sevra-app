@@ -78,7 +78,11 @@ package final class ContextMaintenance {
         }
       }
     } else {
-      value["body"] = .string(message.body)
+      let presentation = WorkbookAgent.historyPresentation(message)
+      value["body"] = .string(presentation.text)
+      if !presentation.ids.isEmpty {
+        value["citationLookupIDs"] = .array(presentation.ids.map(Value.string))
+      }
     }
     return .object(value)
   }

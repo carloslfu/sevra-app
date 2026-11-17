@@ -1213,6 +1213,14 @@ struct FolderReview {
               self.updateAgentActivity(value, for: ticket, in: book)
             }
           },
+          answerPreview: { update in
+            Task { @MainActor in
+              guard self.owns(ticket, in: book), self.operations.acceptsProgress(ticket),
+                self.liveActivity?.conversation == chat
+              else { return }
+              self.liveActivity?.preview(update.text, sequence: update.sequence)
+            }
+          },
           requestStarted: { request, destination in
             admitted.withLock { $0 = true }
             Task { @MainActor in

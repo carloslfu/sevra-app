@@ -3,11 +3,19 @@ type: operational
 meta-type: conclusion
 id: 01m5rbxzcsjnewm0pwmb9a06cj
 created: 2026-10-25T01:48:47.385772+00:00
-updated: 2026-11-15T22:07:39.261324+00:00
+updated: 2026-11-17T19:01:23.148415+00:00
 summary: Automatic local-model Excel conversion qualified across 10 generated apps and 89 independent originals, including five held-out states; no manual generated-code repairs.
 title: Implementation and acceptance
 ---
 # Implementation and acceptance
+
+## Conversation latency fix, November 17
+
+The owner authorized [[records/plans/conversation-latency-fix|implementation and repeat testing]]. Introductory English/Spanish help uses explicit app-owned copy, without loading inference. Unknown/compound requests and summaries of business work retain the full agent. Prompt vocabulary now excludes changing exact-ID enums while grammar and final validation keep their restrictions. Host-added historical citation links are presented as labels plus lookup metadata, with saved originals unchanged. Only provisional finish.answer text streams; retry, completion and Stop clear it. The catalog has a matching Streaming variant.
+
+Three agent replays measured 5.5–7.6 ms per introductory reply; installed UI observed all four complete by its first checks, 0.59–0.66 seconds including automation overhead, versus the original 19/14/23/20-second activity durations. Maintained product help is not model inference. A real-model warm stock follow-up improved from 33.67 seconds/four calls to 14.55 seconds/two calls after the history-format repair. The full installed UI cold stock case still took 38 seconds/four calls and returned the correct cited balance. General model latency remains a limit.
+
+Local repository, native package/install/extraction and scoped visual/functional verification pass, including actual Stop and original-workbook preservation. Installed main UUID `66DE9F08-606F-3EF6-A388-2B4B73EDC5D3` matches the package. The updated preview is open on a disposable conversation replay. [Portable synthetic receipt](../../../integration/evidence/2026-11-17-conversation-latency.json) records timings, rejected iterations and limits. Hosted verification is pending publication; no production-signing, VoiceOver or additional-hardware claim is made.
 
 ## Current checkpoint: automatic Excel conversion, November 14
 

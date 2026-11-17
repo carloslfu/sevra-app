@@ -199,7 +199,9 @@ enum CatalogRegistry {
       add(
         "chat." + kind, kind.replacingOccurrences(of: "-", with: " ").capitalized, "Chat",
         "Sources/SevraApp/ConversationViews.swift",
-        ["Default", "Empty", "Busy", "Failure", "Long labels"])
+        kind == "activity"
+          ? ["Default", "Empty", "Busy", "Streaming", "Failure", "Long labels"]
+          : ["Default", "Empty", "Busy", "Failure", "Long labels"])
     }
     for kind in ["chart.bar", "work.board", "diagram", "overview", "text", "image"] {
       add(

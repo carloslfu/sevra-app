@@ -10,6 +10,8 @@ public struct LiveRequestActivity: Sendable {
   public private(set) var runID: String?
   public private(set) var status = "Preparing local AI"
   public private(set) var stopping = false
+  public private(set) var answerPreview: String?
+  private var previewSequence = 0
   public var title: String {
     for phase in ["Processing context", "Reasoning", "Preparing a response"]
     where status.hasPrefix(phase + " · ") { return phase }
@@ -29,8 +31,14 @@ public struct LiveRequestActivity: Sendable {
     guard !stopping else { return }
     status = String(value.prefix(500))
   }
+  public mutating func preview(_ text: String?, sequence: Int) {
+    guard !stopping, sequence > previewSequence else { return }
+    previewSequence = sequence
+    answerPreview = text.map { String($0.prefix(16_000)) }
+  }
   public mutating func stop() {
     stopping = true
+    answerPreview = nil
     status = "Stopping…"
   }
 }

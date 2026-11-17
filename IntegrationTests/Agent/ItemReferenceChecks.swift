@@ -265,7 +265,10 @@ func checkItemReferenceGrammar(frontend: SplashTextFrontend, factory: SplashGram
     let bounded = try frontend.prepare(
       messages: [["role": "user", "content": "Inspect the item."]],
       tools: policy.promptTools(), thinking: thinking, contextLimit: 65536)
-    try expectEqual(bounded.tokens.count > base.tokens.count, true)
+    // Exact IDs stay in the grammar/validator rather than invalidating the
+    // reusable prompt prefix. One choice and 256 choices have the same prompt.
+    try expectEqual(bounded.tokens, base.tokens)
+    if !thinking { try expectEqual(full.tokens, bounded.tokens) }
     for tool in ["read", "lineage", "references"] {
       func output(_ id: String) -> String {
         (thinking ? "Inspect the known reference.</think>\n" : "")
@@ -280,6 +283,6 @@ func checkItemReferenceGrammar(frontend: SplashTextFrontend, factory: SplashGram
     }
   }
   print(
-    "PASS actual item-reference grammar rejects the recorded wrong suffix, with reasoning on/off and measured schema overhead"
+    "PASS actual item-reference grammar rejects the recorded wrong suffix, with reasoning on/off and stable prompt tokens for 0/1/256 choices"
   )
 }

@@ -59,6 +59,8 @@ public final class SplashOutputParser {
   private var separator = false
   private var pending = Data()
   private var terminal = false
+  /// Provisional finish.answer only. No reasoning, other parameters or calls.
+  public private(set) var answerPreview: String?
   private var bytes = 0
   private var text = ""
   private var reasoning = ""
@@ -290,6 +292,9 @@ public final class SplashOutputParser {
       if part.first == 10 { part.removeFirst() }
     }
     value += String(decoding: part, as: UTF8.self)
+    if name == "finish", parameter == "answer", tools[name!]?.parameters["answer"] == ["string"] {
+      answerPreview = String(value.prefix(16_000))
+    }
     guard value.utf8.count <= 256 * 1024 else {
       throw SplashError("Tool parameter exceeds its limit")
     }

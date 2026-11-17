@@ -248,6 +248,7 @@ public actor ProductAI {
     _ prompt: String, workbook: Workbook, conversation: String = "main", context: String = "",
     modelDirectory: URL = ProductAI.defaultDirectory, cancellation: Cancellation = .init(),
     progress: @escaping @Sendable (String) -> Void = { _ in },
+    answerPreview: @escaping @Sendable (AnswerPreview) -> Void = { _ in },
     requestStarted: @escaping @Sendable (AgentRequest, String) -> Void = { _, _ in },
     openSpace: SpaceOpener? = nil,
     openReviews: ReviewQueueOpener? = nil,
@@ -267,7 +268,7 @@ public actor ProductAI {
       return try await WorkbookAgent.run(
         prompt, workbook: workbook, conversation: conversation, context: context,
         modelDirectory: modelDirectory, cancellation: cancellation, progress: progress,
-        model: model, requestStarted: requestStarted,
+        answerPreview: answerPreview, model: model, requestStarted: requestStarted,
         openSpace: openSpace, openReviews: openReviews, workspaceAction: workspaceAction,
         excelConversion: excelConversion, conversationInput: conversationInput,
         inputAnswerID: inputAnswerID

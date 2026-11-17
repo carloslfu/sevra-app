@@ -46,7 +46,9 @@ public enum WorkbookAgent {
     _ prompt: String, workbook: Workbook, conversation: String = "main", context: String = "",
     modelDirectory: URL = FileManager.default.temporaryDirectory,
     cancellation: Cancellation = .init(),
-    progress: @escaping @Sendable (String) -> Void = { _ in }, model: any WorkbookInference,
+    progress: @escaping @Sendable (String) -> Void = { _ in },
+    answerPreview: @escaping @Sendable (AnswerPreview) -> Void = { _ in },
+    model: any WorkbookInference,
     enableCompaction: Bool = true,
     requestStarted: @escaping @Sendable (AgentRequest, String) -> Void = { _, _ in },
     openSpace: SpaceOpener? = nil,
@@ -61,6 +63,13 @@ public enum WorkbookAgent {
     try require(
       context.utf8.count <= ContextBudget.maximumMessageBytes, "context_structure",
       "The selected context exceeds its preparation limit.")
+    if excelConversion == nil, inputAnswerID == nil,
+      let help = try ConversationHelp.select(prompt, workbook: workbook, conversation: conversation)
+    {
+      return try help.reply(
+        to: prompt, workbook: workbook, conversation: conversation, context: context,
+        cancellation: cancellation, requestStarted: requestStarted)
+    }
     let requestDateContext = conversationInput ? ConversationDateContext() : nil
     let identity = await model.identity
     do {
@@ -82,7 +91,8 @@ public enum WorkbookAgent {
       let result = try await runPhase(
         prompt, workbook: workbook, conversation: conversation,
         context: context, modelDirectory: modelDirectory, cancellation: cancellation,
-        progress: progress, model: model, enableCompaction: enableCompaction,
+        progress: progress, answerPreview: answerPreview, model: model,
+        enableCompaction: enableCompaction,
         requestStarted: requestStarted, openSpace: openSpace,
         openReviews: openReviews, workspaceAction: workspaceAction,
         excelConversion: excelConversion,
@@ -100,7 +110,9 @@ public enum WorkbookAgent {
     _ prompt: String, workbook: Workbook, conversation: String = "main", context: String = "",
     modelDirectory: URL = FileManager.default.temporaryDirectory,
     cancellation: Cancellation = .init(),
-    progress: @escaping @Sendable (String) -> Void = { _ in }, model: any WorkbookInference,
+    progress: @escaping @Sendable (String) -> Void = { _ in },
+    answerPreview: @escaping @Sendable (AnswerPreview) -> Void = { _ in },
+    model: any WorkbookInference,
     enableCompaction: Bool, requestStarted: @escaping @Sendable (AgentRequest, String) -> Void,
     openSpace: SpaceOpener? = nil, openReviews: ReviewQueueOpener? = nil,
     workspaceAction: WorkspaceActionHandler? = nil,
@@ -116,6 +128,8 @@ public enum WorkbookAgent {
     try require(
       context.utf8.count <= ContextBudget.maximumMessageBytes, "context_structure",
       "The selected context exceeds its preparation limit.")
+    let previews = AnswerPreviewDelivery(answerPreview)
+    defer { previews.clear() }
     let compactionAvailable = await model.supportsCompaction
     let shouldCompact = enableCompaction && compactionAvailable
     try require(
@@ -527,9 +541,11 @@ public enum WorkbookAgent {
         messages[0].nativeAppAuthoring = nativeAppAuthoring
         let response: NativeReply
         do {
-          response = try await model.respond(
+          previews.clear()
+          response = try await model.respondStreaming(
             messages: messages, directory: modelDirectory, cancellation: cancellation,
-            progress: progress, toolScope: inferenceScope, citationIDs: citationChoices())
+            progress: progress, toolScope: inferenceScope, citationIDs: citationChoices(),
+            answerPreview: { previews.update($0) })
         } catch let error as SevraError where error.code == "truncated" && failures < 2 {
           // Nothing from a response cut off at the output limit was applied, so it can be redone.
           failures += 1
@@ -1328,7 +1344,8 @@ public enum WorkbookAgent {
                   build.request, workbook: workbook, conversation: conversation,
                   context: build.context, modelDirectory: modelDirectory,
                   cancellation: cancellation,
-                  progress: progress, model: model, enableCompaction: enableCompaction,
+                  progress: progress, answerPreview: { previews.update($0.text) }, model: model,
+                  enableCompaction: enableCompaction,
                   requestStarted: requestStarted, workspaceAction: workspaceAction,
                   excelConversion: build)
                 let saved = try workbook.excelConversion(imported.id)
@@ -1585,7 +1602,8 @@ public enum WorkbookAgent {
             let result = try await runPhase(
               prompt, workbook: workbook, conversation: child.conversation,
               context: context, modelDirectory: modelDirectory, cancellation: cancellation,
-              progress: progress, model: model, enableCompaction: enableCompaction,
+              progress: progress, answerPreview: { previews.update($0.text) }, model: model,
+              enableCompaction: enableCompaction,
               requestStarted: requestStarted, openSpace: openSpace, openReviews: openReviews,
               workspaceAction: workspaceAction, handoff: child,
               handoffReceipt: .init(call: call, result: result),

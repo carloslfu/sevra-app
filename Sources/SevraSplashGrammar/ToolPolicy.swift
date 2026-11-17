@@ -167,6 +167,50 @@ public final class SplashToolPolicy {
       function["parameters"] = parameters
       tools[index]["function"] = function
     }
+    // Keep changing exact IDs in the grammar and final validator, outside
+    // the reusable prompt prefix. Originals remain in the message context.
+    let referenceFields: [String: Set<String>] = [
+      "read": ["id"], "lineage": ["id"], "references": ["id"], "history_read": ["id"],
+    ]
+    for index in tools.indices {
+      guard var function = tools[index]["function"] as? [String: Any],
+        let name = function["name"] as? String,
+        var parameters = function["parameters"] as? [String: Any],
+        var properties = parameters["properties"] as? [String: Any]
+      else { continue }
+      for key in referenceFields[name] ?? [] {
+        if var field = properties[key] as? [String: Any] {
+          field.removeValue(forKey: "enum")
+          properties[key] = field
+        }
+      }
+      if name == "finish" {
+        for key in ["citations", "visuals"] {
+          if var field = properties[key] as? [String: Any],
+            var items = field["items"] as? [String: Any]
+          {
+            items.removeValue(forKey: "enum")
+            field["items"] = items
+            if key == "citations" { field.removeValue(forKey: "maxItems") }
+            properties[key] = field
+          }
+        }
+      }
+      if name == "draft", var parts = properties["parts"] as? [String: Any],
+        var item = parts["items"] as? [String: Any],
+        var fields = item["properties"] as? [String: Any],
+        var copy = fields["copy"] as? [String: Any]
+      {
+        copy.removeValue(forKey: "enum")
+        fields["copy"] = copy
+        item["properties"] = fields
+        parts["items"] = item
+        properties["parts"] = parts
+      }
+      parameters["properties"] = properties
+      function["parameters"] = parameters
+      tools[index]["function"] = function
+    }
     return try tools.map {
       try $0.mapValues(sendable)
     }

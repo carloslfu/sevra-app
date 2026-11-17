@@ -68,8 +68,24 @@ package struct NativePreparedRequest {
         conversationInput: messages.first?.conversationInput == true,
         visualCaptureIDs: messages.first?.visualCaptureIDs ?? [])
     }
+    // Render a stable vocabulary even before the first lookup/history read.
+    // Dynamic exact-ID restrictions remain in policy.grammar and policy.validate.
+    // Review/interpretation contracts keep their full task-specific structure.
+    let promptPolicy: SplashToolPolicy
+    if interpretation == nil {
+      promptPolicy = try NativeCitationPolicy.make(
+        [], toolScope: toolScope, thinking: reasoning.enabled,
+        conversationActions: messages.first?.conversationActions,
+        documentCopyIDs: nil, historyReferenceIDs: nil,
+        nativeAppAuthoring: messages.first?.nativeAppAuthoring == true,
+        reviewContract: messages.first?.reviewContract ?? .null,
+        conversationInput: messages.first?.conversationInput == true,
+        visualCaptureIDs: messages.first?.visualCaptureIDs ?? [])
+    } else {
+      promptPolicy = policy
+    }
     let prompt = try frontend.prepare(
-      messages: messages.map(nativeTemplateMessage), tools: policy.promptTools(),
+      messages: messages.map(nativeTemplateMessage), tools: promptPolicy.promptTools(),
       thinking: reasoning.enabled, contextLimit: SplashWire.maxTokens)
     let requestedOutputBudget =
       interpretation?["maxOutputTokens"].int

@@ -2,6 +2,29 @@ import Foundation
 import SevraCore
 
 extension WorkbookAgent {
+  /// Native citation links are added by the host after validation. Re-present
+  /// their labels as prose and their IDs as lookup metadata, so a later answer
+  /// does not imitate UI-added Markdown and spend model passes repairing it.
+  /// Exact originals remain unchanged and available through history_read.
+  package static func historyPresentation(_ message: Message) -> (text: String, ids: [String]) {
+    guard message.role == "assistant", !message.body.contains("`"), !message.body.contains("~~~")
+    else { return (message.body, []) }
+    let regex = try! NSRegularExpression(
+      pattern: #"\[([^\]\n\\]{1,200})\]\(sevra://item/([0-9a-fA-F-]{36})\)"#)
+    let matches = regex.matches(
+      in: message.body, range: NSRange(message.body.startIndex..., in: message.body))
+    let text = NSMutableString(string: message.body)
+    var ids: [String] = []
+    for match in matches.reversed() {
+      guard let idRange = Range(match.range(at: 2), in: message.body),
+        let label = Range(match.range(at: 1), in: message.body),
+        UUID(uuidString: String(message.body[idRange])) != nil
+      else { continue }
+      ids.append(String(message.body[idRange]))
+      text.replaceCharacters(in: match.range, with: String(message.body[label]))
+    }
+    return (text as String, Array(Set(ids)).sorted())
+  }
   package static func stoppedRequestReference(_ workbook: Workbook, message: Message) throws
     -> Value?
   {
@@ -40,7 +63,8 @@ extension WorkbookAgent {
         guard ["user", "assistant"].contains(message.role),
           ["complete", "needs_review", "needs_input"].contains(message.state) || ended
         else { continue }
-        var content = String(message.body.prefix(1600))
+        let presentation = historyPresentation(message)
+        var content = String(presentation.text.prefix(1600))
         let stoppedRequest = try stoppedRequestReference(workbook, message: message)
         if let stoppedRequest { content = stoppedRequest["notice"].text }
         var recordedState: Value = .null
@@ -65,6 +89,7 @@ extension WorkbookAgent {
             "state": .string(message.state), "text": .string(content),
             "requestOutcome": stoppedRequest ?? .null,
             "truncated": .bool(message.body.count > 1600), "currentProposalState": recordedState,
+            "citationLookupIDs": .array(presentation.ids.map(Value.string)),
           ]))
         proposalID = nil
       }

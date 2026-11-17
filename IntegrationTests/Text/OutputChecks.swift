@@ -109,6 +109,29 @@ func checkOutput(frontend: SplashTextFrontend) throws {
 }
 
 private func checkProjection() throws {
+  let finish = SplashOutputTool(
+    name: "finish", parameters: ["answer": ["string"], "basis": ["string"]])
+  let read = SplashOutputTool(name: "read", parameters: ["id": ["string"]])
+  let previewParser = try SplashOutputParser(tools: [finish, read], thinking: true)
+  let prefix = "private reasoning</think>\n<tool_call>\n<function=finish>\n<parameter=answer>\n"
+  for character in prefix { _ = try previewParser.append(String(character)) }
+  guard previewParser.answerPreview == nil else {
+    throw SplashError("Reasoning escaped into preview")
+  }
+  let answer = "Hello, café 🦓!"
+  for character in answer { _ = try previewParser.append(String(character)) }
+  guard previewParser.answerPreview == answer else { throw SplashError("Answer did not stream") }
+  _ = try previewParser.append(
+    "\n</parameter>\n<parameter=basis>\ngeneral\n</parameter>\n</function>\n</tool_call>")
+  let result = try previewParser.finish(.stop).0
+  guard result.calls.count == 1, previewParser.answerPreview == answer else {
+    throw SplashError("Preview changed tool completion")
+  }
+  let privateTool = try SplashOutputParser(tools: [finish, read])
+  _ = try privateTool.append("<tool_call>\n<function=read>\n<parameter=id>\nprivate-source-id")
+  guard privateTool.answerPreview == nil, try privateTool.finish(.cancelled).0.calls.isEmpty else {
+    throw SplashError("Another tool or cancelled call escaped into answer preview")
+  }
   let root =
     try JSONSerialization.jsonObject(
       with: Data(

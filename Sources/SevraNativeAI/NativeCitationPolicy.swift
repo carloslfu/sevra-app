@@ -10,7 +10,7 @@ package enum NativeCitationPolicy {
   package static func make(
     _ citationIDs: [String], toolScope: InferenceToolScope = .all, thinking: Bool = false,
     itemReferenceIDs: [String] = [], conversationActions: [String]? = nil,
-    documentCopyIDs: [String] = [], historyReferenceIDs: [String]? = nil,
+    documentCopyIDs: [String]? = [], historyReferenceIDs: [String]? = nil,
     nativeAppAuthoring: Bool = true, reviewContract: Value = .null, conversationInput: Bool = false,
     visualCaptureIDs: [String] = []
   ) throws
