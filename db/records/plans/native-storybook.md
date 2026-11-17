@@ -3,8 +3,8 @@ type: spec
 meta-type: conclusion
 id: 01m7mskdhjs58amvzbavb8xqpf
 created: 2026-11-17T13:02:07.410203+00:00
-updated: 2026-11-17T13:02:07.410203+00:00
-summary: 'Reviewed native UI catalog plan: real renderers, isolated fixtures, complete capability inventory, state flows and compositions across app, Home, mini apps and chat.'
+updated: 2026-11-17T16:51:49.044101+00:00
+summary: Reviewed native UI catalog plan covering app, Home, mini apps and chat, with current-checkout discovery, portable build paths and isolated fixtures.
 title: Native Storybook for Sevra
 status: reviewed
 ---
@@ -19,6 +19,18 @@ Cover four surfaces: the main application, ordinary spaces and Home, programmabl
 **Planning only. No implementation is authorized by this record.** Source audit baseline: `4414522951ce36cfc19a727c3be8378296c71f16`, November 17, 2026. Working tree was clean when inspected. No app was launched, installed or controlled, and no existing functional test was rerun for this plan. The source inventory is current to that commit, not a claim about uninspected future changes.
 
 Authority: [[sources/notes/2026/11/native-storybook-planning]]. Related contracts: [[records/plans/rich-native-visuals]], [[records/specs/chat-primary-operation]], [[records/specs/programmable-native-engine]], [[records/specs/local-model-native-apps]], [[records/specs/distribution]]. Those records retain their existing qualification limits. A catalog does not qualify model reliability or a production release.
+
+## Checkout and execution context
+
+Before implementation, follow the Checkout context section in [[records/operations/agent-handoff]] and the Checkout and command paths section in [[records/operations/build-and-run]]. Resolve the current primary app checkout from the workspace's current instructions, then confirm `git rev-parse --show-toplevel`, `git remote get-url origin` and `git status --short --branch` from inside it. The expected repository is `carloslfu/sevra-app`, with its own Git history and db.md store. A parent website/workspace checkout is not the app repository.
+
+The owner requested that this plan follow the relocated checkout in [[sources/notes/2026/11/native-storybook-checkout-update]]. The former checkout location is retired. Do not recreate it, add a compatibility symlink or use a historical worktree to satisfy an old command or cache. For nested workspaces, read optional parent instructions and their relocation/preservation receipt. Standalone public clones remain supported without a private parent repository. Machine-specific locations stay in the owning workspace's local instructions, not in this public plan.
+
+All file paths and commands in this plan are relative to the verified app root. Proposed catalog tooling must derive that root from its own script location instead of a remembered absolute path or the caller's working directory. Use `.build/ui-catalog/` for its generated build tree and `output/ui-catalog/Sevra UI Catalog.app` for its packaged application, with captures under `output/ui-catalog/captures/`. These are proposed paths, not existing artifacts. Keep catalog output separate from `output/native/` and from parent-workspace output. Commit/push app changes only from the independent app repository.
+
+Relocated generated Swift caches can still contain prior absolute paths. Rebuild affected generated catalog artifacts when needed; preserve model files, workbooks, unpublished refs, historical worktrees and recovery evidence. Relocation does not rebuild the app or make the installed bundle match the packaged candidate. Any later launch still requires current build-identity verification.
+
+**Relocation reconciliation, November 17:** the planning commit `eb7b738` and its original source audit remain intact in the current primary checkout. At review, HEAD was `2ba6fea`; the changes since source baseline `4414522` are documentation only. The component inventory and implementation order therefore remain unchanged. This follow-up updates execution context only and does not authorize implementation, installation or app control.
 
 ## 1. What exists today
 
@@ -321,7 +333,7 @@ Do not introduce a new snapshot-testing dependency, broad per-pixel CI gate, gia
 
 ## 13. Ordered implementation and acceptance
 
-All phases below are planned, not begun. Reconcile the source inventory against the actual implementation-start commit first.
+All phases below are planned, not begun. First verify the current primary checkout using the checkout and execution context above; then reconcile the source inventory against the actual implementation-start commit. Do not start from a path remembered from this conversation.
 
 ### Phase 1: Registry, isolation and four-surface slice
 
@@ -380,6 +392,7 @@ Compared the SDK runtime exports with the public declarations and found the miss
 
 ### Implementation checklist
 
+- [ ] Current primary app root and remote verified; tooling derives paths from that root and does not recreate the retired location.
 - [ ] All four surfaces mount actual production views.
 - [ ] Every canonical primitive/type and user-facing route/secondary surface has an explicit coverage entry.
 - [ ] Inputs, state variants and actions are explorable with bounded native controls.

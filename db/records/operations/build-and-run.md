@@ -2,11 +2,19 @@
 type: operational
 id: 01m5refyq97sez3da1rywz08wf
 created: 2026-10-25T02:33:33.673437+00:00
-updated: 2026-11-16T21:03:50.917716+00:00
-summary: Source installation, local AI setup, independent CLI use, verification and uninstall.
+updated: 2026-11-17T16:51:49.085523+00:00
+summary: Current-checkout discovery, portable source installation and build paths, local AI setup, independent CLI use, verification and uninstall.
 title: Build and run
 ---
 # Build and run
+
+## Checkout and command paths
+
+Use the existing primary app checkout when one is already available. Before running the commands below, follow the Checkout context section in [[records/operations/agent-handoff]], confirm the current root with `git rev-parse --show-toplevel`, and verify that `git remote get-url origin` identifies `carloslfu/sevra-app`. When nested in a workspace, read its optional parent instructions for the current location and preservation notes. The parent workspace and this app have separate Git roots.
+
+The clone step below is for a fresh standalone installation, not an instruction to replace or duplicate a relocated checkout. All build/install commands and output paths below are relative to this app root. Do not recreate a retired location to satisfy historical paths or generated Swift caches. Regenerate only affected build artifacts as needed, preserving user workbooks, model files, local Git state and recovery evidence. A checkout move alone does not establish installed-versus-packaged build identity.
+
+The planned [[records/plans/native-storybook|native UI catalog]] uses separate root-relative build/output directories and remains unimplemented. Its documentation does not authorize launching or reinstalling the product.
 
 ## Native MVP source installation
 The owner authorized a focused preview upgrade and a practical 32K versus 64K comparison. Splash 1.6.1 is installed in the native preview. The source chooses 64K on Macs with at least 48 GiB of unified memory and 32K below that tier, with a 12 GiB engine budget and automatic context maintenance in both cases. See [[records/operations/inference-context-execution]].

@@ -181,3 +181,9 @@ Added portable checkout-context guidance to AGENTS and the handoff. Nested clone
 ## [2026-11-17 15:29] verification | records/operations/agent-handoff.md
 Documentation-only checks passed: dbmd validate --all with zero findings, python3 scripts/check_links.py and git diff --check. No code, dependency, build, installation or UI changes; existing runtime evidence retains its original scope.
 
+## [2026-11-17 16:51] design | records/plans/native-storybook.md
+Aligned the catalog plan, agent handoff and build/run guide with the current primary checkout. Require root/remote verification, root-relative catalog outputs and preservation of relocated local state; never recreate the retired location. Parent location instructions were already current. Documentation only.
+
+## [2026-11-17 16:52] verification | records/plans/native-storybook.md
+Relocation follow-up documentation checks pass: full dbmd validation, repository Markdown links, git diff --check, root/remote/status inspection and portable-path assertions. Confirmed retired checkout is absent and intervening app commits are documentation-only. No build, app launch, installation or cleanup performed.
+

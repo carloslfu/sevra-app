@@ -3,11 +3,17 @@ type: operational
 meta-type: operational
 id: 01m659x4nd2q89tkpzzsssd7yr
 created: 2026-10-30T02:23:30.477380+00:00
-updated: 2026-11-17T15:29:03.071164+00:00
-summary: Splash 1.6.1 preview and visual plan revision 16 handoff, plus portable checkout-context discovery and local-state preservation rules.
+updated: 2026-11-17T16:51:49.060586+00:00
+summary: Native UI catalog planning and relocated-checkout execution guidance, with preserved preview, visual-system and local-state verification limits.
 title: Minimum-feature continuation handoff
 ---
 # Minimum-feature continuation handoff
+
+## Native UI catalog planning, November 17
+
+The [[records/plans/native-storybook]] plan covers the main app, Home/ordinary spaces, programmable mini apps and chat, including component inputs, states, compositions, isolated fixtures and native capture. It is reviewed but not implemented. The owner requested [[sources/notes/2026/11/native-storybook-checkout-update|alignment with the relocated checkout]]. Begin in the current primary app checkout identified by the checkout context below and optional parent instructions; do not restore a former path or create a duplicate clone. All plan paths and proposed catalog outputs resolve from this app repository's root.
+
+The plan remains the one introduced by `eb7b738`, with the source inventory audited at `4414522`. At the relocation follow-up, `2ba6fea` adds documentation only, so the source inventory is unchanged. The current request authorizes documentation maintenance, not catalog implementation or an app launch. Existing implementation/verification receipts retain their original dates and limits.
 
 ## Native preview update, November 16
 
