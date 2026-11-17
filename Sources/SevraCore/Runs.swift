@@ -26,20 +26,9 @@ extension Workbook {
       status: cancelled ? "cancelled" : "failed", diagnostic: reason)
   }
 
-  /// Product help never acquires the inference lease and must not interrupt
-  /// another process's running business task merely to answer a greeting.
-  package func startProductHelpRequest(_ prompt: String, conversation: String) throws
-    -> AgentRequest
-  {
-    try recordAgentRequest(
-      prompt, conversation: conversation, model: "Sevra product help",
-      status: "running", interruptRunning: false)
-  }
-
   private func recordAgentRequest(
     _ prompt: String, conversation: String, model: String, status: String,
-    diagnostic: String? = nil,
-    interruptRunning: Bool = true
+    diagnostic: String? = nil
   ) throws -> AgentRequest {
     try require(prompt.utf8.count <= 128_000, "message_limit", "Message is too long.")
     try require(
@@ -53,7 +42,7 @@ extension Workbook {
           .string(request.messageID), .string(conversation), .string("user"), .string(prompt),
           .string("complete"), .string(now),
         ])
-      if status == "running" && interruptRunning {
+      if status == "running" {
         try db.execute(
           "UPDATE agent_runs SET status='interrupted',updated=? WHERE status='running'",
           [.string(now)])

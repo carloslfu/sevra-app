@@ -3,11 +3,15 @@ type: operational
 meta-type: conclusion
 id: 01m5rbxzcsjnewm0pwmb9a06cj
 created: 2026-10-25T01:48:47.385772+00:00
-updated: 2026-11-17T20:09:05.068056+00:00
+updated: 2026-11-17T21:46:50.940976+00:00
 summary: Automatic local-model Excel conversion qualified across 10 generated apps and 89 independent originals, including five held-out states; no manual generated-code repairs.
 title: Implementation and acceptance
 ---
 # Implementation and acceptance
+
+## Hardcoded replies removed, November 17
+
+The latest installed native preview uses the ordinary model for introductory chats. UUID `48CD6C44-6D5C-3207-8612-F10751422EC4` matches the verified package. The installed “hey” replay records actual Splash model calls. The [[records/plans/conversation-latency-fix|exact-question investigation]] traces the original 38-second four-call turn and a 29.45-second two-call replay, including cache reuse, tool results, reasoning length and the first provisional answer. The latter uses a fresh synthetic workbook with different prior conversation. Both answers correctly cite the opening and delivery. The [portable trace](../../../integration/evidence/2026-11-17-conversation-decision-trace.json) records the local grammar, routing, catalog, packaging and installation checks.
 
 ## Conversation latency fix, November 17
 

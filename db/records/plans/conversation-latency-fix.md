@@ -2,7 +2,7 @@
 type: operational
 id: 01m7nc1jrbsfn0cmkjmzpk4w1r
 created: 2026-11-17T18:24:25.867198+00:00
-updated: 2026-11-17T20:09:05.033909+00:00
+updated: 2026-11-17T21:46:50.896363+00:00
 summary: Bounded product conversation, stable prompt vocabulary and provisional answer delivery with measured replay and preserved authority.
 title: Conversation latency and answer quality
 ---
@@ -56,3 +56,13 @@ The original user workbook's inspect, history and run snapshots remain unchanged
 ## Publication verification
 
 Code commit `1c97ab0b4038fae0b4f6a90568f7482eac56cd1c` is pushed to main and [hosted Checks](https://github.com/carloslfu/sevra-app/actions/runs/44154194013) passed. The portable receipt retains exact changed-code hashes, matching the measured and installed candidate. This publication receipt changes documentation only; installed UUID `66DE9F08-606F-3EF6-A388-2B4B73EDC5D3`, model, engine and tested behavior are unchanged. General model-latency, hardware and distribution limits above remain.
+
+## Removal and exact-question trace, November 17
+
+Carlos directed removal of the hardcoded introductory replies and an analysis of the observed four-call turn. The phrase matcher, authored answers and special request path are removed. Greetings and follow-ups use the ordinary model path. The routing check verifies the former matches reach inference with their submitted text, and the installed preview generated a new reply to “hey” in 18 seconds on the synthetic workshop workbook. Saved earlier replies still read as historical messages.
+
+The exact question was “What is the current stock of brass bolts? Use the balance tool and cite the evidence. Do not change the workbook.” The original full UI run saved the balance at 16s, opening-source read at 24s, delivery-record read at 28s and final answer at 38s. Its two original reads consumed 11.83s in model invocations. The saved balance had already calculated 18 from the original inputs and supplied both citations for automatic attachment. The broad prompt says to inspect originals before citing. This plausibly encouraged the reads, although the request only asks for the cited balance.
+
+A new cold actual-model replay with the exact same wording and fresh synthetic demo data dispatched only balance and finish. At 7.40s model startup and prompt preparation gave way to the first model call. It called balance at 15.20s; the host saved and projected that result about 8 ms later. The final model call began at 15.45s, matched 8,384 of 8,936 prompt tokens, and generated 512 reasoning tokens. The first provisional answer arrived at 27.59s, and the correct answer and two source links were saved by 29.45s. Workbook integrity and original items passed. These are observed choices with different prior conversations and presentation context.
+
+The engine settings, evidence rules and general reasoning policy stayed in place for this diagnostic. Hosted and installed evidence for the earlier fixed replies remains in its dated scope. The [decision trace](../../../integration/evidence/2026-11-17-conversation-decision-trace.json) retains timing anchors, engine breakdowns and the new installed build identity.

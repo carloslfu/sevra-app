@@ -1,0 +1,231 @@
+{
+  "date": "2026-11-17",
+  "scope": "Exact same stock question, actual local model on synthetic workbook data. Earlier full UI turn and single newly instrumented ordinary-agent run in a fresh demo workbook.",
+  "baseCommit": "1a2d45e6b74db70b88afd2513a9b889e591f551d",
+  "question": "What is the current stock of brass bolts? Use the balance tool and cite the evidence. Do not change the workbook.",
+  "engine": "Splash 1.6.1, Qwen3.6-35B-A3B-4bit + DFlash2, 64K context capacity, 12 GiB engine budget",
+  "originalInstalledUI": {
+    "elapsedSeconds": 38,
+    "offsetMeasurement": "Saved messages, relative to the persisted request timestamp and rounded to whole seconds. Engine durations are separate high-resolution measurements.",
+    "answer": "The current stock of brass bolts is 18. This is based on an opening basis of 20 units on January 1, 2026, reduced by a delivery of 2 units on January 2, 2026.",
+    "balanceQuantity": "18",
+    "balanceAlreadySuppliedBothCitations": true,
+    "calls": [
+      {
+        "decision": "balance(brass bolts)",
+        "receiptElapsedSeconds": 16.0,
+        "requestSeconds": 8.037133958307095,
+        "prefillSeconds": 5.703867,
+        "decodeSeconds": 2.333053,
+        "promptTokens": 9988,
+        "matchedPromptTokens": 0,
+        "deduplicatedKVTokens": 0,
+        "generatedTokens": 80,
+        "reasoningTokens": 50,
+        "reasoningBudget": 512,
+        "toolScope": "conversationAnswer"
+      },
+      {
+        "decision": "read(opening stock source)",
+        "receiptElapsedSeconds": 24.0,
+        "requestSeconds": 7.671488208347,
+        "prefillSeconds": 1.647155,
+        "decodeSeconds": 6.018069,
+        "promptTokens": 10425,
+        "matchedPromptTokens": 9952,
+        "deduplicatedKVTokens": 96,
+        "generatedTokens": 238,
+        "reasoningTokens": 185,
+        "reasoningBudget": 512,
+        "toolScope": "conversationAnswer"
+      },
+      {
+        "decision": "read(delivery record)",
+        "receiptElapsedSeconds": 28.0,
+        "requestSeconds": 4.155311583308503,
+        "prefillSeconds": 1.67957,
+        "decodeSeconds": 2.470309,
+        "promptTokens": 11205,
+        "matchedPromptTokens": 10400,
+        "deduplicatedKVTokens": 256,
+        "generatedTokens": 107,
+        "reasoningTokens": 51,
+        "reasoningBudget": 512,
+        "toolScope": "conversationAnswer"
+      },
+      {
+        "decision": "finish",
+        "receiptElapsedSeconds": 38.0,
+        "requestSeconds": 9.9243624167284,
+        "prefillSeconds": 1.895241,
+        "decodeSeconds": 8.024034,
+        "promptTokens": 11942,
+        "matchedPromptTokens": 11200,
+        "deduplicatedKVTokens": 96,
+        "generatedTokens": 338,
+        "reasoningTokens": 172,
+        "reasoningBudget": 512,
+        "toolScope": "conversationAnswer"
+      }
+    ]
+  },
+  "instrumentedReplay": {
+    "elapsedSeconds": 29.453909458359703,
+    "firstAnswerPreviewSeconds": 27.586454541655257,
+    "previewUpdates": 2,
+    "previewCleared": true,
+    "progress": [
+      {
+        "seconds": 0.004463083343580365,
+        "status": "Reading request context"
+      },
+      {
+        "seconds": 0.030743750045076013,
+        "status": "Checking local model files"
+      },
+      {
+        "seconds": 2.8369283333886415,
+        "status": "Preparing local AI. The first start can take longer…"
+      },
+      {
+        "seconds": 4.57313425000757,
+        "status": "Preparing local AI · 0 of 11 steps"
+      },
+      {
+        "seconds": 5.852413583314046,
+        "status": "Preparing local AI · 1 of 11 steps"
+      },
+      {
+        "seconds": 5.872157125035301,
+        "status": "Preparing local AI · 2 of 11 steps"
+      },
+      {
+        "seconds": 5.898113875067793,
+        "status": "Preparing local AI · 3 of 11 steps"
+      },
+      {
+        "seconds": 5.930431875050999,
+        "status": "Preparing local AI · 4 of 11 steps"
+      },
+      {
+        "seconds": 5.969067208352499,
+        "status": "Preparing local AI · 5 of 11 steps"
+      },
+      {
+        "seconds": 6.016655208310112,
+        "status": "Preparing local AI · 6 of 11 steps"
+      },
+      {
+        "seconds": 6.25154845835641,
+        "status": "Preparing local AI · 7 of 11 steps"
+      },
+      {
+        "seconds": 6.473501083324663,
+        "status": "Preparing local AI · 8 of 11 steps"
+      },
+      {
+        "seconds": 6.732585416641086,
+        "status": "Preparing local AI · 9 of 11 steps"
+      },
+      {
+        "seconds": 7.116454083356075,
+        "status": "Preparing local AI · 10 of 11 steps"
+      },
+      {
+        "seconds": 7.346921416698024,
+        "status": "Preparing local AI · 11 of 11 steps"
+      },
+      {
+        "seconds": 7.399146500043571,
+        "status": "Reading the working context"
+      },
+      {
+        "seconds": 11.953688250039704,
+        "status": "Working through the request"
+      },
+      {
+        "seconds": 14.179249541717581,
+        "status": "Preparing a response"
+      },
+      {
+        "seconds": 15.19974429171998,
+        "status": "Balance…"
+      },
+      {
+        "seconds": 15.207980833365582,
+        "status": "Reviewing the saved result"
+      },
+      {
+        "seconds": 15.445369958411902,
+        "status": "Reading the working context"
+      },
+      {
+        "seconds": 16.78103429172188,
+        "status": "Working through the request"
+      },
+      {
+        "seconds": 27.05653187504504,
+        "status": "Preparing a response"
+      }
+    ],
+    "calls": [
+      {
+        "decision": "balance(brass bolts)",
+        "requestSeconds": 7.793731375015341,
+        "prefillSeconds": 4.553181,
+        "decodeSeconds": 3.240324,
+        "promptTokens": 8409,
+        "matchedPromptTokens": 0,
+        "deduplicatedKVTokens": 0,
+        "generatedTokens": 163,
+        "reasoningTokens": 133,
+        "reasoningBudget": 512,
+        "toolScope": "conversationAnswer"
+      },
+      {
+        "decision": "finish",
+        "requestSeconds": 13.999966208357364,
+        "prefillSeconds": 1.330017,
+        "decodeSeconds": 12.665391,
+        "promptTokens": 8936,
+        "matchedPromptTokens": 8384,
+        "deduplicatedKVTokens": 160,
+        "generatedTokens": 640,
+        "reasoningTokens": 512,
+        "reasoningBudget": 512,
+        "toolScope": "conversationAnswer"
+      }
+    ],
+    "balanceQuantity": "18",
+    "expectedCitationsAndOriginalsVerified": true,
+    "answer": "The current stock of brass bolts is 18."
+  },
+  "interpretation": {
+    "explicitRequest": "The question explicitly asks to use balance, cite the result and leave business data alone.",
+    "inferenceFromPromptAndReceipts": "The broad instruction to read originals before citing plausibly led to the two extra reads. The balance tool had already supplied those inputs, and its receipt explicitly says the host attaches them. The exact same wording completed with no extra reads on replay.",
+    "replayLimit": "Only observable model decisions, token counts and host events are reported. The two invocations differ in prior conversation and UI context, so the comparison does not estimate a speedup caused by removing introductory help."
+  },
+  "installedGreeting": {
+    "prompt": "hey",
+    "elapsedSeconds": 18,
+    "modelCalls": 2,
+    "answer": "Hello! I'm here to help. This is the Willow Workshop example workbook, where you can compare supplier costs, inspect deliveries, or ask about inventory. What would you like to do?",
+    "modelBackend": "splash-native-candidate",
+    "workbookIntegrity": true
+  },
+  "installedExecutableUUID": "48CD6C44-6D5C-3207-8612-F10751422EC4",
+  "verification": [
+    "model routing and cancellation",
+    "full grammar and agent checks",
+    "catalog registration and source checks",
+    "native package, runtime digests, signature and isolated installation",
+    "installed greeting model receipts"
+  ],
+  "changedSourceSHA256": {
+    "Sources/SevraAI/WorkbookAgent.swift": "3c9c3344a055d39f6ee175e8602fee28d18d521d2015172a2a6cf97b381aa3c5",
+    "Sources/SevraCore/Runs.swift": "737beb9c60243a3439afb3b25ddca7d44525c1b481ba8e099f952fd649ffcfcc",
+    "IntegrationTests/Agent/ConversationLatencyChecks.swift": "da145e98296da29bf8d53f93204abf7364b5dc9af72b7eed1dca0de33b8aaf19",
+    "IntegrationTests/Agent/main.swift": "a8ef810a16555930c87b7429bdc0c74fe2088cadab0bcb672870066eed85b36d"
+  },
+  "removedSource": "Sources/SevraAI/ConversationHelp.swift"
+}

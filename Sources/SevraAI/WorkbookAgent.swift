@@ -63,13 +63,6 @@ public enum WorkbookAgent {
     try require(
       context.utf8.count <= ContextBudget.maximumMessageBytes, "context_structure",
       "The selected context exceeds its preparation limit.")
-    if excelConversion == nil, inputAnswerID == nil,
-      let help = try ConversationHelp.select(prompt, workbook: workbook, conversation: conversation)
-    {
-      return try help.reply(
-        to: prompt, workbook: workbook, conversation: conversation, context: context,
-        cancellation: cancellation, requestStarted: requestStarted)
-    }
     let requestDateContext = conversationInput ? ConversationDateContext() : nil
     let identity = await model.identity
     do {
