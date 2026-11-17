@@ -136,6 +136,7 @@ public enum WorkbookAgent {
       || handoff?.work == .answer || inputContinuation?.readOnly == true
     let canAsk =
       conversationInput && handoff == nil && excelConversion == nil
+      && inputContinuation?.declined != true
       && (inputContinuation?.priorAnswers.array.count ?? 0) < 4
     let phaseScope: InferenceToolScope =
       excelConversion == nil
@@ -341,6 +342,10 @@ public enum WorkbookAgent {
             "validatedAnswerValues": continuation.values,
             "priorAnswers": continuation.priorAnswers,
           ]).json())
+        if continuation.declined {
+          policy +=
+            "\nThe person declined these inputs. Explain any remaining limit or provide a verified read-only result. Do not guess those values or ask for them again."
+        }
       }
       let conversationIdentity = try workbook.conversationIdentity(
         conversation, cancellation: cancellation)
@@ -609,7 +614,9 @@ public enum WorkbookAgent {
             let failure: Value = .object([
               "error": .string(String(error.localizedDescription.prefix(400))),
               "notice": .string(
-                "Nothing was published. Correct the fields, use distinct short IDs, and match field type to its literal choice values (e.g. boolean for true or false)."
+                (error as? SevraError)?.code == "conversation_input_limit"
+                  ? "Nothing was published. Explain that the user can answer or cancel a pending question before asking another."
+                  : "Nothing was published. Correct the fields, use distinct short IDs, and match field type to its literal choice values (e.g. boolean for true or false)."
               ),
             ])
             _ = try workbook.completeToolCall(receipt, result: failure, failed: true)

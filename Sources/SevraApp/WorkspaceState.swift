@@ -73,7 +73,9 @@ struct FolderReview {
   @Published var datasetSnapshot = "initial"
   @Published var presentationSnapshot = 0
   @Published var chatApproval: ChatApproval?
+  @Published var pendingInputs: [ConversationInputReference] = []
   @Published var pendingInput: ConversationSurface?
+  @Published var replyInputID: String?
   @Published var imageInspection: ConversationImageInspection?
   @Published var visualInspection: ConversationVisualInspection?
   @Published var conversationVisuals: [String: [VisualResult]] = [:]
@@ -267,7 +269,9 @@ struct FolderReview {
     homeDocuments = []
     pendingWorkflows = []
     chatApproval = nil
+    pendingInputs = []
     pendingInput = nil
+    replyInputID = nil
     conversationVisuals = [:]
     imageInspection = nil
     visualInspection = nil
@@ -358,10 +362,12 @@ struct FolderReview {
     let knownRevision = polling && loadedRefreshIdentity == identity ? revision : nil
     let knownSpaceNavigation = spaceNavigation.state
     let navigationGeneration = spaceNavigation.generation
+    let activeInputID = replyInputID
     let contents = contents
     refreshSession.request(identity: identity, onlyWhenIdle: polling && !changedView) { control in
       let snapshot = try book.workspaceSnapshot(
         conversation: identity.conversation, messageAnchor: readingAnchor,
+        activeInputID: activeInputID,
         ifChangedFrom: knownRevision, ifSpaceNavigationMatches: knownSpaceNavigation,
         cancellation: control)
       if let snapshot { try contents.prepare(snapshot.messages, cancellation: control) }
@@ -369,7 +375,8 @@ struct FolderReview {
     } complete: { [weak self] result in
       guard let self, self.interactionActive, self.workbook === book,
         self.interactionIdentity == identity.window,
-        self.conversation == identity.conversation, self.messageAnchor == identity.messageAnchor
+        self.conversation == identity.conversation, self.messageAnchor == identity.messageAnchor,
+        self.replyInputID == activeInputID
       else { return }
       switch result {
       case .success(let snapshot):
@@ -406,7 +413,13 @@ struct FolderReview {
         self.datasetSnapshot = snapshot.datasetSnapshot
         self.presentationSnapshot = snapshot.presentationSnapshot
         self.chatApproval = snapshot.chatApproval
+        self.pendingInputs = snapshot.pendingInputs
         self.pendingInput = snapshot.pendingInput
+        if let replyInputID = self.replyInputID,
+          !snapshot.pendingInputs.contains(where: { $0.id == replyInputID })
+        {
+          self.replyInputID = nil
+        }
         self.conversationVisuals = snapshot.visuals
         self.resumableAnswer = snapshot.resumableAnswer
         self.excelImports = snapshot.excelImports
@@ -991,17 +1004,15 @@ struct FolderReview {
       }
     }
     if input.lowercased().hasPrefix("answer:") {
-      guard let surface = pendingInput, surface.conversation == conversation else {
-        error = "There is no question waiting in this conversation."
-        return
-      }
+      guard let surface = exactReplyInput() else { return }
       let reply = input.dropFirst("answer:".count).trimmingCharacters(in: .whitespacesAndNewlines)
-      if submitInput(surface, response: .text(reply)) { prompt = "" }
+      let response: ConversationInputResponse =
+        reply.lowercased() == "decline" ? .decline : .text(reply)
+      if submitInput(surface, response: response) { prompt = "" }
       return
     }
-    if input.lowercased() == "cancel question", let surface = pendingInput,
-      surface.conversation == conversation
-    {
+    if input.lowercased() == "cancel question" {
+      guard let surface = exactReplyInput() else { return }
       if submitInput(surface, response: .cancel) { prompt = "" }
       return
     }
@@ -1077,6 +1088,30 @@ struct FolderReview {
     runChat(input, book: book)
   }
 
+  private func exactReplyInput() -> ConversationSurface? {
+    if let pendingInput, pendingInput.conversation == conversation,
+      pendingInput.id == replyInputID || (replyInputID == nil && pendingInputs.count == 1)
+    {
+      return pendingInput
+    }
+    error =
+      pendingInputs.isEmpty
+      ? "There is no question waiting in this conversation."
+      : "Choose a question to answer from Pending questions."
+    return nil
+  }
+
+  func targetInput(_ surface: ConversationInputReference) {
+    guard pendingInputs.contains(where: { $0.id == surface.id }) else { return }
+    replyInputID = surface.id
+    changeConversation(conversation, anchor: surface.id)
+  }
+
+  func clearReplyTarget() {
+    replyInputID = nil
+    refresh()
+  }
+
   @discardableResult func submitInput(
     _ surface: ConversationSurface, response: ConversationInputResponse, draftRevision: Int? = nil
   ) -> Bool {
@@ -1086,7 +1121,9 @@ struct FolderReview {
     do {
       let answer = try book.submitConversationInput(
         surface, response: response, draftRevision: draftRevision)
-      pendingInput = nil
+      pendingInputs.removeAll { $0.id == surface.id }
+      if pendingInput?.id == surface.id { pendingInput = nil }
+      if replyInputID == surface.id { replyInputID = nil }
       resumableAnswer = answer
       refresh()
       if let answer { retryInput(answer) }
@@ -1743,7 +1780,9 @@ struct FolderReview {
     showingHistorySearch = false
     if conversation != id {
       historySearch.reset()
+      pendingInputs = []
       pendingInput = nil
+      replyInputID = nil
       conversationVisuals = [:]
       imageInspection = nil
       visualInspection = nil
@@ -1829,7 +1868,9 @@ struct FolderReview {
     homeDocuments = []
     pendingWorkflows = []
     chatApproval = nil
+    pendingInputs = []
     pendingInput = nil
+    replyInputID = nil
     conversationVisuals = [:]
     imageInspection = nil
     visualInspection = nil

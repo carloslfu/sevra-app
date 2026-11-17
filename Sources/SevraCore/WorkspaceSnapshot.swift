@@ -25,6 +25,7 @@ public struct WorkspaceSnapshot: Sendable {
   public let homeDocuments: [ItemSummary]
   public let pendingWorkflows: [Value]
   public let chatApproval: ChatApproval?
+  public let pendingInputs: [ConversationInputReference]
   public let pendingInput: ConversationSurface?
   public let visuals: [String: [VisualResult]]
   public let resumableAnswer: String?
@@ -65,7 +66,8 @@ extension Workbook {
   /// Call off the UI actor. A cancelled waiter must not remain queued behind an
   /// unrelated long search, and all fields must come from the same SQLite view.
   public func workspaceSnapshot(
-    conversation: String, messageAnchor: String? = nil, ifChangedFrom revision: Int? = nil,
+    conversation: String, messageAnchor: String? = nil, activeInputID: String? = nil,
+    ifChangedFrom revision: Int? = nil,
     ifSpaceNavigationMatches navigation: SpaceNavigationState? = nil,
     cancellation: Cancellation = .init(), deadlineSeconds: TimeInterval = 3
   ) throws -> WorkspaceSnapshot? {
@@ -85,7 +87,9 @@ extension Workbook {
           }
           let history = try readConversationWindow(
             conversation: conversation, around: messageAnchor, cancellation: control,
-            reservedPresentationBytes: 128 * 1024)
+            reservedPresentationBytes: 152 * 1024)
+          let pendingInputs = try pendingConversationInputReferences(conversation: conversation)
+          let activeInput = pendingInputs.first { $0.id == activeInputID } ?? pendingInputs.first
           return try WorkspaceSnapshot(
             revision: current, datasetSnapshot: datasetReadSnapshot(),
             presentationSnapshot: db.scalar(
@@ -108,7 +112,8 @@ extension Workbook {
             pendingExtractions: pendingExtractions(), intakeStatus: intakeStatus(),
             homeDocuments: homeRecentDocuments(), pendingWorkflows: homeWorkflowAttention(),
             chatApproval: pendingChatApproval(conversation: conversation),
-            pendingInput: pendingConversationInput(conversation: conversation),
+            pendingInputs: pendingInputs,
+            pendingInput: activeInput.flatMap { try readInput($0.id, conversation: conversation) },
             visuals: conversationVisuals(
               history.messages, conversation: conversation, anchor: messageAnchor),
             resumableAnswer: resumableConversationAnswer(conversation: conversation),

@@ -237,7 +237,13 @@ public enum ConversationInputResponse: Sendable {
   case choice(String)
   case fields([String: Value])
   case text(String)
+  case decline
   case cancel
+}
+
+public struct ConversationInputReference: Identifiable, Sendable {
+  public let id: String
+  public let purpose: String
 }
 
 package struct ConversationContinuation: Sendable {
@@ -251,6 +257,7 @@ package struct ConversationContinuation: Sendable {
   package let priorAnswers: Value
   package let requestDateContext: ConversationDateContext?
   package let answerDateContext: ConversationDateContext?
+  package let declined: Bool
   package let readOnly: Bool
 }
 
@@ -276,6 +283,9 @@ extension Workbook {
         else {
           throw SevraError("conversation_input", "This request is no longer running.")
         }
+        try require(
+          try pendingConversationInputReferences(conversation: conversation).count < 8,
+          "conversation_input_limit", "This conversation already has eight open questions.")
         var input = descriptor
         for index in input.fields.indices {
           guard var records = input.fields[index].records else { continue }
@@ -333,26 +343,46 @@ extension Workbook {
   }
 
   public func pendingConversationInput(conversation: String) throws -> ConversationSurface? {
+    try pendingConversationInputs(conversation: conversation).first
+  }
+
+  public func pendingConversationInputs(conversation: String) throws -> [ConversationSurface] {
     try synchronized {
-      guard
-        let id = try db.scalar(
-          """
-          SELECT id FROM messages WHERE conversation_id=? AND role='assistant' AND state='needs_input'
-          ORDER BY rowid DESC LIMIT 1
-          """, [.string(conversation)]
-        ).string, let surface = try readInput(id, conversation: conversation),
-        try inputAnswerID(id, conversation: conversation) == nil
-      else { return nil }
-      let advanced = try db.scalar(
-        """
-        SELECT EXISTS(SELECT 1 FROM messages WHERE conversation_id=? AND role='user'
-          AND rowid>(SELECT rowid FROM messages WHERE id=?))
-        """, [.string(conversation), .string(id)])
-      return advanced.int == 1 ? nil : surface
+      try pendingConversationInputReferences(conversation: conversation)
+        .compactMap { try readInput($0.id, conversation: conversation) }
     }
   }
 
-  private func readInput(_ id: String, conversation: String) throws -> ConversationSurface? {
+  func pendingConversationInputReferences(conversation: String) throws
+    -> [ConversationInputReference]
+  {
+    try synchronized {
+      try db.execute(
+        """
+        SELECT q.id,substr(json_extract(qp.payload,'$.surface.input.purpose'),1,120) AS purpose
+        FROM messages q JOIN message_payloads qp ON qp.message_id=q.id
+        WHERE q.conversation_id=? AND q.role='assistant' AND q.state='needs_input'
+          AND length(CAST(qp.payload AS BLOB))<=16384
+          AND json_extract(qp.payload,'$.kind')='conversation_surface'
+          AND json_extract(qp.payload,'$.surface.version')=1
+          AND NOT EXISTS (
+            SELECT 1 FROM messages m JOIN message_payloads p ON p.message_id=m.id
+            WHERE m.conversation_id=q.conversation_id AND m.role='user' AND m.rowid>q.rowid
+              AND json_extract(p.payload,'$.surfaceID')=q.id
+              AND json_extract(p.payload,'$.kind') IN ('conversation_input_answer','conversation_input_cancel')
+          )
+        ORDER BY q.rowid DESC LIMIT 8
+        """, [.string(conversation)]
+      ).map { .init(id: $0["id"]!.text, purpose: $0["purpose"]?.string ?? "View question") }
+    }
+  }
+
+  func isPendingConversationInput(_ surface: ConversationSurface) throws -> Bool {
+    try readInput(surface.id, conversation: surface.conversation) == surface
+      && inputAnswerID(surface.id, conversation: surface.conversation) == nil
+  }
+
+  func readInput(_ id: String, conversation: String) throws -> ConversationSurface? {
     guard
       let payload = try db.scalar(
         """
@@ -405,7 +435,7 @@ extension Workbook {
     let result = try mutation(
       "conversation_input_submit", request: .string(surface.id), actor: .human("Sevra.chat-input")
     ) {
-      guard try pendingConversationInput(conversation: surface.conversation) == surface,
+      guard try isPendingConversationInput(surface),
         let input = surface.input
       else {
         throw SevraError("conversation_input", "That question is no longer waiting for an answer.")
@@ -427,11 +457,16 @@ extension Workbook {
       let id = identifier()
       let kind: String
       let body: String
+      var declined = false
       var values: [String: Value] = [:]
       switch response {
       case .cancel:
         kind = "conversation_input_cancel"
         body = "Cancelled the question about “\(input.purpose)”."
+      case .decline:
+        kind = "conversation_input_answer"
+        body = "I decline to provide the requested information."
+        declined = true
       case .choice(let choiceID):
         guard let choice = input.choices.first(where: { $0.id == choiceID }) else {
           throw SevraError("conversation_input", "That choice is unavailable.")
@@ -469,6 +504,7 @@ extension Workbook {
           "surfaceRevision": .number(Double(surface.revision)),
           "requestID": .string(surface.requestID),
           "values": .object(values),
+          "declined": .bool(declined),
           "dateContext": try encoded(dateContext),
         ]))
       try discardConversationInputDraft(surface)
@@ -500,16 +536,17 @@ extension Workbook {
           priorAnswers: receipt["priorAnswers"],
           requestDateContext: try Self.readInputDateContext(receipt["requestDateContext"]),
           answerDateContext: try Self.readInputDateContext(receipt["answerDateContext"]),
+          declined: receipt["declined"] == .bool(true),
           readOnly: receipt["readOnly"] == .bool(true))
       },
       {
         let answer = try conversationInputAnswer(answerID, conversation: conversation)
         try require(
-          try resumableConversationAnswer(conversation: conversation) == answerID,
-          "conversation_input", "This answer already started or the conversation moved on.")
+          try runForInputAnswer(answerID) == nil,
+          "conversation_input", "This answer already started.")
         let surface = answer.surface
         var originalRequest = try historyMessage(surface.requestID, conversation: conversation)
-        var readOnly = surface.readOnly
+        var readOnly = surface.readOnly || answer.declined
         var priorAnswers: [Value] = []
         while try messagePayload(originalRequest.id, conversation: conversation)["kind"]
           == .string("conversation_input_answer")
@@ -539,6 +576,7 @@ extension Workbook {
           "values": answer.values,
           "requestDateContext": try surface.requestDateContext.map(encoded) ?? .null,
           "answerDateContext": answer.dateContext,
+          "declined": .bool(answer.declined),
           "readOnly": .bool(readOnly), "priorAnswers": .array(priorAnswers.reversed()),
         ])
       })
@@ -546,7 +584,9 @@ extension Workbook {
 
   private func conversationInputAnswer(
     _ answerID: String, conversation: String
-  ) throws -> (surface: ConversationSurface, body: String, values: Value, dateContext: Value) {
+  ) throws -> (
+    surface: ConversationSurface, body: String, values: Value, dateContext: Value, declined: Bool
+  ) {
     let message = try historyMessage(answerID, conversation: conversation)
     let payload = try messagePayload(answerID, conversation: conversation)
     guard message.role == "user", payload["kind"] == .string("conversation_input_answer"),
@@ -555,7 +595,10 @@ extension Workbook {
       payload["requestID"] == .string(surface.requestID),
       try inputAnswerID(surface.id, conversation: conversation) == answerID
     else { throw SevraError("conversation_input", "Choose a saved answer in this conversation.") }
-    return (surface, message.body, payload["values"], payload["dateContext"])
+    return (
+      surface, message.body, payload["values"], payload["dateContext"],
+      payload["declined"] == .bool(true)
+    )
   }
 
   private static func readInputDateContext(_ value: Value) throws -> ConversationDateContext? {
@@ -571,12 +614,16 @@ extension Workbook {
     try synchronized {
       guard
         let id = try db.scalar(
-          "SELECT id FROM messages WHERE conversation_id=? AND role='user' ORDER BY rowid DESC LIMIT 1",
-          [.string(conversation)]
-        ).string, try runForInputAnswer(id) == nil,
-        try messagePayload(id, conversation: conversation)["kind"]
-          == .string("conversation_input_answer")
+          """
+          SELECT m.id FROM messages m JOIN message_payloads p ON p.message_id=m.id
+          LEFT JOIN run_requests r ON r.message_id=m.id
+          WHERE m.conversation_id=? AND m.role='user' AND r.run_id IS NULL
+            AND json_extract(p.payload,'$.kind')='conversation_input_answer'
+          ORDER BY m.rowid DESC LIMIT 1
+          """, [.string(conversation)]
+        ).string
       else { return nil }
+      _ = try conversationInputAnswer(id, conversation: conversation)
       return id
     }
   }

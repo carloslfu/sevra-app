@@ -3,7 +3,7 @@ type: spec
 meta-type: conclusion
 id: 01m7fxyzjyxhk7wqfy9044qq7y
 created: 2026-11-15T15:42:08.478533+00:00
-updated: 2026-11-17T01:35:15.225953+00:00
+updated: 2026-11-17T01:41:57.645934+00:00
 summary: Native chat inputs, images, charts and work views implemented in source. The document records focused evidence and remaining visual and release work.
 title: Rich native views for Home, mini apps and chat
 status: reviewed
@@ -542,3 +542,5 @@ The broader frozen local-model cohorts, native visual and multi-window usability
 - A saved image can be replaced explicitly in chat or in the native layout editor. The editor searches current included image Sources, offers caption and description fields, and saves the exact layout version. Replacement retains the prior original and layout revision. The shared image contract rejects non-Source records before publication.
 - Signed authoring preflight can assert exact native visual results from synthetic fixtures. `expect_visual` resolves a visible declared View, then checks the requested exact plotted values, units, work records, nodes and edges, panel results or structured text. Failed assertions report the observed value. The bounded SDK guide still fits in the existing app-read result projection.
 - Boards switch to a stacked layout on compact widths. Paged work views label the displayed subset, show the previous page as such during a refresh, and suspend editing and paging until the current result arrives. Errors keep the previous page inspectable and offer a scoped retry.
+
+An unrelated message no longer dismisses a waiting question or removes a saved answer's continuation. Each conversation exposes up to eight pending questions, with a bounded menu of references and exactly one full question in the workspace projection. Typed answers require an exact reply target when there is more than one question. Declining closes the exact question and admits a read-only explanation with no repeat-question capability. The focused conversation check covered two overlapping questions, draft reopen, an unrelated message before answering and before resuming, selecting the older question, and decline without renewed write authority.

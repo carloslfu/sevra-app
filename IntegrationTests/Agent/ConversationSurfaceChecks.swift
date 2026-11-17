@@ -122,8 +122,24 @@ private actor SurfaceModel: WorkbookInference {
     "Compare delivery independently.", workbook: book,
     model: SurfaceModel(input: arguments), conversationInput: true)
   let typedQuestion = try book.pendingConversationInput(conversation: "main")!
+  _ = try await WorkbookAgent.run(
+    "A separate comparison", workbook: book, model: SurfaceModel(input: arguments),
+    conversationInput: true)
+  let otherQuestion = try book.pendingConversationInput(conversation: "main")!
+  _ = try book.addMessage("An unrelated note", role: "user", conversation: "main")
+  try expectEqual(
+    try book.pendingConversationInputs(conversation: "main"), [otherQuestion, typedQuestion])
+  let selectedInput = try book.workspaceSnapshot(
+    conversation: "main", activeInputID: typedQuestion.id)
+  try expectEqual(selectedInput?.pendingInputs.map(\.id), [otherQuestion.id, typedQuestion.id])
+  try expectEqual(selectedInput?.pendingInput, typedQuestion)
+  let firstDraft = try book.saveConversationInputDraft(
+    typedQuestion, values: ["delivery": .bool(true)], expectedRevision: 0)
+  try expectEqual(try Workbook(book.url).conversationInputDraft(typedQuestion), firstDraft)
   let typedID = try book.submitConversationInput(
-    typedQuestion, response: .text("Include delivery"))!
+    typedQuestion, response: .text("Include delivery"), draftRevision: firstDraft.revision)!
+  _ = try book.addMessage("A note before resuming", role: "user", conversation: "main")
+  try expectEqual(try book.resumableConversationAnswer(conversation: "main"), typedID)
   let typedModel = SurfaceModel()
   _ = try await WorkbookAgent.run(
     "", workbook: book, model: typedModel, conversationInput: true, inputAnswerID: typedID)
@@ -131,6 +147,16 @@ private actor SurfaceModel: WorkbookInference {
   try expectEqual(
     await typedModel.policy?.content.contains("\"validatedAnswerValues\":{\"delivery\":true}"), true
   )
+  try expectEqual(try book.pendingConversationInput(conversation: "main"), otherQuestion)
+  let declined = try book.submitConversationInput(otherQuestion, response: .decline)!
+  let declinedModel = SurfaceModel()
+  _ = try await WorkbookAgent.run(
+    "", workbook: book, model: declinedModel, conversationInput: true, inputAnswerID: declined)
+  try expectEqual(await declinedModel.offeredScope, .conversationAnswer)
+  try expectEqual(await declinedModel.policy?.conversationInput, false)
+  try expectEqual(
+    await declinedModel.policy?.content.contains("The person declined these inputs."), true)
+  try expectEqual(try book.pendingConversationInput(conversation: "main"), nil)
 
   var dateForm = arguments.object
   dateForm["choices"] = .array([])

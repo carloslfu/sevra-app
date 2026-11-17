@@ -37,22 +37,9 @@ public struct ConversationInputView: View {
       if editing || input.choices.isEmpty {
         ForEach(input.fields) { field in fieldControl(field) }
       }
-      HStack {
-        if editing || input.choices.isEmpty {
-          Button("Send answer") { submit(.fields(values), saved?.revision ?? 0) }
-            .buttonStyle(.borderedProminent)
-            .disabled(
-              saving || input.fields.contains { $0.required && values[$0.id] == nil }
-                || values.isEmpty)
-        } else {
-          Button("Enter an answer") {
-            editing = true
-            focusedField = input.fields.first { ![.boolean, .record].contains($0.type) }?.id
-          }
-        }
-        if !values.isEmpty { Button("Clear fields") { values = [:] }.buttonStyle(.link) }
-        Button("Cancel question") { submit(.cancel, saved?.revision ?? 0) }.buttonStyle(.link)
-          .disabled(saving)
+      ViewThatFits(in: .horizontal) {
+        HStack { formActions }.fixedSize(horizontal: true, vertical: false)
+        VStack(alignment: .leading, spacing: 8) { formActions }
       }
       if let persistenceError {
         Text(persistenceError).font(.callout).foregroundStyle(.secondary)
@@ -97,6 +84,26 @@ public struct ConversationInputView: View {
     .background(.quaternary.opacity(0.35), in: RoundedRectangle(cornerRadius: 10))
     .accessibilityElement(children: .contain)
     .accessibilityLabel(input.purpose)
+  }
+
+  @ViewBuilder private var formActions: some View {
+    if editing || input.choices.isEmpty {
+      Button("Send answer") { submit(.fields(values), saved?.revision ?? 0) }
+        .buttonStyle(.borderedProminent)
+        .disabled(
+          saving || input.fields.contains { $0.required && values[$0.id] == nil }
+            || values.isEmpty)
+    } else {
+      Button("Enter an answer") {
+        editing = true
+        focusedField = input.fields.first { ![.boolean, .record].contains($0.type) }?.id
+      }
+    }
+    if !values.isEmpty { Button("Clear fields") { values = [:] }.buttonStyle(.link) }
+    Button("Decline") { submit(.decline, saved?.revision ?? 0) }.buttonStyle(.link)
+      .disabled(saving)
+    Button("Cancel question") { submit(.cancel, saved?.revision ?? 0) }.buttonStyle(.link)
+      .disabled(saving)
   }
 
   private func restoreDraft() async {

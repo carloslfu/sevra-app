@@ -647,6 +647,21 @@ struct WorkbookView: View {
           }
         }
       }
+      if !state.pendingInputs.isEmpty {
+        HStack(alignment: .firstTextBaseline, spacing: 8) {
+          Menu("Pending questions (\(state.pendingInputs.count))") {
+            ForEach(state.pendingInputs) { surface in
+              Button(surface.purpose) { state.targetInput(surface) }
+            }
+          }
+          if let selected = state.pendingInputs.first(where: { $0.id == state.replyInputID }) {
+            Text("Answering \(selected.purpose)")
+              .readingFont(.caption).foregroundStyle(.secondary).lineLimit(1)
+            Button("Clear reply target", action: state.clearReplyTarget)
+              .buttonStyle(.link)
+          }
+        }
+      }
       if !state.selectedContext.isEmpty {
         HStack(alignment: .top) {
           Text("About: " + (state.selectionLabel ?? String(state.selectedContext.prefix(100))))

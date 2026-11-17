@@ -31,7 +31,7 @@ extension Workbook {
     _ surface: ConversationSurface, values: [String: Value], expectedRevision: Int
   ) throws -> ConversationInputDraft {
     try presentationMutation {
-      guard try pendingConversationInput(conversation: surface.conversation) == surface,
+      guard try isPendingConversationInput(surface),
         let input = surface.input
       else { throw SevraError("conversation_input", "This question has closed.") }
       let current = try readConversationInputDraft(surface)
