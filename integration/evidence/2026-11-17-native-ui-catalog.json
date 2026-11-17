@@ -57,5 +57,11 @@
   ],
   "evidencePolicy": "Unchanged default/flow proof reused after browser/evidence-only fixes. Latest semantic binary exercised focused interactions/native UI; final catalog binary adds only opaque capture background, verified with a real table-window capture.",
   "codeSHA256Algorithm": "SHA256 of sorted relative path + NUL + file bytes + NUL; Sources/**/*.swift, Package.swift, catalog/check tooling, workflow, SDK build/declarations/package files and examples/catalog assets",
-  "semanticEvidenceBinaryUUID": "54DBF18A-A090-3644-9E0C-042C958E1097"
+  "semanticEvidenceBinaryUUID": "54DBF18A-A090-3644-9E0C-042C958E1097",
+  "publication": {
+    "implementationCommit": "a33a36f8a5aca04fcc886963cb791ab5fe2b290d",
+    "hostedChecksURL": "https://github.com/carloslfu/sevra-app/actions/runs/44145550710",
+    "hostedChecksStatusAtHandoff": "in_progress",
+    "localAcceptance": "passed"
+  }
 }

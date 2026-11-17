@@ -2,7 +2,7 @@
 type: review
 id: 01m7nba1s3psnzbrvdcdm4tzgz
 created: 2026-11-17T18:11:34.819878+00:00
-updated: 2026-11-17T18:11:34.819878+00:00
+updated: 2026-11-17T18:20:21.942089+00:00
 summary: 'Implemented native catalog: 176 stories, real workbook/XPC paths, isolated services, ten compositions, native capture and scoped acceptance.'
 title: Native UI Catalog implementation review
 ---
@@ -49,3 +49,7 @@ Unchanged default/flow evidence is reused after browser/evidence-only fixes. The
 This is finite capability/state/composition coverage. It does not enumerate every arbitrary layout or visually approve every variant. Separate sheets/popovers, Quick Look/media layers and OS-owned behavior require live review. Actual-model reliability, VoiceOver/OS accessibility, additional hardware, performance under model load and signing/notarization for production distribution are unqualified by this work. There is no new pixel-baseline framework or broad model trial matrix.
 
 AGENTS.md now requires matching registry/fixture changes when UI, schema, protocol, SDK, chat or lifecycle changes. Future agents should verify the changed production path and a nearby refusal, keep rendered/interaction/manual evidence distinct, and keep catalog code/data out of ordinary packaging and the shipped agent's prompt/tools.
+
+## Publication receipt
+
+Implementation commit `a33a36f8a5aca04fcc886963cb791ab5fe2b290d` is pushed to main. [Hosted Checks](https://github.com/carloslfu/sevra-app/actions/runs/44145550710) is running on that exact commit at handoff; no hosted success is claimed. All local acceptance described above passes. Later documentation-only publication notes do not change the verified source/asset digest. Unrelated concurrent AI work in the working tree is excluded from this checkpoint.
