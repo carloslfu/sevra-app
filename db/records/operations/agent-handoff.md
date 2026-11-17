@@ -3,8 +3,8 @@ type: operational
 meta-type: operational
 id: 01m659x4nd2q89tkpzzsssd7yr
 created: 2026-10-30T02:23:30.477380+00:00
-updated: 2026-11-16T21:15:44.893712+00:00
-summary: Splash 1.6.1 preview installed; visual plan revision 16 integrates all recent inference changes with explicit token, receipt, human-answer and acceptance contracts.
+updated: 2026-11-17T15:29:03.071164+00:00
+summary: Splash 1.6.1 preview and visual plan revision 16 handoff, plus portable checkout-context discovery and local-state preservation rules.
 title: Minimum-feature continuation handoff
 ---
 # Minimum-feature continuation handoff
@@ -232,3 +232,23 @@ The revision makes direct-inference admission, actual output modes, phase/result
 The candidate 1.6.1 archive and its five intended native/license members are now hash-verified; no candidate executable or Metal library was loaded, run or installed. The current product remains Splash 1.4.1 with unchanged 32K/12 GiB settings. Existing CPU performance-harness rejection checks passed. Runtime, strict parity, context/memory, installed UX and release gates remain implementation work. No cross-chat coordination was resumed.
 
 Start implementation with P0/P1 when directed. The target is the native source preview; production signing and other hardware qualification remain separate. The preserved strict W1/D9 issue has a bounded diagnosis path and is not cleared by this planning review.
+
+## Checkout context
+The [[sources/notes/2026/11/durable-agent-checkout-context|owner requires durable checkout context]] in agent instructions and handoff notes. Start by confirming
+the repository root and current Git status. This app retains its own Git history,
+remote and public knowledge store even when nested inside another workspace.
+
+If a parent `../AGENTS.md` exists, read its machine-specific checkout and recovery
+notes before changing local layout, deleting caches or assuming another checkout
+is redundant. Standalone clones do not require a parent workspace or private
+repository. Do not copy local paths, private manifests or machine preferences into
+tracked public files.
+
+Preserve unpublished branches, reflogs, linked worktrees, ignored workbooks,
+models and build evidence when relocating a checkout. A clean primary tree and
+synced main branch do not prove that all local state is published. A relocation
+also does not rebuild or install the app; verify the actual installed executable
+against the intended packaged build before claiming it is current.
+
+This is an instruction and documentation change only. It does not advance app
+feature work or add build, installation or UI qualification.

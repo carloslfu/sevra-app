@@ -2,11 +2,12 @@
 type: index
 scope: type-folder
 folder: sources/notes
-updated: 2026-11-17T13:02:07.372927Z
+updated: 2026-11-17T15:28:04.849146Z
 ---
 
 # sources/notes
 
+- [[sources/notes/2026/11/durable-agent-checkout-context]] — Owner requests durable agent instructions and notes for discovering checkout ownership, preserved local work and verification limits.
 - [[sources/notes/2026/11/native-storybook-planning]] — Owner requests code research and a native Storybook plan for main app, mini apps, Home and chat, without implementation.
 - [[sources/notes/2026/11/visual-plan-recent-changes]] — Owner requests review of every recent change and several passes on the dependent visual/chat plan.
 - [[sources/notes/2026/11/rich-visual-end-to-end-review]] — Owner requests an end-to-end code and plan recheck with several review passes.

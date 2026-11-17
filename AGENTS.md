@@ -4,6 +4,12 @@ This is the open-source native local-AI workbook app, separate from Sevra's
 website service and Slotstream's app/engine. Read db/DB.md and
 [Start here](db/records/overview/start-here.md) before changing the project.
 
+Before work, read the [checkout context](db/records/operations/agent-handoff.md#checkout-context)
+in the handoff. If this repository is nested in a local workspace and
+`../AGENTS.md` exists, read it and its checkout/recovery notes. That context is
+optional for standalone clones; this public repository remains self-contained.
+Keep machine-specific paths and private recovery evidence out of tracked app files.
+
 Swift/SwiftUI/AppKit; shared Swift core and CLI. Adopt upstream Splash C++/Metal
 through a Python-free Swift adapter. The current Slotstream build is a preserved
 baseline until the [integration gates](db/records/specs/splash-integration.md) pass.

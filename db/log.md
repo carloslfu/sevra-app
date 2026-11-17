@@ -175,3 +175,9 @@ Audited source 4414522 and wrote the planning-only native UI catalog design. Fou
 ## [2026-11-17 13:02] verification | records/plans/native-storybook.md
 Planning-only validation passed: dbmd index rebuild, dbmd validate --all (zero findings), python3 scripts/check_links.py and git diff --check. Canonical capability counts and source references checked statically. No application build, UI session or runtime test performed.
 
+## [2026-11-17 15:28] implementation | records/operations/agent-handoff.md
+Added portable checkout-context guidance to AGENTS and the handoff. Nested clones consult optional parent instructions; standalone use stays self-contained. Preserve unpublished and ignored state and distinguish relocation from build/install qualification. No app code or runtime change.
+
+## [2026-11-17 15:29] verification | records/operations/agent-handoff.md
+Documentation-only checks passed: dbmd validate --all with zero findings, python3 scripts/check_links.py and git diff --check. No code, dependency, build, installation or UI changes; existing runtime evidence retains its original scope.
+
