@@ -187,3 +187,6 @@ Aligned the catalog plan, agent handoff and build/run guide with the current pri
 ## [2026-11-17 16:52] verification | records/plans/native-storybook.md
 Relocation follow-up documentation checks pass: full dbmd validation, repository Markdown links, git diff --check, root/remote/status inspection and portable-path assertions. Confirmed retired checkout is absent and intervening app commits are documentation-only. No build, app launch, installation or cleanup performed.
 
+## [2026-11-17 17:24] update | records/reviews/readme-launch-copy.md
+Review public README for launch, remove visible MVP labels and preserve actual distribution and capability limits.
+

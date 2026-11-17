@@ -10,6 +10,18 @@ in the handoff. If this repository is nested in a local workspace and
 optional for standalone clones; this public repository remains self-contained.
 Keep machine-specific paths and private recovery evidence out of tracked app files.
 
+## Public product language
+
+The owner’s [November 17 launch-copy direction](db/sources/notes/2026/11/readme-launch-wording.md)
+supersedes the older MVP label in current public copy. Call the product Sevra or
+Sevra Workbook. Describe the current Mac source preview and its actual setup and
+feature limits without implying a production release. Preserve historical labels
+in dated evidence and compatibility anchors. Follow the
+[README copy review](db/records/reviews/readme-launch-copy.md) for the four product
+distinctions, claim boundaries and publication checks.
+
+## Engineering and verification
+
 Swift/SwiftUI/AppKit; shared Swift core and CLI. Adopt upstream Splash C++/Metal
 through a Python-free Swift adapter. The current Slotstream build is a preserved
 baseline until the [integration gates](db/records/specs/splash-integration.md) pass.

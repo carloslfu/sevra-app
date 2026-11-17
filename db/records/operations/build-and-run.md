@@ -2,7 +2,7 @@
 type: operational
 id: 01m5refyq97sez3da1rywz08wf
 created: 2026-10-25T02:33:33.673437+00:00
-updated: 2026-11-17T16:51:49.085523+00:00
+updated: 2026-11-17T17:24:23.714928+00:00
 summary: Current-checkout discovery, portable source installation and build paths, local AI setup, independent CLI use, verification and uninstall.
 title: Build and run
 ---
@@ -16,7 +16,9 @@ The clone step below is for a fresh standalone installation, not an instruction 
 
 The planned [[records/plans/native-storybook|native UI catalog]] uses separate root-relative build/output directories and remains unimplemented. Its documentation does not authorize launching or reinstalling the product.
 
-## Native MVP source installation
+<a id="native-mvp-source-installation"></a>
+
+## Native source installation
 The owner authorized a focused preview upgrade and a practical 32K versus 64K comparison. Splash 1.6.1 is installed in the native preview. The source chooses 64K on Macs with at least 48 GiB of unified memory and 32K below that tier, with a 12 GiB engine budget and automatic context maintenance in both cases. See [[records/operations/inference-context-execution]].
 
 Prerequisites: Apple M3 or newer, macOS 26.4+, Swift 6.3, Git, Python 3 for build
@@ -80,7 +82,9 @@ filters resets every active facet. No acceptance or device execution occurs mere
 by navigating or filtering. See [[records/reviews/native-journey-polish]] for actual
 native observations, source-bound evidence and qualification limits.
 
-## Native MVP supplier comparison
+<a id="native-mvp-supplier-comparison"></a>
+
+## Supplier comparison walkthrough
 
 The repository includes two small synthetic files under `examples/`:
 `supplier-quotes.csv` and `Brio-quotation.pdf`. No real customer data is involved.

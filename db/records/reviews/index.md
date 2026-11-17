@@ -2,11 +2,12 @@
 type: index
 scope: type-folder
 folder: records/reviews
-updated: 2026-11-16T21:16:45.909479Z
+updated: 2026-11-17T17:27:44.658044Z
 ---
 
 # records/reviews
 
+- [[records/reviews/readme-launch-copy]] — Four-pass README review: natural launch copy, local AI and workbook differentiation, factual limits and preserved setup links.
 - [[records/reviews/rich-native-visuals-recent-changes]] — Revision 16 accounts for all three recent inference commits, 95 changed files, token/receipt and human-answer contracts; 53 CPU agent groups pass.
 - [[records/reviews/rich-native-visuals-end-to-end-audit]] — Three-pass code and plan audit closes eight handoff gaps; 28 SDK, 20 signed native and 21 preview groups pass within existing scope.
 - [[records/reviews/image-support-and-plan-readiness]] — Three-pass image audit: mini apps and embedded Home support images; inline chat and standalone Home need the new P1-image increment.

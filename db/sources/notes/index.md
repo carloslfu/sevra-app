@@ -2,11 +2,12 @@
 type: index
 scope: type-folder
 folder: sources/notes
-updated: 2026-11-17T16:51:25.168378Z
+updated: 2026-11-17T17:24:11.940542Z
 ---
 
 # sources/notes
 
+- [[sources/notes/2026/11/readme-launch-wording]] — Carlos requests natural, accurate public README copy and directs Sevra to stop using the MVP label for launch.
 - [[sources/notes/2026/11/native-storybook-checkout-update]] — Owner requests the native Storybook plan and execution guidance follow the relocated primary app checkout.
 - [[sources/notes/2026/11/durable-agent-checkout-context]] — Owner requests durable agent instructions and notes for discovering checkout ownership, preserved local work and verification limits.
 - [[sources/notes/2026/11/native-storybook-planning]] — Owner requests code research and a native Storybook plan for main app, mini apps, Home and chat, without implementation.
