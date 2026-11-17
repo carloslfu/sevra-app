@@ -679,11 +679,21 @@ extension Workbook {
 }
 
 extension VisualChartData {
-  package func inspection() throws -> Value {
-    .object([
+  func inspection(offset: Int = 0, limit: Int = 8) -> Value {
+    let page = points.dropFirst(max(0, offset)).prefix(limit)
+    let end = offset + page.count
+    return .object([
       "queryHash": .string(queryHash), "snapshot": .string(snapshot), "scope": scope,
       "unit": unit.map(Value.string) ?? .null, "total": .number(Double(points.count)),
-      "unknown": .number(Double(unknown)), "points": try encoded(Array(points.prefix(12))),
+      "unknown": .number(Double(unknown)),
+      "nextOffset": end < points.count && !page.isEmpty ? .number(Double(end)) : .null,
+      "points": .array(
+        page.map { point in
+          .object([
+            "id": .number(Double(point.id)), "label": .string(point.label),
+            "amount": .string(point.amount), "series": point.series.map(Value.string) ?? .null,
+          ])
+        }),
     ])
   }
 }

@@ -3,7 +3,7 @@ type: spec
 meta-type: conclusion
 id: 01m7fxyzjyxhk7wqfy9044qq7y
 created: 2026-11-15T15:42:08.478533+00:00
-updated: 2026-11-17T01:41:57.645934+00:00
+updated: 2026-11-17T01:46:37.665576+00:00
 summary: Native chat inputs, images, charts and work views implemented in source. The document records focused evidence and remaining visual and release work.
 title: Rich native views for Home, mini apps and chat
 status: reviewed
@@ -544,3 +544,5 @@ The broader frozen local-model cohorts, native visual and multi-window usability
 - Boards switch to a stacked layout on compact widths. Paged work views label the displayed subset, show the previous page as such during a refresh, and suspend editing and paging until the current result arrives. Errors keep the previous page inspectable and offer a scoped retry.
 
 An unrelated message no longer dismisses a waiting question or removes a saved answer's continuation. Each conversation exposes up to eight pending questions, with a bounded menu of references and exactly one full question in the workspace projection. Typed answers require an exact reply target when there is more than one question. Declining closes the exact question and admits a read-only explanation with no repeat-question capability. The focused conversation check covered two overlapping questions, draft reopen, an unrelated message before answering and before resuming, selecting the older question, and decline without renewed write authority.
+
+Chat receipts now report exact values, units, coverage and source-query identities for captured charts and overview panels. For a saved Home overview, the same chat inspection operation can page an individual panel and pass its returned identities straight to source drill-down. The focused preview check independently verified its amounts and then retrieved the contributors using the inspected snapshot, query hash and point ID.

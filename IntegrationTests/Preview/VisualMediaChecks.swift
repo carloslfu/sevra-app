@@ -65,7 +65,10 @@ import UniformTypeIdentifiers
         "expectedVersion": .number(Double(original.version)), "sourceID": .string(blueSourceID),
       ]),
     ]))
-  let replacement = try workbook.space("home").definition.component(component.id)?.visual?.image
+  let replacement = try workbook.space("home").definition.components.first {
+    $0.id == component.id
+  }?
+  .visual?.image
   try require(
     replacement?.reference.sourceID == blueSourceID && replacement?.caption == "Included photo"
       && component.visual?.image?.reference.sourceID == sourceID,
@@ -134,13 +137,26 @@ import UniformTypeIdentifiers
       ]),
     ]))
   let component = try workbook.space("home").definition.components.last!
+  let inspection = try tools.execute(
+    "workspace_action",
+    .object([
+      "action": .string("visual.inspect"),
+      "arguments": .object([
+        "id": .string(home.id), "componentID": .string(component.id), "panel": .number(1),
+      ]),
+    ]))["chart"]
+  try require(
+    inspection["points"].array.map { $0["amount"].text } == captured.points.map(\.amount)
+      && inspection["snapshot"] == .string(captured.snapshot)
+      && inspection["queryHash"] == .string(captured.queryHash),
+    "preview_check", "Chat inspection did not return the panel’s exact values and identity.")
   let panel = try tools.execute(
     "workspace_action",
     .object([
       "action": .string("visual.live_sources"),
       "arguments": .object([
         "id": .string(home.id), "componentID": .string(component.id),
-        "snapshot": .string(captured.snapshot), "queryHash": .string(captured.queryHash),
+        "snapshot": inspection["snapshot"], "queryHash": inspection["queryHash"],
         "panel": .number(1), "point": .number(0),
       ]),
     ]))

@@ -1,4 +1,3 @@
-import CryptoKit
 import Foundation
 import SevraAppUI
 import SevraAutomationUI
@@ -155,19 +154,9 @@ extension WorkspaceState {
           captured.json().utf8.count <= 24 * 1024, "visual_limit",
           "This view is too large to capture. Narrow its scope and try again.")
         let title = visual.definition.title ?? view
-        let marks: [Value] = (visual.chartData?.points ?? []).prefix(12).map { point in
-          .object(["id": .number(Double(point.id)), "label": .string(point.label)])
-        }
-        let digest = SHA256.hash(data: Data(try captured.json().utf8))
-          .map { String(format: "%02x", $0) }.joined()
-        let summary: Value = .object([
-          "kind": .string(visual.definition.kind.rawValue), "title": .string(title),
-          "snapshot": visual.chartData.map { .string($0.snapshot) } ?? .null,
-          "queryHash": visual.chartData.map { .string($0.queryHash) } ?? .null,
-          "points": .array(marks), "hash": .string(digest),
-        ])
         return .object([
-          "status": .string("captured"), "capture": captured, "visualSummary": summary,
+          "status": .string("captured"), "capture": captured,
+          "visualSummary": try visual.captureSummary(title: title, capture: captured),
           "notice": .string("Attach the capture receipt using finish.visuals."),
         ])
       }

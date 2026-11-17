@@ -11,6 +11,31 @@ public struct ImagePresentation: Codable, Equatable, Sendable {
   public var accessibilityDescription: String
 }
 
+extension VisualResult {
+  package func captureSummary(title: String, capture: Value) throws -> Value {
+    var fields = chartData?.inspection().object ?? [:]
+    fields["title"] = .string(title)
+    fields["kind"] = .string(definition.kind.rawValue)
+    fields["hash"] = .string(ChangeFormat.hash(try capture.json()))
+    if let image { fields["sourceID"] = .string(image.reference.sourceID) }
+    if let workData {
+      fields["marks"] = .number(Double(workData.records.count))
+      fields["scope"] = workData.scope
+    }
+    if let diagramData { fields["marks"] = .number(Double(diagramData.nodes.count)) }
+    if let overview, let overviewData {
+      fields["panels"] = .array(
+        zip(overview.panels, overviewData).enumerated().map { index, panel in
+          var fields = panel.1.inspection(limit: 1).object
+          fields["panel"] = .number(Double(index))
+          fields["title"] = .string(panel.0.title)
+          return .object(fields)
+        })
+    }
+    return .object(fields)
+  }
+}
+
 /// Native visuals use workbook-owned references and bounded presentation values.
 public struct VisualDefinition: Codable, Equatable, Sendable {
   public enum Kind: String, Codable, Sendable { case image, chart, work, diagram, overview, text }
@@ -347,26 +372,17 @@ extension WorkbookTools {
       let panels = try visual.overview.map {
         try workbook.overviewData($0, capture: true, cancellation: cancellation)
       }
-      let capture = try encoded(
-        VisualResult(
-          definition: visual, chartData: data, workData: records, diagramData: graph,
-          overviewData: panels))
+      let result = VisualResult(
+        definition: visual, chartData: data, workData: records, diagramData: graph,
+        overviewData: panels)
+      let capture = try encoded(result)
       try require(
         capture.json().utf8.count <= 24 * 1024, "visual_limit",
         "Narrow the chart to save a compact answer.")
       let title = try visualTitle(visual, arguments: a)
       return .object([
         "status": .string("captured"), "capture": capture,
-        "visualSummary": .object([
-          "title": .string(title), "kind": .string(visual.kind.rawValue),
-          "hash": .string(ChangeFormat.hash(try capture.json())),
-          "sourceID": visual.image.map { .string($0.reference.sourceID) } ?? .null,
-          "marks": data.map { .number(Double($0.points.count)) }
-            ?? records.map { .number(Double($0.records.count)) }
-            ?? graph.map { .number(Double($0.nodes.count)) } ?? .null,
-          "unknown": data.map { .number(Double($0.unknown)) } ?? .null,
-          "scope": data?.scope ?? records?.scope ?? .null,
-        ]),
+        "visualSummary": try result.captureSummary(title: title, capture: capture),
         "notice": .string(
           "Attach this receipt ID with finish.visuals. Exact values are saved in the receipt. Image decoding is checked at display."
         ),
@@ -423,6 +439,17 @@ extension WorkbookTools {
       let records = try visual.work.map {
         try workbook.workVisualData($0, cursor: a["cursor"].string, cancellation: cancellation)
       }
+      let offset = a["offset"].int ?? 0
+      try require(offset >= 0, "visual", "Choose a nonnegative inspection offset.")
+      if let panel = a["panel"].int {
+        let chart = try visual.sourceChart(panel: panel)
+        let data = try workbook.chartData(chart, cancellation: cancellation)
+        return .object([
+          "id": .string(owner.id), "version": .number(Double(owner.version)),
+          "componentID": .string(component.id), "panel": .number(Double(panel)),
+          "title": .string(chart.title), "chart": data.inspection(offset: offset),
+        ])
+      }
       let chart = try visual.chart.map { try workbook.chartData($0, cancellation: cancellation) }
       let diagram = try visual.diagram.map { definition in
         let data = try workbook.diagramData(definition, cancellation: cancellation)
@@ -433,7 +460,10 @@ extension WorkbookTools {
         "id": .string(owner.id), "version": .number(Double(owner.version)),
         "componentID": .string(component.id), "definition": try encoded(visual),
         "records": try records.map(encoded) ?? .null,
-        "chart": try chart.map { try $0.inspection() } ?? .null,
+        "chart": chart.map { $0.inspection(offset: offset) } ?? .null,
+        "panels": visual.overview.map {
+          .array($0.panels.map { .string($0.title) })
+        } ?? .null,
         "diagram": diagram ?? .null,
       ])
     case "visual.live_sources":

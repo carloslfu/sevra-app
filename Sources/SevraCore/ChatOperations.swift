@@ -43,7 +43,7 @@ public enum ChatOperations {
       ["messageID", "index", "path"], host: true),
     .init(
       "visual.inspect", "Inspect a saved visual and current work record versions.",
-      ["id", "componentID"], ["cursor", "offset"], readOnly: true),
+      ["id", "componentID"], ["cursor", "offset", "panel"], readOnly: true),
     .init(
       "visual.relationships",
       "Inspect one captured diagram’s records and incident relationships. Optionally filter by exact node key.",
