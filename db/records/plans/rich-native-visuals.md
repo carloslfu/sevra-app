@@ -3,7 +3,7 @@ type: spec
 meta-type: conclusion
 id: 01m7fxyzjyxhk7wqfy9044qq7y
 created: 2026-11-15T15:42:08.478533+00:00
-updated: 2026-11-17T01:18:29.296214+00:00
+updated: 2026-11-17T01:35:15.225953+00:00
 summary: Native chat inputs, images, charts and work views implemented in source. The document records focused evidence and remaining visual and release work.
 title: Rich native views for Home, mini apps and chat
 status: reviewed
@@ -535,3 +535,10 @@ The final two live probes passed on a 48 GiB Apple Silicon host with the install
 - Focused acceptance covered archive/restore and stale-version refusal, saved graph placement and overlap refusal, an overview panel's exact contributors, the typed continuation, chart provenance, corrupted images and board Undo. The focused checks are included in the existing repository and hosted suites. The prior integrated run passed 661 core checks, including its cancellation timing check when run without other workloads.
 
 The broader frozen local-model cohorts, native visual and multi-window usability review, VoiceOver settings, other hardware, and model-loaded performance targets remain open. The direct native presentation surface exposes the declared operations wired in this implementation. Custom mini-app behavior depends on the operations an app declares. No production installer, device grant or active workbook installation was changed by this source delivery.
+
+## Final integration fixes
+
+- Scoped workspace discovery and dispatch use the same enabled-operation subset as native grammar. The prompt asks the agent to discover operations for the current request, while executable schemas continue to reject unknown action IDs. The pinned-tokenizer and grammar checks covered 87 cases and 832 mask checkpoints. The ordinary and authoring tool prompts measured 8,407 of 8,448 and 10,067 of 10,240 tokens.
+- A saved image can be replaced explicitly in chat or in the native layout editor. The editor searches current included image Sources, offers caption and description fields, and saves the exact layout version. Replacement retains the prior original and layout revision. The shared image contract rejects non-Source records before publication.
+- Signed authoring preflight can assert exact native visual results from synthetic fixtures. `expect_visual` resolves a visible declared View, then checks the requested exact plotted values, units, work records, nodes and edges, panel results or structured text. Failed assertions report the observed value. The bounded SDK guide still fits in the existing app-read result projection.
+- Boards switch to a stacked layout on compact widths. Paged work views label the displayed subset, show the previous page as such during a refresh, and suspend editing and paging until the current result arrives. Errors keep the previous page inspectable and offer a scoped retry.

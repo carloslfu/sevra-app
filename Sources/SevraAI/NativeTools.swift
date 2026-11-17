@@ -93,18 +93,17 @@ package enum NativeTools {
       ], required: ["kind", "purpose", "question", "fields", "choices", "allowTextReply"]))
 
   static func componentSchema(depth: Int) -> Value {
+    var types = [
+      "table", "chart", "metric", "document", "asset", "search", "text", "input", "reviews",
+      "shortcuts", "tables", "intake", "recent", "form", "calculation", "query", "app",
+      "attention", "continue", "image", "visual",
+    ]
+    if depth < 3 { types.append("comparison") }
     var fields: [String: Value] = [
-
       "id": schema("string", "A unique short component ID."),
       "type": .object([
         "type": .string("string"),
-        "enum": .array(
-          [
-            "table", "chart", "metric", "document", "asset", "search", "text", "input", "reviews",
-            "shortcuts", "tables", "intake", "recent", "form", "calculation", "query", "app",
-            "attention", "continue", "image", "visual",
-          ].map(
-            Value.string)),
+        "enum": .array(types.map(Value.string)),
       ]),
       "title": schema("string", "Visible title."),
       "datasetID": schema(
@@ -134,16 +133,6 @@ package enum NativeTools {
       "text": schema("string", "Text component content."),
     ]
     if depth < 3 {
-      fields["type"] = .object([
-        "type": .string("string"),
-        "enum": .array(
-          [
-            "table", "chart", "metric", "comparison", "document", "asset", "search", "text",
-            "input", "reviews", "shortcuts", "tables", "intake", "recent", "form", "calculation",
-            "query", "app", "attention", "continue",
-          ].map(
-            Value.string)),
-      ])
       fields["children"] = .object([
         "type": .string("array"), "minItems": .number(2), "maxItems": .number(3),
         "description": .string(
@@ -187,7 +176,8 @@ package enum NativeTools {
     "start_thread_and_continue", "start_thread", "review_thread_summary", "tool_result",
     "read", "compare_rows", "propose_table", "edit_space", "draft", "finish",
     "workflow_template", "save_definition", "include_archive_members", "propose_table_edit",
-    "space_history", "references", "calculate",
+    "space_history", "references", "calculate", "workspace_action", "workspace_actions",
+    "inventory_automation_template", "workflow_activity",
   ]
   package static let definitions: [WorkbookToolDefinition] = fullDefinitions.map {
     guard compactParameterDescriptions.contains($0.name) else { return $0 }

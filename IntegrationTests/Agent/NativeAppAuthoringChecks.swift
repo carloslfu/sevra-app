@@ -74,6 +74,49 @@ func checkNativeAppAuthoring() async throws {
     "sevra-authoring-tests-" + identifier())
   try FileManager.default.createDirectory(at: root, withIntermediateDirectories: false)
   defer { try? FileManager.default.removeItem(at: root) }
+  let sales = NativeAppPackage(
+    name: "Sales overview",
+    source: "Sevra.mount(Sevra.h(Sevra.View,{viewID:'sales'}));",
+    datasets: [
+      "sales": .init(
+        title: "Sales",
+        columns: [
+          .init(id: "region", title: "Region"),
+          .init(id: "amount", title: "Amount", type: "decimal"),
+        ])
+    ],
+    views: [
+      "sales": .init(
+        chart: .init(
+          title: "Sales by region", style: .bar,
+          query: try Value.parse(
+            """
+            {"sources":[{"table":"sales","scope":{"meaning":"actual","status":"accepted"}}],
+             "select":[{"id":"region","column":{"source":0,"column":"region"}},
+               {"id":"total","column":{"source":0,"column":"amount"},"aggregate":"sum"}],
+             "groupBy":[{"source":0,"column":"region"}],"limit":10}
+            """), x: "region", y: "total"))
+    ])
+  let salesFixtures = try Value.parse(
+    #"{"sales":[{"region":"North","amount":"7.25"},{"region":"North","amount":"11"}]}"#)
+  _ = try await NativeAppCheck.run(
+    package: sales,
+    steps: steps(
+      #"[{"kind":"expect_visual","target":"sales","expected":{"style":"bar","unknown":0,"points":[{"label":"North","amount":"18.25","series":null}]}}]"#
+    ),
+    fixtures: salesFixtures)
+  do {
+    _ = try await NativeAppCheck.run(
+      package: sales,
+      steps: steps(
+        #"[{"kind":"expect_visual","target":"sales","expected":{"points":[{"label":"North","amount":"18","series":null}]}}]"#
+      ),
+      fixtures: salesFixtures)
+    throw SevraError("test", "A wrong chart value passed preflight.")
+  } catch {
+    try expectEqual(error.localizedDescription.contains("Visual points differed"), true)
+  }
+  print("PASS signed authoring verifies exact rendered chart data and rejects wrong expectations")
   let workspace = NativeAppPackage(
     name: "Synthetic workspace",
     source: """

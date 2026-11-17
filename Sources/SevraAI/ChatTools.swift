@@ -21,7 +21,7 @@ extension NativeTools {
     .init(
       name: "workspace_action",
       description:
-        "Use discovered arguments and inspected versions. app.run uses {id,expectedVersion,action,inputs:{...}}; get the version from app.inspect. Ask for missing required business inputs; never invent values or use form defaults. Confirmation-required results are pending until the person confirms in chat.",
+        "Use discovered inputs and inspected versions. For app.run use app.inspect first. Ask for missing values. Only the person confirms pending reviews.",
       parameters: object(
         [
           "action": .object([

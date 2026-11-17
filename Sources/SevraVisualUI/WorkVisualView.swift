@@ -9,6 +9,7 @@ public struct WorkVisualView: View {
   let openRecord: ((String) -> Void)?
   let thumbnail: (@MainActor (String) async throws -> PreviewImage)?
   let change: ((WorkVisualData.Record, String, String?) -> Void)?
+  let paged: Bool
   @State private var day: String?
   @State private var displayedMonth: Date?
   @State private var weekOnly = false
@@ -19,18 +20,23 @@ public struct WorkVisualView: View {
   public init(
     definition: WorkVisual, data: WorkVisualData, openRecord: ((String) -> Void)? = nil,
     thumbnail: (@MainActor (String) async throws -> PreviewImage)? = nil,
-    change: ((WorkVisualData.Record, String, String?) -> Void)? = nil
+    change: ((WorkVisualData.Record, String, String?) -> Void)? = nil, paged: Bool = false
   ) {
     self.definition = definition
     self.data = data
     self.openRecord = openRecord
     self.thumbnail = thumbnail
     self.change = change
+    self.paged = paged
   }
 
   public var body: some View {
     VStack(alignment: .leading, spacing: 10) {
       Text(definition.title).font(.headline).accessibilityAddTraits(.isHeader)
+      if paged {
+        Text("Showing \(data.records.count.formatted()) records on this page")
+          .font(.caption).foregroundStyle(.secondary)
+      }
       if data.records.isEmpty {
         Label("No records match this view.", systemImage: "rectangle.on.rectangle")
           .foregroundStyle(.secondary)
@@ -80,19 +86,30 @@ public struct WorkVisualView: View {
 
   private var board: some View {
     let lanes = definition.lanes ?? []
-    return ScrollView(.horizontal) {
-      LazyHStack(alignment: .top, spacing: 10) {
-        ForEach(lanes, id: \.self) { lane in
-          column(lane, records: data.records.filter { $0.value == lane })
-        }
-        let other = data.records.filter { record in !lanes.contains(record.value ?? "") }
-        if !other.isEmpty { column("Other or unassigned", records: other) }
+    let other = data.records.filter { !lanes.contains($0.value ?? "") }
+    return ViewThatFits(in: .horizontal) {
+      HStack(alignment: .top, spacing: 10) {
+        boardColumns(lanes, other: other)
+      }.fixedSize(horizontal: true, vertical: false)
+      LazyVStack(alignment: .leading, spacing: 10) {
+        boardColumns(lanes, other: other, width: nil)
       }
-    }.defaultScrollAnchor(.leading)
+    }
   }
 
-  private func column(_ title: String, records: [WorkVisualData.Record]) -> some View {
-    VStack(alignment: .leading, spacing: 8) {
+  @ViewBuilder private func boardColumns(
+    _ lanes: [String], other: [WorkVisualData.Record], width: CGFloat? = 174
+  ) -> some View {
+    ForEach(lanes, id: \.self) { lane in
+      column(lane, records: data.records.filter { $0.value == lane }, width: width)
+    }
+    if !other.isEmpty { column("Other or unassigned", records: other, width: width) }
+  }
+
+  private func column(
+    _ title: String, records: [WorkVisualData.Record], width: CGFloat?
+  ) -> some View {
+    LazyVStack(alignment: .leading, spacing: 8) {
       Text(title + " · " + records.count.formatted()).font(.subheadline.weight(.semibold))
         .accessibilityAddTraits(.isHeader)
       if records.isEmpty {
@@ -101,7 +118,9 @@ public struct WorkVisualView: View {
         ForEach(records) { card($0, showsDate: false) }
       }
     }
-    .padding(10).frame(width: 174, alignment: .leading)
+    .padding(10)
+    .frame(maxWidth: width == nil ? .infinity : nil, alignment: .leading)
+    .frame(width: width, alignment: .leading)
     .background(.quaternary.opacity(0.35), in: RoundedRectangle(cornerRadius: 8))
   }
 
@@ -329,6 +348,10 @@ public struct LiveWorkVisualView: View {
   @State private var error: String?
   @State private var pages: [String] = []
   @State private var page = 0
+  @State private var displayedPage = 0
+  @State private var displayedDefinition: WorkVisual?
+  @State private var displayedRequest: [String]?
+  @State private var retry = 0
 
   public init(
     definition: WorkVisual, revision: String,
@@ -346,24 +369,42 @@ public struct LiveWorkVisualView: View {
   }
 
   private var cursor: String? { page > 0 && pages.count >= page ? pages[page - 1] : nil }
+  private var request: [String] {
+    [revision, (try? encoded(definition).json()) ?? "", cursor ?? "", String(retry)]
+  }
 
   public var body: some View {
-    Group {
+    let current = request
+    let refreshing = displayedRequest != current
+    return VStack(alignment: .leading, spacing: 9) {
       if let error {
-        Label(error, systemImage: "rectangle.on.rectangle").foregroundStyle(.secondary)
-      } else if let data {
-        VStack(alignment: .leading, spacing: 9) {
+        Label(error, systemImage: "exclamationmark.circle").foregroundStyle(.secondary)
+        Button("Retry") {
+          self.error = nil
+          retry += 1
+        }
+      } else if refreshing {
+        ProgressView(data == nil ? "Loading records…" : "Updating records…")
+          .controlSize(.small)
+      }
+      if let data, let displayedDefinition {
+        Group {
+          if refreshing {
+            Text("Last loaded page").font(.caption).foregroundStyle(.secondary)
+          }
           WorkVisualView(
-            definition: definition, data: data, openRecord: openRecord,
+            definition: displayedDefinition, data: data, openRecord: openRecord,
             thumbnail: thumbnail,
-            change: (page == 0 || pages.count >= page)
-              ? change.map { action in
+            change: refreshing
+              ? nil
+              : change.map { action in
                 { record, value, end in action(record, value, end, cursor) }
-              } : nil)
-          if page > 0 || data.nextCursor != nil {
+              }, paged: displayedPage > 0 || data.nextCursor != nil)
+          if displayedPage > 0 || data.nextCursor != nil {
             HStack {
               Button("Previous page") { page -= 1 }.disabled(page == 0)
-              Text("Page " + (page + 1).formatted()).font(.caption).foregroundStyle(.secondary)
+              Text("Page " + (displayedPage + 1).formatted()).font(.caption).foregroundStyle(
+                .secondary)
               Button("Next page") {
                 guard let next = data.nextCursor else { return }
                 if pages.count == page { pages.append(next) }
@@ -371,9 +412,7 @@ public struct LiveWorkVisualView: View {
               }.disabled(data.nextCursor == nil || page >= 999)
             }
           }
-        }
-      } else {
-        ProgressView("Loading records…")
+        }.disabled(refreshing)
       }
     }.onChange(of: revision) { _, _ in
       pages = []
@@ -383,13 +422,17 @@ public struct LiveWorkVisualView: View {
       pages = []
       page = 0
     }
-    .task(id: [revision, (try? encoded(definition).json()) ?? "", cursor ?? ""]) {
-      data = nil
+    .task(id: current) {
       error = nil
+      let loadingPage = page
+      let loadingCursor = cursor
       do {
-        let result = try await load(cursor)
+        let result = try await load(loadingCursor)
         try Task.checkCancellation()
         data = result
+        displayedDefinition = definition
+        displayedPage = loadingPage
+        displayedRequest = current
       } catch {
         if !Task.isCancelled { self.error = error.localizedDescription }
       }

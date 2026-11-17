@@ -1248,9 +1248,20 @@ public enum WorkbookAgent {
             }
             nativeAppCheck = .object(checked)
           }
-          var value = try tools.execute(
-            tool == "prepare_action" ? "commit_action_preview" : tool,
-            commitArguments ?? a, receiptID: receiptID, nativeAppCheck: nativeAppCheck)
+          let workspaceOperations = Set(inferenceScope.workspaceOperations.map(\.name))
+          if tool == "workspace_action" {
+            let operation = try ChatOperations.validate(
+              a["action"].text, arguments: a["arguments"], readOnly: readOnly)
+            try require(
+              workspaceOperations.contains(operation.name), "tool_scope",
+              "Discover workspace operations available for this request.")
+          }
+          var value =
+            try tool == "workspace_actions"
+            ? ChatOperations.catalog(a["domain"].string, allowed: workspaceOperations)
+            : tools.execute(
+              tool == "prepare_action" ? "commit_action_preview" : tool,
+              commitArguments ?? a, receiptID: receiptID, nativeAppCheck: nativeAppCheck)
           if tool == "workspace_action", let action = value["hostAction"].string {
             let args = routedAppCall.map { $0["arguments"] } ?? value["arguments"]
             let operation = try ChatOperations.validate(action, arguments: args, readOnly: readOnly)

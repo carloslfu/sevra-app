@@ -64,6 +64,13 @@ extension NativeTools {
         ["target": schema("string", "Unique visible control label/title or node ID.")],
         required: ["target"]),
       appStep(
+        "expect_visual",
+        [
+          "target": schema("string", "Declared view ID."),
+          "expected": schema("object", "Exact visual fields."),
+        ],
+        required: ["target", "expected"]),
+      appStep(
         "expect_enabled",
         [
           "target": schema("string", "Unique control label."),

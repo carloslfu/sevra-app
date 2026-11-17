@@ -135,8 +135,8 @@ public final class SplashToolPolicy {
     grammar = String(decoding: encoded, as: UTF8.self)
   }
 
-  /// Values suitable for the exact maintained prompt template, sharing the same
-  /// normalized schema the mask compiler and terminal validator use.
+  /// Values for the model template. Discoverable operation names are omitted
+  /// here only. The grammar and terminal validation still use the exact enum.
   public func promptTools() throws -> [[String: any Sendable]] {
     func sendable(_ value: Any) throws -> any Sendable {
       if let value = value as? String { return value }
@@ -150,7 +150,24 @@ public final class SplashToolPolicy {
       if let value = value as? [Any] { return try value.map(sendable) }
       throw SplashError("Unsupported workbook schema value")
     }
-    return try (JSONSerialization.jsonObject(with: toolsJSON) as! [[String: Any]]).map {
+    var tools = try JSONSerialization.jsonObject(with: toolsJSON) as! [[String: Any]]
+    if tools.contains(where: {
+      ($0["function"] as? [String: Any])?["name"] as? String == "workspace_actions"
+    }),
+      let index = tools.firstIndex(where: {
+        ($0["function"] as? [String: Any])?["name"] as? String == "workspace_action"
+      }), var function = tools[index]["function"] as? [String: Any],
+      var parameters = function["parameters"] as? [String: Any],
+      var properties = parameters["properties"] as? [String: Any],
+      var action = properties["action"] as? [String: Any]
+    {
+      action.removeValue(forKey: "enum")
+      properties["action"] = action
+      parameters["properties"] = properties
+      function["parameters"] = parameters
+      tools[index]["function"] = function
+    }
+    return try tools.map {
       try $0.mapValues(sendable)
     }
   }

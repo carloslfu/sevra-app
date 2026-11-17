@@ -255,7 +255,7 @@ private actor SurfaceModel: WorkbookInference {
     operation: ("visual.evaluate", .object(["chart": try encoded(chart)])), attachVisual: true)
   _ = try await WorkbookAgent.run(
     "Read only. Do not change anything. Show the collected amounts.", workbook: book,
-    model: chartModel)
+    model: chartModel, conversationInput: true)
   let chartMessage = try book.messages().last!
   let captureSnapshot = try book.conversationVisual(chartMessage.id, index: 0, conversation: "main")
   try expectEqual(captureSnapshot.chartData?.points, exact.points)

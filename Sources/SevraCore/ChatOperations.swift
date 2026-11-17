@@ -116,6 +116,9 @@ public enum ChatOperations {
       "visual.promote", "Add the exact visual from a saved chat message as a live Home view.",
       ["messageID", "index", "expectedVersion"]),
     .init(
+      "visual.replace_image", "Replace the included original for an exact saved image component.",
+      ["id", "componentID", "expectedVersion", "sourceID"], ["caption", "accessibilityDescription"]),
+    .init(
       "visual.configure",
       "Update a saved visual's labels, chart mark or calendar month without replacing its binding.",
       ["id", "componentID", "expectedVersion"],
@@ -308,10 +311,12 @@ public enum ChatOperations {
       "excel.build", "Build the reviewed Excel workspace with local AI in this conversation.",
       ["id"], host: true),
   ]
-  public static func catalog(_ domain: String? = nil) throws -> Value {
+  public static func catalog(_ domain: String? = nil, allowed: Set<String>? = nil) throws -> Value {
     .array(
-      operations.filter { domain == nil || domain!.isEmpty || $0.name.hasPrefix(domain! + ".") }.map
-      { operation in
+      operations.filter { operation in
+        (allowed?.contains(operation.name) ?? true)
+          && (domain == nil || domain!.isEmpty || operation.name.hasPrefix(domain! + "."))
+      }.map { operation in
         .object([
           "action": .string(operation.name), "description": .string(operation.summary),
           "required": .array(operation.required.map(Value.string)),

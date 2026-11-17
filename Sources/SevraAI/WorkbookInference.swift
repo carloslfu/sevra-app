@@ -25,7 +25,8 @@ package enum InferenceToolScope: String, CaseIterable, Sendable {
           && (!$0.host
             || [
               "visual.open_source", "visual.image_view", "visual.app_capture", "visual.app_sources",
-              "visual.open_current", "visual.expand",
+              "visual.open_current", "visual.expand", "visual.app_preset_info",
+              "visual.app_diagram_positions", "app.inspect", "app.browse",
             ].contains($0.name))
       }
     default: return []

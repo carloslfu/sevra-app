@@ -15,6 +15,7 @@ struct SpaceLayoutEditor: View {
   @State private var saving = false
   @State private var showingHistory = false
   @State private var nextHistory: Int?
+  @State private var imagePicker: ImageLayoutTarget?
   var body: some View {
     VStack(alignment: .leading, spacing: 16) {
       Text("Edit layout").readingFont(.title2).accessibilityAddTraits(.isHeader)
@@ -64,6 +65,9 @@ struct SpaceLayoutEditor: View {
                   )
                   .lineLimit(2...8)
                 }
+                if let image = component.visual?.image {
+                  imageFields($component, image: image)
+                }
                 if component.type == "search", space.definition.pinnedAt == nil {
                   TextField(
                     "Search words",
@@ -92,6 +96,7 @@ struct SpaceLayoutEditor: View {
         if space.definition.pinnedAt == nil {
           Menu("Add section") {
             Button("Text") { add(.init(type: "text", title: "Note", text: "")) }
+            Button("Included image") { imagePicker = .init(componentID: nil) }
             Button("Receive delivery form") { addReceivingForm() }
             Button("Saved search") { add(.init(type: "search", title: "Search", query: "")) }
             Menu("Live app") {
@@ -134,6 +139,20 @@ struct SpaceLayoutEditor: View {
     }.padding(24).frame(minWidth: 560, idealWidth: 680, minHeight: 440, idealHeight: 560)
       .disabled(saving)
       .interactiveDismissDisabled(saving)
+      .sheet(item: $imagePicker) { target in
+        if let book = state.workbook {
+          IncludedImagePicker(book: book) { sourceID, title in
+            let index = components.firstIndex { $0.id == target.componentID }
+            let caption = index.flatMap { components[$0].visual?.image?.caption } ?? ""
+            let visual = try book.imageDefinition(sourceID: sourceID, caption: caption)
+            if let index {
+              components[index].visual = visual
+            } else if target.componentID == nil {
+              add(.init(type: "visual", title: String(title.prefix(120)), visual: visual))
+            }
+          }
+        }
+      }
       .onAppear {
         title = space.title
         components = space.definition.components
@@ -142,6 +161,24 @@ struct SpaceLayoutEditor: View {
         guard showingHistory else { return }
         await loadHistory(before: nil)
       }
+  }
+  private func imageFields(_ component: Binding<Component>, image: ImagePresentation) -> some View {
+    VStack(alignment: .leading, spacing: 8) {
+      TextField(
+        "Caption",
+        text: Binding(
+          get: { component.wrappedValue.visual?.image?.caption ?? image.caption },
+          set: { component.wrappedValue.visual?.image?.caption = $0 }))
+      TextField(
+        "Image description",
+        text: Binding(
+          get: {
+            component.wrappedValue.visual?.image?.accessibilityDescription
+              ?? image.accessibilityDescription
+          },
+          set: { component.wrappedValue.visual?.image?.accessibilityDescription = $0 }))
+      Button("Replace image…") { imagePicker = .init(componentID: component.wrappedValue.id) }
+    }
   }
   private var historyView: some View {
     ScrollView {
@@ -278,6 +315,71 @@ struct SpaceLayoutEditor: View {
         dismiss()
       } catch { failure = error.localizedDescription }
       saving = false
+    }
+  }
+}
+
+private struct ImageLayoutTarget: Identifiable {
+  let id = UUID()
+  let componentID: String?
+}
+
+private struct IncludedImagePicker: View {
+  let book: Workbook
+  let choose: (String, String) throws -> Void
+  @Environment(\.dismiss) private var dismiss
+  @State private var search = ""
+  @State private var images: [(id: String, title: String)] = []
+  @State private var selection: String?
+  @State private var failure: String?
+  @State private var loading = true
+
+  var body: some View {
+    VStack(alignment: .leading, spacing: 12) {
+      Text("Choose an included image").font(.headline).accessibilityAddTraits(.isHeader)
+      TextField("Search included images", text: $search)
+      List(selection: $selection) {
+        ForEach(images, id: \.id) { image in
+          Text(image.title).tag(image.id)
+        }
+      }
+      if let failure {
+        Text(failure).foregroundStyle(.red)
+      } else if loading {
+        ProgressView().controlSize(.small)
+      } else if images.isEmpty {
+        Text("No included images match.").foregroundStyle(.secondary)
+      }
+      HStack {
+        Button("Cancel") { dismiss() }.keyboardShortcut(.cancelAction)
+        Spacer()
+        Button("Use image") {
+          guard let image = images.first(where: { $0.id == selection }) else { return }
+          do {
+            try choose(image.id, image.title)
+            dismiss()
+          } catch { failure = error.localizedDescription }
+        }.keyboardShortcut(.defaultAction).disabled(loading || selection == nil)
+      }
+    }
+    .padding(20).frame(width: 460, height: 380)
+    .task(id: search) {
+      selection = nil
+      images = []
+      failure = nil
+      loading = true
+      let query = search
+      do {
+        let result = try await Task.detached { try book.includedImageSources(matching: query) }
+          .value
+        try Task.checkCancellation()
+        images = result
+        loading = false
+      } catch {
+        guard !Task.isCancelled else { return }
+        failure = error.localizedDescription
+        loading = false
+      }
     }
   }
 }

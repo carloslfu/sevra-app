@@ -572,6 +572,15 @@ public enum NativeAppCheck {
             throw SevraError("app_check_assertion", error.localizedDescription)
           }
           assertions += 1
+        case "expect_visual":
+          let view = step["target"].text
+          try require(
+            tree.nodes.values.contains {
+              $0.type == "view" && $0.props["viewID"] == .string(view) && visible($0)
+            }, "app_check_assertion", "Expected a visible declared view: " + view)
+          let result = try book.nativeAppVisual(access, view: view, cancellation: cancellation)
+          try checkVisual(result, expected: step["expected"])
+          assertions += 1
         case "drop", "expect_region", "press_region":
           let node = try control()
           try require(
@@ -887,6 +896,63 @@ public enum NativeAppCheck {
         "Checked only these synthetic cases in an isolated workbook. No real rows were read or changed. This does not prove every behavior or visual quality."
       ),
     ])
+  }
+}
+
+private func checkVisual(_ result: VisualResult, expected: Value) throws {
+  func exactChart(_ data: VisualChartData) -> Value {
+    .object([
+      "unit": data.unit.map(Value.string) ?? .null,
+      "unknown": .number(Double(data.unknown)),
+      "points": .array(
+        data.points.map {
+          .object([
+            "label": .string($0.label), "amount": .string($0.amount),
+            "series": $0.series.map(Value.string) ?? .null,
+          ])
+        }),
+    ])
+  }
+  var observed: [String: Value] = ["kind": .string(result.definition.kind.rawValue)]
+  if let chart = result.chartData {
+    observed.merge(exactChart(chart).object) { _, new in new }
+    observed["style"] = result.chart.map { .string($0.style.rawValue) }
+    observed["temporal"] = .bool(chart.temporal == true)
+  }
+  if let work = result.workData {
+    observed["style"] = result.work.map { .string($0.style.rawValue) }
+    observed["records"] = .array(
+      work.records.map {
+        .object([
+          "title": .string($0.title), "value": $0.value.map(Value.string) ?? .null,
+          "end": $0.end.map(Value.string) ?? .null,
+        ])
+      })
+    observed["hasMore"] = .bool(work.nextCursor != nil)
+  }
+  if let graph = result.diagramData {
+    observed["nodes"] = .array(
+      graph.nodes.map {
+        .object(["key": .string($0.id), "label": .string($0.label)])
+      })
+    observed["edges"] = .array(
+      graph.edges.map {
+        .object(["from": .string($0.from), "to": .string($0.to)])
+      })
+  }
+  if let panels = result.overviewData { observed["panels"] = .array(panels.map(exactChart)) }
+  if let text = result.definition.text { observed["blocks"] = try encoded(text.blocks) }
+  let fields = expected.object
+  try require(
+    !fields.isEmpty && Set(fields.keys).isSubset(of: observed.keys),
+    "app_check_setup",
+    "Choose visual assertion fields: " + observed.keys.sorted().joined(separator: ", "))
+  for (key, value) in fields.sorted(by: { $0.key < $1.key }) {
+    guard observed[key] == value else {
+      throw SevraError(
+        "app_check_assertion",
+        "Visual \(key) differed. Observed: " + String(try observed[key]!.json().prefix(2000)))
+    }
   }
 }
 

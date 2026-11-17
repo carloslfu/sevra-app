@@ -20,7 +20,7 @@ import UniformTypeIdentifiers
   let red = try solidPNG(red: 1, blue: 0)
   let blue = try solidPNG(red: 0, blue: 1)
   let (redAsset, sourceID) = try capture("Red.png", red)
-  let (blueAsset, _) = try capture("Blue.png", blue)
+  let (blueAsset, blueSourceID) = try capture("Blue.png", blue)
   // Same-sized files reach the hash check rather than failing on length.
   let equalSize = max(red.count, blue.count) + 16
   var paddedRed = red
@@ -43,6 +43,33 @@ import UniformTypeIdentifiers
   try paddedRed.write(to: cachedAsset.file, options: .atomic)
   let restored = try await WorkbookImageDecoder.shared.load(cachedAsset)
   try assertPixel(restored.image, red: 1, blue: 0)
+  let tools = WorkbookTools(workbook)
+  let home = try workbook.space("home")
+  _ = try tools.execute(
+    "workspace_action",
+    .object([
+      "action": .string("visual.pin"),
+      "arguments": .object([
+        "expectedVersion": .number(Double(home.version)), "sourceID": .string(sourceID),
+        "caption": .string("Included photo"),
+      ]),
+    ]))
+  let original = try workbook.space("home")
+  let component = original.definition.components.last!
+  _ = try tools.execute(
+    "workspace_action",
+    .object([
+      "action": .string("visual.replace_image"),
+      "arguments": .object([
+        "id": .string(home.id), "componentID": .string(component.id),
+        "expectedVersion": .number(Double(original.version)), "sourceID": .string(blueSourceID),
+      ]),
+    ]))
+  let replacement = try workbook.space("home").definition.component(component.id)?.visual?.image
+  try require(
+    replacement?.reference.sourceID == blueSourceID && replacement?.caption == "Included photo"
+      && component.visual?.image?.reference.sourceID == sourceID,
+    "preview_check", "Replacing the image lost the caption or the original binding.")
   print("PASS included image pixel identities, same-size corruption refusal and restored original")
   try checkGroupedChartExport(workbook, sourceID: sourceID)
   try checkDiagram(workbook, sourceID: sourceID)

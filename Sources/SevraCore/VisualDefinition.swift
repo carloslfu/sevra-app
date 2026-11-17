@@ -139,7 +139,7 @@ extension Workbook {
     sourceID: String, caption: String = "", accessibilityDescription: String? = nil
   ) throws -> VisualDefinition {
     let item = try item(sourceID)
-    guard item.id == sourceID, let assetID = item.assetID else {
+    guard item.id == sourceID, item.category == "source", let assetID = item.assetID else {
       throw SevraError("visual_image", "Choose an exact source version with an included image.")
     }
     let asset = try includedImage(assetID)
@@ -149,6 +149,23 @@ extension Workbook {
         accessibilityDescription: accessibilityDescription ?? String(asset.name.prefix(60))))
     try definition.validate()
     return definition
+  }
+
+  package func includedImageSources(matching search: String) throws -> [(id: String, title: String)]
+  {
+    let query = String(search.trimmingCharacters(in: .whitespacesAndNewlines).prefix(200))
+    return try synchronized {
+      try db.execute(
+        """
+        SELECT i.id,i.title FROM items i JOIN heads h ON h.item_id=i.id
+        JOIN assets a ON a.id=i.asset_id
+        WHERE i.category='source' AND i.status!='rejected'
+          AND a.mode='included' AND a.media_type LIKE 'image/%' AND a.path LIKE 'assets/%'
+          AND instr(lower(i.title), lower(?))>0
+        ORDER BY i.created DESC,i.id LIMIT 50
+        """, [.string(query)]
+      ).map { ($0["id"]!.text, $0["title"]!.text) }
+    }
   }
 
   func includedImage(_ id: String) throws -> Asset {
@@ -299,7 +316,7 @@ extension WorkbookTools {
           "Sales: sum dated revenue by week, compare aligned periods, show product mix. Collections: filter accepted open invoices, separate currencies, sort overdue balances. Inventory: group available stock by location, flag below target, show exact items. Jobs: use a board for status and agenda for due dates. Suppliers: compare exact lead-time bins, separate missing dates. Dependencies: query declared nodes and relationships from one snapshot."
         ),
         "image": .string(
-          "Pass sourceID (exact included image source), optional caption and accessibilityDescription to visual.evaluate. For a durable image use visual.pin; configure captions with visual.configure. Replace its source with edit_space replace."
+          "Pass sourceID (exact included image source), optional caption and accessibilityDescription to visual.evaluate. Save with visual.pin, change captions with visual.configure, or replace the included original with visual.replace_image."
         ),
       ]
       if let family = a["family"].string {
@@ -382,6 +399,20 @@ extension WorkbookTools {
         workbook.promoteConversationVisual(
           a["messageID"].text, index: a["index"].int!, conversation: conversation,
           expectedVersion: a["expectedVersion"].int!, token: token))
+    case "visual.replace_image":
+      let owner = try workbook.space(a["id"].text)
+      guard var component = owner.definition.component(a["componentID"].text),
+        let image = component.visual?.image
+      else { throw SevraError("visual_image", "Choose an exact saved image component.") }
+      component.visual = try workbook.imageDefinition(
+        sourceID: a["sourceID"].text, caption: a["caption"].string ?? image.caption,
+        accessibilityDescription: a["accessibilityDescription"].string)
+      try cancellation.check()
+      return try encoded(
+        workbook.editSpace(
+          owner.id, expectedVersion: a["expectedVersion"].int!,
+          edits: [.init(operation: "replace", componentID: component.id, component: component)],
+          token: token))
     case "visual.inspect":
       let owner = try workbook.space(a["id"].text)
       guard let component = owner.definition.component(a["componentID"].text),
