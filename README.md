@@ -1,139 +1,159 @@
 # Sevra
 
-A private native Mac workbook for working with documents, tables and business
-information through conversation. Local AI, checked calculations, and files you own. Programmable spaces also run small apps with native controls.
+**A local AI workbook for your business.**
 
-**MVP 0.1 test preview.** Bring supplier files, inspect cited evidence, compare costs,
-keep a useful native table/chart, edit inputs, and share a portable workbook.
-The [verification register](db/records/operations/implementation.md) tracks current
-proof and limitations. This is a source preview for trying the example workflow.
+Put your business files to work. Keep them on your Mac. Compare costs, find
+answers in your documents and build small native apps for recurring tasks, with
+sources and calculations you can inspect.
 
-MIT licensed and open source. Development formats and interfaces may change
-without backward compatibility until the first notarized production-ready 1.0
-release. Current-format history and originals remain protected. See the
-[compatibility policy](db/records/specs/distribution.md#pre-10-compatibility-policy).
-Sevra Websites and Slotstream remain separate products.
+[Website](https://www.sevrahq.com) ·
+[Try the preview](#try-the-native-mvp-preview) ·
+[Example walkthrough](db/records/operations/build-and-run.md#native-mvp-supplier-comparison)
 
-The app uses SwiftUI, AppKit and SQLite, with native Splash C++/Metal inference
-through Swift. A workbook contains its database plus ordinary included asset files.
-The repo's independent [db.md knowledge store](db/DB.md) owns its specifications
-and progress. Cloud/sync and the expanded roadmap are outside this next MVP slice.
+**MVP 0.1 source preview.** Free and open source under the [MIT license](LICENSE).
+Built from source for a compatible Mac, with no notarized production installer yet.
 
-## Build a native mini app
+![Sevra's native preview with the Willow Workshop sample workbook, a supplier comparison table and a cost chart.](docs/images/native-preview.png)
 
-For existing Excel work, add or drop an **.xlsx or .xlsm** file. Sevra preserves the original,
-asks in chat what work you do with it, and uses the local model to inspect or build
-the workspace when requested. Supply clarifications in the same conversation. The checked native app uses the imported tables and
-spreadsheet calculations. It can translate missing formulas and readable macro logic into
-saved local calculations and native actions, then compare results against the original.
-Add recalculated Excel copies to test more inputs. Review access before enabling it. **Just use
-the tables** also works without a model. Reopening or retrying resumes the same
-import; updating an existing table remains a separate reviewed action within it.
-See the [Excel flow and limits](db/records/specs/single-excel-import.md).
-Original macros never execute. Saved-result matches cover only the tested examples;
-external services, unreadable sources, exact Excel rendering and automatic formulas
-for inserted rows remain limits. See the [reconstruction contract](db/records/specs/excel-application-reconstruction.md).
-At frozen Excel checkpoint `da3c472`, all ten business workflows, including Inventory and Loan,
-passed two consecutive complete batches using the local model. All twenty apps were generated
-from scratch without replay or manual source repairs. Each batch passes 89 independent originals
-(84 comparison cases plus five held-out states), repeated edits, validation, Undo, reopening and
-portable-copy checks. All ten native interfaces were also inspected. The
-[fresh-batch record](db/records/plans/fresh-excel-batches.md) retains failures, automatic repairs
-and exact coverage. Newer chat-operation changes are outside that acceptance. Generation can
-still fail or take minutes; this is not a first-attempt or universal-compatibility guarantee.
+*Inside the native preview. Sample data shown.*
 
-Ask the local model to build a named mini app with the fields, actions and tables you need.
-It writes the app, runs synthetic checks in isolation, and reviews the result against your
-request before saving. Ask to enable it and review its table access in chat. Confirm there or type **Confirm**. Ask for changes
-by the app's name; each new version needs approval again. See the
-[authoring workflow and limits](db/records/specs/local-model-native-apps.md).
+## Why Sevra
 
-You can also import [example app packages](examples/apps) using **Workbook > Add Native App…**.
-Inventory, Jobs and Visual Planner exercise native forms, tables, live counts and a draggable canvas. JavaScript runs in a
-sandboxed worker; the interface is AppKit, with no web view. App code and business records
-travel with the workbook, while execution permissions stay on this Mac. Enabled apps run
-without the inference model. Generated apps still need your own testing before business use.
+- **Your files and AI stay on your Mac.** Ask questions about business documents
+  with local AI. After setup and the model download, inference works offline.
+  There is no hosted-model fallback or in-app telemetry.
+- **Answers you can inspect.** Follow citations to the original documents and
+  check the inputs behind a calculation. Review important results before acting
+  on them.
+- **Useful work becomes a reusable tool.** Keep tables, charts and small native
+  apps in the workbook. Use an app's controls or operate it through conversation.
+  Enabled apps can run without the AI model.
+- **A workbook you own.** Included originals, business records, results and app
+  code travel together in a portable workbook. You review an app's access before
+  enabling it, and execution permissions stay on the Mac where you approved them.
 
-Operate apps directly in chat: “Add Pencils with quantity 3,” “Change it to 5,” or
-“Undo that change.” Chat can supply inputs and run the same app actions without opening
-or clicking its view. Tables, forms, workflow execution, Excel conversion and reviewed
-approvals also have conversational operations. Native controls remain available. See the
-[chat operation contract and qualification](db/records/specs/chat-primary-operation.md).
-Apps retain one reversible latest transaction: Undo changes to Redo after reversal,
-including after reopening. A new saved transaction replaces that Redo; this is not a
-multi-step history stack.
-
-### Use visuals in chat, Home and mini apps
-
-Ask for a chart, overview, board, calendar or dependency view. Expand the result in chat,
-inspect contributing records, or add a live view to Home. Chat keeps the captured values from
-the original answer. Home uses current workbook data. App views keep their declared workbook
-access when pinned. Included images can appear in chat, Home and declared app views.
-
-Sevra can ask a question or collect typed values in chat, then show a review when the action
-requires it. Use the inline controls or answer in the composer. These paths are part of the
-native preview. The [visuals plan and verification record](db/records/plans/rich-native-visuals.md)
-describe the tested workflows and current limits.
-
-The [SDK and architecture](db/records/specs/programmable-native-engine.md) explain
-TypeScript/JSX authoring, signals, native components, scoped data access and current limits.
-The local model can also compose simpler fixed spaces. This is SDK 1, not full Excel compatibility.
+For a first job, bring two supplier quotes, compare their totals including
+shipping, inspect the evidence and keep the comparison for your next order.
 
 ## Try the native MVP preview
 
-The native preview uses Splash 1.6.1 with a 12 GiB engine budget and a 64K context
-window on Macs with at least 48 GiB of unified memory. Macs below that tier use
-32K. See the matched workbook and long input checks in the
-[upgrade execution record](db/records/operations/inference-context-execution.md).
+### Requirements
 
-Requires Apple M3 or newer, macOS 26.4+, Swift 6.3, Git, Python 3 and Rust 1.96.0.
-The current test host has 48 GB unified memory; other memory profiles are unqualified.
-Initial build/setup needs network access. Installed inference uses no Python.
+- Apple M3 or newer and macOS 26.4 or later.
+- Swift 6.3, Git, Python 3 for build tooling, and Rust 1.96.0 through rustup.
+- Network access for the initial build, dependencies and model download.
+- **21.48 GB for model weights**, plus build and runtime working space.
 
-~~~sh
+The current tested host has **48 GB of unified memory**. Other memory profiles
+remain unqualified. Installed inference uses the native Splash C++/Metal engine
+through Swift, without a Python runtime.
+
+### Install from source
+
+For a fresh checkout:
+
+```sh
 git clone https://github.com/carloslfu/sevra-app.git
 cd sevra-app
 rustup toolchain install 1.96.0 --profile minimal
 bash scripts/install.sh --native
 open "$HOME/Applications/Sevra Native Preview.app"
-~~~
+```
 
-The installer includes the matching
-`sevra` CLI in `~/.local/bin`. It refuses to
-replace another app or an unrelated CLI. This source preview is locally ad-hoc
-signed, with no production notarized installer yet.
-Use `~/.local/bin/sevra version` to verify the installed workbook CLI if another
-program named `sevra` appears earlier in your shell's PATH.
+If you already have a checkout, use that checkout. Quit the running preview
+before updating it. The installer builds and installs the native app and its
+matching CLI at `~/.local/bin/sevra`. It refuses to replace an unrelated app or
+CLI. Source builds are locally ad-hoc signed.
+
+Use `~/.local/bin/sevra version` to check the installed workbook CLI if another
+program named `sevra` appears earlier in your shell's PATH. See
+[Build and run](db/records/operations/build-and-run.md) for build-only commands,
+resource verification, updates and uninstall instructions.
+
+### Set up local AI
 
 In Settings, choose **Download model**, or **Verify model files** when files are
-found. To reuse weights, expand **Model files and storage > Use existing model files…**
-for compatible Qwen3.6 35B A3B 4-bit weights with DFlash 2. A fresh download is
-21.48 GB plus working space. Models stay outside workbooks. Import, search, tables,
-calculations and saved results also work without AI setup. There is no hosted-model
-fallback or in-app telemetry.
+already present. To reuse compatible Qwen3.6 35B A3B 4-bit weights with DFlash 2,
+expand **Model files and storage > Use existing model files…**.
 
-Start from the two files in [examples](examples), then follow the
-[supplier comparison walkthrough](db/records/operations/build-and-run.md#native-mvp-supplier-comparison).
-Files are saved and indexed without an extra dialog. Convert the saved CSV into
-a working table when needed; the searchable PDF stays an included reference.
-Open the quotation and ask for a cited summary, calculate goods plus shipping,
-keep a live table/chart in a space, edit an input, Undo, and make a portable copy.
-Add a folder compares a folder with what you already added and shows the counts first; it does
-not watch the folder. Ask to enable a saved automation by name, review its access in chat and type Confirm. Long conversations summarize as they go, and a long request that stops keeps its saved
-work, so you can ask it to continue.
-File actions > Transcribe on this Mac turns a recording of up to two hours into a searchable
-transcript with times, in the Mac's language. Audio stays on the Mac, though the first use of a
-language can download its speech model from Apple.
-Focused requests work best: one request handled eight documents in testing, and a broad question can
-still miss a file.
-Check the original evidence before relying on an answer. Unknown tax remains unknown.
+Models stay outside your workbooks. Import, search, tables, calculations and
+saved results also work without setting up AI.
 
-While Sevra works, the activity line shows its current phase, elapsed time and Stop.
-Expand it to inspect actual tool steps and saved results, including after reopening
-the workbook. Documents, rows and structured results use native readable views.
-See the [activity design](db/records/specs/agent-activity.md).
+### Your first workbook
 
-See [Build and run](db/records/operations/build-and-run.md) for setup, the exact
-walkthrough, CLI, safe uninstall and limits. The
-[fast MVP contract](db/records/specs/mvp-delivery.md) defines this preview;
-the expanded specifications remain the roadmap.
+1. Choose **Start from files**, select the [sample CSV and PDF](examples), and
+   save a workbook. The files are included and indexed.
+2. Open the quotation and ask for a cited summary. Compare goods plus shipping,
+   checking the source and inputs. Unknown tax stays unknown.
+3. Keep a working table or chart, edit an input and check the recalculated result.
+   Try Undo, then close and reopen the workbook.
+4. Export and reopen a portable copy to keep the evidence and work together.
+
+Follow the [supplier comparison walkthrough](db/records/operations/build-and-run.md#native-mvp-supplier-comparison)
+for the exact steps. Focused questions work best. A broad request can miss a
+file, so inspect the original evidence before relying on an answer.
+
+## Build a native mini app
+
+Add an **.xlsx or .xlsm** file and describe how you use it. Sevra preserves the
+original and can use its imported tables and supported calculations to build a
+small native app. You can also choose **Just use the tables** without a model.
+The [Excel flow](db/records/specs/single-excel-import.md) explains the process.
+
+For a new tool, describe its fields, actions and tables. The local model writes
+an app, runs isolated synthetic checks and reviews the result before saving it.
+Review its data access before enabling it. Each changed version needs approval
+again. See the [authoring workflow](db/records/specs/local-model-native-apps.md).
+
+You can also import the [Inventory, Jobs and Visual Planner examples](examples/apps)
+with **Workbook > Add Native App…**. The interface uses native AppKit controls.
+App JavaScript runs in a sandboxed worker, with access scoped to approved data.
+
+Use the controls or ask in chat: “Add Pencils with quantity 3,” “Change it to 5,”
+or “Undo that change.” Apps retain one reversible latest transaction, including
+after reopening. A new saved transaction replaces the previous Redo. See the
+[chat operation contract and qualification](db/records/specs/chat-primary-operation.md).
+
+**Generated apps need your own testing.** Generation can fail or take minutes.
+Excel conversion is not full Excel compatibility, and original macros never
+execute. Sevra can translate supported formulas and readable macro logic into
+local calculations and actions, then compare results against supplied originals.
+Those comparisons cover only the tested inputs. External services, unreadable
+sources, exact Excel rendering and automatic formula extension to inserted rows
+remain limits. See the [reconstruction contract](db/records/specs/excel-application-reconstruction.md)
+and [recorded Excel trials](db/records/plans/fresh-excel-batches.md).
+
+## Status and development
+
+This is a source preview for trying bounded workflows. It does not establish
+unattended business accuracy, broad hardware support or production readiness.
+The [current handoff](db/records/operations/agent-handoff.md) and
+[verification register](db/records/operations/implementation.md) distinguish
+accepted checkpoints, ongoing work, failures and remaining limits.
+
+Development formats and interfaces may change before the first notarized,
+production-ready 1.0 release. Current-format history and originals remain
+protected. See the [compatibility policy](db/records/specs/distribution.md#pre-10-compatibility-policy).
+
+The app uses SwiftUI, AppKit and SQLite, with a shared Swift core and CLI.
+A `.sevra` workbook contains its database and ordinary included asset files.
+A `.sevraz` file is a portable copy. Cloud sync is outside this preview.
+
+For contributors:
+
+- [Build, run and verification commands](db/records/operations/build-and-run.md)
+- [Native app SDK](sdk/README.md) and [architecture](db/records/specs/programmable-native-engine.md)
+- [Visuals plan and verification](db/records/plans/rich-native-visuals.md)
+- [Inference configuration and qualification](db/records/operations/inference-context-execution.md)
+- [Repository instructions](AGENTS.md) and [specification store](db/DB.md)
+
+The native app is developed in this repository. [sevrahq.com](https://www.sevrahq.com)
+is its marketing website. Slotstream is a separate app and engine.
+
+Report problems in [GitHub Issues](https://github.com/carloslfu/sevra-app/issues).
+Include the app version, reproduction steps and a small synthetic example.
+
+## License
+
+Sevra's source is available under the [MIT license](LICENSE). Third-party
+components and model weights have their own licenses.
