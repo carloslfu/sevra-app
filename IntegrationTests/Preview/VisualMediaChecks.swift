@@ -96,6 +96,28 @@ import UniformTypeIdentifiers
     panels.count == 2 && panels.allSatisfy { $0.snapshot == captured.snapshot }
       && current["total"] == .number(1) && current["rows"].array.first?.array.count == 1,
     "preview_check", "The overview or source drill-down used another read.")
+  let tools = WorkbookTools(workbook)
+  let home = try workbook.space("home")
+  _ = try tools.execute(
+    "workspace_action",
+    .object([
+      "action": .string("visual.pin"),
+      "arguments": .object([
+        "expectedVersion": .number(Double(home.version)), "overview": try encoded(overview),
+      ]),
+    ]))
+  let component = try workbook.space("home").definition.components.last!
+  let panel = try tools.execute(
+    "workspace_action",
+    .object([
+      "action": .string("visual.live_sources"),
+      "arguments": .object([
+        "id": .string(home.id), "componentID": .string(component.id),
+        "snapshot": .string(captured.snapshot), "queryHash": .string(captured.queryHash),
+        "panel": .number(1), "point": .number(0),
+      ]),
+    ]))
+  try require(panel == current, "preview_check", "A saved overview lost the panel's exact sources.")
   do {
     _ = try workbook.liveChartSources(
       chart, snapshot: captured.snapshot, queryHash: "obsolete",
@@ -152,13 +174,50 @@ private func checkDiagram(_ book: Workbook, sourceID: String) throws {
     result.cyclicNodes == ["a", "b"] && result.componentCount == 2
       && geometry.nodes.count == 4 && geometry.edges.count == 3,
     "diagram_check", "Incorrect layout connectivity.")
+  let home = try book.space("home")
+  let tools = WorkbookTools(book)
+  _ = try tools.execute(
+    "workspace_action",
+    .object([
+      "action": .string("visual.pin"),
+      "arguments": .object([
+        "expectedVersion": .number(Double(home.version)), "diagram": descriptor,
+      ]),
+    ]))
+  let saved = try book.space("home")
+  let component = saved.definition.components.last!
+  func move(_ position: Value) throws -> Value {
+    try tools.execute(
+      "workspace_action",
+      .object([
+        "action": .string("visual.configure"),
+        "arguments": .object([
+          "id": .string(home.id), "componentID": .string(component.id),
+          "expectedVersion": .number(Double(saved.version)),
+          "positions": .object(["a": position]),
+        ]),
+      ]))
+  }
+  let overlap = try encoded(geometry.nodes[result.nodes.firstIndex { $0.id == "b" }!])
+  do {
+    _ = try move(overlap)
+    throw SevraError("diagram_check", "An overlapping position committed.")
+  } catch let error as SevraError where error.code == "diagram_geometry" {}
+  let repositioned: Value = .object(["x": .number(700), "y": .number(400)])
+  _ = try move(repositioned)
+  let retained = try book.space("home").definition.components.last!.visual!.diagram!
+  let placed = try result.layout(positions: retained.positions)
+  let index = result.nodes.firstIndex { $0.id == "a" }!
+  try require(
+    try encoded(placed.nodes[index]) == repositioned && placed.edges.count == geometry.edges.count,
+    "diagram_check", "Saved positions did not retain the exact node and its connections.")
   let stopped = Cancellation()
   stopped.cancel()
   do {
     _ = try result.layout(cancellation: stopped)
     throw SevraError("diagram_check", "Cancelled layout succeeded.")
   } catch let error as SevraError where error.code == "cancelled" {}
-  print("PASS isolated diagram layout with branch, cycle and disconnected record")
+  print("PASS isolated diagram layout, branch, cycle, saved positions and overlap refusal")
 }
 
 private func solidPNG(red: CGFloat, blue: CGFloat) throws -> Data {

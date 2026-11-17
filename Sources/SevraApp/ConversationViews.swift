@@ -102,7 +102,7 @@ struct ConversationMessageRow: View, Equatable {
             }
           } else if let chart = visual.chart, let data = visual.chartData {
             VisualChartView(
-              definition: chart, data: data,
+              definition: chart, data: data, compact: true,
               openOriginal: { state.navigate(.item($0), returningTo: .message(message.id)) },
               loadSources: { point, offset in
                 let messageID = message.id
@@ -135,8 +135,16 @@ struct ConversationMessageRow: View, Equatable {
           }
           if let overview = visual.overview, let panels = visual.overviewData {
             VisualOverviewView(
-              definition: overview, panels: panels,
-              openOriginal: { state.navigate(.item($0), returningTo: .message(message.id)) })
+              definition: overview, panels: panels, compact: true,
+              openOriginal: { state.navigate(.item($0), returningTo: .message(message.id)) },
+              loadSources: { panel, _, point, offset in
+                let messageID = message.id
+                return try await Task.detached {
+                  try book.chartGroupSources(
+                    messageID: messageID, index: index, conversation: conversation,
+                    point: point, offset: offset, panel: panel)
+                }.value
+              })
           }
           if let diagram = visual.diagram, let data = visual.diagramData {
             VisualDiagramView(definition: diagram, data: data) {

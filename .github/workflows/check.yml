@@ -76,6 +76,7 @@ jobs:
         run: |
           swift build --product sevra-preview-checks -j 3
           .build/debug/sevra-preview-checks
+          .build/debug/sevra-preview-checks --visual-media
       - name: Check large linked-file verification and memory bound
         run: python3 scripts/check_large_preview.py --binary .build/debug/sevra-preview-checks --output .build/large-preview
       - name: Retain large-file verification evidence
@@ -166,6 +167,7 @@ jobs:
           python3 scripts/build_guidance.py
           swift build --product sevra-splash-grammar-checks -j 3
           swift build --product sevra-agent-checks -j 3
+          .build/debug/sevra-agent-checks --conversation-surfaces
           python3 scripts/check_native_app_authoring.py
           python3 scripts/check_splash_grammar.py
       - name: Validate independent knowledge store

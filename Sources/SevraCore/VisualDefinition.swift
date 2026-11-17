@@ -32,6 +32,14 @@ public struct VisualDefinition: Codable, Equatable, Sendable {
       + (overview?.panels.map(\.query) ?? [])
   }
 
+  func sourceChart(panel: Int?) throws -> VisualChart {
+    if let panel, let panels = overview?.panels, panels.indices.contains(panel) {
+      return panels[panel]
+    }
+    if panel == nil, let chart { return chart }
+    throw SevraError("visual_source", "Choose an exact chart or overview panel.")
+  }
+
   public init(image: ImagePresentation) {
     self.version = 1
     self.kind = .image
@@ -279,7 +287,7 @@ extension WorkbookTools {
           "Pass work {title,style:board|timeline|agenda|calendar,query,label,field,end?,lanes?,month?,thumbnailKey?,thumbnailAssets?,thumbnailAliases?} to visual.evaluate or visual.pin. query selects exact rows from one dataset with limit <=100. label is a selected title field. field selects text status for a board, date start for time views. Board lanes are declared status values; calendar month is YYYY-MM-01. Optional end is another selected date field. An optional thumbnailKey selects exact lookup values in thumbnailAssets (included image references) or thumbnailAliases (declared app aliases). Use up to eight explicit mappings."
         ),
         "diagram": .string(
-          "Pass diagram {title,nodes,edges,key,label,from,to}. nodes and edges are typed queries read in the same snapshot. Select two fields per query. key identifies unique nodes; from and to use these exact keys. Limit nodes to 100 and edges to 200."
+          "Pass diagram {title,nodes,edges,key,label,from,to}. nodes and edges are typed queries read in the same snapshot. Select two fields per query. key identifies unique nodes; from and to use these exact keys. Limit nodes to 100 and edges to 200. Inspect a saved diagram with visual.inspect for current coordinates. Configure optional positions {nodeKey:{x,y}} through visual.configure or a diagram app preset. Coordinates are top-left points, positive and nonoverlapping. Empty positions restores automatic layout."
         ),
         "overview": .string(
           "Pass overview {title,columns?,panels:[chart descriptors]}. Compose two to eight charts, metrics, tables or record lists over one snapshot. Use one to three responsive columns."
@@ -315,6 +323,9 @@ extension WorkbookTools {
         "Filter this live work view before capturing a complete chat answer.")
       let graph = try visual.diagram.map {
         try workbook.diagramData($0, cancellation: cancellation)
+      }
+      if let graph, let positions = visual.diagram?.positions, !positions.isEmpty {
+        _ = try graph.layout(positions: positions, cancellation: cancellation)
       }
       let panels = try visual.overview.map {
         try workbook.overviewData($0, capture: true, cancellation: cancellation)
@@ -358,6 +369,10 @@ extension WorkbookTools {
       return try graph.inspection(node: a["node"].string, offset: a["offset"].int ?? 0)
     case "visual.pin":
       let visual = try visualDefinition(a)
+      if let diagram = visual.diagram, let positions = diagram.positions, !positions.isEmpty {
+        let graph = try workbook.diagramData(diagram, cancellation: cancellation)
+        _ = try graph.layout(positions: positions, cancellation: cancellation)
+      }
       return try encoded(
         workbook.addVisualToHome(
           visual, title: a["title"].string, expectedVersion: a["expectedVersion"].int!, token: token
@@ -378,17 +393,24 @@ extension WorkbookTools {
         try workbook.workVisualData($0, cursor: a["cursor"].string, cancellation: cancellation)
       }
       let chart = try visual.chart.map { try workbook.chartData($0, cancellation: cancellation) }
+      let diagram = try visual.diagram.map { definition in
+        let data = try workbook.diagramData(definition, cancellation: cancellation)
+        return try data.positionPage(
+          definition.positions, offset: a["offset"].int ?? 0, cancellation: cancellation)
+      }
       return .object([
         "id": .string(owner.id), "version": .number(Double(owner.version)),
         "componentID": .string(component.id), "definition": try encoded(visual),
         "records": try records.map(encoded) ?? .null,
         "chart": try chart.map { try $0.inspection() } ?? .null,
+        "diagram": diagram ?? .null,
       ])
     case "visual.live_sources":
       let owner = try workbook.space(a["id"].text)
-      guard let chart = owner.definition.component(a["componentID"].text)?.visual?.chart else {
+      guard let visual = owner.definition.component(a["componentID"].text)?.visual else {
         throw SevraError("visual_source", "Choose an exact saved chart.")
       }
+      let chart = try visual.sourceChart(panel: a["panel"].int)
       return try workbook.liveChartSources(
         chart, snapshot: a["snapshot"].text,
         queryHash: a["queryHash"].text, point: a["point"].int!, offset: a["offset"].int ?? 0,
@@ -459,10 +481,15 @@ extension WorkbookTools {
         _ = try workbook.overviewData(definition, cancellation: cancellation)
         changed = VisualDefinition(overview: definition)
       } else if let diagram = visual.diagram {
-        allowed = ["title"]
+        allowed = ["title", "positions"]
         var descriptor = try encoded(diagram).object
-        if let title = a["title"].string { descriptor["title"] = .string(title) }
-        changed = VisualDefinition(diagram: try VisualDiagram.parse(.object(descriptor)))
+        for (key, value) in edits { descriptor[key] = value }
+        let definition = try VisualDiagram.parse(.object(descriptor))
+        if let positions = definition.positions, !positions.isEmpty {
+          let data = try workbook.diagramData(definition, cancellation: cancellation)
+          _ = try data.layout(positions: positions, cancellation: cancellation)
+        }
+        changed = VisualDefinition(diagram: definition)
       } else {
         throw SevraError("visual", "Choose a supported visual.")
       }

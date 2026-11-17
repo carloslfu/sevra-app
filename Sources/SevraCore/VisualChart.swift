@@ -444,6 +444,11 @@ public struct VisualResult: Codable, Equatable, Sendable {
       (definition.kind == .diagram) == (diagramData != nil), "visual", "Mismatched diagram capture."
     )
     try diagramData?.validate()
+    if let positions = diagram?.positions, let diagramData {
+      try require(
+        Set(positions.keys).isSubset(of: Set(diagramData.nodes.map(\.id))), "visual_diagram",
+        "A positioned record is missing from this diagram capture.")
+    }
     try require(
       (overview?.panels.count) == (overviewData?.count), "visual", "Mismatched overview capture.")
     if let overview, let overviewData {
@@ -561,13 +566,11 @@ extension Workbook {
   public func nativeAppChartSources(
     _ access: NativeAppAccess, view: String, presetID: String?,
     filters: [Value]?, snapshot: String, queryHash: String, point: Int, offset: Int,
-    cancellation: Cancellation = .init()
+    panel: Int? = nil, cancellation: Cancellation = .init()
   ) throws -> Value {
     let definition = try nativeAppPresentation(
       access, view: view, presetID: presetID, filters: filters)
-    guard let chart = definition.chart else {
-      throw SevraError("visual_source", "Choose a declared chart.")
-    }
+    let chart = try definition.sourceChart(panel: panel)
     let result = try nativeAppQuerySet(
       access, requests: [chart.query],
       captureLineage: true, cancellation: cancellation)[0]
@@ -646,9 +649,11 @@ extension Workbook {
     if let diagram = definition.diagram {
       let result = try nativeAppQuerySet(
         access, requests: [diagram.nodes, diagram.edges], cancellation: cancellation)
-      return try VisualResult(
-        definition: definition,
-        diagramData: VisualDiagramData(result, diagram: diagram), appReference: reference)
+      let graph = try VisualDiagramData(result, diagram: diagram)
+      if capture, let positions = diagram.positions, !positions.isEmpty {
+        _ = try graph.layout(positions: positions, cancellation: cancellation)
+      }
+      return VisualResult(definition: definition, diagramData: graph, appReference: reference)
     }
     if let overview = definition.overview {
       let results = try nativeAppQuerySet(

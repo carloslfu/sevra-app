@@ -79,7 +79,7 @@ public struct VisualDiagramView: View {
         relationships
       }
     }
-    .task(id: data) {
+    .task(id: LayoutRequest(data: data, positions: definition.positions)) {
       geometry = nil
       selected = selected.flatMap { prior in data.nodes.first { $0.id == prior.id } }
       if selected == nil { relatedOnly = false }
@@ -88,8 +88,8 @@ public struct VisualDiagramView: View {
       let cancellation = Cancellation()
       await withTaskCancellationHandler {
         do {
-          let result = try await Task.detached { [data] in
-            try data.layout(cancellation: cancellation)
+          let result = try await Task.detached { [data, positions = definition.positions] in
+            try data.layout(positions: positions, cancellation: cancellation)
           }.value
           try Task.checkCancellation()
           geometry = result
@@ -102,6 +102,11 @@ public struct VisualDiagramView: View {
         cancellation.cancel()
       }
     }
+  }
+
+  private struct LayoutRequest: Equatable {
+    let data: VisualDiagramData
+    let positions: [String: DiagramGeometry.Position]?
   }
 
   private var zoomControls: some View {

@@ -71,6 +71,7 @@ struct FolderReview {
   @Published var homeDocuments: [ItemSummary] = []
   @Published var pendingWorkflows: [Value] = []
   @Published var datasetSnapshot = "initial"
+  @Published var presentationSnapshot = 0
   @Published var chatApproval: ChatApproval?
   @Published var pendingInput: ConversationSurface?
   @Published var imageInspection: ConversationImageInspection?
@@ -403,6 +404,7 @@ struct FolderReview {
         self.homeDocuments = snapshot.homeDocuments
         self.pendingWorkflows = snapshot.pendingWorkflows
         self.datasetSnapshot = snapshot.datasetSnapshot
+        self.presentationSnapshot = snapshot.presentationSnapshot
         self.chatApproval = snapshot.chatApproval
         self.pendingInput = snapshot.pendingInput
         self.conversationVisuals = snapshot.visuals

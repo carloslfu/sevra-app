@@ -545,7 +545,14 @@ struct NativeComponent: View {
               try await Task.detached {
                 try book.overviewData(overview, cancellation: cancellation)
               }.value
-            }, openOriginal: { state.navigate(.item($0)) })
+            }, openOriginal: { state.navigate(.item($0)) },
+            loadSources: { panel, data, point, offset in
+              try await Task.detached {
+                try book.liveChartSources(
+                  overview.panels[panel], snapshot: data.snapshot, queryHash: data.queryHash,
+                  point: point, offset: offset)
+              }.value
+            })
         }
         if let diagram = component.visual?.diagram, let book = state.workbook {
           LiveVisualDiagramView(

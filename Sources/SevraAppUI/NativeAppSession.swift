@@ -159,6 +159,29 @@ import SwiftUI
     isGranted ? viewFilters[presentationKey(view, presetID)] : nil
   }
 
+  public func setVisualFilters(
+    _ view: String, presetID: String?, filters: [Value]?, cancellation: Cancellation
+  ) async throws {
+    let revision = presentationRevision
+    let key = presentationKey(view, presetID)
+    try require(
+      filters == nil || viewFilters[key] != nil || viewFilters.count < 16,
+      "visual_links", "Reset a filter before filtering more independent views.")
+    _ = try await withVisualAccess { book, access in
+      let result = try book.nativeAppVisual(
+        access, view: view, presetID: presetID, filters: filters, cancellation: cancellation)
+      try require(result.chart != nil, "visual_filter", "Choose a declared chart view.")
+      return result
+    }
+    try cancellation.check()
+    try require(
+      revision == presentationRevision && isGranted, "visual_stale",
+      "The view changed before the filters could be applied.")
+    viewFilters[key] = filters
+    viewSelections[key] = nil
+    presentationRevision &+= 1
+  }
+
   public func loadRecordThumbnail(_ alias: String) async throws -> PreviewImage {
     guard let grant = NativeAppDeviceGrant(defaults: defaults, key: grantKey) else {
       throw SevraError("app_permission", "Enable this exact app version to use its images.")
@@ -240,6 +263,10 @@ import SwiftUI
       try require(grant.isCurrent, "app_permission", "The app's access changed.")
     }
     return result
+  }
+
+  public func invalidateVisualPresentation() {
+    presentationRevision &+= 1
   }
 
   public func loadVisual(

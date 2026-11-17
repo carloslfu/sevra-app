@@ -74,6 +74,7 @@ swift build --product sevra-document-checks -j "${SEVRA_BUILD_JOBS:-4}"
 "$BIN/sevra-document-checks"
 swift build --product sevra-preview-checks -j "${SEVRA_BUILD_JOBS:-4}"
 "$BIN/sevra-preview-checks"
+"$BIN/sevra-preview-checks" --visual-media
 python3 scripts/check_large_preview.py --binary "$BIN/sevra-preview-checks"
 swift build --product sevra-context-durability -j "${SEVRA_BUILD_JOBS:-4}"
 python3 scripts/check_context_durability.py
@@ -98,6 +99,7 @@ python3 scripts/check_splash_text.py
 python3 scripts/build_guidance.py
 swift build --product sevra-splash-grammar-checks -j "${SEVRA_BUILD_JOBS:-4}"
 swift build --product sevra-agent-checks -j "${SEVRA_BUILD_JOBS:-4}"
+"$BIN/sevra-agent-checks" --conversation-surfaces
 python3 scripts/check_native_app_authoring.py
 python3 scripts/check_splash_grammar.py
 python3 scripts/check_performance_harness.py

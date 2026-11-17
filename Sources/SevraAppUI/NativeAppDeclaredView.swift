@@ -8,6 +8,7 @@ public struct NativeAppDeclaredView: View {
   let viewID: String
   let presetID: String?
   let datasetSnapshot: String
+  let presentationSnapshot: Int
   let openOriginal: ((String) -> Void)?
   @State private var grantRevision = 0
   @State private var result: VisualResult?
@@ -16,19 +17,21 @@ public struct NativeAppDeclaredView: View {
 
   public init(
     session: NativeAppSession, viewID: String, presetID: String? = nil,
-    datasetSnapshot: String = "", openOriginal: ((String) -> Void)? = nil
+    datasetSnapshot: String = "", presentationSnapshot: Int = 0,
+    openOriginal: ((String) -> Void)? = nil
   ) {
     self.session = session
     self.viewID = viewID
     self.presetID = presetID
     self.datasetSnapshot = datasetSnapshot
+    self.presentationSnapshot = presentationSnapshot
     self.openOriginal = openOriginal
   }
 
   private var revision: String {
     [
       datasetSnapshot, String(session.visualRevision), String(grantRevision),
-      String(session.presentationRevision),
+      String(session.presentationRevision), String(presentationSnapshot),
     ].joined(separator: "/")
   }
 
@@ -81,7 +84,16 @@ public struct NativeAppDeclaredView: View {
       } else if let text = session.package.views?[viewID]?.text {
         VisualTextView(definition: text)
       } else if let result, let overview = result.overview, let panels = result.overviewData {
-        VisualOverviewView(definition: overview, panels: panels, openOriginal: openOriginal)
+        VisualOverviewView(
+          definition: overview, panels: panels, openOriginal: openOriginal,
+          loadSources: { panel, data, point, offset in
+            try await session.withVisualAccess { book, access in
+              try book.nativeAppChartSources(
+                access, view: viewID, presetID: presetID, filters: nil,
+                snapshot: data.snapshot, queryHash: data.queryHash, point: point, offset: offset,
+                panel: panel)
+            }
+          })
       } else if let result, let diagram = result.diagram, let data = result.diagramData {
         VisualDiagramView(definition: diagram, data: data, openRecord: openOriginal)
       } else {

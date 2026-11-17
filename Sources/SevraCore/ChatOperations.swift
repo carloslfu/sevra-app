@@ -43,7 +43,7 @@ public enum ChatOperations {
       ["messageID", "index", "path"], host: true),
     .init(
       "visual.inspect", "Inspect a saved visual and current work record versions.",
-      ["id", "componentID"], ["cursor"], readOnly: true),
+      ["id", "componentID"], ["cursor", "offset"], readOnly: true),
     .init(
       "visual.relationships",
       "Inspect one captured diagram’s records and incident relationships. Optionally filter by exact node key.",
@@ -51,7 +51,7 @@ public enum ChatOperations {
     .init(
       "visual.live_sources",
       "Page exact contributors to a live Home chart point. Refresh after a data or filter change.",
-      ["id", "componentID", "snapshot", "queryHash", "point"], ["offset"], readOnly: true),
+      ["id", "componentID", "snapshot", "queryHash", "point"], ["offset", "panel"], readOnly: true),
     .init(
       "visual.change_record", "Move or reschedule a record through a saved work view.",
       ["id", "componentID", "expectedVersion", "recordID", "value"], ["end", "cursor"]),
@@ -61,7 +61,11 @@ public enum ChatOperations {
     .init(
       "visual.app_sources", "Page exact contributors to a currently enabled app chart point.",
       ["id", "expectedVersion", "viewID", "snapshot", "queryHash", "point"],
-      ["presentationID", "offset"], readOnly: true, host: true),
+      ["presentationID", "offset", "panel"], readOnly: true, host: true),
+    .init(
+      "visual.app_diagram_positions",
+      "Inspect positions and exact node keys in an enabled diagram.",
+      ["id", "expectedVersion", "viewID"], ["presentationID", "offset"], readOnly: true, host: true),
     .init(
       "visual.app_pin", "Pin the enabled app's declared view to Home with the same access.",
       ["id", "expectedVersion", "viewID", "homeVersion"], ["presentationID"], host: true),
@@ -71,14 +75,24 @@ public enum ChatOperations {
       ["id", "expectedVersion", "viewID"], ["presentationID", "point", "snapshot", "queryHash"],
       host: true),
     .init(
+      "visual.app_filter",
+      "Change declared filter values in this window’s linked views. Omit filters to restore the saved values.",
+      ["id", "expectedVersion", "viewID"], ["presentationID", "filters"], host: true),
+    .init(
       "visual.app_preset",
-      "Save a separate chart presentation or edit an exact saved preset version.",
+      "Save a separate chart or diagram presentation, or edit an exact saved preset version.",
       ["id", "expectedVersion", "viewID"],
-      ["presetVersionID", "title", "style", "filters"], host: true),
+      ["presetVersionID", "title", "style", "filters", "positions"], host: true),
     .init(
       "visual.app_restore_preset",
       "Restore a prior display preset as a new version. Business data stays the same.",
       ["id", "expectedVersion", "viewID", "presetVersionID", "restoreVersionID"], host: true),
+    .init(
+      "visual.app_preset_info", "Inspect a preset’s current version and recent display history.",
+      ["id", "expectedVersion", "viewID", "presentationID"], readOnly: true, host: true),
+    .init(
+      "visual.app_archive_preset", "Archive an exact preset version. Placements can be restored.",
+      ["id", "expectedVersion", "viewID", "presetVersionID"], host: true),
     .init(
       "visual.schema", "Read the native visual authoring contract.", [], ["family"], readOnly: true),
     .init(
@@ -107,7 +121,7 @@ public enum ChatOperations {
       ["id", "componentID", "expectedVersion"],
       [
         "title", "caption", "accessibilityDescription", "style", "threshold", "month",
-        "annotations", "columns", "blocks", "dataBars",
+        "annotations", "columns", "blocks", "dataBars", "positions",
       ]),
     .init(
       "visual.filter",
@@ -127,7 +141,7 @@ public enum ChatOperations {
       ["id"], readOnly: true, host: true),
     .init(
       "app.run",
-      "Run a discovered named action ONLY after every required input is supplied by the user or a record they explicitly identified for that value. Missing inputs require a finish clarification question BEFORE this call. Never send TODO/placeholders, invent references, or copy another transaction's customer, amount or time as defaults. A validation error is not permission to choose replacement business values. inputs is its typed argument object. Follow each input valueType: decimal inputs are JSON strings, for example quantity:\"3\". No visual view required.",
+      "Run a discovered named action ONLY after every required input is supplied by the user or a record they explicitly identified for that value. Ask for missing inputs with request_input when available before calling this tool. Never send TODO/placeholders, invent references, or copy another transaction's customer, amount or time as defaults. A validation error is not permission to choose replacement business values. inputs is its typed argument object. Follow each input valueType: decimal inputs are JSON strings, for example quantity:\"3\". No visual view required.",
       ["id", "expectedVersion", "action", "inputs"], host: true),
     .init(
       "app.set",
@@ -316,7 +330,9 @@ public enum ChatOperations {
     if key == "expectedVersion" { return name.hasPrefix("excel.") ? "string" : "integer" }
     if key == "inputs" { return name == "app.fill" ? "array" : "object" }
     if key == "target" && name == "workflow.answer" { return "object" }
-    if ["values", "preview", "chart", "work", "diagram", "overview", "aggregate"].contains(key) {
+    if ["values", "preview", "chart", "work", "diagram", "overview", "aggregate", "positions"]
+      .contains(key)
+    {
       return "object"
     }
     if key == "text" && ["visual.evaluate", "visual.pin"].contains(name) { return "object" }

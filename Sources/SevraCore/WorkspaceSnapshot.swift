@@ -5,6 +5,7 @@ import Foundation
 public struct WorkspaceSnapshot: Sendable {
   public let revision: Int
   public let datasetSnapshot: String
+  public let presentationSnapshot: Int
   public let spaces: [Space]
   public let spaceNavigation: SpaceNavigationState
   public let items: [ItemSummary]
@@ -86,8 +87,11 @@ extension Workbook {
             conversation: conversation, around: messageAnchor, cancellation: control,
             reservedPresentationBytes: 128 * 1024)
           return try WorkspaceSnapshot(
-            revision: current, datasetSnapshot: datasetReadSnapshot(), spaces: spaces(),
-            spaceNavigation: spaceNavigation,
+            revision: current, datasetSnapshot: datasetReadSnapshot(),
+            presentationSnapshot: db.scalar(
+              "SELECT count(*) FROM items WHERE kind='visual_presentation'"
+            ).int ?? 0,
+            spaces: spaces(), spaceNavigation: spaceNavigation,
             items: recentItemSummaries(), datasets: datasets(),
             archivedDatasets: datasets(archived: true),
             messages: history.messages,

@@ -13,10 +13,18 @@ public struct VisualPreset: Codable, Equatable, Sendable {
   public let title: String?
   public let filters: [Value]?
   public let style: VisualChart.Style?
+  public let archived: Bool?
+  public let positions: [String: DiagramGeometry.Position]?
 
   func applied(to visual: VisualDefinition) throws -> VisualDefinition {
-    guard let chart = visual.chart else {
-      throw SevraError("visual_preset", "This view does not declare chart presentation controls.")
+    if let diagram = visual.diagram, filters == nil, style == nil {
+      var descriptor = try encoded(diagram).object
+      if let title { descriptor["title"] = .string(title) }
+      if let positions { descriptor["positions"] = try encoded(positions) }
+      return try VisualDefinition(diagram: VisualDiagram.parse(.object(descriptor)))
+    }
+    guard let chart = visual.chart, positions == nil else {
+      throw SevraError("visual_preset", "Choose presentation controls for this view's family.")
     }
     var result = try encoded(chart).object
     if let title { result["title"] = .string(title) }
@@ -52,15 +60,20 @@ extension Workbook {
         var result = base
         if let presetID {
           let saved = try item(presetID)
+          try require(
+            presetID == saved.logicalID, "visual_preset", "Use the saved presentation ID.")
           let preset = try readVisualPreset(
             saved, spaceID: access.spaceID,
             version: access.version, digest: access.package.digest, view: view)
+          try require(
+            preset.archived != true, "visual_preset_archived",
+            "This preset is archived. Restore an earlier version or remove this placement.")
           result = try preset.applied(to: base)
         }
         if let filters {
           result = try VisualPreset(
             owner: appVisualReference(access, view: view),
-            title: nil, filters: filters, style: nil
+            title: nil, filters: filters, style: nil, archived: nil, positions: nil
           ).applied(to: result)
         }
         try result.validate(appAliases: Set(access.package.datasets.keys))
@@ -82,9 +95,39 @@ extension Workbook {
     return preset
   }
 
+  public func nativeAppPresetHistory(_ access: NativeAppAccess, view: String, presetID: String)
+    throws -> Value
+  {
+    try synchronized {
+      try access.authorized(self) {
+        let current = try item(presetID)
+        try require(
+          current.logicalID == presetID, "visual_preset", "Use the saved presentation ID.")
+        let records = try db.execute(
+          "SELECT * FROM items WHERE logical_id=? ORDER BY version DESC LIMIT 8",
+          [.string(presetID)]
+        ).map { row -> Value in
+          let revision = try decodeItem(row)
+          let preset = try readVisualPreset(
+            revision, spaceID: access.spaceID, version: access.version,
+            digest: access.package.digest, view: view)
+          return .object([
+            "versionID": .string(revision.id), "version": .number(Double(revision.version)),
+            "title": .string(revision.title), "archived": .bool(preset.archived == true),
+          ])
+        }
+        return .object([
+          "presentationID": .string(presetID), "currentVersionID": .string(current.id),
+          "recentVersions": .array(records),
+        ])
+      }
+    }
+  }
+
   public func saveNativeAppPreset(
     _ access: NativeAppAccess, view: String, title: String?, style: VisualChart.Style?,
     filters: [Value]?, expectedPresetVersion: String? = nil, restoring: String? = nil,
+    archiving: Bool = false, positions: [String: DiagramGeometry.Position]? = nil,
     token: String = identifier(),
     cancellation: Cancellation = .init()
   ) throws -> Item {
@@ -109,19 +152,38 @@ extension Workbook {
             earlier, spaceID: access.spaceID, version: access.version,
             digest: access.package.digest, view: view)
         }
+        try require(
+          !archiving || (saved?.archived != true && saved != nil && restoring == nil),
+          "visual_preset", "Choose an exact active preset version to archive.")
+        try require(
+          restoring != nil || saved?.archived != true,
+          "visual_preset_archived", "Restore an earlier version before editing this preset.")
+        try require(
+          restored?.archived != true, "visual_preset_archived",
+          "Choose an earlier version from before the preset was archived.")
         let next =
           restored
           ?? VisualPreset(
             owner: appVisualReference(access, view: view),
             title: title ?? saved?.title, filters: filters ?? saved?.filters,
-            style: style ?? saved?.style)
-        let candidate = try next.applied(to: base)
-        try candidate.validate(appAliases: Set(access.package.datasets.keys))
-        if let chart = candidate.chart {
-          _ = try VisualChartData(
-            nativeAppQuerySet(
-              access, requests: [chart.query],
-              cancellation: cancellation)[0], chart: chart)
+            style: style ?? saved?.style, archived: archiving ? true : nil,
+            positions: positions ?? saved?.positions)
+        if !archiving {
+          let candidate = try next.applied(to: base)
+          try candidate.validate(appAliases: Set(access.package.datasets.keys))
+          if let chart = candidate.chart {
+            _ = try VisualChartData(
+              nativeAppQuerySet(
+                access, requests: [chart.query],
+                cancellation: cancellation)[0], chart: chart)
+          }
+          if let diagram = candidate.diagram, let positions = diagram.positions, !positions.isEmpty
+          {
+            let rows = try nativeAppQuerySet(
+              access, requests: [diagram.nodes, diagram.edges], cancellation: cancellation)
+            _ = try VisualDiagramData(rows, diagram: diagram).layout(
+              positions: positions, cancellation: cancellation)
+          }
         }
         let data = try encoded(next)
         let request: Value = .object([
@@ -143,7 +205,8 @@ extension Workbook {
             try insertItem(
               category: "source", kind: "visual_presentation",
               title: next.title ?? base.chart?.title ?? view,
-              text: "Saved visual presentation.", data: data, meaning: "actual",
+              text: archiving ? "Archived visual presentation." : "Saved visual presentation.",
+              data: data, meaning: "actual",
               status: "accepted", scenario: "actual", inputs: [],
               transformation: "visual-presentation-v1",
               supersedes: prior?.id))

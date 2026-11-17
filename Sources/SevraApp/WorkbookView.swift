@@ -575,6 +575,16 @@ struct WorkbookView: View {
       state.visualInspection = nil
       state.navigate(.item(source), returningTo: .message(inspection.messageID))
     }
+    func sources(panel: Int? = nil, point: Int, offset: Int) async throws -> Value {
+      guard let book = state.workbook else {
+        throw SevraError("visual", "Reopen the workbook for this visual.")
+      }
+      return try await Task.detached {
+        try book.chartGroupSources(
+          messageID: inspection.messageID, index: inspection.index,
+          conversation: inspection.conversation, point: point, offset: offset, panel: panel)
+      }.value
+    }
     return VStack(alignment: .leading, spacing: 0) {
       HStack {
         Text("Visual detail").font(.headline)
@@ -589,25 +599,21 @@ struct WorkbookView: View {
             if let chart = result.chart, let data = result.chartData {
               VisualChartView(
                 definition: chart, data: data, openOriginal: open,
-                loadSources: { point, offset in
-                  guard let book = state.workbook else {
-                    throw SevraError("visual", "Reopen the workbook for this visual.")
-                  }
-                  return try await Task.detached {
-                    try book.chartGroupSources(
-                      messageID: inspection.messageID, index: inspection.index,
-                      conversation: inspection.conversation, point: point, offset: offset)
-                  }.value
-                })
+                loadSources: { try await sources(point: $0, offset: $1) })
             } else if let overview = result.overview, let data = result.overviewData {
-              VisualOverviewView(definition: overview, panels: data, openOriginal: open)
+              VisualOverviewView(
+                definition: overview, panels: data, openOriginal: open,
+                loadSources: { panel, _, point, offset in
+                  try await sources(panel: panel, point: point, offset: offset)
+                })
             } else if let diagram = result.diagram, let data = result.diagramData {
               VisualDiagramView(definition: diagram, data: data, openRecord: open)
             }
           case .current(let session, let reference):
             NativeAppDeclaredView(
               session: session, viewID: reference.viewID, presetID: reference.presetID,
-              datasetSnapshot: state.datasetSnapshot, openOriginal: open)
+              datasetSnapshot: state.datasetSnapshot,
+              presentationSnapshot: state.presentationSnapshot, openOriginal: open)
           }
         }.padding(18).frame(maxWidth: .infinity, alignment: .leading)
       }

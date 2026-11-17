@@ -1,4 +1,5 @@
 import Foundation
+import os
 
 public struct VisualDiagram: Codable, Equatable, Sendable {
   public let title: String
@@ -8,9 +9,11 @@ public struct VisualDiagram: Codable, Equatable, Sendable {
   public let label: String
   public let from: String
   public let to: String
+  public let positions: [String: DiagramGeometry.Position]?
 
   static func parse(_ value: Value) throws -> Self {
-    _ = try queryObject(value, keys: ["title", "nodes", "edges", "key", "label", "from", "to"])
+    _ = try queryObject(
+      value, keys: ["title", "nodes", "edges", "key", "label", "from", "to", "positions"])
     let diagram = try JSONDecoder().decode(Self.self, from: Data(value.json().utf8))
     try diagram.validate()
     return diagram
@@ -28,6 +31,14 @@ public struct VisualDiagram: Codable, Equatable, Sendable {
         && Set(nodeQuery.selections.map(\.id)) == [key, label]
         && Set(edgeQuery.selections.map(\.id)) == [from, to],
       "visual_diagram", "Choose two exact row queries for up to 100 records and 200 relationships.")
+    if let positions {
+      try require(
+        positions.count <= 100
+          && positions.allSatisfy { key, point in
+            !key.isEmpty && key.utf8.count <= 160 && (12...31_800).contains(point.x)
+              && (12...31_800).contains(point.y)
+          }, "visual_diagram", "Use exact node keys and positions within the diagram canvas.")
+    }
   }
 }
 
@@ -121,7 +132,10 @@ public struct VisualDiagramData: Codable, Equatable, Sendable {
     return count
   }
 
-  public func layout(cancellation: Cancellation = .init()) throws -> DiagramGeometry {
+  public func layout(
+    positions: [String: DiagramGeometry.Position]? = nil, cancellation: Cancellation = .init()
+  ) throws -> DiagramGeometry {
+    try cancellation.check()
     try validate()
     // The helper receives anonymous ordinal identifiers and measured boxes only.
     // It never receives record names, keys, source references or an app grant.
@@ -134,24 +148,80 @@ public struct VisualDiagramData: Codable, Equatable, Sendable {
           .array([.number(Double(ids[edge.from]!)), .number(Double(ids[edge.to]!))])
         }),
     ])
-    let root = FileManager.default.temporaryDirectory.appendingPathComponent(
-      "sevra-layout-" + identifier())
-    try FileManager.default.createDirectory(
-      at: root, withIntermediateDirectories: false,
-      attributes: [.posixPermissions: 0o700])
-    defer { try? FileManager.default.removeItem(at: root) }
-    let file = root.appendingPathComponent("graph.json")
-    try Data(input.json().utf8).write(to: file)
-    let worker = ExtractionWorker(timeout: 2, maximumMemoryBytes: 192 * 1024 * 1024)
-    let result: DiagramGeometry = try worker.run(
-      file, mode: ["--diagram-layout"], cancellation: cancellation)
-    try result.validate(nodes: nodes.count, edges: edges.count)
-    return result
+    let key = try input.json()
+    let geometry: DiagramGeometry
+    if let cached = DiagramGeometryCache.value(for: key) {
+      geometry = cached
+    } else {
+      let root = FileManager.default.temporaryDirectory.appendingPathComponent(
+        "sevra-layout-" + identifier())
+      try FileManager.default.createDirectory(
+        at: root, withIntermediateDirectories: false,
+        attributes: [.posixPermissions: 0o700])
+      defer { try? FileManager.default.removeItem(at: root) }
+      let file = root.appendingPathComponent("graph.json")
+      try Data(key.utf8).write(to: file)
+      let worker = ExtractionWorker(timeout: 2, maximumMemoryBytes: 192 * 1024 * 1024)
+      geometry = try worker.run(file, mode: ["--diagram-layout"], cancellation: cancellation)
+      try geometry.validate(nodes: nodes.count, edges: edges.count)
+      DiagramGeometryCache.store(geometry, for: key)
+    }
+    try cancellation.check()
+    guard let positions, !positions.isEmpty else { return geometry }
+    return try geometry.applying(
+      positions, ids: ids, endpoints: edges.map { (ids[$0.from]!, ids[$0.to]!) })
+  }
+
+  package func positionPage(
+    _ positions: [String: DiagramGeometry.Position]?, offset: Int, cancellation: Cancellation
+  ) throws -> Value {
+    try require((0...100).contains(offset), "visual_diagram", "Use a valid diagram page.")
+    let geometry: DiagramGeometry
+    do {
+      geometry = try layout(positions: positions, cancellation: cancellation)
+    } catch {
+      try cancellation.check()
+      var fallback = try inspection(node: nil, offset: offset).object
+      fallback["layout"] = .string("unavailable")
+      fallback["notice"] = .string(String(error.localizedDescription.prefix(300)))
+      return .object(fallback)
+    }
+    let indices = nodes.indices.dropFirst(offset).prefix(12)
+    return .object([
+      "snapshot": .string(snapshot), "nodeCount": .number(Double(nodes.count)),
+      "positions": .array(
+        try indices.map { index in
+          let node = nodes[index]
+          return .object([
+            "key": .string(node.id), "label": .string(node.label),
+            "position": try encoded(geometry.nodes[index]),
+          ])
+        }),
+      "nextOffset": offset + indices.count < nodes.count
+        ? .number(Double(offset + indices.count)) : .null,
+    ])
+  }
+}
+
+private enum DiagramGeometryCache {
+  private static let entries = OSAllocatedUnfairLock(initialState: [(String, DiagramGeometry)]())
+
+  static func value(for key: String) -> DiagramGeometry? {
+    entries.withLock { values in values.first { $0.0 == key }?.1 }
+  }
+
+  static func store(_ geometry: DiagramGeometry, for key: String) {
+    entries.withLock { values in
+      if values.contains(where: { $0.0 == key }) { return }
+      // Each entry has at most 6,400 points, and contains only anonymous topology.
+      if values.count == 16 { values.removeFirst() }
+      values.append((key, geometry))
+    }
   }
 }
 
 public struct DiagramGeometry: Codable, Sendable {
-  public struct Position: Codable, Sendable {
+  public struct Position: Codable, Equatable, Sendable {
     public let x: Double
     public let y: Double
   }
@@ -161,6 +231,56 @@ public struct DiagramGeometry: Codable, Sendable {
   public let edges: [[[Position]]]
   public static let nodeWidth = 168.0
   public static let nodeHeight = 48.0
+
+  func applying(_ overrides: [String: Position], ids: [String: Int], endpoints: [(Int, Int)])
+    throws -> Self
+  {
+    var moved = nodes
+    var changed: Set<Int> = []
+    for (id, position) in overrides {
+      guard let index = ids[id] else {
+        throw SevraError("visual_diagram", "A positioned record is missing from this diagram.")
+      }
+      moved[index] = position
+      changed.insert(index)
+    }
+    let routes = endpoints.enumerated().map { index, edge in
+      let (from, to) = edge
+      guard changed.contains(from) || changed.contains(to) else { return edges[index] }
+      let a = moved[from]
+      let b = moved[to]
+      if from == to {
+        let side = a.x + Self.nodeWidth
+        let center = a.y + Self.nodeHeight / 2
+        return [
+          [
+            Position(x: side, y: center + 8), Position(x: side + 10, y: center + 8),
+            Position(x: side + 10, y: center - 8), Position(x: side, y: center - 8),
+          ]
+        ]
+      }
+      if abs(a.x - b.x) >= Self.nodeWidth {
+        return [
+          [
+            Position(x: a.x + (a.x < b.x ? Self.nodeWidth : 0), y: a.y + Self.nodeHeight / 2),
+            Position(x: b.x + (a.x > b.x ? Self.nodeWidth : 0), y: b.y + Self.nodeHeight / 2),
+          ]
+        ]
+      }
+      return [
+        [
+          Position(x: a.x + Self.nodeWidth / 2, y: a.y + (a.y < b.y ? Self.nodeHeight : 0)),
+          Position(x: b.x + Self.nodeWidth / 2, y: b.y + (a.y > b.y ? Self.nodeHeight : 0)),
+        ]
+      ]
+    }
+    let result = Self(
+      width: max(width, (moved.map(\.x).max() ?? 0) + Self.nodeWidth + 12),
+      height: max(height, (moved.map(\.y).max() ?? 0) + Self.nodeHeight + 12),
+      nodes: moved, edges: routes)
+    try result.validate(nodes: nodes.count, edges: edges.count)
+    return result
+  }
 
   func validate(nodes count: Int, edges edgeCount: Int) throws {
     func fits(_ position: Position) -> Bool {

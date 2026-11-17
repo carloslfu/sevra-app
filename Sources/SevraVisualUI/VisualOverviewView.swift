@@ -5,13 +5,19 @@ public struct VisualOverviewView: View {
   let definition: VisualOverview
   let panels: [VisualChartData]
   let openOriginal: ((String) -> Void)?
+  let compact: Bool
+  let loadSources: ((Int, VisualChartData, Int, Int) async throws -> Value)?
 
   public init(
-    definition: VisualOverview, panels: [VisualChartData], openOriginal: ((String) -> Void)? = nil
+    definition: VisualOverview, panels: [VisualChartData], compact: Bool = false,
+    openOriginal: ((String) -> Void)? = nil,
+    loadSources: ((Int, VisualChartData, Int, Int) async throws -> Value)? = nil
   ) {
     self.definition = definition
     self.panels = panels
     self.openOriginal = openOriginal
+    self.compact = compact
+    self.loadSources = loadSources
   }
 
   public var body: some View {
@@ -19,7 +25,8 @@ public struct VisualOverviewView: View {
       Text(definition.title).font(.title3.weight(.semibold)).accessibilityAddTraits(.isHeader)
       let columns = definition.columns ?? 2
       ViewThatFits(in: .horizontal) {
-        grid(columns: columns).frame(minWidth: CGFloat(columns * 260 + (columns - 1) * 14))
+        if columns == 3 { grid(columns: 3).frame(minWidth: 808) }
+        if columns >= 2 { grid(columns: 2).frame(minWidth: 534) }
         grid(columns: 1)
       }
     }
@@ -34,7 +41,9 @@ public struct VisualOverviewView: View {
       ForEach(Array(panels.enumerated()), id: \.offset) { index, data in
         if definition.panels.indices.contains(index) {
           VisualChartView(
-            definition: definition.panels[index], data: data, openOriginal: openOriginal
+            definition: definition.panels[index], data: data, compact: compact,
+            openOriginal: openOriginal,
+            loadSources: loadSources.map { load in { try await load(index, data, $0, $1) } }
           )
           .padding(10)
           .frame(maxWidth: .infinity, alignment: .topLeading)
@@ -50,6 +59,7 @@ public struct LiveVisualOverviewView: View {
   let revision: String
   let load: @MainActor (Cancellation) async throws -> [VisualChartData]
   let openOriginal: ((String) -> Void)?
+  let loadSources: ((Int, VisualChartData, Int, Int) async throws -> Value)?
   @State private var panels: [VisualChartData]?
   @State private var loadedDefinition: VisualOverview?
   @State private var refreshing = false
@@ -58,12 +68,14 @@ public struct LiveVisualOverviewView: View {
   public init(
     definition: VisualOverview, revision: String,
     load: @escaping @MainActor (Cancellation) async throws -> [VisualChartData],
-    openOriginal: ((String) -> Void)? = nil
+    openOriginal: ((String) -> Void)? = nil,
+    loadSources: ((Int, VisualChartData, Int, Int) async throws -> Value)? = nil
   ) {
     self.definition = definition
     self.revision = revision
     self.load = load
     self.openOriginal = openOriginal
+    self.loadSources = loadSources
   }
 
   public var body: some View {
@@ -73,8 +85,11 @@ public struct LiveVisualOverviewView: View {
       } else if let panels, loadedDefinition == definition {
         VStack(alignment: .leading, spacing: 6) {
           if refreshing { ProgressView("Updating overview…").controlSize(.small) }
-          VisualOverviewView(definition: definition, panels: panels, openOriginal: openOriginal)
-            .disabled(refreshing)
+          VisualOverviewView(
+            definition: definition, panels: panels, openOriginal: openOriginal,
+            loadSources: loadSources
+          )
+          .disabled(refreshing)
         }
       } else {
         ProgressView("Loading overview…")

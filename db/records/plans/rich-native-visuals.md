@@ -3,7 +3,7 @@ type: spec
 meta-type: conclusion
 id: 01m7fxyzjyxhk7wqfy9044qq7y
 created: 2026-11-15T15:42:08.478533+00:00
-updated: 2026-11-17T00:57:57.059471+00:00
+updated: 2026-11-17T01:18:29.296214+00:00
 summary: Native chat inputs, images, charts and work views implemented in source. The document records focused evidence and remaining visual and release work.
 title: Rich native views for Home, mini apps and chat
 status: reviewed
@@ -524,3 +524,14 @@ Graphviz fallback inspection fetched the 3.0 MiB Graphviz 16.1.1 arm64 Homebrew 
 - Earlier model runs at 32K and 64K showed that a valid recorded chart and a usable question are separate outcomes. Failed traces include invalid generated field IDs, a text field paired with boolean choice values, a disabled typed response, a prose-only chart claim and a query scoped to a scenario with no rows. The chart repair path provides a compact one-table grouped descriptor, a bounded default mark limit, and attachment of one current valid chart receipt on an explicit chart request. The broader frozen cohorts and native accessibility/performance gates remain open.
 
 The final two live probes passed on a 48 GiB Apple Silicon host with the installed Qwen3.6 model and automatic context maintenance. Both actual context capacities, 32,768 and 65,536, completed a typed question continuation and captured the independently expected USD sales totals of 18.25 and 8.50 with a saved source manifest. The two probes took 126.0 and 116.3 seconds including initialization and both journeys. They are representative checks with automatic repair, not the six paired input scenarios or the four- and ten-case releases. The signed isolated XPC suite passed all 20 groups, including the native image caption, expansion and revocation checks. The earlier failing image run was due to the caption wrapper hiding the native image control from the renderer's lookup. The lookup now returns the image control, while the caption remains adjacent and visible.
+
+## November 16 implementation closure
+
+- Chat can inspect, archive and restore exact saved app presets. Home retains its placement while an archived preset is unavailable. Restoring an earlier display version keeps the same presentation identity. A historical version ID cannot bypass an archive. Presentation changes have a workbook snapshot separate from dataset reads.
+- Chat can change declared app chart filters for this window without saving a preset. Filter slots keep their declared column and comparison. Linked views share the accepted result, and a saved presentation version applies across windows.
+- Workbook diagrams and declared app diagram presets now accept positions by exact node key. The host refuses unknown keys and overlapping boxes. Clearing positions restores the layout engine. A bounded process cache retains anonymous geometry only. The packaged helper laid out a synthetic 100-node, 200-edge graph in 0.76 seconds and about 77 MiB resident memory on the idle 48 GiB test Mac. This measures the helper on one graph.
+- Typed date answers retain the original words and the local date reference at submission. A test across a daylight-saving change resolved “Yesterday” to March 7 in Los Angeles and preserved that value on continuation.
+- Each overview panel exposes its own exact sources through chat and the native views. Inline chat shows up to eight exact rows with a total and an Expand action. Expanded views keep the captured data and exact sources.
+- Focused acceptance covered archive/restore and stale-version refusal, saved graph placement and overlap refusal, an overview panel's exact contributors, the typed continuation, chart provenance, corrupted images and board Undo. The focused checks are included in the existing repository and hosted suites. The prior integrated run passed 661 core checks, including its cancellation timing check when run without other workloads.
+
+The broader frozen local-model cohorts, native visual and multi-window usability review, VoiceOver settings, other hardware, and model-loaded performance targets remain open. The direct native presentation surface exposes the declared operations wired in this implementation. Custom mini-app behavior depends on the operations an app declares. No production installer, device grant or active workbook installation was changed by this source delivery.

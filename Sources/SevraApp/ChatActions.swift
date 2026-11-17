@@ -48,6 +48,16 @@ extension WorkspaceState {
         String(name.dropFirst(4)), arguments: a, readOnly: readOnly, cancellation: cancellation)
     }
     switch name {
+    case "visual.app_filter":
+      let space = try book.space(a["id"].text)
+      try require(
+        space.version == a["expectedVersion"].int && space.definition.app != nil,
+        "stale_app", "Use the current exact app version and declared view ID.")
+      let filters = a.object["filters"]?.array
+      try await nativeAppSession(space, book: book).setVisualFilters(
+        a["viewID"].text, presetID: a["presentationID"].string, filters: filters,
+        cancellation: cancellation)
+      return .object(["status": .string(filters == nil ? "reset" : "filtered")])
     case "visual.app_select":
       let space = try book.space(a["id"].text)
       try require(
@@ -74,7 +84,8 @@ extension WorkspaceState {
         "label": point.map { .string($0.label) } ?? .null,
       ])
     case "visual.app_capture", "visual.app_pin", "visual.app_preset", "visual.app_restore_preset",
-      "visual.app_sources":
+      "visual.app_archive_preset", "visual.app_preset_info", "visual.app_sources",
+      "visual.app_diagram_positions":
       let space = try book.space(a["id"].text)
       try require(
         space.version == a["expectedVersion"].int && space.definition.app != nil,
@@ -83,16 +94,30 @@ extension WorkspaceState {
       let preset = a["presentationID"].string
       let session = nativeAppSession(space, book: book)
       let filters = session.visualFilters(view, presetID: preset)
-      return try await session.withVisualAccess(
-        committing: ["visual.app_pin", "visual.app_preset", "visual.app_restore_preset"].contains(
-          name)
-      ) { book, access in
+      let presetMutation = [
+        "visual.app_preset", "visual.app_restore_preset", "visual.app_archive_preset",
+      ].contains(name)
+      let result = try await session.withVisualAccess(
+        committing: name == "visual.app_pin" || presetMutation
+      ) { book, access -> Value in
         try cancellation.check()
+        if name == "visual.app_preset_info" {
+          return try book.nativeAppPresetHistory(access, view: view, presetID: preset!)
+        }
+        if name == "visual.app_diagram_positions" {
+          let result = try book.nativeAppVisual(
+            access, view: view, presetID: preset, cancellation: cancellation)
+          guard let diagram = result.diagram, let data = result.diagramData else {
+            throw SevraError("visual_diagram", "Choose an enabled diagram view.")
+          }
+          return try data.positionPage(
+            diagram.positions, offset: a["offset"].int ?? 0, cancellation: cancellation)
+        }
         if name == "visual.app_sources" {
           return try book.nativeAppChartSources(
             access, view: view, presetID: preset, filters: filters,
             snapshot: a["snapshot"].text, queryHash: a["queryHash"].text, point: a["point"].int!,
-            offset: a["offset"].int ?? 0, cancellation: cancellation)
+            offset: a["offset"].int ?? 0, panel: a["panel"].int, cancellation: cancellation)
         }
         if name == "visual.app_pin" {
           return try encoded(
@@ -100,18 +125,25 @@ extension WorkspaceState {
               access, view: view, presetID: preset,
               expectedHomeVersion: a["homeVersion"].int!))
         }
-        if ["visual.app_preset", "visual.app_restore_preset"].contains(name) {
+        if presetMutation {
+          let archiving = name == "visual.app_archive_preset"
           let style = a["style"].string.flatMap(VisualChart.Style.init(rawValue:))
           try require(
             a["style"] == .null || style != nil, "visual_preset", "Choose a known chart style.")
+          let positions = try a.object["positions"].map {
+            try JSONDecoder().decode(
+              [String: DiagramGeometry.Position].self, from: Data($0.json().utf8))
+          }
           let saved = try book.saveNativeAppPreset(
             access, view: view, title: a["title"].string,
             style: style, filters: a["filters"] == .null ? nil : a["filters"].array,
             expectedPresetVersion: a["presetVersionID"].string,
             restoring: a["restoreVersionID"].string,
+            archiving: archiving, positions: positions,
             cancellation: cancellation)
           return .object([
-            "status": .string("saved"), "presentationID": .string(saved.logicalID),
+            "status": .string(archiving ? "archived" : "saved"),
+            "presentationID": .string(saved.logicalID),
             "versionID": .string(saved.id), "version": .number(Double(saved.version)),
           ])
         }
@@ -139,6 +171,8 @@ extension WorkspaceState {
           "notice": .string("Attach the capture receipt using finish.visuals."),
         ])
       }
+      if presetMutation { session.invalidateVisualPresentation() }
+      return result
     case "visual.expand", "visual.open_current":
       return try await openChatVisual(
         a["messageID"].text, index: a["index"].int!,

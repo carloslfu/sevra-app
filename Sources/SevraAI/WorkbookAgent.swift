@@ -61,6 +61,7 @@ public enum WorkbookAgent {
     try require(
       context.utf8.count <= ContextBudget.maximumMessageBytes, "context_structure",
       "The selected context exceeds its preparation limit.")
+    let requestDateContext = conversationInput ? ConversationDateContext() : nil
     let identity = await model.identity
     do {
       try cancellation.check()
@@ -85,7 +86,8 @@ public enum WorkbookAgent {
         requestStarted: requestStarted, openSpace: openSpace,
         openReviews: openReviews, workspaceAction: workspaceAction,
         excelConversion: excelConversion,
-        conversationInput: conversationInput, inputAnswerID: inputAnswerID
+        conversationInput: conversationInput, inputAnswerID: inputAnswerID,
+        dateContext: requestDateContext
       )
       await model.endRun()
       return result
@@ -105,7 +107,8 @@ public enum WorkbookAgent {
     handoff: AgentRequestHandoff? = nil,
     handoffReceipt: CompletedHandoff? = nil, stepBudget: Int = 12,
     excelConversion: ExcelConversionBuild? = nil,
-    conversationInput: Bool = false, inputAnswerID: String? = nil
+    conversationInput: Bool = false, inputAnswerID: String? = nil,
+    dateContext: ConversationDateContext? = nil
   ) async throws -> AgentResult {
     try require(
       prompt.utf8.count <= AgentRequest.maximumPromptBytes, "prompt_limit",
@@ -125,6 +128,8 @@ public enum WorkbookAgent {
     }
     let submittedText = inputContinuation?.answer ?? prompt
     let requestTask = inputContinuation?.originalTask ?? prompt
+    let requestDateContext =
+      inputContinuation == nil ? dateContext : inputContinuation?.requestDateContext
     let readOnly =
       RequestRestrictions.isExplicitlyReadOnly(requestTask)
       || RequestRestrictions.isExplicitlyReadOnly(submittedText)
@@ -312,6 +317,18 @@ public enum WorkbookAgent {
       if canAsk {
         policy +=
           "\nUse request_input to ask for genuinely missing business values before applying changes. Offer choices with literal values when appropriate. Set a short snake_case field ID such as include_shipping. Use type=boolean when the choices contain true and false. Reuse each field ID as a key in literal choice values and give each choice its own ID. The run pauses until a human replies. Never ask again for values already supplied. Do not supply or approve the answer yourself."
+      }
+      if [requestTask, submittedText].contains(where: {
+        $0.range(
+          of: #"(?i)\b(today|tomorrow|yesterday|this week|next week|last week)\b"#,
+          options: .regularExpression) != nil
+      }) {
+        policy +=
+          "\nUse the captured local civil day for relative dates in the original request or reply. Preserve validated date-only values exactly. Ask if the intended date, currency, or clock time remains ambiguous. Date reference: "
+          + (try Value.object([
+            "originalRequest": requestDateContext.map(encoded) ?? .null,
+            "reply": inputContinuation?.answerDateContext.map(encoded) ?? .null,
+          ]).json())
       }
       if let continuation = inputContinuation {
         policy +=
@@ -578,7 +595,8 @@ public enum WorkbookAgent {
               input.allowTextReply, "conversation_input", "Allow the person to reply in chat.")
             let publication = try workbook.publishConversationInput(
               input, runID: runID, conversation: conversation, readOnly: readOnly,
-              steps: step, metrics: .array(metrics), cancellation: cancellation)
+              steps: step, metrics: .array(metrics), cancellation: cancellation,
+              requestDateContext: requestDateContext)
             return AgentResult(
               answer: publication.body, citations: [], steps: step, state: "needs_input", focus: nil
             )

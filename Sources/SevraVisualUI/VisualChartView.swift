@@ -7,6 +7,7 @@ public struct VisualChartView: View {
   let data: VisualChartData
   let openOriginal: ((String) -> Void)?
   let showsInspection: Bool
+  let compact: Bool
   let onSelect: ((VisualChartData.Point?) -> Void)?
   let selected: VisualChartData.Point?
   let loadSources: ((Int, Int) async throws -> Value)?
@@ -15,6 +16,7 @@ public struct VisualChartView: View {
 
   public init(
     definition: VisualChart, data: VisualChartData, showsInspection: Bool = true,
+    compact: Bool = false,
     openOriginal: ((String) -> Void)? = nil,
     onSelect: ((VisualChartData.Point?) -> Void)? = nil, selected: VisualChartData.Point? = nil,
     loadSources: ((Int, Int) async throws -> Value)? = nil
@@ -23,6 +25,7 @@ public struct VisualChartView: View {
     self.data = data
     self.openOriginal = openOriginal
     self.showsInspection = showsInspection
+    self.compact = compact
     self.onSelect = onSelect
     self.selected = selected
     self.loadSources = loadSources
@@ -294,35 +297,47 @@ public struct VisualChartView: View {
   }
 
   private var exactRows: some View {
-    ScrollView {
-      LazyVStack(alignment: .leading, spacing: 7) {
-        if data.points.isEmpty {
-          Text("No matching values.").font(.callout).foregroundStyle(.secondary)
+    VStack(alignment: .leading, spacing: 4) {
+      if compact {
+        rows(data.points.prefix(8))
+        if data.points.count > 8 {
+          Text("Showing 8 of \(data.points.count). Expand to see all values.")
+            .font(.caption).foregroundStyle(.secondary)
         }
-        ForEach(data.points) { point in
-          if definition.style == .records {
-            VStack(alignment: .leading, spacing: 4) {
-              Text(point.label).font(.callout.weight(.semibold))
+      } else {
+        ScrollView { rows(data.points[...]) }.frame(maxHeight: 240)
+      }
+    }
+  }
+
+  private func rows(_ points: ArraySlice<VisualChartData.Point>) -> some View {
+    LazyVStack(alignment: .leading, spacing: 7) {
+      if data.points.isEmpty {
+        Text("No matching values.").font(.callout).foregroundStyle(.secondary)
+      }
+      ForEach(points) { point in
+        if definition.style == .records {
+          VStack(alignment: .leading, spacing: 4) {
+            Text(point.label).font(.callout.weight(.semibold))
+            exactAmount(point)
+          }
+        } else {
+          ViewThatFits(in: .horizontal) {
+            HStack(alignment: .firstTextBaseline) {
+              Text(point.label).lineLimit(1).truncationMode(.middle)
+                .frame(minWidth: 70, alignment: .leading)
+              Spacer(minLength: 8)
               exactAmount(point)
             }
-          } else {
-            ViewThatFits(in: .horizontal) {
-              HStack(alignment: .firstTextBaseline) {
-                Text(point.label).lineLimit(1).truncationMode(.middle)
-                  .frame(minWidth: 70, alignment: .leading)
-                Spacer(minLength: 8)
-                exactAmount(point)
-              }
-              VStack(alignment: .leading, spacing: 4) {
-                Text(point.label)
-                exactAmount(point)
-              }
+            VStack(alignment: .leading, spacing: 4) {
+              Text(point.label)
+              exactAmount(point)
             }
           }
-          Divider()
         }
-      }.padding(.vertical, 8)
-    }.frame(maxHeight: 240)
+        Divider()
+      }
+    }.padding(.vertical, 8)
   }
 
   private func exactAmount(_ point: VisualChartData.Point) -> some View {

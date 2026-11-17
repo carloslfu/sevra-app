@@ -241,9 +241,13 @@ extension Workbook {
               package.views?[view] != nil && c.viewVersion == app.version, "view",
               "Choose a declared app view at its current app version.")
             if let preset = c.presentationID {
-              _ = try readVisualPreset(
-                item(preset), spaceID: app.id,
+              let current = try item(preset)
+              let state = try readVisualPreset(
+                current, spaceID: app.id,
                 version: app.version, digest: package.digest, view: view)
+              try require(
+                current.logicalID == preset && state.archived != true, "visual_preset",
+                "Choose an active saved presentation ID.")
             }
           }
         }

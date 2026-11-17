@@ -44,7 +44,7 @@ still fail or take minutes; this is not a first-attempt or universal-compatibili
 
 Ask the local model to build a named mini app with the fields, actions and tables you need.
 It writes the app, runs synthetic checks in isolation, and reviews the result against your
-request before saving. Ask to enable it, review its table access in chat, and type **Confirm**. Ask for changes
+request before saving. Ask to enable it and review its table access in chat. Confirm there or type **Confirm**. Ask for changes
 by the app's name; each new version needs approval again. See the
 [authoring workflow and limits](db/records/specs/local-model-native-apps.md).
 
@@ -62,6 +62,18 @@ approvals also have conversational operations. Native controls remain available.
 Apps retain one reversible latest transaction: Undo changes to Redo after reversal,
 including after reopening. A new saved transaction replaces that Redo; this is not a
 multi-step history stack.
+
+### Use visuals in chat, Home and mini apps
+
+Ask for a chart, overview, board, calendar or dependency view. Expand the result in chat,
+inspect contributing records, or add a live view to Home. Chat keeps the captured values from
+the original answer. Home uses current workbook data. App views keep their declared workbook
+access when pinned. Included images can appear in chat, Home and declared app views.
+
+Sevra can ask a question or collect typed values in chat, then show a review when the action
+requires it. Use the inline controls or answer in the composer. These paths are part of the
+native preview. The [visuals plan and verification record](db/records/plans/rich-native-visuals.md)
+describe the tested workflows and current limits.
 
 The [SDK and architecture](db/records/specs/programmable-native-engine.md) explain
 TypeScript/JSX authoring, signals, native components, scoped data access and current limits.

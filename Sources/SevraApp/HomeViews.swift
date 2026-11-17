@@ -200,7 +200,8 @@ struct HomeAppView: View {
           if component.viewVersion == app.version {
             NativeAppDeclaredView(
               session: session, viewID: viewID, presetID: component.presentationID,
-              datasetSnapshot: state.datasetSnapshot
+              datasetSnapshot: state.datasetSnapshot,
+              presentationSnapshot: state.presentationSnapshot
             ) {
               state.navigate(.item($0))
             }.id(app.id + ":" + String(app.version) + ":" + viewID)

@@ -132,6 +132,34 @@ private actor SurfaceModel: WorkbookInference {
     await typedModel.policy?.content.contains("\"validatedAnswerValues\":{\"delivery\":true}"), true
   )
 
+  var dateForm = arguments.object
+  dateForm["choices"] = .array([])
+  dateForm["fields"] = .array([
+    .object([
+      "id": .string("payment_date"), "type": .string("date"), "required": .bool(true),
+      "label": .string("Payment date"),
+    ])
+  ])
+  dateForm["question"] = .string("What was the payment date?")
+  _ = try await WorkbookAgent.run(
+    "Find Acme's payment by date.", workbook: book,
+    model: SurfaceModel(input: .object(dateForm)), conversationInput: true)
+  var local = Calendar(identifier: .gregorian)
+  local.timeZone = TimeZone(identifier: "America/Los_Angeles")!
+  let dateReference = ConversationDateContext(
+    now: try Date.ISO8601FormatStyle().parse("2026-03-09T06:00:00Z"), calendar: local)
+  let dateID = try book.submitConversationInput(
+    book.pendingConversationInput(conversation: "main")!, response: .text("Yesterday"),
+    dateContext: dateReference)!
+  let dateModel = SurfaceModel()
+  _ = try await WorkbookAgent.run(
+    "", workbook: book, model: dateModel, conversationInput: true, inputAnswerID: dateID)
+  try expectEqual(await dateModel.request?.content, "Yesterday")
+  try expectEqual(
+    await dateModel.policy?.content.contains(
+      "\"validatedAnswerValues\":{\"payment_date\":\"2026-03-07\"}"),
+    true)
+
   let command = "app.enable"
   let target: Value = .object(["id": .string("test-app"), "expectedVersion": .number(1)])
   try book.prepareChatApproval(
@@ -303,6 +331,36 @@ private actor SurfaceModel: WorkbookInference {
     ])
   let access = try NativeAppAccess(workbook: book, space: app)
   try expectEqual(try book.nativeAppChart(access, view: "collections").points, exact.points)
+  let preset = try book.saveNativeAppPreset(
+    access, view: "collections", title: "Monthly collections", style: nil, filters: nil)
+  let beforeArchive = try book.space("home")
+  let pinnedPreset = try book.pinNativeAppView(
+    access, view: "collections", presetID: preset.logicalID,
+    expectedHomeVersion: beforeArchive.version)
+  let archived = try book.saveNativeAppPreset(
+    access, view: "collections", title: nil, style: nil, filters: nil,
+    expectedPresetVersion: preset.id, archiving: true)
+  try expectEqual(try book.space("home").version, pinnedPreset.version)
+  try expectEqual(try book.space("home").definition, pinnedPreset.definition)
+  try expectThrows(
+    try book.nativeAppPresentation(access, view: "collections", presetID: preset.logicalID))
+  try expectThrows(
+    try book.nativeAppPresentation(access, view: "collections", presetID: preset.id))
+  try expectThrows(
+    try book.saveNativeAppPreset(
+      access, view: "collections", title: "Stale", style: nil, filters: nil,
+      expectedPresetVersion: preset.id))
+  let history = try book.nativeAppPresetHistory(
+    access, view: "collections", presetID: preset.logicalID)
+  try expectEqual(
+    history["recentVersions"].array.map { $0["archived"] }, [.bool(true), .bool(false)])
+  let restored = try book.saveNativeAppPreset(
+    access, view: "collections", title: nil, style: nil, filters: nil,
+    expectedPresetVersion: archived.id, restoring: preset.id)
+  try expectEqual(restored.logicalID, preset.logicalID)
+  try expectEqual(
+    try book.nativeAppPresentation(access, view: "collections", presetID: preset.logicalID).title,
+    "Monthly collections")
   access.revoke()
   try expectThrows(try book.nativeAppChart(access, view: "collections"))
   let csv = root.appendingPathComponent("chart.csv")
@@ -318,7 +376,7 @@ private actor SurfaceModel: WorkbookInference {
   try expectThrows(try book.exportNativeAppTemplate(imageApp.id, to: invalidTemplate))
   try expectEqual(FileManager.default.fileExists(atPath: invalidTemplate.path), false)
   print(
-    "PASS exact chart grouping, incomplete result refusal, chat capture reopen, Home and granted app parity"
+    "PASS exact chart grouping, captured reopen, Home and app parity, preset archive and restore"
   )
 
   let jobs = try book.createDataset(

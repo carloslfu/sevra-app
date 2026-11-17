@@ -139,7 +139,9 @@ public struct ConversationSurface: Codable, Equatable, Identifiable, Sendable {
       }
     }
 
-    fileprivate func values(forText text: String) -> [String: Value] {
+    fileprivate func values(forText text: String, dateContext: ConversationDateContext)
+      -> [String: Value]
+    {
       let reply = text.trimmingCharacters(in: .whitespacesAndNewlines)
       func normalizedChoice(_ text: String) -> String {
         // Ignore a final sentence mark in a literal choice. Keep the original
@@ -156,7 +158,8 @@ public struct ConversationSurface: Codable, Equatable, Identifiable, Sendable {
       if matches.count == 1 { return matches[0].values }
       guard matches.isEmpty else { return [:] }
       if fields.count == 1, let field = fields.first, choices.isEmpty || field.type == .boolean {
-        return typedValue(reply, field: field).map { [field.id: $0] } ?? [:]
+        return typedValue(reply, field: field, dateContext: dateContext).map { [field.id: $0] }
+          ?? [:]
       }
       var result: [String: Value] = [:]
       for line in reply.split(whereSeparator: \.isNewline) {
@@ -168,14 +171,17 @@ public struct ConversationSurface: Codable, Equatable, Identifiable, Sendable {
             || $0.label.caseInsensitiveCompare(key) == .orderedSame
         }
         guard matches.count == 1, let field = matches.first, result[field.id] == nil,
-          let value = typedValue(parts[1].trimmingCharacters(in: .whitespaces), field: field)
+          let value = typedValue(
+            parts[1].trimmingCharacters(in: .whitespaces), field: field, dateContext: dateContext)
         else { return [:] }
         result[field.id] = value
       }
       return result
     }
 
-    private func typedValue(_ text: String, field: Field) -> Value? {
+    private func typedValue(_ text: String, field: Field, dateContext: ConversationDateContext)
+      -> Value?
+    {
       let value: Value
       switch field.type {
       case .boolean:
@@ -191,7 +197,8 @@ public struct ConversationSurface: Codable, Equatable, Identifiable, Sendable {
         }
         guard matches.count == 1 else { return nil }
         value = .string(matches[0])
-      case .decimal, .date, .text: value = .string(text)
+      case .date: value = .string(dateContext.resolveDay(text))
+      case .decimal, .text: value = .string(text)
       }
       return (try? field.validate(value)) != nil ? value : nil
     }
@@ -223,6 +230,7 @@ public struct ConversationSurface: Codable, Equatable, Identifiable, Sendable {
   public let requestID: String
   public let readOnly: Bool
   public let input: Input?
+  package let requestDateContext: ConversationDateContext?
 }
 
 public enum ConversationInputResponse: Sendable {
@@ -241,13 +249,16 @@ package struct ConversationContinuation: Sendable {
   package let answer: String
   package let values: Value
   package let priorAnswers: Value
+  package let requestDateContext: ConversationDateContext?
+  package let answerDateContext: ConversationDateContext?
   package let readOnly: Bool
 }
 
 extension Workbook {
   package func publishConversationInput(
     _ descriptor: ConversationSurface.Input, runID: String, conversation: String, readOnly: Bool,
-    steps: Int, metrics: Value, cancellation: Cancellation
+    steps: Int, metrics: Value, cancellation: Cancellation,
+    requestDateContext: ConversationDateContext? = nil
   ) throws -> (id: String, body: String) {
     let id = identifier()
     var body = ""
@@ -285,7 +296,8 @@ extension Workbook {
         body = input.fallback
         let surface = ConversationSurface(
           id: id, version: 1, revision: 1, kind: input.kind, conversation: conversation,
-          runID: runID, requestID: request["message_id"]!.text, readOnly: readOnly, input: input)
+          runID: runID, requestID: request["message_id"]!.text, readOnly: readOnly, input: input,
+          requestDateContext: requestDateContext)
         try insertSurfaceMessage(
           id, conversation: conversation, role: "assistant", body: body, state: "needs_input",
           payload: .object([
@@ -381,6 +393,15 @@ extension Workbook {
   @discardableResult public func submitConversationInput(
     _ surface: ConversationSurface, response: ConversationInputResponse, draftRevision: Int? = nil
   ) throws -> String? {
+    try submitConversationInput(
+      surface, response: response, draftRevision: draftRevision,
+      dateContext: ConversationDateContext())
+  }
+
+  package func submitConversationInput(
+    _ surface: ConversationSurface, response: ConversationInputResponse, draftRevision: Int? = nil,
+    dateContext: ConversationDateContext
+  ) throws -> String? {
     let result = try mutation(
       "conversation_input_submit", request: .string(surface.id), actor: .human("Sevra.chat-input")
     ) {
@@ -431,7 +452,7 @@ extension Workbook {
           "conversation_input", "Use the question’s controls or enter a shorter answer.")
         kind = "conversation_input_answer"
         body = text
-        values = input.values(forText: text)
+        values = input.values(forText: text, dateContext: dateContext)
         if input.fields.contains(where: { $0.type == .record }) {
           try input.validate(values)
         }
@@ -448,6 +469,7 @@ extension Workbook {
           "surfaceRevision": .number(Double(surface.revision)),
           "requestID": .string(surface.requestID),
           "values": .object(values),
+          "dateContext": try encoded(dateContext),
         ]))
       try discardConversationInputDraft(surface)
       return kind == "conversation_input_cancel" ? .null : .string(id)
@@ -476,6 +498,8 @@ extension Workbook {
           originalTask: receipt["originalTask"].text, question: receipt["question"].text,
           answer: receipt["answer"].text, values: receipt["values"],
           priorAnswers: receipt["priorAnswers"],
+          requestDateContext: try Self.readInputDateContext(receipt["requestDateContext"]),
+          answerDateContext: try Self.readInputDateContext(receipt["answerDateContext"]),
           readOnly: receipt["readOnly"] == .bool(true))
       },
       {
@@ -499,6 +523,7 @@ extension Workbook {
             .object([
               "messageID": .string(originalRequest.id), "answer": .string(parent.body),
               "question": .string(parent.surface.input!.question), "values": parent.values,
+              "dateContext": parent.dateContext,
             ]))
           readOnly = readOnly || parent.surface.readOnly
           originalRequest = try historyMessage(parent.surface.requestID, conversation: conversation)
@@ -512,6 +537,8 @@ extension Workbook {
           "originalTask": .string(originalRequest.body),
           "question": .string(surface.input!.question), "answer": .string(answer.body),
           "values": answer.values,
+          "requestDateContext": try surface.requestDateContext.map(encoded) ?? .null,
+          "answerDateContext": answer.dateContext,
           "readOnly": .bool(readOnly), "priorAnswers": .array(priorAnswers.reversed()),
         ])
       })
@@ -519,7 +546,7 @@ extension Workbook {
 
   private func conversationInputAnswer(
     _ answerID: String, conversation: String
-  ) throws -> (surface: ConversationSurface, body: String, values: Value) {
+  ) throws -> (surface: ConversationSurface, body: String, values: Value, dateContext: Value) {
     let message = try historyMessage(answerID, conversation: conversation)
     let payload = try messagePayload(answerID, conversation: conversation)
     guard message.role == "user", payload["kind"] == .string("conversation_input_answer"),
@@ -528,7 +555,12 @@ extension Workbook {
       payload["requestID"] == .string(surface.requestID),
       try inputAnswerID(surface.id, conversation: conversation) == answerID
     else { throw SevraError("conversation_input", "Choose a saved answer in this conversation.") }
-    return (surface, message.body, payload["values"])
+    return (surface, message.body, payload["values"], payload["dateContext"])
+  }
+
+  private static func readInputDateContext(_ value: Value) throws -> ConversationDateContext? {
+    guard value != .null else { return nil }
+    return try JSONDecoder().decode(ConversationDateContext.self, from: Data(value.json().utf8))
   }
 
   private func runForInputAnswer(_ id: String) throws -> String? {
