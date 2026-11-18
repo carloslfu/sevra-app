@@ -103,7 +103,7 @@ package enum InferenceToolScope: String, CaseIterable, Sendable {
 
 /// App-owned conversation values. The candidate and preserved baseline use the
 /// same workbook loop; this internal seam is not a provider catalog or user API.
-package struct InferenceCall: Sendable {
+package struct InferenceCall: Encodable, Sendable {
   package let id: String
   package let name: String
   package let inputJSON: String
@@ -114,7 +114,15 @@ package struct InferenceCall: Sendable {
   }
 }
 
-package struct InferenceMessage: Sendable {
+package struct InferenceMessage: Encodable, Sendable {
+  /// Exact, host-authored part of the system message shared across ordinary workbook turns.
+  package var cacheablePolicy: String?
+  package var scopePolicy = ""
+  package var visibleContext = ""
+  package var countReceiptIDs: [String]?
+  /// Only the first decision of a new, ordinary interactive request.
+  package var initialChatDecision = false
+  package var hasCalculationResult = false
   /// Host state, reattached after context maintenance; never inferred from model prose.
   package var nativeAppAuthoring = false
   package var conversationInput = false
@@ -122,16 +130,16 @@ package struct InferenceMessage: Sendable {
   /// Host-observed action contracts and worksheet columns for independent review.
   package var reviewContract: Value = .null
   package let role: String
-  package let content: String
+  package var content: String
   /// Ephemeral model state within this request, never evidence or saved history.
   package let reasoning: String
   package let toolCalls: [InferenceCall]
   package let toolCallId: String?
   package let toolName: String?
   /// Verified host-owned lookup choices, not model text or citation authority.
-  package let itemReferences: [String]
+  package var itemReferences: [String]
   /// Earlier messages named in this context. Nil leaves history_read unconstrained.
-  package let historyReferences: [String]?
+  package var historyReferences: [String]?
   /// Exact original passages supplied by a read or host continuation projection.
   package let documentCopyIDs: [String]
   /// Host capabilities for this live conversation, never parsed from content.

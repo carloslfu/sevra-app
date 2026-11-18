@@ -334,6 +334,7 @@ extension Workbook {
         period)
       return .object([
         "subject": .string(subject), "quantity": .string(Numbers.string(total)),
+        "openingQuantity": base["quantity"]!, "openingEffective": base["effective"]!,
         "basis": base["source_id"]!, "effects": .array(rows.map(Value.object)),
         "asOf": .string(asOf),
         "excludedCount": try db.scalar("SELECT count(*) \(settled) \(outside)", period),

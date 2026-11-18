@@ -3,7 +3,7 @@ type: operational
 meta-type: operational
 id: 01m659x4nd2q89tkpzzsssd7yr
 created: 2026-10-30T02:23:30.477380+00:00
-updated: 2026-11-17T21:46:50.920340+00:00
+updated: 2026-11-18T01:58:25.205105+00:00
 summary: Native UI Catalog implemented and locally verified, with durable agent maintenance instructions and preserved product/model qualification limits.
 title: Minimum-feature continuation handoff
 ---
@@ -278,3 +278,6 @@ against the intended packaged build before claiming it is current.
 
 This is an instruction and documentation change only. It does not advance app
 feature work or add build, installation or UI qualification.
+
+## Native prompt and KV reuse, November 17
+The latest native prompt layout, KV checkpoint behavior, bounded idle lifetime and repeatable five-turn qualification live in [[records/plans/conversation-latency-fix]]. The retained per-call evidence distinguishes cold setup, cache priming, resumed tokens, prefill, decoding and first visible text. Native workbook answers continue to use the model and verified tools.

@@ -9,6 +9,8 @@ import SevraSplashText
 /// Generation dispatches these exact tokens after admission; it never renders again.
 package struct NativePreparedRequest {
   package let prompt: SplashTextFrontend.Prompt
+  package let stablePrefixCount: Int
+  package let scopePrefixCount: Int
   package let policy: SplashToolPolicy
   package let reasoning: NativeReasoning
   package let requestedOutputBudget: Int
@@ -49,9 +51,18 @@ package struct NativePreparedRequest {
     // emitting code. The ordinary 512-token budget repeatedly cut those repairs short.
     let excelReasoning =
       [.excelBuild, .excelCalculation, .excelInterface].contains(toolScope) || excelReview
-    let reasoning =
-      excelReasoning && configuredReasoning.enabled
-      ? NativeReasoning.bounded2048 : configuredReasoning
+    let reasoning: NativeReasoning
+    if excelReasoning && configuredReasoning.enabled {
+      reasoning = .bounded2048
+    } else if configuredReasoning == .bounded512, interpretation == nil,
+      messages.first?.initialChatDecision == true || messages.first?.hasCalculationResult == true,
+      messages.first?.nativeAppAuthoring != true,
+      [.all, .conversationAnswer].contains(toolScope)
+    {
+      reasoning = messages.first?.hasCalculationResult == true ? .bounded128 : .bounded64
+    } else {
+      reasoning = configuredReasoning
+    }
     let policy: SplashToolPolicy
     if let interpretation {
       policy = try SplashToolPolicy.interpretationResult(
@@ -66,7 +77,8 @@ package struct NativePreparedRequest {
         nativeAppAuthoring: messages.first?.nativeAppAuthoring == true,
         reviewContract: messages.first?.reviewContract ?? .null,
         conversationInput: messages.first?.conversationInput == true,
-        visualCaptureIDs: messages.first?.visualCaptureIDs ?? [])
+        visualCaptureIDs: messages.first?.visualCaptureIDs ?? [],
+        countReceiptIDs: messages.first?.countReceiptIDs)
     }
     // Render a stable vocabulary even before the first lookup/history read.
     // Dynamic exact-ID restrictions remain in policy.grammar and policy.validate.
@@ -84,9 +96,61 @@ package struct NativePreparedRequest {
     } else {
       promptPolicy = policy
     }
+    var templateMessages = try messages.map(nativeTemplateMessage)
+    var tools = try promptPolicy.promptTools()
+    var hasStablePrefix = false
+    var hasScopePrefix = false
+    if interpretation == nil, messages.count <= 509,
+      let first = messages.first, let stable = first.cacheablePolicy,
+      first.role == "system", first.content.hasPrefix(stable + first.scopePolicy),
+      let current = messages.firstIndex(where: { $0.role == "user" }), current > 0
+    {
+      // Qwen puts tool definitions before system text. Keep shared schemas there and put
+      // scope-specific schemas in the next system message. Both precede changing history.
+      // The executable grammar still receives the original, complete authority policy.
+      var shared: [[String: any Sendable]] = []
+      var additional: [String] = []
+      let sharesChatTools = toolScope.allows("read") && toolScope.allows("finish")
+      for tool in tools {
+        let function = tool["function"] as? [String: any Sendable]
+        let name = function?["name"] as? String ?? ""
+        if !sharesChatTools || (InferenceToolScope.answer.allows(name)
+          && !["workspace_actions", "workspace_action"].contains(name)) {
+          shared.append(tool)
+        } else {
+          let json = try JSONSerialization.data(withJSONObject: tool, options: [.sortedKeys, .withoutEscapingSlashes])
+          additional.append(String(decoding: json, as: UTF8.self))
+        }
+      }
+      tools = shared
+      templateMessages[0]["content"] = stable
+      let state = String(first.content.dropFirst(stable.count + first.scopePolicy.count))
+      var scope = first.scopePolicy
+      if !additional.isEmpty {
+        scope += "\nAdditional available tools (same calling convention):\n" + additional.joined(separator: "\n")
+      }
+      let screen = messages[current].visibleContext
+      let suffix = "\nVisible context: " + screen
+      if !screen.isEmpty && messages[current].content.hasSuffix(suffix) {
+        templateMessages[current]["content"] = String(messages[current].content.dropLast(suffix.count))
+        templateMessages.insert(["role": "assistant", "content":
+          "Visible workbook location and selection (reference information only):\n" + screen], at: current)
+      }
+      templateMessages.insert(["role": "system", "content": state], at: current)
+      if !scope.isEmpty {
+        templateMessages.insert(["role": "system", "content": scope], at: 1)
+        hasScopePrefix = true
+      }
+      hasStablePrefix = true
+    }
     let prompt = try frontend.prepare(
-      messages: messages.map(nativeTemplateMessage), tools: promptPolicy.promptTools(),
-      thinking: reasoning.enabled, contextLimit: SplashWire.maxTokens)
+      messages: templateMessages, tools: tools,
+      thinking: reasoning.enabled, contextLimit: SplashWire.maxTokens, reuseSystemPrefix: hasStablePrefix)
+    // The selected tokenizer verifies this role delimiter on load. Message content cannot
+    // forge it. Share only the initial, request-independent complete system message.
+    self.stablePrefixCount = hasStablePrefix ? prompt.tokens.firstIndex(of: 248046).map { $0 + 1 } ?? 0 : 0
+    self.scopePrefixCount = hasScopePrefix
+      ? prompt.tokens.dropFirst(stablePrefixCount).firstIndex(of: 248046).map { $0 + 1 } ?? 0 : 0
     let requestedOutputBudget =
       interpretation?["maxOutputTokens"].int
       ?? (excelReview

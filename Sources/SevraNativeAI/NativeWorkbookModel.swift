@@ -65,6 +65,7 @@ package actor NativeWorkbookModel: WorkbookInference {
   private var active = false
   private var processLock: Int32 = -1
   private var idleRelease: Task<Void, Never>?
+  private var idleGeneration: UUID?
   package init(configuration: Configuration) {
     worker = NativeWorker(configuration)
     contextMaintenanceEnabled = configuration.contextMaintenanceEnabled
@@ -93,6 +94,7 @@ package actor NativeWorkbookModel: WorkbookInference {
       }
       processLock = fd
     }
+    idleGeneration = nil
     idleRelease?.cancel()
     idleRelease = nil
     leased = true
@@ -101,6 +103,7 @@ package actor NativeWorkbookModel: WorkbookInference {
   package func endRun() async {
     guard !active else { return }
     leased = false
+    idleGeneration = nil
     idleRelease?.cancel()
     // With no helper to keep warm, the idle wait would only hold the lock against other processes.
     guard await worker.hasSession() else {
@@ -108,10 +111,17 @@ package actor NativeWorkbookModel: WorkbookInference {
       return
     }
     guard !leased else { return }
+    let generation = UUID()
+    idleGeneration = generation
     idleRelease = Task { [weak self] in
-      do { try await Task.sleep(nanoseconds: 120_000_000_000) } catch { return }
-      _ = await self?.unload()
+      do { try await Task.sleep(nanoseconds: 600_000_000_000) } catch { return }
+      await self?.releaseIfIdle(generation)
     }
+  }
+
+  private func releaseIfIdle(_ generation: UUID) async {
+    guard generation == idleGeneration else { return }
+    _ = await unload()
   }
 
   package func releaseResources() async -> Bool { await unload() }
@@ -119,6 +129,7 @@ package actor NativeWorkbookModel: WorkbookInference {
   @discardableResult package func unload() async -> Bool {
     guard !active && !leased else { return false }
     active = true
+    idleGeneration = nil
     idleRelease?.cancel()
     idleRelease = nil
     guard await worker.close() else {
@@ -135,6 +146,7 @@ package actor NativeWorkbookModel: WorkbookInference {
   }
 
   deinit {
+    idleGeneration = nil
     idleRelease?.cancel()
     // Release the lease only after the worker has reaped its helper, including
     // when an owner disappears without an explicit unload.
@@ -283,6 +295,81 @@ private final class NativeWorker: @unchecked Sendable {
         configuration.contextBudget.contextTokens,
         helper?.ready.map { Int($0.context) } ?? configuration.contextBudget.contextTokens)
     }
+    // Measurement and dispatch share prepared requests on the serial inference worker.
+    // Compare exact encoded bytes including all host-only schema and authority fields.
+    private struct PreparationKey: Encodable {
+      let messages: [InferenceMessage]
+      let scope: String
+      let citations: [String]
+    }
+    // Maintenance alternates the full conversation and its minimum admissible context.
+    private var measuredRequests: [(key: Data, request: NativePreparedRequest)] = []
+    func prepare(
+      _ messages: [InferenceMessage], scope: InferenceToolScope, citations: [String],
+      interpretation: Value? = nil
+    ) throws -> NativePreparedRequest {
+      try ContextBudget.validateEnvelope(messages)
+      if let interpretation {
+        return try NativePreparedRequest(
+          messages: messages, frontend: frontend, configuredReasoning: configuration.reasoning,
+          toolScope: scope, citationIDs: citations, interpretation: interpretation)
+      }
+      let encoder = JSONEncoder()
+      encoder.outputFormatting = [.sortedKeys]
+      let key = try encoder.encode(PreparationKey(messages: messages, scope: scope.rawValue, citations: citations))
+      if let match = measuredRequests.firstIndex(where: { $0.key == key }) {
+        let cached = measuredRequests.remove(at: match)
+        measuredRequests.append(cached)
+        return cached.request
+      }
+      let prepared = try NativePreparedRequest(
+        messages: messages, frontend: frontend, configuredReasoning: configuration.reasoning,
+        toolScope: scope, citationIDs: citations)
+      if measuredRequests.count == 2 { measuredRequests.removeFirst() }
+      measuredRequests.append((key, prepared))
+      return prepared
+    }
+    // Engine checkpoints are process-local. Retain the exact token identity, including schemas.
+    private var checkpointPrefixes: [[UInt32]] = []
+    func primePrefix(
+      _ prompt: SplashTextFrontend.Prompt, common: Int, scope: Int, helper: SplashNativeProcess,
+      cancellation: Cancellation
+    ) throws -> (tokens: Int, matched: Int, seconds: Double, prefill: Double) {
+      guard common >= 2048, !configuration.diagnosticRequestCacheIsolation else { return (0, 0, 0, 0) }
+      // Prime the shared boundary first. An additional large stable scope earns a separate
+      // checkpoint on a later dispatch. Never introduce more than one prime per dispatch.
+      let count = [common, scope].first { size in
+        (size == common || size >= common + 2048)
+          && !checkpointPrefixes.contains { $0.count == size && prompt.tokens.prefix(size).elementsEqual($0) }
+      }
+      guard let count else { return (0, 0, 0, 0) }
+      let prefix = Array(prompt.tokens.prefix(count))
+      requestID += 1
+      var seed = SplashWire.Request(
+        id: requestID, prompt: prefix,
+        absoluteDeadline: UInt64((Date().timeIntervalSince1970 + 180) * 1e6),
+        remainingDeadline: 180_000_000)
+      // This engine takes a restorable checkpoint at the last complete prefix page.
+      // One discarded token closes the wire request; it cannot execute workbook tools.
+      seed.maxOutput = 1
+      var matched = 0
+      let result = try helper.generate(
+        seed, cancelled: { cancellation.isCancelled || cancellation.isExpired },
+        event: { if case .start(_, _, let reused) = $0 { matched = Int(reused) } })
+      try cancellation.check()
+      if checkpointPrefixes.count == 4 { checkpointPrefixes.removeFirst() }
+      checkpointPrefixes.append(prefix)
+      return (count, matched, result.requestSeconds, Double(result.done.prefillMicros) / 1e6)
+    }
+    func observeResume(prompt: [UInt32], matched: Int) {
+      // A live process can evict old KV pages under its memory budget. Re-prime a missing
+      // boundary on a later request instead of trusting the host's record indefinitely.
+      // Splash 1.6.1 checkpoints complete 32-token pages before the suffix.
+      checkpointPrefixes.removeAll { prefix in
+        let lastCompletePage = ((prefix.count - 1) / 32) * 32
+        return matched < lastCompletePage && prompt.starts(with: prefix)
+      }
+    }
     var requestID: UInt64 = 0
     init(
       directory: URL, configuration: NativeWorkbookModel.Configuration,
@@ -340,6 +427,7 @@ private final class NativeWorker: @unchecked Sendable {
       if let helper, helper.isOpen { return helper }
       try require(
         helper?.close() != false, "native_shutdown", "The previous native helper has not stopped.")
+      checkpointPrefixes.removeAll()
       progress("Preparing local AI. The first start can take longer…")
       do {
         let started = try SplashNativeProcess(
@@ -507,11 +595,7 @@ private final class NativeWorker: @unchecked Sendable {
           templateIdentity: session.frontend.templateIdentity,
           outputTokens: ContextDigest.maximumOutputTokens, toolResultTokens: 0)
       }
-      return try NativePreparedRequest(
-        messages: messages, frontend: session.frontend,
-        configuredReasoning: self.configuration.reasoning, toolScope: toolScope,
-        citationIDs: citationIDs
-      ).measurement(capacity: session.capacity)
+      return try session.prepare(messages, scope: toolScope, citations: citationIDs).measurement(capacity: session.capacity)
     }
   }
   func boundToolResult(
@@ -561,13 +645,14 @@ private final class NativeWorker: @unchecked Sendable {
       request.tokenMask = true
       try cancellation.check()
       progress("Keeping conversation context")
+      var matchedPromptTokens = 0
       let generated = try helper.generate(
         request,
         cancelled: { cancellation.isCancelled || cancellation.isExpired },
         mask: { try constraint.masks(committed: $0, simulation: $1, words: $2) },
         event: { event in
           if case .tokens(_, _, let tokens) = event { _ = try output.append(tokens: tokens) }
-
+          if case .start(_, _, let matched) = event { matchedPromptTokens = Int(matched) }
         })
       try cancellation.check()
       try require(
@@ -583,6 +668,8 @@ private final class NativeWorker: @unchecked Sendable {
           "phase": .string("context_summary"), "backend": .string("splash-native-candidate"),
           "promptTokens": .number(Double(prompt.tokens.count)),
           "contextTokens": .number(Double(session.capacity)),
+          "matchedPromptTokens": .number(Double(matchedPromptTokens)),
+          "deduplicatedKVTokens": .number(Double(generated.done.deduplicated)),
           "generatedTokens": .number(Double(generated.tokens.count)),
           "requestSeconds": .number(generated.requestSeconds),
           "firstTokenSeconds": generated.firstTokenSeconds.map(Value.number) ?? .null,
@@ -599,10 +686,9 @@ private final class NativeWorker: @unchecked Sendable {
     _ toolScope: InferenceToolScope, _ citationIDs: [String], _ interpretation: Value? = nil,
     _ answerPreview: @escaping @Sendable (String) -> Void = { _ in }
   ) throws -> (NativeReply, Value) {
-    let prepared = try NativePreparedRequest(
-      messages: messages, frontend: session.frontend,
-      configuredReasoning: configuration.reasoning, toolScope: toolScope,
-      citationIDs: citationIDs, interpretation: interpretation)
+    let hostStart = ProcessInfo.processInfo.systemUptime
+    let prepared = try session.prepare(
+      messages, scope: toolScope, citations: citationIDs, interpretation: interpretation)
     let budget = configuration.contextBudget
     // Refuse an impossible request before allocating the model, then recheck the
     // actual admitted capacity from Ready before dispatching the same token array.
@@ -610,7 +696,9 @@ private final class NativeWorker: @unchecked Sendable {
       promptTokens: prepared.prompt.tokens.count,
       outputTokens: prepared.outputBudget, capacity: session.capacity,
       toolResultTokens: prepared.toolResultTokens)
+    let preparedAt = ProcessInfo.processInfo.systemUptime
     let helper = try session.start(cancellation: cancellation, progress: progress)
+    let helperReadyAt = ProcessInfo.processInfo.systemUptime
     let allowance = try budget.allowance(
       promptTokens: prepared.prompt.tokens.count,
       outputTokens: prepared.outputBudget, capacity: session.capacity,
@@ -623,6 +711,9 @@ private final class NativeWorker: @unchecked Sendable {
     let constraint = try session.factory.create(grammar: policy.grammar)
     let output = try SplashOutputStream(
       frontend: session.frontend, tools: policy.outputTools, thinking: reasoning.enabled)
+    let seed = try session.primePrefix(
+      prompt, common: prepared.stablePrefixCount, scope: prepared.scopePrefixCount,
+      helper: helper, cancellation: cancellation)
     session.requestID += 1
     var request = SplashWire.Request(
       id: session.requestID, prompt: prompt.tokens,
@@ -638,6 +729,8 @@ private final class NativeWorker: @unchecked Sendable {
     }
     try cancellation.check()
     progress("Reading the working context")
+    let dispatchAt = ProcessInfo.processInfo.systemUptime
+    var previewAt: Double?
     var generationPhase: String?
     var matchedPromptTokens = 0
     var lastPreview = ""
@@ -659,6 +752,7 @@ private final class NativeWorker: @unchecked Sendable {
           {
             let now = ProcessInfo.processInfo.systemUptime
             if lastPreview.isEmpty || now - lastPreviewAt >= 0.08 {
+              if previewAt == nil { previewAt = now }
               lastPreview = text
               lastPreviewAt = now
               answerPreview(text)
@@ -679,6 +773,7 @@ private final class NativeWorker: @unchecked Sendable {
       "The model did not finish its response. No action from this response was applied.")
     try constraint.finish(committed: generated.tokens, requireComplete: true)
     let parsed = try output.finish(generated.done.reason).0
+    session.observeResume(prompt: prompt.tokens, matched: matchedPromptTokens)
     let reasoningTokens = try reasoning.generatedTokens(generated.tokens)
     try require(
       parsed.calls.count == 1 || parsed.refusal != nil, "model_format",
@@ -707,6 +802,16 @@ private final class NativeWorker: @unchecked Sendable {
       "templateIdentity": .string(prepared.templateIdentity),
       "toolScope": .string(interpretation == nil ? toolScope.rawValue : "workflow_interpretation"),
       "requestSeconds": .number(generated.requestSeconds),
+      "hostPreparationSeconds": .number(preparedAt - hostStart),
+      "helperStartSeconds": .number(helperReadyAt - preparedAt),
+      "beforeDispatchSeconds": .number(dispatchAt - hostStart),
+      "firstAnswerPreviewSeconds": previewAt.map { .number($0 - hostStart) } ?? .null,
+      "stablePrefixTokens": .number(Double(prepared.stablePrefixCount)),
+      "scopePrefixTokens": .number(Double(prepared.scopePrefixCount)),
+      "prefixPrimeTokens": .number(Double(seed.tokens)),
+      "prefixPrimeMatchedTokens": .number(Double(seed.matched)),
+      "prefixPrimeSeconds": .number(seed.seconds),
+      "prefixPrimePrefillSeconds": .number(seed.prefill),
       "firstTokenSeconds": generated.firstTokenSeconds.map(Value.number) ?? .null,
       "promptTokens": .number(Double(prompt.tokens.count)),
       "matchedPromptTokens": .number(Double(matchedPromptTokens)),
@@ -798,6 +903,10 @@ package func nativeFailure(_ error: Error, helperStopped: Bool, diagnostic: Stri
 
 package func nativeTemplateMessage(_ message: InferenceMessage) throws -> [String: any Sendable] {
   var value: [String: any Sendable] = ["role": message.role, "content": message.content]
+  if message.role == "tool", message.hasCalculationResult {
+    value["content"] = message.content
+      + "\nThe host has completed this calculation for these inputs. Use its returned values and attached sources to answer. Use another call only for additional information required by the user."
+  }
   if message.role == "assistant", !message.reasoning.isEmpty {
     value["reasoning_content"] = message.reasoning
   }

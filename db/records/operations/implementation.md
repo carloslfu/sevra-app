@@ -3,7 +3,7 @@ type: operational
 meta-type: conclusion
 id: 01m5rbxzcsjnewm0pwmb9a06cj
 created: 2026-10-25T01:48:47.385772+00:00
-updated: 2026-11-17T21:46:50.940976+00:00
+updated: 2026-11-18T02:29:06.681847+00:00
 summary: Automatic local-model Excel conversion qualified across 10 generated apps and 89 independent originals, including five held-out states; no manual generated-code repairs.
 title: Implementation and acceptance
 ---
@@ -7757,3 +7757,6 @@ The revision makes direct-inference admission, actual output modes, phase/result
 The candidate 1.6.1 archive and its five intended native/license members are now hash-verified; no candidate executable or Metal library was loaded, run or installed. The current product remains Splash 1.4.1 with unchanged 32K/12 GiB settings. Existing CPU performance-harness rejection checks passed. Runtime, strict parity, context/memory, installed UX and release gates remain implementation work. No cross-chat coordination was resumed.
 
 Start implementation with P0/P1 when directed. The target is the native source preview; production signing and other hardware qualification remain separate. The preserved strict W1/D9 issue has a bounded diagnosis path and is not cleared by this planning review.
+
+## Native prompt and KV reuse, November 17
+The native agent reuses verified prompt prefixes and separates screen metadata from the user request. The installed desktop stock question took 20 seconds, down from 38, and its rephrased follow-up took 13 seconds. Both read the balance once and showed the two original inputs. A 125-second idle test resumed 6,016 KV tokens. See [[records/plans/conversation-latency-fix]] for timings, scope changes and the repaired repeat loop.

@@ -23,6 +23,7 @@ public final class SplashTextFrontend {
   private let template: String
   private var generationSuffixes: [Bool: [Int]] = [:]
   private var promptCache: [(key: Data, prompt: Prompt, bytes: Int)] = []
+  private var systemPrefix: (key: Data, tokens: [Int])?
   private var promptCacheBytes = 0
   private var promptCacheHits = 0
   private static let promptCacheBudget = 8 * 1024 * 1024
@@ -116,7 +117,7 @@ public final class SplashTextFrontend {
       addedLiterals.append(content)
     }
     for (text, id) in [
-      "<|endoftext|>": 248044, "<|im_end|>": 248046,
+      "<|endoftext|>": 248044, "<|im_start|>": 248045, "<|im_end|>": 248046,
       "</think>": 248069, "<tool_call>": 248058,
     ] {
       guard tokenizer.convertTokenToId(text) == id,
@@ -163,7 +164,8 @@ public final class SplashTextFrontend {
 
   public func prepare(
     messages: [Message], tools: [ToolSpec]? = nil,
-    thinking: Bool = false, preserveThinking: Bool = false, contextLimit: Int = 8192
+    thinking: Bool = false, preserveThinking: Bool = false, contextLimit: Int = 8192,
+    reuseSystemPrefix: Bool = false
   ) throws -> Prompt {
     lock.lock()
     defer { lock.unlock() }
@@ -219,6 +221,7 @@ public final class SplashTextFrontend {
       }
       try account(message)
     }
+    let messageNumberCount = numericIdentity.count
     if let tools { try account(tools) }
     // The workbook's context planner and inference request may prepare the
     // same large envelope. Reuse only exact bytes, after all input checks, in
@@ -263,10 +266,34 @@ public final class SplashTextFrontend {
     let context: [String: any Sendable] = [
       "enable_thinking": thinking, "preserve_thinking": preserveThinking,
     ]
-    let tokens = try tokenizer.applyChatTemplate(
-      messages: templateMessages, chatTemplate: .literal(template),
-      addGenerationPrompt: true, truncation: false, maxLength: nil, tools: templateTools,
-      additionalContext: context)
+    func render(_ source: [Message], _ definitions: [ToolSpec]?) throws -> [Int] {
+      try tokenizer.applyChatTemplate(
+        messages: source, chatTemplate: .literal(template), addGenerationPrompt: true,
+        truncation: false, maxLength: nil, tools: definitions, additionalContext: context)
+    }
+    // Workbook headers contain only host policy and schemas. The next role starts with
+    // a verified special token, so tokenization cannot merge across the join.
+    var headerKey: Data?
+    if reuseSystemPrefix, let tools, messages[0]["role"] as? String == "system",
+      let content = messages[0]["content"] as? String, messages.count > 1,
+      messages.dropFirst().contains(where: { $0["role"] as? String == "user" })
+    {
+      headerKey = try JSONSerialization.data(withJSONObject: [
+        "content": content, "tools": tools, "numbers": Array(numericIdentity.dropFirst(messageNumberCount)),
+      ], options: [.sortedKeys])
+    }
+    let tokens: [Int]
+    if let headerKey, let cached = systemPrefix, cached.key == headerKey {
+      tokens = cached.tokens + (try render(Array(templateMessages.dropFirst()), nil))
+    } else {
+      tokens = try render(templateMessages, templateTools)
+      if let headerKey, headerKey.count <= 1024 * 1024,
+        let end = tokens.firstIndex(of: 248046),
+        let next = tokens[(end + 1)...].firstIndex(of: 248045)
+      {
+        systemPrefix = (headerKey, Array(tokens[..<next]))
+      }
+    }
     guard tokens.count <= contextLimit, !tokens.isEmpty else {
       throw SplashError("Prompt exceeds the native context limit")
     }

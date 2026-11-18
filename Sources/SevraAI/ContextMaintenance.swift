@@ -241,15 +241,8 @@ package final class ContextMaintenance {
       ? ""
       : "\(reads.count) \(reads.count == 1 ? "read" : "reads") so far. Read again only what you must cite. "
     fields["hostProgress"] = .string(finished + read + "Continue with what remains.")
-    var updated = InferenceMessage(
-      role: last.role, content: try Value.object(fields).json(), toolCalls: last.toolCalls,
-      toolCallId: last.toolCallId, toolName: last.toolName, reasoning: last.reasoning,
-      itemReferences: last.itemReferences, conversationActions: last.conversationActions,
-      documentCopyIDs: last.documentCopyIDs, historyReferences: last.historyReferences)
-    updated.nativeAppAuthoring = last.nativeAppAuthoring
-    updated.reviewContract = last.reviewContract
-    updated.conversationInput = last.conversationInput
-    updated.visualCaptureIDs = last.visualCaptureIDs
+    var updated = last
+    updated.content = try Value.object(fields).json()
     return retained.dropLast() + [updated]
   }
   /// The state the model reads, without host bookkeeping it never uses. A read adds one entry
@@ -338,8 +331,8 @@ package final class ContextMaintenance {
         through: through, limit: 128, cancellation: cancellation)
       // Once the retained group is covered, it remains verbatim as the final tool
       // group. Earlier groups have durable receipt locators instead of broken pairs.
-      let rebuilt = try messages(checkpoint: checkpoint, history: page.messages, retained: retained)
-      let working = originalMessages ?? rebuilt
+      let working = try originalMessages ?? messages(
+        checkpoint: checkpoint, history: page.messages, retained: retained)
       let full: ContextMeasurement
       if page.hasMore || (try? ContextBudget.validateEnvelope(working)) == nil {
         full = ContextMeasurement(

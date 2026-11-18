@@ -111,16 +111,9 @@ package enum ItemReferenceCandidates {
     // Replace any previous annotation, including one dropped/rebuilt by context
     // maintenance. No hidden candidate catalog survives a visible-context change.
     return messages.enumerated().map { index, message in
-      var annotated = InferenceMessage(
-        role: message.role, content: message.content, toolCalls: message.toolCalls,
-        toolCallId: message.toolCallId, toolName: message.toolName, reasoning: message.reasoning,
-        itemReferences: index == 0 ? choices : [], conversationActions: message.conversationActions,
-        documentCopyIDs: message.documentCopyIDs,
-        historyReferences: index == 0 && history != nil ? earlier.sorted() : nil)
-      annotated.nativeAppAuthoring = message.nativeAppAuthoring
-      annotated.reviewContract = message.reviewContract
-      annotated.conversationInput = message.conversationInput
-      annotated.visualCaptureIDs = message.visualCaptureIDs
+      var annotated = message
+      annotated.itemReferences = index == 0 ? choices : []
+      annotated.historyReferences = index == 0 && history != nil ? earlier.sorted() : nil
       return annotated
     }
   }

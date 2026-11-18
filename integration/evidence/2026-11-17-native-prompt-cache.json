@@ -1,0 +1,868 @@
+{
+  "baselineCommit": "398be2acf9f35dbb1a7bbef378746d8943e468f8",
+  "method": "Same five submitted messages in order, freshly created synthetic demo workbook, one native model instance per sequence, 125 seconds idle before the fifth turn. Actual WorkbookAgent, Splash 1.6.1, 64K context, 12 GiB engine memory, bf16 activations, int8 KV and DFlash2. Wall includes preparation, cache priming, model decisions, tools and saving. First-token durations are engine-relative, first visible is submission-relative. Cold includes loading and tokenization. Checkpoint priming uses one discarded output token and is charged to the triggering turn. No generated response cache. Instrumentation observes native frames and progress. Local timestamps use monotonic time. Timings are individual observations. Local builds and the repository suite were active during parts of the final instrumented replay; the numbers are not an isolated engine benchmark.",
+  "before": [
+    {
+      "turn": 1,
+      "request": "What is the current stock of brass bolts? Use the balance tool and cite the evidence. Do not change the workbook.",
+      "wallSeconds": 30.839,
+      "prefillIncludingPrimesSeconds": 5.734,
+      "calls": [
+        {
+          "tool": "balance",
+          "promptTokens": 8403,
+          "matchedPromptTokens": 0,
+          "deduplicatedKVTokens": 0,
+          "prefillSeconds": 4.462,
+          "firstTokenSeconds": 4.462,
+          "decodeSeconds": 3.019,
+          "reasoningTokens": 118,
+          "helperPID": 58850
+        },
+        {
+          "tool": "finish",
+          "promptTokens": 8913,
+          "matchedPromptTokens": 8384,
+          "deduplicatedKVTokens": 160,
+          "prefillSeconds": 1.272,
+          "firstTokenSeconds": 1.276,
+          "decodeSeconds": 15.186,
+          "reasoningTokens": 512,
+          "helperPID": 58850
+        }
+      ]
+    },
+    {
+      "turn": 2,
+      "request": "How many brass bolts are currently in stock? Use the balance tool and cite the evidence. Do not change the workbook.",
+      "wallSeconds": 14.513,
+      "prefillIncludingPrimesSeconds": 4.022,
+      "calls": [
+        {
+          "tool": "balance",
+          "promptTokens": 9192,
+          "matchedPromptTokens": 4096,
+          "deduplicatedKVTokens": 3808,
+          "prefillSeconds": 2.682,
+          "firstTokenSeconds": 2.686,
+          "decodeSeconds": 4.005,
+          "reasoningTokens": 151,
+          "helperPID": 58850
+        },
+        {
+          "tool": "finish",
+          "promptTokens": 9735,
+          "matchedPromptTokens": 9184,
+          "deduplicatedKVTokens": 160,
+          "prefillSeconds": 1.34,
+          "firstTokenSeconds": 1.345,
+          "decodeSeconds": 5.902,
+          "reasoningTokens": 147,
+          "helperPID": 58850
+        }
+      ]
+    },
+    {
+      "turn": 3,
+      "request": "hey",
+      "wallSeconds": 9.677,
+      "prefillIncludingPrimesSeconds": 7.33,
+      "calls": [
+        {
+          "tool": "finish",
+          "promptTokens": 14720,
+          "matchedPromptTokens": 0,
+          "deduplicatedKVTokens": 160,
+          "prefillSeconds": 7.33,
+          "firstTokenSeconds": 7.33,
+          "decodeSeconds": 1.947,
+          "reasoningTokens": 23,
+          "helperPID": 58850
+        }
+      ]
+    },
+    {
+      "turn": 4,
+      "request": "hey",
+      "wallSeconds": 11.236,
+      "prefillIncludingPrimesSeconds": 2.079,
+      "calls": [
+        {
+          "tool": "finish",
+          "promptTokens": 14866,
+          "matchedPromptTokens": 12288,
+          "deduplicatedKVTokens": 384,
+          "prefillSeconds": 2.079,
+          "firstTokenSeconds": 2.081,
+          "decodeSeconds": 8.746,
+          "reasoningTokens": 512,
+          "helperPID": 58850
+        }
+      ]
+    },
+    {
+      "turn": 5,
+      "request": "What is the current stock of brass bolts? Use the balance tool and cite the evidence. Do not change the workbook.",
+      "wallSeconds": 22.987,
+      "prefillIncludingPrimesSeconds": 6.385,
+      "calls": [
+        {
+          "tool": "balance",
+          "promptTokens": 10272,
+          "matchedPromptTokens": 0,
+          "deduplicatedKVTokens": 0,
+          "prefillSeconds": 5.039,
+          "firstTokenSeconds": 5.04,
+          "decodeSeconds": 2.731,
+          "reasoningTokens": 93,
+          "helperPID": 60590
+        },
+        {
+          "tool": "finish",
+          "promptTokens": 10757,
+          "matchedPromptTokens": 10240,
+          "deduplicatedKVTokens": 128,
+          "prefillSeconds": 1.346,
+          "firstTokenSeconds": 1.35,
+          "decodeSeconds": 6.733,
+          "reasoningTokens": 200,
+          "helperPID": 60590
+        }
+      ]
+    }
+  ],
+  "after": [
+    {
+      "turn": 1,
+      "request": "What is the current stock of brass bolts? Use the balance tool and cite the evidence. Do not change the workbook.",
+      "idleSeconds": 0,
+      "calls": [
+        {
+          "promptTokens": 7495,
+          "matchedPromptTokens": 6016,
+          "deduplicatedKVTokens": 0,
+          "stablePrefixTokens": 6020,
+          "scopePrefixTokens": 6606,
+          "prefixPrimeTokens": 6020,
+          "prefixPrimeMatchedTokens": 0,
+          "prefixPrimeSeconds": 4.331,
+          "prefixPrimePrefillSeconds": 4.331,
+          "hostPreparationSeconds": 0.0,
+          "helperStartSeconds": 4.573,
+          "beforeDispatchSeconds": 8.92,
+          "requestSeconds": 4.677,
+          "firstTokenSeconds": 2.291,
+          "prefillSeconds": 2.284,
+          "decodeSeconds": 2.386,
+          "generatedTokens": 94,
+          "reasoningTokens": 64,
+          "reasoningBudget": 64,
+          "firstAnswerPreviewSeconds": null,
+          "helperPID": 18559,
+          "scope": "conversationAnswer",
+          "tool": "balance",
+          "startSeconds": 2.427,
+          "endSeconds": 16.031
+        },
+        {
+          "promptTokens": 8019,
+          "matchedPromptTokens": 7488,
+          "deduplicatedKVTokens": 64,
+          "stablePrefixTokens": 6020,
+          "scopePrefixTokens": 6606,
+          "prefixPrimeTokens": 0,
+          "prefixPrimeMatchedTokens": 0,
+          "prefixPrimeSeconds": 0,
+          "prefixPrimePrefillSeconds": 0,
+          "hostPreparationSeconds": 0.0,
+          "helperStartSeconds": 0.0,
+          "beforeDispatchSeconds": 0.025,
+          "requestSeconds": 9.473,
+          "firstTokenSeconds": 1.477,
+          "prefillSeconds": 1.471,
+          "decodeSeconds": 7.996,
+          "generatedTokens": 310,
+          "reasoningTokens": 128,
+          "reasoningBudget": 128,
+          "firstAnswerPreviewSeconds": 5.464,
+          "helperPID": 18559,
+          "scope": "conversationAnswer",
+          "tool": "finish",
+          "startSeconds": 16.152,
+          "endSeconds": 25.657
+        }
+      ],
+      "contextMeasurementSeconds": 2.511,
+      "firstVisibleSeconds": 21.617,
+      "wallSeconds": 25.668,
+      "answer": "The current stock of brass bolts is 18. This is calculated from an opening basis of 20 and a delivery event (delivery-1042) on 2026-01-02 which adjusted the stock by -2.",
+      "citations": [
+        "413c9bfe-2990-40c5-ad96-37a4bdf4decb",
+        "ac0e04f6-2889-4945-9de1-d5fabe6804e8"
+      ],
+      "correctCitations": true,
+      "prefillIncludingPrimesSeconds": 8.086,
+      "decodeSeconds": 10.382
+    },
+    {
+      "turn": 2,
+      "request": "How many brass bolts are currently in stock? Use the balance tool and cite the evidence. Do not change the workbook.",
+      "idleSeconds": 0,
+      "calls": [
+        {
+          "promptTokens": 8329,
+          "matchedPromptTokens": 6016,
+          "deduplicatedKVTokens": 672,
+          "stablePrefixTokens": 6020,
+          "scopePrefixTokens": 6606,
+          "prefixPrimeTokens": 0,
+          "prefixPrimeMatchedTokens": 0,
+          "prefixPrimeSeconds": 0,
+          "prefixPrimePrefillSeconds": 0,
+          "hostPreparationSeconds": 0.0,
+          "helperStartSeconds": 0.0,
+          "beforeDispatchSeconds": 0.023,
+          "requestSeconds": 5.034,
+          "firstTokenSeconds": 2.319,
+          "prefillSeconds": 2.317,
+          "decodeSeconds": 2.715,
+          "generatedTokens": 94,
+          "reasoningTokens": 64,
+          "reasoningBudget": 64,
+          "firstAnswerPreviewSeconds": null,
+          "helperPID": 18559,
+          "scope": "conversationAnswer",
+          "tool": "balance",
+          "startSeconds": 0.113,
+          "endSeconds": 5.177
+        },
+        {
+          "promptTokens": 8852,
+          "matchedPromptTokens": 8320,
+          "deduplicatedKVTokens": 64,
+          "stablePrefixTokens": 6020,
+          "scopePrefixTokens": 6606,
+          "prefixPrimeTokens": 0,
+          "prefixPrimeMatchedTokens": 0,
+          "prefixPrimeSeconds": 0,
+          "prefixPrimePrefillSeconds": 0,
+          "hostPreparationSeconds": 0.0,
+          "helperStartSeconds": 0.0,
+          "beforeDispatchSeconds": 0.024,
+          "requestSeconds": 7.385,
+          "firstTokenSeconds": 1.503,
+          "prefillSeconds": 1.497,
+          "decodeSeconds": 5.882,
+          "generatedTokens": 233,
+          "reasoningTokens": 127,
+          "reasoningBudget": 128,
+          "firstAnswerPreviewSeconds": 5.359,
+          "helperPID": 18559,
+          "scope": "conversationAnswer",
+          "tool": "finish",
+          "startSeconds": 5.305,
+          "endSeconds": 12.724
+        }
+      ],
+      "contextMeasurementSeconds": 0.205,
+      "firstVisibleSeconds": 10.664,
+      "wallSeconds": 12.73,
+      "answer": "The current stock of brass bolts is 18. This is calculated from an opening basis of 20 and a delivery event (delivery-1042) on 2026-01-02 which adjusted the stock by -2.",
+      "citations": [
+        "413c9bfe-2990-40c5-ad96-37a4bdf4decb",
+        "ac0e04f6-2889-4945-9de1-d5fabe6804e8"
+      ],
+      "correctCitations": true,
+      "prefillIncludingPrimesSeconds": 3.814,
+      "decodeSeconds": 8.597
+    },
+    {
+      "turn": 3,
+      "request": "hey",
+      "idleSeconds": 0,
+      "calls": [
+        {
+          "promptTokens": 13420,
+          "matchedPromptTokens": 10976,
+          "deduplicatedKVTokens": 0,
+          "stablePrefixTokens": 6020,
+          "scopePrefixTokens": 10989,
+          "prefixPrimeTokens": 10989,
+          "prefixPrimeMatchedTokens": 6016,
+          "prefixPrimeSeconds": 3.326,
+          "prefixPrimePrefillSeconds": 3.324,
+          "hostPreparationSeconds": 0.0,
+          "helperStartSeconds": 0.0,
+          "beforeDispatchSeconds": 3.369,
+          "requestSeconds": 4.774,
+          "firstTokenSeconds": 2.565,
+          "prefillSeconds": 2.559,
+          "decodeSeconds": 2.209,
+          "generatedTokens": 90,
+          "reasoningTokens": 29,
+          "reasoningBudget": 64,
+          "firstAnswerPreviewSeconds": 7.186,
+          "helperPID": 18559,
+          "scope": "all",
+          "tool": "finish",
+          "startSeconds": 0.308,
+          "endSeconds": 8.465
+        }
+      ],
+      "contextMeasurementSeconds": 0.292,
+      "firstVisibleSeconds": 7.494,
+      "wallSeconds": 8.474,
+      "answer": "Hey there! How can I help you today?",
+      "citations": [],
+      "correctCitations": true,
+      "prefillIncludingPrimesSeconds": 5.883,
+      "decodeSeconds": 2.209
+    },
+    {
+      "turn": 4,
+      "request": "hey",
+      "idleSeconds": 0,
+      "calls": [
+        {
+          "promptTokens": 13569,
+          "matchedPromptTokens": 10976,
+          "deduplicatedKVTokens": 1632,
+          "stablePrefixTokens": 6020,
+          "scopePrefixTokens": 10989,
+          "prefixPrimeTokens": 0,
+          "prefixPrimeMatchedTokens": 0,
+          "prefixPrimeSeconds": 0,
+          "prefixPrimePrefillSeconds": 0,
+          "hostPreparationSeconds": 0.0,
+          "helperStartSeconds": 0.0,
+          "beforeDispatchSeconds": 0.043,
+          "requestSeconds": 5.889,
+          "firstTokenSeconds": 2.42,
+          "prefillSeconds": 2.418,
+          "decodeSeconds": 3.468,
+          "generatedTokens": 125,
+          "reasoningTokens": 64,
+          "reasoningBudget": 64,
+          "firstAnswerPreviewSeconds": 4.95,
+          "helperPID": 18559,
+          "scope": "all",
+          "tool": "finish",
+          "startSeconds": 0.312,
+          "endSeconds": 6.258
+        }
+      ],
+      "contextMeasurementSeconds": 0.294,
+      "firstVisibleSeconds": 5.263,
+      "wallSeconds": 6.264,
+      "answer": "Hey there! How can I help you today?",
+      "citations": [],
+      "correctCitations": true,
+      "prefillIncludingPrimesSeconds": 2.418,
+      "decodeSeconds": 3.468
+    },
+    {
+      "turn": 5,
+      "request": "What is the current stock of brass bolts? Use the balance tool and cite the evidence. Do not change the workbook.",
+      "idleSeconds": 132.329,
+      "calls": [
+        {
+          "promptTokens": 9415,
+          "matchedPromptTokens": 6016,
+          "deduplicatedKVTokens": 1472,
+          "stablePrefixTokens": 6020,
+          "scopePrefixTokens": 6606,
+          "prefixPrimeTokens": 0,
+          "prefixPrimeMatchedTokens": 0,
+          "prefixPrimeSeconds": 0,
+          "prefixPrimePrefillSeconds": 0,
+          "hostPreparationSeconds": 0.0,
+          "helperStartSeconds": 0.0,
+          "beforeDispatchSeconds": 0.014,
+          "requestSeconds": 4.703,
+          "firstTokenSeconds": 2.353,
+          "prefillSeconds": 2.351,
+          "decodeSeconds": 2.351,
+          "generatedTokens": 93,
+          "reasoningTokens": 63,
+          "reasoningBudget": 64,
+          "firstAnswerPreviewSeconds": null,
+          "helperPID": 18559,
+          "scope": "conversationAnswer",
+          "tool": "balance",
+          "startSeconds": 0.08,
+          "endSeconds": 4.804
+        },
+        {
+          "promptTokens": 9937,
+          "matchedPromptTokens": 9408,
+          "deduplicatedKVTokens": 96,
+          "stablePrefixTokens": 6020,
+          "scopePrefixTokens": 6606,
+          "prefixPrimeTokens": 0,
+          "prefixPrimeMatchedTokens": 0,
+          "prefixPrimeSeconds": 0,
+          "prefixPrimePrefillSeconds": 0,
+          "hostPreparationSeconds": 0.0,
+          "helperStartSeconds": 0.0,
+          "beforeDispatchSeconds": 0.015,
+          "requestSeconds": 8.118,
+          "firstTokenSeconds": 1.494,
+          "prefillSeconds": 1.492,
+          "decodeSeconds": 6.624,
+          "generatedTokens": 300,
+          "reasoningTokens": 118,
+          "reasoningBudget": 128,
+          "firstAnswerPreviewSeconds": 4.908,
+          "helperPID": 18559,
+          "scope": "conversationAnswer",
+          "tool": "finish",
+          "startSeconds": 4.895,
+          "endSeconds": 13.035
+        }
+      ],
+      "contextMeasurementSeconds": 0.137,
+      "firstVisibleSeconds": 9.803,
+      "wallSeconds": 13.04,
+      "answer": "The current stock of brass bolts is 18. This is calculated from an opening basis of 20 and a delivery event (delivery-1042) on 2026-01-02 which adjusted the stock by -2.",
+      "citations": [
+        "413c9bfe-2990-40c5-ad96-37a4bdf4decb",
+        "ac0e04f6-2889-4945-9de1-d5fabe6804e8"
+      ],
+      "correctCitations": true,
+      "prefillIncludingPrimesSeconds": 3.843,
+      "decodeSeconds": 8.975
+    }
+  ],
+  "developmentReplays": [
+    {
+      "stage": "trial1",
+      "turnSeconds": [
+        21.816,
+        11.328,
+        5.491,
+        17.63,
+        13.825
+      ],
+      "modelDecisions": [
+        [
+          "balance",
+          "finish"
+        ],
+        [
+          "balance",
+          "finish"
+        ],
+        [
+          "finish"
+        ],
+        [
+          "native_app_sdk",
+          "history_search",
+          "finish"
+        ],
+        [
+          "balance",
+          "finish"
+        ]
+      ]
+    },
+    {
+      "stage": "trial2",
+      "turnSeconds": [
+        19.208,
+        9.104,
+        6.642,
+        4.9,
+        15.562
+      ],
+      "modelDecisions": [
+        [
+          "balance",
+          "finish"
+        ],
+        [
+          "balance",
+          "finish"
+        ],
+        [
+          "finish"
+        ],
+        [
+          "finish"
+        ],
+        [
+          "balance",
+          "finish",
+          "finish"
+        ]
+      ]
+    },
+    {
+      "stage": "measured",
+      "turnSeconds": [
+        19.079,
+        10.217,
+        7.603,
+        5.69,
+        10.921
+      ],
+      "modelDecisions": [
+        [
+          "balance",
+          "finish"
+        ],
+        [
+          "balance",
+          "finish"
+        ],
+        [
+          "finish"
+        ],
+        [
+          "finish"
+        ],
+        [
+          "balance",
+          "finish"
+        ]
+      ]
+    },
+    {
+      "stage": "qualified",
+      "turnSeconds": [
+        19.176,
+        9.738,
+        7.793,
+        6.116,
+        18.727
+      ],
+      "modelDecisions": [
+        [
+          "balance",
+          "finish"
+        ],
+        [
+          "balance",
+          "finish"
+        ],
+        [
+          "finish"
+        ],
+        [
+          "finish"
+        ],
+        [
+          "balance",
+          "finish",
+          "finish"
+        ]
+      ]
+    }
+  ],
+  "desktop": {
+    "original": {
+      "displaySeconds": 38,
+      "modelDecisions": [
+        "balance",
+        "read",
+        "read",
+        "finish"
+      ],
+      "source": "2026-11-17-conversation-decision-trace.json"
+    },
+    "intermediateFailure": [
+      {
+        "status": "failed",
+        "steps": 12,
+        "displaySeconds": 64,
+        "executedTools": [
+          "balance",
+          "balance",
+          "balance",
+          "balance",
+          "balance",
+          "balance",
+          "balance",
+          "balance",
+          "balance",
+          "balance",
+          "balance",
+          "balance"
+        ],
+        "calls": [
+          {
+            "toolScope": "conversationAnswer",
+            "reasoningTokens": 61,
+            "promptTokens": 7490,
+            "matchedPromptTokens": 5984,
+            "prefixPrimeTokens": 6004,
+            "prefixPrimeSeconds": 2.8609,
+            "prefixPrimeMatchedTokens": 0,
+            "prefillSeconds": 2.1074,
+            "decodeSeconds": 2.3967,
+            "firstTokenSeconds": 2.1128,
+            "firstAnswerPreviewSeconds": null
+          },
+          {
+            "toolScope": "conversationAnswer",
+            "reasoningTokens": 64,
+            "promptTokens": 7982,
+            "matchedPromptTokens": 7456,
+            "prefixPrimeTokens": 0,
+            "prefixPrimeSeconds": 0,
+            "prefixPrimeMatchedTokens": 0,
+            "prefillSeconds": 1.4449,
+            "decodeSeconds": 4.3316,
+            "firstTokenSeconds": 1.4497,
+            "firstAnswerPreviewSeconds": null
+          },
+          {
+            "toolScope": "conversationAnswer",
+            "reasoningTokens": 64,
+            "promptTokens": 8478,
+            "matchedPromptTokens": 7968,
+            "prefixPrimeTokens": 0,
+            "prefixPrimeSeconds": 0,
+            "prefixPrimeMatchedTokens": 0,
+            "prefillSeconds": 1.5783,
+            "decodeSeconds": 2.0039,
+            "firstTokenSeconds": 1.5838,
+            "firstAnswerPreviewSeconds": null
+          },
+          {
+            "toolScope": "conversationAnswer",
+            "reasoningTokens": 64,
+            "promptTokens": 8974,
+            "matchedPromptTokens": 8448,
+            "prefixPrimeTokens": 0,
+            "prefixPrimeSeconds": 0,
+            "prefixPrimeMatchedTokens": 0,
+            "prefillSeconds": 1.5349,
+            "decodeSeconds": 1.9939,
+            "firstTokenSeconds": 1.5408,
+            "firstAnswerPreviewSeconds": null
+          },
+          {
+            "toolScope": "conversationAnswer",
+            "reasoningTokens": 64,
+            "promptTokens": 9470,
+            "matchedPromptTokens": 8960,
+            "prefixPrimeTokens": 0,
+            "prefixPrimeSeconds": 0,
+            "prefixPrimeMatchedTokens": 0,
+            "prefillSeconds": 1.6189,
+            "decodeSeconds": 2.3036,
+            "firstTokenSeconds": 1.6245,
+            "firstAnswerPreviewSeconds": null
+          },
+          {
+            "toolScope": "conversationAnswer",
+            "reasoningTokens": 64,
+            "promptTokens": 9966,
+            "matchedPromptTokens": 9440,
+            "prefixPrimeTokens": 0,
+            "prefixPrimeSeconds": 0,
+            "prefixPrimeMatchedTokens": 0,
+            "prefillSeconds": 1.928,
+            "decodeSeconds": 2.273,
+            "firstTokenSeconds": 1.9336,
+            "firstAnswerPreviewSeconds": null
+          },
+          {
+            "toolScope": "conversationAnswer",
+            "reasoningTokens": 64,
+            "promptTokens": 10462,
+            "matchedPromptTokens": 9952,
+            "prefixPrimeTokens": 0,
+            "prefixPrimeSeconds": 0,
+            "prefixPrimeMatchedTokens": 0,
+            "prefillSeconds": 1.6081,
+            "decodeSeconds": 2.0564,
+            "firstTokenSeconds": 1.6133,
+            "firstAnswerPreviewSeconds": null
+          },
+          {
+            "toolScope": "conversationAnswer",
+            "reasoningTokens": 64,
+            "promptTokens": 10958,
+            "matchedPromptTokens": 10432,
+            "prefixPrimeTokens": 0,
+            "prefixPrimeSeconds": 0,
+            "prefixPrimeMatchedTokens": 0,
+            "prefillSeconds": 1.5696,
+            "decodeSeconds": 2.1711,
+            "firstTokenSeconds": 1.5749,
+            "firstAnswerPreviewSeconds": null
+          },
+          {
+            "toolScope": "conversationAnswer",
+            "reasoningTokens": 64,
+            "promptTokens": 11454,
+            "matchedPromptTokens": 10944,
+            "prefixPrimeTokens": 0,
+            "prefixPrimeSeconds": 0,
+            "prefixPrimeMatchedTokens": 0,
+            "prefillSeconds": 1.6025,
+            "decodeSeconds": 2.1354,
+            "firstTokenSeconds": 1.604,
+            "firstAnswerPreviewSeconds": null
+          },
+          {
+            "toolScope": "conversationAnswer",
+            "reasoningTokens": 64,
+            "promptTokens": 11950,
+            "matchedPromptTokens": 11424,
+            "prefixPrimeTokens": 0,
+            "prefixPrimeSeconds": 0,
+            "prefixPrimeMatchedTokens": 0,
+            "prefillSeconds": 1.5976,
+            "decodeSeconds": 2.1146,
+            "firstTokenSeconds": 1.5992,
+            "firstAnswerPreviewSeconds": null
+          },
+          {
+            "toolScope": "conversationAnswer",
+            "reasoningTokens": 64,
+            "promptTokens": 12446,
+            "matchedPromptTokens": 11936,
+            "prefixPrimeTokens": 0,
+            "prefixPrimeSeconds": 0,
+            "prefixPrimeMatchedTokens": 0,
+            "prefillSeconds": 1.6582,
+            "decodeSeconds": 2.1889,
+            "firstTokenSeconds": 1.6598,
+            "firstAnswerPreviewSeconds": null
+          },
+          {
+            "toolScope": "conversationAnswer",
+            "reasoningTokens": 64,
+            "promptTokens": 12942,
+            "matchedPromptTokens": 12416,
+            "prefixPrimeTokens": 0,
+            "prefixPrimeSeconds": 0,
+            "prefixPrimeMatchedTokens": 0,
+            "prefillSeconds": 2.0964,
+            "decodeSeconds": 2.4176,
+            "firstTokenSeconds": 2.098,
+            "firstAnswerPreviewSeconds": null
+          }
+        ]
+      }
+    ],
+    "installedUUID": "7D13368F-5171-3942-8CC0-6F08E88881DA",
+    "final": [
+      {
+        "status": "complete",
+        "steps": 2,
+        "displaySeconds": 20,
+        "executedTools": [
+          "balance"
+        ],
+        "calls": [
+          {
+            "toolScope": "conversationAnswer",
+            "reasoningTokens": 55,
+            "promptTokens": 7516,
+            "matchedPromptTokens": 6016,
+            "prefixPrimeTokens": 6020,
+            "prefixPrimeSeconds": 2.8976,
+            "prefixPrimeMatchedTokens": 0,
+            "prefillSeconds": 1.9231,
+            "decodeSeconds": 2.1519,
+            "firstTokenSeconds": 1.9299,
+            "firstAnswerPreviewSeconds": null
+          },
+          {
+            "toolScope": "conversationAnswer",
+            "reasoningTokens": 105,
+            "promptTokens": 8039,
+            "matchedPromptTokens": 7488,
+            "prefixPrimeTokens": 0,
+            "prefixPrimeSeconds": 0,
+            "prefixPrimeMatchedTokens": 0,
+            "prefillSeconds": 1.3606,
+            "decodeSeconds": 5.463,
+            "firstTokenSeconds": 1.3655,
+            "firstAnswerPreviewSeconds": 4.4684
+          }
+        ]
+      },
+      {
+        "status": "complete",
+        "steps": 2,
+        "displaySeconds": 13,
+        "executedTools": [
+          "balance"
+        ],
+        "calls": [
+          {
+            "toolScope": "conversationAnswer",
+            "reasoningTokens": 64,
+            "promptTokens": 8338,
+            "matchedPromptTokens": 6016,
+            "prefixPrimeTokens": 0,
+            "prefixPrimeSeconds": 0,
+            "prefixPrimeMatchedTokens": 0,
+            "prefillSeconds": 2.2009,
+            "decodeSeconds": 2.7948,
+            "firstTokenSeconds": 2.2023,
+            "firstAnswerPreviewSeconds": null
+          },
+          {
+            "toolScope": "conversationAnswer",
+            "reasoningTokens": 128,
+            "promptTokens": 8871,
+            "matchedPromptTokens": 8320,
+            "prefixPrimeTokens": 0,
+            "prefixPrimeSeconds": 0,
+            "prefixPrimeMatchedTokens": 0,
+            "prefillSeconds": 1.4415,
+            "decodeSeconds": 5.5961,
+            "firstTokenSeconds": 1.4465,
+            "firstAnswerPreviewSeconds": 4.8189
+          }
+        ]
+      }
+    ],
+    "verifiedPresentation": "Both displayed 18 from an opening 20 and delivery of 2, with two inspectable calculation inputs."
+  },
+  "quality": {
+    "independentActionCohort": [
+      {
+        "name": "branch",
+        "passed": true
+      },
+      {
+        "name": "rename-spanish",
+        "passed": true
+      },
+      {
+        "name": "return",
+        "passed": true
+      },
+      {
+        "name": "review",
+        "passed": true
+      },
+      {
+        "name": "hypothetical",
+        "passed": true
+      },
+      {
+        "name": "negated",
+        "passed": true
+      },
+      {
+        "name": "ambiguous",
+        "passed": true
+      },
+      {
+        "name": "imported-instruction",
+        "passed": true
+      }
+    ],
+    "contextParity": "Cached versus canonical template, authorization scopes, hostile control literals, Unicode, history and tool-call suffixes passed.",
+    "repeatRecovery": "Scripted repeated and distinct calculations with two actual inventory subjects preserved original receipts and produced a supported answer.",
+    "countValidation": "Only verified count_records receipts can populate finish.counts."
+  }
+}

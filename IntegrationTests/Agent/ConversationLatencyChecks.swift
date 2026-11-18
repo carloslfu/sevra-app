@@ -2,6 +2,7 @@ import Foundation
 import SevraAI
 import SevraCore
 import SevraNativeAI
+import SevraSplash
 import SevraSplashGrammar
 import SevraSplashText
 
@@ -24,6 +25,40 @@ private actor ConversationRoutingFixture: WorkbookInference {
     ]).json()
     return NativeReply(
       text: "", calls: [.init(id: "routing-\(prompts.count)", name: "finish", inputJSON: arguments)])
+  }
+}
+
+/// Try the same completed read, a distinct subject, then repeat that subject twice.
+private actor RepeatingCalculationFixture: WorkbookInference {
+  let identity = "calculation reuse fixture"
+  let lastMetrics: Value = .null
+  private var index = 0
+  func beginRun() {}
+  func endRun() {}
+  func respond(
+    messages: [InferenceMessage], directory: URL, cancellation: Cancellation,
+    progress: @escaping @Sendable (String) -> Void, toolScope: InferenceToolScope,
+    citationIDs: [String]
+  ) throws -> NativeReply {
+    let subjects = ["brass bolts", "brass bolts", "washers", "washers", "washers"]
+    if index > 0 {
+      let previous = try Value.parse(messages.last!.content)
+      if [2, 4, 5].contains(index) {
+        try require(previous["reusedReceiptID"].string != nil, "test", "Duplicate calculation executed")
+      } else {
+        try require(previous["openingQuantity"].text == (index == 1 ? "20" : "7"),
+          "test", "Distinct calculation did not obtain its own opening basis")
+      }
+    }
+    let final = index == subjects.count
+    try require((toolScope == .finish) == final, "test", "Distinct inputs lost their tool access")
+    let arguments: Value = final
+      ? .object(["answer": .string("There are 18 brass bolts and 7 washers."),
+        "basis": .string("evidence"), "citations": .array([])])
+      : .object(["subject": .string(subjects[index])])
+    index += 1
+    return .init(text: "", calls: [.init(id: "lookup-\(index)",
+      name: final ? "finish" : "balance", inputJSON: try arguments.json())])
   }
 }
 
@@ -57,6 +92,32 @@ func checkConversationLatency() async throws {
     "Cancelled submission lost its diagnostic")
   try require(try book.verify()["ok"] == .bool(true), "test", "Conversation damaged the workbook")
 
+  let example = root.appendingPathComponent("Calculation.sevra")
+  _ = try Demo.create(at: example)
+  let stock = try Workbook(example)
+  let basis = try stock.balance(subject: "brass bolts")["basis"].text
+  try stock.setOpeningBalance(subject: "washers", quantity: "7", effective: "2026-01-01", sourceID: basis)
+  let both = try await WorkbookAgent.run(
+    "How many brass bolts and washers are there? Do not change the workbook.",
+    workbook: stock, model: RepeatingCalculationFixture(), conversationInput: true)
+  try require(both.steps == 6 && both.state == "complete" && both.citations.contains(basis),
+    "test", "Repeated-read recovery lost the verified evidence")
+  // The visible vocabulary stays generic, but a calculation input is never a count receipt.
+  let countID = identifier()
+  func finishCount(_ id: String, policy: SplashToolPolicy) throws -> SplashToolCandidate {
+    try ToolPolicyChecks().candidate("finish", [
+      ("answer", "Counted."), ("basis", "evidence"), ("citations", "[]"),
+      ("counts", try Value.array([.string(id)]).json()),
+    ], policy: policy)
+  }
+  let available = try NativeCitationPolicy.make([], countReceiptIDs: [countID])
+  try available.validate(finishCount(countID, policy: available))
+  for policy in [available, try NativeCitationPolicy.make([], countReceiptIDs: [])] {
+    do {
+      try policy.validate(finishCount("2 calculation inputs", policy: policy))
+      throw SevraError("test", "A fabricated count receipt was admitted")
+    } catch is SplashError { }
+  }
   let sourceID = identifier()
   let link = "[Original quote](sevra://item/" + sourceID + ")"
   let assistantID = try book.addMessage("Known cost. " + link, role: "assistant")
@@ -99,7 +160,8 @@ func checkConversationLatency() async throws {
 
 /// Runs the ordinary agent with the real native model on disposable workbooks.
 func runConversationLatencyProbe(
-  modelsRoot: String, library: String, engine: String, output: String, stockOnly: Bool = false
+  modelsRoot: String, library: String, engine: String, output: String, stockOnly: Bool = false,
+  cacheTrace: Bool = false, desktopContext: Bool = false
 )
   async throws
 {
@@ -120,7 +182,7 @@ func runConversationLatencyProbe(
     "Give me one sentence that explains the difference between a quote and an invoice.",
     "¿Para qué serviría este cuaderno en una panadería?",
   ]
-  for prompt in stockOnly ? [] : introductoryPrompts {
+  for prompt in stockOnly || cacheTrace || desktopContext ? [] : introductoryPrompts {
     let started = ProcessInfo.processInfo.systemUptime
     let previews = ProbePreviews(started: started)
     let result = try await WorkbookAgent.run(
@@ -153,11 +215,15 @@ func runConversationLatencyProbe(
     "What is the current stock of brass bolts? Use the balance tool and cite the evidence. Do not change the workbook.",
     "How many brass bolts are currently in stock? Use the balance tool and cite the evidence. Do not change the workbook.",
   ]
-  for prompt in stockOnly ? Array(businessPrompts.prefix(1)) : businessPrompts {
+  var sequence = stockOnly ? Array(businessPrompts.prefix(1)) : businessPrompts
+  if desktopContext { sequence = Array(businessPrompts.prefix(1)) }
+  if cacheTrace { sequence += ["hey", "hey", businessPrompts[0]] }
+  for (index, prompt) in sequence.enumerated() {
+    if cacheTrace && index == 4 { try await Task.sleep(nanoseconds: 125_000_000_000) }
     let started = ProcessInfo.processInfo.systemUptime
     let previews = ProbePreviews(started: started)
     let result = try await WorkbookAgent.run(
-      prompt, workbook: business, modelDirectory: URL(fileURLWithPath: modelsRoot),
+      prompt, workbook: business, context: desktopContext ? "Space: Home\nActive space ID: home" : "", modelDirectory: URL(fileURLWithPath: modelsRoot),
       cancellation: .init(deadlineAfterSeconds: 180),
       progress: { previews.recordProgress($0) }, answerPreview: { previews.receive($0) },
       model: model, conversationInput: true)
@@ -168,11 +234,20 @@ func runConversationLatencyProbe(
     let originalIDs = Set(originals.map(\.id))
     let currentItems = try business.items()
     let integrity = try business.verify()
-    let passed =
-      result.answer.contains("18") && Set(result.citations).isSuperset(of: citations)
+    let greeting = cacheTrace && (index == 2 || index == 3)
+    let correctAnswer = greeting
+      ? result.steps == 1 && !result.answer.isEmpty && result.citations.isEmpty
+      : result.answer.contains("18") && Set(result.citations).isSuperset(of: citations)
+    let passed = correctAnswer
       && currentItems.filter { originalIDs.contains($0.id) } == originals
       && integrity["ok"] == .bool(true) && previews.hasCleared
     let metrics = try business.agentRuns().first?["metrics"] ?? .null
+    if cacheTrace, index > 0 {
+      let measurements = try metrics.string.map(Value.parse) ?? metrics
+      let call = measurements.array.first { $0["matchedPromptTokens"].int != nil }
+      try require((call?["matchedPromptTokens"].int ?? 0) >= 2048, "quality",
+        "The real helper did not resume a shared workbook prefix.")
+    }
     let row: Value = .object([
       "prompt": .string(prompt),
       "wallSeconds": .number(elapsed),

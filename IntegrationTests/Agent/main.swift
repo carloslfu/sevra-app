@@ -379,12 +379,14 @@ do {
     exit(0)
   }
   if CommandLine.arguments.count == 6,
-    ["--conversation-latency-live", "--conversation-stock-trace"].contains(CommandLine.arguments[1])
+    ["--conversation-latency-live", "--conversation-stock-trace", "--conversation-cache-trace", "--conversation-desktop-trace"].contains(CommandLine.arguments[1])
   {
     try await runConversationLatencyProbe(
       modelsRoot: CommandLine.arguments[2], library: CommandLine.arguments[3],
       engine: CommandLine.arguments[4], output: CommandLine.arguments[5],
-      stockOnly: CommandLine.arguments[1] == "--conversation-stock-trace")
+      stockOnly: CommandLine.arguments[1] == "--conversation-stock-trace",
+      cacheTrace: CommandLine.arguments[1] == "--conversation-cache-trace",
+      desktopContext: CommandLine.arguments[1] == "--conversation-desktop-trace")
     exit(0)
   }
   try await checkConversationLatency()

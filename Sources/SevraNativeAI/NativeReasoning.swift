@@ -4,6 +4,8 @@ import SevraSplash
 /// Bounded request policies, not a user preference. Excel translation/review have a separate allowance.
 package enum NativeReasoning: Int, Sendable {
   case off = 0
+  case bounded64 = 64
+  case bounded128 = 128
   case bounded512 = 512
   case bounded2048 = 2048
 
