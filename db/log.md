@@ -226,3 +226,9 @@ CPU checks and the 59-group agent suite pass; restoring the array rendering fail
 ## [2026-11-18 14:22] verification | records/plans/conversation-follow-up-cache.md
 scripts/check.sh passed after dbmd index rebuild; store validation reported no errors. Packaged app and native journeys were skipped because no package was rebuilt.
 
+## [2026-11-18 16:53] design | records/plans/macos-installer-and-updates.md
+Reviewed the current package, Apple Developer ID and Gatekeeper requirements, and Sparkle update validation. Planned GitHub delivery, a signed feed, the optional early-access bridge and release gates.
+
+## [2026-11-18 16:54] verification | records/plans/macos-installer-and-updates.md
+Reviewed install and setup, signing and update continuity, and failure recovery against the source and primary documentation. Full store validation and repository Markdown links passed for the plan. Packaging, signing and installation remain to be implemented and tested.
+
