@@ -2,7 +2,7 @@
 type: operational
 id: 01m7qrcqqzh4qqr92a8frch1ze
 created: 2026-11-18T16:38:43.199010+00:00
-updated: 2026-11-18T21:49:56.172496+00:00
+updated: 2026-11-18T22:00:50.508380+00:00
 summary: Plan for seven general chat tools (model SQL on a scratch copy, sandboxed code, workbook tools) and a prompt header calculated at build time and restored at engine start. In implementation.
 title: General chat tools and a pre-read prompt header
 ---
@@ -394,7 +394,9 @@ Owner direction, November 18, 2026: [[sources/notes/2026/11/fast-loop-direction]
 
 Built on November 18, 2026 under the `general` profile. Evidence: [the evals](../../../integration/evidence/2026-11-18-sql-slice-evals/results.json).
 
-**Result on 15 English jobs, one run each:** all 15 pass, in 42 decisions and 453 seconds. Today's tools pass 11 of the same 15, in 64 decisions and 690 seconds. The four that today's tools fail and the slice passes are adding rows from a document, a bulk update, adding the rows one table is missing from another, and a draft change. The first run of the slice passed 11 of 12. Three fixes came from reading the failures, each rerun with one counterexample.
+**Result on 19 English jobs, one run each:** 16 pass. Today's tools pass 11 of the same 19. On the 16 that pass, the slice takes 43 decisions and 471 seconds where today's tools take 72 and 744. The five that today's tools fail and the slice passes are adding rows from a document, a bulk update, adding the rows one table is missing from another, a draft change, and building a view. The first run of the slice passed 11 of 12. Four fixes came from reading the failures, each rerun with one counterexample.
+
+**Still failing under `general`, as under today's tools:** building an app, a form and a rule. The model cannot produce the definition formats, and the app job also cannot reach the app checker from the command line. These are what `save` and its guides in phase 5 are for. New table, rename column and totals as a table were not run: they need `sql` to change a table's shape.
 
 **What `sql` is today** ([ChatSQL.swift](../../../Sources/SevraCore/ChatSQL.swift)):
 
@@ -419,8 +421,6 @@ Built on November 18, 2026 under the `general` profile. Evidence: [the evals](..
 - **Result receipts opened in the conversation, read-back of written cells, an Undo button in the conversation, the ledger's catalog tables, guides, and the conversation scope of `search`.** No eval job needs them yet. `balance` stays for the stock question.
 - **Drafts of inserted or deleted rows.** Today's proposals cover edits to existing rows.
 - **Changing a table's shape.** Waits for the `db/DB.md` change.
-
-**Seen in the evals and not yet addressed:** the supplier comparison read took four decisions instead of three because its first answer was refused once.
 
 ### Phase 0. Record the direction and get the go-ahead
 

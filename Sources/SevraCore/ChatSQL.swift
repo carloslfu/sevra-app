@@ -238,9 +238,9 @@ final class SQLScratch {
     // 4 KiB pages: 128 MiB for the copy and everything a statement builds.
     try execute("PRAGMA max_page_count=32768")
     try execute(
-      "CREATE TABLE tables(table_name TEXT, title TEXT, row_count INTEGER, id TEXT, version INTEGER, definition_id TEXT)")
+      "CREATE TABLE tables(name TEXT, title TEXT, row_count INTEGER, id TEXT, version INTEGER, definition_id TEXT)")
     try execute(
-      "CREATE TABLE columns(table_name TEXT, column_name TEXT, title TEXT, type TEXT, formula TEXT)")
+      "CREATE TABLE columns(table_name TEXT, name TEXT, title TEXT, type TEXT, formula TEXT)")
     try execute("CREATE TABLE \"\(Self.log)\"(tbl TEXT, id INTEGER)")
     for (name, dataset, columns) in Self.named(tables) {
       try execute(

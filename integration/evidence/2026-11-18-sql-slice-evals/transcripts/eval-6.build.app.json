@@ -1,0 +1,1171 @@
+{
+ "job": "build.app",
+ "language": "en",
+ "profile": "general",
+ "attempt": 1,
+ "prompt": "Build a small app named Stock counter. It shows the parts in the Parts table and has a button that adds 1 to the stock of the selected part.",
+ "expected": "An app named Stock counter is saved, bound to the Parts table. It stays disabled until the person enables it.",
+ "failure": "step_limit: This request reached its step limit. Completed changes are saved. Ask to continue, or narrow the question.",
+ "result": null,
+ "progress": [
+  "Reading request context",
+  "Checking local model files",
+  "Preparing local AI. The first start can take longer…",
+  "Preparing local AI · 0 of 11 steps",
+  "Preparing local AI · 1 of 11 steps",
+  "Preparing local AI · 2 of 11 steps",
+  "Preparing local AI · 3 of 11 steps",
+  "Preparing local AI · 4 of 11 steps",
+  "Preparing local AI · 5 of 11 steps",
+  "Preparing local AI · 6 of 11 steps",
+  "Preparing local AI · 7 of 11 steps",
+  "Preparing local AI · 8 of 11 steps",
+  "Preparing local AI · 9 of 11 steps",
+  "Preparing local AI · 10 of 11 steps",
+  "Preparing local AI · 11 of 11 steps",
+  "Reading the working context",
+  "Working through the request",
+  "Preparing a response",
+  "Working with your tables…",
+  "Reviewing the saved result",
+  "Reading the working context",
+  "Working through the request",
+  "Preparing a response",
+  "Saving a space…",
+  "Reviewing a tool failure",
+  "Reading the working context",
+  "Working through the request",
+  "Preparing a response",
+  "Spaces…",
+  "Reviewing the saved result",
+  "Reading the working context",
+  "Working through the request",
+  "Preparing a response",
+  "Saving a space…",
+  "Reviewing a tool failure",
+  "Reading the working context",
+  "Working through the request",
+  "Preparing a response",
+  "Updating a space…",
+  "Reviewing a tool failure",
+  "Reading the working context",
+  "Working through the request",
+  "Preparing a response",
+  "Updating a space…",
+  "Reviewing a tool failure",
+  "Reading the working context",
+  "Working through the request",
+  "Preparing a response",
+  "Saving a space…",
+  "Reviewing a tool failure",
+  "Reading the working context",
+  "Working through the request",
+  "Preparing a response",
+  "Saving a space…",
+  "Reviewing a tool failure",
+  "Reading the working context",
+  "Working through the request",
+  "Preparing a response",
+  "Saving a space…",
+  "Reviewing the saved result",
+  "Reading the working context",
+  "Working through the request",
+  "Preparing a response",
+  "Updating a space…",
+  "Reviewing a tool failure",
+  "Reading the working context",
+  "Working through the request",
+  "Preparing a response",
+  "Saving a space…",
+  "Reviewing a tool failure",
+  "Reading the working context",
+  "Working through the request",
+  "Preparing a response",
+  "Saving a space…",
+  "Reviewing a tool failure",
+  "{\"error\":{\"code\":\"step_limit\",\"message\":\"This request reached its step limit. Completed changes are saved. Ask to continue, or narrow the question.\"},\"ok\":false,\"schemaVersion\":1}"
+ ],
+ "messages": {
+  "main": [
+   {
+    "body": "This example has supplier quotes and a delivery. Try ‘Why do we have 18 brass bolts?’ or ‘Compare the supplier costs and show the evidence.’",
+    "created": "2026-11-18T21:51:02Z",
+    "id": "ee899231-5142-409f-bd28-e48679ddbce3",
+    "role": "assistant",
+    "state": "complete"
+   },
+   {
+    "body": "Build a small app named Stock counter. It shows the parts in the Parts table and has a button that adds 1 to the stock of the selected part.",
+    "created": "2026-11-18T21:51:02Z",
+    "id": "5df95376-5461-40c3-bc6e-f5e9a86e8dc1",
+    "role": "user",
+    "state": "complete"
+   },
+   {
+    "body": {
+     "arguments": {
+      "statements": [
+       "SELECT * FROM parts"
+      ]
+     },
+     "assistantText": "",
+     "callID": "call_110db75d-9b32-4ed4-8229-d050aa7afe3d",
+     "receiptID": "3a77b5f0-7d10-465c-a2a2-9917132ae735",
+     "receiptVersion": 1,
+     "result": {
+      "inputs": [
+       "4c9d8889-6223-4399-b361-bf6d2bb247df",
+       "c78f4db7-7009-4b09-bdab-bfa5307110f6",
+       "dc6756bb-6df4-4726-85ee-edc5cdbebd5c",
+       "ed346cb0-8039-460c-a019-3156c045d110",
+       "533aab4b-def2-4ec4-9712-ff5161ca1255",
+       "ea17646c-1535-44df-ac36-683e0d60c8b9"
+      ],
+      "read": [
+       {
+        "rows": 6,
+        "table": "parts",
+        "title": "Parts"
+       }
+      ],
+      "results": [
+       {
+        "columns": [
+         "part",
+         "category",
+         "stock",
+         "reorder_level"
+        ],
+        "rowCount": 6,
+        "rows": [
+         [
+          "Brass bolts",
+          "Fasteners",
+          "18",
+          "12"
+         ],
+         [
+          "Steel washers",
+          "Fasteners",
+          "240",
+          "40"
+         ],
+         [
+          "Hex nuts",
+          "Fasteners",
+          "9",
+          "25"
+         ],
+         [
+          "Wood screws",
+          "Fasteners",
+          "130",
+          "50"
+         ],
+         [
+          "Torque wrench",
+          "Tools",
+          "2",
+          "1"
+         ],
+         [
+          "Hex key set",
+          "Tools",
+          "0",
+          "2"
+         ]
+        ]
+       }
+      ]
+     },
+     "resultHash": "b313c9e60cbbcf49320df38a46b32a6187b49ce3e01f1ee94486e8683ce4e8a3",
+     "resultIdentity": {},
+     "runID": "8c4c8883-a3d6-40db-adbf-728c3115bf05",
+     "tool": "sql"
+    },
+    "created": "2026-11-18T21:51:17Z",
+    "id": "6dad4a89-395f-4a24-9a58-0a038d264f47",
+    "role": "tool",
+    "state": "complete"
+   },
+   {
+    "body": {
+     "arguments": {
+      "definition": {
+       "components": [
+        {
+         "id": "stock_counter_app",
+         "spaceID": "current",
+         "title": "Stock counter",
+         "type": "app"
+        }
+       ],
+       "version": 1
+      },
+      "title": "Stock counter"
+     },
+     "assistantText": "",
+     "callID": "call_ad3c1224-7de9-48fb-b003-f9d8a061fcfc",
+     "receiptID": "b16435ed-a6ba-4a34-882a-46f51dec544d",
+     "receiptVersion": 1,
+     "result": {
+      "error": "Space not found.",
+      "receiptID": "b16435ed-a6ba-4a34-882a-46f51dec544d",
+      "retryInstruction": "The call did not finish successfully. Completed changes remain saved. Inspect the receipt and workbook state before retrying; do not claim no changes occurred. Fix the reported arguments when applicable."
+     },
+     "resultHash": "c82285c1ea6e511ac4e4a7ec3eec7db8d3ede5c246049b18ede444206d368945",
+     "resultIdentity": {},
+     "runID": "8c4c8883-a3d6-40db-adbf-728c3115bf05",
+     "tool": "save_space"
+    },
+    "created": "2026-11-18T21:51:24Z",
+    "id": "c79cd202-bb2d-4c37-af57-bd633018e6b7",
+    "role": "tool",
+    "state": "complete"
+   },
+   {
+    "body": {
+     "arguments": {},
+     "assistantText": "",
+     "callID": "call_8aa957f4-5492-4368-abd0-f8834138066e",
+     "receiptID": "0ca68774-24ce-47c9-a6d0-8356b99c67a5",
+     "receiptVersion": 1,
+     "result": [
+      {
+       "definition": {
+        "components": [
+         {
+          "id": "8bd35614-ae67-4af7-9da5-69ded7be564b",
+          "text": "A small example workbook. Compare suppliers, inspect a delivery, or ask why stock is 18. All data is synthetic.",
+          "title": "Willow Workshop",
+          "type": "text"
+         },
+         {
+          "datasetID": "28c3e427-9b97-4c02-b071-2ee6a747518c",
+          "id": "2d07c8f8-6c37-42be-838a-ac977a76e443",
+          "title": "Supplier comparison",
+          "type": "table"
+         },
+         {
+          "datasetID": "28c3e427-9b97-4c02-b071-2ee6a747518c",
+          "id": "79be9cc6-7c0f-4a7f-abbd-aaa82a05a7e1",
+          "title": "Quoted cost",
+          "type": "chart",
+          "x": "supplier",
+          "y": "total"
+         }
+        ],
+        "version": 1
+       },
+       "id": "home",
+       "title": "Home",
+       "version": 2
+      }
+     ],
+     "resultHash": "83a964552161bef986cb71f750658a4c03249f84828962581f6f174dbe311ea7",
+     "resultIdentity": {},
+     "runID": "8c4c8883-a3d6-40db-adbf-728c3115bf05",
+     "tool": "spaces"
+    },
+    "created": "2026-11-18T21:51:26Z",
+    "id": "d5e2cd1b-9b94-4941-b9c2-715323b78969",
+    "role": "tool",
+    "state": "complete"
+   },
+   {
+    "body": {
+     "arguments": {
+      "definition": {
+       "components": [
+        {
+         "id": "stock_counter_app",
+         "spaceID": "current",
+         "title": "Stock counter",
+         "type": "app"
+        }
+       ],
+       "version": 1
+      },
+      "title": "Stock counter"
+     },
+     "assistantText": "",
+     "callID": "call_acca139b-50c0-45e4-8f3b-561b633359e1",
+     "receiptID": "26f6fa7d-2a62-40b5-b8d8-2c2089486206",
+     "receiptVersion": 1,
+     "result": {
+      "error": "Space not found.",
+      "receiptID": "26f6fa7d-2a62-40b5-b8d8-2c2089486206",
+      "retryInstruction": "The call did not finish successfully. Completed changes remain saved. Inspect the receipt and workbook state before retrying; do not claim no changes occurred. Fix the reported arguments when applicable."
+     },
+     "resultHash": "42f08ad6e05baaf0230c6812b289acb078d3fb496bc968defdc53ef5db3b15ef",
+     "resultIdentity": {},
+     "runID": "8c4c8883-a3d6-40db-adbf-728c3115bf05",
+     "tool": "save_space"
+    },
+    "created": "2026-11-18T21:51:30Z",
+    "id": "33e23f89-7d0d-407f-a01e-2e9ccc7e6c7c",
+    "role": "tool",
+    "state": "complete"
+   },
+   {
+    "body": {
+     "arguments": {
+      "edits": [
+       {
+        "component": {
+         "id": "stock_counter_app",
+         "spaceID": "home",
+         "title": "Stock counter",
+         "type": "app"
+        },
+        "operation": "insert"
+       }
+      ],
+      "expectedVersion": 2,
+      "id": "home"
+     },
+     "assistantText": "",
+     "callID": "call_0c0045e8-d0f3-40de-8e92-02db51ddf9ed",
+     "receiptID": "6d2da980-b475-45e0-bfa7-d68628a27180",
+     "receiptVersion": 1,
+     "result": {
+      "error": "Choose at:first, at:last, or beforeID for each move or insertion.",
+      "receiptID": "6d2da980-b475-45e0-bfa7-d68628a27180",
+      "retryInstruction": "The call did not finish successfully. Completed changes remain saved. Inspect the receipt and workbook state before retrying; do not claim no changes occurred. Fix the reported arguments when applicable."
+     },
+     "resultHash": "a9ac2baeb1029520c66e1b8050312661b5dcca77ce878010345c08cb386c6692",
+     "resultIdentity": {},
+     "runID": "8c4c8883-a3d6-40db-adbf-728c3115bf05",
+     "tool": "edit_space"
+    },
+    "created": "2026-11-18T21:51:36Z",
+    "id": "5ffd3a58-7983-4294-a361-1751062200fd",
+    "role": "tool",
+    "state": "complete"
+   },
+   {
+    "body": {
+     "arguments": {
+      "edits": [
+       {
+        "at": "last",
+        "component": {
+         "id": "stock_counter_app",
+         "spaceID": "home",
+         "title": "Stock counter",
+         "type": "app"
+        },
+        "operation": "insert"
+       }
+      ],
+      "expectedVersion": 2,
+      "id": "home"
+     },
+     "assistantText": "",
+     "callID": "call_2d8e6db5-b08d-484e-955a-8b118d72f7cd",
+     "receiptID": "3f4886f7-345f-429e-b57f-0150066a6134",
+     "receiptVersion": 1,
+     "result": {
+      "error": "Choose a programmable app space.",
+      "receiptID": "3f4886f7-345f-429e-b57f-0150066a6134",
+      "retryInstruction": "The call did not finish successfully. Completed changes remain saved. Inspect the receipt and workbook state before retrying; do not claim no changes occurred. Fix the reported arguments when applicable."
+     },
+     "resultHash": "14389fe94bd69d0ed51dc1bcf389f2bc6be5c7f755eb9658b5d0303567da0dac",
+     "resultIdentity": {},
+     "runID": "8c4c8883-a3d6-40db-adbf-728c3115bf05",
+     "tool": "edit_space"
+    },
+    "created": "2026-11-18T21:51:39Z",
+    "id": "66738503-6bfe-4853-b013-97f9bdd9d3ff",
+    "role": "tool",
+    "state": "complete"
+   },
+   {
+    "body": {
+     "arguments": {
+      "definition": {
+       "components": [
+        {
+         "id": "stock_counter_app",
+         "spaceID": "home",
+         "title": "Stock counter",
+         "type": "app"
+        }
+       ],
+       "version": 1
+      },
+      "title": "Stock counter"
+     },
+     "assistantText": "",
+     "callID": "call_e1309331-b5e7-41f8-a2bf-5f3310c59d34",
+     "receiptID": "f4c2b798-f616-4645-aa6c-98c6dac3b3a3",
+     "receiptVersion": 1,
+     "result": {
+      "error": "Choose a programmable app space.",
+      "receiptID": "f4c2b798-f616-4645-aa6c-98c6dac3b3a3",
+      "retryInstruction": "The call did not finish successfully. Completed changes remain saved. Inspect the receipt and workbook state before retrying; do not claim no changes occurred. Fix the reported arguments when applicable."
+     },
+     "resultHash": "dd09b946c2b38b340b8f1c5148188f482de532e6891772e0c0f3153a567e887f",
+     "resultIdentity": {},
+     "runID": "8c4c8883-a3d6-40db-adbf-728c3115bf05",
+     "tool": "save_space"
+    },
+    "created": "2026-11-18T21:51:45Z",
+    "id": "d964211c-bc68-4fc5-8bb2-151220dafc09",
+    "role": "tool",
+    "state": "complete"
+   },
+   {
+    "body": {
+     "arguments": {
+      "definition": {
+       "components": [
+        {
+         "id": "stock_counter_app",
+         "spaceID": "stock_counter_space",
+         "title": "Stock counter",
+         "type": "app"
+        }
+       ],
+       "version": 1
+      },
+      "title": "Stock counter"
+     },
+     "assistantText": "",
+     "callID": "call_2e1dbae2-b2ae-4880-9272-a8e62c7929bc",
+     "receiptID": "bcd8f43e-0684-46f1-be46-883239a7cb86",
+     "receiptVersion": 1,
+     "result": {
+      "error": "Space not found.",
+      "receiptID": "bcd8f43e-0684-46f1-be46-883239a7cb86",
+      "retryInstruction": "The call did not finish successfully. Completed changes remain saved. Inspect the receipt and workbook state before retrying; do not claim no changes occurred. Fix the reported arguments when applicable."
+     },
+     "resultHash": "4499d6140371248e86bf8eb02f027d8cb451f68d34c85761a367b401c2676053",
+     "resultIdentity": {},
+     "runID": "8c4c8883-a3d6-40db-adbf-728c3115bf05",
+     "tool": "save_space"
+    },
+    "created": "2026-11-18T21:51:52Z",
+    "id": "f15f3efc-63c9-4fe5-bb7d-d81120fed77b",
+    "role": "tool",
+    "state": "complete"
+   },
+   {
+    "body": {
+     "arguments": {
+      "definition": {
+       "components": [
+        {
+         "id": "text1",
+         "text": "This is the Stock Counter space.",
+         "title": "Stock Counter Space",
+         "type": "text"
+        }
+       ],
+       "version": 1
+      },
+      "title": "Stock counter"
+     },
+     "assistantText": "",
+     "callID": "call_e77d9de2-95b9-454b-a7a9-1b75a9905c6b",
+     "receiptID": "8df01651-e09b-4cf4-855f-1756413bff46",
+     "receiptVersion": 1,
+     "result": {
+      "spaceID": "8c4c8883-a3d6-40db-adbf-728c3115bf05-043f87eb1988b3689661d75b"
+     },
+     "resultHash": "3a2289b6955655add0a31869b461afab857eba06c5fae9c394b0c30e391b2d66",
+     "resultIdentity": {},
+     "runID": "8c4c8883-a3d6-40db-adbf-728c3115bf05",
+     "tool": "save_space"
+    },
+    "created": "2026-11-18T21:51:59Z",
+    "id": "0173bc88-2e7f-4e02-995a-a1c73849aa52",
+    "role": "tool",
+    "state": "complete"
+   },
+   {
+    "body": {
+     "arguments": {
+      "edits": [
+       {
+        "at": "last",
+        "component": {
+         "id": "stock_counter_app",
+         "spaceID": "8c4c8883-a3d6-40db-adbf-728c3115bf05-043f87eb1988b3689661d75b",
+         "title": "Stock counter",
+         "type": "app"
+        },
+        "operation": "insert"
+       }
+      ],
+      "expectedVersion": 1,
+      "id": "8c4c8883-a3d6-40db-adbf-728c3115bf05-043f87eb1988b3689661d75b"
+     },
+     "assistantText": "",
+     "callID": "call_09638f25-5488-4b6e-8467-f9d8ee225317",
+     "receiptID": "f697399a-cb3e-4acf-879a-3db91ae94fcd",
+     "receiptVersion": 1,
+     "result": {
+      "error": "Choose a programmable app space.",
+      "receiptID": "f697399a-cb3e-4acf-879a-3db91ae94fcd",
+      "retryInstruction": "The call did not finish successfully. Completed changes remain saved. Inspect the receipt and workbook state before retrying; do not claim no changes occurred. Fix the reported arguments when applicable."
+     },
+     "resultHash": "496ccacc5c2aa440ab7b4f1eb20266547bc18c4cc76e817b901d2055a30ff7f9",
+     "resultIdentity": {},
+     "runID": "8c4c8883-a3d6-40db-adbf-728c3115bf05",
+     "tool": "edit_space"
+    },
+    "created": "2026-11-18T21:52:06Z",
+    "id": "6016afe7-1894-4e97-a0bb-29c00e64dec8",
+    "role": "tool",
+    "state": "complete"
+   },
+   {
+    "body": {
+     "arguments": {
+      "definition": {
+       "components": [
+        {
+         "id": "stock_counter_app",
+         "spaceID": "8c4c8883-a3d6-40db-adbf-728c3115bf05-043f87eb1988b3689661d75b",
+         "title": "Stock counter",
+         "type": "app"
+        }
+       ],
+       "version": 1
+      },
+      "title": "Stock counter"
+     },
+     "assistantText": "",
+     "callID": "call_1de8f317-a4bb-4fbd-aed6-1128d9e4ba70",
+     "receiptID": "dddcd68a-d34f-48ab-93b5-b07fedbe5c34",
+     "receiptVersion": 1,
+     "result": {
+      "error": "A space titled Stock counter already exists. Do not save it again. Use edit_space to change it, or continue with the remaining work.",
+      "receiptID": "dddcd68a-d34f-48ab-93b5-b07fedbe5c34",
+      "retryInstruction": "The call did not finish successfully. Completed changes remain saved. Inspect the receipt and workbook state before retrying; do not claim no changes occurred. Fix the reported arguments when applicable."
+     },
+     "resultHash": "d94032f60a2b6d5e9bcc9e77a2df0856e78227b1913cb26d001fe8e7dd60e660",
+     "resultIdentity": {},
+     "runID": "8c4c8883-a3d6-40db-adbf-728c3115bf05",
+     "tool": "save_space"
+    },
+    "created": "2026-11-18T21:52:17Z",
+    "id": "a3032abd-17b9-4864-85a7-fe074a1d76f8",
+    "role": "tool",
+    "state": "complete"
+   },
+   {
+    "body": {
+     "arguments": {
+      "definition": {
+       "components": [
+        {
+         "id": "stock_counter_app",
+         "spaceID": "stock_counter_programmable_space",
+         "title": "Stock counter",
+         "type": "app"
+        }
+       ],
+       "version": 1
+      },
+      "title": "Stock Counter App Space"
+     },
+     "assistantText": "",
+     "callID": "call_6826eab2-df96-4ae2-8c12-c8fd17377c81",
+     "receiptID": "5feeb438-f202-4869-8720-984f2e716597",
+     "receiptVersion": 1,
+     "result": {
+      "error": "Space not found.",
+      "receiptID": "5feeb438-f202-4869-8720-984f2e716597",
+      "retryInstruction": "The call did not finish successfully. Completed changes remain saved. Inspect the receipt and workbook state before retrying; do not claim no changes occurred. Fix the reported arguments when applicable."
+     },
+     "resultHash": "ec620693f456fc7560e36ab2e8d43edd9f3bb04c568ddf5486176f537b3b6771",
+     "resultIdentity": {},
+     "runID": "8c4c8883-a3d6-40db-adbf-728c3115bf05",
+     "tool": "save_space"
+    },
+    "created": "2026-11-18T21:52:26Z",
+    "id": "4135ac66-1128-47ef-9553-e74daff66120",
+    "role": "tool",
+    "state": "complete"
+   },
+   {
+    "body": "This request reached its step limit. Completed changes are saved. Ask to continue, or narrow the question.",
+    "created": "2026-11-18T21:52:26Z",
+    "id": "bdfa725f-9119-42c1-b012-c4582eeada99",
+    "role": "assistant",
+    "state": "failed"
+   }
+  ]
+ },
+ "runs": [
+  {
+   "conversation_id": "main",
+   "created": "2026-11-18T21:51:02Z",
+   "id": "8c4c8883-a3d6-40db-adbf-728c3115bf05",
+   "metrics": [
+    {
+     "host": "tool_profile",
+     "profile": "general"
+    },
+    {
+     "acceptedDraftTokens": 162,
+     "activations": "bf16",
+     "backend": "splash-native-candidate",
+     "beforeDispatchSeconds": 7.03029191668611,
+     "contextTokens": 65536,
+     "decodeSeconds": 3.789354,
+     "deduplicatedKVTokens": 0,
+     "diagnosticRequestCacheIsolation": false,
+     "draftedTokens": 406,
+     "engineSHA256": "ce771e5f51081a2fd60df0ee0083f982a278a863ffaeab29fd590f55e9e36e89",
+     "firstAnswerPreviewSeconds": null,
+     "firstTokenSeconds": 2.72289883333724,
+     "generatedTokens": 221,
+     "grammarSHA256": "5b96c275e9c1a2e618a54a4814a6d9c0de116285e8ffd0814aea01a5c8eecdf1",
+     "helperStartSeconds": 4.407472250051796,
+     "hostPreparationSeconds": 0.0001591666368767619,
+     "maintenanceRecommended": false,
+     "maintenanceThreshold": 49152,
+     "matchedPromptTokens": 6112,
+     "nextToolResultReserve": 3546,
+     "outputBudget": 1800,
+     "prefillSeconds": 2.718912,
+     "prefixPrimeMatchedTokens": 0,
+     "prefixPrimePrefillSeconds": 2.59952,
+     "prefixPrimeSeconds": 2.599681208259426,
+     "prefixPrimeTokens": 6114,
+     "promptTokens": 11208,
+     "reasoningBudget": 512,
+     "reasoningBudgetOverrun": 0,
+     "reasoningHistory": "within-request",
+     "reasoningTokens": 187,
+     "recoveryReserve": 256,
+     "replayBoundaryTokens": 11200,
+     "requestSeconds": 6.512256250018254,
+     "requestedContextTokens": 65536,
+     "requestedMemoryBytes": 12884901888,
+     "requestedOutputBudget": 1800,
+     "runtimeRelease": "1.6.1",
+     "scopePrefixTokens": 10551,
+     "speculativeMethod": "DFlash2",
+     "stablePrefixTokens": 6114,
+     "templateIdentity": "aee46acfcba8e4e7aec7512126b926aa311bf7414d0d96ad3b13a86d5bdfe9d3",
+     "toolScope": "all"
+    },
+    {
+     "acceptedDraftTokens": 171,
+     "activations": "bf16",
+     "backend": "splash-native-candidate",
+     "beforeDispatchSeconds": 1.8709605833282694,
+     "contextTokens": 65536,
+     "decodeSeconds": 4.193806,
+     "deduplicatedKVTokens": 224,
+     "diagnosticRequestCacheIsolation": false,
+     "draftedTokens": 420,
+     "engineSHA256": "ce771e5f51081a2fd60df0ee0083f982a278a863ffaeab29fd590f55e9e36e89",
+     "firstAnswerPreviewSeconds": null,
+     "firstTokenSeconds": 1.0789908750448376,
+     "generatedTokens": 232,
+     "grammarSHA256": "5b96c275e9c1a2e618a54a4814a6d9c0de116285e8ffd0814aea01a5c8eecdf1",
+     "helperStartSeconds": 2.916203811764717e-07,
+     "hostPreparationSeconds": 0.0001443750225007534,
+     "maintenanceRecommended": false,
+     "maintenanceThreshold": 49152,
+     "matchedPromptTokens": 11200,
+     "nextToolResultReserve": 3546,
+     "outputBudget": 1800,
+     "prefillSeconds": 1.074671,
+     "prefixPrimeMatchedTokens": 8192,
+     "prefixPrimePrefillSeconds": 1.843756,
+     "prefixPrimeSeconds": 1.8479712082771584,
+     "prefixPrimeTokens": 10551,
+     "promptTokens": 11586,
+     "reasoningBudget": 512,
+     "reasoningBudgetOverrun": 0,
+     "reasoningHistory": "within-request",
+     "reasoningTokens": 154,
+     "recoveryReserve": 256,
+     "replayBoundaryTokens": 11552,
+     "requestSeconds": 5.272805916611105,
+     "requestedContextTokens": 65536,
+     "requestedMemoryBytes": 12884901888,
+     "requestedOutputBudget": 1800,
+     "runtimeRelease": "1.6.1",
+     "scopePrefixTokens": 10551,
+     "speculativeMethod": "DFlash2",
+     "stablePrefixTokens": 6114,
+     "templateIdentity": "aee46acfcba8e4e7aec7512126b926aa311bf7414d0d96ad3b13a86d5bdfe9d3",
+     "toolScope": "all"
+    },
+    {
+     "acceptedDraftTokens": 33,
+     "activations": "bf16",
+     "backend": "splash-native-candidate",
+     "beforeDispatchSeconds": 0.00030183326452970505,
+     "contextTokens": 65536,
+     "decodeSeconds": 1.242519,
+     "deduplicatedKVTokens": 192,
+     "diagnosticRequestCacheIsolation": false,
+     "draftedTokens": 133,
+     "engineSHA256": "ce771e5f51081a2fd60df0ee0083f982a278a863ffaeab29fd590f55e9e36e89",
+     "firstAnswerPreviewSeconds": null,
+     "firstTokenSeconds": 1.0971564166247845,
+     "generatedTokens": 53,
+     "grammarSHA256": "5b96c275e9c1a2e618a54a4814a6d9c0de116285e8ffd0814aea01a5c8eecdf1",
+     "helperStartSeconds": 2.916203811764717e-07,
+     "hostPreparationSeconds": 0.00016841664910316467,
+     "maintenanceRecommended": false,
+     "maintenanceThreshold": 49152,
+     "matchedPromptTokens": 11552,
+     "nextToolResultReserve": 3546,
+     "outputBudget": 1800,
+     "prefillSeconds": 1.092772,
+     "prefixPrimeMatchedTokens": 0,
+     "prefixPrimePrefillSeconds": 0,
+     "prefixPrimeSeconds": 0,
+     "prefixPrimeTokens": 0,
+     "promptTokens": 11916,
+     "reasoningBudget": 512,
+     "reasoningBudgetOverrun": 0,
+     "reasoningHistory": "within-request",
+     "reasoningTokens": 37,
+     "recoveryReserve": 256,
+     "replayBoundaryTokens": 11904,
+     "requestSeconds": 2.339672500034794,
+     "requestedContextTokens": 65536,
+     "requestedMemoryBytes": 12884901888,
+     "requestedOutputBudget": 1800,
+     "runtimeRelease": "1.6.1",
+     "scopePrefixTokens": 10551,
+     "speculativeMethod": "DFlash2",
+     "stablePrefixTokens": 6114,
+     "templateIdentity": "aee46acfcba8e4e7aec7512126b926aa311bf7414d0d96ad3b13a86d5bdfe9d3",
+     "toolScope": "all"
+    },
+    {
+     "acceptedDraftTokens": 83,
+     "activations": "bf16",
+     "backend": "splash-native-candidate",
+     "beforeDispatchSeconds": 0.0003302916884422302,
+     "contextTokens": 65536,
+     "decodeSeconds": 2.278905,
+     "deduplicatedKVTokens": 64,
+     "diagnosticRequestCacheIsolation": false,
+     "draftedTokens": 210,
+     "engineSHA256": "ce771e5f51081a2fd60df0ee0083f982a278a863ffaeab29fd590f55e9e36e89",
+     "firstAnswerPreviewSeconds": null,
+     "firstTokenSeconds": 1.0663473749300465,
+     "generatedTokens": 114,
+     "grammarSHA256": "5b96c275e9c1a2e618a54a4814a6d9c0de116285e8ffd0814aea01a5c8eecdf1",
+     "helperStartSeconds": 1.6659032553434372e-07,
+     "hostPreparationSeconds": 0.00018462503794580698,
+     "maintenanceRecommended": false,
+     "maintenanceThreshold": 49152,
+     "matchedPromptTokens": 11904,
+     "nextToolResultReserve": 3546,
+     "outputBudget": 1800,
+     "prefillSeconds": 1.061675,
+     "prefixPrimeMatchedTokens": 0,
+     "prefixPrimePrefillSeconds": 0,
+     "prefixPrimeSeconds": 0,
+     "prefixPrimeTokens": 0,
+     "promptTokens": 12248,
+     "reasoningBudget": 512,
+     "reasoningBudgetOverrun": 0,
+     "reasoningHistory": "within-request",
+     "reasoningTokens": 36,
+     "recoveryReserve": 256,
+     "replayBoundaryTokens": 12224,
+     "requestSeconds": 3.34525258326903,
+     "requestedContextTokens": 65536,
+     "requestedMemoryBytes": 12884901888,
+     "requestedOutputBudget": 1800,
+     "runtimeRelease": "1.6.1",
+     "scopePrefixTokens": 10551,
+     "speculativeMethod": "DFlash2",
+     "stablePrefixTokens": 6114,
+     "templateIdentity": "aee46acfcba8e4e7aec7512126b926aa311bf7414d0d96ad3b13a86d5bdfe9d3",
+     "toolScope": "all"
+    },
+    {
+     "acceptedDraftTokens": 196,
+     "activations": "bf16",
+     "backend": "splash-native-candidate",
+     "beforeDispatchSeconds": 0.00037404161412268877,
+     "contextTokens": 65536,
+     "decodeSeconds": 4.633904,
+     "deduplicatedKVTokens": 64,
+     "diagnosticRequestCacheIsolation": false,
+     "draftedTokens": 567,
+     "engineSHA256": "ce771e5f51081a2fd60df0ee0083f982a278a863ffaeab29fd590f55e9e36e89",
+     "firstAnswerPreviewSeconds": null,
+     "firstTokenSeconds": 1.0588408750481904,
+     "generatedTokens": 278,
+     "grammarSHA256": "5b96c275e9c1a2e618a54a4814a6d9c0de116285e8ffd0814aea01a5c8eecdf1",
+     "helperStartSeconds": 3.332970663905144e-07,
+     "hostPreparationSeconds": 0.0002285416703671217,
+     "maintenanceRecommended": false,
+     "maintenanceThreshold": 49152,
+     "matchedPromptTokens": 12224,
+     "nextToolResultReserve": 3546,
+     "outputBudget": 1800,
+     "prefillSeconds": 1.054071,
+     "prefixPrimeMatchedTokens": 0,
+     "prefixPrimePrefillSeconds": 0,
+     "prefixPrimeSeconds": 0,
+     "prefixPrimeTokens": 0,
+     "promptTokens": 12463,
+     "reasoningBudget": 512,
+     "reasoningBudgetOverrun": 0,
+     "reasoningHistory": "within-request",
+     "reasoningTokens": 186,
+     "recoveryReserve": 256,
+     "replayBoundaryTokens": 12448,
+     "requestSeconds": 5.692747583379969,
+     "requestedContextTokens": 65536,
+     "requestedMemoryBytes": 12884901888,
+     "requestedOutputBudget": 1800,
+     "runtimeRelease": "1.6.1",
+     "scopePrefixTokens": 10551,
+     "speculativeMethod": "DFlash2",
+     "stablePrefixTokens": 6114,
+     "templateIdentity": "aee46acfcba8e4e7aec7512126b926aa311bf7414d0d96ad3b13a86d5bdfe9d3",
+     "toolScope": "all"
+    },
+    {
+     "acceptedDraftTokens": 94,
+     "activations": "bf16",
+     "backend": "splash-native-candidate",
+     "beforeDispatchSeconds": 0.00033704156521707773,
+     "contextTokens": 65536,
+     "decodeSeconds": 2.232063,
+     "deduplicatedKVTokens": 192,
+     "diagnosticRequestCacheIsolation": false,
+     "draftedTokens": 161,
+     "engineSHA256": "ce771e5f51081a2fd60df0ee0083f982a278a863ffaeab29fd590f55e9e36e89",
+     "firstAnswerPreviewSeconds": null,
+     "firstTokenSeconds": 1.1703576250001788,
+     "generatedTokens": 118,
+     "grammarSHA256": "5b96c275e9c1a2e618a54a4814a6d9c0de116285e8ffd0814aea01a5c8eecdf1",
+     "helperStartSeconds": 2.9173679649829865e-07,
+     "hostPreparationSeconds": 0.00020929158199578524,
+     "maintenanceRecommended": false,
+     "maintenanceThreshold": 49152,
+     "matchedPromptTokens": 12448,
+     "nextToolResultReserve": 3546,
+     "outputBudget": 1800,
+     "prefillSeconds": 1.165911,
+     "prefixPrimeMatchedTokens": 0,
+     "prefixPrimePrefillSeconds": 0,
+     "prefixPrimeSeconds": 0,
+     "prefixPrimeTokens": 0,
+     "promptTokens": 12851,
+     "reasoningBudget": 512,
+     "reasoningBudgetOverrun": 0,
+     "reasoningHistory": "within-request",
+     "reasoningTokens": 20,
+     "recoveryReserve": 256,
+     "replayBoundaryTokens": 12832,
+     "requestSeconds": 3.4024025416001678,
+     "requestedContextTokens": 65536,
+     "requestedMemoryBytes": 12884901888,
+     "requestedOutputBudget": 1800,
+     "runtimeRelease": "1.6.1",
+     "scopePrefixTokens": 10551,
+     "speculativeMethod": "DFlash2",
+     "stablePrefixTokens": 6114,
+     "templateIdentity": "aee46acfcba8e4e7aec7512126b926aa311bf7414d0d96ad3b13a86d5bdfe9d3",
+     "toolScope": "all"
+    },
+    {
+     "acceptedDraftTokens": 170,
+     "activations": "bf16",
+     "backend": "splash-native-candidate",
+     "beforeDispatchSeconds": 0.0003792083589360118,
+     "contextTokens": 65536,
+     "decodeSeconds": 4.288173,
+     "deduplicatedKVTokens": 32,
+     "diagnosticRequestCacheIsolation": false,
+     "draftedTokens": 476,
+     "engineSHA256": "ce771e5f51081a2fd60df0ee0083f982a278a863ffaeab29fd590f55e9e36e89",
+     "firstAnswerPreviewSeconds": null,
+     "firstTokenSeconds": 1.1959734166739509,
+     "generatedTokens": 239,
+     "grammarSHA256": "5b96c275e9c1a2e618a54a4814a6d9c0de116285e8ffd0814aea01a5c8eecdf1",
+     "helperStartSeconds": 3.332970663905144e-07,
+     "hostPreparationSeconds": 0.0002340000355616212,
+     "maintenanceRecommended": false,
+     "maintenanceThreshold": 49152,
+     "matchedPromptTokens": 12832,
+     "nextToolResultReserve": 3546,
+     "outputBudget": 1800,
+     "prefillSeconds": 1.194634,
+     "prefixPrimeMatchedTokens": 0,
+     "prefixPrimePrefillSeconds": 0,
+     "prefixPrimeSeconds": 0,
+     "prefixPrimeTokens": 0,
+     "promptTokens": 13074,
+     "reasoningBudget": 512,
+     "reasoningBudgetOverrun": 0,
+     "reasoningHistory": "within-request",
+     "reasoningTokens": 161,
+     "recoveryReserve": 256,
+     "replayBoundaryTokens": 13056,
+     "requestSeconds": 5.484142291708849,
+     "requestedContextTokens": 65536,
+     "requestedMemoryBytes": 12884901888,
+     "requestedOutputBudget": 1800,
+     "runtimeRelease": "1.6.1",
+     "scopePrefixTokens": 10551,
+     "speculativeMethod": "DFlash2",
+     "stablePrefixTokens": 6114,
+     "templateIdentity": "aee46acfcba8e4e7aec7512126b926aa311bf7414d0d96ad3b13a86d5bdfe9d3",
+     "toolScope": "all"
+    },
+    {
+     "acceptedDraftTokens": 232,
+     "activations": "bf16",
+     "backend": "splash-native-candidate",
+     "beforeDispatchSeconds": 0.0003530000103637576,
+     "contextTokens": 65536,
+     "decodeSeconds": 6.166651,
+     "deduplicatedKVTokens": 192,
+     "diagnosticRequestCacheIsolation": false,
+     "draftedTokens": 707,
+     "engineSHA256": "ce771e5f51081a2fd60df0ee0083f982a278a863ffaeab29fd590f55e9e36e89",
+     "firstAnswerPreviewSeconds": null,
+     "firstTokenSeconds": 1.2022421249421313,
+     "generatedTokens": 334,
+     "grammarSHA256": "5b96c275e9c1a2e618a54a4814a6d9c0de116285e8ffd0814aea01a5c8eecdf1",
+     "helperStartSeconds": 2.9173679649829865e-07,
+     "hostPreparationSeconds": 0.00022533326409757137,
+     "maintenanceRecommended": false,
+     "maintenanceThreshold": 49152,
+     "matchedPromptTokens": 13056,
+     "nextToolResultReserve": 3546,
+     "outputBudget": 1800,
+     "prefillSeconds": 1.200929,
+     "prefixPrimeMatchedTokens": 0,
+     "prefixPrimePrefillSeconds": 0,
+     "prefixPrimeSeconds": 0,
+     "prefixPrimeTokens": 0,
+     "promptTokens": 13415,
+     "reasoningBudget": 512,
+     "reasoningBudgetOverrun": 0,
+     "reasoningHistory": "within-request",
+     "reasoningTokens": 254,
+     "recoveryReserve": 256,
+     "replayBoundaryTokens": 13408,
+     "requestSeconds": 7.368885333300568,
+     "requestedContextTokens": 65536,
+     "requestedMemoryBytes": 12884901888,
+     "requestedOutputBudget": 1800,
+     "runtimeRelease": "1.6.1",
+     "scopePrefixTokens": 10551,
+     "speculativeMethod": "DFlash2",
+     "stablePrefixTokens": 6114,
+     "templateIdentity": "aee46acfcba8e4e7aec7512126b926aa311bf7414d0d96ad3b13a86d5bdfe9d3",
+     "toolScope": "all"
+    },
+    {
+     "acceptedDraftTokens": 213,
+     "activations": "bf16",
+     "backend": "splash-native-candidate",
+     "beforeDispatchSeconds": 0.00037895841524004936,
+     "contextTokens": 65536,
+     "decodeSeconds": 5.239403,
+     "deduplicatedKVTokens": 256,
+     "diagnosticRequestCacheIsolation": false,
+     "draftedTokens": 539,
+     "engineSHA256": "ce771e5f51081a2fd60df0ee0083f982a278a863ffaeab29fd590f55e9e36e89",
+     "firstAnswerPreviewSeconds": null,
+     "firstTokenSeconds": 1.2532923750113696,
+     "generatedTokens": 291,
+     "grammarSHA256": "5b96c275e9c1a2e618a54a4814a6d9c0de116285e8ffd0814aea01a5c8eecdf1",
+     "helperStartSeconds": 3.332970663905144e-07,
+     "hostPreparationSeconds": 0.000254875048995018,
+     "maintenanceRecommended": false,
+     "maintenanceThreshold": 49152,
+     "matchedPromptTokens": 13408,
+     "nextToolResultReserve": 3546,
+     "outputBudget": 1800,
+     "prefillSeconds": 1.251986,
+     "prefixPrimeMatchedTokens": 0,
+     "prefixPrimePrefillSeconds": 0,
+     "prefixPrimeSeconds": 0,
+     "prefixPrimeTokens": 0,
+     "promptTokens": 13847,
+     "reasoningBudget": 512,
+     "reasoningBudgetOverrun": 0,
+     "reasoningHistory": "within-request",
+     "reasoningTokens": 208,
+     "recoveryReserve": 256,
+     "replayBoundaryTokens": 13824,
+     "requestSeconds": 6.492688124999404,
+     "requestedContextTokens": 65536,
+     "requestedMemoryBytes": 12884901888,
+     "requestedOutputBudget": 1800,
+     "runtimeRelease": "1.6.1",
+     "scopePrefixTokens": 10551,
+     "speculativeMethod": "DFlash2",
+     "stablePrefixTokens": 6114,
+     "templateIdentity": "aee46acfcba8e4e7aec7512126b926aa311bf7414d0d96ad3b13a86d5bdfe9d3",
+     "toolScope": "all"
+    },
+    {
+     "acceptedDraftTokens": 244,
+     "activations": "bf16",
+     "backend": "splash-native-candidate",
+     "beforeDispatchSeconds": 0.0004727916093543172,
+     "contextTokens": 65536,
+     "decodeSeconds": 5.649788,
+     "deduplicatedKVTokens": 224,
+     "diagnosticRequestCacheIsolation": false,
+     "draftedTokens": 378,
+     "engineSHA256": "ce771e5f51081a2fd60df0ee0083f982a278a863ffaeab29fd590f55e9e36e89",
+     "firstAnswerPreviewSeconds": null,
+     "firstTokenSeconds": 1.2208738750778139,
+     "generatedTokens": 299,
+     "grammarSHA256": "5b96c275e9c1a2e618a54a4814a6d9c0de116285e8ffd0814aea01a5c8eecdf1",
+     "helperStartSeconds": 3.332970663905144e-07,
+     "hostPreparationSeconds": 0.0003160416381433606,
+     "maintenanceRecommended": false,
+     "maintenanceThreshold": 49152,
+     "matchedPromptTokens": 13824,
+     "nextToolResultReserve": 3546,
+     "outputBudget": 1800,
+     "prefillSeconds": 1.219444,
+     "prefixPrimeMatchedTokens": 0,
+     "prefixPrimePrefillSeconds": 0,
+     "prefixPrimeSeconds": 0,
+     "prefixPrimeTokens": 0,
+     "promptTokens": 14211,
+     "reasoningBudget": 512,
+     "reasoningBudgetOverrun": 0,
+     "reasoningHistory": "within-request",
+     "reasoningTokens": 95,
+     "recoveryReserve": 256,
+     "replayBoundaryTokens": 14176,
+     "requestSeconds": 6.870654666679911,
+     "requestedContextTokens": 65536,
+     "requestedMemoryBytes": 12884901888,
+     "requestedOutputBudget": 1800,
+     "runtimeRelease": "1.6.1",
+     "scopePrefixTokens": 10551,
+     "speculativeMethod": "DFlash2",
+     "stablePrefixTokens": 6114,
+     "templateIdentity": "aee46acfcba8e4e7aec7512126b926aa311bf7414d0d96ad3b13a86d5bdfe9d3",
+     "toolScope": "all"
+    },
+    {
+     "acceptedDraftTokens": 468,
+     "activations": "bf16",
+     "backend": "splash-native-candidate",
+     "beforeDispatchSeconds": 0.0004350832896307111,
+     "contextTokens": 65536,
+     "decodeSeconds": 9.267692,
+     "deduplicatedKVTokens": 128,
+     "diagnosticRequestCacheIsolation": false,
+     "draftedTokens": 945,
+     "engineSHA256": "ce771e5f51081a2fd60df0ee0083f982a278a863ffaeab29fd590f55e9e36e89",
+     "firstAnswerPreviewSeconds": null,
+     "firstTokenSeconds": 1.4281647083116695,
+     "generatedTokens": 604,
+     "grammarSHA256": "5b96c275e9c1a2e618a54a4814a6d9c0de116285e8ffd0814aea01a5c8eecdf1",
+     "helperStartSeconds": 2.916203811764717e-07,
+     "hostPreparationSeconds": 0.0003002083394676447,
+     "maintenanceRecommended": false,
+     "maintenanceThreshold": 49152,
+     "matchedPromptTokens": 14176,
+     "nextToolResultReserve": 3546,
+     "outputBudget": 1800,
+     "prefillSeconds": 1.426756,
+     "prefixPrimeMatchedTokens": 0,
+     "prefixPrimePrefillSeconds": 0,
+     "prefixPrimeSeconds": 0,
+     "prefixPrimeTokens": 0,
+     "promptTokens": 14610,
+     "reasoningBudget": 512,
+     "reasoningBudgetOverrun": 0,
+     "reasoningHistory": "within-request",
+     "reasoningTokens": 473,
+     "recoveryReserve": 256,
+     "replayBoundaryTokens": 14592,
+     "requestSeconds": 10.695847708266228,
+     "requestedContextTokens": 65536,
+     "requestedMemoryBytes": 12884901888,
+     "requestedOutputBudget": 1800,
+     "runtimeRelease": "1.6.1",
+     "scopePrefixTokens": 10551,
+     "speculativeMethod": "DFlash2",
+     "stablePrefixTokens": 6114,
+     "templateIdentity": "aee46acfcba8e4e7aec7512126b926aa311bf7414d0d96ad3b13a86d5bdfe9d3",
+     "toolScope": "all"
+    },
+    {
+     "acceptedDraftTokens": 211,
+     "activations": "bf16",
+     "backend": "splash-native-candidate",
+     "beforeDispatchSeconds": 0.0004266249015927315,
+     "contextTokens": 65536,
+     "decodeSeconds": 8.232801,
+     "deduplicatedKVTokens": 480,
+     "diagnosticRequestCacheIsolation": false,
+     "draftedTokens": 518,
+     "engineSHA256": "ce771e5f51081a2fd60df0ee0083f982a278a863ffaeab29fd590f55e9e36e89",
+     "firstAnswerPreviewSeconds": null,
+     "firstTokenSeconds": 1.4565142083447427,
+     "generatedTokens": 286,
+     "grammarSHA256": "5b96c275e9c1a2e618a54a4814a6d9c0de116285e8ffd0814aea01a5c8eecdf1",
+     "helperStartSeconds": 2.9173679649829865e-07,
+     "hostPreparationSeconds": 0.00029162492137402296,
+     "maintenanceRecommended": false,
+     "maintenanceThreshold": 49152,
+     "matchedPromptTokens": 14592,
+     "nextToolResultReserve": 3546,
+     "outputBudget": 1800,
+     "prefillSeconds": 1.455214,
+     "prefixPrimeMatchedTokens": 0,
+     "prefixPrimePrefillSeconds": 0,
+     "prefixPrimeSeconds": 0,
+     "prefixPrimeTokens": 0,
+     "promptTokens": 15332,
+     "reasoningBudget": 512,
+     "reasoningBudgetOverrun": 0,
+     "reasoningHistory": "within-request",
+     "reasoningTokens": 201,
+     "recoveryReserve": 256,
+     "replayBoundaryTokens": 15296,
+     "requestSeconds": 9.689311916590668,
+     "requestedContextTokens": 65536,
+     "requestedMemoryBytes": 12884901888,
+     "requestedOutputBudget": 1800,
+     "runtimeRelease": "1.6.1",
+     "scopePrefixTokens": 10551,
+     "speculativeMethod": "DFlash2",
+     "stablePrefixTokens": 6114,
+     "templateIdentity": "aee46acfcba8e4e7aec7512126b926aa311bf7414d0d96ad3b13a86d5bdfe9d3",
+     "toolScope": "all"
+    }
+   ],
+   "model": "Splash 1.6.1; d8af1054aab0f97de21d043e01aa98af3754f10e; Qwen3.6-35B-A3B-4bit + DFlash2; native Swift candidate; context 65536; memory 12884901888; activations bf16; KV int8; state fp32; ANE on; reasoning budget 512; within-request reasoning retained",
+   "request_message_id": "5df95376-5461-40c3-bc6e-f5e9a86e8dc1",
+   "status": "failed",
+   "steps": 12,
+   "updated": "2026-11-18T21:52:26Z"
+  }
+ ],
+ "saved": {
+  "newSpaces": [
+   {
+    "title": "Stock counter",
+    "version": 1,
+    "components": [
+     "text"
+    ]
+   }
+  ]
+ }
+}

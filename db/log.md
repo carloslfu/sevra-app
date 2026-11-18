@@ -277,3 +277,6 @@ Phase 1 baseline recorded (English: today's tools pass 12 of 23). First sql slic
 ## [2026-11-18 21:49] verification | records/plans/general-chat-tools
 Phase H1 steps 1 and 2: a header copied out of the engine's disk cache and back is taken back and resumed (6,016 of 6,020 tokens). Files 131.5 MB, sized to content. Header read 2.59 s, copy 0.12 s.
 
+## [2026-11-18 22:00] verification | records/plans/general-chat-tools
+Build jobs under the general profile: the view job passes, app, form and rule fail as they do today. Catalog columns renamed to name. Latest English evals: 16 of 19 pass, against 11 of 19 for today's tools.
+

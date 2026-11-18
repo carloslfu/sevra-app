@@ -3,7 +3,7 @@ type: operational
 meta-type: operational
 id: 01m659x4nd2q89tkpzzsssd7yr
 created: 2026-10-30T02:23:30.477380+00:00
-updated: 2026-11-18T21:49:56.272705+00:00
+updated: 2026-11-18T22:00:50.529251+00:00
 summary: Native UI Catalog implemented and locally verified, with durable agent maintenance instructions and preserved product/model qualification limits.
 title: Minimum-feature continuation handoff
 ---
@@ -15,7 +15,7 @@ title: Minimum-feature continuation handoff
 Where it stands:
 
 - **Phase 1 is done.** The host setting `SEVRA_TOOL_PROFILE` selects `current` (today's tools, byte-identical) or `general`. The baseline of today's tools is in `integration/evidence/2026-11-18-chat-jobs-baseline/`.
-- **A first slice of `sql` works under `general`.** It reads tables and inserts, updates and deletes rows, with one Undo for each changed table. On 15 English jobs it passes all 15 in 42 decisions; today's tools pass 11 in 64. The plan's section "The slice so far" lists what it does and what is left out, with reasons.
+- **A first slice of `sql` works under `general`.** It reads tables and inserts, updates and deletes rows, with one Undo for each changed table. On 19 English jobs it passes 16; today's tools pass 11. The three it fails are building an app, a form and a rule, which fail today too and wait for `save` and its guides. The plan's section "The slice so far" lists what it does and what is left out, with reasons.
 - **Nothing a person chats with has changed.** `current` stays the default until the full gate in phase 6.
 
 How to work on it:

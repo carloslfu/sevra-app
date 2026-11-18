@@ -48,7 +48,7 @@ with tempfile.TemporaryDirectory() as folder:
     start = book.values(SUPPLIERS)
 
     # Reading.
-    catalog = sql(book, "SELECT table_name, column_name, type FROM columns ORDER BY 1, 2")
+    catalog = sql(book, "SELECT table_name, name, type FROM columns ORDER BY 1, 2")
     names = {(r[0], r[1]) for r in rows(catalog)}
     expect('catalog names tables and columns',
            {('supplier_comparison', 'supplier'), ('parts', 'reorder_level'), ('reorder_levels', 'level')} <= names,
@@ -64,6 +64,8 @@ with tempfile.TemporaryDirectory() as folder:
                        "WHERE l.part IS NULL ORDER BY p.part")
     expect('joins tables', [r[0] for r in rows(joined)] == ['Hex key set', 'Torque wrench', 'Wood screws'], rows(joined))
     expect('a read saves nothing', 'changes' not in read and book.values(SUPPLIERS) == start)
+    listed = sql(book, "SELECT title, row_count FROM tables WHERE name = 'supplier_comparison'")
+    expect('tables are found by name', rows(listed) == [['Supplier comparison', '2']], rows(listed))
 
     # Row changes, each one saved transaction with an Undo.
     update = sql(book, "UPDATE supplier_comparison SET quantity = 20")

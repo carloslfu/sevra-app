@@ -489,6 +489,127 @@
    ],
    "passed": 2,
    "of": 2
+  },
+  {
+   "name": "eval-6",
+   "change": "The four build jobs, which still use today's tools for saving. No code change.",
+   "jobs": [
+    {
+     "job": "build.view",
+     "passed": true,
+     "decisions": 5,
+     "wallSeconds": 32.2,
+     "tools": [
+      "sql (failed: Statement 1: no such column: name. SELECT * FROM columns lists every table and column name.)",
+      "sql",
+      "save_space",
+      "workspace_action:visual.open_source (failed: visual.open_source was not invoked. Missing fields: index, messageID. Unexpected fields: id, type. Required arguments: {messageID:string, index:integer}. Option)",
+      "open_space (failed: Opening a space requires the active workbook window. No view was opened.)"
+     ],
+     "failure": null,
+     "answer": "Opening a space requires the active workbook window. No view was opened.\n\nSaved space \u201cPurchasing\u201d."
+    },
+    {
+     "job": "build.app",
+     "passed": false,
+     "decisions": 12,
+     "wallSeconds": 84.73,
+     "tools": [
+      "sql",
+      "save_space (failed: Space not found.)",
+      "spaces",
+      "save_space (failed: Space not found.)",
+      "edit_space (failed: Choose at:first, at:last, or beforeID for each move or insertion.)",
+      "edit_space (failed: Choose a programmable app space.)",
+      "save_space (failed: Choose a programmable app space.)",
+      "save_space (failed: Space not found.)",
+      "save_space",
+      "edit_space (failed: Choose a programmable app space.)",
+      "save_space (failed: A space titled Stock counter already exists. Do not save it again. Use edit_space to change it, or continue with the remaining work.)",
+      "save_space (failed: Space not found.)"
+     ],
+     "failure": "step_limit: This request reached its step limit. Completed changes are saved. Ask to continue, or narrow the question.",
+     "answer": ""
+    },
+    {
+     "job": "build.form",
+     "passed": false,
+     "decisions": 12,
+     "wallSeconds": 78.98,
+     "tools": [
+      "sql (failed: Statement 1: no such column: name. SELECT * FROM columns lists every table and column name.)",
+      "sql",
+      "form_template (failed: The application definition was not found.)",
+      "sql",
+      "form_template (failed: The application definition was not found.)",
+      "save_definition (failed: Use content {kind,title,description,parameters,payload}. kind is function, query, action, form, interpretation, extraction, intake, workflow or automation. Insp)",
+      "definition_registry",
+      "save_definition (failed: Authoring inputs are exact existing item version IDs, never parameter names. Omit inputs when using only this request; request lineage is automatic.)",
+      "save_definition (failed: Use a typed object with only these fields: arguments, primitive. Read definition_registry for the complete format.)",
+      "receiving_template",
+      "form_template (failed: The application definition was not found.)",
+      "save_definition (failed: Use a typed object with only these fields: action, fields, workflow. Read definition_registry for the complete format.)"
+     ],
+     "failure": "step_limit: This request reached its step limit. Completed changes are saved. Ask to continue, or narrow the question.",
+     "answer": ""
+    },
+    {
+     "job": "build.rule",
+     "passed": false,
+     "decisions": 12,
+     "wallSeconds": 146.12,
+     "tools": [
+      "find_definitions",
+      "find_definitions",
+      "find_definitions",
+      "save_definition (failed: Use content {kind,title,description,parameters,payload}. kind is function, query, action, form, interpretation, extraction, intake, workflow or automation. Insp)",
+      "definition_registry",
+      "save_definition (failed: Review one preceding draft action or intake exactly once.)",
+      "save_definition (failed: Choose one live logical ID or exact version ID.)",
+      "find_definitions",
+      "save_definition (failed: Use a typed object with only these fields: arguments, primitive. Read definition_registry for the complete format.)",
+      "receiving_template",
+      "save_definition",
+      "save_definition (failed: Each draft action or intake needs a subsequent review step.)"
+     ],
+     "failure": "step_limit: This request reached its step limit. Completed changes are saved. Ask to continue, or narrow the question.",
+     "answer": ""
+    }
+   ],
+   "passed": 1,
+   "of": 4
+  },
+  {
+   "name": "eval-7",
+   "change": "After naming the catalog columns `name`, as the model expects.",
+   "jobs": [
+    {
+     "job": "read.supplier_comparison",
+     "passed": true,
+     "decisions": 2,
+     "wallSeconds": 30.54,
+     "tools": [
+      "sql"
+     ],
+     "failure": null,
+     "answer": "Oak Supply has the lower total of 24, which is 3.5 lower than Cedar Tools' total of 27.5. This represents a 12.73% difference.\n\n[2 calculation inputs](sevra://item/280ae6a4-4118-40e6-a69a-8c86d676aa15)"
+    },
+    {
+     "job": "build.view",
+     "passed": true,
+     "decisions": 3,
+     "wallSeconds": 28.27,
+     "tools": [
+      "spaces",
+      "save_space",
+      "open_space (failed: Opening a space requires the active workbook window. No view was opened.)"
+     ],
+     "failure": null,
+     "answer": "Opening a space requires the active workbook window. No view was opened.\n\nSaved space \u201cPurchasing\u201d."
+    }
+   ],
+   "passed": 2,
+   "of": 2
   }
  ],
  "latestAgainstBaseline": {
@@ -516,9 +637,9 @@
     },
     "sql": {
      "passed": true,
-     "decisions": 4,
-     "wallSeconds": 41.08,
-     "run": "eval-2"
+     "decisions": 2,
+     "wallSeconds": 30.54,
+     "run": "eval-7"
     }
    },
    {
@@ -702,18 +823,76 @@
      "wallSeconds": 33.9,
      "run": "eval-2"
     }
+   },
+   {
+    "job": "build.view",
+    "today": {
+     "passed": false,
+     "decisions": 8,
+     "wallSeconds": 54.17
+    },
+    "sql": {
+     "passed": true,
+     "decisions": 3,
+     "wallSeconds": 28.27,
+     "run": "eval-7"
+    }
+   },
+   {
+    "job": "build.app",
+    "today": {
+     "passed": false,
+     "decisions": 11,
+     "wallSeconds": 187.21
+    },
+    "sql": {
+     "passed": false,
+     "decisions": 12,
+     "wallSeconds": 84.73,
+     "run": "eval-6"
+    }
+   },
+   {
+    "job": "build.form",
+    "today": {
+     "passed": false,
+     "decisions": 12,
+     "wallSeconds": 98.76
+    },
+    "sql": {
+     "passed": false,
+     "decisions": 12,
+     "wallSeconds": 78.98,
+     "run": "eval-6"
+    }
+   },
+   {
+    "job": "build.rule",
+    "today": {
+     "passed": false,
+     "decisions": 12,
+     "wallSeconds": 80.68
+    },
+    "sql": {
+     "passed": false,
+     "decisions": 12,
+     "wallSeconds": 146.12,
+     "run": "eval-6"
+    }
    }
   ],
   "today": {
    "passed": 11,
-   "decisions": 64,
-   "wallSeconds": 689.52
+   "of": 19,
+   "decisions": 107,
+   "wallSeconds": 1110.34
   },
   "sql": {
-   "passed": 15,
-   "decisions": 42,
-   "wallSeconds": 453.23
+   "passed": 16,
+   "of": 19,
+   "decisions": 79,
+   "wallSeconds": 780.79
   },
-  "note": "The baseline recorded draft.change as failed through a mistake in its check, since fixed."
+  "note": "The baseline recorded draft.change as failed through a mistake in its check, since fixed. The latest run of each job is used."
  }
 }
