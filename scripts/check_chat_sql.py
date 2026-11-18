@@ -1,4 +1,4 @@
-"""No-model check of the `sql` chat tool: reads, row changes, Undo, drafts and refusals.
+"""No-model check of the `sql` chat tool: reads, row changes, table shape, Undo, drafts and refusals.
 
 Each case calls the tool through the CLI on a temporary synthetic workbook, the same way a
 chat request does, and reads the workbook back. It needs no model and no engine.
@@ -92,6 +92,52 @@ with tempfile.TemporaryDirectory() as folder:
     same = sql(book, "UPDATE supplier_comparison SET quantity = quantity")
     expect('a change to the same value saves nothing', 'changes' not in same, same)
 
+    # Table shape, on a workbook of its own. Each change is saved through the recorded path.
+    shape = Book(Path(folder) / 'shape.sevra')
+    parts(shape)
+    levels(shape)
+
+    def titles(title):
+        return [c['title'] for c in shape.table(title)['columns']]
+
+    made = sql(shape, "CREATE TABLE reorder_plan (item TEXT, level REAL)",
+               "INSERT INTO reorder_plan VALUES ('Brass bolts', 12), ('Steel washers', 40), ('Hex nuts', 25)")
+    change = made.get('shape', [{}])[0]
+    expect('create reports the table', (change.get('change'), change.get('title'), change.get('columns'),
+                                        change.get('rows')) == ('created', 'Reorder plan', ['Item', 'Level'], 3), made)
+    plan = shape.values('Reorder plan') or []
+    expect('create saves the rows', [(r['item'], r['level']) for r in plan]
+           == [('Brass bolts', '12'), ('Steel washers', '40'), ('Hex nuts', '25')], plan)
+    expect('create types the columns', [c['type'] for c in shape.table('Reorder plan')['columns']]
+           == ['text', 'decimal'], shape.table('Reorder plan'))
+    sql(shape, "CREATE TABLE stock_by_category AS SELECT category, sum(stock) AS total FROM parts GROUP BY category")
+    totals = shape.values('Stock by category') or []
+    expect('create from a query', sorted((r['category'], r['total']) for r in totals)
+           == [('Fasteners', '397'), ('Tools', '2')], totals)
+    expect('a query result column is a number', [c['type'] for c in shape.table('Stock by category')['columns']]
+           == ['text', 'decimal'], shape.table('Stock by category'))
+    before = shape.values('Parts')
+    renamed = sql(shape, "ALTER TABLE parts RENAME COLUMN reorder_level TO minimum_stock")
+    expect('rename a column', 'Minimum stock' in titles('Parts') and 'Reorder level' not in titles('Parts'),
+           titles('Parts'))
+    expect('rename keeps the values', shape.values('Parts') == before)
+    shape.run('tool', 'workspace_action', renamed['shape'][0]['undo'])
+    expect('undo a rename', 'Reorder level' in titles('Parts'), titles('Parts'))
+    sql(shape, "ALTER TABLE parts ADD COLUMN bin TEXT", "UPDATE parts SET bin = 'A1' WHERE part = 'Hex nuts'")
+    binned = {r['part']: r.get('bin') for r in shape.values('Parts')}
+    expect('add a column and fill it', 'Bin' in titles('Parts') and binned['Hex nuts'] == 'A1'
+           and not binned['Brass bolts'], binned)
+    sql(shape, "ALTER TABLE parts ADD COLUMN checked TEXT DEFAULT 'no'")
+    expect('a default fills every row', {r.get('checked') for r in shape.values('Parts')} == {'no'},
+           shape.values('Parts'))
+    sql(shape, "ALTER TABLE parts DROP COLUMN bin")
+    expect('remove a column', 'Bin' not in titles('Parts') and len(shape.values('Parts')) == 6, titles('Parts'))
+    sql(shape, "ALTER TABLE reorder_levels RENAME TO minimum_levels")
+    expect('rename a table', shape.table('Reorder levels') is None and len(shape.values('Minimum levels')) == 3)
+    sql(shape, "DROP TABLE minimum_levels")
+    expect('drop archives the table', shape.table('Minimum levels') is None)
+    expect('drop left the other tables', len(shape.values('Parts')) == 6 and len(shape.values('Reorder plan')) == 3)
+
     # A draft changes nothing.
     draft = sql(book, "UPDATE supplier_comparison SET unit_cost = 2.60 WHERE supplier = 'Cedar Tools'", draft=True)
     expect('draft is saved', draft.get('drafts', [{}])[0].get('draftRows') == 1, draft)
@@ -100,9 +146,15 @@ with tempfile.TemporaryDirectory() as folder:
             "INSERT INTO supplier_comparison(supplier) VALUES ('Elm Fasteners')", draft=True)
 
     # Refusals. Each leaves the workbook as it was.
-    refused('drop', book, 'sql_shape', "DROP TABLE supplier_comparison")
-    refused('create', book, 'sql_shape', "CREATE TABLE extra(a)")
-    refused('alter', book, 'sql_shape', "ALTER TABLE supplier_comparison RENAME COLUMN unit_cost TO price_each")
+    refused('index', book, 'sql_shape', "CREATE INDEX by_part ON parts(part)")
+    refused('view', book, 'sql_shape', "CREATE VIEW cheap AS SELECT * FROM supplier_comparison")
+    refused('trigger', book, 'sql_shape', "CREATE TRIGGER t AFTER INSERT ON parts BEGIN SELECT 1; END")
+    refused('temporary table', book, 'sql_shape', "CREATE TEMP TABLE scratch(a)")
+    refused('drop a catalog table', book, 'sql', "DROP TABLE tables")
+    refused('alter a catalog table', book, 'sql', "ALTER TABLE columns ADD COLUMN extra TEXT")
+    refused('draft of a shape change', book, 'sql_draft', "ALTER TABLE parts ADD COLUMN note TEXT", draft=True)
+    refused('create then fail', book, 'sql', "CREATE TABLE extra(a)", "SELECT missing FROM extra")
+    expect('a refused call created no table', book.table('Extra') is None)
     refused('attach', book, 'sql', "ATTACH DATABASE '/tmp/sevra-check-should-not-exist.db' AS other")
     refused('pragma', book, 'sql', "PRAGMA table_info(parts)")
     refused('transaction', book, 'sql', "BEGIN")

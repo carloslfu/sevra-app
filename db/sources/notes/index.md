@@ -2,11 +2,12 @@
 type: index
 scope: type-folder
 folder: sources/notes
-updated: 2026-11-18T20:31:26.891653Z
+updated: 2026-11-18T23:38:16.799625Z
 ---
 
 # sources/notes
 
+- [[sources/notes/2026/11/general-tools-answers]] — Owner's four answers after the first sql slice: agent decides the DB.md DDL line, format changes need no compatibility, header paused, 15-digit numbers kept.
 - [[sources/notes/2026/11/fast-loop-direction]] — Owner chooses a fast test loop for the general chat tools: thin slice first, English single-run evals while building, full gate twice.
 - [[sources/notes/2026/11/general-tools-implementation]] — Owner authorizes implementing the general chat tools plan end to end. Lists what the authorization does not cover.
 - [[sources/notes/2026/11/prebuilt-header-direction]] — Owner directs that the prompt header is calculated at build time and restored at engine start, the same way in development and release. Planning only.

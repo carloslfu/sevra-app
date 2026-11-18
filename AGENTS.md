@@ -96,9 +96,11 @@ The owner's November 18 [general chat tools authorization](db/sources/notes/2026
 authorizes implementing the [general chat tools plan](db/records/plans/general-chat-tools.md)
 end to end, phase by phase on its exit criteria, with the real-model runs, development
 packaging, installation and interface checks those exits require and the same VoiceOver and
-system-setting boundaries. Phase 3 waits for the owner's change to the raw-model DDL rule in
-db/DB.md. Phases 5, H3 and H4 each wait for an owner decision the plan names. Do not push or
-publish a release for it without the owner's word.
+system-setting boundaries. His later [answers](db/sources/notes/2026/11/general-tools-answers.md)
+settle four points: model SQL may change a table's shape through the recorded write path,
+format changes for this plan need no compatibility work, the header work is paused until the
+tools are done, and `sql` keeps 15-digit numbers. Build it with the plan's fast loop. Do not
+push or publish a release for it without the owner's word.
 Test enough, as the [owner asked](db/sources/notes/2026/10/ship-with-enough-testing.md): the real
 failure and one counterexample, with the suite and install once on the candidate.
 Work directly on `main`, with no feature branch or pull request. Run `dbmd index rebuild` before

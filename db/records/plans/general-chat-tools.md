@@ -2,7 +2,7 @@
 type: operational
 id: 01m7qrcqqzh4qqr92a8frch1ze
 created: 2026-11-18T16:38:43.199010+00:00
-updated: 2026-11-18T22:00:50.508380+00:00
+updated: 2026-11-18T23:51:29.501517+00:00
 summary: Plan for seven general chat tools (model SQL on a scratch copy, sandboxed code, workbook tools) and a prompt header calculated at build time and restored at engine start. In implementation.
 title: General chat tools and a pre-read prompt header
 ---
@@ -388,46 +388,48 @@ Owner direction, November 18, 2026: [[sources/notes/2026/11/fast-loop-direction]
 2. **What the slice has from the start.** Changes go through the recorded write path, so history and Undo hold. Statements that reach outside the scratch database are refused. Row and time budgets apply.
 3. **Then the rest of phases 2 and 3,** starting with what the evals show is needed. A part of the design that no check or eval shows a need for is left out, and listed in its phase with the reason. Changing a table's shape through `sql` still waits for the `db/DB.md` change.
 4. **Phases 4 to 7 in order,** each built the same way: the smallest working form, an eval, then the rest.
-5. **Header.** Only the first question of phase H1 runs now: does a header resume from copied cache files at all. The rest of H1 and phases H2 to H4 wait until the general tools pass their evals. H3 still needs the owner's answers to P6, P8 and P9, and H4 his answer to P7. When phase 7 fixes the final header, it is made again with the same command and the header tests run again on it.
+5. **Header.** Paused by the owner on November 18, 2026 until the tools are done ([[sources/notes/2026/11/general-tools-answers]]). The size is measured again on the final header before he decides. Only the first question of phase H1 ran: does a header resume from copied cache files at all. The rest of H1 and phases H2 to H4 wait until the general tools pass their evals. H3 still needs the owner's answers to P6, P8 and P9, and H4 his answer to P7. When phase 7 fixes the final header, it is made again with the same command and the header tests run again on it.
 
 ### The slice so far
 
 Built on November 18, 2026 under the `general` profile. Evidence: [the evals](../../../integration/evidence/2026-11-18-sql-slice-evals/results.json).
 
-**Result on 19 English jobs, one run each:** 16 pass. Today's tools pass 11 of the same 19. On the 16 that pass, the slice takes 43 decisions and 471 seconds where today's tools take 72 and 744. The five that today's tools fail and the slice passes are adding rows from a document, a bulk update, adding the rows one table is missing from another, a draft change, and building a view. The first run of the slice passed 11 of 12. Four fixes came from reading the failures, each rerun with one counterexample.
+**Result on 22 English jobs, one run each:** 19 pass. Today's tools pass 11 of the same 22. On the 19 that pass, the slice takes 51 decisions and 534 seconds where today's tools take 97 and 970. The eight that today's tools fail and the slice passes are adding rows from a document, a bulk update, a new table from pasted text, a renamed column, adding the rows one table is missing from another, totals by category saved as a table, a draft change, and building a view. The first run of the slice passed 11 of 12. Six fixes came from reading the failures, each rerun with one counterexample.
 
-**Still failing under `general`, as under today's tools:** building an app, a form and a rule. The model cannot produce the definition formats, and the app job also cannot reach the app checker from the command line. These are what `save` and its guides in phase 5 are for. New table, rename column and totals as a table were not run: they need `sql` to change a table's shape.
+**Still failing under `general`, as under today's tools:** building an app, a form and a rule. The model cannot produce the definition formats, and the app job also cannot reach the app checker from the command line. These are what `save` and its guides in phase 5 are for.
 
 **What `sql` is today** ([ChatSQL.swift](../../../Sources/SevraCore/ChatSQL.swift)):
 
 - The statements run on an in-memory copy that holds only the tables they name, under SQLite-friendly names made from the titles. Two catalog tables, `tables` and `columns`, list them.
 - The request's context lists every table and its columns, so no decision is spent finding them.
+- The statements are rehearsed first on empty tables. That finds mistakes before any row is copied, and tells the host which tables to copy.
 - `INSERT`, `UPDATE` and `DELETE` are found through the trigger log and applied through the existing recorded row transaction, with one Undo for each changed table.
-- A row change by the model is recorded under a rule Source the host publishes, as native app authoring already does. This is what today's tools lack.
+- `CREATE TABLE`, `ALTER TABLE` (add, rename or remove a column, rename the table) and `DROP TABLE` are read from the copy's layout before and after each statement. They are applied as a new table, a new table definition, or an archived table, each through its existing recorded path. A renamed column keeps its identity, so formulas and bindings that use it still hold. A name such as `price_each` becomes the title "Price each".
+- A change by the model is recorded under a rule Source the host publishes, as native app authoring already does. This is what today's tools lack.
 - `draft` saves an `UPDATE` as a proposal and changes nothing.
-- Refused, with nothing changed: anything that creates, drops or reshapes a table, `ATTACH`, pragmas, transaction statements, the schema table, the host's log, the catalog tables, a formula column, more than one statement in an entry, text in a number column, and any change in a request that forbids changes.
+- Refused, with nothing changed: indexes, views, triggers and temporary tables, `ATTACH`, pragmas, transaction statements, the schema table, the host's log, the catalog tables, a formula column, more than one statement in an entry, text in a number column, a shape change in a draft, and any change in a request that forbids changes.
 - An answer may rest on a query: its figures count as computed, and the host attaches the rows it read, or the table's own Source when there are many.
 - Under the `general` profile a read sent twice in a row is answered with a pointer to the result it already has, and a second repeat makes the model finish.
-- Under the `general` profile `sql` replaces `datasets`, `rows`, `compare_rows`, `calculate` and `propose_table_edit`. Specialized phases keep today's tools.
+- Under the `general` profile `sql` replaces `datasets`, `rows`, `compare_rows`, `calculate`, `propose_table_edit` and `propose_table`. Specialized phases keep today's tools.
 
 **Checks, none needing the model:** [check_chat_sql.py](../../../scripts/check_chat_sql.py) through the command line in about ten seconds, and `sevra-agent-checks --sql-tool` with a scripted model under the AI actor.
 
 **Left out for now, with the reason:**
 
-- **The exact side table and exact functions.** Decimal cells are copied in as floating-point numbers, and every number that leaves `sql`, in a result or a written cell, is rounded to 15 significant digits. That is what a spreadsheet does. No check or eval has needed more. It differs from the workbook's exact decimal arithmetic only beyond 15 significant digits, and a stored decimal longer than that is shown rounded but never rewritten unless the statement changes it. The owner should know this is a real difference from the design under Numbers.
-- **One transaction for the whole call.** Each changed table is its own transaction, so a failure on a second table leaves the first changed. The bulk form in phase 3 fixes this.
+- **The exact side table and exact functions.** Decimal cells are copied in as floating-point numbers, and every number that leaves `sql`, in a result or a written cell, is rounded to 15 significant digits. That is what a spreadsheet does. It differs from the workbook's exact decimal arithmetic only beyond 15 significant digits, and a stored decimal longer than that is shown rounded but never rewritten unless the statement changes it. The owner chose to keep this: [[sources/notes/2026/11/general-tools-answers]]. The design under Numbers is built only if a check or an eval shows a need.
+- **One transaction for the whole call.** Each changed table, each new table and each definition change is its own transaction, so a failure on a later one leaves the earlier ones saved. The bulk form in phase 3 fixes this.
 - **More than 64 changed rows in a table per call,** the existing transaction's limit. Phase 3's bulk form.
 - **More than 20,000 rows read per call.** The fill measurement in phase 2 sets the real limit.
 - **Result receipts opened in the conversation, read-back of written cells, an Undo button in the conversation, the ledger's catalog tables, guides, and the conversation scope of `search`.** No eval job needs them yet. `balance` stays for the stock question.
-- **Drafts of inserted or deleted rows.** Today's proposals cover edits to existing rows.
-- **Changing a table's shape.** Waits for the `db/DB.md` change.
+- **Drafts of inserted or deleted rows, of a new table and of a shape change.** Today's proposals cover edits to existing rows.
+- **Rebuilding a table** by creating a new one, copying, dropping the old one and renaming. It would save a new table and archive the old one, losing the old one's history.
 
 ### Phase 0. Record the direction and get the go-ahead
 
 1. This plan and the owner notes are recorded. Done.
 2. The owner confirms or changes S1 to S3 and P1 to P5. Done on November 18, 2026: he confirmed all of them as written, then replaced P4. P6 to P9 are still his to confirm.
 3. The owner authorizes implementation, including real-model runs and installing and operating the preview for interface checks, as earlier tasks did. Done on November 18, 2026.
-4. The owner updates the store's rule against raw-model DDL in `db/DB.md`, which agents do not edit.
+4. The owner updates the store's rule against raw-model DDL in `db/DB.md`, which agents do not edit. Done on November 18, 2026: he left the choice to the agent, which changed that one line ([[sources/notes/2026/11/general-tools-answers]]).
 5. The specifications in [What this replaces](#what-this-replaces) get the new rule with a link here, in the phase that makes each one true.
 
 Exit: the owner's answers are recorded as a source note, the `db/DB.md` line is changed, and `AGENTS.md` points at this plan. Phase 3 cannot start before the `db/DB.md` change.
@@ -521,7 +523,7 @@ Exit:
 
 ### Phase 5. `save`, workbook tools and the format change
 
-Depends on phases 3 and 4. Before it starts, the owner decides what happens to workbooks made by earlier development builds, which will not open after this phase.
+Depends on phases 3 and 4. Workbooks made by earlier development builds will not open after this phase. The owner accepted that on November 18, 2026: nothing has been released, so format changes need no compatibility work ([[sources/notes/2026/11/general-tools-answers]]).
 
 1. Route `save` by kind to the existing document, record, view, app and definition paths, each keeping today's behavior. Write the guide for each kind and attach the kind's strict shape after its guide is read. Extend `read` to views, apps, tools and automations. One Undo per save.
 2. Change the canonical schema once: add the `tool` kind and anything else this plan stores. Recreate the sample workbook and the fixtures. Document the break.

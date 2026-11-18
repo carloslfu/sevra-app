@@ -1744,7 +1744,7 @@ public enum WorkbookAgent {
           if tool == "count_records", projected == result { countReceipts[receiptID] = result }
           if !WorkbookTools.readOnlyTools.contains(tool)
             && !(tool == "sql" && result["changes"].array.isEmpty
-              && result["drafts"].array.isEmpty)
+              && result["drafts"].array.isEmpty && result["shape"].array.isEmpty)
             && !(tool == "workspace_action"
               && ChatOperations.operations.first { $0.name == a["action"].text }?.readOnly == true)
             && result["status"] != .string("confirmation_required")
@@ -2045,7 +2045,7 @@ public enum WorkbookAgent {
           toolProfile == .general && !callFailed
             && (WorkbookTools.readOnlyTools.contains(tool)
               || (tool == "sql" && result["changes"].array.isEmpty
-                && result["drafts"].array.isEmpty))
+                && result["drafts"].array.isEmpty && result["shape"].array.isEmpty))
           ? ReusableCalculation(tool: tool, arguments: a, callID: call.id, receipt: receiptID)
           : nil
         if readOnly, !callFailed, !calculationInputsThisStep.receipts.isEmpty {

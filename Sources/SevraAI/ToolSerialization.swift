@@ -13,12 +13,12 @@ extension NativeTools {
   }
   /// Today's tools that `sql` replaces under the general profile.
   package static let generalReplaced: Set<String> = [
-    "datasets", "rows", "compare_rows", "calculate", "propose_table_edit",
+    "datasets", "rows", "compare_rows", "calculate", "propose_table_edit", "propose_table",
   ]
   package static let sqlDefinition = WorkbookToolDefinition(
     name: "sql",
     description:
-      "Read and change workbook tables with SQLite SQL. Table and column names are listed under Tables for sql in the request. Reads: any SELECT, with joins, WHERE, GROUP BY and arithmetic. Row changes: INSERT, UPDATE, DELETE, saved at once with one Undo. For a draft the user reviews first, send the UPDATE with draft=true. Cannot create or reshape tables.",
+      "Read and change workbook tables with SQLite SQL. Table and column names are listed under Tables for sql in the request. Reads: any SELECT, with joins, WHERE, GROUP BY and arithmetic. Row changes: INSERT, UPDATE, DELETE, saved at once with Undo. Tables: CREATE TABLE, ALTER TABLE (ADD, RENAME or DROP COLUMN, RENAME TO) and DROP TABLE, which archives. For a draft the user reviews first, send the UPDATE with draft=true.",
     parameters: object(
       [
         "statements": .object([

@@ -92,10 +92,34 @@ func checkSQLTool() async throws {
   try expectEqual(try Numbers.decimal(cedar["total"]?.text ?? ""), try Numbers.decimal("26"))
   let updated = try values()
 
+  // A new table and a renamed column are definition changes, which the write path also
+  // accepts from the AI actor only under a rule.
+  let shape = ScriptedCalls(
+    [
+      sql(
+        "CREATE TABLE reorder_levels (item TEXT, level REAL)",
+        "INSERT INTO reorder_levels VALUES ('Brass bolts', 12), ('Hex nuts', 25)",
+        "ALTER TABLE supplier_comparison RENAME COLUMN quantity TO units"),
+      finish("Created Reorder levels and renamed the column.", basis: "completed_action"),
+    ], toolProfile: .general)
+  let shaped = try await WorkbookAgent.run(
+    "Create a table named Reorder levels with Item and Level, and rename Quantity to Units.",
+    workbook: book, model: shape)
+  try expectEqual(shaped.state, "complete")
+  let reshaped = try await toolResult(shape)
+  try expectEqual(reshaped["error"], .null)
+  try expectEqual(reshaped["shape"].array.count, 2)
+  let levels = try expectValue(try book.datasets().first { $0.title == "Reorder levels" })
+  try expectEqual(levels.columns.map(\.type), ["text", "decimal"])
+  try expectEqual(try book.rows(levels.id).count, 2)
+  try expectEqual(
+    try book.dataset(tableID).columns.map(\.title), ["Supplier", "Units", "Unit cost", "Total"])
+  try expectEqual(try values(), updated)
+
   // A draft saves a proposal and leaves the table alone.
   let draft = ScriptedCalls(
     [
-      sql("UPDATE supplier_comparison SET quantity = 12 WHERE supplier = 'Oak Supply'", draft: true),
+      sql("UPDATE supplier_comparison SET units = 12 WHERE supplier = 'Oak Supply'", draft: true),
       finish("The draft is ready for review.", basis: "completed_action"),
     ], toolProfile: .general)
   _ = try await WorkbookAgent.run(
@@ -128,5 +152,5 @@ func checkSQLTool() async throws {
     try expectValue(await repeated.prompts.last?.last { $0.role == "tool" }).content)
   try expectEqual(second["reusedReceiptID"].string != nil, true)
   try expectEqual(try values(), updated)
-  print("PASS sql tool: general declarations, answers from query results, AI row change under a rule Source, draft, forbidden change, repeated query")
+  print("PASS sql tool: general declarations, answers from query results, AI row and shape changes under a rule Source, draft, forbidden change, repeated query")
 }

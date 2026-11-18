@@ -51,7 +51,10 @@ and the owner's “Allow app installation and UI testing” answer in
 installation and native UI verification for [[records/plans/programmable-native-engine]].
 The earlier no-UI restriction is superseded for this task; VoiceOver and system-setting
 changes remain outside its scope. Use [[records/operations/agent-handoff]] for current status.
-No raw-model DDL, parallel ledger or claim that local replay solves replication.
+Model SQL never runs on the workbook file. It runs on a scratch copy, and a table's rows or
+shape change only through the recorded write path, with Undo
+([[sources/notes/2026/11/general-tools-answers]]). No parallel ledger or claim that local
+replay solves replication.
 All maintained product/engineering prose belongs here; root documents are brief
 entry points. Finish changes with the relevant checks and a commit. Plain copy,
 no em dashes, native controls, purposeful visuals and light/dark accessibility.

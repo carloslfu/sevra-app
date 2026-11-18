@@ -3,7 +3,7 @@ type: operational
 meta-type: operational
 id: 01m659x4nd2q89tkpzzsssd7yr
 created: 2026-10-30T02:23:30.477380+00:00
-updated: 2026-11-18T22:00:50.529251+00:00
+updated: 2026-11-18T23:51:29.519424+00:00
 summary: Native UI Catalog implemented and locally verified, with durable agent maintenance instructions and preserved product/model qualification limits.
 title: Minimum-feature continuation handoff
 ---
@@ -15,7 +15,7 @@ title: Minimum-feature continuation handoff
 Where it stands:
 
 - **Phase 1 is done.** The host setting `SEVRA_TOOL_PROFILE` selects `current` (today's tools, byte-identical) or `general`. The baseline of today's tools is in `integration/evidence/2026-11-18-chat-jobs-baseline/`.
-- **A first slice of `sql` works under `general`.** It reads tables and inserts, updates and deletes rows, with one Undo for each changed table. On 19 English jobs it passes 16; today's tools pass 11. The three it fails are building an app, a form and a rule, which fail today too and wait for `save` and its guides. The plan's section "The slice so far" lists what it does and what is left out, with reasons.
+- **`sql` works under `general`.** It reads tables, changes rows, creates tables and adds, renames and removes columns, each saved through the recorded write paths with Undo. On 22 English jobs it passes 19; today's tools pass 11. The three it fails are building an app, a form and a rule, which fail today too and wait for `save` and its guides. The plan's section "The slice so far" lists what it does and what is left out, with reasons.
 - **Nothing a person chats with has changed.** `current` stays the default until the full gate in phase 6.
 
 How to work on it:
@@ -27,13 +27,13 @@ How to work on it:
 
 What to know before going further:
 
-- **Numbers.** The slice rounds every number that leaves `sql` to 15 significant digits and has no exact side table. The plan's Numbers design is not built. This is a real difference and the owner has been told.
+- **Numbers.** `sql` rounds every number that leaves it to 15 significant digits and has no exact side table. The owner chose to keep that.
 - **The AI actor.** The write path refuses an AI row update or schema change without a saved rule Source. The slice publishes one for row changes from the host, as native app authoring does. Today's tools have none, which is why they fall back to drafts.
-- **Header.** The first question of phase H1 is answered: a header does resume from copied cache files. Today's header is 131.5 MB on disk and saves 2.59 seconds of reading per engine start. The evidence is in `integration/evidence/2026-11-18-header-cache-probe/`. The rest of the header work waits until the tools pass their evals, and for the owner's answers to P6 to P9.
-- **Format.** Adding the `tool` definition kind changes the canonical schema. Earlier development workbooks will not open after that phase.
+- **Header, paused by the owner until the tools are done.** The first question of phase H1 is answered: a header does resume from copied cache files. Today's header is 131.5 MB on disk and saves 2.59 seconds of reading per engine start. The evidence is in `integration/evidence/2026-11-18-header-cache-probe/`. The size is measured again on the final header before he decides, and P6 to P9 stay open until then.
+- **Format.** Adding the `tool` definition kind changes the canonical schema. Earlier development workbooks will not open after that. The owner accepted it: nothing is released, so format changes need no compatibility work.
 - **Ledger.** The inventory ledger in the core is out of scope. `balance` stays until the catalog tables for it exist.
 
-Waiting on the owner: his change to the raw-model DDL line in `db/DB.md`, before `sql` may change a table's shape; P6, P8 and P9 before phase H3; P7 before phase H4; and his decision about earlier development workbooks before phase 5. Nothing is pushed or published for this plan without his word.
+The owner's answers of November 18 are in [[sources/notes/2026/11/general-tools-answers]]. Nothing waits on him now except the header decision after the tools are done. Nothing is pushed or published for this plan without his word.
 ## Follow-up turns resume the previous turn's cache, November 18
 
 [[records/plans/conversation-follow-up-cache]] makes the saved conversation append-only, one

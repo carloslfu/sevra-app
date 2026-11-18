@@ -280,3 +280,6 @@ Phase H1 steps 1 and 2: a header copied out of the engine's disk cache and back 
 ## [2026-11-18 22:00] verification | records/plans/general-chat-tools
 Build jobs under the general profile: the view job passes, app, form and rule fail as they do today. Catalog columns renamed to name. Latest English evals: 16 of 19 pass, against 11 of 19 for today's tools.
 
+## [2026-11-18 23:51] verification | records/plans/general-chat-tools
+sql now creates tables and adds, renames and removes columns through the recorded paths. Latest English evals: 19 of 22 jobs pass, against 11 of 22 for today's tools. Owner's four answers recorded; the DDL line in DB.md changed on his delegation.
+
