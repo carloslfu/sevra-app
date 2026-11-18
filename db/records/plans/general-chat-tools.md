@@ -2,7 +2,7 @@
 type: operational
 id: 01m7qrcqqzh4qqr92a8frch1ze
 created: 2026-11-18T16:38:43.199010+00:00
-updated: 2026-11-18T21:37:37.385781+00:00
+updated: 2026-11-18T21:49:56.172496+00:00
 summary: Plan for seven general chat tools (model SQL on a scratch copy, sandboxed code, workbook tools) and a prompt header calculated at build time and restored at engine start. In implementation.
 title: General chat tools and a pre-read prompt header
 ---
@@ -578,6 +578,16 @@ Depends on phase 0. Runs the engine, so it needs the go-ahead. It is a probe mod
 6. Run a conversation that fills the context. Record the bytes written to the cache directory, and whether a new conversation afterwards still resumes the header. The engine's write budget paces writes and does not cap them, so the plan sets none. The bytes written go to the owner as a cost.
 
 Exit: every item is recorded as evidence, and the measured size goes to the owner. If the header does not resume from copied files, or the files for one header are sized to the quota or larger than 150 MB, the header work stops here and goes back to the owner. The choices then are an upstream request or dropping the pre-read header.
+
+**Steps 1 and 2 done on November 18, 2026.** Evidence: [the probe](../../../integration/evidence/2026-11-18-header-cache-probe/results.json), run with `sevra-agent-checks --header-cache-probe`. No product source changed.
+
+- **It works.** After the four data files were copied out, the cache directory deleted, the named folder made again and the files copied back, the engine reported a persistent disk cache, took back 1 restore point over 188 KV blocks and left 0 behind. The first request, the full first chat prompt of 11,830 tokens, resumed 6,016 of the header's 6,020 tokens from disk: its last complete page.
+- **Size: 131.5 MB for today's header.** `kv.slots` is 64.7 MB, about 10.7 KB a token. `state.slots` is 66.7 MB for the one restore point. The slot files are sized to their content, not to the 8 GiB quota. This is under the 150 MB stop line and about twice the size of today's 62.7 MB download.
+- **What it saves.** Reading today's header took 2.59 seconds. Copying the files took 0.12 seconds. The engine started in 4.4 seconds with the cache on, the same as with it off.
+- **What it does not cover.** The 4,969 tokens after the header in a first prompt were read again, in 2.75 seconds.
+- **Not measured:** what the files add to a compressed disk image, and whether the state file stays near 66.7 MB for a shorter header. If it does, a header cannot ship in much less than that.
+- Steps 3 to 6 are not done. They wait with the rest of the header work.
+
 
 ### Phase H2. One cache name on every Mac
 

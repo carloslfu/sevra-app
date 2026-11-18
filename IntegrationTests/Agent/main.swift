@@ -394,6 +394,12 @@ do {
       prompts: Array(CommandLine.arguments.dropFirst(6)))
     exit(0)
   }
+  if CommandLine.arguments.count == 5 && CommandLine.arguments[1] == "--header-cache-probe" {
+    try await runHeaderCacheProbe(
+      modelsRoot: CommandLine.arguments[2], engine: CommandLine.arguments[3],
+      work: CommandLine.arguments[4])
+    exit(0)
+  }
   if CommandLine.arguments.count == 6,
     ["--conversation-latency-live", "--conversation-stock-trace", "--conversation-cache-trace", "--conversation-desktop-trace"].contains(CommandLine.arguments[1])
   {

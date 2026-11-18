@@ -274,3 +274,6 @@ Phase 2 step 1 run ahead of the phase: a CPU probe of the system SQLite 3.51.0 c
 ## [2026-11-18 21:37] verification | records/plans/general-chat-tools
 Phase 1 baseline recorded (English: today's tools pass 12 of 23). First sql slice under the general profile passes 15 of 15 English eval jobs in 42 decisions, against 11 of 15 in 64 for today's tools. CPU checks check_chat_sql.py and sevra-agent-checks --sql-tool pass.
 
+## [2026-11-18 21:49] verification | records/plans/general-chat-tools
+Phase H1 steps 1 and 2: a header copied out of the engine's disk cache and back is taken back and resumed (6,016 of 6,020 tokens). Files 131.5 MB, sized to content. Header read 2.59 s, copy 0.12 s.
+

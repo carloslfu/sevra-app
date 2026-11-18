@@ -1,0 +1,454 @@
+{
+  "answer": {
+    "diskPersistent": true,
+    "headerResumed": true,
+    "headerTokens": 6020,
+    "lastCompletePage": 6016,
+    "leftBehind": 0,
+    "matchedPromptTokensFirstRequest": 6016,
+    "takenBackBytes": 131432448,
+    "takenBackKVBlocks": 188,
+    "takenBackStates": 1
+  },
+  "cache": {
+    "dataAllocatedBytes": 132497408,
+    "dataBytes": 131476800,
+    "files": [
+      {
+        "allocatedBytes": 40960,
+        "bytes": 40192,
+        "mode": "600",
+        "name": "kv.records",
+        "sha256": "d5fea0119aa3ada3a7a3a4d74a37205315dfafb7965938781470b24e2d8932d0"
+      },
+      {
+        "allocatedBytes": 65339392,
+        "bytes": 64684032,
+        "mode": "600",
+        "name": "kv.slots",
+        "sha256": "1ba06235c690d92da84bad5a20251a48029a1ff52861fcdd02514c53fd9547dd"
+      },
+      {
+        "allocatedBytes": 0,
+        "bytes": 0,
+        "mode": "600",
+        "name": "lock"
+      },
+      {
+        "allocatedBytes": 8192,
+        "bytes": 4160,
+        "mode": "600",
+        "name": "state.records",
+        "sha256": "8866b675995c9984d7637437b1d336a72de702b75d4bb09660f7d98474e47f4f"
+      },
+      {
+        "allocatedBytes": 67108864,
+        "bytes": 66748416,
+        "mode": "600",
+        "name": "state.slots",
+        "sha256": "7a71ce34830007e64824835371113a6852e1c00494bd5f858868a4c423805d6d"
+      }
+    ],
+    "folderMode": "700",
+    "name": "2d7918432e8c1cb5d57ec9d7fb0ac6e1",
+    "slotAllocatedBytes": 132448256,
+    "slotBytes": 131432448,
+    "slotFilesAtQuota": false
+  },
+  "cacheNamesAfterMake": [
+    "2d7918432e8c1cb5d57ec9d7fb0ac6e1"
+  ],
+  "cacheNamesAfterRestore": [
+    "2d7918432e8c1cb5d57ec9d7fb0ac6e1"
+  ],
+  "engine": {
+    "arguments": [
+      "serve-native",
+      "<model>",
+      "65536",
+      "12884901888",
+      "8589934592",
+      "--persistent-cache",
+      "on",
+      "--cache-dir",
+      "<cache-dir>",
+      "--idle-sleep",
+      "allow",
+      "--verify-rows",
+      "all",
+      "--kv-format",
+      "int8",
+      "--state-format",
+      "fp32",
+      "--ane",
+      "on",
+      "--activations",
+      "bf16"
+    ],
+    "commit": "d8af1054aab0f97de21d043e01aa98af3754f10e",
+    "release": "1.6.1",
+    "sha256": "ce771e5f51081a2fd60df0ee0083f982a278a863ffaeab29fd590f55e9e36e89"
+  },
+  "header": {
+    "firstPromptTokens": 11830,
+    "lastCompletePage": 6016,
+    "scopePrefixTokens": 10989,
+    "tokenSHA256": "09c3bfc38e02a2af6972bece1caa28119db2e9b62a3c3258aa98caa23bc6c799",
+    "tokens": 6020,
+    "toolProfile": "current",
+    "toolScope": "all"
+  },
+  "make": {
+    "admission": {
+      "otherHelpersRunning": 0,
+      "reclaimableGiB": 22.5,
+      "waitedSeconds": 0
+    },
+    "afterRequest": {
+      "cache": {
+        "capture_cuts": 0,
+        "checkpoint_publication_failures": 0,
+        "checkpoint_publications": 0,
+        "cold_misses": 1,
+        "deduplicated_kv_tokens": 0,
+        "deduplicated_state_publications": 0,
+        "disk_state_publications": 0,
+        "hit_rate": 0,
+        "hits": 0,
+        "junction_materialization_failures": 0,
+        "junction_materializations": 0,
+        "kv_disk_hit_tokens": 0,
+        "kv_hit_tokens": 0,
+        "lazy_junctions": 0,
+        "lost_state_misses": 0,
+        "priority_suspensions": 0,
+        "probe_hashed_blocks": 1,
+        "recycled_state_publications": 0,
+        "replay_state_publication_failures": 0,
+        "replay_state_publications": 1,
+        "resource_replay_tokens": 0,
+        "resource_resumptions": 0,
+        "resource_suspensions": 0,
+        "reused_tokens": 0,
+        "state_captures": 1
+      },
+      "disk": {
+        "capacity_bytes": 8589934592,
+        "file_bytes": 0,
+        "kv_blocks": 0,
+        "kv_bytes": 0,
+        "kv_copies": 0,
+        "kv_copy_failures": 0,
+        "kv_demotion_failures": 0,
+        "kv_demotions": 0,
+        "kv_demotions_refused": 0,
+        "kv_pending_pages": 0,
+        "kv_restore_failures": 0,
+        "kv_restores": 0,
+        "limit_bytes": 8589934592,
+        "persistent": true,
+        "read_bytes": 0,
+        "taken_back": {
+          "bytes": 0,
+          "kv_blocks": 0,
+          "left_behind": 0,
+          "states": 0
+        },
+        "used_bytes": 0,
+        "write_behind": {
+          "durable": 0,
+          "refused": 0,
+          "unneeded": 0,
+          "waiting": 1
+        },
+        "write_budget_bytes": 0,
+        "writes_deferred_ms": 0,
+        "writes_gated": "no",
+        "written_bytes": 0
+      },
+      "state": {
+        "disk_bytes": 0,
+        "disk_hits": 0,
+        "disk_promotions": 0,
+        "publications": 1
+      }
+    },
+    "atReady": {
+      "cache": {
+        "capture_cuts": 0,
+        "checkpoint_publication_failures": 0,
+        "checkpoint_publications": 0,
+        "cold_misses": 0,
+        "deduplicated_kv_tokens": 0,
+        "deduplicated_state_publications": 0,
+        "disk_state_publications": 0,
+        "hit_rate": 0,
+        "hits": 0,
+        "junction_materialization_failures": 0,
+        "junction_materializations": 0,
+        "kv_disk_hit_tokens": 0,
+        "kv_hit_tokens": 0,
+        "lazy_junctions": 0,
+        "lost_state_misses": 0,
+        "priority_suspensions": 0,
+        "probe_hashed_blocks": 0,
+        "recycled_state_publications": 0,
+        "replay_state_publication_failures": 0,
+        "replay_state_publications": 0,
+        "resource_replay_tokens": 0,
+        "resource_resumptions": 0,
+        "resource_suspensions": 0,
+        "reused_tokens": 0,
+        "state_captures": 0
+      },
+      "disk": {
+        "capacity_bytes": 8589934592,
+        "file_bytes": 0,
+        "kv_blocks": 0,
+        "kv_bytes": 0,
+        "kv_copies": 0,
+        "kv_copy_failures": 0,
+        "kv_demotion_failures": 0,
+        "kv_demotions": 0,
+        "kv_demotions_refused": 0,
+        "kv_pending_pages": 0,
+        "kv_restore_failures": 0,
+        "kv_restores": 0,
+        "limit_bytes": 8589934592,
+        "persistent": true,
+        "read_bytes": 0,
+        "taken_back": {
+          "bytes": 0,
+          "kv_blocks": 0,
+          "left_behind": 0,
+          "states": 0
+        },
+        "used_bytes": 0,
+        "write_behind": {
+          "durable": 0,
+          "refused": 0,
+          "unneeded": 0,
+          "waiting": 0
+        },
+        "write_budget_bytes": 0,
+        "writes_deferred_ms": 0,
+        "writes_gated": "no",
+        "written_bytes": 0
+      },
+      "state": {
+        "disk_bytes": 0,
+        "disk_hits": 0,
+        "disk_promotions": 0,
+        "publications": 0
+      }
+    },
+    "cacheLog": [
+      "16:47:28 SSD cache: up to 8.0 GiB of persistent files in <cache-dir>/2d7918432e8c1cb5d57ec9d7fb0ac6e1 (its quota, while its volume has room beyond the 10.0 GiB it keeps free); KV pages of 336 KiB and states of 63 MiB, a state's write staging through 63 MiB of the memory plan; --max-cache-disk 0 turns it off.",
+      "16:47:28 Persistent cache <cache-dir>/2d7918432e8c1cb5d57ec9d7fb0ac6e1: took back 0 restore points over 0 KV blocks (0 MiB); left 0 copies behind."
+    ],
+    "request": {
+      "deduplicatedKVTokens": 0,
+      "generatedTokens": 1,
+      "matchedPromptTokens": 0,
+      "prefillSeconds": 2.589758,
+      "promptTokens": 6020,
+      "requestSeconds": 2.590042916708626
+    },
+    "servedContextTokens": 65536,
+    "startSeconds": 4.447750041610561,
+    "stopSeconds": 0.1187906248960644
+  },
+  "probe": "header-cache-probe",
+  "quotaBytes": 8589934592,
+  "restore": {
+    "bytesIdentical": true,
+    "copy": "read and write, twice; no clone",
+    "copySeconds": 0.11771687504369766,
+    "folderBeforeStart": [
+      {
+        "allocatedBytes": 40960,
+        "bytes": 40192,
+        "mode": "600",
+        "name": "kv.records"
+      },
+      {
+        "allocatedBytes": 64684032,
+        "bytes": 64684032,
+        "mode": "600",
+        "name": "kv.slots"
+      },
+      {
+        "allocatedBytes": 8192,
+        "bytes": 4160,
+        "mode": "600",
+        "name": "state.records"
+      },
+      {
+        "allocatedBytes": 66748416,
+        "bytes": 66748416,
+        "mode": "600",
+        "name": "state.slots"
+      }
+    ]
+  },
+  "restored": {
+    "admission": {
+      "otherHelpersRunning": 0,
+      "reclaimableGiB": 22.6,
+      "waitedSeconds": 0
+    },
+    "afterRequest": {
+      "cache": {
+        "capture_cuts": 0,
+        "checkpoint_publication_failures": 0,
+        "checkpoint_publications": 1,
+        "cold_misses": 0,
+        "deduplicated_kv_tokens": 0,
+        "deduplicated_state_publications": 0,
+        "disk_state_publications": 0,
+        "hit_rate": 1,
+        "hits": 1,
+        "junction_materialization_failures": 0,
+        "junction_materializations": 0,
+        "kv_disk_hit_tokens": 6016,
+        "kv_hit_tokens": 6016,
+        "lazy_junctions": 0,
+        "lost_state_misses": 0,
+        "priority_suspensions": 0,
+        "probe_hashed_blocks": 189,
+        "recycled_state_publications": 0,
+        "replay_state_publication_failures": 0,
+        "replay_state_publications": 1,
+        "resource_replay_tokens": 0,
+        "resource_resumptions": 0,
+        "resource_suspensions": 0,
+        "reused_tokens": 6016,
+        "state_captures": 2
+      },
+      "disk": {
+        "capacity_bytes": 8589934592,
+        "file_bytes": 131432448,
+        "kv_blocks": 188,
+        "kv_bytes": 64684032,
+        "kv_copies": 0,
+        "kv_copy_failures": 0,
+        "kv_demotion_failures": 0,
+        "kv_demotions": 0,
+        "kv_demotions_refused": 0,
+        "kv_pending_pages": 0,
+        "kv_restore_failures": 0,
+        "kv_restores": 188,
+        "limit_bytes": 8589934592,
+        "persistent": true,
+        "read_bytes": 129892352,
+        "taken_back": {
+          "bytes": 131432448,
+          "kv_blocks": 188,
+          "left_behind": 0,
+          "states": 1
+        },
+        "used_bytes": 131432448,
+        "write_behind": {
+          "durable": 0,
+          "refused": 0,
+          "unneeded": 0,
+          "waiting": 1
+        },
+        "write_budget_bytes": 0,
+        "writes_deferred_ms": 0,
+        "writes_gated": "no",
+        "written_bytes": 0
+      },
+      "state": {
+        "disk_bytes": 66748416,
+        "disk_hits": 1,
+        "disk_promotions": 1,
+        "publications": 2
+      }
+    },
+    "atReady": {
+      "cache": {
+        "capture_cuts": 0,
+        "checkpoint_publication_failures": 0,
+        "checkpoint_publications": 0,
+        "cold_misses": 0,
+        "deduplicated_kv_tokens": 0,
+        "deduplicated_state_publications": 0,
+        "disk_state_publications": 0,
+        "hit_rate": 0,
+        "hits": 0,
+        "junction_materialization_failures": 0,
+        "junction_materializations": 0,
+        "kv_disk_hit_tokens": 0,
+        "kv_hit_tokens": 0,
+        "lazy_junctions": 0,
+        "lost_state_misses": 0,
+        "priority_suspensions": 0,
+        "probe_hashed_blocks": 0,
+        "recycled_state_publications": 0,
+        "replay_state_publication_failures": 0,
+        "replay_state_publications": 0,
+        "resource_replay_tokens": 0,
+        "resource_resumptions": 0,
+        "resource_suspensions": 0,
+        "reused_tokens": 0,
+        "state_captures": 0
+      },
+      "disk": {
+        "capacity_bytes": 8589934592,
+        "file_bytes": 131432448,
+        "kv_blocks": 188,
+        "kv_bytes": 64684032,
+        "kv_copies": 0,
+        "kv_copy_failures": 0,
+        "kv_demotion_failures": 0,
+        "kv_demotions": 0,
+        "kv_demotions_refused": 0,
+        "kv_pending_pages": 0,
+        "kv_restore_failures": 0,
+        "kv_restores": 0,
+        "limit_bytes": 8589934592,
+        "persistent": true,
+        "read_bytes": 0,
+        "taken_back": {
+          "bytes": 131432448,
+          "kv_blocks": 188,
+          "left_behind": 0,
+          "states": 1
+        },
+        "used_bytes": 131432448,
+        "write_behind": {
+          "durable": 0,
+          "refused": 0,
+          "unneeded": 0,
+          "waiting": 0
+        },
+        "write_budget_bytes": 0,
+        "writes_deferred_ms": 0,
+        "writes_gated": "no",
+        "written_bytes": 0
+      },
+      "state": {
+        "disk_bytes": 66748416,
+        "disk_hits": 0,
+        "disk_promotions": 0,
+        "publications": 0
+      }
+    },
+    "cacheLog": [
+      "16:47:35 SSD cache: up to 8.0 GiB of persistent files in <cache-dir>/2d7918432e8c1cb5d57ec9d7fb0ac6e1 (its quota, while its volume has room beyond the 10.0 GiB it keeps free); KV pages of 336 KiB and states of 63 MiB, a state's write staging through 63 MiB of the memory plan; --max-cache-disk 0 turns it off.",
+      "16:47:35 Persistent cache <cache-dir>/2d7918432e8c1cb5d57ec9d7fb0ac6e1: took back 1 restore points over 188 KV blocks (125 MiB); left 0 copies behind."
+    ],
+    "request": {
+      "deduplicatedKVTokens": 0,
+      "generatedTokens": 1,
+      "matchedPromptTokens": 6016,
+      "prefillSeconds": 2.752025,
+      "promptTokens": 11830,
+      "requestSeconds": 2.7663530834252015
+    },
+    "servedContextTokens": 65536,
+    "startSeconds": 4.389526833314449,
+    "stopSeconds": 0.12003812496550381
+  }
+}

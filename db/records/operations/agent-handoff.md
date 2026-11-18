@@ -3,7 +3,7 @@ type: operational
 meta-type: operational
 id: 01m659x4nd2q89tkpzzsssd7yr
 created: 2026-10-30T02:23:30.477380+00:00
-updated: 2026-11-18T21:37:59.693514+00:00
+updated: 2026-11-18T21:49:56.272705+00:00
 summary: Native UI Catalog implemented and locally verified, with durable agent maintenance instructions and preserved product/model qualification limits.
 title: Minimum-feature continuation handoff
 ---
@@ -29,7 +29,7 @@ What to know before going further:
 
 - **Numbers.** The slice rounds every number that leaves `sql` to 15 significant digits and has no exact side table. The plan's Numbers design is not built. This is a real difference and the owner has been told.
 - **The AI actor.** The write path refuses an AI row update or schema change without a saved rule Source. The slice publishes one for row changes from the host, as native app authoring does. Today's tools have none, which is why they fall back to drafts.
-- **Header.** Only the first question of phase H1 is next: does a header resume from copied cache files at all. The rest of the header work waits until the tools pass their evals, and for the owner's answers to P6 to P9.
+- **Header.** The first question of phase H1 is answered: a header does resume from copied cache files. Today's header is 131.5 MB on disk and saves 2.59 seconds of reading per engine start. The evidence is in `integration/evidence/2026-11-18-header-cache-probe/`. The rest of the header work waits until the tools pass their evals, and for the owner's answers to P6 to P9.
 - **Format.** Adding the `tool` definition kind changes the canonical schema. Earlier development workbooks will not open after that phase.
 - **Ledger.** The inventory ledger in the core is out of scope. `balance` stays until the catalog tables for it exist.
 
