@@ -1,0 +1,416 @@
+{
+ "job": "draft.change",
+ "language": "en",
+ "profile": "current",
+ "attempt": 1,
+ "prompt": "In the Supplier comparison table, change the Cedar Tools unit cost from 2.75 to 2.60, but show it to me as a draft first. Do not apply it until I review it.",
+ "expected": "The accepted rows are unchanged, one draft table change waits for review, and accepting it sets Cedar Tools to 2.60 with total 26.",
+ "failure": "the request ended as needs_review",
+ "result": {
+  "answer": "Ready to review: [Review changes to Supplier comparison](sevra://item/6f0a67f4-a914-4fc6-aa2b-890a98e6e3d8). Existing accepted values are unchanged. Accept this proposal to continue.",
+  "citations": [
+   "6f0a67f4-a914-4fc6-aa2b-890a98e6e3d8"
+  ],
+  "conversationAction": null,
+  "state": "needs_review",
+  "steps": 3
+ },
+ "progress": [
+  "Reading request context",
+  "Checking local model files",
+  "Preparing local AI. The first start can take longer…",
+  "Preparing local AI · 0 of 11 steps",
+  "Preparing local AI · 1 of 11 steps",
+  "Preparing local AI · 2 of 11 steps",
+  "Preparing local AI · 3 of 11 steps",
+  "Preparing local AI · 4 of 11 steps",
+  "Preparing local AI · 5 of 11 steps",
+  "Preparing local AI · 6 of 11 steps",
+  "Preparing local AI · 7 of 11 steps",
+  "Preparing local AI · 8 of 11 steps",
+  "Preparing local AI · 9 of 11 steps",
+  "Preparing local AI · 10 of 11 steps",
+  "Preparing local AI · 11 of 11 steps",
+  "Reading the working context",
+  "Working through the request",
+  "Preparing a response",
+  "Inspecting tables…",
+  "Reviewing the saved result",
+  "Reading the working context",
+  "Working through the request",
+  "Preparing a response",
+  "Reading table rows…",
+  "Reviewing the saved result",
+  "Reading the working context",
+  "Working through the request",
+  "Preparing a response",
+  "Propose Table Edit…",
+  "Reviewing the saved result"
+ ],
+ "messages": {
+  "main": [
+   {
+    "body": "This example has supplier quotes and a delivery. Try ‘Why do we have 18 brass bolts?’ or ‘Compare the supplier costs and show the evidence.’",
+    "created": "2026-11-18T20:34:21Z",
+    "id": "5007792d-04e2-4d44-a1e6-a5964c3beb42",
+    "role": "assistant",
+    "state": "complete"
+   },
+   {
+    "body": "In the Supplier comparison table, change the Cedar Tools unit cost from 2.75 to 2.60, but show it to me as a draft first. Do not apply it until I review it.",
+    "created": "2026-11-18T20:34:22Z",
+    "id": "60abd8a7-dc63-46be-ac56-501c7ef2546f",
+    "role": "user",
+    "state": "complete"
+   },
+   {
+    "body": {
+     "arguments": {},
+     "assistantText": "",
+     "callID": "call_2a833faf-336b-4fad-9265-07f2c8eb48d8",
+     "receiptID": "58f39da7-d088-47da-9db7-06a4a4f4eaf7",
+     "receiptVersion": 1,
+     "result": [
+      {
+       "archived": false,
+       "columns": [
+        {
+         "id": "supplier",
+         "title": "Supplier",
+         "type": "text"
+        },
+        {
+         "id": "quantity",
+         "title": "Quantity",
+         "type": "decimal"
+        },
+        {
+         "id": "unit_cost",
+         "title": "Unit cost",
+         "type": "decimal"
+        },
+        {
+         "formula": "quantity*unit_cost",
+         "id": "total",
+         "title": "Total",
+         "type": "decimal"
+        }
+       ],
+       "definitionID": "36513896-47b6-4e2d-beaf-fd3e0d3533d1",
+       "id": "d0cc9003-1aca-4a98-aab7-08529d891e7e",
+       "rowCount": 2,
+       "title": "Supplier comparison",
+       "version": 1
+      }
+     ],
+     "resultHash": "b42c2e29a6cf5c5c8f780074aa24e537125ab5bf60df74dfca87b5e6541d9b0e",
+     "resultIdentity": {},
+     "runID": "6a4956eb-e18f-4d02-80aa-e1359355bb02",
+     "tool": "datasets"
+    },
+    "created": "2026-11-18T20:34:40Z",
+    "id": "4a033031-9de4-4352-bcb2-a7c06c8f4aed",
+    "role": "tool",
+    "state": "complete"
+   },
+   {
+    "body": {
+     "arguments": {
+      "datasetID": "d0cc9003-1aca-4a98-aab7-08529d891e7e"
+     },
+     "assistantText": "",
+     "callID": "call_ee3b0190-09ab-48a8-b7d2-2b92cb711531",
+     "receiptID": "f4801f0e-cb14-446a-a195-31db364a0f59",
+     "receiptVersion": 1,
+     "result": {
+      "dataset": {
+       "archived": false,
+       "columns": [
+        {
+         "id": "supplier",
+         "title": "Supplier",
+         "type": "text"
+        },
+        {
+         "id": "quantity",
+         "title": "Quantity",
+         "type": "decimal"
+        },
+        {
+         "id": "unit_cost",
+         "title": "Unit cost",
+         "type": "decimal"
+        },
+        {
+         "formula": "quantity*unit_cost",
+         "id": "total",
+         "title": "Total",
+         "type": "decimal"
+        }
+       ],
+       "definitionID": "36513896-47b6-4e2d-beaf-fd3e0d3533d1",
+       "id": "d0cc9003-1aca-4a98-aab7-08529d891e7e",
+       "rowCount": 2,
+       "title": "Supplier comparison",
+       "version": 1
+      },
+      "rows": [
+       {
+        "id": "aa9342a1-5077-4b39-a82c-d57a7ff7532d",
+        "values": {
+         "quantity": "10",
+         "supplier": "Oak Supply",
+         "total": "24",
+         "unit_cost": "2.40"
+        }
+       },
+       {
+        "id": "01800195-152e-426b-acfc-ec8ad942f0fd",
+        "values": {
+         "quantity": "10",
+         "supplier": "Cedar Tools",
+         "total": "27.5",
+         "unit_cost": "2.75"
+        }
+       }
+      ]
+     },
+     "resultHash": "0e22c79d875b0df5a0b663bcf4ba2c32284a8f88ea4b23bfaaf76ca86a6b7992",
+     "resultIdentity": {},
+     "runID": "6a4956eb-e18f-4d02-80aa-e1359355bb02",
+     "tool": "rows"
+    },
+    "created": "2026-11-18T20:34:46Z",
+    "id": "f2ef096f-cf76-4919-8254-2eb9f03bdd93",
+    "role": "tool",
+    "state": "complete"
+   },
+   {
+    "body": {
+     "arguments": {
+      "datasetID": "d0cc9003-1aca-4a98-aab7-08529d891e7e",
+      "edits": [
+       {
+        "id": "01800195-152e-426b-acfc-ec8ad942f0fd",
+        "values": {
+         "unit_cost": "2.60"
+        }
+       }
+      ]
+     },
+     "assistantText": "",
+     "callID": "call_d09c3baa-4edf-4edb-9f3b-9298235a470c",
+     "receiptID": "4c33cf97-44a6-4ba4-bba2-d9b196065af2",
+     "receiptVersion": 1,
+     "result": {
+      "category": "record",
+      "created": "2026-11-18T20:34:54Z",
+      "data": {
+       "datasetID": "d0cc9003-1aca-4a98-aab7-08529d891e7e",
+       "edits": [
+        {
+         "id": "01800195-152e-426b-acfc-ec8ad942f0fd",
+         "values": {
+          "quantity": "10",
+          "supplier": "Cedar Tools",
+          "unit_cost": "2.60"
+         }
+        }
+       ]
+      },
+      "id": "6f0a67f4-a914-4fc6-aa2b-890a98e6e3d8",
+      "kind": "table-change",
+      "logicalID": "7da42c33-6306-40d4-9fdb-00e2b1da353a",
+      "meaning": "plan",
+      "scenario": "actual",
+      "status": "draft",
+      "text": "Supplier comparison, row 2: Unit cost: 2.75 → 2.60",
+      "title": "Review changes to Supplier comparison",
+      "version": 1
+     },
+     "resultHash": "bbe880c2d1a28d05ed7e69cf6524feb8415d85f8728766e6a7f1a9d0816badf3",
+     "resultIdentity": {
+      "id": "6f0a67f4-a914-4fc6-aa2b-890a98e6e3d8",
+      "kind": "table-change",
+      "logicalID": "7da42c33-6306-40d4-9fdb-00e2b1da353a",
+      "meaning": "plan",
+      "status": "draft"
+     },
+     "runID": "6a4956eb-e18f-4d02-80aa-e1359355bb02",
+     "tool": "propose_table_edit"
+    },
+    "created": "2026-11-18T20:34:54Z",
+    "id": "71961cd1-27e1-4c62-b435-c84aaf306cfb",
+    "role": "tool",
+    "state": "complete"
+   },
+   {
+    "body": "Ready to review: [Review changes to Supplier comparison](sevra://item/6f0a67f4-a914-4fc6-aa2b-890a98e6e3d8). Existing accepted values are unchanged. Accept this proposal to continue.",
+    "created": "2026-11-18T20:34:54Z",
+    "id": "953491a5-69ee-4175-8060-ac53ef979cd3",
+    "role": "assistant",
+    "state": "needs_review"
+   }
+  ]
+ },
+ "runs": [
+  {
+   "conversation_id": "main",
+   "created": "2026-11-18T20:34:22Z",
+   "id": "6a4956eb-e18f-4d02-80aa-e1359355bb02",
+   "metrics": [
+    {
+     "acceptedDraftTokens": 91,
+     "activations": "bf16",
+     "backend": "splash-native-candidate",
+     "beforeDispatchSeconds": 9.257150208344683,
+     "contextTokens": 65536,
+     "decodeSeconds": 2.78311,
+     "deduplicatedKVTokens": 0,
+     "diagnosticRequestCacheIsolation": false,
+     "draftedTokens": 224,
+     "engineSHA256": "ce771e5f51081a2fd60df0ee0083f982a278a863ffaeab29fd590f55e9e36e89",
+     "firstAnswerPreviewSeconds": null,
+     "firstTokenSeconds": 3.9119971666950732,
+     "generatedTokens": 124,
+     "grammarSHA256": "5b96c275e9c1a2e618a54a4814a6d9c0de116285e8ffd0814aea01a5c8eecdf1",
+     "helperStartSeconds": 5.564437666675076,
+     "hostPreparationSeconds": 0.0004575833445414901,
+     "maintenanceRecommended": false,
+     "maintenanceThreshold": 49152,
+     "matchedPromptTokens": 6016,
+     "nextToolResultReserve": 3546,
+     "outputBudget": 1800,
+     "prefillSeconds": 3.906634,
+     "prefixPrimeMatchedTokens": 0,
+     "prefixPrimePrefillSeconds": 3.608494,
+     "prefixPrimeSeconds": 3.6088460000464693,
+     "prefixPrimeTokens": 6020,
+     "promptTokens": 11209,
+     "reasoningBudget": 512,
+     "reasoningBudgetOverrun": 0,
+     "reasoningHistory": "within-request",
+     "reasoningTokens": 108,
+     "recoveryReserve": 256,
+     "replayBoundaryTokens": 11200,
+     "requestSeconds": 6.6950111667392775,
+     "requestedContextTokens": 65536,
+     "requestedMemoryBytes": 12884901888,
+     "requestedOutputBudget": 1800,
+     "runtimeRelease": "1.6.1",
+     "scopePrefixTokens": 10586,
+     "speculativeMethod": "DFlash2",
+     "stablePrefixTokens": 6020,
+     "templateIdentity": "aee46acfcba8e4e7aec7512126b926aa311bf7414d0d96ad3b13a86d5bdfe9d3",
+     "toolScope": "all"
+    },
+    {
+     "acceptedDraftTokens": 98,
+     "activations": "bf16",
+     "backend": "splash-native-candidate",
+     "beforeDispatchSeconds": 1.944769833353348,
+     "contextTokens": 65536,
+     "decodeSeconds": 2.792289,
+     "deduplicatedKVTokens": 128,
+     "diagnosticRequestCacheIsolation": false,
+     "draftedTokens": 196,
+     "engineSHA256": "ce771e5f51081a2fd60df0ee0083f982a278a863ffaeab29fd590f55e9e36e89",
+     "firstAnswerPreviewSeconds": null,
+     "firstTokenSeconds": 1.047112499945797,
+     "generatedTokens": 127,
+     "grammarSHA256": "5b96c275e9c1a2e618a54a4814a6d9c0de116285e8ffd0814aea01a5c8eecdf1",
+     "helperStartSeconds": 2.916203811764717e-07,
+     "hostPreparationSeconds": 0.00013908336404711008,
+     "maintenanceRecommended": false,
+     "maintenanceThreshold": 49152,
+     "matchedPromptTokens": 11200,
+     "nextToolResultReserve": 3546,
+     "outputBudget": 1800,
+     "prefillSeconds": 1.042939,
+     "prefixPrimeMatchedTokens": 8192,
+     "prefixPrimePrefillSeconds": 1.939848,
+     "prefixPrimeSeconds": 1.9442549167433754,
+     "prefixPrimeTokens": 10586,
+     "promptTokens": 11498,
+     "reasoningBudget": 512,
+     "reasoningBudgetOverrun": 0,
+     "reasoningHistory": "within-request",
+     "reasoningTokens": 68,
+     "recoveryReserve": 256,
+     "replayBoundaryTokens": 11488,
+     "requestSeconds": 3.839393249945715,
+     "requestedContextTokens": 65536,
+     "requestedMemoryBytes": 12884901888,
+     "requestedOutputBudget": 1800,
+     "runtimeRelease": "1.6.1",
+     "scopePrefixTokens": 10586,
+     "speculativeMethod": "DFlash2",
+     "stablePrefixTokens": 6020,
+     "templateIdentity": "aee46acfcba8e4e7aec7512126b926aa311bf7414d0d96ad3b13a86d5bdfe9d3",
+     "toolScope": "all"
+    },
+    {
+     "acceptedDraftTokens": 281,
+     "activations": "bf16",
+     "backend": "splash-native-candidate",
+     "beforeDispatchSeconds": 0.023911749944090843,
+     "contextTokens": 65536,
+     "decodeSeconds": 6.458277,
+     "deduplicatedKVTokens": 128,
+     "diagnosticRequestCacheIsolation": false,
+     "draftedTokens": 420,
+     "engineSHA256": "ce771e5f51081a2fd60df0ee0083f982a278a863ffaeab29fd590f55e9e36e89",
+     "firstAnswerPreviewSeconds": null,
+     "firstTokenSeconds": 1.2144861249253154,
+     "generatedTokens": 342,
+     "grammarSHA256": "5b96c275e9c1a2e618a54a4814a6d9c0de116285e8ffd0814aea01a5c8eecdf1",
+     "helperStartSeconds": 2.916203811764717e-07,
+     "hostPreparationSeconds": 0.00014108337927609682,
+     "maintenanceRecommended": false,
+     "maintenanceThreshold": 49152,
+     "matchedPromptTokens": 11488,
+     "nextToolResultReserve": 3546,
+     "outputBudget": 1800,
+     "prefillSeconds": 1.210074,
+     "prefixPrimeMatchedTokens": 0,
+     "prefixPrimePrefillSeconds": 0,
+     "prefixPrimeSeconds": 0,
+     "prefixPrimeTokens": 0,
+     "promptTokens": 11916,
+     "reasoningBudget": 512,
+     "reasoningBudgetOverrun": 0,
+     "reasoningHistory": "within-request",
+     "reasoningTokens": 218,
+     "recoveryReserve": 256,
+     "replayBoundaryTokens": 11904,
+     "requestSeconds": 7.6727643749909475,
+     "requestedContextTokens": 65536,
+     "requestedMemoryBytes": 12884901888,
+     "requestedOutputBudget": 1800,
+     "runtimeRelease": "1.6.1",
+     "scopePrefixTokens": 10586,
+     "speculativeMethod": "DFlash2",
+     "stablePrefixTokens": 6020,
+     "templateIdentity": "aee46acfcba8e4e7aec7512126b926aa311bf7414d0d96ad3b13a86d5bdfe9d3",
+     "toolScope": "all"
+    }
+   ],
+   "model": "Splash 1.6.1; d8af1054aab0f97de21d043e01aa98af3754f10e; Qwen3.6-35B-A3B-4bit + DFlash2; native Swift candidate; context 65536; memory 12884901888; activations bf16; KV int8; state fp32; ANE on; reasoning budget 512; within-request reasoning retained",
+   "request_message_id": "60abd8a7-dc63-46be-ac56-501c7ef2546f",
+   "status": "needs_review",
+   "steps": 3,
+   "updated": "2026-11-18T20:34:54Z"
+  }
+ ],
+ "saved": {
+  "newItems": [
+   {
+    "category": "record",
+    "kind": "table-change",
+    "status": "draft",
+    "title": "Review changes to Supplier comparison",
+    "id": "6f0a67f4-a914-4fc6-aa2b-890a98e6e3d8"
+   }
+  ]
+ }
+}

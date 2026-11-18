@@ -3,26 +3,37 @@ type: operational
 meta-type: operational
 id: 01m659x4nd2q89tkpzzsssd7yr
 created: 2026-10-30T02:23:30.477380+00:00
-updated: 2026-11-18T18:56:03.006841+00:00
+updated: 2026-11-18T21:37:59.693514+00:00
 summary: Native UI Catalog implemented and locally verified, with durable agent maintenance instructions and preserved product/model qualification limits.
 title: Minimum-feature continuation handoff
 ---
 # Minimum-feature continuation handoff
 
 ## General chat tools planning, November 18
-[[records/plans/general-chat-tools]] is being implemented phase by phase. The owner authorized it on November 18: [[sources/notes/2026/11/general-tools-implementation]]. Each phase records its results in the plan when it exits. It follows the owner's direction in [[sources/notes/2026/11/general-tools-direction]] and [[sources/notes/2026/11/prebuilt-header-direction]]: replace the fixed chat tools with seven general ones, let model-written SQL change data directly, run model-written code in the sandbox, add tools that belong to a workbook, and calculate the prompt header at build time so the app only restores it. It supersedes [[records/plans/native-chat-prompt-routing]]. Its review passes are listed at its end.
+[[records/plans/general-chat-tools]] is in implementation. The owner authorized it on November 18: [[sources/notes/2026/11/general-tools-implementation]]. The same day he chose a fast test loop and a thin slice first: [[sources/notes/2026/11/fast-loop-direction]]. It follows his direction in [[sources/notes/2026/11/general-tools-direction]] and [[sources/notes/2026/11/prebuilt-header-direction]]: replace the fixed chat tools with seven general ones, let model-written SQL change data directly, run model-written code in the sandbox, add tools that belong to a workbook, and calculate the prompt header at build time so the app only restores it. It supersedes [[records/plans/native-chat-prompt-routing]].
 
-What to know before starting it:
+Where it stands:
 
-- **SQL.** Model SQL runs on a scratch in-memory copy. Triggers log what it does, and the changes are applied through `Workbook.mutation`. User tables are projections, and the workbook connection exposes the capture function, so model SQL never runs there.
-- **Header.** One command in the built command line tool makes the header. The staging code that both packaging scripts share copies it into the app before the app is signed. The app restores it before every engine start and has no code that computes it (proposal P6, not yet confirmed). The pinned engine already keeps restore points on disk. Its cache name differs per Mac only because of the file paths and times this repository writes into `model.json`, which phase H2 removes. All of this is read from source and not yet run. Phase H1 probes it first.
-- **Installer.** The release packaging in [[records/plans/macos-installer-and-updates]] exists and is rehearsed. It does not use the model. Once phase H3 is built, a build without a header cannot start the local AI (P6), so that plan must not publish an early-access or stable build without one. Phase H4 lists the changes that plan needs.
+- **Phase 1 is done.** The host setting `SEVRA_TOOL_PROFILE` selects `current` (today's tools, byte-identical) or `general`. The baseline of today's tools is in `integration/evidence/2026-11-18-chat-jobs-baseline/`.
+- **A first slice of `sql` works under `general`.** It reads tables and inserts, updates and deletes rows, with one Undo for each changed table. On 15 English jobs it passes all 15 in 42 decisions; today's tools pass 11 in 64. The plan's section "The slice so far" lists what it does and what is left out, with reasons.
+- **Nothing a person chats with has changed.** `current` stays the default until the full gate in phase 6.
+
+How to work on it:
+
+- **The loop.** Unit checks with no model on every change: `python3 scripts/check_chat_sql.py` and `sevra-agent-checks --sql-tool`. Then an eval in English, one run per job, only the jobs the change touches: `python3 scripts/check_chat_jobs.py --profile general --languages en --single-run --jobs ...`. The full gate, with both languages, reruns and the suite, runs only before the old tools are removed and on the final prompt.
+- **A real-model eval needs the release command line tool.** Build it with `SEVRA_NATIVE_CANDIDATE=1 swift build --scratch-path .build/native-product -c release --product sevra`, then copy it over `output/native/bin/sevra` and sign it ad hoc. That took about two minutes on the test Mac. `scripts/build_native.sh` does the same and also rebuilds the app.
+- **One model process at a time.** The harness refuses to start while another engine helper runs or reclaimable memory is short. Do not build while an eval is being timed.
+- **Read the transcript of every failed job.** Each of the three fixes so far came from one.
+
+What to know before going further:
+
+- **Numbers.** The slice rounds every number that leaves `sql` to 15 significant digits and has no exact side table. The plan's Numbers design is not built. This is a real difference and the owner has been told.
+- **The AI actor.** The write path refuses an AI row update or schema change without a saved rule Source. The slice publishes one for row changes from the host, as native app authoring does. Today's tools have none, which is why they fall back to drafts.
+- **Header.** Only the first question of phase H1 is next: does a header resume from copied cache files at all. The rest of the header work waits until the tools pass their evals, and for the owner's answers to P6 to P9.
 - **Format.** Adding the `tool` definition kind changes the canonical schema. Earlier development workbooks will not open after that phase.
-- **Ledger.** The inventory ledger in the core is out of scope. Chat reaches it through two read-only tables and saved actions.
-- **Unverified.** Chat's AI actor carries a policy label, not a rule Source, and the row update and schema paths refuse an AI change without one. Whether the current tools can update rows or change a schema under a real model is the first check of phase 1.
-- **Evidence.** The draft tool schemas and their token counts are in `integration/evidence/2026-11-18-general-tool-schemas/`.
+- **Ledger.** The inventory ledger in the core is out of scope. `balance` stays until the catalog tables for it exist.
 
-The owner confirmed the plan's five proposals as written on November 18: [[sources/notes/2026/11/general-tools-confirmation]]. The agent reads that as covering the plan's three summary points too. He then replaced P4 with the build-time header. P6 to P9 are not confirmed, and phases H3 and H4 wait for them. Phase 3 waits for his change to the `db/DB.md` line. Phase 5 waits for his decision about earlier development workbooks. Nothing is pushed or published for this plan without his word.
+Waiting on the owner: his change to the raw-model DDL line in `db/DB.md`, before `sql` may change a table's shape; P6, P8 and P9 before phase H3; P7 before phase H4; and his decision about earlier development workbooks before phase 5. Nothing is pushed or published for this plan without his word.
 ## Follow-up turns resume the previous turn's cache, November 18
 
 [[records/plans/conversation-follow-up-cache]] makes the saved conversation append-only, one

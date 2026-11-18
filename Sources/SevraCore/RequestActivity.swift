@@ -34,6 +34,7 @@ public struct ToolActivity: Identifiable, Sendable {
     case "history_read": return "Read earlier conversation"
     case "datasets": return "Inspect tables"
     case "rows": return "Read table rows"
+    case "sql": return "Query tables"
     case "calculate": return "Calculate"
     case "compare_rows": return "Compare table rows"
     case "save_space": return "Save space"

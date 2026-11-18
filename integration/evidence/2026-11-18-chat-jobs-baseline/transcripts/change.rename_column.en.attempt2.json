@@ -1,0 +1,1012 @@
+{
+ "job": "change.rename_column",
+ "language": "en",
+ "profile": "current",
+ "attempt": 2,
+ "prompt": "Rename the Unit cost column of the Supplier comparison table to Price each.",
+ "expected": "The Unit cost column of Supplier comparison is titled Price each, and both rows keep their values.",
+ "failure": "the column titles are [\"supplier\", \"quantity\", \"unit cost\", \"total\"]",
+ "result": {
+  "answer": "Couldn’t finish preparing the proposal. Record not found: unit_cost\nCouldn’t finish that action. An AI decision needs an exact saved rule Source.",
+  "citations": [],
+  "conversationAction": null,
+  "state": "complete",
+  "steps": 10
+ },
+ "progress": [
+  "Reading request context",
+  "Checking local model files",
+  "Preparing local AI. The first start can take longer…",
+  "Preparing local AI · 0 of 11 steps",
+  "Preparing local AI · 1 of 11 steps",
+  "Preparing local AI · 2 of 11 steps",
+  "Preparing local AI · 3 of 11 steps",
+  "Preparing local AI · 4 of 11 steps",
+  "Preparing local AI · 5 of 11 steps",
+  "Preparing local AI · 6 of 11 steps",
+  "Preparing local AI · 7 of 11 steps",
+  "Preparing local AI · 8 of 11 steps",
+  "Preparing local AI · 9 of 11 steps",
+  "Preparing local AI · 10 of 11 steps",
+  "Preparing local AI · 11 of 11 steps",
+  "Reading the working context",
+  "Working through the request",
+  "Preparing a response",
+  "Inspecting tables…",
+  "Reviewing the saved result",
+  "Reading the working context",
+  "Working through the request",
+  "Preparing a response",
+  "Propose Table Edit…",
+  "Reviewing a tool failure",
+  "Reading the working context",
+  "Working through the request",
+  "Preparing a response",
+  "Finding available actions…",
+  "Reviewing the saved result",
+  "Reading the working context",
+  "Working through the request",
+  "Preparing a response",
+  "Working with your table…",
+  "Reviewing the saved result",
+  "Reading the working context",
+  "Working through the request",
+  "Preparing a response",
+  "Working with your table…",
+  "Reviewing a tool failure",
+  "Reading the working context",
+  "Working through the request",
+  "Preparing a response",
+  "Find Definitions…",
+  "Reviewing the saved result",
+  "Reading the working context",
+  "Working through the request",
+  "Preparing a response",
+  "Read Definition…",
+  "Reviewing a tool failure",
+  "Reading the working context",
+  "Working through the request",
+  "Preparing a response",
+  "Searching for “rule”…",
+  "Reviewing the saved result",
+  "Reading the working context",
+  "Working through the request",
+  "Preparing a response",
+  "Find Definitions…",
+  "Reviewing the saved result",
+  "Reading the working context",
+  "Working through the request",
+  "Preparing a response"
+ ],
+ "messages": {
+  "main": [
+   {
+    "body": "This example has supplier quotes and a delivery. Try ‘Why do we have 18 brass bolts?’ or ‘Compare the supplier costs and show the evidence.’",
+    "created": "2026-11-18T20:05:10Z",
+    "id": "14adde5a-d8ad-4558-8efa-9130f0266382",
+    "role": "assistant",
+    "state": "complete"
+   },
+   {
+    "body": "Rename the Unit cost column of the Supplier comparison table to Price each.",
+    "created": "2026-11-18T20:05:10Z",
+    "id": "bd8e389c-85d6-4676-9a87-df4ba9fc215f",
+    "role": "user",
+    "state": "complete"
+   },
+   {
+    "body": {
+     "arguments": {},
+     "assistantText": "",
+     "callID": "call_15f056b7-b43e-40ec-95c3-a47e2d521600",
+     "receiptID": "12fec7e4-ab1d-42ed-8bdc-7f4bf8537c31",
+     "receiptVersion": 1,
+     "result": [
+      {
+       "archived": false,
+       "columns": [
+        {
+         "id": "supplier",
+         "title": "Supplier",
+         "type": "text"
+        },
+        {
+         "id": "quantity",
+         "title": "Quantity",
+         "type": "decimal"
+        },
+        {
+         "id": "unit_cost",
+         "title": "Unit cost",
+         "type": "decimal"
+        },
+        {
+         "formula": "quantity*unit_cost",
+         "id": "total",
+         "title": "Total",
+         "type": "decimal"
+        }
+       ],
+       "definitionID": "67985ed2-e350-4c3b-a7c1-9f735d0bfbc0",
+       "id": "4c6818df-cb5c-466a-80a9-692400d0943b",
+       "rowCount": 2,
+       "title": "Supplier comparison",
+       "version": 1
+      }
+     ],
+     "resultHash": "cd0e59715722cd303fea2bf8f43dd7b184f9c9fb03c5937a948e8a0e5fe08edd",
+     "resultIdentity": {},
+     "runID": "6a4d1ad1-18d9-4693-8a9e-f6b88acc9b90",
+     "tool": "datasets"
+    },
+    "created": "2026-11-18T20:05:26Z",
+    "id": "3799c235-960b-48cf-a406-249ca2aed3ff",
+    "role": "tool",
+    "state": "complete"
+   },
+   {
+    "body": {
+     "arguments": {
+      "datasetID": "4c6818df-cb5c-466a-80a9-692400d0943b",
+      "edits": [
+       {
+        "id": "unit_cost",
+        "values": {
+         "title": "Price each"
+        }
+       }
+      ]
+     },
+     "assistantText": "",
+     "callID": "call_02ad5b49-a4ff-427c-ac24-a5db43eb0fdc",
+     "receiptID": "25cfc2ad-3f92-4bb8-bffc-3f7a5e3d7ffe",
+     "receiptVersion": 1,
+     "result": {
+      "error": "Record not found: unit_cost",
+      "receiptID": "25cfc2ad-3f92-4bb8-bffc-3f7a5e3d7ffe",
+      "retryInstruction": "The call did not finish successfully. Completed changes remain saved. Inspect the receipt and workbook state before retrying; do not claim no changes occurred. Fix the reported arguments when applicable."
+     },
+     "resultHash": "7454d3f3d8a6b8bbcf60e8596a220635fe0d8fa935ba117c01058cd07dec88c3",
+     "resultIdentity": {},
+     "runID": "6a4d1ad1-18d9-4693-8a9e-f6b88acc9b90",
+     "tool": "propose_table_edit"
+    },
+    "created": "2026-11-18T20:05:35Z",
+    "id": "3d2f2b83-d89b-4bc1-a0f0-0cca07c7e92d",
+    "role": "tool",
+    "state": "complete"
+   },
+   {
+    "body": {
+     "arguments": {
+      "domain": "table"
+     },
+     "assistantText": "",
+     "callID": "call_b4a5baec-1717-43d1-8c33-65719239fc01",
+     "receiptID": "50d3ec91-04c9-456f-81bd-5eae7e6f739b",
+     "receiptVersion": 1,
+     "result": [
+      {
+       "action": "table.schema",
+       "description": "Inspect the full current table schema, including exact version and definition ID.",
+       "optional": [],
+       "readOnly": true,
+       "required": [
+        "id"
+       ],
+       "types": {
+        "id": "string"
+       }
+      },
+      {
+       "action": "table.history",
+       "description": "Inspect saved table schemas.",
+       "optional": [
+        "beforeVersion"
+       ],
+       "readOnly": true,
+       "required": [
+        "id"
+       ],
+       "types": {
+        "beforeVersion": "integer",
+        "id": "string"
+       }
+      },
+      {
+       "action": "table.edit_schema",
+       "description": "Add/change/remove columns or formulas, rename/archive/restore a table. Supply complete columns only if changing columns; preserve unrelated columns.",
+       "optional": [
+        "title",
+        "columns",
+        "archived"
+       ],
+       "readOnly": false,
+       "required": [
+        "id",
+        "expectedVersion",
+        "expectedDefinitionID"
+       ],
+       "types": {
+        "archived": "boolean",
+        "columns": "array",
+        "expectedDefinitionID": "string",
+        "expectedVersion": "integer",
+        "id": "string",
+        "title": "string"
+       }
+      },
+      {
+       "action": "table.restore_schema",
+       "description": "Restore an exact historical schema as a new version.",
+       "optional": [],
+       "readOnly": false,
+       "required": [
+        "id",
+        "definitionID",
+        "expectedVersion",
+        "expectedDefinitionID"
+       ],
+       "types": {
+        "definitionID": "string",
+        "expectedDefinitionID": "string",
+        "expectedVersion": "integer",
+        "id": "string"
+       }
+      },
+      {
+       "action": "table.undo",
+       "description": "Undo a saved table edit by its change ID.",
+       "optional": [],
+       "readOnly": false,
+       "required": [
+        "id"
+       ],
+       "types": {
+        "id": "string"
+       }
+      },
+      {
+       "action": "table.change_rows",
+       "description": "Atomically insert/update/delete up to 64 rows in an inspected table. operations:[{op:insert,values:{...}}|{op:update,id:exactRowVersion,values:{changedFields}}|{op:delete,id:exactRowVersion}]. Existing formulas recalculate. Only do explicitly requested changes; use proposals when the user requests review first.",
+       "optional": [],
+       "readOnly": false,
+       "required": [
+        "id",
+        "expectedDefinitionID",
+        "operations"
+       ],
+       "types": {
+        "expectedDefinitionID": "string",
+        "id": "string",
+        "operations": "array"
+       }
+      },
+      {
+       "action": "table.undo_rows",
+       "description": "Undo a conversation row transaction by its returned token; current schema and row versions must still match.",
+       "optional": [],
+       "readOnly": false,
+       "required": [
+        "id",
+        "expectedDefinitionID",
+        "token"
+       ],
+       "types": {
+        "expectedDefinitionID": "string",
+        "id": "string",
+        "token": "string"
+       }
+      }
+     ],
+     "resultHash": "b82062b01f05620582faceca2c1b139c747e96e0383eeef04ceb06c58cdb69ae",
+     "resultIdentity": {},
+     "runID": "6a4d1ad1-18d9-4693-8a9e-f6b88acc9b90",
+     "tool": "workspace_actions"
+    },
+    "created": "2026-11-18T20:05:44Z",
+    "id": "bd125669-b7d5-4abf-8bd4-e4b19c52c347",
+    "role": "tool",
+    "state": "complete"
+   },
+   {
+    "body": {
+     "arguments": {
+      "action": "table.schema",
+      "arguments": {
+       "id": "4c6818df-cb5c-466a-80a9-692400d0943b"
+      }
+     },
+     "assistantText": "",
+     "callID": "call_8ceac78a-aaf8-4f17-bb0b-888138aabe5b",
+     "receiptID": "027e6950-06bd-4dc0-a554-53dcfe6c69a6",
+     "receiptVersion": 1,
+     "result": {
+      "archived": false,
+      "columns": [
+       {
+        "id": "supplier",
+        "title": "Supplier",
+        "type": "text"
+       },
+       {
+        "id": "quantity",
+        "title": "Quantity",
+        "type": "decimal"
+       },
+       {
+        "id": "unit_cost",
+        "title": "Unit cost",
+        "type": "decimal"
+       },
+       {
+        "formula": "quantity*unit_cost",
+        "id": "total",
+        "title": "Total",
+        "type": "decimal"
+       }
+      ],
+      "datasetID": "4c6818df-cb5c-466a-80a9-692400d0943b",
+      "definitionID": "67985ed2-e350-4c3b-a7c1-9f735d0bfbc0",
+      "representation": "managed-native",
+      "title": "Supplier comparison",
+      "version": 1
+     },
+     "resultHash": "37d12b140d0485c9c0d09c584c04eb96fdb66b23a91943da9fe5090becba5413",
+     "resultIdentity": {},
+     "runID": "6a4d1ad1-18d9-4693-8a9e-f6b88acc9b90",
+     "tool": "workspace_action"
+    },
+    "created": "2026-11-18T20:05:49Z",
+    "id": "71e6c903-f6bf-4dcd-95e8-9d90c1978598",
+    "role": "tool",
+    "state": "complete"
+   },
+   {
+    "body": {
+     "arguments": {
+      "action": "table.edit_schema",
+      "arguments": {
+       "columns": [
+        {
+         "id": "supplier",
+         "title": "Supplier",
+         "type": "text"
+        },
+        {
+         "id": "quantity",
+         "title": "Quantity",
+         "type": "decimal"
+        },
+        {
+         "id": "unit_cost",
+         "title": "Price each",
+         "type": "decimal"
+        },
+        {
+         "formula": "quantity*unit_cost",
+         "id": "total",
+         "title": "Total",
+         "type": "decimal"
+        }
+       ],
+       "expectedDefinitionID": "67985ed2-e350-4c3b-a7c1-9f735d0bfbc0",
+       "expectedVersion": 1,
+       "id": "4c6818df-cb5c-466a-80a9-692400d0943b"
+      }
+     },
+     "assistantText": "",
+     "callID": "call_79ac2618-f35b-4bd0-9507-40217a917599",
+     "receiptID": "47ccfc58-5e61-40ea-aa31-d4b41210748d",
+     "receiptVersion": 1,
+     "result": {
+      "error": "An AI decision needs an exact saved rule Source.",
+      "receiptID": "47ccfc58-5e61-40ea-aa31-d4b41210748d",
+      "retryInstruction": "The call did not finish successfully. Completed changes remain saved. Inspect the receipt and workbook state before retrying; do not claim no changes occurred. Fix the reported arguments when applicable."
+     },
+     "resultHash": "913f7ce8db5bd96b66f794c390d46d185b4f1c47b9286a4a8dcacfda9feed782",
+     "resultIdentity": {},
+     "runID": "6a4d1ad1-18d9-4693-8a9e-f6b88acc9b90",
+     "tool": "workspace_action"
+    },
+    "created": "2026-11-18T20:06:00Z",
+    "id": "404b7963-e556-4e82-9721-a74d57d51a05",
+    "role": "tool",
+    "state": "complete"
+   },
+   {
+    "body": {
+     "arguments": {
+      "query": "Supplier comparison"
+     },
+     "assistantText": "",
+     "callID": "call_4e5b32d3-276c-43c5-8a10-d4f73a6bd906",
+     "receiptID": "7c377719-913c-4eaf-937f-f738ac03d00f",
+     "receiptVersion": 1,
+     "result": {
+      "historical": false,
+      "hits": [],
+      "nextCursor": null,
+      "order": "exact version ID",
+      "snapshot": "initial",
+      "workbookID": "75f16a58-3343-47e8-aecd-9f9b53d287e4"
+     },
+     "resultHash": "8da06338137b5d88737df643637ca24a0b77f965f2b893e005bc98be9f8a813d",
+     "resultIdentity": {},
+     "runID": "6a4d1ad1-18d9-4693-8a9e-f6b88acc9b90",
+     "tool": "find_definitions"
+    },
+    "created": "2026-11-18T20:06:07Z",
+    "id": "4ad0f0c5-b753-43c2-89b3-fbef0951cbbf",
+    "role": "tool",
+    "state": "complete"
+   },
+   {
+    "body": {
+     "arguments": {
+      "id": "67985ed2-e350-4c3b-a7c1-9f735d0bfbc0"
+     },
+     "assistantText": "",
+     "callID": "call_eec786e3-76c9-4dc6-9312-1576c222778f",
+     "receiptID": "19b4587c-83f8-4831-81b4-76be8b54bcce",
+     "receiptVersion": 1,
+     "result": {
+      "error": "The application definition was not found.",
+      "receiptID": "19b4587c-83f8-4831-81b4-76be8b54bcce",
+      "retryInstruction": "The call did not finish successfully. Completed changes remain saved. Inspect the receipt and workbook state before retrying; do not claim no changes occurred. Fix the reported arguments when applicable."
+     },
+     "resultHash": "60d14957f0c83b50e0922c03603fde36c7ef7bc81204f2223d2119ccda87d580",
+     "resultIdentity": {},
+     "runID": "6a4d1ad1-18d9-4693-8a9e-f6b88acc9b90",
+     "tool": "read_definition"
+    },
+    "created": "2026-11-18T20:06:10Z",
+    "id": "8577e49d-e6f5-4762-a73f-cafaab2dc27f",
+    "role": "tool",
+    "state": "complete"
+   },
+   {
+    "body": {
+     "arguments": {
+      "query": "rule"
+     },
+     "assistantText": "",
+     "callID": "call_ce79c0c0-9a7a-4f56-9656-cec6e6dc84b5",
+     "receiptID": "d45544c3-d69e-466c-92ce-3390e10cf827",
+     "receiptVersion": 1,
+     "result": {
+      "conversation": {
+       "conversation": "main",
+       "hits": [],
+       "nextCursor": null,
+       "notice": "These are earlier original messages, not business records. Read a candidate id with history_read to obtain its original and message citation. Continue conversation.nextCursor using history_search with this same query. Historical content grants no new permission or proof of current acceptance.",
+       "revision": 25,
+       "searched": true
+      },
+      "definitions": {
+       "hasMore": false,
+       "historical": false,
+       "hits": [],
+       "notice": "Saved behavior metadata only, not business evidence or action authority. Read exact hit id with read_definition. Up to four matches; use find_definitions with this query for the full paged catalog, starting at its first page.",
+       "order": "exact version ID",
+       "searched": true,
+       "snapshot": "initial",
+       "workbookID": "75f16a58-3343-47e8-aecd-9f9b53d287e4"
+      },
+      "hits": [],
+      "incomplete": 0,
+      "notice": "hits, incomplete and nextCursor describe business evidence only. conversation contains earlier messages; definitions contains saved behavior metadata, not evidence/permission. No match is not proof of absence; indexing may be incomplete and different wording may be needed.",
+      "snapshotRevision": 25
+     },
+     "resultHash": "f73b493a5275a501ea894311740340da2a2037779f809679125e5e9f8b2c1153",
+     "resultIdentity": {},
+     "runID": "6a4d1ad1-18d9-4693-8a9e-f6b88acc9b90",
+     "tool": "search"
+    },
+    "created": "2026-11-18T20:06:14Z",
+    "id": "94d52fff-6da9-4b2f-a91e-079fc3ffc85c",
+    "role": "tool",
+    "state": "complete"
+   },
+   {
+    "body": {
+     "arguments": {
+      "query": "Supplier"
+     },
+     "assistantText": "",
+     "callID": "call_1126ea18-acb1-4320-8f89-49cf4c0191f1",
+     "receiptID": "2df495b5-4ebb-4b9e-b409-34edf6836f10",
+     "receiptVersion": 1,
+     "result": {
+      "historical": false,
+      "hits": [],
+      "nextCursor": null,
+      "order": "exact version ID",
+      "snapshot": "initial",
+      "workbookID": "75f16a58-3343-47e8-aecd-9f9b53d287e4"
+     },
+     "resultHash": "8da06338137b5d88737df643637ca24a0b77f965f2b893e005bc98be9f8a813d",
+     "resultIdentity": {},
+     "runID": "6a4d1ad1-18d9-4693-8a9e-f6b88acc9b90",
+     "tool": "find_definitions"
+    },
+    "created": "2026-11-18T20:06:18Z",
+    "id": "bbc36419-0221-42f4-9eab-e17ef03564c8",
+    "role": "tool",
+    "state": "complete"
+   },
+   {
+    "body": "Couldn’t finish preparing the proposal. Record not found: unit_cost\nCouldn’t finish that action. An AI decision needs an exact saved rule Source.",
+    "created": "2026-11-18T20:06:26Z",
+    "id": "0655a903-c246-40f5-8f73-13add444ab21",
+    "role": "assistant",
+    "state": "complete"
+   }
+  ]
+ },
+ "runs": [
+  {
+   "conversation_id": "main",
+   "created": "2026-11-18T20:05:10Z",
+   "id": "6a4d1ad1-18d9-4693-8a9e-f6b88acc9b90",
+   "metrics": [
+    {
+     "acceptedDraftTokens": 41,
+     "activations": "bf16",
+     "backend": "splash-native-candidate",
+     "beforeDispatchSeconds": 8.51543841662351,
+     "contextTokens": 65536,
+     "decodeSeconds": 1.896056,
+     "deduplicatedKVTokens": 0,
+     "diagnosticRequestCacheIsolation": false,
+     "draftedTokens": 175,
+     "engineSHA256": "ce771e5f51081a2fd60df0ee0083f982a278a863ffaeab29fd590f55e9e36e89",
+     "firstAnswerPreviewSeconds": null,
+     "firstTokenSeconds": 3.6977419583126903,
+     "generatedTokens": 67,
+     "grammarSHA256": "5b96c275e9c1a2e618a54a4814a6d9c0de116285e8ffd0814aea01a5c8eecdf1",
+     "helperStartSeconds": 4.420099958311766,
+     "hostPreparationSeconds": 0.00011324998922646046,
+     "maintenanceRecommended": false,
+     "maintenanceThreshold": 49152,
+     "matchedPromptTokens": 6016,
+     "nextToolResultReserve": 3546,
+     "outputBudget": 1800,
+     "prefillSeconds": 3.692718,
+     "prefixPrimeMatchedTokens": 0,
+     "prefixPrimePrefillSeconds": 4.067369,
+     "prefixPrimeSeconds": 4.0675214166985825,
+     "prefixPrimeTokens": 6020,
+     "promptTokens": 11178,
+     "reasoningBudget": 512,
+     "reasoningBudgetOverrun": 0,
+     "reasoningHistory": "within-request",
+     "reasoningTokens": 51,
+     "recoveryReserve": 256,
+     "replayBoundaryTokens": 11168,
+     "requestSeconds": 5.593802708317526,
+     "requestedContextTokens": 65536,
+     "requestedMemoryBytes": 12884901888,
+     "requestedOutputBudget": 1800,
+     "runtimeRelease": "1.6.1",
+     "scopePrefixTokens": 10586,
+     "speculativeMethod": "DFlash2",
+     "stablePrefixTokens": 6020,
+     "templateIdentity": "aee46acfcba8e4e7aec7512126b926aa311bf7414d0d96ad3b13a86d5bdfe9d3",
+     "toolScope": "all"
+    },
+    {
+     "acceptedDraftTokens": 162,
+     "activations": "bf16",
+     "backend": "splash-native-candidate",
+     "beforeDispatchSeconds": 2.653523416724056,
+     "contextTokens": 65536,
+     "decodeSeconds": 5.449591,
+     "deduplicatedKVTokens": 64,
+     "diagnosticRequestCacheIsolation": false,
+     "draftedTokens": 392,
+     "engineSHA256": "ce771e5f51081a2fd60df0ee0083f982a278a863ffaeab29fd590f55e9e36e89",
+     "firstAnswerPreviewSeconds": null,
+     "firstTokenSeconds": 1.2822639166843146,
+     "generatedTokens": 219,
+     "grammarSHA256": "5b96c275e9c1a2e618a54a4814a6d9c0de116285e8ffd0814aea01a5c8eecdf1",
+     "helperStartSeconds": 4.5832712203264236e-07,
+     "hostPreparationSeconds": 0.0002187499776482582,
+     "maintenanceRecommended": false,
+     "maintenanceThreshold": 49152,
+     "matchedPromptTokens": 11168,
+     "nextToolResultReserve": 3546,
+     "outputBudget": 1800,
+     "prefillSeconds": 1.274059,
+     "prefixPrimeMatchedTokens": 8192,
+     "prefixPrimePrefillSeconds": 2.646149,
+     "prefixPrimeSeconds": 2.652715791715309,
+     "prefixPrimeTokens": 10586,
+     "promptTokens": 11412,
+     "reasoningBudget": 512,
+     "reasoningBudgetOverrun": 0,
+     "reasoningHistory": "within-request",
+     "reasoningTokens": 123,
+     "recoveryReserve": 256,
+     "replayBoundaryTokens": 11392,
+     "requestSeconds": 6.731876166653819,
+     "requestedContextTokens": 65536,
+     "requestedMemoryBytes": 12884901888,
+     "requestedOutputBudget": 1800,
+     "runtimeRelease": "1.6.1",
+     "scopePrefixTokens": 10586,
+     "speculativeMethod": "DFlash2",
+     "stablePrefixTokens": 6020,
+     "templateIdentity": "aee46acfcba8e4e7aec7512126b926aa311bf7414d0d96ad3b13a86d5bdfe9d3",
+     "toolScope": "all"
+    },
+    {
+     "acceptedDraftTokens": 220,
+     "activations": "bf16",
+     "backend": "splash-native-candidate",
+     "beforeDispatchSeconds": 0.000570458360016346,
+     "contextTokens": 65536,
+     "decodeSeconds": 7.090473,
+     "deduplicatedKVTokens": 224,
+     "diagnosticRequestCacheIsolation": false,
+     "draftedTokens": 553,
+     "engineSHA256": "ce771e5f51081a2fd60df0ee0083f982a278a863ffaeab29fd590f55e9e36e89",
+     "firstAnswerPreviewSeconds": null,
+     "firstTokenSeconds": 1.2872201666468754,
+     "generatedTokens": 300,
+     "grammarSHA256": "5b96c275e9c1a2e618a54a4814a6d9c0de116285e8ffd0814aea01a5c8eecdf1",
+     "helperStartSeconds": 7.917406037449837e-07,
+     "hostPreparationSeconds": 0.0002758332993835211,
+     "maintenanceRecommended": false,
+     "maintenanceThreshold": 49152,
+     "matchedPromptTokens": 11392,
+     "nextToolResultReserve": 3546,
+     "outputBudget": 1800,
+     "prefillSeconds": 1.27723,
+     "prefixPrimeMatchedTokens": 0,
+     "prefixPrimePrefillSeconds": 0,
+     "prefixPrimeSeconds": 0,
+     "prefixPrimeTokens": 0,
+     "promptTokens": 11729,
+     "reasoningBudget": 512,
+     "reasoningBudgetOverrun": 0,
+     "reasoningHistory": "within-request",
+     "reasoningTokens": 271,
+     "recoveryReserve": 256,
+     "replayBoundaryTokens": 11712,
+     "requestSeconds": 8.3777771666646,
+     "requestedContextTokens": 65536,
+     "requestedMemoryBytes": 12884901888,
+     "requestedOutputBudget": 1800,
+     "runtimeRelease": "1.6.1",
+     "scopePrefixTokens": 10586,
+     "speculativeMethod": "DFlash2",
+     "stablePrefixTokens": 6020,
+     "templateIdentity": "aee46acfcba8e4e7aec7512126b926aa311bf7414d0d96ad3b13a86d5bdfe9d3",
+     "toolScope": "all"
+    },
+    {
+     "acceptedDraftTokens": 107,
+     "activations": "bf16",
+     "backend": "splash-native-candidate",
+     "beforeDispatchSeconds": 0.0006247083656489849,
+     "contextTokens": 65536,
+     "decodeSeconds": 3.300694,
+     "deduplicatedKVTokens": 288,
+     "diagnosticRequestCacheIsolation": false,
+     "draftedTokens": 203,
+     "engineSHA256": "ce771e5f51081a2fd60df0ee0083f982a278a863ffaeab29fd590f55e9e36e89",
+     "firstAnswerPreviewSeconds": null,
+     "firstTokenSeconds": 1.544841833296232,
+     "generatedTokens": 137,
+     "grammarSHA256": "5b96c275e9c1a2e618a54a4814a6d9c0de116285e8ffd0814aea01a5c8eecdf1",
+     "helperStartSeconds": 7.917406037449837e-07,
+     "hostPreparationSeconds": 0.0003232499584555626,
+     "maintenanceRecommended": false,
+     "maintenanceThreshold": 49152,
+     "matchedPromptTokens": 11712,
+     "nextToolResultReserve": 3546,
+     "outputBudget": 1800,
+     "prefillSeconds": 1.533645,
+     "prefixPrimeMatchedTokens": 0,
+     "prefixPrimePrefillSeconds": 0,
+     "prefixPrimeSeconds": 0,
+     "prefixPrimeTokens": 0,
+     "promptTokens": 12490,
+     "reasoningBudget": 512,
+     "reasoningBudgetOverrun": 0,
+     "reasoningHistory": "within-request",
+     "reasoningTokens": 57,
+     "recoveryReserve": 256,
+     "replayBoundaryTokens": 12480,
+     "requestSeconds": 4.8455667917151,
+     "requestedContextTokens": 65536,
+     "requestedMemoryBytes": 12884901888,
+     "requestedOutputBudget": 1800,
+     "runtimeRelease": "1.6.1",
+     "scopePrefixTokens": 10586,
+     "speculativeMethod": "DFlash2",
+     "stablePrefixTokens": 6020,
+     "templateIdentity": "aee46acfcba8e4e7aec7512126b926aa311bf7414d0d96ad3b13a86d5bdfe9d3",
+     "toolScope": "all"
+    },
+    {
+     "acceptedDraftTokens": 394,
+     "activations": "bf16",
+     "backend": "splash-native-candidate",
+     "beforeDispatchSeconds": 0.0007184583228081465,
+     "contextTokens": 65536,
+     "decodeSeconds": 9.706699,
+     "deduplicatedKVTokens": 128,
+     "diagnosticRequestCacheIsolation": false,
+     "draftedTokens": 532,
+     "engineSHA256": "ce771e5f51081a2fd60df0ee0083f982a278a863ffaeab29fd590f55e9e36e89",
+     "firstAnswerPreviewSeconds": null,
+     "firstTokenSeconds": 1.3864344999892637,
+     "generatedTokens": 471,
+     "grammarSHA256": "5b96c275e9c1a2e618a54a4814a6d9c0de116285e8ffd0814aea01a5c8eecdf1",
+     "helperStartSeconds": 8.333008736371994e-07,
+     "hostPreparationSeconds": 0.0003920000744983554,
+     "maintenanceRecommended": false,
+     "maintenanceThreshold": 49152,
+     "matchedPromptTokens": 12480,
+     "nextToolResultReserve": 3546,
+     "outputBudget": 1800,
+     "prefillSeconds": 1.374651,
+     "prefixPrimeMatchedTokens": 0,
+     "prefixPrimePrefillSeconds": 0,
+     "prefixPrimeSeconds": 0,
+     "prefixPrimeTokens": 0,
+     "promptTokens": 12795,
+     "reasoningBudget": 512,
+     "reasoningBudgetOverrun": 0,
+     "reasoningHistory": "within-request",
+     "reasoningTokens": 258,
+     "recoveryReserve": 256,
+     "replayBoundaryTokens": 12768,
+     "requestSeconds": 11.093133250018582,
+     "requestedContextTokens": 65536,
+     "requestedMemoryBytes": 12884901888,
+     "requestedOutputBudget": 1800,
+     "runtimeRelease": "1.6.1",
+     "scopePrefixTokens": 10586,
+     "speculativeMethod": "DFlash2",
+     "stablePrefixTokens": 6020,
+     "templateIdentity": "aee46acfcba8e4e7aec7512126b926aa311bf7414d0d96ad3b13a86d5bdfe9d3",
+     "toolScope": "all"
+    },
+    {
+     "acceptedDraftTokens": 127,
+     "activations": "bf16",
+     "backend": "splash-native-candidate",
+     "beforeDispatchSeconds": 0.0007420000620186329,
+     "contextTokens": 65536,
+     "decodeSeconds": 4.166985,
+     "deduplicatedKVTokens": 288,
+     "diagnosticRequestCacheIsolation": false,
+     "draftedTokens": 301,
+     "engineSHA256": "ce771e5f51081a2fd60df0ee0083f982a278a863ffaeab29fd590f55e9e36e89",
+     "firstAnswerPreviewSeconds": null,
+     "firstTokenSeconds": 1.8969593750080094,
+     "generatedTokens": 171,
+     "grammarSHA256": "5b96c275e9c1a2e618a54a4814a6d9c0de116285e8ffd0814aea01a5c8eecdf1",
+     "helperStartSeconds": 1.374981366097927e-06,
+     "hostPreparationSeconds": 0.00044079171493649483,
+     "maintenanceRecommended": false,
+     "maintenanceThreshold": 49152,
+     "matchedPromptTokens": 12768,
+     "nextToolResultReserve": 3546,
+     "outputBudget": 1800,
+     "prefillSeconds": 1.885777,
+     "prefixPrimeMatchedTokens": 0,
+     "prefixPrimePrefillSeconds": 0,
+     "prefixPrimeSeconds": 0,
+     "prefixPrimeTokens": 0,
+     "promptTokens": 13370,
+     "reasoningBudget": 512,
+     "reasoningBudgetOverrun": 0,
+     "reasoningHistory": "within-request",
+     "reasoningTokens": 143,
+     "recoveryReserve": 256,
+     "replayBoundaryTokens": 13344,
+     "requestSeconds": 6.063956500031054,
+     "requestedContextTokens": 65536,
+     "requestedMemoryBytes": 12884901888,
+     "requestedOutputBudget": 1800,
+     "runtimeRelease": "1.6.1",
+     "scopePrefixTokens": 10586,
+     "speculativeMethod": "DFlash2",
+     "stablePrefixTokens": 6020,
+     "templateIdentity": "aee46acfcba8e4e7aec7512126b926aa311bf7414d0d96ad3b13a86d5bdfe9d3",
+     "toolScope": "all"
+    },
+    {
+     "acceptedDraftTokens": 53,
+     "activations": "bf16",
+     "backend": "splash-native-candidate",
+     "beforeDispatchSeconds": 0.0008805833058431745,
+     "contextTokens": 65536,
+     "decodeSeconds": 2.276494,
+     "deduplicatedKVTokens": 192,
+     "diagnosticRequestCacheIsolation": false,
+     "draftedTokens": 147,
+     "engineSHA256": "ce771e5f51081a2fd60df0ee0083f982a278a863ffaeab29fd590f55e9e36e89",
+     "firstAnswerPreviewSeconds": null,
+     "firstTokenSeconds": 1.267594458302483,
+     "generatedTokens": 75,
+     "grammarSHA256": "5b96c275e9c1a2e618a54a4814a6d9c0de116285e8ffd0814aea01a5c8eecdf1",
+     "helperStartSeconds": 1.3333046808838844e-06,
+     "hostPreparationSeconds": 0.000478541711345315,
+     "maintenanceRecommended": false,
+     "maintenanceThreshold": 49152,
+     "matchedPromptTokens": 13344,
+     "nextToolResultReserve": 3546,
+     "outputBudget": 1800,
+     "prefillSeconds": 1.263719,
+     "prefixPrimeMatchedTokens": 0,
+     "prefixPrimePrefillSeconds": 0,
+     "prefixPrimeSeconds": 0,
+     "prefixPrimeTokens": 0,
+     "promptTokens": 13618,
+     "reasoningBudget": 512,
+     "reasoningBudgetOverrun": 0,
+     "reasoningHistory": "within-request",
+     "reasoningTokens": 18,
+     "recoveryReserve": 256,
+     "replayBoundaryTokens": 13600,
+     "requestSeconds": 3.544068583403714,
+     "requestedContextTokens": 65536,
+     "requestedMemoryBytes": 12884901888,
+     "requestedOutputBudget": 1800,
+     "runtimeRelease": "1.6.1",
+     "scopePrefixTokens": 10586,
+     "speculativeMethod": "DFlash2",
+     "stablePrefixTokens": 6020,
+     "templateIdentity": "aee46acfcba8e4e7aec7512126b926aa311bf7414d0d96ad3b13a86d5bdfe9d3",
+     "toolScope": "all"
+    },
+    {
+     "acceptedDraftTokens": 77,
+     "activations": "bf16",
+     "backend": "splash-native-candidate",
+     "beforeDispatchSeconds": 0.000671125017106533,
+     "contextTokens": 65536,
+     "decodeSeconds": 2.771299,
+     "deduplicatedKVTokens": 64,
+     "diagnosticRequestCacheIsolation": false,
+     "draftedTokens": 252,
+     "engineSHA256": "ce771e5f51081a2fd60df0ee0083f982a278a863ffaeab29fd590f55e9e36e89",
+     "firstAnswerPreviewSeconds": null,
+     "firstTokenSeconds": 1.129589791642502,
+     "generatedTokens": 114,
+     "grammarSHA256": "5b96c275e9c1a2e618a54a4814a6d9c0de116285e8ffd0814aea01a5c8eecdf1",
+     "helperStartSeconds": 5.416804924607277e-07,
+     "hostPreparationSeconds": 0.00042399996891617775,
+     "maintenanceRecommended": false,
+     "maintenanceThreshold": 49152,
+     "matchedPromptTokens": 13600,
+     "nextToolResultReserve": 3546,
+     "outputBudget": 1800,
+     "prefillSeconds": 1.125783,
+     "prefixPrimeMatchedTokens": 0,
+     "prefixPrimePrefillSeconds": 0,
+     "prefixPrimeSeconds": 0,
+     "prefixPrimeTokens": 0,
+     "promptTokens": 13796,
+     "reasoningBudget": 512,
+     "reasoningBudgetOverrun": 0,
+     "reasoningHistory": "within-request",
+     "reasoningTokens": 88,
+     "recoveryReserve": 256,
+     "replayBoundaryTokens": 13760,
+     "requestSeconds": 3.9008638750528917,
+     "requestedContextTokens": 65536,
+     "requestedMemoryBytes": 12884901888,
+     "requestedOutputBudget": 1800,
+     "runtimeRelease": "1.6.1",
+     "scopePrefixTokens": 10586,
+     "speculativeMethod": "DFlash2",
+     "stablePrefixTokens": 6020,
+     "templateIdentity": "aee46acfcba8e4e7aec7512126b926aa311bf7414d0d96ad3b13a86d5bdfe9d3",
+     "toolScope": "all"
+    },
+    {
+     "acceptedDraftTokens": 28,
+     "activations": "bf16",
+     "backend": "splash-native-candidate",
+     "beforeDispatchSeconds": 0.0007099583745002747,
+     "contextTokens": 65536,
+     "decodeSeconds": 1.757538,
+     "deduplicatedKVTokens": 128,
+     "diagnosticRequestCacheIsolation": false,
+     "draftedTokens": 140,
+     "engineSHA256": "ce771e5f51081a2fd60df0ee0083f982a278a863ffaeab29fd590f55e9e36e89",
+     "firstAnswerPreviewSeconds": null,
+     "firstTokenSeconds": 1.3488929166924208,
+     "generatedTokens": 49,
+     "grammarSHA256": "5b96c275e9c1a2e618a54a4814a6d9c0de116285e8ffd0814aea01a5c8eecdf1",
+     "helperStartSeconds": 1.0833609849214554e-06,
+     "hostPreparationSeconds": 0.00045620836317539215,
+     "maintenanceRecommended": false,
+     "maintenanceThreshold": 49152,
+     "matchedPromptTokens": 13760,
+     "nextToolResultReserve": 3546,
+     "outputBudget": 1800,
+     "prefillSeconds": 1.345661,
+     "prefixPrimeMatchedTokens": 0,
+     "prefixPrimePrefillSeconds": 0,
+     "prefixPrimeSeconds": 0,
+     "prefixPrimeTokens": 0,
+     "promptTokens": 14177,
+     "reasoningBudget": 512,
+     "reasoningBudgetOverrun": 0,
+     "reasoningHistory": "within-request",
+     "reasoningTokens": 22,
+     "recoveryReserve": 256,
+     "replayBoundaryTokens": 14144,
+     "requestSeconds": 3.106421499978751,
+     "requestedContextTokens": 65536,
+     "requestedMemoryBytes": 12884901888,
+     "requestedOutputBudget": 1800,
+     "runtimeRelease": "1.6.1",
+     "scopePrefixTokens": 10586,
+     "speculativeMethod": "DFlash2",
+     "stablePrefixTokens": 6020,
+     "templateIdentity": "aee46acfcba8e4e7aec7512126b926aa311bf7414d0d96ad3b13a86d5bdfe9d3",
+     "toolScope": "all"
+    },
+    {
+     "acceptedDraftTokens": 232,
+     "activations": "bf16",
+     "backend": "splash-native-candidate",
+     "beforeDispatchSeconds": 0.0007037917384877801,
+     "contextTokens": 65536,
+     "decodeSeconds": 7.312211,
+     "deduplicatedKVTokens": 64,
+     "diagnosticRequestCacheIsolation": false,
+     "draftedTokens": 637,
+     "engineSHA256": "ce771e5f51081a2fd60df0ee0083f982a278a863ffaeab29fd590f55e9e36e89",
+     "firstAnswerPreviewSeconds": 5.681812791735865,
+     "firstTokenSeconds": 1.0930536249652505,
+     "generatedTokens": 324,
+     "grammarSHA256": "5b96c275e9c1a2e618a54a4814a6d9c0de116285e8ffd0814aea01a5c8eecdf1",
+     "helperStartSeconds": 1.1665979400277138e-06,
+     "hostPreparationSeconds": 0.0004757917486131191,
+     "maintenanceRecommended": false,
+     "maintenanceThreshold": 49152,
+     "matchedPromptTokens": 14144,
+     "nextToolResultReserve": 3546,
+     "outputBudget": 1800,
+     "prefillSeconds": 1.090741,
+     "prefixPrimeMatchedTokens": 0,
+     "prefixPrimePrefillSeconds": 0,
+     "prefixPrimeSeconds": 0,
+     "prefixPrimeTokens": 0,
+     "promptTokens": 14303,
+     "reasoningBudget": 512,
+     "reasoningBudgetOverrun": 0,
+     "reasoningHistory": "within-request",
+     "reasoningTokens": 211,
+     "recoveryReserve": 256,
+     "replayBoundaryTokens": 14272,
+     "requestSeconds": 8.405339749995619,
+     "requestedContextTokens": 65536,
+     "requestedMemoryBytes": 12884901888,
+     "requestedOutputBudget": 1800,
+     "runtimeRelease": "1.6.1",
+     "scopePrefixTokens": 10586,
+     "speculativeMethod": "DFlash2",
+     "stablePrefixTokens": 6020,
+     "templateIdentity": "aee46acfcba8e4e7aec7512126b926aa311bf7414d0d96ad3b13a86d5bdfe9d3",
+     "toolScope": "all"
+    }
+   ],
+   "model": "Splash 1.6.1; d8af1054aab0f97de21d043e01aa98af3754f10e; Qwen3.6-35B-A3B-4bit + DFlash2; native Swift candidate; context 65536; memory 12884901888; activations bf16; KV int8; state fp32; ANE on; reasoning budget 512; within-request reasoning retained",
+   "request_message_id": "bd8e389c-85d6-4676-9a87-df4ba9fc215f",
+   "status": "complete",
+   "steps": 10,
+   "updated": "2026-11-18T20:06:26Z"
+  }
+ ],
+ "saved": {}
+}

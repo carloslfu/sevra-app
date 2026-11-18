@@ -9,8 +9,8 @@ import SevraSplashGrammar
 import SevraSplashText
 
 final class ToolPolicyChecks {
-  func actualTools() throws -> Data {
-    let definitions: [[String: Any]] = try NativeTools.definitions.filter {
+  func actualTools(_ tools: [WorkbookToolDefinition] = NativeTools.definitions) throws -> Data {
+    let definitions: [[String: Any]] = try tools.filter {
       $0.name != "prepare_workflow_answer"
     }.map {
       [
@@ -360,6 +360,14 @@ do {
   }
   if CommandLine.arguments.dropFirst() == ["--conversation-surfaces"] {
     try await checkConversationSurfaces()
+    exit(0)
+  }
+  if CommandLine.arguments.dropFirst() == ["--sql-tool"] {
+    try await checkSQLTool()
+    exit(0)
+  }
+  if CommandLine.arguments.dropFirst() == ["--model-actor-table-probe"] {
+    try await runModelActorTableProbe()
     exit(0)
   }
   if CommandLine.arguments.dropFirst() == ["--chat-checks"] {

@@ -7,11 +7,15 @@ import SevraNativeAI
 actor ScriptedCalls: WorkbookInference {
   typealias Step = @Sendable ([InferenceMessage]) throws -> (String, Value)
   let identity = "synthetic scripted calls"
+  let toolProfile: ToolProfile
   let lastMetrics: Value = .null
   private var steps: [Step]
   private(set) var prompts: [[InferenceMessage]] = []
   private(set) var vocabularies: [[String]] = []
-  init(_ steps: [Step]) { self.steps = steps }
+  init(_ steps: [Step], toolProfile: ToolProfile = .current) {
+    self.steps = steps
+    self.toolProfile = toolProfile
+  }
   func beginRun() {}
   func endRun() {}
   func respond(

@@ -1,0 +1,1042 @@
+{
+ "job": "steps.totals_by_category",
+ "language": "en",
+ "profile": "current",
+ "attempt": 2,
+ "prompt": "Total the line items of invoice 7781 by category and save the totals as a table named Invoice 7781 totals.",
+ "expected": "A table named Invoice 7781 totals exists with three rows: Fasteners 31.50, Tools 50.25, Packaging 9.00.",
+ "failure": "the request ended as needs_review; Invoice 7781 totals does not hold exactly [[\"Fasteners\", \"31.5\"], [\"Tools\", \"50.25\"], [\"Packaging\", 9]]: null; expected exactly one new table",
+ "result": {
+  "answer": "Ready to review: [Review table: Invoice 7781 totals](sevra://item/12e2e458-5006-42c8-9f03-c8a84d5d69b8). Existing accepted values are unchanged. Accept this proposal to continue.",
+  "citations": [
+   "12e2e458-5006-42c8-9f03-c8a84d5d69b8"
+  ],
+  "conversationAction": null,
+  "state": "needs_review",
+  "steps": 9
+ },
+ "progress": [
+  "Reading request context",
+  "Checking local model files",
+  "Preparing local AI. The first start can take longer…",
+  "Preparing local AI · 0 of 11 steps",
+  "Preparing local AI · 1 of 11 steps",
+  "Preparing local AI · 2 of 11 steps",
+  "Preparing local AI · 3 of 11 steps",
+  "Preparing local AI · 4 of 11 steps",
+  "Preparing local AI · 5 of 11 steps",
+  "Preparing local AI · 6 of 11 steps",
+  "Preparing local AI · 7 of 11 steps",
+  "Preparing local AI · 8 of 11 steps",
+  "Preparing local AI · 9 of 11 steps",
+  "Preparing local AI · 10 of 11 steps",
+  "Preparing local AI · 11 of 11 steps",
+  "Reading the working context",
+  "Working through the request",
+  "Preparing a response",
+  "Searching for “invoice 7781”…",
+  "Reviewing the saved result",
+  "Reading the working context",
+  "Working through the request",
+  "Preparing a response",
+  "Reading an original…",
+  "Reviewing the saved result",
+  "Reading the working context",
+  "Working through the request",
+  "Preparing a response",
+  "Calculating…",
+  "Reviewing the saved result",
+  "Reading the working context",
+  "Working through the request",
+  "Preparing a response",
+  "Calculating…",
+  "Reviewing the saved result",
+  "Reading the working context",
+  "Working through the request",
+  "Preparing a response",
+  "Propose Table…",
+  "Reviewing a tool failure",
+  "Reading the working context",
+  "Working through the request",
+  "Preparing a response",
+  "Inspecting tables…",
+  "Reviewing the saved result",
+  "Reading the working context",
+  "Working through the request",
+  "Preparing a response",
+  "Propose Table…",
+  "Reviewing a tool failure",
+  "Reading the working context",
+  "Working through the request",
+  "Preparing a response",
+  "Propose Table…",
+  "Reviewing a tool failure",
+  "Reading the working context",
+  "Working through the request",
+  "Preparing a response",
+  "Propose Table…",
+  "Reviewing the saved result"
+ ],
+ "messages": {
+  "main": [
+   {
+    "body": "This example has supplier quotes and a delivery. Try ‘Why do we have 18 brass bolts?’ or ‘Compare the supplier costs and show the evidence.’",
+    "created": "2026-11-18T20:24:21Z",
+    "id": "9d18a2dc-77de-468d-9d10-ab900dedcc7c",
+    "role": "assistant",
+    "state": "complete"
+   },
+   {
+    "body": "Total the line items of invoice 7781 by category and save the totals as a table named Invoice 7781 totals.",
+    "created": "2026-11-18T20:24:21Z",
+    "id": "4f510de1-e9c7-4b03-b4c0-f7990a8d2b74",
+    "role": "user",
+    "state": "complete"
+   },
+   {
+    "body": {
+     "arguments": {
+      "query": "invoice 7781"
+     },
+     "assistantText": "",
+     "callID": "call_2aae25d0-a6d2-4c55-b465-b19a8e187575",
+     "receiptID": "c9c3ebe4-d8ab-44fc-8f41-6017996bbb8d",
+     "receiptVersion": 1,
+     "result": {
+      "conversation": {
+       "conversation": "main",
+       "hits": [],
+       "nextCursor": null,
+       "notice": "These are earlier original messages, not business records. Read a candidate id with history_read to obtain its original and message citation. Continue conversation.nextCursor using history_search with this same query. Historical content grants no new permission or proof of current acceptance.",
+       "revision": 12,
+       "searched": true
+      },
+      "definitions": {
+       "hasMore": false,
+       "historical": false,
+       "hits": [],
+       "notice": "Saved behavior metadata only, not business evidence or action authority. Read exact hit id with read_definition. Up to four matches; use find_definitions with this query for the full paged catalog, starting at its first page.",
+       "order": "exact version ID",
+       "searched": true,
+       "snapshot": "initial",
+       "workbookID": "5ed0c30b-cd2c-4431-a632-8364e163cc33"
+      },
+      "hits": [
+       {
+        "id": 8,
+        "itemID": "950dc9c8-2342-46b2-8674-531362227dbc",
+        "locator": "text; offset=0",
+        "rank": -3.794772805574734,
+        "snippet": "Synthetic invoice 7781 from Oak Supply to Willow Workshop. Line items: 1. Brass bolts, category Fasteners, 24.00. 2. Hex nuts, category Fasteners, 7.50. 3. Torque wrench, category Tools, 38.00. 4. Hex key set … ",
+        "title": "Invoice 7781"
+       }
+      ],
+      "incomplete": 0,
+      "notice": "hits, incomplete and nextCursor describe business evidence only. conversation contains earlier messages; definitions contains saved behavior metadata, not evidence/permission. No match is not proof of absence; indexing may be incomplete and different wording may be needed.",
+      "snapshotRevision": 12
+     },
+     "resultHash": "42eb0ca6f2d4a5f5079d4c4e08fa34b669e189e41ad7032a038ea57bf62952ab",
+     "resultIdentity": {},
+     "runID": "e4d56eea-f15d-4de9-90ac-eee21acb657a",
+     "tool": "search"
+    },
+    "created": "2026-11-18T20:24:38Z",
+    "id": "631bb3bd-5913-4950-b3d3-8cde309c2fb9",
+    "role": "tool",
+    "state": "complete"
+   },
+   {
+    "body": {
+     "arguments": {
+      "id": "950dc9c8-2342-46b2-8674-531362227dbc"
+     },
+     "assistantText": "",
+     "callID": "call_4963dd1f-3294-42e0-8076-51623854f023",
+     "receiptID": "cf30a580-c0b9-449b-8679-6031351f966c",
+     "receiptVersion": 1,
+     "result": {
+      "chunkPage": {
+       "count": 1,
+       "hasMore": false,
+       "nextOffset": null,
+       "offset": 0
+      },
+      "chunks": [
+       {
+        "body": "Synthetic invoice 7781 from Oak Supply to Willow Workshop. Line items: 1. Brass bolts, category Fasteners, 24.00. 2. Hex nuts, category Fasteners, 7.50. 3. Torque wrench, category Tools, 38.00. 4. Hex key set, category Tools, 12.25. 5. Shipping boxes, category Packaging, 9.00. Invoice total 90.75.",
+        "id": 8,
+        "locator": "text; offset=0"
+       }
+      ],
+      "currentVersion": {
+       "id": "950dc9c8-2342-46b2-8674-531362227dbc",
+       "meaning": "actual",
+       "status": "accepted",
+       "title": "Invoice 7781"
+      },
+      "documentCopies": {
+       "entries": [
+        {
+         "id": "copy:cf30a580-c0b9-449b-8679-6031351f966c:0:0:298",
+         "locator": "text; offset=0",
+         "sourceVersionID": "950dc9c8-2342-46b2-8674-531362227dbc",
+         "text": "Synthetic invoice 7781 from Oak Supply to Willow Workshop. Line items: 1. Brass bolts, category Fasteners, 24.00. 2. Hex nuts, category Fasteners, 7.50. 3. Torque wrench, category Tools, 38.00. 4. Hex key set, category Tools, 12.25. 5. Shipping boxes, category Packaging, 9.00. Invoice total 90.75."
+        }
+       ],
+       "hasMore": false,
+       "nextOffset": null,
+       "notice": "Exact original passages for draft parts. Use a passage ID as copy, without retyping its text. New prose uses text. These passages do not establish current acceptance or complete coverage. Use read with copyOffset for later passage candidates; source chunks may have partial first/last lines.",
+       "offset": 0
+      },
+      "extraction": {},
+      "isCurrentVersion": true,
+      "item": {
+       "category": "source",
+       "created": "2026-11-18T20:24:21Z",
+       "data": {},
+       "id": "950dc9c8-2342-46b2-8674-531362227dbc",
+       "kind": "note",
+       "logicalID": "21c98197-e44b-48b7-9577-e31989837e2f",
+       "meaning": "actual",
+       "scenario": "actual",
+       "status": "accepted",
+       "text": "Synthetic invoice 7781 from Oak Supply to Willow Workshop. Line items: 1. Brass bolts, category Fasteners, 24.00. 2. Hex nuts, category Fasteners, 7.50. 3. Torque wrench, category Tools, 38.00. 4. Hex key set, category Tools, 12.25. 5. Shipping boxes, category Packaging, 9.00. Invoice total 90.75.",
+       "title": "Invoice 7781",
+       "version": 1
+      },
+      "notice": "The item is the exact requested version. When it is historical, read currentVersion.id for current facts or acceptance; do not present historical status as current. A null currentVersion means the latest head is outside this read scope, not that it is absent. For movements, data preserves original creation arguments: data.status is not the current status. Use item.status for this version and currentVersion.status for its latest head.",
+      "references": {
+       "accessScope": "workbook-business-items",
+       "anchor": {
+        "category": "source",
+        "id": "950dc9c8-2342-46b2-8674-531362227dbc",
+        "is_current": 1,
+        "kind": "note",
+        "logical_id": "21c98197-e44b-48b7-9577-e31989837e2f",
+        "meaning": "actual",
+        "scenario": "actual",
+        "status": "accepted",
+        "title": "Invoice 7781",
+        "version": 1
+       },
+       "direction": "outgoing",
+       "discoveryReason": "mention",
+       "fileCoverage": {
+        "latestExtraction": {},
+        "notice": "Coverage applies to supported links in the retained extraction only; it does not cover embedded hyperlinks or unextracted content. A failed or running retry can retain the previous snapshot.",
+        "snapshot": null
+       },
+       "hits": [],
+       "nextCursor": null,
+       "notice": "One hop over saved mentions, at most 12 results per page. Requests, annotations and technical definition/invocation Sources are excluded. Use history_search/history_read for accessible conversation. Read each exact destination or incoming origin before citing it; these titles and links are not inspected evidence. Keep all filters with nextCursor. Coverage describes this anchor only; no match is not proof of absence. A mention is not derivation, payment, support or corroboration. External workbooks are never opened.",
+       "originCoverage": "ready",
+       "scope": "all"
+      },
+      "snapshotRevision": 14
+     },
+     "resultHash": "52bb1add0b3533133da5d34dbe54a3c8fb33c1f1ab5819d789cf8f18238857c1",
+     "resultIdentity": {},
+     "runID": "e4d56eea-f15d-4de9-90ac-eee21acb657a",
+     "tool": "read"
+    },
+    "created": "2026-11-18T20:24:47Z",
+    "id": "f418b2fd-6fc6-49eb-84f7-0a3e02969bc6",
+    "role": "tool",
+    "state": "complete"
+   },
+   {
+    "body": {
+     "arguments": {
+      "expression": "24.00 + 7.50"
+     },
+     "assistantText": "",
+     "callID": "call_27c02fcc-49e0-499c-8983-f33de2ff8aea",
+     "receiptID": "c627403b-f665-4342-ae1b-e66cbdff9300",
+     "receiptVersion": 1,
+     "result": {
+      "arithmetic": "decimal",
+      "result": "31.5"
+     },
+     "resultHash": "5dfb87790e0c64d63292f6454fa0079127c923910e1d43c98bdb2eabea9b7efc",
+     "resultIdentity": {},
+     "runID": "e4d56eea-f15d-4de9-90ac-eee21acb657a",
+     "tool": "calculate"
+    },
+    "created": "2026-11-18T20:24:53Z",
+    "id": "ad4c5d3d-1b4f-4ffc-8775-79ab200b25c6",
+    "role": "tool",
+    "state": "complete"
+   },
+   {
+    "body": {
+     "arguments": {
+      "expression": "38.00 + 12.25"
+     },
+     "assistantText": "",
+     "callID": "call_fa4cc91b-f05f-4697-a4aa-e4d42b822e6b",
+     "receiptID": "4937846e-a41d-4749-bc8d-d482f758e0f8",
+     "receiptVersion": 1,
+     "result": {
+      "arithmetic": "decimal",
+      "result": "50.25"
+     },
+     "resultHash": "3f39b1b2f8919fb2b7a8f387dc0a93e0491260ce2953afe847313cdf6af37d9e",
+     "resultIdentity": {},
+     "runID": "e4d56eea-f15d-4de9-90ac-eee21acb657a",
+     "tool": "calculate"
+    },
+    "created": "2026-11-18T20:24:56Z",
+    "id": "ca5f2854-095c-48b1-8528-cc61df020776",
+    "role": "tool",
+    "state": "complete"
+   },
+   {
+    "body": {
+     "arguments": {
+      "columns": [
+       {
+        "id": "category",
+        "title": "Category",
+        "type": "string"
+       },
+       {
+        "id": "total",
+        "title": "Total",
+        "type": "decimal",
+        "unit": ""
+       }
+      ],
+      "inputs": [
+       "invoice 7781"
+      ],
+      "meaning": "actual",
+      "rows": [
+       {
+        "category": "Fasteners",
+        "total": "31.50"
+       },
+       {
+        "category": "Tools",
+        "total": "50.25"
+       },
+       {
+        "category": "Packaging",
+        "total": "9.00"
+       }
+      ],
+      "title": "Invoice 7781 totals"
+     },
+     "assistantText": "",
+     "callID": "call_d4cd6f91-f006-4a51-9967-c9560dd25bf8",
+     "receiptID": "9fc256b0-cdd5-49b4-a6f9-a402a740be6b",
+     "receiptVersion": 1,
+     "result": {
+      "error": "Invalid or reserved column identifier or type.",
+      "receiptID": "9fc256b0-cdd5-49b4-a6f9-a402a740be6b",
+      "retryInstruction": "The call did not finish successfully. Completed changes remain saved. Inspect the receipt and workbook state before retrying; do not claim no changes occurred. Fix the reported arguments when applicable."
+     },
+     "resultHash": "8ca7075263e7782144499b382a87fb4898c731fdba144e36d91b926bfdf49871",
+     "resultIdentity": {},
+     "runID": "e4d56eea-f15d-4de9-90ac-eee21acb657a",
+     "tool": "propose_table"
+    },
+    "created": "2026-11-18T20:25:02Z",
+    "id": "a7c68084-838f-4992-9917-4b81fa8d344d",
+    "role": "tool",
+    "state": "complete"
+   },
+   {
+    "body": {
+     "arguments": {},
+     "assistantText": "",
+     "callID": "call_b7fb461a-915c-4072-afa0-b9421e161779",
+     "receiptID": "2f6fd398-f56f-46ea-a967-7f330d4d8d8d",
+     "receiptVersion": 1,
+     "result": [
+      {
+       "archived": false,
+       "columns": [
+        {
+         "id": "supplier",
+         "title": "Supplier",
+         "type": "text"
+        },
+        {
+         "id": "quantity",
+         "title": "Quantity",
+         "type": "decimal"
+        },
+        {
+         "id": "unit_cost",
+         "title": "Unit cost",
+         "type": "decimal"
+        },
+        {
+         "formula": "quantity*unit_cost",
+         "id": "total",
+         "title": "Total",
+         "type": "decimal"
+        }
+       ],
+       "definitionID": "648d7de9-1e6d-4b5e-81d2-9dd4e257f1e4",
+       "id": "0b9d36e6-5d35-4494-8cc8-c0a4c12fe57c",
+       "rowCount": 2,
+       "title": "Supplier comparison",
+       "version": 1
+      }
+     ],
+     "resultHash": "e71c8009291fd22a6e555b088faaf6e473e7d960b137498311869c17f9f6a8fb",
+     "resultIdentity": {},
+     "runID": "e4d56eea-f15d-4de9-90ac-eee21acb657a",
+     "tool": "datasets"
+    },
+    "created": "2026-11-18T20:25:07Z",
+    "id": "1bd1009e-4ecf-439d-a6a4-32d3bacb8140",
+    "role": "tool",
+    "state": "complete"
+   },
+   {
+    "body": {
+     "arguments": {
+      "columns": [
+       {
+        "id": "category",
+        "title": "Category",
+        "type": "string"
+       },
+       {
+        "id": "amount",
+        "title": "Total",
+        "type": "decimal"
+       }
+      ],
+      "inputs": [
+       "invoice 7781"
+      ],
+      "meaning": "actual",
+      "rows": [
+       {
+        "amount": "31.50",
+        "category": "Fasteners"
+       },
+       {
+        "category": "Tools",
+        "total": "50.25"
+       },
+       {
+        "amount": "9.00",
+        "category": "Packaging"
+       }
+      ],
+      "title": "Invoice 7781 totals"
+     },
+     "assistantText": "",
+     "callID": "call_77ea125a-886c-41a1-855e-c75b92fbdf46",
+     "receiptID": "3ffdc8bf-5f06-48fa-8a1e-3523beffca48",
+     "receiptVersion": 1,
+     "result": {
+      "error": "Invalid or reserved column identifier or type.",
+      "receiptID": "3ffdc8bf-5f06-48fa-8a1e-3523beffca48",
+      "retryInstruction": "The call did not finish successfully. Completed changes remain saved. Inspect the receipt and workbook state before retrying; do not claim no changes occurred. Fix the reported arguments when applicable."
+     },
+     "resultHash": "302f136ac02ade40de923c273d44892d6069b578208cf9263e2f827525ab1843",
+     "resultIdentity": {},
+     "runID": "e4d56eea-f15d-4de9-90ac-eee21acb657a",
+     "tool": "propose_table"
+    },
+    "created": "2026-11-18T20:25:14Z",
+    "id": "b2f4a008-ae21-4b93-bac7-ffcacfe6e6be",
+    "role": "tool",
+    "state": "complete"
+   },
+   {
+    "body": {
+     "arguments": {
+      "columns": [
+       {
+        "id": "category",
+        "title": "Category",
+        "type": "text"
+       },
+       {
+        "id": "amount",
+        "title": "Total",
+        "type": "decimal"
+       }
+      ],
+      "inputs": [
+       "invoice 7781"
+      ],
+      "meaning": "actual",
+      "rows": [
+       {
+        "amount": "31.50",
+        "category": "Fasteners"
+       },
+       {
+        "amount": "50.25",
+        "category": "Tools"
+       },
+       {
+        "amount": "9.00",
+        "category": "Packaging"
+       }
+      ],
+      "title": "Invoice 7781 totals"
+     },
+     "assistantText": "",
+     "callID": "call_b91bb228-7dd8-4d11-a45c-ecefd727225f",
+     "receiptID": "ba25f3e5-288b-4c64-b362-f35b91c88363",
+     "receiptVersion": 1,
+     "result": {
+      "error": "Record not found: invoice 7781",
+      "receiptID": "ba25f3e5-288b-4c64-b362-f35b91c88363",
+      "retryInstruction": "The call did not finish successfully. Completed changes remain saved. Inspect the receipt and workbook state before retrying; do not claim no changes occurred. Fix the reported arguments when applicable."
+     },
+     "resultHash": "22af6164f0e3bed2cc7485ce6c77c88e7ded3f3ce072a2c95c791fdb06ef950c",
+     "resultIdentity": {},
+     "runID": "e4d56eea-f15d-4de9-90ac-eee21acb657a",
+     "tool": "propose_table"
+    },
+    "created": "2026-11-18T20:25:21Z",
+    "id": "89f7d8b9-6872-4b48-a4f3-ea66899493ce",
+    "role": "tool",
+    "state": "complete"
+   },
+   {
+    "body": {
+     "arguments": {
+      "columns": [
+       {
+        "id": "category",
+        "title": "Category",
+        "type": "text"
+       },
+       {
+        "id": "amount",
+        "title": "Total",
+        "type": "decimal"
+       }
+      ],
+      "inputs": [
+       "950dc9c8-2342-46b2-8674-531362227dbc"
+      ],
+      "meaning": "actual",
+      "rows": [
+       {
+        "amount": "31.50",
+        "category": "Fasteners"
+       },
+       {
+        "amount": "50.25",
+        "category": "Tools"
+       },
+       {
+        "amount": "9.00",
+        "category": "Packaging"
+       }
+      ],
+      "title": "Invoice 7781 totals"
+     },
+     "assistantText": "",
+     "callID": "call_acc7483b-57dd-4f9b-a0a0-b21803e12924",
+     "receiptID": "20fa0e10-b704-4000-bf52-a73a8e2e5711",
+     "receiptVersion": 1,
+     "result": {
+      "category": "record",
+      "created": "2026-11-18T20:25:30Z",
+      "data": {
+       "columns": [
+        {
+         "id": "category",
+         "title": "Category",
+         "type": "text"
+        },
+        {
+         "id": "amount",
+         "title": "Total",
+         "type": "decimal"
+        }
+       ],
+       "rows": [
+        {
+         "amount": "31.50",
+         "category": "Fasteners"
+        },
+        {
+         "amount": "50.25",
+         "category": "Tools"
+        },
+        {
+         "amount": "9.00",
+         "category": "Packaging"
+        }
+       ],
+       "title": "Invoice 7781 totals"
+      },
+      "id": "12e2e458-5006-42c8-9f03-c8a84d5d69b8",
+      "kind": "table-creation",
+      "logicalID": "3804eb76-9fa1-40b9-bb5a-c6bef0d3c08e",
+      "meaning": "actual",
+      "scenario": "actual",
+      "status": "draft",
+      "text": "Category · Total\n\nFasteners · 31.50\nTools · 50.25\nPackaging · 9.00",
+      "title": "Review table: Invoice 7781 totals",
+      "version": 1
+     },
+     "resultHash": "f242c206f7704d61f3c6fab040b91f634d017732a839d0a488a12f52762be256",
+     "resultIdentity": {
+      "id": "12e2e458-5006-42c8-9f03-c8a84d5d69b8",
+      "kind": "table-creation",
+      "logicalID": "3804eb76-9fa1-40b9-bb5a-c6bef0d3c08e",
+      "meaning": "actual",
+      "status": "draft"
+     },
+     "runID": "e4d56eea-f15d-4de9-90ac-eee21acb657a",
+     "tool": "propose_table"
+    },
+    "created": "2026-11-18T20:25:30Z",
+    "id": "48819681-6505-4834-a340-bfd28e2c1263",
+    "role": "tool",
+    "state": "complete"
+   },
+   {
+    "body": "Ready to review: [Review table: Invoice 7781 totals](sevra://item/12e2e458-5006-42c8-9f03-c8a84d5d69b8). Existing accepted values are unchanged. Accept this proposal to continue.",
+    "created": "2026-11-18T20:25:30Z",
+    "id": "fbd25cf3-195d-4495-bee8-c721b9a1ecfc",
+    "role": "assistant",
+    "state": "needs_review"
+   }
+  ]
+ },
+ "runs": [
+  {
+   "conversation_id": "main",
+   "created": "2026-11-18T20:24:21Z",
+   "id": "e4d56eea-f15d-4de9-90ac-eee21acb657a",
+   "metrics": [
+    {
+     "acceptedDraftTokens": 111,
+     "activations": "bf16",
+     "backend": "splash-native-candidate",
+     "beforeDispatchSeconds": 8.68414258339908,
+     "contextTokens": 65536,
+     "decodeSeconds": 2.916928,
+     "deduplicatedKVTokens": 0,
+     "diagnosticRequestCacheIsolation": false,
+     "draftedTokens": 224,
+     "engineSHA256": "ce771e5f51081a2fd60df0ee0083f982a278a863ffaeab29fd590f55e9e36e89",
+     "firstAnswerPreviewSeconds": null,
+     "firstTokenSeconds": 3.848904083366506,
+     "generatedTokens": 144,
+     "grammarSHA256": "5b96c275e9c1a2e618a54a4814a6d9c0de116285e8ffd0814aea01a5c8eecdf1",
+     "helperStartSeconds": 4.385848124977201,
+     "hostPreparationSeconds": 0.00012462504673749208,
+     "maintenanceRecommended": false,
+     "maintenanceThreshold": 49152,
+     "matchedPromptTokens": 6016,
+     "nextToolResultReserve": 3546,
+     "outputBudget": 1800,
+     "prefillSeconds": 3.84259,
+     "prefixPrimeMatchedTokens": 0,
+     "prefixPrimePrefillSeconds": 4.27202,
+     "prefixPrimeSeconds": 4.272170458338223,
+     "prefixPrimeTokens": 6020,
+     "promptTokens": 11181,
+     "reasoningBudget": 512,
+     "reasoningBudgetOverrun": 0,
+     "reasoningHistory": "within-request",
+     "reasoningTokens": 113,
+     "recoveryReserve": 256,
+     "replayBoundaryTokens": 11168,
+     "requestSeconds": 6.765892583294772,
+     "requestedContextTokens": 65536,
+     "requestedMemoryBytes": 12884901888,
+     "requestedOutputBudget": 1800,
+     "runtimeRelease": "1.6.1",
+     "scopePrefixTokens": 10586,
+     "speculativeMethod": "DFlash2",
+     "stablePrefixTokens": 6020,
+     "templateIdentity": "aee46acfcba8e4e7aec7512126b926aa311bf7414d0d96ad3b13a86d5bdfe9d3",
+     "toolScope": "all"
+    },
+    {
+     "acceptedDraftTokens": 168,
+     "activations": "bf16",
+     "backend": "splash-native-candidate",
+     "beforeDispatchSeconds": 2.4374817915959284,
+     "contextTokens": 65536,
+     "decodeSeconds": 4.561892,
+     "deduplicatedKVTokens": 128,
+     "diagnosticRequestCacheIsolation": false,
+     "draftedTokens": 252,
+     "engineSHA256": "ce771e5f51081a2fd60df0ee0083f982a278a863ffaeab29fd590f55e9e36e89",
+     "firstAnswerPreviewSeconds": null,
+     "firstTokenSeconds": 1.7103216666728258,
+     "generatedTokens": 205,
+     "grammarSHA256": "5b96c275e9c1a2e618a54a4814a6d9c0de116285e8ffd0814aea01a5c8eecdf1",
+     "helperStartSeconds": 7.917406037449837e-07,
+     "hostPreparationSeconds": 0.00025112496223300695,
+     "maintenanceRecommended": false,
+     "maintenanceThreshold": 49152,
+     "matchedPromptTokens": 11168,
+     "nextToolResultReserve": 3546,
+     "outputBudget": 1800,
+     "prefillSeconds": 1.699504,
+     "prefixPrimeMatchedTokens": 8192,
+     "prefixPrimePrefillSeconds": 2.372958,
+     "prefixPrimeSeconds": 2.383860458387062,
+     "prefixPrimeTokens": 10586,
+     "promptTokens": 11747,
+     "reasoningBudget": 512,
+     "reasoningBudgetOverrun": 0,
+     "reasoningHistory": "within-request",
+     "reasoningTokens": 147,
+     "recoveryReserve": 256,
+     "replayBoundaryTokens": 11712,
+     "requestSeconds": 6.272267875028774,
+     "requestedContextTokens": 65536,
+     "requestedMemoryBytes": 12884901888,
+     "requestedOutputBudget": 1800,
+     "runtimeRelease": "1.6.1",
+     "scopePrefixTokens": 10586,
+     "speculativeMethod": "DFlash2",
+     "stablePrefixTokens": 6020,
+     "templateIdentity": "aee46acfcba8e4e7aec7512126b926aa311bf7414d0d96ad3b13a86d5bdfe9d3",
+     "toolScope": "all"
+    },
+    {
+     "acceptedDraftTokens": 168,
+     "activations": "bf16",
+     "backend": "splash-native-candidate",
+     "beforeDispatchSeconds": 0.053584083332680166,
+     "contextTokens": 65536,
+     "decodeSeconds": 4.157044,
+     "deduplicatedKVTokens": 224,
+     "diagnosticRequestCacheIsolation": false,
+     "draftedTokens": 245,
+     "engineSHA256": "ce771e5f51081a2fd60df0ee0083f982a278a863ffaeab29fd590f55e9e36e89",
+     "firstAnswerPreviewSeconds": null,
+     "firstTokenSeconds": 1.82544633327052,
+     "generatedTokens": 204,
+     "grammarSHA256": "5b96c275e9c1a2e618a54a4814a6d9c0de116285e8ffd0814aea01a5c8eecdf1",
+     "helperStartSeconds": 8.333008736371994e-07,
+     "hostPreparationSeconds": 0.000319958315230906,
+     "maintenanceRecommended": false,
+     "maintenanceThreshold": 49152,
+     "matchedPromptTokens": 11712,
+     "nextToolResultReserve": 3546,
+     "outputBudget": 1800,
+     "prefillSeconds": 1.815123,
+     "prefixPrimeMatchedTokens": 0,
+     "prefixPrimePrefillSeconds": 0,
+     "prefixPrimeSeconds": 0,
+     "prefixPrimeTokens": 0,
+     "promptTokens": 12700,
+     "reasoningBudget": 512,
+     "reasoningBudgetOverrun": 0,
+     "reasoningHistory": "within-request",
+     "reasoningTokens": 166,
+     "recoveryReserve": 256,
+     "replayBoundaryTokens": 12672,
+     "requestSeconds": 5.982489208341576,
+     "requestedContextTokens": 65536,
+     "requestedMemoryBytes": 12884901888,
+     "requestedOutputBudget": 1800,
+     "runtimeRelease": "1.6.1",
+     "scopePrefixTokens": 10586,
+     "speculativeMethod": "DFlash2",
+     "stablePrefixTokens": 6020,
+     "templateIdentity": "aee46acfcba8e4e7aec7512126b926aa311bf7414d0d96ad3b13a86d5bdfe9d3",
+     "toolScope": "all"
+    },
+    {
+     "acceptedDraftTokens": 41,
+     "activations": "bf16",
+     "backend": "splash-native-candidate",
+     "beforeDispatchSeconds": 0.0006755416980013251,
+     "contextTokens": 65536,
+     "decodeSeconds": 1.552684,
+     "deduplicatedKVTokens": 224,
+     "diagnosticRequestCacheIsolation": false,
+     "draftedTokens": 98,
+     "engineSHA256": "ce771e5f51081a2fd60df0ee0083f982a278a863ffaeab29fd590f55e9e36e89",
+     "firstAnswerPreviewSeconds": null,
+     "firstTokenSeconds": 1.2162507083266973,
+     "generatedTokens": 56,
+     "grammarSHA256": "5b96c275e9c1a2e618a54a4814a6d9c0de116285e8ffd0814aea01a5c8eecdf1",
+     "helperStartSeconds": 7.50063918530941e-07,
+     "hostPreparationSeconds": 0.0003549583489075303,
+     "maintenanceRecommended": false,
+     "maintenanceThreshold": 49152,
+     "matchedPromptTokens": 12672,
+     "nextToolResultReserve": 3546,
+     "outputBudget": 1800,
+     "prefillSeconds": 1.204132,
+     "prefixPrimeMatchedTokens": 0,
+     "prefixPrimePrefillSeconds": 0,
+     "prefixPrimeSeconds": 0,
+     "prefixPrimeTokens": 0,
+     "promptTokens": 12932,
+     "reasoningBudget": 512,
+     "reasoningBudgetOverrun": 0,
+     "reasoningHistory": "within-request",
+     "reasoningTokens": 17,
+     "recoveryReserve": 256,
+     "replayBoundaryTokens": 12896,
+     "requestSeconds": 2.7689198333537206,
+     "requestedContextTokens": 65536,
+     "requestedMemoryBytes": 12884901888,
+     "requestedOutputBudget": 1800,
+     "runtimeRelease": "1.6.1",
+     "scopePrefixTokens": 10586,
+     "speculativeMethod": "DFlash2",
+     "stablePrefixTokens": 6020,
+     "templateIdentity": "aee46acfcba8e4e7aec7512126b926aa311bf7414d0d96ad3b13a86d5bdfe9d3",
+     "toolScope": "all"
+    },
+    {
+     "acceptedDraftTokens": 183,
+     "activations": "bf16",
+     "backend": "splash-native-candidate",
+     "beforeDispatchSeconds": 0.000645041698589921,
+     "contextTokens": 65536,
+     "decodeSeconds": 5.037868,
+     "deduplicatedKVTokens": 64,
+     "diagnosticRequestCacheIsolation": false,
+     "draftedTokens": 343,
+     "engineSHA256": "ce771e5f51081a2fd60df0ee0083f982a278a863ffaeab29fd590f55e9e36e89",
+     "firstAnswerPreviewSeconds": null,
+     "firstTokenSeconds": 0.893299458315596,
+     "generatedTokens": 233,
+     "grammarSHA256": "5b96c275e9c1a2e618a54a4814a6d9c0de116285e8ffd0814aea01a5c8eecdf1",
+     "helperStartSeconds": 8.333008736371994e-07,
+     "hostPreparationSeconds": 0.00034904165659099817,
+     "maintenanceRecommended": false,
+     "maintenanceThreshold": 49152,
+     "matchedPromptTokens": 12896,
+     "nextToolResultReserve": 3546,
+     "outputBudget": 1800,
+     "prefillSeconds": 0.882627,
+     "prefixPrimeMatchedTokens": 0,
+     "prefixPrimePrefillSeconds": 0,
+     "prefixPrimeSeconds": 0,
+     "prefixPrimeTokens": 0,
+     "promptTokens": 13017,
+     "reasoningBudget": 512,
+     "reasoningBudgetOverrun": 0,
+     "reasoningHistory": "within-request",
+     "reasoningTokens": 52,
+     "recoveryReserve": 256,
+     "replayBoundaryTokens": 12992,
+     "requestSeconds": 5.931230875081383,
+     "requestedContextTokens": 65536,
+     "requestedMemoryBytes": 12884901888,
+     "requestedOutputBudget": 1800,
+     "runtimeRelease": "1.6.1",
+     "scopePrefixTokens": 10586,
+     "speculativeMethod": "DFlash2",
+     "stablePrefixTokens": 6020,
+     "templateIdentity": "aee46acfcba8e4e7aec7512126b926aa311bf7414d0d96ad3b13a86d5bdfe9d3",
+     "toolScope": "all"
+    },
+    {
+     "acceptedDraftTokens": 99,
+     "activations": "bf16",
+     "backend": "splash-native-candidate",
+     "beforeDispatchSeconds": 0.0006987917004153132,
+     "contextTokens": 65536,
+     "decodeSeconds": 3.38006,
+     "deduplicatedKVTokens": 256,
+     "diagnosticRequestCacheIsolation": false,
+     "draftedTokens": 343,
+     "engineSHA256": "ce771e5f51081a2fd60df0ee0083f982a278a863ffaeab29fd590f55e9e36e89",
+     "firstAnswerPreviewSeconds": null,
+     "firstTokenSeconds": 1.5427604999858886,
+     "generatedTokens": 149,
+     "grammarSHA256": "5b96c275e9c1a2e618a54a4814a6d9c0de116285e8ffd0814aea01a5c8eecdf1",
+     "helperStartSeconds": 8.749775588512421e-07,
+     "hostPreparationSeconds": 0.0003599167102947831,
+     "maintenanceRecommended": false,
+     "maintenanceThreshold": 49152,
+     "matchedPromptTokens": 12992,
+     "nextToolResultReserve": 3546,
+     "outputBudget": 1800,
+     "prefillSeconds": 1.531437,
+     "prefixPrimeMatchedTokens": 0,
+     "prefixPrimePrefillSeconds": 0,
+     "prefixPrimeSeconds": 0,
+     "prefixPrimeTokens": 0,
+     "promptTokens": 13351,
+     "reasoningBudget": 512,
+     "reasoningBudgetOverrun": 0,
+     "reasoningHistory": "within-request",
+     "reasoningTokens": 133,
+     "recoveryReserve": 256,
+     "replayBoundaryTokens": 13344,
+     "requestSeconds": 4.922847416717559,
+     "requestedContextTokens": 65536,
+     "requestedMemoryBytes": 12884901888,
+     "requestedOutputBudget": 1800,
+     "runtimeRelease": "1.6.1",
+     "scopePrefixTokens": 10586,
+     "speculativeMethod": "DFlash2",
+     "stablePrefixTokens": 6020,
+     "templateIdentity": "aee46acfcba8e4e7aec7512126b926aa311bf7414d0d96ad3b13a86d5bdfe9d3",
+     "toolScope": "all"
+    },
+    {
+     "acceptedDraftTokens": 238,
+     "activations": "bf16",
+     "backend": "splash-native-candidate",
+     "beforeDispatchSeconds": 0.0007087916601449251,
+     "contextTokens": 65536,
+     "decodeSeconds": 5.64088,
+     "deduplicatedKVTokens": 128,
+     "diagnosticRequestCacheIsolation": false,
+     "draftedTokens": 413,
+     "engineSHA256": "ce771e5f51081a2fd60df0ee0083f982a278a863ffaeab29fd590f55e9e36e89",
+     "firstAnswerPreviewSeconds": null,
+     "firstTokenSeconds": 1.267477541579865,
+     "generatedTokens": 298,
+     "grammarSHA256": "5b96c275e9c1a2e618a54a4814a6d9c0de116285e8ffd0814aea01a5c8eecdf1",
+     "helperStartSeconds": 5.00003807246685e-07,
+     "hostPreparationSeconds": 0.00041479174979031086,
+     "maintenanceRecommended": false,
+     "maintenanceThreshold": 49152,
+     "matchedPromptTokens": 13344,
+     "nextToolResultReserve": 3546,
+     "outputBudget": 1800,
+     "prefillSeconds": 1.263719,
+     "prefixPrimeMatchedTokens": 0,
+     "prefixPrimePrefillSeconds": 0,
+     "prefixPrimeSeconds": 0,
+     "prefixPrimeTokens": 0,
+     "promptTokens": 13669,
+     "reasoningBudget": 512,
+     "reasoningBudgetOverrun": 0,
+     "reasoningHistory": "within-request",
+     "reasoningTokens": 121,
+     "recoveryReserve": 256,
+     "replayBoundaryTokens": 13664,
+     "requestSeconds": 6.908391874982044,
+     "requestedContextTokens": 65536,
+     "requestedMemoryBytes": 12884901888,
+     "requestedOutputBudget": 1800,
+     "runtimeRelease": "1.6.1",
+     "scopePrefixTokens": 10586,
+     "speculativeMethod": "DFlash2",
+     "stablePrefixTokens": 6020,
+     "templateIdentity": "aee46acfcba8e4e7aec7512126b926aa311bf7414d0d96ad3b13a86d5bdfe9d3",
+     "toolScope": "all"
+    },
+    {
+     "acceptedDraftTokens": 193,
+     "activations": "bf16",
+     "backend": "splash-native-candidate",
+     "beforeDispatchSeconds": 0.0008638750296086073,
+     "contextTokens": 65536,
+     "decodeSeconds": 5.157049,
+     "deduplicatedKVTokens": 224,
+     "diagnosticRequestCacheIsolation": false,
+     "draftedTokens": 322,
+     "engineSHA256": "ce771e5f51081a2fd60df0ee0083f982a278a863ffaeab29fd590f55e9e36e89",
+     "firstAnswerPreviewSeconds": null,
+     "firstTokenSeconds": 1.5425786250270903,
+     "generatedTokens": 240,
+     "grammarSHA256": "5b96c275e9c1a2e618a54a4814a6d9c0de116285e8ffd0814aea01a5c8eecdf1",
+     "helperStartSeconds": 7.499475032091141e-07,
+     "hostPreparationSeconds": 0.0005240000318735838,
+     "maintenanceRecommended": false,
+     "maintenanceThreshold": 49152,
+     "matchedPromptTokens": 13664,
+     "nextToolResultReserve": 3546,
+     "outputBudget": 1800,
+     "prefillSeconds": 1.539725,
+     "prefixPrimeMatchedTokens": 0,
+     "prefixPrimePrefillSeconds": 0,
+     "prefixPrimeSeconds": 0,
+     "prefixPrimeTokens": 0,
+     "promptTokens": 14067,
+     "reasoningBudget": 512,
+     "reasoningBudgetOverrun": 0,
+     "reasoningHistory": "within-request",
+     "reasoningTokens": 63,
+     "recoveryReserve": 256,
+     "replayBoundaryTokens": 14048,
+     "requestSeconds": 6.699668333400041,
+     "requestedContextTokens": 65536,
+     "requestedMemoryBytes": 12884901888,
+     "requestedOutputBudget": 1800,
+     "runtimeRelease": "1.6.1",
+     "scopePrefixTokens": 10586,
+     "speculativeMethod": "DFlash2",
+     "stablePrefixTokens": 6020,
+     "templateIdentity": "aee46acfcba8e4e7aec7512126b926aa311bf7414d0d96ad3b13a86d5bdfe9d3",
+     "toolScope": "all"
+    },
+    {
+     "acceptedDraftTokens": 249,
+     "activations": "bf16",
+     "backend": "splash-native-candidate",
+     "beforeDispatchSeconds": 0.000783208291977644,
+     "contextTokens": 65536,
+     "decodeSeconds": 6.940084,
+     "deduplicatedKVTokens": 192,
+     "diagnosticRequestCacheIsolation": false,
+     "draftedTokens": 406,
+     "engineSHA256": "ce771e5f51081a2fd60df0ee0083f982a278a863ffaeab29fd590f55e9e36e89",
+     "firstAnswerPreviewSeconds": null,
+     "firstTokenSeconds": 1.4840479583945125,
+     "generatedTokens": 308,
+     "grammarSHA256": "5b96c275e9c1a2e618a54a4814a6d9c0de116285e8ffd0814aea01a5c8eecdf1",
+     "helperStartSeconds": 7.917406037449837e-07,
+     "hostPreparationSeconds": 0.0004488748963922262,
+     "maintenanceRecommended": false,
+     "maintenanceThreshold": 49152,
+     "matchedPromptTokens": 14048,
+     "nextToolResultReserve": 3546,
+     "outputBudget": 1800,
+     "prefillSeconds": 1.480821,
+     "prefixPrimeMatchedTokens": 0,
+     "prefixPrimePrefillSeconds": 0,
+     "prefixPrimeSeconds": 0,
+     "prefixPrimeTokens": 0,
+     "promptTokens": 14414,
+     "reasoningBudget": 512,
+     "reasoningBudgetOverrun": 0,
+     "reasoningHistory": "within-request",
+     "reasoningTokens": 104,
+     "recoveryReserve": 256,
+     "replayBoundaryTokens": 14400,
+     "requestSeconds": 8.42412866675295,
+     "requestedContextTokens": 65536,
+     "requestedMemoryBytes": 12884901888,
+     "requestedOutputBudget": 1800,
+     "runtimeRelease": "1.6.1",
+     "scopePrefixTokens": 10586,
+     "speculativeMethod": "DFlash2",
+     "stablePrefixTokens": 6020,
+     "templateIdentity": "aee46acfcba8e4e7aec7512126b926aa311bf7414d0d96ad3b13a86d5bdfe9d3",
+     "toolScope": "all"
+    }
+   ],
+   "model": "Splash 1.6.1; d8af1054aab0f97de21d043e01aa98af3754f10e; Qwen3.6-35B-A3B-4bit + DFlash2; native Swift candidate; context 65536; memory 12884901888; activations bf16; KV int8; state fp32; ANE on; reasoning budget 512; within-request reasoning retained",
+   "request_message_id": "4f510de1-e9c7-4b03-b4c0-f7990a8d2b74",
+   "status": "needs_review",
+   "steps": 9,
+   "updated": "2026-11-18T20:25:30Z"
+  }
+ ],
+ "saved": {
+  "newItems": [
+   {
+    "category": "record",
+    "kind": "table-creation",
+    "status": "draft",
+    "title": "Review table: Invoice 7781 totals",
+    "id": "12e2e458-5006-42c8-9f03-c8a84d5d69b8"
+   }
+  ]
+ }
+}

@@ -99,7 +99,8 @@ public struct WorkbookTools {
       .prefix(12).map { String(format: "%02x", $0) }.joined()
   }
   public func execute(
-    _ tool: String, _ a: Value, receiptID: String? = nil, nativeAppCheck: Value? = nil
+    _ tool: String, _ a: Value, receiptID: String? = nil, nativeAppCheck: Value? = nil,
+    inspectionOnly: Bool = false
   ) throws -> Value {
     let model = try workbook.synchronized {
       try workbook.db.scalar("SELECT model FROM agent_runs WHERE id=?", [.string(runID)]).string
@@ -110,15 +111,18 @@ public struct WorkbookTools {
           "WorkbookTools", model: $0,
           policy: tool == "save_native_app"
             ? "native-app-authoring-v1"
-            : tool == "workspace_action"
+            : tool == "workspace_action" || tool == "sql"
               ? "chat-workspace-actions-v1" : "workbook-tools-draft-policy-v1")
       } ?? .programmatic("WorkbookTools")
     return try ChangeAttribution.$actor.withValue(actor) {
-      try executeAttributed(tool, a, receiptID: receiptID, nativeAppCheck: nativeAppCheck)
+      try executeAttributed(
+        tool, a, receiptID: receiptID, nativeAppCheck: nativeAppCheck,
+        inspectionOnly: inspectionOnly)
     }
   }
   private func executeAttributed(
-    _ tool: String, _ a: Value, receiptID: String?, nativeAppCheck: Value?
+    _ tool: String, _ a: Value, receiptID: String?, nativeAppCheck: Value?,
+    inspectionOnly: Bool = false
   ) throws -> Value {
     try cancellation.check()
     if let build = excelConversion {
@@ -149,7 +153,8 @@ public struct WorkbookTools {
       }
     }
     try require(
-      !readOnly || Self.readOnlyTools.contains(tool) || tool == "workspace_action",
+      !readOnly || Self.readOnlyTools.contains(tool) || tool == "workspace_action"
+        || tool == "sql",
       "read_only_request",
       "The current request explicitly forbids changes. Read evidence and answer; do not create a draft, proposal, space, copy or import."
     )
@@ -318,6 +323,16 @@ public struct WorkbookTools {
         }
       }
     case "lineage": return try scopedLineage(string("id"))
+    case "sql":
+      // The general chat tools' table tool. It refuses changes itself when none are allowed.
+      let statements = a["statements"].array.compactMap(\.string)
+      try require(
+        statements.count == a["statements"].array.count, "arguments",
+        "statements is a list of SQL strings.")
+      return try workbook.chatSQL(
+        statements: statements, readOnly: readOnly || inspectionOnly,
+        draft: a["draft"] == .bool(true), token: "sql-" + (receiptID ?? token),
+        requestSourceID: requestSourceID, cancellation: cancellation)
     case "datasets":
       return try encoded(
         excelConversion.map { try $0.tables.map { try workbook.dataset($0.id) } }

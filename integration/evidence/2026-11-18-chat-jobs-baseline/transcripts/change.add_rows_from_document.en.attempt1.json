@@ -1,0 +1,960 @@
+{
+ "job": "change.add_rows_from_document",
+ "language": "en",
+ "profile": "current",
+ "attempt": 1,
+ "prompt": "Add the two suppliers from quote Q-311 to the Supplier comparison table.",
+ "expected": "Supplier comparison holds four rows: the two it had, plus Birch Metals 10 at 2.55 and Elm Fasteners 10 at 2.30.",
+ "failure": "the request ended as needs_review; Supplier comparison does not hold exactly [[\"Oak Supply\", 10, \"2.40\"], [\"Cedar Tools\", 10, \"2.75\"], [\"Birch Metals\", 10, \"2.55\"], [\"Elm Fasteners\", 10, \"2.30\"]]: [{\"quantity\": \"10\", \"supplier\": \"Oak Supply\", \"total\": \"24\", \"unit_cost\": \"2.40\"}, {\"quantity\": \"10\", \"supplier\": \"Cedar Tools\", \"total\": \"27.5\", \"unit_cost\": \"2.75\"}]",
+ "result": {
+  "answer": "Ready to review: [Review table: Supplier comparison](sevra://item/8cc00b89-e331-447f-a3eb-bed0cab09b5c). Existing accepted values are unchanged. Accept this proposal to continue.\n\nCouldn’t finish preparing the proposal. Record not found: new_row_1",
+  "citations": [
+   "8cc00b89-e331-447f-a3eb-bed0cab09b5c"
+  ],
+  "conversationAction": null,
+  "state": "needs_review",
+  "steps": 7
+ },
+ "progress": [
+  "Reading request context",
+  "Checking local model files",
+  "Preparing local AI. The first start can take longer…",
+  "Preparing local AI · 0 of 11 steps",
+  "Preparing local AI · 1 of 11 steps",
+  "Preparing local AI · 2 of 11 steps",
+  "Preparing local AI · 3 of 11 steps",
+  "Preparing local AI · 4 of 11 steps",
+  "Preparing local AI · 5 of 11 steps",
+  "Preparing local AI · 6 of 11 steps",
+  "Preparing local AI · 7 of 11 steps",
+  "Preparing local AI · 8 of 11 steps",
+  "Preparing local AI · 9 of 11 steps",
+  "Preparing local AI · 10 of 11 steps",
+  "Preparing local AI · 11 of 11 steps",
+  "Reading the working context",
+  "Working through the request",
+  "Preparing a response",
+  "Inspecting tables…",
+  "Reviewing the saved result",
+  "Reading the working context",
+  "Working through the request",
+  "Preparing a response",
+  "Reading an original…",
+  "Reviewing the saved result",
+  "Reading the working context",
+  "Working through the request",
+  "Preparing a response",
+  "Searching for “Q-311”…",
+  "Reviewing the saved result",
+  "Reading the working context",
+  "Working through the request",
+  "Preparing a response",
+  "Reading an original…",
+  "Reviewing the saved result",
+  "Reading the working context",
+  "Working through the request",
+  "Preparing a response",
+  "Propose Table Edit…",
+  "Reviewing a tool failure",
+  "Reading the working context",
+  "Working through the request",
+  "Preparing a response",
+  "Reading table rows…",
+  "Reviewing the saved result",
+  "Reading the working context",
+  "Working through the request",
+  "Preparing a response",
+  "Propose Table…",
+  "Reviewing the saved result"
+ ],
+ "messages": {
+  "main": [
+   {
+    "body": "This example has supplier quotes and a delivery. Try ‘Why do we have 18 brass bolts?’ or ‘Compare the supplier costs and show the evidence.’",
+    "created": "2026-11-18T19:46:08Z",
+    "id": "c3fd7459-281b-4b9e-a854-f52403920014",
+    "role": "assistant",
+    "state": "complete"
+   },
+   {
+    "body": "Add the two suppliers from quote Q-311 to the Supplier comparison table.",
+    "created": "2026-11-18T19:46:08Z",
+    "id": "ac52721f-8156-4c13-99a4-5399231cc427",
+    "role": "user",
+    "state": "complete"
+   },
+   {
+    "body": {
+     "arguments": {},
+     "assistantText": "",
+     "callID": "call_f3bf8566-3466-4bd0-95a9-7fbce6188f19",
+     "receiptID": "75be8f1e-5994-4995-99e0-8dbd202b5d17",
+     "receiptVersion": 1,
+     "result": [
+      {
+       "archived": false,
+       "columns": [
+        {
+         "id": "supplier",
+         "title": "Supplier",
+         "type": "text"
+        },
+        {
+         "id": "quantity",
+         "title": "Quantity",
+         "type": "decimal"
+        },
+        {
+         "id": "unit_cost",
+         "title": "Unit cost",
+         "type": "decimal"
+        },
+        {
+         "formula": "quantity*unit_cost",
+         "id": "total",
+         "title": "Total",
+         "type": "decimal"
+        }
+       ],
+       "definitionID": "21f21dfa-e2f9-42de-a723-673a7dd3a82b",
+       "id": "ae5148d3-0e14-4471-8a9c-82f8e314dfe1",
+       "rowCount": 2,
+       "title": "Supplier comparison",
+       "version": 1
+      }
+     ],
+     "resultHash": "b152cde4230468c2c03f42de99ccdf5c170f326b561545de9dec7d18e46e1939",
+     "resultIdentity": {},
+     "runID": "8ab22c45-3d61-4b0d-84ba-333c33c31402",
+     "tool": "datasets"
+    },
+    "created": "2026-11-18T19:46:23Z",
+    "id": "f231f6a2-8c99-48c1-8a3b-09bc25a0d823",
+    "role": "tool",
+    "state": "complete"
+   },
+   {
+    "body": {
+     "arguments": {
+      "id": "a51951a9-23b8-40da-9cdb-19e5a572fefd"
+     },
+     "assistantText": "",
+     "callID": "call_21daec4d-9630-41de-9835-f3dbb6406696",
+     "receiptID": "845e2184-5c6f-4f8d-a923-cb3a52933442",
+     "receiptVersion": 1,
+     "result": {
+      "chunkPage": {
+       "count": 1,
+       "hasMore": false,
+       "nextOffset": null,
+       "offset": 0
+      },
+      "chunks": [
+       {
+        "body": "Add the two suppliers from quote Q-311 to the Supplier comparison table.",
+        "id": 9,
+        "locator": "text; offset=0"
+       }
+      ],
+      "currentVersion": {
+       "id": "a51951a9-23b8-40da-9cdb-19e5a572fefd",
+       "meaning": "plan",
+       "status": "accepted",
+       "title": "User request"
+      },
+      "documentCopies": {
+       "entries": [
+        {
+         "id": "copy:845e2184-5c6f-4f8d-a923-cb3a52933442:0:0:72",
+         "locator": "text; offset=0",
+         "sourceVersionID": "a51951a9-23b8-40da-9cdb-19e5a572fefd",
+         "text": "Add the two suppliers from quote Q-311 to the Supplier comparison table."
+        }
+       ],
+       "hasMore": false,
+       "nextOffset": null,
+       "notice": "Exact original passages for draft parts. Use a passage ID as copy, without retyping its text. New prose uses text. These passages do not establish current acceptance or complete coverage. Use read with copyOffset for later passage candidates; source chunks may have partial first/last lines.",
+       "offset": 0
+      },
+      "extraction": {},
+      "isCurrentVersion": true,
+      "item": {
+       "category": "source",
+       "created": "2026-11-18T19:46:08Z",
+       "data": {
+        "context": "",
+        "conversationID": "main",
+        "messageID": "ac52721f-8156-4c13-99a4-5399231cc427"
+       },
+       "id": "a51951a9-23b8-40da-9cdb-19e5a572fefd",
+       "kind": "request",
+       "logicalID": "3c698308-8eff-47fc-9e3b-df2bc2055bac",
+       "meaning": "plan",
+       "scenario": "actual",
+       "status": "accepted",
+       "text": "Add the two suppliers from quote Q-311 to the Supplier comparison table.",
+       "title": "User request",
+       "version": 1
+      },
+      "notice": "The item is the exact requested version. When it is historical, read currentVersion.id for current facts or acceptance; do not present historical status as current. A null currentVersion means the latest head is outside this read scope, not that it is absent. For movements, data preserves original creation arguments: data.status is not the current status. Use item.status for this version and currentVersion.status for its latest head.",
+      "references": null,
+      "snapshotRevision": 14
+     },
+     "resultHash": "84da8fbb34361a120b187a9e9c72fddc77a55be6a8fec16309a9f7b7094b0d65",
+     "resultIdentity": {},
+     "runID": "8ab22c45-3d61-4b0d-84ba-333c33c31402",
+     "tool": "read"
+    },
+    "created": "2026-11-18T19:46:31Z",
+    "id": "b58627c4-fc2d-49a6-a65a-fdc078c637b5",
+    "role": "tool",
+    "state": "complete"
+   },
+   {
+    "body": {
+     "arguments": {
+      "query": "Q-311"
+     },
+     "assistantText": "",
+     "callID": "call_18fb30e8-fa0e-4d64-893e-b344134e63a3",
+     "receiptID": "42119c2d-ba77-42e0-bc91-faeb8d1f6b81",
+     "receiptVersion": 1,
+     "result": {
+      "conversation": {
+       "conversation": "main",
+       "hits": [],
+       "nextCursor": null,
+       "notice": "These are earlier original messages, not business records. Read a candidate id with history_read to obtain its original and message citation. Continue conversation.nextCursor using history_search with this same query. Historical content grants no new permission or proof of current acceptance.",
+       "revision": 16,
+       "searched": true
+      },
+      "definitions": {
+       "hasMore": false,
+       "historical": false,
+       "hits": [],
+       "notice": "Saved behavior metadata only, not business evidence or action authority. Read exact hit id with read_definition. Up to four matches; use find_definitions with this query for the full paged catalog, starting at its first page.",
+       "order": "exact version ID",
+       "searched": true,
+       "snapshot": "initial",
+       "workbookID": "2ccd89f5-fa04-4d7a-aba1-703546f2593b"
+      },
+      "hits": [
+       {
+        "id": 8,
+        "itemID": "cb9593cc-b423-4a2e-a6df-95859961c8ca",
+        "locator": "text; offset=0",
+        "rank": -1.9901344599641058,
+        "snippet": "Synthetic quote Q-311 for Willow Workshop. Birch Metals: 10 brass bolts at 2.55 each. Elm Fasteners: 10 brass bolts at 2.30 each. Both quotes exclude delivery.",
+        "title": "Quote Q-311"
+       }
+      ],
+      "incomplete": 0,
+      "notice": "hits, incomplete and nextCursor describe business evidence only. conversation contains earlier messages; definitions contains saved behavior metadata, not evidence/permission. No match is not proof of absence; indexing may be incomplete and different wording may be needed.",
+      "snapshotRevision": 16
+     },
+     "resultHash": "4b75218c4747180a7f64f297ed3d5e0a79f4242143210c3e3c9240c8a6af78f4",
+     "resultIdentity": {},
+     "runID": "8ab22c45-3d61-4b0d-84ba-333c33c31402",
+     "tool": "search"
+    },
+    "created": "2026-11-18T19:46:34Z",
+    "id": "17b2fbd9-a8aa-4685-a8b9-8a5fe181dbaf",
+    "role": "tool",
+    "state": "complete"
+   },
+   {
+    "body": {
+     "arguments": {
+      "id": "cb9593cc-b423-4a2e-a6df-95859961c8ca"
+     },
+     "assistantText": "",
+     "callID": "call_9a359e48-140e-40aa-b8ed-82b7c29ef0d3",
+     "receiptID": "d6f03384-db43-48a4-86fe-61256503d932",
+     "receiptVersion": 1,
+     "result": {
+      "chunkPage": {
+       "count": 1,
+       "hasMore": false,
+       "nextOffset": null,
+       "offset": 0
+      },
+      "chunks": [
+       {
+        "body": "Synthetic quote Q-311 for Willow Workshop. Birch Metals: 10 brass bolts at 2.55 each. Elm Fasteners: 10 brass bolts at 2.30 each. Both quotes exclude delivery.",
+        "id": 8,
+        "locator": "text; offset=0"
+       }
+      ],
+      "currentVersion": {
+       "id": "cb9593cc-b423-4a2e-a6df-95859961c8ca",
+       "meaning": "actual",
+       "status": "accepted",
+       "title": "Quote Q-311"
+      },
+      "documentCopies": {
+       "entries": [
+        {
+         "id": "copy:d6f03384-db43-48a4-86fe-61256503d932:0:0:159",
+         "locator": "text; offset=0",
+         "sourceVersionID": "cb9593cc-b423-4a2e-a6df-95859961c8ca",
+         "text": "Synthetic quote Q-311 for Willow Workshop. Birch Metals: 10 brass bolts at 2.55 each. Elm Fasteners: 10 brass bolts at 2.30 each. Both quotes exclude delivery."
+        }
+       ],
+       "hasMore": false,
+       "nextOffset": null,
+       "notice": "Exact original passages for draft parts. Use a passage ID as copy, without retyping its text. New prose uses text. These passages do not establish current acceptance or complete coverage. Use read with copyOffset for later passage candidates; source chunks may have partial first/last lines.",
+       "offset": 0
+      },
+      "extraction": {},
+      "isCurrentVersion": true,
+      "item": {
+       "category": "source",
+       "created": "2026-11-18T19:46:08Z",
+       "data": {},
+       "id": "cb9593cc-b423-4a2e-a6df-95859961c8ca",
+       "kind": "note",
+       "logicalID": "58c938b2-f193-4a69-ba21-31f7982a8d6b",
+       "meaning": "actual",
+       "scenario": "actual",
+       "status": "accepted",
+       "text": "Synthetic quote Q-311 for Willow Workshop. Birch Metals: 10 brass bolts at 2.55 each. Elm Fasteners: 10 brass bolts at 2.30 each. Both quotes exclude delivery.",
+       "title": "Quote Q-311",
+       "version": 1
+      },
+      "notice": "The item is the exact requested version. When it is historical, read currentVersion.id for current facts or acceptance; do not present historical status as current. A null currentVersion means the latest head is outside this read scope, not that it is absent. For movements, data preserves original creation arguments: data.status is not the current status. Use item.status for this version and currentVersion.status for its latest head.",
+      "references": {
+       "accessScope": "workbook-business-items",
+       "anchor": {
+        "category": "source",
+        "id": "cb9593cc-b423-4a2e-a6df-95859961c8ca",
+        "is_current": 1,
+        "kind": "note",
+        "logical_id": "58c938b2-f193-4a69-ba21-31f7982a8d6b",
+        "meaning": "actual",
+        "scenario": "actual",
+        "status": "accepted",
+        "title": "Quote Q-311",
+        "version": 1
+       },
+       "direction": "outgoing",
+       "discoveryReason": "mention",
+       "fileCoverage": {
+        "latestExtraction": {},
+        "notice": "Coverage applies to supported links in the retained extraction only; it does not cover embedded hyperlinks or unextracted content. A failed or running retry can retain the previous snapshot.",
+        "snapshot": null
+       },
+       "hits": [],
+       "nextCursor": null,
+       "notice": "One hop over saved mentions, at most 12 results per page. Requests, annotations and technical definition/invocation Sources are excluded. Use history_search/history_read for accessible conversation. Read each exact destination or incoming origin before citing it; these titles and links are not inspected evidence. Keep all filters with nextCursor. Coverage describes this anchor only; no match is not proof of absence. A mention is not derivation, payment, support or corroboration. External workbooks are never opened.",
+       "originCoverage": "ready",
+       "scope": "all"
+      },
+      "snapshotRevision": 18
+     },
+     "resultHash": "7ac222918d475996c53df357204d8a348179e39f0fb455c63518decaae822d3a",
+     "resultIdentity": {},
+     "runID": "8ab22c45-3d61-4b0d-84ba-333c33c31402",
+     "tool": "read"
+    },
+    "created": "2026-11-18T19:46:40Z",
+    "id": "1e26dbde-c390-4f6e-a20f-51ab013d21d4",
+    "role": "tool",
+    "state": "complete"
+   },
+   {
+    "body": {
+     "arguments": {
+      "datasetID": "ae5148d3-0e14-4471-8a9c-82f8e314dfe1",
+      "edits": [
+       {
+        "id": "new_row_1",
+        "values": {
+         "quantity": 10,
+         "supplier": "Birch Metals",
+         "unit_cost": 2.55
+        }
+       },
+       {
+        "id": "new_row_2",
+        "values": {
+         "quantity": 10,
+         "supplier": "Elm Fasteners",
+         "unit_cost": 2.3
+        }
+       }
+      ]
+     },
+     "assistantText": "",
+     "callID": "call_56ded85c-6cc9-4d7b-81f6-3c9cdaf8165b",
+     "receiptID": "659b2da3-fd37-4b41-9176-4957562b02cb",
+     "receiptVersion": 1,
+     "result": {
+      "error": "Record not found: new_row_1",
+      "receiptID": "659b2da3-fd37-4b41-9176-4957562b02cb",
+      "retryInstruction": "The call did not finish successfully. Completed changes remain saved. Inspect the receipt and workbook state before retrying; do not claim no changes occurred. Fix the reported arguments when applicable."
+     },
+     "resultHash": "ee5502011efc686c7081f7dd933bbf079c148f96bdafe709c0a3c955342fa1bd",
+     "resultIdentity": {},
+     "runID": "8ab22c45-3d61-4b0d-84ba-333c33c31402",
+     "tool": "propose_table_edit"
+    },
+    "created": "2026-11-18T19:46:57Z",
+    "id": "3cae2a9b-7a05-444e-aca8-3c4b6d3b442a",
+    "role": "tool",
+    "state": "complete"
+   },
+   {
+    "body": {
+     "arguments": {
+      "datasetID": "ae5148d3-0e14-4471-8a9c-82f8e314dfe1"
+     },
+     "assistantText": "",
+     "callID": "call_862047eb-710a-4bb0-82e9-b95c1eaa6b4c",
+     "receiptID": "85506746-066e-486f-baf5-cf03bde5bd11",
+     "receiptVersion": 1,
+     "result": {
+      "dataset": {
+       "archived": false,
+       "columns": [
+        {
+         "id": "supplier",
+         "title": "Supplier",
+         "type": "text"
+        },
+        {
+         "id": "quantity",
+         "title": "Quantity",
+         "type": "decimal"
+        },
+        {
+         "id": "unit_cost",
+         "title": "Unit cost",
+         "type": "decimal"
+        },
+        {
+         "formula": "quantity*unit_cost",
+         "id": "total",
+         "title": "Total",
+         "type": "decimal"
+        }
+       ],
+       "definitionID": "21f21dfa-e2f9-42de-a723-673a7dd3a82b",
+       "id": "ae5148d3-0e14-4471-8a9c-82f8e314dfe1",
+       "rowCount": 2,
+       "title": "Supplier comparison",
+       "version": 1
+      },
+      "rows": [
+       {
+        "id": "1ac2fb08-0834-4409-90b9-6462eb35622b",
+        "values": {
+         "quantity": "10",
+         "supplier": "Oak Supply",
+         "total": "24",
+         "unit_cost": "2.40"
+        }
+       },
+       {
+        "id": "c2410849-759d-40ba-88a1-287ae6aaefff",
+        "values": {
+         "quantity": "10",
+         "supplier": "Cedar Tools",
+         "total": "27.5",
+         "unit_cost": "2.75"
+        }
+       }
+      ]
+     },
+     "resultHash": "925c61f4e566501192165bdf16069d268bfdba402da5b569e558cab997206e9e",
+     "resultIdentity": {},
+     "runID": "8ab22c45-3d61-4b0d-84ba-333c33c31402",
+     "tool": "rows"
+    },
+    "created": "2026-11-18T19:47:02Z",
+    "id": "6545c95b-08db-43e3-b5ff-9b3f552735b1",
+    "role": "tool",
+    "state": "complete"
+   },
+   {
+    "body": {
+     "arguments": {
+      "columns": [
+       {
+        "id": "supplier",
+        "title": "Supplier",
+        "type": "text"
+       },
+       {
+        "id": "quantity",
+        "title": "Quantity",
+        "type": "decimal"
+       },
+       {
+        "id": "unit_cost",
+        "title": "Unit cost",
+        "type": "decimal"
+       },
+       {
+        "formula": "quantity*unit_cost",
+        "id": "total",
+        "title": "Total",
+        "type": "decimal"
+       }
+      ],
+      "inputs": [],
+      "meaning": "actual",
+      "rows": [
+       {
+        "quantity": 10,
+        "supplier": "Oak Supply",
+        "unit_cost": 2.4
+       },
+       {
+        "quantity": 10,
+        "supplier": "Cedar Tools",
+        "unit_cost": 2.75
+       },
+       {
+        "quantity": 10,
+        "supplier": "Birch Metals",
+        "unit_cost": 2.55
+       },
+       {
+        "quantity": 10,
+        "supplier": "Elm Fasteners",
+        "unit_cost": 2.3
+       }
+      ],
+      "title": "Supplier comparison"
+     },
+     "assistantText": "",
+     "callID": "call_69fb2df6-7ea2-4380-ae87-e497e4ddc5b3",
+     "receiptID": "5bfc6b33-d99c-4089-915c-375e98b82c48",
+     "receiptVersion": 1,
+     "result": {
+      "category": "record",
+      "created": "2026-11-18T19:47:18Z",
+      "data": {
+       "columns": [
+        {
+         "id": "supplier",
+         "title": "Supplier",
+         "type": "text"
+        },
+        {
+         "id": "quantity",
+         "title": "Quantity",
+         "type": "decimal"
+        },
+        {
+         "id": "unit_cost",
+         "title": "Unit cost",
+         "type": "decimal"
+        },
+        {
+         "formula": "quantity*unit_cost",
+         "id": "total",
+         "title": "Total",
+         "type": "decimal"
+        }
+       ],
+       "rows": [
+        {
+         "quantity": 10,
+         "supplier": "Oak Supply",
+         "unit_cost": 2.4
+        },
+        {
+         "quantity": 10,
+         "supplier": "Cedar Tools",
+         "unit_cost": 2.75
+        },
+        {
+         "quantity": 10,
+         "supplier": "Birch Metals",
+         "unit_cost": 2.55
+        },
+        {
+         "quantity": 10,
+         "supplier": "Elm Fasteners",
+         "unit_cost": 2.3
+        }
+       ],
+       "title": "Supplier comparison"
+      },
+      "id": "8cc00b89-e331-447f-a3eb-bed0cab09b5c",
+      "kind": "table-creation",
+      "logicalID": "e1af0869-4794-4763-bf8f-3dfb6289e154",
+      "meaning": "actual",
+      "scenario": "actual",
+      "status": "draft",
+      "text": "Supplier · Quantity · Unit cost · Total\n\nOak Supply · 10.0 · 2.4 · Unknown\nCedar Tools · 10.0 · 2.75 · Unknown\nBirch Metals · 10.0 · 2.55 · Unknown\nElm Fasteners · 10.0 · 2.3 · Unknown",
+      "title": "Review table: Supplier comparison",
+      "version": 1
+     },
+     "resultHash": "395d9ab163c3f7662647dddb21e4ac06ba34d59b4fc0cdad4fcda4e48ec67521",
+     "resultIdentity": {
+      "id": "8cc00b89-e331-447f-a3eb-bed0cab09b5c",
+      "kind": "table-creation",
+      "logicalID": "e1af0869-4794-4763-bf8f-3dfb6289e154",
+      "meaning": "actual",
+      "status": "draft"
+     },
+     "runID": "8ab22c45-3d61-4b0d-84ba-333c33c31402",
+     "tool": "propose_table"
+    },
+    "created": "2026-11-18T19:47:18Z",
+    "id": "654c0696-f350-4110-86ee-64a707279ae0",
+    "role": "tool",
+    "state": "complete"
+   },
+   {
+    "body": "Ready to review: [Review table: Supplier comparison](sevra://item/8cc00b89-e331-447f-a3eb-bed0cab09b5c). Existing accepted values are unchanged. Accept this proposal to continue.\n\nCouldn’t finish preparing the proposal. Record not found: new_row_1",
+    "created": "2026-11-18T19:47:18Z",
+    "id": "013cc47d-d948-4896-8358-8a9c6d188ae2",
+    "role": "assistant",
+    "state": "needs_review"
+   }
+  ]
+ },
+ "runs": [
+  {
+   "conversation_id": "main",
+   "created": "2026-11-18T19:46:08Z",
+   "id": "8ab22c45-3d61-4b0d-84ba-333c33c31402",
+   "metrics": [
+    {
+     "acceptedDraftTokens": 77,
+     "activations": "bf16",
+     "backend": "splash-native-candidate",
+     "beforeDispatchSeconds": 8.144323833286762,
+     "contextTokens": 65536,
+     "decodeSeconds": 1.900006,
+     "deduplicatedKVTokens": 0,
+     "diagnosticRequestCacheIsolation": false,
+     "draftedTokens": 161,
+     "engineSHA256": "ce771e5f51081a2fd60df0ee0083f982a278a863ffaeab29fd590f55e9e36e89",
+     "firstAnswerPreviewSeconds": null,
+     "firstTokenSeconds": 3.6758025833405554,
+     "generatedTokens": 101,
+     "grammarSHA256": "5b96c275e9c1a2e618a54a4814a6d9c0de116285e8ffd0814aea01a5c8eecdf1",
+     "helperStartSeconds": 4.4330820416798815,
+     "hostPreparationSeconds": 0.00011320831254124641,
+     "maintenanceRecommended": false,
+     "maintenanceThreshold": 49152,
+     "matchedPromptTokens": 6016,
+     "nextToolResultReserve": 3546,
+     "outputBudget": 1800,
+     "prefillSeconds": 3.671245,
+     "prefixPrimeMatchedTokens": 0,
+     "prefixPrimePrefillSeconds": 3.687115,
+     "prefixPrimeSeconds": 3.6872560000047088,
+     "prefixPrimeTokens": 6020,
+     "promptTokens": 11186,
+     "reasoningBudget": 512,
+     "reasoningBudgetOverrun": 0,
+     "reasoningHistory": "within-request",
+     "reasoningTokens": 84,
+     "recoveryReserve": 256,
+     "replayBoundaryTokens": 11168,
+     "requestSeconds": 5.5758010416757315,
+     "requestedContextTokens": 65536,
+     "requestedMemoryBytes": 12884901888,
+     "requestedOutputBudget": 1800,
+     "runtimeRelease": "1.6.1",
+     "scopePrefixTokens": 10586,
+     "speculativeMethod": "DFlash2",
+     "stablePrefixTokens": 6020,
+     "templateIdentity": "aee46acfcba8e4e7aec7512126b926aa311bf7414d0d96ad3b13a86d5bdfe9d3",
+     "toolScope": "all"
+    },
+    {
+     "acceptedDraftTokens": 116,
+     "activations": "bf16",
+     "backend": "splash-native-candidate",
+     "beforeDispatchSeconds": 2.1803530416218564,
+     "contextTokens": 65536,
+     "decodeSeconds": 4.739616,
+     "deduplicatedKVTokens": 96,
+     "diagnosticRequestCacheIsolation": false,
+     "draftedTokens": 245,
+     "engineSHA256": "ce771e5f51081a2fd60df0ee0083f982a278a863ffaeab29fd590f55e9e36e89",
+     "firstAnswerPreviewSeconds": null,
+     "firstTokenSeconds": 1.1315970834111795,
+     "generatedTokens": 152,
+     "grammarSHA256": "5b96c275e9c1a2e618a54a4814a6d9c0de116285e8ffd0814aea01a5c8eecdf1",
+     "helperStartSeconds": 3.7497375160455704e-07,
+     "hostPreparationSeconds": 0.00021633331198245287,
+     "maintenanceRecommended": false,
+     "maintenanceThreshold": 49152,
+     "matchedPromptTokens": 11168,
+     "nextToolResultReserve": 3546,
+     "outputBudget": 1800,
+     "prefillSeconds": 1.125932,
+     "prefixPrimeMatchedTokens": 8192,
+     "prefixPrimePrefillSeconds": 2.174316,
+     "prefixPrimeSeconds": 2.179592041647993,
+     "prefixPrimeTokens": 10586,
+     "promptTokens": 11452,
+     "reasoningBudget": 512,
+     "reasoningBudgetOverrun": 0,
+     "reasoningHistory": "within-request",
+     "reasoningTokens": 96,
+     "recoveryReserve": 256,
+     "replayBoundaryTokens": 11424,
+     "requestSeconds": 5.873070208355784,
+     "requestedContextTokens": 65536,
+     "requestedMemoryBytes": 12884901888,
+     "requestedOutputBudget": 1800,
+     "runtimeRelease": "1.6.1",
+     "scopePrefixTokens": 10586,
+     "speculativeMethod": "DFlash2",
+     "stablePrefixTokens": 6020,
+     "templateIdentity": "aee46acfcba8e4e7aec7512126b926aa311bf7414d0d96ad3b13a86d5bdfe9d3",
+     "toolScope": "all"
+    },
+    {
+     "acceptedDraftTokens": 38,
+     "activations": "bf16",
+     "backend": "splash-native-candidate",
+     "beforeDispatchSeconds": 0.029123833402991295,
+     "contextTokens": 65536,
+     "decodeSeconds": 1.197157,
+     "deduplicatedKVTokens": 160,
+     "diagnosticRequestCacheIsolation": false,
+     "draftedTokens": 105,
+     "engineSHA256": "ce771e5f51081a2fd60df0ee0083f982a278a863ffaeab29fd590f55e9e36e89",
+     "firstAnswerPreviewSeconds": null,
+     "firstTokenSeconds": 1.5011214166879654,
+     "generatedTokens": 54,
+     "grammarSHA256": "5b96c275e9c1a2e618a54a4814a6d9c0de116285e8ffd0814aea01a5c8eecdf1",
+     "helperStartSeconds": 3.332970663905144e-07,
+     "hostPreparationSeconds": 0.000167291727848351,
+     "maintenanceRecommended": false,
+     "maintenanceThreshold": 49152,
+     "matchedPromptTokens": 11424,
+     "nextToolResultReserve": 3546,
+     "outputBudget": 1800,
+     "prefillSeconds": 1.49659,
+     "prefixPrimeMatchedTokens": 0,
+     "prefixPrimePrefillSeconds": 0,
+     "prefixPrimeSeconds": 0,
+     "prefixPrimeTokens": 0,
+     "promptTokens": 12189,
+     "reasoningBudget": 512,
+     "reasoningBudgetOverrun": 0,
+     "reasoningHistory": "within-request",
+     "reasoningTokens": 24,
+     "recoveryReserve": 256,
+     "replayBoundaryTokens": 12160,
+     "requestSeconds": 2.6982805833686143,
+     "requestedContextTokens": 65536,
+     "requestedMemoryBytes": 12884901888,
+     "requestedOutputBudget": 1800,
+     "runtimeRelease": "1.6.1",
+     "scopePrefixTokens": 10586,
+     "speculativeMethod": "DFlash2",
+     "stablePrefixTokens": 6020,
+     "templateIdentity": "aee46acfcba8e4e7aec7512126b926aa311bf7414d0d96ad3b13a86d5bdfe9d3",
+     "toolScope": "all"
+    },
+    {
+     "acceptedDraftTokens": 185,
+     "activations": "bf16",
+     "backend": "splash-native-candidate",
+     "beforeDispatchSeconds": 0.029964458313770592,
+     "contextTokens": 65536,
+     "decodeSeconds": 4.389976,
+     "deduplicatedKVTokens": 64,
+     "diagnosticRequestCacheIsolation": false,
+     "draftedTokens": 252,
+     "engineSHA256": "ce771e5f51081a2fd60df0ee0083f982a278a863ffaeab29fd590f55e9e36e89",
+     "firstAnswerPreviewSeconds": null,
+     "firstTokenSeconds": 1.3091595834121108,
+     "generatedTokens": 222,
+     "grammarSHA256": "5b96c275e9c1a2e618a54a4814a6d9c0de116285e8ffd0814aea01a5c8eecdf1",
+     "helperStartSeconds": 2.9173679649829865e-07,
+     "hostPreparationSeconds": 0.00021670828573405743,
+     "maintenanceRecommended": false,
+     "maintenanceThreshold": 49152,
+     "matchedPromptTokens": 12160,
+     "nextToolResultReserve": 3546,
+     "outputBudget": 1800,
+     "prefillSeconds": 1.304148,
+     "prefixPrimeMatchedTokens": 0,
+     "prefixPrimePrefillSeconds": 0,
+     "prefixPrimeSeconds": 0,
+     "prefixPrimeTokens": 0,
+     "promptTokens": 12636,
+     "reasoningBudget": 512,
+     "reasoningBudgetOverrun": 0,
+     "reasoningHistory": "within-request",
+     "reasoningTokens": 167,
+     "recoveryReserve": 256,
+     "replayBoundaryTokens": 12608,
+     "requestSeconds": 5.699130624998361,
+     "requestedContextTokens": 65536,
+     "requestedMemoryBytes": 12884901888,
+     "requestedOutputBudget": 1800,
+     "runtimeRelease": "1.6.1",
+     "scopePrefixTokens": 10586,
+     "speculativeMethod": "DFlash2",
+     "stablePrefixTokens": 6020,
+     "templateIdentity": "aee46acfcba8e4e7aec7512126b926aa311bf7414d0d96ad3b13a86d5bdfe9d3",
+     "toolScope": "all"
+    },
+    {
+     "acceptedDraftTokens": 493,
+     "activations": "bf16",
+     "backend": "splash-native-candidate",
+     "beforeDispatchSeconds": 0.044294583378359675,
+     "contextTokens": 65536,
+     "decodeSeconds": 15.049791,
+     "deduplicatedKVTokens": 224,
+     "diagnosticRequestCacheIsolation": false,
+     "draftedTokens": 1197,
+     "engineSHA256": "ce771e5f51081a2fd60df0ee0083f982a278a863ffaeab29fd590f55e9e36e89",
+     "firstAnswerPreviewSeconds": null,
+     "firstTokenSeconds": 1.7111957499291748,
+     "generatedTokens": 665,
+     "grammarSHA256": "5b96c275e9c1a2e618a54a4814a6d9c0de116285e8ffd0814aea01a5c8eecdf1",
+     "helperStartSeconds": 3.7497375160455704e-07,
+     "hostPreparationSeconds": 0.00032308336813002825,
+     "maintenanceRecommended": false,
+     "maintenanceThreshold": 49152,
+     "matchedPromptTokens": 12608,
+     "nextToolResultReserve": 3546,
+     "outputBudget": 1800,
+     "prefillSeconds": 1.704864,
+     "prefixPrimeMatchedTokens": 0,
+     "prefixPrimePrefillSeconds": 0,
+     "prefixPrimeSeconds": 0,
+     "prefixPrimeTokens": 0,
+     "promptTokens": 13477,
+     "reasoningBudget": 512,
+     "reasoningBudgetOverrun": 0,
+     "reasoningHistory": "within-request",
+     "reasoningTokens": 512,
+     "recoveryReserve": 256,
+     "replayBoundaryTokens": 13472,
+     "requestSeconds": 16.76097674993798,
+     "requestedContextTokens": 65536,
+     "requestedMemoryBytes": 12884901888,
+     "requestedOutputBudget": 1800,
+     "runtimeRelease": "1.6.1",
+     "scopePrefixTokens": 10586,
+     "speculativeMethod": "DFlash2",
+     "stablePrefixTokens": 6020,
+     "templateIdentity": "aee46acfcba8e4e7aec7512126b926aa311bf7414d0d96ad3b13a86d5bdfe9d3",
+     "toolScope": "all"
+    },
+    {
+     "acceptedDraftTokens": 122,
+     "activations": "bf16",
+     "backend": "splash-native-candidate",
+     "beforeDispatchSeconds": 0.0007645833538845181,
+     "contextTokens": 65536,
+     "decodeSeconds": 3.158961,
+     "deduplicatedKVTokens": 512,
+     "diagnosticRequestCacheIsolation": false,
+     "draftedTokens": 189,
+     "engineSHA256": "ce771e5f51081a2fd60df0ee0083f982a278a863ffaeab29fd590f55e9e36e89",
+     "firstAnswerPreviewSeconds": null,
+     "firstTokenSeconds": 1.6869709166930988,
+     "generatedTokens": 150,
+     "grammarSHA256": "5b96c275e9c1a2e618a54a4814a6d9c0de116285e8ffd0814aea01a5c8eecdf1",
+     "helperStartSeconds": 7.917406037449837e-07,
+     "hostPreparationSeconds": 0.0004241249989718199,
+     "maintenanceRecommended": false,
+     "maintenanceThreshold": 49152,
+     "matchedPromptTokens": 13472,
+     "nextToolResultReserve": 3546,
+     "outputBudget": 1800,
+     "prefillSeconds": 1.676153,
+     "prefixPrimeMatchedTokens": 0,
+     "prefixPrimePrefillSeconds": 0,
+     "prefixPrimeSeconds": 0,
+     "prefixPrimeTokens": 0,
+     "promptTokens": 14248,
+     "reasoningBudget": 512,
+     "reasoningBudgetOverrun": 0,
+     "reasoningHistory": "within-request",
+     "reasoningTokens": 88,
+     "recoveryReserve": 256,
+     "replayBoundaryTokens": 14240,
+     "requestSeconds": 4.84591899998486,
+     "requestedContextTokens": 65536,
+     "requestedMemoryBytes": 12884901888,
+     "requestedOutputBudget": 1800,
+     "runtimeRelease": "1.6.1",
+     "scopePrefixTokens": 10586,
+     "speculativeMethod": "DFlash2",
+     "stablePrefixTokens": 6020,
+     "templateIdentity": "aee46acfcba8e4e7aec7512126b926aa311bf7414d0d96ad3b13a86d5bdfe9d3",
+     "toolScope": "all"
+    },
+    {
+     "acceptedDraftTokens": 564,
+     "activations": "bf16",
+     "backend": "splash-native-candidate",
+     "beforeDispatchSeconds": 0.042411583359353244,
+     "contextTokens": 65536,
+     "decodeSeconds": 14.578558,
+     "deduplicatedKVTokens": 128,
+     "diagnosticRequestCacheIsolation": false,
+     "draftedTokens": 1015,
+     "engineSHA256": "ce771e5f51081a2fd60df0ee0083f982a278a863ffaeab29fd590f55e9e36e89",
+     "firstAnswerPreviewSeconds": null,
+     "firstTokenSeconds": 1.4739023332949728,
+     "generatedTokens": 710,
+     "grammarSHA256": "5b96c275e9c1a2e618a54a4814a6d9c0de116285e8ffd0814aea01a5c8eecdf1",
+     "helperStartSeconds": 1.0416842997074127e-06,
+     "hostPreparationSeconds": 0.00035800004843622446,
+     "maintenanceRecommended": false,
+     "maintenanceThreshold": 49152,
+     "matchedPromptTokens": 14240,
+     "nextToolResultReserve": 3546,
+     "outputBudget": 1800,
+     "prefillSeconds": 1.470245,
+     "prefixPrimeMatchedTokens": 0,
+     "prefixPrimePrefillSeconds": 0,
+     "prefixPrimeSeconds": 0,
+     "prefixPrimeTokens": 0,
+     "promptTokens": 14692,
+     "reasoningBudget": 512,
+     "reasoningBudgetOverrun": 0,
+     "reasoningHistory": "within-request",
+     "reasoningTokens": 450,
+     "recoveryReserve": 256,
+     "replayBoundaryTokens": 14656,
+     "requestSeconds": 16.052553166635334,
+     "requestedContextTokens": 65536,
+     "requestedMemoryBytes": 12884901888,
+     "requestedOutputBudget": 1800,
+     "runtimeRelease": "1.6.1",
+     "scopePrefixTokens": 10586,
+     "speculativeMethod": "DFlash2",
+     "stablePrefixTokens": 6020,
+     "templateIdentity": "aee46acfcba8e4e7aec7512126b926aa311bf7414d0d96ad3b13a86d5bdfe9d3",
+     "toolScope": "all"
+    }
+   ],
+   "model": "Splash 1.6.1; d8af1054aab0f97de21d043e01aa98af3754f10e; Qwen3.6-35B-A3B-4bit + DFlash2; native Swift candidate; context 65536; memory 12884901888; activations bf16; KV int8; state fp32; ANE on; reasoning budget 512; within-request reasoning retained",
+   "request_message_id": "ac52721f-8156-4c13-99a4-5399231cc427",
+   "status": "needs_review",
+   "steps": 7,
+   "updated": "2026-11-18T19:47:18Z"
+  }
+ ],
+ "saved": {
+  "newItems": [
+   {
+    "category": "record",
+    "kind": "table-creation",
+    "status": "draft",
+    "title": "Review table: Supplier comparison",
+    "id": "8cc00b89-e331-447f-a3eb-bed0cab09b5c"
+   }
+  ]
+ }
+}

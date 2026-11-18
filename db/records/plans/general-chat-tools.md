@@ -2,7 +2,7 @@
 type: operational
 id: 01m7qrcqqzh4qqr92a8frch1ze
 created: 2026-11-18T16:38:43.199010+00:00
-updated: 2026-11-18T19:02:56.380892+00:00
+updated: 2026-11-18T21:37:37.385781+00:00
 summary: Plan for seven general chat tools (model SQL on a scratch copy, sandboxed code, workbook tools) and a prompt header calculated at build time and restored at engine start. In implementation.
 title: General chat tools and a pre-read prompt header
 ---
@@ -10,7 +10,7 @@ title: General chat tools and a pre-read prompt header
 
 Owner direction: [[sources/notes/2026/11/general-tools-direction]], continuing [[sources/notes/2026/11/chat-tool-routing-direction]]. Evidence: [[records/research/chat-tool-selection]]. This plan replaces [[records/plans/native-chat-prompt-routing]].
 
-Status: implementation started on November 18, 2026 with phase 1. Each phase section records what was done and measured when it exits. When this plan was written and reviewed, no product code, engine code, model, package or interface had been changed or run for it, and the only thing run was a CPU token count of draft schemas. Reviewed against code at `dcb111eccf61bf2b850eab84f2610d0ab8cf10d9`, which includes [[records/plans/conversation-follow-up-cache]], and against the pinned Splash 1.6.1 source. The header section is also written against the packaging scripts at `baadc5c`, which implement [[records/plans/macos-installer-and-updates]]. That commit changes no file this plan cites by line.
+Status: in implementation. Phase 1 is done, and a first slice of `sql` passes its English evals: see [The slice so far](#the-slice-so-far). Implementation started on November 18, 2026 with phase 1. The same day the owner chose a faster test loop and a thin slice first: [[sources/notes/2026/11/fast-loop-direction]]. [The test loop and the order](#the-test-loop-and-the-order) governs where a phase section says otherwise. Each phase section records what was done and measured when it exits. When this plan was written and reviewed, no product code, engine code, model, package or interface had been changed or run for it, and the only thing run was a CPU token count of draft schemas. Reviewed against code at `dcb111eccf61bf2b850eab84f2610d0ab8cf10d9`, which includes [[records/plans/conversation-follow-up-cache]], and against the pinned Splash 1.6.1 source. The header section is also written against the packaging scripts at `baadc5c`, which implement [[records/plans/macos-installer-and-updates]]. That commit changes no file this plan cites by line.
 
 The owner confirmed the plan's three summary points and five proposals as written on November 18, 2026: [[sources/notes/2026/11/general-tools-confirmation]]. He then changed how the header is delivered: [[sources/notes/2026/11/prebuilt-header-direction]]. He authorized implementation on November 18, 2026: [[sources/notes/2026/11/general-tools-implementation]]. That note also lists what the authorization does not cover.
 
@@ -360,20 +360,67 @@ Phases that are not part of ordinary chat keep their own tool lists and prompts 
 
 ## Work sequence
 
-Phases are ordered by what depends on what. Each ends on an exit criterion. Checks follow the focused verification policy in [[records/specs/distribution]]: the smallest checks that establish the change inside a phase, and the full suite where a phase crosses a boundary. Phase 3 changes the write path and phase 6 removes the old tools, so those two run the full suite. Real-model and engine runs load one model at a time on an idle Mac, after checking reclaimable memory.
+Phases are ordered by what depends on what. Each ends on an exit criterion. Checks follow the focused verification policy in [[records/specs/distribution]]: the smallest checks that establish the change. Real-model and engine runs load one model at a time on an idle Mac, after checking reclaimable memory.
 
-Until phase 6 the current tools stay the default. The general tools run under a host-selected tool profile in the same build, so every gate compares the two on the same code. A phase that misses its exit criterion does not exit, and no phase that depends on it starts. The result goes to the owner with the transcripts. The tools a person chats with do not change until phase 6 passes. Three things do change earlier, each called out where it happens: the model record in phase H2, the header mechanism in phase H3 and the workbook format in phase 5.
+Until phase 6 the current tools stay the default. The general tools run under a host-selected tool profile in the same build, so the two are compared on the same code. The tools a person chats with do not change until the full gate in phase 6 passes. Three things do change earlier, each called out where it happens: the model record in phase H2, the header mechanism in phase H3 and the workbook format in phase 5.
 
-Header phases H1 and H2 depend on phase 0 only. H3 also needs phase 1 and the owner's answers to P6, P8 and P9. H4 builds on the release packaging that already exists and needs his answer to P7. When phase 7 fixes the final header, it is made again with the same command and the header tests run again on it.
+### The test loop and the order
 
-**The rule for every real-model gate:**
+Owner direction, November 18, 2026: [[sources/notes/2026/11/fast-loop-direction]]. The first baseline showed the earlier rule was too slow to build with: 45 minutes for half its runs, and more than half of that spent rerunning jobs that had already failed. This section replaces that rule. Where a phase below says otherwise, this section governs.
 
-- Each job has a recorded expected result: the rows and columns in the workbook afterwards, or the figures and citations in the answer.
-- A gate runs each job its phase touches once per language. A job that fails is run twice more and passes only if both pass. Every failure is recorded with its transcript.
-- Unless a phase's exit says otherwise, decisions are compared as a total over the gate's jobs, and the total must not exceed the baseline's. The baseline is recorded once in phase 1 and reused.
-- A job with no passing baseline is gated on its expected result alone.
-- Wall time is recorded at every gate. It is gated once, in phase 6: the total over all jobs must not exceed the baseline's.
-- The three timed turns, a cold first turn, a warm greeting and the warm stock question, use the median of three runs. After phase H3 they are compared with the rerun that H3 records, so the comparison is on the same header mechanism.
+**Three levels of test:**
+
+- **No model.** Unit checks on the layer being changed, on every change.
+- **Eval.** The jobs the change touches, in English, one run each, with no reruns. Each job has a recorded expected result: the rows and columns in the workbook afterwards, or the figures and citations in the answer. A failure is read from its transcript, then fixed or recorded. This is the loop for building.
+- **Full gate.** Every job in English and Spanish, a failed job run twice more and passing only if both pass, the three timed turns as the median of three runs, the full agent suite and `scripts/check.sh`. It runs twice: before the old tools are removed in phase 6, and on the final prompt in phase 7.
+
+**What that changes in the phases below:**
+
+- A phase exit before phase 6 that says "in both languages" means the eval in English. Spanish and reruns wait for the full gates.
+- The phase 3 milestone, the full agent suite and `scripts/check.sh`, moves to the phase 6 gate. Until then, a change to code the current tools also use runs the checks that cover that code.
+- Decisions and wall time are recorded at every eval. They are compared with the baseline at the full gates, as totals over the jobs, and must not exceed it. A job with no passing baseline is gated on its expected result alone.
+- After phase H3 the timed turns are compared with the rerun that H3 records, so the comparison is on the same header mechanism.
+- A single English run can miss flaky behavior and a Spanish regression. The full gates exist to catch both.
+
+**Order:**
+
+1. **A thin slice first.** `sql` for reading and for row changes, with `finish`, under the `general` profile, in rough form: enough to run the read and change jobs with the real model. It answers the largest unknown first, whether the local model can drive SQL well.
+2. **What the slice has from the start.** Changes go through the recorded write path, so history and Undo hold. Statements that reach outside the scratch database are refused. Row and time budgets apply.
+3. **Then the rest of phases 2 and 3,** starting with what the evals show is needed. A part of the design that no check or eval shows a need for is left out, and listed in its phase with the reason. Changing a table's shape through `sql` still waits for the `db/DB.md` change.
+4. **Phases 4 to 7 in order,** each built the same way: the smallest working form, an eval, then the rest.
+5. **Header.** Only the first question of phase H1 runs now: does a header resume from copied cache files at all. The rest of H1 and phases H2 to H4 wait until the general tools pass their evals. H3 still needs the owner's answers to P6, P8 and P9, and H4 his answer to P7. When phase 7 fixes the final header, it is made again with the same command and the header tests run again on it.
+
+### The slice so far
+
+Built on November 18, 2026 under the `general` profile. Evidence: [the evals](../../../integration/evidence/2026-11-18-sql-slice-evals/results.json).
+
+**Result on 15 English jobs, one run each:** all 15 pass, in 42 decisions and 453 seconds. Today's tools pass 11 of the same 15, in 64 decisions and 690 seconds. The four that today's tools fail and the slice passes are adding rows from a document, a bulk update, adding the rows one table is missing from another, and a draft change. The first run of the slice passed 11 of 12. Three fixes came from reading the failures, each rerun with one counterexample.
+
+**What `sql` is today** ([ChatSQL.swift](../../../Sources/SevraCore/ChatSQL.swift)):
+
+- The statements run on an in-memory copy that holds only the tables they name, under SQLite-friendly names made from the titles. Two catalog tables, `tables` and `columns`, list them.
+- The request's context lists every table and its columns, so no decision is spent finding them.
+- `INSERT`, `UPDATE` and `DELETE` are found through the trigger log and applied through the existing recorded row transaction, with one Undo for each changed table.
+- A row change by the model is recorded under a rule Source the host publishes, as native app authoring already does. This is what today's tools lack.
+- `draft` saves an `UPDATE` as a proposal and changes nothing.
+- Refused, with nothing changed: anything that creates, drops or reshapes a table, `ATTACH`, pragmas, transaction statements, the schema table, the host's log, the catalog tables, a formula column, more than one statement in an entry, text in a number column, and any change in a request that forbids changes.
+- An answer may rest on a query: its figures count as computed, and the host attaches the rows it read, or the table's own Source when there are many.
+- Under the `general` profile a read sent twice in a row is answered with a pointer to the result it already has, and a second repeat makes the model finish.
+- Under the `general` profile `sql` replaces `datasets`, `rows`, `compare_rows`, `calculate` and `propose_table_edit`. Specialized phases keep today's tools.
+
+**Checks, none needing the model:** [check_chat_sql.py](../../../scripts/check_chat_sql.py) through the command line in about ten seconds, and `sevra-agent-checks --sql-tool` with a scripted model under the AI actor.
+
+**Left out for now, with the reason:**
+
+- **The exact side table and exact functions.** Decimal cells are copied in as floating-point numbers, and every number that leaves `sql`, in a result or a written cell, is rounded to 15 significant digits. That is what a spreadsheet does. No check or eval has needed more. It differs from the workbook's exact decimal arithmetic only beyond 15 significant digits, and a stored decimal longer than that is shown rounded but never rewritten unless the statement changes it. The owner should know this is a real difference from the design under Numbers.
+- **One transaction for the whole call.** Each changed table is its own transaction, so a failure on a second table leaves the first changed. The bulk form in phase 3 fixes this.
+- **More than 64 changed rows in a table per call,** the existing transaction's limit. Phase 3's bulk form.
+- **More than 20,000 rows read per call.** The fill measurement in phase 2 sets the real limit.
+- **Result receipts opened in the conversation, read-back of written cells, an Undo button in the conversation, the ledger's catalog tables, guides, and the conversation scope of `search`.** No eval job needs them yet. `balance` stays for the stock question.
+- **Drafts of inserted or deleted rows.** Today's proposals cover edits to existing rows.
+- **Changing a table's shape.** Waits for the `db/DB.md` change.
+
+**Seen in the evals and not yet addressed:** the supplier comparison read took four decisions instead of three because its first answer was refused once.
 
 ### Phase 0. Record the direction and get the go-ahead
 
@@ -400,6 +447,22 @@ Exit: the owner's answers are recorded as a source note, the `db/DB.md` line is 
 4. Check one unverified point first. Chat's AI actor carries a policy label, not a rule Source, and the row update and schema paths refuse an AI change without one ([Tools.swift](../../../Sources/SevraCore/Tools.swift) 107 to 115, [Tables.swift](../../../Sources/SevraCore/Tables.swift) 595, [DatasetDefinitions.swift](../../../Sources/SevraCore/DatasetDefinitions.swift) 149). If the current tools cannot update rows or change a schema under a real model, those jobs are recorded as having no passing baseline.
 
 Exit: the baseline is retained as evidence, and `--conversation-surfaces` shows the `current` profile unchanged.
+
+**Done on November 18, 2026.** Evidence: [the baseline](../../../integration/evidence/2026-11-18-chat-jobs-baseline/results.json).
+
+- **Profile.** The host reads `SEVRA_TOOL_PROFILE`. Unset means `current`, and an unknown name is refused. `sevra-agent-checks --conversation-surfaces` passes with `current` byte-identical to a build without a profile.
+- **Jobs.** [check_chat_jobs.py](../../../scripts/check_chat_jobs.py) holds the 24 jobs with their expected results and runs them under either profile.
+- **How it was recorded.** The first 26 results ran in both languages under the earlier rerun rule. The owner then chose the fast loop, and the remaining jobs ran once in English.
+- **Baseline in English, today's tools: 12 of 23 jobs pass.**
+  - Reads: 5 of 5, in 3 to 4 decisions and 23 to 48 seconds each.
+  - Table changes: 1 of 5. Only deleting rows passes.
+  - Several steps: 1 of 3.
+  - Building a view, an app, a form and a rule: 0 of 4.
+  - Conversation 3 of 3, safety 2 of 2.
+  - The draft job was recorded as failed by a mistake in its check, since fixed. It was not run again.
+- **Why changes fail today (step 4).** Under the AI actor a row insert and a row delete are applied. A row update and every schema change are refused with "An AI decision needs an exact saved rule Source". Today's tools then fall back to a draft the person must accept. New table and totals by category fail only for that reason: the accepted drafts held the right content. Rename, add rows and missing rows in English are today's tools really failing.
+- **Timed turns, one run each:** cold first turn 17.99 s, warm greeting 4.20 s, warm stock question 10.77 s.
+- **Cost of one run:** 23 to 187 seconds. About 6 to 7 seconds of that is starting the process and the model. The rest is decisions that each start from a prompt of about 11,200 tokens.
 
 ### Phase 2. `sql`, reading
 

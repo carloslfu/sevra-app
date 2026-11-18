@@ -2,11 +2,40 @@ import Foundation
 import SevraCore
 
 extension NativeTools {
+  /// The ordinary chat tools a profile offers. `general` offers today's until its own exist.
+  package static func definitions(for toolProfile: ToolProfile) -> [WorkbookToolDefinition] {
+    switch toolProfile {
+    case .current: return definitions
+    case .general:
+      // First slice: sql takes over reading tables, comparing rows and arithmetic.
+      return definitions.filter { !generalReplaced.contains($0.name) } + [sqlDefinition]
+    }
+  }
+  /// Today's tools that `sql` replaces under the general profile.
+  package static let generalReplaced: Set<String> = [
+    "datasets", "rows", "compare_rows", "calculate", "propose_table_edit",
+  ]
+  package static let sqlDefinition = WorkbookToolDefinition(
+    name: "sql",
+    description:
+      "Read and change workbook tables with SQLite SQL. Table and column names are listed under Tables for sql in the request. Reads: any SELECT, with joins, WHERE, GROUP BY and arithmetic. Row changes: INSERT, UPDATE, DELETE, saved at once with one Undo. For a draft the user reviews first, send the UPDATE with draft=true. Cannot create or reshape tables.",
+    parameters: object(
+      [
+        "statements": .object([
+          "type": .string("array"), "minItems": .number(1), "maxItems": .number(8),
+          "items": .object(["type": .string("string")]),
+          "description": .string("One SQL statement per entry, run in order."),
+        ]),
+        "draft": schema(
+          "boolean", "True saves UPDATEs as a proposal for the user to review. Nothing changes."),
+      ], required: ["statements"]))
+
   package static func referenceDefinitions(
     itemReferenceIDs: [String] = [], conversationActions: [String]? = nil,
     toolScope: InferenceToolScope = .all, documentCopyIDs: [String]? = nil,
     historyReferenceIDs: [String]? = nil, nativeAppAuthoring: Bool = true,
-    reviewContract: Value = .null, conversationInput: Bool = false, visualCaptureIDs: [String] = []
+    reviewContract: Value = .null, conversationInput: Bool = false, visualCaptureIDs: [String] = [],
+    toolProfile: ToolProfile = .current
   ) throws
     -> [WorkbookToolDefinition]
   {
@@ -30,7 +59,7 @@ extension NativeTools {
         "tool_schema", "Invalid conversation capability.")
     }
     let available =
-      definitions
+      definitions(for: toolScope.specialized ? .current : toolProfile)
       + (toolScope.allows("request_input", conversationInput: conversationInput)
         ? [inputDefinition] : [])
       + ([.excelBuild, .excelCalculation, .excelInterface].contains(toolScope)
@@ -156,14 +185,15 @@ extension NativeTools {
     toolScope: InferenceToolScope = .all, itemReferenceIDs: [String] = [],
     conversationActions: [String]? = nil, documentCopyIDs: [String]? = nil,
     historyReferenceIDs: [String]? = nil, nativeAppAuthoring: Bool = true,
-    reviewContract: Value = .null, conversationInput: Bool = false, visualCaptureIDs: [String] = []
+    reviewContract: Value = .null, conversationInput: Bool = false, visualCaptureIDs: [String] = [],
+    toolProfile: ToolProfile = .current
   ) throws -> Data {
     let definitions = try referenceDefinitions(
       itemReferenceIDs: itemReferenceIDs, conversationActions: conversationActions,
       toolScope: toolScope, documentCopyIDs: documentCopyIDs,
       historyReferenceIDs: historyReferenceIDs, nativeAppAuthoring: nativeAppAuthoring,
       reviewContract: reviewContract, conversationInput: conversationInput,
-      visualCaptureIDs: visualCaptureIDs
+      visualCaptureIDs: visualCaptureIDs, toolProfile: toolProfile
     )
     .filter { toolScope.allows($0.name, conversationInput: conversationInput) }
     let values: [[String: Any]] = try definitions.map {

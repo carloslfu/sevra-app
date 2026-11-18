@@ -1,0 +1,636 @@
+{
+ "job": "change.new_table_from_text",
+ "language": "es",
+ "profile": "current",
+ "attempt": 3,
+ "prompt": "Crea una tabla llamada Reorder levels con las columnas Item y Level a partir de esta lista:\nBrass bolts, 12\nSteel washers, 40\nHex nuts, 25",
+ "expected": "A table named Reorder levels exists with three rows: Brass bolts 12, Steel washers 40, Hex nuts 25.",
+ "failure": "the request ended as needs_review; Reorder levels does not hold exactly [[\"Brass bolts\", 12], [\"Steel washers\", 40], [\"Hex nuts\", 25]]: null; expected exactly one new table",
+ "result": {
+  "answer": "Ready to review: [Review table: Reorder levels](sevra://item/808d4282-70d0-40c1-9597-cd888ec06509). Existing accepted values are unchanged. Accept this proposal to continue.",
+  "citations": [
+   "808d4282-70d0-40c1-9597-cd888ec06509"
+  ],
+  "conversationAction": null,
+  "state": "needs_review",
+  "steps": 5
+ },
+ "progress": [
+  "Reading request context",
+  "Checking local model files",
+  "Preparing local AI. The first start can take longer…",
+  "Preparing local AI · 0 of 11 steps",
+  "Preparing local AI · 1 of 11 steps",
+  "Preparing local AI · 2 of 11 steps",
+  "Preparing local AI · 3 of 11 steps",
+  "Preparing local AI · 4 of 11 steps",
+  "Preparing local AI · 5 of 11 steps",
+  "Preparing local AI · 6 of 11 steps",
+  "Preparing local AI · 7 of 11 steps",
+  "Preparing local AI · 8 of 11 steps",
+  "Preparing local AI · 9 of 11 steps",
+  "Preparing local AI · 10 of 11 steps",
+  "Preparing local AI · 11 of 11 steps",
+  "Reading the working context",
+  "Working through the request",
+  "Preparing a response",
+  "Propose Table…",
+  "Reviewing a tool failure",
+  "Reading the working context",
+  "Working through the request",
+  "Preparing a response",
+  "Propose Table…",
+  "Reviewing a tool failure",
+  "Reading the working context",
+  "Working through the request",
+  "Preparing a response",
+  "Inspecting tables…",
+  "Reviewing the saved result",
+  "Reading the working context",
+  "Working through the request",
+  "Preparing a response",
+  "Propose Table…",
+  "Reviewing a tool failure",
+  "Reading the working context",
+  "Working through the request",
+  "Preparing a response",
+  "Propose Table…",
+  "Reviewing the saved result"
+ ],
+ "messages": {
+  "main": [
+   {
+    "body": "This example has supplier quotes and a delivery. Try ‘Why do we have 18 brass bolts?’ or ‘Compare the supplier costs and show the evidence.’",
+    "created": "2026-11-18T20:03:08Z",
+    "id": "2a1307a6-9a91-47a4-b274-603e404aa834",
+    "role": "assistant",
+    "state": "complete"
+   },
+   {
+    "body": "Crea una tabla llamada Reorder levels con las columnas Item y Level a partir de esta lista:\nBrass bolts, 12\nSteel washers, 40\nHex nuts, 25",
+    "created": "2026-11-18T20:03:08Z",
+    "id": "738352d6-0648-4d0f-a69f-756af7051d06",
+    "role": "user",
+    "state": "complete"
+   },
+   {
+    "body": {
+     "arguments": {
+      "columns": [
+       {
+        "id": "Item",
+        "title": "Item",
+        "type": "string"
+       },
+       {
+        "id": "Level",
+        "title": "Level",
+        "type": "decimal"
+       }
+      ],
+      "inputs": [],
+      "meaning": "Reorder levels for inventory items",
+      "rows": [
+       {
+        "Item": "Brass bolts",
+        "Level": 12
+       },
+       {
+        "Item": "Steel washers",
+        "Level": 40
+       },
+       {
+        "Item": "Hex nuts",
+        "Level": 25
+       }
+      ],
+      "title": "Reorder levels"
+     },
+     "assistantText": "",
+     "callID": "call_4ea5479b-1e9c-4872-be4f-a5af60fbd2e8",
+     "receiptID": "001ccdde-0d89-4ebe-ad44-f9d42608ca7a",
+     "receiptVersion": 1,
+     "result": {
+      "error": "Invalid or reserved column identifier or type.",
+      "receiptID": "001ccdde-0d89-4ebe-ad44-f9d42608ca7a",
+      "retryInstruction": "The call did not finish successfully. Completed changes remain saved. Inspect the receipt and workbook state before retrying; do not claim no changes occurred. Fix the reported arguments when applicable."
+     },
+     "resultHash": "4d2996289de38640a560b94f4f7512e83244dedba91f29ea36886d7cc4ee9826",
+     "resultIdentity": {},
+     "runID": "2d15c2d8-e0da-4fc3-9600-cad7fbaa66ce",
+     "tool": "propose_table"
+    },
+    "created": "2026-11-18T20:03:29Z",
+    "id": "6a123a21-2b40-4adf-a05d-5e2dc40f6c42",
+    "role": "tool",
+    "state": "complete"
+   },
+   {
+    "body": {
+     "arguments": {
+      "columns": [
+       {
+        "id": "item",
+        "title": "Item",
+        "type": "string"
+       },
+       {
+        "id": "level",
+        "title": "Level",
+        "type": "decimal"
+       }
+      ],
+      "inputs": [],
+      "meaning": "Reorder levels for inventory items",
+      "rows": [
+       {
+        "item": "Brass bolts",
+        "level": 12
+       },
+       {
+        "item": "Steel washers",
+        "level": 40
+       },
+       {
+        "item": "Hex nuts",
+        "level": 25
+       }
+      ],
+      "title": "Reorder levels"
+     },
+     "assistantText": "",
+     "callID": "call_9225579d-b295-42d9-9b84-8e581d1e67e8",
+     "receiptID": "c8a36d55-a3d6-4283-a62c-cee01ce2ef8e",
+     "receiptVersion": 1,
+     "result": {
+      "error": "Invalid or reserved column identifier or type.",
+      "receiptID": "c8a36d55-a3d6-4283-a62c-cee01ce2ef8e",
+      "retryInstruction": "The call did not finish successfully. Completed changes remain saved. Inspect the receipt and workbook state before retrying; do not claim no changes occurred. Fix the reported arguments when applicable."
+     },
+     "resultHash": "9d814a6edc82e1b5fd1d5bf109dc44e9ce70e2dc6d93dd3775587a3e5b6d0570",
+     "resultIdentity": {},
+     "runID": "2d15c2d8-e0da-4fc3-9600-cad7fbaa66ce",
+     "tool": "propose_table"
+    },
+    "created": "2026-11-18T20:03:37Z",
+    "id": "7837dd9a-6d3e-4972-b8f3-52e6644816e5",
+    "role": "tool",
+    "state": "complete"
+   },
+   {
+    "body": {
+     "arguments": {},
+     "assistantText": "",
+     "callID": "call_6dd93d5c-c9ba-4887-8b6c-958d6a43e40c",
+     "receiptID": "651fc905-7c4f-4e67-9021-3c7e23e152da",
+     "receiptVersion": 1,
+     "result": [
+      {
+       "archived": false,
+       "columns": [
+        {
+         "id": "supplier",
+         "title": "Supplier",
+         "type": "text"
+        },
+        {
+         "id": "quantity",
+         "title": "Quantity",
+         "type": "decimal"
+        },
+        {
+         "id": "unit_cost",
+         "title": "Unit cost",
+         "type": "decimal"
+        },
+        {
+         "formula": "quantity*unit_cost",
+         "id": "total",
+         "title": "Total",
+         "type": "decimal"
+        }
+       ],
+       "definitionID": "31a6bdd7-a2a9-47bc-8c52-d2ae1b47daf6",
+       "id": "87cfb1fa-0149-49a6-8fc0-dbd471f91d04",
+       "rowCount": 2,
+       "title": "Supplier comparison",
+       "version": 1
+      }
+     ],
+     "resultHash": "eb4f8636ac34abe2aa4bc7d5d756f2a409aca267b47d76ad7848064ad03a6a73",
+     "resultIdentity": {},
+     "runID": "2d15c2d8-e0da-4fc3-9600-cad7fbaa66ce",
+     "tool": "datasets"
+    },
+    "created": "2026-11-18T20:03:40Z",
+    "id": "2bec8c25-9290-4aef-bcc4-48fc28147968",
+    "role": "tool",
+    "state": "complete"
+   },
+   {
+    "body": {
+     "arguments": {
+      "columns": [
+       {
+        "id": "item",
+        "title": "Item",
+        "type": "text"
+       },
+       {
+        "id": "level",
+        "title": "Level",
+        "type": "decimal"
+       }
+      ],
+      "inputs": [],
+      "meaning": "Reorder levels for inventory items",
+      "rows": [
+       {
+        "item": "Brass bolts",
+        "level": 12
+       },
+       {
+        "item": "Steel washers",
+        "level": 40
+       },
+       {
+        "item": "Hex nuts",
+        "level": 25
+       }
+      ],
+      "title": "Reorder levels"
+     },
+     "assistantText": "",
+     "callID": "call_2cddbb32-faa1-4643-94a7-3020d0b05a2a",
+     "receiptID": "2eb688ff-62d6-4b89-a3ff-21c8070be2da",
+     "receiptVersion": 1,
+     "result": {
+      "error": "CHECK constraint failed: meaning IN ('actual','estimate','plan','commitment','assumption','rule')",
+      "receiptID": "2eb688ff-62d6-4b89-a3ff-21c8070be2da",
+      "retryInstruction": "The call did not finish successfully. Completed changes remain saved. Inspect the receipt and workbook state before retrying; do not claim no changes occurred. Fix the reported arguments when applicable."
+     },
+     "resultHash": "03217a040247a242e971d3df59312964cc2753b360e50351b3298d86fd6ae47a",
+     "resultIdentity": {},
+     "runID": "2d15c2d8-e0da-4fc3-9600-cad7fbaa66ce",
+     "tool": "propose_table"
+    },
+    "created": "2026-11-18T20:03:45Z",
+    "id": "8d811730-9b4f-4960-a278-9c0e192275bd",
+    "role": "tool",
+    "state": "complete"
+   },
+   {
+    "body": {
+     "arguments": {
+      "columns": [
+       {
+        "id": "item",
+        "title": "Item",
+        "type": "text"
+       },
+       {
+        "id": "level",
+        "title": "Level",
+        "type": "decimal"
+       }
+      ],
+      "inputs": [],
+      "meaning": "plan",
+      "rows": [
+       {
+        "item": "Brass bolts",
+        "level": 12
+       },
+       {
+        "item": "Steel washers",
+        "level": 40
+       },
+       {
+        "item": "Hex nuts",
+        "level": 25
+       }
+      ],
+      "title": "Reorder levels"
+     },
+     "assistantText": "",
+     "callID": "call_9145f716-8edd-4ae3-bbba-c53f140a0831",
+     "receiptID": "7b4110d0-8fbd-4e4e-9cf6-a366037fd6c4",
+     "receiptVersion": 1,
+     "result": {
+      "category": "record",
+      "created": "2026-11-18T20:03:52Z",
+      "data": {
+       "columns": [
+        {
+         "id": "item",
+         "title": "Item",
+         "type": "text"
+        },
+        {
+         "id": "level",
+         "title": "Level",
+         "type": "decimal"
+        }
+       ],
+       "rows": [
+        {
+         "item": "Brass bolts",
+         "level": 12
+        },
+        {
+         "item": "Steel washers",
+         "level": 40
+        },
+        {
+         "item": "Hex nuts",
+         "level": 25
+        }
+       ],
+       "title": "Reorder levels"
+      },
+      "id": "808d4282-70d0-40c1-9597-cd888ec06509",
+      "kind": "table-creation",
+      "logicalID": "ed90e9c7-8ad3-4258-a13f-2e97305eaf3c",
+      "meaning": "plan",
+      "scenario": "actual",
+      "status": "draft",
+      "text": "Item · Level\n\nBrass bolts · 12.0\nSteel washers · 40.0\nHex nuts · 25.0",
+      "title": "Review table: Reorder levels",
+      "version": 1
+     },
+     "resultHash": "6f59efd322a66caff9c9182e97492eb99c379a92f6b4b45283a43890d4ec4f31",
+     "resultIdentity": {
+      "id": "808d4282-70d0-40c1-9597-cd888ec06509",
+      "kind": "table-creation",
+      "logicalID": "ed90e9c7-8ad3-4258-a13f-2e97305eaf3c",
+      "meaning": "plan",
+      "status": "draft"
+     },
+     "runID": "2d15c2d8-e0da-4fc3-9600-cad7fbaa66ce",
+     "tool": "propose_table"
+    },
+    "created": "2026-11-18T20:03:52Z",
+    "id": "c6ffc472-a1ce-4d36-bef0-4ee649c3f219",
+    "role": "tool",
+    "state": "complete"
+   },
+   {
+    "body": "Ready to review: [Review table: Reorder levels](sevra://item/808d4282-70d0-40c1-9597-cd888ec06509). Existing accepted values are unchanged. Accept this proposal to continue.",
+    "created": "2026-11-18T20:03:52Z",
+    "id": "90d91dd5-aa49-494f-96e9-1b37d9d2f68c",
+    "role": "assistant",
+    "state": "needs_review"
+   }
+  ]
+ },
+ "runs": [
+  {
+   "conversation_id": "main",
+   "created": "2026-11-18T20:03:08Z",
+   "id": "2d15c2d8-e0da-4fc3-9600-cad7fbaa66ce",
+   "metrics": [
+    {
+     "acceptedDraftTokens": 294,
+     "activations": "bf16",
+     "backend": "splash-native-candidate",
+     "beforeDispatchSeconds": 8.118782041710801,
+     "contextTokens": 65536,
+     "decodeSeconds": 7.743859,
+     "deduplicatedKVTokens": 0,
+     "diagnosticRequestCacheIsolation": false,
+     "draftedTokens": 546,
+     "engineSHA256": "ce771e5f51081a2fd60df0ee0083f982a278a863ffaeab29fd590f55e9e36e89",
+     "firstAnswerPreviewSeconds": null,
+     "firstTokenSeconds": 3.7996697917114943,
+     "generatedTokens": 373,
+     "grammarSHA256": "5b96c275e9c1a2e618a54a4814a6d9c0de116285e8ffd0814aea01a5c8eecdf1",
+     "helperStartSeconds": 4.4620987916132435,
+     "hostPreparationSeconds": 0.00012154167052358389,
+     "maintenanceRecommended": false,
+     "maintenanceThreshold": 49152,
+     "matchedPromptTokens": 6016,
+     "nextToolResultReserve": 3546,
+     "outputBudget": 1800,
+     "prefillSeconds": 3.794876,
+     "prefixPrimeMatchedTokens": 0,
+     "prefixPrimePrefillSeconds": 3.622776,
+     "prefixPrimeSeconds": 3.622920791618526,
+     "prefixPrimeTokens": 6020,
+     "promptTokens": 11209,
+     "reasoningBudget": 512,
+     "reasoningBudgetOverrun": 0,
+     "reasoningHistory": "within-request",
+     "reasoningTokens": 208,
+     "recoveryReserve": 256,
+     "replayBoundaryTokens": 11200,
+     "requestSeconds": 11.543577541713603,
+     "requestedContextTokens": 65536,
+     "requestedMemoryBytes": 12884901888,
+     "requestedOutputBudget": 1800,
+     "runtimeRelease": "1.6.1",
+     "scopePrefixTokens": 10586,
+     "speculativeMethod": "DFlash2",
+     "stablePrefixTokens": 6020,
+     "templateIdentity": "aee46acfcba8e4e7aec7512126b926aa311bf7414d0d96ad3b13a86d5bdfe9d3",
+     "toolScope": "all"
+    },
+    {
+     "acceptedDraftTokens": 171,
+     "activations": "bf16",
+     "backend": "splash-native-candidate",
+     "beforeDispatchSeconds": 2.236339458380826,
+     "contextTokens": 65536,
+     "decodeSeconds": 4.303783,
+     "deduplicatedKVTokens": 352,
+     "diagnosticRequestCacheIsolation": false,
+     "draftedTokens": 273,
+     "engineSHA256": "ce771e5f51081a2fd60df0ee0083f982a278a863ffaeab29fd590f55e9e36e89",
+     "firstAnswerPreviewSeconds": null,
+     "firstTokenSeconds": 1.5769486665958539,
+     "generatedTokens": 211,
+     "grammarSHA256": "5b96c275e9c1a2e618a54a4814a6d9c0de116285e8ffd0814aea01a5c8eecdf1",
+     "helperStartSeconds": 7.499475032091141e-07,
+     "hostPreparationSeconds": 0.000256333383731544,
+     "maintenanceRecommended": false,
+     "maintenanceThreshold": 49152,
+     "matchedPromptTokens": 11200,
+     "nextToolResultReserve": 3546,
+     "outputBudget": 1800,
+     "prefillSeconds": 1.570777,
+     "prefixPrimeMatchedTokens": 8192,
+     "prefixPrimePrefillSeconds": 2.223332,
+     "prefixPrimeSeconds": 2.235397250042297,
+     "prefixPrimeTokens": 10586,
+     "promptTokens": 11680,
+     "reasoningBudget": 512,
+     "reasoningBudgetOverrun": 0,
+     "reasoningHistory": "within-request",
+     "reasoningTokens": 46,
+     "recoveryReserve": 256,
+     "replayBoundaryTokens": 11648,
+     "requestSeconds": 5.880526916589588,
+     "requestedContextTokens": 65536,
+     "requestedMemoryBytes": 12884901888,
+     "requestedOutputBudget": 1800,
+     "runtimeRelease": "1.6.1",
+     "scopePrefixTokens": 10586,
+     "speculativeMethod": "DFlash2",
+     "stablePrefixTokens": 6020,
+     "templateIdentity": "aee46acfcba8e4e7aec7512126b926aa311bf7414d0d96ad3b13a86d5bdfe9d3",
+     "toolScope": "all"
+    },
+    {
+     "acceptedDraftTokens": 28,
+     "activations": "bf16",
+     "backend": "splash-native-candidate",
+     "beforeDispatchSeconds": 0.0005096667446196079,
+     "contextTokens": 65536,
+     "decodeSeconds": 1.476256,
+     "deduplicatedKVTokens": 224,
+     "diagnosticRequestCacheIsolation": false,
+     "draftedTokens": 126,
+     "engineSHA256": "ce771e5f51081a2fd60df0ee0083f982a278a863ffaeab29fd590f55e9e36e89",
+     "firstAnswerPreviewSeconds": null,
+     "firstTokenSeconds": 1.3976860000984743,
+     "generatedTokens": 47,
+     "grammarSHA256": "5b96c275e9c1a2e618a54a4814a6d9c0de116285e8ffd0814aea01a5c8eecdf1",
+     "helperStartSeconds": 1.0832445695996284e-06,
+     "hostPreparationSeconds": 0.0002733750734478235,
+     "maintenanceRecommended": false,
+     "maintenanceThreshold": 49152,
+     "matchedPromptTokens": 11648,
+     "nextToolResultReserve": 3546,
+     "outputBudget": 1800,
+     "prefillSeconds": 1.387447,
+     "prefixPrimeMatchedTokens": 0,
+     "prefixPrimePrefillSeconds": 0,
+     "prefixPrimeSeconds": 0,
+     "prefixPrimeTokens": 0,
+     "promptTokens": 11992,
+     "reasoningBudget": 512,
+     "reasoningBudgetOverrun": 0,
+     "reasoningHistory": "within-request",
+     "reasoningTokens": 31,
+     "recoveryReserve": 256,
+     "replayBoundaryTokens": 11968,
+     "requestSeconds": 2.8739413333823904,
+     "requestedContextTokens": 65536,
+     "requestedMemoryBytes": 12884901888,
+     "requestedOutputBudget": 1800,
+     "runtimeRelease": "1.6.1",
+     "scopePrefixTokens": 10586,
+     "speculativeMethod": "DFlash2",
+     "stablePrefixTokens": 6020,
+     "templateIdentity": "aee46acfcba8e4e7aec7512126b926aa311bf7414d0d96ad3b13a86d5bdfe9d3",
+     "toolScope": "all"
+    },
+    {
+     "acceptedDraftTokens": 167,
+     "activations": "bf16",
+     "backend": "splash-native-candidate",
+     "beforeDispatchSeconds": 0.0005412084283307195,
+     "contextTokens": 65536,
+     "decodeSeconds": 3.766462,
+     "deduplicatedKVTokens": 64,
+     "diagnosticRequestCacheIsolation": false,
+     "draftedTokens": 224,
+     "engineSHA256": "ce771e5f51081a2fd60df0ee0083f982a278a863ffaeab29fd590f55e9e36e89",
+     "firstAnswerPreviewSeconds": null,
+     "firstTokenSeconds": 1.1001954999519512,
+     "generatedTokens": 200,
+     "grammarSHA256": "5b96c275e9c1a2e618a54a4814a6d9c0de116285e8ffd0814aea01a5c8eecdf1",
+     "helperStartSeconds": 7.916241884231567e-07,
+     "hostPreparationSeconds": 0.00029891671147197485,
+     "maintenanceRecommended": false,
+     "maintenanceThreshold": 49152,
+     "matchedPromptTokens": 11968,
+     "nextToolResultReserve": 3546,
+     "outputBudget": 1800,
+     "prefillSeconds": 1.089814,
+     "prefixPrimeMatchedTokens": 0,
+     "prefixPrimePrefillSeconds": 0,
+     "prefixPrimeSeconds": 0,
+     "prefixPrimeTokens": 0,
+     "promptTokens": 12200,
+     "reasoningBudget": 512,
+     "reasoningBudgetOverrun": 0,
+     "reasoningHistory": "within-request",
+     "reasoningTokens": 35,
+     "recoveryReserve": 256,
+     "replayBoundaryTokens": 12192,
+     "requestSeconds": 4.866644541616552,
+     "requestedContextTokens": 65536,
+     "requestedMemoryBytes": 12884901888,
+     "requestedOutputBudget": 1800,
+     "runtimeRelease": "1.6.1",
+     "scopePrefixTokens": 10586,
+     "speculativeMethod": "DFlash2",
+     "stablePrefixTokens": 6020,
+     "templateIdentity": "aee46acfcba8e4e7aec7512126b926aa311bf7414d0d96ad3b13a86d5bdfe9d3",
+     "toolScope": "all"
+    },
+    {
+     "acceptedDraftTokens": 180,
+     "activations": "bf16",
+     "backend": "splash-native-candidate",
+     "beforeDispatchSeconds": 0.000650833360850811,
+     "contextTokens": 65536,
+     "decodeSeconds": 5.110195,
+     "deduplicatedKVTokens": 192,
+     "diagnosticRequestCacheIsolation": false,
+     "draftedTokens": 308,
+     "engineSHA256": "ce771e5f51081a2fd60df0ee0083f982a278a863ffaeab29fd590f55e9e36e89",
+     "firstAnswerPreviewSeconds": null,
+     "firstTokenSeconds": 1.4171413333388045,
+     "generatedTokens": 225,
+     "grammarSHA256": "5b96c275e9c1a2e618a54a4814a6d9c0de116285e8ffd0814aea01a5c8eecdf1",
+     "helperStartSeconds": 8.333008736371994e-07,
+     "hostPreparationSeconds": 0.00037845829501748085,
+     "maintenanceRecommended": false,
+     "maintenanceThreshold": 49152,
+     "matchedPromptTokens": 12192,
+     "nextToolResultReserve": 3546,
+     "outputBudget": 1800,
+     "prefillSeconds": 1.40685,
+     "prefixPrimeMatchedTokens": 0,
+     "prefixPrimePrefillSeconds": 0,
+     "prefixPrimeSeconds": 0,
+     "prefixPrimeTokens": 0,
+     "promptTokens": 12515,
+     "reasoningBudget": 512,
+     "reasoningBudgetOverrun": 0,
+     "reasoningHistory": "within-request",
+     "reasoningTokens": 65,
+     "recoveryReserve": 256,
+     "replayBoundaryTokens": 12480,
+     "requestSeconds": 6.527378124999814,
+     "requestedContextTokens": 65536,
+     "requestedMemoryBytes": 12884901888,
+     "requestedOutputBudget": 1800,
+     "runtimeRelease": "1.6.1",
+     "scopePrefixTokens": 10586,
+     "speculativeMethod": "DFlash2",
+     "stablePrefixTokens": 6020,
+     "templateIdentity": "aee46acfcba8e4e7aec7512126b926aa311bf7414d0d96ad3b13a86d5bdfe9d3",
+     "toolScope": "all"
+    }
+   ],
+   "model": "Splash 1.6.1; d8af1054aab0f97de21d043e01aa98af3754f10e; Qwen3.6-35B-A3B-4bit + DFlash2; native Swift candidate; context 65536; memory 12884901888; activations bf16; KV int8; state fp32; ANE on; reasoning budget 512; within-request reasoning retained",
+   "request_message_id": "738352d6-0648-4d0f-a69f-756af7051d06",
+   "status": "needs_review",
+   "steps": 5,
+   "updated": "2026-11-18T20:03:52Z"
+  }
+ ],
+ "saved": {
+  "newItems": [
+   {
+    "category": "record",
+    "kind": "table-creation",
+    "status": "draft",
+    "title": "Review table: Reorder levels",
+    "id": "808d4282-70d0-40c1-9597-cd888ec06509"
+   }
+  ]
+ }
+}

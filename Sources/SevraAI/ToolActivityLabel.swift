@@ -18,6 +18,7 @@ enum ToolActivityLabel {
     case "history_read": return "Reading earlier conversation…"
     case "datasets": return "Inspecting tables…"
     case "rows": return "Reading table rows…"
+    case "sql": return "Working with your tables…"
     case "calculate": return "Calculating…"
     case "compare_rows": return "Comparing table rows…"
     case "save_space": return "Saving a space…"

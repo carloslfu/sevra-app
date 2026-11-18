@@ -271,3 +271,6 @@ Three review passes on the aligned header design: owner fidelity and readiness, 
 ## [2026-11-18 19:03] verification | records/plans/general-chat-tools.md
 Phase 2 step 1 run ahead of the phase: a CPU probe of the system SQLite 3.51.0 confirmed table discovery through the authorizer, the trigger log, the refusals and the page cap. A written floating-point value cannot be told from an exact one after SQLite's type conversion, so the Numbers design changed to floating-point cells with an exact side table, which the probe confirmed. Evidence in integration/evidence/2026-11-18-sqlite-scratch-probe.
 
+## [2026-11-18 21:37] verification | records/plans/general-chat-tools
+Phase 1 baseline recorded (English: today's tools pass 12 of 23). First sql slice under the general profile passes 15 of 15 English eval jobs in 42 decisions, against 11 of 15 in 64 for today's tools. CPU checks check_chat_sql.py and sevra-agent-checks --sql-tool pass.
+

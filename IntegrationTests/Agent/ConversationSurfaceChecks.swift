@@ -58,6 +58,7 @@ private actor SurfaceModel: WorkbookInference {
 }
 
 @MainActor func checkConversationSurfaces() async throws {
+  try await checkToolProfile()
   let root = FileManager.default.temporaryDirectory.appendingPathComponent(identifier())
   try FileManager.default.createDirectory(at: root, withIntermediateDirectories: false)
   defer { try? FileManager.default.removeItem(at: root) }

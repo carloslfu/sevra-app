@@ -21,7 +21,8 @@ func nativeProbeConfiguration(
       uniqueKeysWithValues: files.map { (String($0.key.dropFirst(7)), $0.value.text) }),
     grammarLibrary: URL(fileURLWithPath: library), grammarSHA256: guidance["librarySHA256"].text,
     modelsRoot: URL(fileURLWithPath: modelsRoot), memoryBytes: 12_884_901_888,
-    contextBudget: budget, reasoning: reasoning, modelLayout: modelLayout)
+    contextBudget: budget, reasoning: reasoning, modelLayout: modelLayout,
+    toolProfile: try ToolProfile.host())
 }
 
 /// Opt-in, actual WorkbookAgent. The model chooses freely among the complete

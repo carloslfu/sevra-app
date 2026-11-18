@@ -1,0 +1,237 @@
+{
+ "job": "conversation.clarify",
+ "language": "en",
+ "profile": "general",
+ "attempt": 1,
+ "prompt": "Add the new supplier to the Supplier comparison table.",
+ "expected": "The reply asks for the missing supplier and its values. Nothing is saved.",
+ "failure": null,
+ "result": {
+  "answer": "The Supplier comparison table currently lists Oak Supply and Cedar Tools. To add the new supplier, please provide the supplier's name, the quantity required, and the unit cost.\n\n[2 calculation inputs](sevra://item/f6b3b143-79cd-4801-b90e-87487f5cd585)",
+  "citations": [
+   "f6b3b143-79cd-4801-b90e-87487f5cd585",
+   "68cb7a1e-8044-4501-9251-5b20457ff54b"
+  ],
+  "conversationAction": null,
+  "state": "complete",
+  "steps": 2
+ },
+ "progress": [
+  "Reading request context",
+  "Checking local model files",
+  "Preparing local AI. The first start can take longer…",
+  "Preparing local AI · 0 of 11 steps",
+  "Preparing local AI · 1 of 11 steps",
+  "Preparing local AI · 2 of 11 steps",
+  "Preparing local AI · 3 of 11 steps",
+  "Preparing local AI · 4 of 11 steps",
+  "Preparing local AI · 5 of 11 steps",
+  "Preparing local AI · 6 of 11 steps",
+  "Preparing local AI · 7 of 11 steps",
+  "Preparing local AI · 8 of 11 steps",
+  "Preparing local AI · 9 of 11 steps",
+  "Preparing local AI · 10 of 11 steps",
+  "Preparing local AI · 11 of 11 steps",
+  "Reading the working context",
+  "Working through the request",
+  "Preparing a response",
+  "Working with your tables…",
+  "Reviewing the saved result",
+  "Reading the working context",
+  "Working through the request",
+  "Preparing a response"
+ ],
+ "messages": {
+  "main": [
+   {
+    "body": "This example has supplier quotes and a delivery. Try ‘Why do we have 18 brass bolts?’ or ‘Compare the supplier costs and show the evidence.’",
+    "created": "2026-11-18T21:35:46Z",
+    "id": "e4657881-6a34-49a9-8ed8-1704728241e4",
+    "role": "assistant",
+    "state": "complete"
+   },
+   {
+    "body": "Add the new supplier to the Supplier comparison table.",
+    "created": "2026-11-18T21:35:46Z",
+    "id": "72810851-5b7c-4de3-bb2f-8f8849bc1d39",
+    "role": "user",
+    "state": "complete"
+   },
+   {
+    "body": {
+     "arguments": {
+      "statements": [
+       "SELECT * FROM supplier_comparison"
+      ]
+     },
+     "assistantText": "",
+     "callID": "call_1e30555b-f670-47e7-a56c-d8986e43017f",
+     "receiptID": "dbb3904a-4c44-4d4a-a112-f4b83df9eb63",
+     "receiptVersion": 1,
+     "result": {
+      "inputs": [
+       "f6b3b143-79cd-4801-b90e-87487f5cd585",
+       "68cb7a1e-8044-4501-9251-5b20457ff54b"
+      ],
+      "read": [
+       {
+        "rows": 2,
+        "table": "supplier_comparison",
+        "title": "Supplier comparison"
+       }
+      ],
+      "results": [
+       {
+        "columns": [
+         "supplier",
+         "quantity",
+         "unit_cost",
+         "total"
+        ],
+        "rowCount": 2,
+        "rows": [
+         [
+          "Oak Supply",
+          "10",
+          "2.4",
+          "24"
+         ],
+         [
+          "Cedar Tools",
+          "10",
+          "2.75",
+          "27.5"
+         ]
+        ]
+       }
+      ]
+     },
+     "resultHash": "e0ca67f6e44d616e07d12ca4ac0e425113d7a2812a550d2cb9003820c1de9959",
+     "resultIdentity": {},
+     "runID": "20f29356-1088-405f-b0fc-e5b13f2b0636",
+     "tool": "sql"
+    },
+    "created": "2026-11-18T21:36:03Z",
+    "id": "c7d80567-cc74-44e0-81a3-4ab67ce3d989",
+    "role": "tool",
+    "state": "complete"
+   },
+   {
+    "body": "The Supplier comparison table currently lists Oak Supply and Cedar Tools. To add the new supplier, please provide the supplier's name, the quantity required, and the unit cost.\n\n[2 calculation inputs](sevra://item/f6b3b143-79cd-4801-b90e-87487f5cd585)",
+    "created": "2026-11-18T21:36:09Z",
+    "id": "a061a615-cab5-4de7-9b2a-f299eed0b742",
+    "role": "assistant",
+    "state": "complete"
+   }
+  ]
+ },
+ "runs": [
+  {
+   "conversation_id": "main",
+   "created": "2026-11-18T21:35:46Z",
+   "id": "20f29356-1088-405f-b0fc-e5b13f2b0636",
+   "metrics": [
+    {
+     "host": "tool_profile",
+     "profile": "general"
+    },
+    {
+     "acceptedDraftTokens": 151,
+     "activations": "bf16",
+     "backend": "splash-native-candidate",
+     "beforeDispatchSeconds": 7.686571083380841,
+     "contextTokens": 65536,
+     "decodeSeconds": 3.852438,
+     "deduplicatedKVTokens": 0,
+     "diagnosticRequestCacheIsolation": false,
+     "draftedTokens": 406,
+     "engineSHA256": "ce771e5f51081a2fd60df0ee0083f982a278a863ffaeab29fd590f55e9e36e89",
+     "firstAnswerPreviewSeconds": null,
+     "firstTokenSeconds": 3.705161791644059,
+     "generatedTokens": 210,
+     "grammarSHA256": "5b96c275e9c1a2e618a54a4814a6d9c0de116285e8ffd0814aea01a5c8eecdf1",
+     "helperStartSeconds": 4.415938624995761,
+     "hostPreparationSeconds": 0.00013708334881812334,
+     "maintenanceRecommended": false,
+     "maintenanceThreshold": 49152,
+     "matchedPromptTokens": 6112,
+     "nextToolResultReserve": 3546,
+     "outputBudget": 1800,
+     "prefillSeconds": 3.700934,
+     "prefixPrimeMatchedTokens": 0,
+     "prefixPrimePrefillSeconds": 3.247547,
+     "prefixPrimeSeconds": 3.2476935000158846,
+     "prefixPrimeTokens": 6114,
+     "promptTokens": 11185,
+     "reasoningBudget": 512,
+     "reasoningBudgetOverrun": 0,
+     "reasoningHistory": "within-request",
+     "reasoningTokens": 176,
+     "recoveryReserve": 256,
+     "replayBoundaryTokens": 11168,
+     "requestSeconds": 7.5575905833393335,
+     "requestedContextTokens": 65536,
+     "requestedMemoryBytes": 12884901888,
+     "requestedOutputBudget": 1800,
+     "runtimeRelease": "1.6.1",
+     "scopePrefixTokens": 10551,
+     "speculativeMethod": "DFlash2",
+     "stablePrefixTokens": 6114,
+     "templateIdentity": "aee46acfcba8e4e7aec7512126b926aa311bf7414d0d96ad3b13a86d5bdfe9d3",
+     "toolScope": "all"
+    },
+    {
+     "acceptedDraftTokens": 101,
+     "activations": "bf16",
+     "backend": "splash-native-candidate",
+     "beforeDispatchSeconds": 2.137941125081852,
+     "contextTokens": 65536,
+     "decodeSeconds": 2.966597,
+     "deduplicatedKVTokens": 224,
+     "diagnosticRequestCacheIsolation": false,
+     "draftedTokens": 231,
+     "engineSHA256": "ce771e5f51081a2fd60df0ee0083f982a278a863ffaeab29fd590f55e9e36e89",
+     "firstAnswerPreviewSeconds": 4.6092212500516325,
+     "firstTokenSeconds": 1.1507388333557174,
+     "generatedTokens": 135,
+     "grammarSHA256": "5b96c275e9c1a2e618a54a4814a6d9c0de116285e8ffd0814aea01a5c8eecdf1",
+     "helperStartSeconds": 2.9173679649829865e-07,
+     "hostPreparationSeconds": 0.00016612501349300146,
+     "maintenanceRecommended": false,
+     "maintenanceThreshold": 49152,
+     "matchedPromptTokens": 11168,
+     "nextToolResultReserve": 3546,
+     "outputBudget": 1800,
+     "prefillSeconds": 1.145903,
+     "prefixPrimeMatchedTokens": 8192,
+     "prefixPrimePrefillSeconds": 2.107783,
+     "prefixPrimeSeconds": 2.1122145416447893,
+     "prefixPrimeTokens": 10551,
+     "promptTokens": 11513,
+     "reasoningBudget": 512,
+     "reasoningBudgetOverrun": 0,
+     "reasoningHistory": "within-request",
+     "reasoningTokens": 50,
+     "recoveryReserve": 256,
+     "replayBoundaryTokens": 11488,
+     "requestSeconds": 4.117326874984428,
+     "requestedContextTokens": 65536,
+     "requestedMemoryBytes": 12884901888,
+     "requestedOutputBudget": 1800,
+     "runtimeRelease": "1.6.1",
+     "scopePrefixTokens": 10551,
+     "speculativeMethod": "DFlash2",
+     "stablePrefixTokens": 6114,
+     "templateIdentity": "aee46acfcba8e4e7aec7512126b926aa311bf7414d0d96ad3b13a86d5bdfe9d3",
+     "toolScope": "all"
+    }
+   ],
+   "model": "Splash 1.6.1; d8af1054aab0f97de21d043e01aa98af3754f10e; Qwen3.6-35B-A3B-4bit + DFlash2; native Swift candidate; context 65536; memory 12884901888; activations bf16; KV int8; state fp32; ANE on; reasoning budget 512; within-request reasoning retained",
+   "request_message_id": "72810851-5b7c-4de3-bb2f-8f8849bc1d39",
+   "status": "complete",
+   "steps": 2,
+   "updated": "2026-11-18T21:36:09Z"
+  }
+ ],
+ "saved": {}
+}

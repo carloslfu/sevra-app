@@ -2,11 +2,12 @@
 type: index
 scope: type-folder
 folder: sources/notes
-updated: 2026-11-18T18:50:59.279011Z
+updated: 2026-11-18T20:31:26.891653Z
 ---
 
 # sources/notes
 
+- [[sources/notes/2026/11/fast-loop-direction]] — Owner chooses a fast test loop for the general chat tools: thin slice first, English single-run evals while building, full gate twice.
 - [[sources/notes/2026/11/general-tools-implementation]] — Owner authorizes implementing the general chat tools plan end to end. Lists what the authorization does not cover.
 - [[sources/notes/2026/11/prebuilt-header-direction]] — Owner directs that the prompt header is calculated at build time and restored at engine start, the same way in development and release. Planning only.
 - [[sources/notes/2026/11/general-tools-confirmation]] — Owner confirms the general chat tools plan's three summary points and five proposals as written. Implementation is not yet authorized.

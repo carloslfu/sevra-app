@@ -1,8 +1,74 @@
 import Foundation
 import SevraCore
 
+/// Which ordinary chat tools and instructions this process offers while the general chat
+/// tools are built beside today's. Host configuration alone selects it: the model's
+/// configuration, which a developer sets through `SEVRA_TOOL_PROFILE`. No request, model
+/// output or tool result carries it.
+package enum ToolProfile: String, CaseIterable, Sendable {
+  /// Today's tools and instructions, byte for byte.
+  case current
+  /// The general chat tools. Offers today's until its own are built.
+  case general
+
+  package static let environmentKey = "SEVRA_TOOL_PROFILE"
+
+  /// Unset selects `current`. An unknown name is refused, never read as a default.
+  package static func host(
+    environment: [String: String] = ProcessInfo.processInfo.environment
+  ) throws -> ToolProfile {
+    guard let name = environment[environmentKey], !name.isEmpty else { return .current }
+    guard let profile = ToolProfile(rawValue: name) else {
+      throw SevraError(
+        "tool_profile", environmentKey + " must be current or general, not " + name + ".")
+    }
+    return profile
+  }
+
+  /// The shared chat instructions. `general` keeps today's text until its own is written.
+  package func instructions(current: String) -> String {
+    switch self {
+    case .current: return current
+    case .general:
+      // Today's text names the tools sql replaces. Point those sentences at sql.
+      return Self.sqlRewording.reduce(current) {
+        $0.replacingOccurrences(of: $1.0, with: $1.1)
+      } + "\n" + Self.sqlInstructions
+    }
+  }
+
+  package static let sqlRewording: [(String, String)] = [
+    ("discover existing tables with datasets, even if unnamed.",
+      "discover existing tables with sql, even if unnamed."),
+    ("inspect datasets/spaces as relevant", "inspect tables with sql and spaces as relevant"),
+    ("For arithmetic always use calculate or computed table rows.",
+      "For arithmetic always use sql or computed table rows."),
+    ("Read relevant rows or use compare_rows.", "Read relevant rows with sql."),
+    ("Use compare_rows for supplier comparisons.", "Use sql for supplier comparisons."),
+    ("Use proposals when the user requests a draft or review before applying.",
+      "When the user requests a draft or review before a row change is applied, use sql with draft=true."),
+    ("For ordinary tables without an app, workspace_action table.change_rows makes explicitly requested row edits.",
+      "For ordinary tables without an app, sql makes explicitly requested row edits."),
+  ]
+
+  /// What the general profile adds while `sql` stands beside today's other tools.
+  package static let sqlInstructions = """
+    Tables: use sql for every table read, count, comparison, total and calculation. The request lists every table and column name under Tables for sql; use those exact names. Let SQL do the arithmetic and report its results; do not calculate in your head. Use round(x, 2) for money and percentages. To add, change or remove rows the user asked for, use sql INSERT, UPDATE or DELETE. Take each value from the request or from a document the request names. If a value a row needs is in neither, do not search or guess: ask the user for it with finish, basis=general. It saves at once with one Undo. When the user asks for a draft or review first, send the UPDATE with draft=true: it saves a proposal for them and changes nothing. Arithmetic on numbers from the request also goes through sql, such as SELECT round(10 * 2.60, 2). Other tools that need a table's id, version or definition_id find them in SELECT * FROM tables. The host attaches the rows a query read to your answer, so finish.citations can stay empty for an answer that rests only on sql results.
+    """
+}
+
 /// Host-selected scope, never inferred from untrusted retrieved content.
 package enum InferenceToolScope: String, CaseIterable, Sendable {
+  /// Specialized phases keep today's tools under every tool profile.
+  package var specialized: Bool {
+    switch self {
+    case .movementDirection, .actionDirection, .nativeAppReview, .nativeActionReview, .excelPlan,
+      .excelBuild, .excelCalculation, .excelInterface, .workflowAnswer:
+      return true
+    default: return false
+    }
+  }
+
   // Tool scopes retain the public tool names as their raw values.
   // swift-format-ignore: AlwaysUseLowerCamelCase
   case all, finish, inspection, movementDirection, actionDirection, nativeAppReview,
@@ -78,9 +144,10 @@ package enum InferenceToolScope: String, CaseIterable, Sendable {
         "compare_excel_behavior",
       ].contains(tool)
     case .finish: return tool == "finish"
-    case .inspection: return WorkbookTools.readOnlyTools.contains(tool)
+    // sql is offered only under the general profile. Outside `.all` the host runs it read-only.
+    case .inspection: return WorkbookTools.readOnlyTools.contains(tool) || tool == "sql"
     case .answer:
-      return tool == "finish" || WorkbookTools.readOnlyTools.contains(tool)
+      return tool == "finish" || WorkbookTools.readOnlyTools.contains(tool) || tool == "sql"
     case .conversationAnswer:
       return Self.answer.allows(tool) || tool == "workspace_action"
     case .boundedAnswer:
@@ -183,6 +250,8 @@ package struct NativeReply: Sendable {
 
 package protocol WorkbookInference: Actor {
   var identity: String { get }
+  /// Fixed when the host configures the model.
+  var toolProfile: ToolProfile { get }
   var lastMetrics: Value { get }
   var supportsCompaction: Bool { get }
   func measureContext(
@@ -230,6 +299,7 @@ public struct AnswerPreview: Sendable {
 
 // Synthetic inference fixtures must explicitly opt in to context maintenance.
 extension WorkbookInference {
+  package var toolProfile: ToolProfile { .current }
   package func respondStreaming(
     messages: [InferenceMessage], directory: URL, cancellation: Cancellation,
     progress: @escaping @Sendable (String) -> Void, toolScope: InferenceToolScope,

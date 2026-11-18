@@ -47,6 +47,7 @@ python3 scripts/check_extracted_references.py --cli "$BIN/sevra"
 python3 scripts/check_contextual_intake.py --cli "$BIN/sevra"
 python3 scripts/check_transcription.py --cli "$BIN/sevra"
 python3 scripts/check_table_updates.py --cli "$BIN/sevra"
+SEVRA_CLI="$BIN/sevra" python3 scripts/check_chat_sql.py
 python3 scripts/check_bulk_intake.py --cli "$BIN/sevra"
 python3 scripts/check_sheet_formulas.py --cli "$BIN/sevra"
 python3 scripts/check_persistence.py --cli "$BIN/sevra"
@@ -101,6 +102,7 @@ python3 scripts/build_guidance.py
 swift build --product sevra-splash-grammar-checks -j "${SEVRA_BUILD_JOBS:-4}"
 swift build --product sevra-agent-checks -j "${SEVRA_BUILD_JOBS:-4}"
 "$BIN/sevra-agent-checks" --conversation-surfaces
+"$BIN/sevra-agent-checks" --sql-tool
 python3 scripts/check_native_app_authoring.py
 python3 scripts/check_splash_grammar.py
 python3 scripts/check_performance_harness.py

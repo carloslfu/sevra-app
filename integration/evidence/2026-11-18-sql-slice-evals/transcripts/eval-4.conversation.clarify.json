@@ -1,0 +1,1544 @@
+{
+ "job": "conversation.clarify",
+ "language": "en",
+ "profile": "general",
+ "attempt": 1,
+ "prompt": "Add the new supplier to the Supplier comparison table.",
+ "expected": "The reply asks for the missing supplier and its values. Nothing is saved.",
+ "failure": "step_limit: This request reached its step limit. Completed changes are saved. Ask to continue, or narrow the question.",
+ "result": null,
+ "progress": [
+  "Reading request context",
+  "Checking local model files",
+  "Preparing local AI. The first start can take longer…",
+  "Preparing local AI · 0 of 11 steps",
+  "Preparing local AI · 1 of 11 steps",
+  "Preparing local AI · 2 of 11 steps",
+  "Preparing local AI · 3 of 11 steps",
+  "Preparing local AI · 4 of 11 steps",
+  "Preparing local AI · 5 of 11 steps",
+  "Preparing local AI · 6 of 11 steps",
+  "Preparing local AI · 7 of 11 steps",
+  "Preparing local AI · 8 of 11 steps",
+  "Preparing local AI · 9 of 11 steps",
+  "Preparing local AI · 10 of 11 steps",
+  "Preparing local AI · 11 of 11 steps",
+  "Reading the working context",
+  "Working through the request",
+  "Preparing a response",
+  "Working with your tables…",
+  "Reviewing the saved result",
+  "Reading the working context",
+  "Working through the request",
+  "Preparing a response",
+  "Searching for “supplier”…",
+  "Reviewing the saved result",
+  "Reading the working context",
+  "Working through the request",
+  "Preparing a response",
+  "Searching for “delivery”…",
+  "Reviewing the saved result",
+  "Reading the working context",
+  "Working through the request",
+  "Preparing a response",
+  "Searching for “brass bolts”…",
+  "Reviewing the saved result",
+  "Reading the working context",
+  "Working through the request",
+  "Preparing a response",
+  "Reading an original…",
+  "Reviewing the saved result",
+  "Reading the working context",
+  "Working through the request",
+  "Preparing a response",
+  "Reading an original…",
+  "Reviewing the saved result",
+  "Reading the working context",
+  "Working through the request",
+  "Preparing a response",
+  "Reading an original…",
+  "Reviewing the saved result",
+  "Reading the working context",
+  "Working through the request",
+  "Preparing a response",
+  "Reading an original…",
+  "Reviewing the saved result",
+  "Reading the working context",
+  "Working through the request",
+  "Preparing a response",
+  "Searching for “Pine”…",
+  "Reviewing the saved result",
+  "Reading the working context",
+  "Working through the request",
+  "Preparing a response",
+  "Searching for “Maple”…",
+  "Reviewing the saved result",
+  "Reading the working context",
+  "Working through the request",
+  "Preparing a response",
+  "Searching for “Iron”…",
+  "Reviewing the saved result",
+  "Reading the working context",
+  "Working through the request",
+  "Preparing a response",
+  "Searching for “Steel”…",
+  "Reviewing the saved result",
+  "{\"error\":{\"code\":\"step_limit\",\"message\":\"This request reached its step limit. Completed changes are saved. Ask to continue, or narrow the question.\"},\"ok\":false,\"schemaVersion\":1}"
+ ],
+ "messages": {
+  "main": [
+   {
+    "body": "This example has supplier quotes and a delivery. Try ‘Why do we have 18 brass bolts?’ or ‘Compare the supplier costs and show the evidence.’",
+    "created": "2026-11-18T21:32:45Z",
+    "id": "4af1c879-964f-48a0-9504-3c5f369fa5b5",
+    "role": "assistant",
+    "state": "complete"
+   },
+   {
+    "body": "Add the new supplier to the Supplier comparison table.",
+    "created": "2026-11-18T21:32:46Z",
+    "id": "aa810862-cf76-4e7c-b982-8c2a2e8e5a12",
+    "role": "user",
+    "state": "complete"
+   },
+   {
+    "body": {
+     "arguments": {
+      "statements": [
+       "SELECT * FROM supplier_comparison"
+      ]
+     },
+     "assistantText": "",
+     "callID": "call_f24137ce-7c91-4d94-8f4e-2b9949d7b12b",
+     "receiptID": "12bc015e-9ac3-4d71-8dcd-950d62be72cc",
+     "receiptVersion": 1,
+     "result": {
+      "inputs": [
+       "a858b09a-ef83-4832-94b6-cb10d1f2fb0c",
+       "22d50e0c-afd3-4226-9827-5ff721aebee4"
+      ],
+      "read": [
+       {
+        "rows": 2,
+        "table": "supplier_comparison",
+        "title": "Supplier comparison"
+       }
+      ],
+      "results": [
+       {
+        "columns": [
+         "supplier",
+         "quantity",
+         "unit_cost",
+         "total"
+        ],
+        "rowCount": 2,
+        "rows": [
+         [
+          "Oak Supply",
+          "10",
+          "2.4",
+          "24"
+         ],
+         [
+          "Cedar Tools",
+          "10",
+          "2.75",
+          "27.5"
+         ]
+        ]
+       }
+      ]
+     },
+     "resultHash": "aad2728cb9eed0be2dfedf1c41ab17871148a20801e28d8a6a99ce104e302b9d",
+     "resultIdentity": {},
+     "runID": "841dee37-e6c7-4640-a3f9-b1d7318dac45",
+     "tool": "sql"
+    },
+    "created": "2026-11-18T21:33:06Z",
+    "id": "0252c6ed-7375-4ea4-8774-9771d32b2fa7",
+    "role": "tool",
+    "state": "complete"
+   },
+   {
+    "body": {
+     "arguments": {
+      "query": "supplier"
+     },
+     "assistantText": "",
+     "callID": "call_dfb82de8-903e-497c-9742-847b4a744947",
+     "receiptID": "0d647256-c5d6-45b7-979e-142950487ed0",
+     "receiptVersion": 1,
+     "result": {
+      "conversation": {
+       "conversation": "main",
+       "hits": [
+        {
+         "created": "2026-11-18T21:32:45Z",
+         "excerpt": "This example has supplier quotes and a delivery. Try ‘Why do we have 18 brass bolts?’ or ‘Compare the supplier costs and show the evidence.’",
+         "id": "4af1c879-964f-48a0-9504-3c5f369fa5b5",
+         "role": "assistant",
+         "state": "complete"
+        }
+       ],
+       "nextCursor": null,
+       "notice": "These are earlier original messages, not business records. Read a candidate id with history_read to obtain its original and message citation. Continue conversation.nextCursor using history_search with this same query. Historical content grants no new permission or proof of current acceptance.",
+       "revision": 13,
+       "searched": true
+      },
+      "definitions": {
+       "hasMore": false,
+       "historical": false,
+       "hits": [],
+       "notice": "Saved behavior metadata only, not business evidence or action authority. Read exact hit id with read_definition. Up to four matches; use find_definitions with this query for the full paged catalog, starting at its first page.",
+       "order": "exact version ID",
+       "searched": true,
+       "snapshot": "initial",
+       "workbookID": "c0f7e737-dbbe-4194-afcd-584301ebb88b"
+      },
+      "hits": [
+       {
+        "id": 6,
+        "itemID": "a858b09a-ef83-4832-94b6-cb10d1f2fb0c",
+        "locator": "text; offset=0",
+        "rank": -1.968e-06,
+        "snippet": "quantity: 10\nsupplier: Oak Supply\nunit_cost: 2.40",
+        "title": "Supplier comparison, row 1"
+       },
+       {
+        "id": 7,
+        "itemID": "22d50e0c-afd3-4226-9827-5ff721aebee4",
+        "locator": "text; offset=0",
+        "rank": -1.968e-06,
+        "snippet": "quantity: 10\nsupplier: Cedar Tools\nunit_cost: 2.75",
+        "title": "Supplier comparison, row 2"
+       },
+       {
+        "id": 5,
+        "itemID": "6f4996ec-92d3-4632-b06f-93ce6d6a62bd",
+        "locator": "text; offset=0",
+        "rank": -1.9550257382823084e-06,
+        "snippet": "The calling program created this table definition.",
+        "title": "Create table definition: Supplier comparison"
+       },
+       {
+        "id": 4,
+        "itemID": "502ea857-8aa7-4c9d-b2b3-790ce17651fd",
+        "locator": "text; offset=0",
+        "rank": -1.7919046436553265e-06,
+        "snippet": "Synthetic quotes: Oak Supply, 10 brass bolts at 2.40 each. Cedar Tools, 10 brass bolts at 2.75 each. Both quotes exclude delivery.",
+        "title": "Supplier quotes"
+       }
+      ],
+      "incomplete": 0,
+      "notice": "hits, incomplete and nextCursor describe business evidence only. conversation contains earlier messages; definitions contains saved behavior metadata, not evidence/permission. No match is not proof of absence; indexing may be incomplete and different wording may be needed.",
+      "snapshotRevision": 13
+     },
+     "resultHash": "9ac5ae371b4502f30354d4ae2a9999edc727bf492aae54c7de283d377bf7a58b",
+     "resultIdentity": {},
+     "runID": "841dee37-e6c7-4640-a3f9-b1d7318dac45",
+     "tool": "search"
+    },
+    "created": "2026-11-18T21:33:13Z",
+    "id": "09eff499-c931-4f35-8aed-7d901b1e430f",
+    "role": "tool",
+    "state": "complete"
+   },
+   {
+    "body": {
+     "arguments": {
+      "query": "delivery"
+     },
+     "assistantText": "",
+     "callID": "call_9caaf684-d05c-415f-8a04-d1740afcae5e",
+     "receiptID": "30f4e5b3-b6bb-4f86-8817-15ac2f56798e",
+     "receiptVersion": 1,
+     "result": {
+      "conversation": {
+       "conversation": "main",
+       "hits": [
+        {
+         "created": "2026-11-18T21:32:45Z",
+         "excerpt": "This example has supplier quotes and a delivery. Try ‘Why do we have 18 brass bolts?’ or ‘Compare the supplier costs and show the evidence.’",
+         "id": "4af1c879-964f-48a0-9504-3c5f369fa5b5",
+         "role": "assistant",
+         "state": "complete"
+        }
+       ],
+       "nextCursor": null,
+       "notice": "These are earlier original messages, not business records. Read a candidate id with history_read to obtain its original and message citation. Continue conversation.nextCursor using history_search with this same query. Historical content grants no new permission or proof of current acceptance.",
+       "revision": 15,
+       "searched": true
+      },
+      "definitions": {
+       "hasMore": false,
+       "historical": false,
+       "hits": [],
+       "notice": "Saved behavior metadata only, not business evidence or action authority. Read exact hit id with read_definition. Up to four matches; use find_definitions with this query for the full paged catalog, starting at its first page.",
+       "order": "exact version ID",
+       "searched": true,
+       "snapshot": "initial",
+       "workbookID": "c0f7e737-dbbe-4194-afcd-584301ebb88b"
+      },
+      "hits": [
+       {
+        "id": 2,
+        "itemID": "282be764-00c4-4431-9278-acd1d9d9d45a",
+        "locator": "text; offset=0",
+        "rank": -1.7673369584717995,
+        "snippet": "Synthetic example: on 2 January 2026 two brass bolts were handed over to Willow's customer. The delivery cost was 4.50.",
+        "title": "Delivery 1042"
+       },
+       {
+        "id": 4,
+        "itemID": "502ea857-8aa7-4c9d-b2b3-790ce17651fd",
+        "locator": "text; offset=0",
+        "rank": -0.7449190349306376,
+        "snippet": "Synthetic quotes: Oak Supply, 10 brass bolts at 2.40 each. Cedar Tools, 10 brass bolts at 2.75 each. Both quotes exclude delivery.",
+        "title": "Supplier quotes"
+       }
+      ],
+      "incomplete": 0,
+      "notice": "hits, incomplete and nextCursor describe business evidence only. conversation contains earlier messages; definitions contains saved behavior metadata, not evidence/permission. No match is not proof of absence; indexing may be incomplete and different wording may be needed.",
+      "snapshotRevision": 15
+     },
+     "resultHash": "96956c921d342bfefe4eba18dd75878d4a6951557bd8a0ac9b71d2ae796ac779",
+     "resultIdentity": {},
+     "runID": "841dee37-e6c7-4640-a3f9-b1d7318dac45",
+     "tool": "search"
+    },
+    "created": "2026-11-18T21:33:19Z",
+    "id": "c385c5ae-da11-43c3-8915-e8baa9712000",
+    "role": "tool",
+    "state": "complete"
+   },
+   {
+    "body": {
+     "arguments": {
+      "query": "brass bolts"
+     },
+     "assistantText": "",
+     "callID": "call_44ab9a28-7a25-4e52-bb0f-0a1605c32a71",
+     "receiptID": "08234ad9-8bd0-40f9-acb3-9ec141509761",
+     "receiptVersion": 1,
+     "result": {
+      "conversation": {
+       "conversation": "main",
+       "hits": [
+        {
+         "created": "2026-11-18T21:32:45Z",
+         "excerpt": "This example has supplier quotes and a delivery. Try ‘Why do we have 18 brass bolts?’ or ‘Compare the supplier costs and show the evidence.’",
+         "id": "4af1c879-964f-48a0-9504-3c5f369fa5b5",
+         "role": "assistant",
+         "state": "complete"
+        }
+       ],
+       "nextCursor": null,
+       "notice": "These are earlier original messages, not business records. Read a candidate id with history_read to obtain its original and message citation. Continue conversation.nextCursor using history_search with this same query. Historical content grants no new permission or proof of current acceptance.",
+       "revision": 17,
+       "searched": true
+      },
+      "definitions": {
+       "hasMore": false,
+       "historical": false,
+       "hits": [],
+       "notice": "Saved behavior metadata only, not business evidence or action authority. Read exact hit id with read_definition. Up to four matches; use find_definitions with this query for the full paged catalog, starting at its first page.",
+       "order": "exact version ID",
+       "searched": true,
+       "snapshot": "initial",
+       "workbookID": "c0f7e737-dbbe-4194-afcd-584301ebb88b"
+      },
+      "hits": [
+       {
+        "id": 3,
+        "itemID": "3ff8acdc-b2e8-49bb-b522-4aa8d839ea21",
+        "locator": "text; offset=0",
+        "rank": -4.0297840655249445e-06,
+        "snippet": "-2 inventory movement for brass bolts",
+        "title": "brass bolts: -2"
+       },
+       {
+        "id": 4,
+        "itemID": "502ea857-8aa7-4c9d-b2b3-790ce17651fd",
+        "locator": "text; offset=0",
+        "rank": -2.3024888321633695e-06,
+        "snippet": "Synthetic quotes: Oak Supply, 10 brass bolts at 2.40 each. Cedar Tools, 10 brass bolts at 2.75 each. Both quotes exclude delivery.",
+        "title": "Supplier quotes"
+       },
+       {
+        "id": 1,
+        "itemID": "2d95189e-eaca-4c6f-91c2-d121c7345e8e",
+        "locator": "text; offset=0",
+        "rank": -2.0201567749160135e-06,
+        "snippet": "Synthetic example: opening stock of brass bolts was 20 on 1 January 2026.",
+        "title": "Workshop inventory"
+       },
+       {
+        "id": 2,
+        "itemID": "282be764-00c4-4431-9278-acd1d9d9d45a",
+        "locator": "text; offset=0",
+        "rank": -1.626690712353472e-06,
+        "snippet": "Synthetic example: on 2 January 2026 two brass bolts were handed over to Willow's customer. The delivery cost was 4.50.",
+        "title": "Delivery 1042"
+       }
+      ],
+      "incomplete": 0,
+      "notice": "hits, incomplete and nextCursor describe business evidence only. conversation contains earlier messages; definitions contains saved behavior metadata, not evidence/permission. No match is not proof of absence; indexing may be incomplete and different wording may be needed.",
+      "snapshotRevision": 17
+     },
+     "resultHash": "a12a0c912342e51c2e7ca2d814f93acd43ccde7cac79ed75042f352f6b4c5fb8",
+     "resultIdentity": {},
+     "runID": "841dee37-e6c7-4640-a3f9-b1d7318dac45",
+     "tool": "search"
+    },
+    "created": "2026-11-18T21:33:25Z",
+    "id": "5d575534-2a52-4dec-9d58-8d844a454027",
+    "role": "tool",
+    "state": "complete"
+   },
+   {
+    "body": {
+     "arguments": {
+      "id": "502ea857-8aa7-4c9d-b2b3-790ce17651fd"
+     },
+     "assistantText": "",
+     "callID": "call_068452ba-54e0-410d-a786-0d14ae0d629d",
+     "receiptID": "e1477c2b-25a9-4ab0-85e9-f684543bd129",
+     "receiptVersion": 1,
+     "result": {
+      "chunkPage": {
+       "count": 1,
+       "hasMore": false,
+       "nextOffset": null,
+       "offset": 0
+      },
+      "chunks": [
+       {
+        "body": "Synthetic quotes: Oak Supply, 10 brass bolts at 2.40 each. Cedar Tools, 10 brass bolts at 2.75 each. Both quotes exclude delivery.",
+        "id": 4,
+        "locator": "text; offset=0"
+       }
+      ],
+      "currentVersion": {
+       "id": "502ea857-8aa7-4c9d-b2b3-790ce17651fd",
+       "meaning": "actual",
+       "status": "accepted",
+       "title": "Supplier quotes"
+      },
+      "documentCopies": {
+       "entries": [
+        {
+         "id": "copy:e1477c2b-25a9-4ab0-85e9-f684543bd129:0:0:130",
+         "locator": "text; offset=0",
+         "sourceVersionID": "502ea857-8aa7-4c9d-b2b3-790ce17651fd",
+         "text": "Synthetic quotes: Oak Supply, 10 brass bolts at 2.40 each. Cedar Tools, 10 brass bolts at 2.75 each. Both quotes exclude delivery."
+        }
+       ],
+       "hasMore": false,
+       "nextOffset": null,
+       "notice": "Exact original passages for draft parts. Use a passage ID as copy, without retyping its text. New prose uses text. These passages do not establish current acceptance or complete coverage. Use read with copyOffset for later passage candidates; source chunks may have partial first/last lines.",
+       "offset": 0
+      },
+      "extraction": {},
+      "isCurrentVersion": true,
+      "item": {
+       "category": "source",
+       "created": "2026-11-18T21:32:45Z",
+       "data": {},
+       "id": "502ea857-8aa7-4c9d-b2b3-790ce17651fd",
+       "kind": "note",
+       "logicalID": "e71ce116-9e88-403f-9dbd-6dbfc65d92c9",
+       "meaning": "actual",
+       "scenario": "actual",
+       "status": "accepted",
+       "text": "Synthetic quotes: Oak Supply, 10 brass bolts at 2.40 each. Cedar Tools, 10 brass bolts at 2.75 each. Both quotes exclude delivery.",
+       "title": "Supplier quotes",
+       "version": 1
+      },
+      "notice": "The item is the exact requested version. When it is historical, read currentVersion.id for current facts or acceptance; do not present historical status as current. A null currentVersion means the latest head is outside this read scope, not that it is absent. For movements, data preserves original creation arguments: data.status is not the current status. Use item.status for this version and currentVersion.status for its latest head.",
+      "references": {
+       "accessScope": "workbook-business-items",
+       "anchor": {
+        "category": "source",
+        "id": "502ea857-8aa7-4c9d-b2b3-790ce17651fd",
+        "is_current": 1,
+        "kind": "note",
+        "logical_id": "e71ce116-9e88-403f-9dbd-6dbfc65d92c9",
+        "meaning": "actual",
+        "scenario": "actual",
+        "status": "accepted",
+        "title": "Supplier quotes",
+        "version": 1
+       },
+       "direction": "outgoing",
+       "discoveryReason": "mention",
+       "fileCoverage": {
+        "latestExtraction": {},
+        "notice": "Coverage applies to supported links in the retained extraction only; it does not cover embedded hyperlinks or unextracted content. A failed or running retry can retain the previous snapshot.",
+        "snapshot": null
+       },
+       "hits": [],
+       "nextCursor": null,
+       "notice": "One hop over saved mentions, at most 12 results per page. Requests, annotations and technical definition/invocation Sources are excluded. Use history_search/history_read for accessible conversation. Read each exact destination or incoming origin before citing it; these titles and links are not inspected evidence. Keep all filters with nextCursor. Coverage describes this anchor only; no match is not proof of absence. A mention is not derivation, payment, support or corroboration. External workbooks are never opened.",
+       "originCoverage": "ready",
+       "scope": "all"
+      },
+      "snapshotRevision": 19
+     },
+     "resultHash": "3e8b0ba7c60d6e2b46619d2f8b258b6f0a737be4cb0e0d8ca72e5a3c2e77b15a",
+     "resultIdentity": {},
+     "runID": "841dee37-e6c7-4640-a3f9-b1d7318dac45",
+     "tool": "read"
+    },
+    "created": "2026-11-18T21:33:31Z",
+    "id": "a10459d5-ff97-41a2-8c82-37bfd2c6ac7d",
+    "role": "tool",
+    "state": "complete"
+   },
+   {
+    "body": {
+     "arguments": {
+      "id": "2d95189e-eaca-4c6f-91c2-d121c7345e8e"
+     },
+     "assistantText": "",
+     "callID": "call_b56d0197-dab3-444d-95b4-5a9694133948",
+     "receiptID": "31ccbeac-16c0-44b9-b7e9-9ff1af9c8fbd",
+     "receiptVersion": 1,
+     "result": {
+      "chunkPage": {
+       "count": 1,
+       "hasMore": false,
+       "nextOffset": null,
+       "offset": 0
+      },
+      "chunks": [
+       {
+        "body": "Synthetic example: opening stock of brass bolts was 20 on 1 January 2026.",
+        "id": 1,
+        "locator": "text; offset=0"
+       }
+      ],
+      "currentVersion": {
+       "id": "2d95189e-eaca-4c6f-91c2-d121c7345e8e",
+       "meaning": "actual",
+       "status": "accepted",
+       "title": "Workshop inventory"
+      },
+      "documentCopies": {
+       "entries": [
+        {
+         "id": "copy:31ccbeac-16c0-44b9-b7e9-9ff1af9c8fbd:0:0:73",
+         "locator": "text; offset=0",
+         "sourceVersionID": "2d95189e-eaca-4c6f-91c2-d121c7345e8e",
+         "text": "Synthetic example: opening stock of brass bolts was 20 on 1 January 2026."
+        }
+       ],
+       "hasMore": false,
+       "nextOffset": null,
+       "notice": "Exact original passages for draft parts. Use a passage ID as copy, without retyping its text. New prose uses text. These passages do not establish current acceptance or complete coverage. Use read with copyOffset for later passage candidates; source chunks may have partial first/last lines.",
+       "offset": 0
+      },
+      "extraction": {},
+      "isCurrentVersion": true,
+      "item": {
+       "category": "source",
+       "created": "2026-11-18T21:32:45Z",
+       "data": {},
+       "id": "2d95189e-eaca-4c6f-91c2-d121c7345e8e",
+       "kind": "note",
+       "logicalID": "ab160389-ac4e-421f-ac06-1529fce0976a",
+       "meaning": "actual",
+       "scenario": "actual",
+       "status": "accepted",
+       "text": "Synthetic example: opening stock of brass bolts was 20 on 1 January 2026.",
+       "title": "Workshop inventory",
+       "version": 1
+      },
+      "notice": "The item is the exact requested version. When it is historical, read currentVersion.id for current facts or acceptance; do not present historical status as current. A null currentVersion means the latest head is outside this read scope, not that it is absent. For movements, data preserves original creation arguments: data.status is not the current status. Use item.status for this version and currentVersion.status for its latest head.",
+      "references": {
+       "accessScope": "workbook-business-items",
+       "anchor": {
+        "category": "source",
+        "id": "2d95189e-eaca-4c6f-91c2-d121c7345e8e",
+        "is_current": 1,
+        "kind": "note",
+        "logical_id": "ab160389-ac4e-421f-ac06-1529fce0976a",
+        "meaning": "actual",
+        "scenario": "actual",
+        "status": "accepted",
+        "title": "Workshop inventory",
+        "version": 1
+       },
+       "direction": "outgoing",
+       "discoveryReason": "mention",
+       "fileCoverage": {
+        "latestExtraction": {},
+        "notice": "Coverage applies to supported links in the retained extraction only; it does not cover embedded hyperlinks or unextracted content. A failed or running retry can retain the previous snapshot.",
+        "snapshot": null
+       },
+       "hits": [],
+       "nextCursor": null,
+       "notice": "One hop over saved mentions, at most 12 results per page. Requests, annotations and technical definition/invocation Sources are excluded. Use history_search/history_read for accessible conversation. Read each exact destination or incoming origin before citing it; these titles and links are not inspected evidence. Keep all filters with nextCursor. Coverage describes this anchor only; no match is not proof of absence. A mention is not derivation, payment, support or corroboration. External workbooks are never opened.",
+       "originCoverage": "ready",
+       "scope": "all"
+      },
+      "snapshotRevision": 21
+     },
+     "resultHash": "7be9cb4570e29755bb7b828df7c1123e61476ebf52410649a4a49679d0b2ccfd",
+     "resultIdentity": {},
+     "runID": "841dee37-e6c7-4640-a3f9-b1d7318dac45",
+     "tool": "read"
+    },
+    "created": "2026-11-18T21:33:37Z",
+    "id": "c7177f81-5398-40da-8eb7-ad6d7afa6845",
+    "role": "tool",
+    "state": "complete"
+   },
+   {
+    "body": {
+     "arguments": {
+      "id": "282be764-00c4-4431-9278-acd1d9d9d45a"
+     },
+     "assistantText": "",
+     "callID": "call_e25e32fe-e36e-4efd-a15f-c92c73cf2f8e",
+     "receiptID": "6acae01e-3d75-4906-bc48-8e9834bca91d",
+     "receiptVersion": 1,
+     "result": {
+      "chunkPage": {
+       "count": 1,
+       "hasMore": false,
+       "nextOffset": null,
+       "offset": 0
+      },
+      "chunks": [
+       {
+        "body": "Synthetic example: on 2 January 2026 two brass bolts were handed over to Willow's customer. The delivery cost was 4.50.",
+        "id": 2,
+        "locator": "text; offset=0"
+       }
+      ],
+      "currentVersion": {
+       "id": "282be764-00c4-4431-9278-acd1d9d9d45a",
+       "meaning": "actual",
+       "status": "accepted",
+       "title": "Delivery 1042"
+      },
+      "documentCopies": {
+       "entries": [
+        {
+         "id": "copy:6acae01e-3d75-4906-bc48-8e9834bca91d:0:0:119",
+         "locator": "text; offset=0",
+         "sourceVersionID": "282be764-00c4-4431-9278-acd1d9d9d45a",
+         "text": "Synthetic example: on 2 January 2026 two brass bolts were handed over to Willow's customer. The delivery cost was 4.50."
+        }
+       ],
+       "hasMore": false,
+       "nextOffset": null,
+       "notice": "Exact original passages for draft parts. Use a passage ID as copy, without retyping its text. New prose uses text. These passages do not establish current acceptance or complete coverage. Use read with copyOffset for later passage candidates; source chunks may have partial first/last lines.",
+       "offset": 0
+      },
+      "extraction": {},
+      "isCurrentVersion": true,
+      "item": {
+       "category": "source",
+       "created": "2026-11-18T21:32:45Z",
+       "data": {},
+       "id": "282be764-00c4-4431-9278-acd1d9d9d45a",
+       "kind": "observation",
+       "logicalID": "87e918ed-dc71-435a-b559-9b42b1a90c63",
+       "meaning": "actual",
+       "scenario": "actual",
+       "status": "accepted",
+       "text": "Synthetic example: on 2 January 2026 two brass bolts were handed over to Willow's customer. The delivery cost was 4.50.",
+       "title": "Delivery 1042",
+       "version": 1
+      },
+      "notice": "The item is the exact requested version. When it is historical, read currentVersion.id for current facts or acceptance; do not present historical status as current. A null currentVersion means the latest head is outside this read scope, not that it is absent. For movements, data preserves original creation arguments: data.status is not the current status. Use item.status for this version and currentVersion.status for its latest head.",
+      "references": {
+       "accessScope": "workbook-business-items",
+       "anchor": {
+        "category": "source",
+        "id": "282be764-00c4-4431-9278-acd1d9d9d45a",
+        "is_current": 1,
+        "kind": "observation",
+        "logical_id": "87e918ed-dc71-435a-b559-9b42b1a90c63",
+        "meaning": "actual",
+        "scenario": "actual",
+        "status": "accepted",
+        "title": "Delivery 1042",
+        "version": 1
+       },
+       "direction": "outgoing",
+       "discoveryReason": "mention",
+       "fileCoverage": {
+        "latestExtraction": {},
+        "notice": "Coverage applies to supported links in the retained extraction only; it does not cover embedded hyperlinks or unextracted content. A failed or running retry can retain the previous snapshot.",
+        "snapshot": null
+       },
+       "hits": [],
+       "nextCursor": null,
+       "notice": "One hop over saved mentions, at most 12 results per page. Requests, annotations and technical definition/invocation Sources are excluded. Use history_search/history_read for accessible conversation. Read each exact destination or incoming origin before citing it; these titles and links are not inspected evidence. Keep all filters with nextCursor. Coverage describes this anchor only; no match is not proof of absence. A mention is not derivation, payment, support or corroboration. External workbooks are never opened.",
+       "originCoverage": "ready",
+       "scope": "all"
+      },
+      "snapshotRevision": 23
+     },
+     "resultHash": "a5faa4a3925cf75f6fa9575332694d4f0e79daf0fe7bc38bb1a88681ee3c8e1c",
+     "resultIdentity": {},
+     "runID": "841dee37-e6c7-4640-a3f9-b1d7318dac45",
+     "tool": "read"
+    },
+    "created": "2026-11-18T21:33:41Z",
+    "id": "cef8289f-a166-4bc3-99ab-73d08fd9f563",
+    "role": "tool",
+    "state": "complete"
+   },
+   {
+    "body": {
+     "arguments": {
+      "id": "3ff8acdc-b2e8-49bb-b522-4aa8d839ea21"
+     },
+     "assistantText": "",
+     "callID": "call_6367694f-0bb6-46ef-95ab-e50911412fb2",
+     "receiptID": "80b2be6b-c31f-4092-a754-70d4ee6180a5",
+     "receiptVersion": 1,
+     "result": {
+      "chunkPage": {
+       "count": 1,
+       "hasMore": false,
+       "nextOffset": null,
+       "offset": 0
+      },
+      "chunks": [
+       {
+        "body": "-2 inventory movement for brass bolts",
+        "id": 3,
+        "locator": "text; offset=0"
+       }
+      ],
+      "currentVersion": {
+       "id": "3ff8acdc-b2e8-49bb-b522-4aa8d839ea21",
+       "meaning": "actual",
+       "status": "accepted",
+       "title": "brass bolts: -2"
+      },
+      "documentCopies": {
+       "entries": [
+        {
+         "id": "copy:80b2be6b-c31f-4092-a754-70d4ee6180a5:0:0:37",
+         "locator": "text; offset=0",
+         "sourceVersionID": "3ff8acdc-b2e8-49bb-b522-4aa8d839ea21",
+         "text": "-2 inventory movement for brass bolts"
+        }
+       ],
+       "hasMore": false,
+       "nextOffset": null,
+       "notice": "Exact original passages for draft parts. Use a passage ID as copy, without retyping its text. New prose uses text. These passages do not establish current acceptance or complete coverage. Use read with copyOffset for later passage candidates; source chunks may have partial first/last lines.",
+       "offset": 0
+      },
+      "extraction": {},
+      "isCurrentVersion": true,
+      "item": {
+       "category": "record",
+       "created": "2026-11-18T21:32:45Z",
+       "data": {
+        "effective": "2026-01-02T00:00:00.000Z",
+        "input": "282be764-00c4-4431-9278-acd1d9d9d45a",
+        "meaning": "actual",
+        "occurrence": "delivery-1042",
+        "quantity": "-2",
+        "status": "accepted",
+        "subject": "brass bolts",
+        "supersedes": null
+       },
+       "id": "3ff8acdc-b2e8-49bb-b522-4aa8d839ea21",
+       "kind": "movement",
+       "logicalID": "cd13001e-f22b-4f78-8b31-eede0f2c3734",
+       "meaning": "actual",
+       "scenario": "actual",
+       "status": "accepted",
+       "text": "-2 inventory movement for brass bolts",
+       "title": "brass bolts: -2",
+       "version": 1
+      },
+      "notice": "The item is the exact requested version. When it is historical, read currentVersion.id for current facts or acceptance; do not present historical status as current. A null currentVersion means the latest head is outside this read scope, not that it is absent. For movements, data preserves original creation arguments: data.status is not the current status. Use item.status for this version and currentVersion.status for its latest head.",
+      "references": {
+       "accessScope": "workbook-business-items",
+       "anchor": {
+        "category": "record",
+        "id": "3ff8acdc-b2e8-49bb-b522-4aa8d839ea21",
+        "is_current": 1,
+        "kind": "movement",
+        "logical_id": "cd13001e-f22b-4f78-8b31-eede0f2c3734",
+        "meaning": "actual",
+        "scenario": "actual",
+        "status": "accepted",
+        "title": "brass bolts: -2",
+        "version": 1
+       },
+       "direction": "outgoing",
+       "discoveryReason": "mention",
+       "fileCoverage": {
+        "latestExtraction": {},
+        "notice": "Coverage applies to supported links in the retained extraction only; it does not cover embedded hyperlinks or unextracted content. A failed or running retry can retain the previous snapshot.",
+        "snapshot": null
+       },
+       "hits": [],
+       "nextCursor": null,
+       "notice": "One hop over saved mentions, at most 12 results per page. Requests, annotations and technical definition/invocation Sources are excluded. Use history_search/history_read for accessible conversation. Read each exact destination or incoming origin before citing it; these titles and links are not inspected evidence. Keep all filters with nextCursor. Coverage describes this anchor only; no match is not proof of absence. A mention is not derivation, payment, support or corroboration. External workbooks are never opened.",
+       "originCoverage": "ready",
+       "scope": "all"
+      },
+      "snapshotRevision": 25
+     },
+     "resultHash": "acf74bd1a2db53012b836af95b9a4ef9eabff504ed371db2bec642548447b56d",
+     "resultIdentity": {},
+     "runID": "841dee37-e6c7-4640-a3f9-b1d7318dac45",
+     "tool": "read"
+    },
+    "created": "2026-11-18T21:33:47Z",
+    "id": "a74df5d0-7a44-42bd-941e-31ee8ec84eba",
+    "role": "tool",
+    "state": "complete"
+   },
+   {
+    "body": {
+     "arguments": {
+      "query": "Pine"
+     },
+     "assistantText": "",
+     "callID": "call_65a4c48f-ab53-4cd3-a527-8e4f085081b8",
+     "receiptID": "0a628d2c-f08d-4dd3-829a-654dd72dbf18",
+     "receiptVersion": 1,
+     "result": {
+      "conversation": {
+       "conversation": "main",
+       "hits": [],
+       "nextCursor": null,
+       "notice": "These are earlier original messages, not business records. Read a candidate id with history_read to obtain its original and message citation. Continue conversation.nextCursor using history_search with this same query. Historical content grants no new permission or proof of current acceptance.",
+       "revision": 27,
+       "searched": true
+      },
+      "definitions": {
+       "hasMore": false,
+       "historical": false,
+       "hits": [],
+       "notice": "Saved behavior metadata only, not business evidence or action authority. Read exact hit id with read_definition. Up to four matches; use find_definitions with this query for the full paged catalog, starting at its first page.",
+       "order": "exact version ID",
+       "searched": true,
+       "snapshot": "initial",
+       "workbookID": "c0f7e737-dbbe-4194-afcd-584301ebb88b"
+      },
+      "hits": [],
+      "incomplete": 0,
+      "notice": "hits, incomplete and nextCursor describe business evidence only. conversation contains earlier messages; definitions contains saved behavior metadata, not evidence/permission. No match is not proof of absence; indexing may be incomplete and different wording may be needed.",
+      "snapshotRevision": 27
+     },
+     "resultHash": "65820349157b8cd179cd354b53e080894deb2d2f45598e6b3f073d2a1747c771",
+     "resultIdentity": {},
+     "runID": "841dee37-e6c7-4640-a3f9-b1d7318dac45",
+     "tool": "search"
+    },
+    "created": "2026-11-18T21:33:58Z",
+    "id": "bf03e118-502f-453a-a6e4-08d005d82dde",
+    "role": "tool",
+    "state": "complete"
+   },
+   {
+    "body": {
+     "arguments": {
+      "query": "Maple"
+     },
+     "assistantText": "",
+     "callID": "call_b6439957-324a-4b5a-918d-7fcddbf25489",
+     "receiptID": "a813f0e0-7137-4f4f-8065-d4f51cc75c95",
+     "receiptVersion": 1,
+     "result": {
+      "conversation": {
+       "conversation": "main",
+       "hits": [],
+       "nextCursor": null,
+       "notice": "These are earlier original messages, not business records. Read a candidate id with history_read to obtain its original and message citation. Continue conversation.nextCursor using history_search with this same query. Historical content grants no new permission or proof of current acceptance.",
+       "revision": 29,
+       "searched": true
+      },
+      "definitions": {
+       "hasMore": false,
+       "historical": false,
+       "hits": [],
+       "notice": "Saved behavior metadata only, not business evidence or action authority. Read exact hit id with read_definition. Up to four matches; use find_definitions with this query for the full paged catalog, starting at its first page.",
+       "order": "exact version ID",
+       "searched": true,
+       "snapshot": "initial",
+       "workbookID": "c0f7e737-dbbe-4194-afcd-584301ebb88b"
+      },
+      "hits": [],
+      "incomplete": 0,
+      "notice": "hits, incomplete and nextCursor describe business evidence only. conversation contains earlier messages; definitions contains saved behavior metadata, not evidence/permission. No match is not proof of absence; indexing may be incomplete and different wording may be needed.",
+      "snapshotRevision": 29
+     },
+     "resultHash": "a97cc543a719e7b97f053186f3f66b509b7f5fa08f537dd84b79d99304535684",
+     "resultIdentity": {},
+     "runID": "841dee37-e6c7-4640-a3f9-b1d7318dac45",
+     "tool": "search"
+    },
+    "created": "2026-11-18T21:34:00Z",
+    "id": "d93cb2db-2f90-4a12-b563-28a122488df0",
+    "role": "tool",
+    "state": "complete"
+   },
+   {
+    "body": {
+     "arguments": {
+      "query": "Iron"
+     },
+     "assistantText": "",
+     "callID": "call_e3e650b5-1cc5-4b9d-b280-d918f51ad5a6",
+     "receiptID": "ba78dfd5-625d-46d3-8193-03f953317976",
+     "receiptVersion": 1,
+     "result": {
+      "conversation": {
+       "conversation": "main",
+       "hits": [],
+       "nextCursor": null,
+       "notice": "These are earlier original messages, not business records. Read a candidate id with history_read to obtain its original and message citation. Continue conversation.nextCursor using history_search with this same query. Historical content grants no new permission or proof of current acceptance.",
+       "revision": 31,
+       "searched": true
+      },
+      "definitions": {
+       "hasMore": false,
+       "historical": false,
+       "hits": [],
+       "notice": "Saved behavior metadata only, not business evidence or action authority. Read exact hit id with read_definition. Up to four matches; use find_definitions with this query for the full paged catalog, starting at its first page.",
+       "order": "exact version ID",
+       "searched": true,
+       "snapshot": "initial",
+       "workbookID": "c0f7e737-dbbe-4194-afcd-584301ebb88b"
+      },
+      "hits": [],
+      "incomplete": 0,
+      "notice": "hits, incomplete and nextCursor describe business evidence only. conversation contains earlier messages; definitions contains saved behavior metadata, not evidence/permission. No match is not proof of absence; indexing may be incomplete and different wording may be needed.",
+      "snapshotRevision": 31
+     },
+     "resultHash": "35eee4eb651c0c64dc9c924f34d436a5f717a6d6a406a8bce1744969ad578c62",
+     "resultIdentity": {},
+     "runID": "841dee37-e6c7-4640-a3f9-b1d7318dac45",
+     "tool": "search"
+    },
+    "created": "2026-11-18T21:34:02Z",
+    "id": "74509c64-14ae-4504-8978-7bd24184daa9",
+    "role": "tool",
+    "state": "complete"
+   },
+   {
+    "body": {
+     "arguments": {
+      "query": "Steel"
+     },
+     "assistantText": "",
+     "callID": "call_e38aeceb-90ec-491d-b9fa-63bc828a0283",
+     "receiptID": "86fdd80d-3f51-4091-a412-7f7719ad204e",
+     "receiptVersion": 1,
+     "result": {
+      "conversation": {
+       "conversation": "main",
+       "hits": [],
+       "nextCursor": null,
+       "notice": "These are earlier original messages, not business records. Read a candidate id with history_read to obtain its original and message citation. Continue conversation.nextCursor using history_search with this same query. Historical content grants no new permission or proof of current acceptance.",
+       "revision": 33,
+       "searched": true
+      },
+      "definitions": {
+       "hasMore": false,
+       "historical": false,
+       "hits": [],
+       "notice": "Saved behavior metadata only, not business evidence or action authority. Read exact hit id with read_definition. Up to four matches; use find_definitions with this query for the full paged catalog, starting at its first page.",
+       "order": "exact version ID",
+       "searched": true,
+       "snapshot": "initial",
+       "workbookID": "c0f7e737-dbbe-4194-afcd-584301ebb88b"
+      },
+      "hits": [],
+      "incomplete": 0,
+      "notice": "hits, incomplete and nextCursor describe business evidence only. conversation contains earlier messages; definitions contains saved behavior metadata, not evidence/permission. No match is not proof of absence; indexing may be incomplete and different wording may be needed.",
+      "snapshotRevision": 33
+     },
+     "resultHash": "4ba555ac77afef50d04306dae11429839041251366fe44db8babde89b1965706",
+     "resultIdentity": {},
+     "runID": "841dee37-e6c7-4640-a3f9-b1d7318dac45",
+     "tool": "search"
+    },
+    "created": "2026-11-18T21:34:04Z",
+    "id": "83a231bc-fc65-498c-8f5d-80004fe0ea41",
+    "role": "tool",
+    "state": "complete"
+   },
+   {
+    "body": "This request reached its step limit. Completed changes are saved. Ask to continue, or narrow the question.",
+    "created": "2026-11-18T21:34:04Z",
+    "id": "ea5eeefd-9675-4964-8242-5f69af317012",
+    "role": "assistant",
+    "state": "failed"
+   }
+  ]
+ },
+ "runs": [
+  {
+   "conversation_id": "main",
+   "created": "2026-11-18T21:32:46Z",
+   "id": "841dee37-e6c7-4640-a3f9-b1d7318dac45",
+   "metrics": [
+    {
+     "host": "tool_profile",
+     "profile": "general"
+    },
+    {
+     "acceptedDraftTokens": 394,
+     "activations": "bf16",
+     "backend": "splash-native-candidate",
+     "beforeDispatchSeconds": 7.052161541651003,
+     "contextTokens": 65536,
+     "decodeSeconds": 9.49851,
+     "deduplicatedKVTokens": 0,
+     "diagnosticRequestCacheIsolation": false,
+     "draftedTokens": 1057,
+     "engineSHA256": "ce771e5f51081a2fd60df0ee0083f982a278a863ffaeab29fd590f55e9e36e89",
+     "firstAnswerPreviewSeconds": null,
+     "firstTokenSeconds": 2.7390817917184904,
+     "generatedTokens": 546,
+     "grammarSHA256": "5b96c275e9c1a2e618a54a4814a6d9c0de116285e8ffd0814aea01a5c8eecdf1",
+     "helperStartSeconds": 4.429568916675635,
+     "hostPreparationSeconds": 0.00013824994675815105,
+     "maintenanceRecommended": false,
+     "maintenanceThreshold": 49152,
+     "matchedPromptTokens": 6080,
+     "nextToolResultReserve": 3546,
+     "outputBudget": 1800,
+     "prefillSeconds": 2.734912,
+     "prefixPrimeMatchedTokens": 0,
+     "prefixPrimePrefillSeconds": 2.600131,
+     "prefixPrimeSeconds": 2.6002686666324735,
+     "prefixPrimeTokens": 6082,
+     "promptTokens": 11149,
+     "reasoningBudget": 512,
+     "reasoningBudgetOverrun": 0,
+     "reasoningHistory": "within-request",
+     "reasoningTokens": 512,
+     "recoveryReserve": 256,
+     "replayBoundaryTokens": 11136,
+     "requestSeconds": 12.237585958326235,
+     "requestedContextTokens": 65536,
+     "requestedMemoryBytes": 12884901888,
+     "requestedOutputBudget": 1800,
+     "runtimeRelease": "1.6.1",
+     "scopePrefixTokens": 10519,
+     "speculativeMethod": "DFlash2",
+     "stablePrefixTokens": 6082,
+     "templateIdentity": "aee46acfcba8e4e7aec7512126b926aa311bf7414d0d96ad3b13a86d5bdfe9d3",
+     "toolScope": "all"
+    },
+    {
+     "acceptedDraftTokens": 113,
+     "activations": "bf16",
+     "backend": "splash-native-candidate",
+     "beforeDispatchSeconds": 1.8516689167590812,
+     "contextTokens": 65536,
+     "decodeSeconds": 3.108663,
+     "deduplicatedKVTokens": 512,
+     "diagnosticRequestCacheIsolation": false,
+     "draftedTokens": 273,
+     "engineSHA256": "ce771e5f51081a2fd60df0ee0083f982a278a863ffaeab29fd590f55e9e36e89",
+     "firstAnswerPreviewSeconds": null,
+     "firstTokenSeconds": 1.2648661667481065,
+     "generatedTokens": 153,
+     "grammarSHA256": "5b96c275e9c1a2e618a54a4814a6d9c0de116285e8ffd0814aea01a5c8eecdf1",
+     "helperStartSeconds": 3.7509016692638397e-07,
+     "hostPreparationSeconds": 0.000163583317771554,
+     "maintenanceRecommended": false,
+     "maintenanceThreshold": 49152,
+     "matchedPromptTokens": 11136,
+     "nextToolResultReserve": 3546,
+     "outputBudget": 1800,
+     "prefillSeconds": 1.260549,
+     "prefixPrimeMatchedTokens": 8192,
+     "prefixPrimePrefillSeconds": 1.82141,
+     "prefixPrimeSeconds": 1.8270510416477919,
+     "prefixPrimeTokens": 10519,
+     "promptTokens": 11814,
+     "reasoningBudget": 512,
+     "reasoningBudgetOverrun": 0,
+     "reasoningHistory": "within-request",
+     "reasoningTokens": 127,
+     "recoveryReserve": 256,
+     "replayBoundaryTokens": 11808,
+     "requestSeconds": 4.373532833415084,
+     "requestedContextTokens": 65536,
+     "requestedMemoryBytes": 12884901888,
+     "requestedOutputBudget": 1800,
+     "runtimeRelease": "1.6.1",
+     "scopePrefixTokens": 10519,
+     "speculativeMethod": "DFlash2",
+     "stablePrefixTokens": 6082,
+     "templateIdentity": "aee46acfcba8e4e7aec7512126b926aa311bf7414d0d96ad3b13a86d5bdfe9d3",
+     "toolScope": "all"
+    },
+    {
+     "acceptedDraftTokens": 195,
+     "activations": "bf16",
+     "backend": "splash-native-candidate",
+     "beforeDispatchSeconds": 0.023720875033177435,
+     "contextTokens": 65536,
+     "decodeSeconds": 5.191868,
+     "deduplicatedKVTokens": 128,
+     "diagnosticRequestCacheIsolation": false,
+     "draftedTokens": 434,
+     "engineSHA256": "ce771e5f51081a2fd60df0ee0083f982a278a863ffaeab29fd590f55e9e36e89",
+     "firstAnswerPreviewSeconds": null,
+     "firstTokenSeconds": 1.4524312083376572,
+     "generatedTokens": 258,
+     "grammarSHA256": "5b96c275e9c1a2e618a54a4814a6d9c0de116285e8ffd0814aea01a5c8eecdf1",
+     "helperStartSeconds": 3.7509016692638397e-07,
+     "hostPreparationSeconds": 0.00017770833801478148,
+     "maintenanceRecommended": false,
+     "maintenanceThreshold": 49152,
+     "matchedPromptTokens": 11808,
+     "nextToolResultReserve": 3546,
+     "outputBudget": 1800,
+     "prefillSeconds": 1.447744,
+     "prefixPrimeMatchedTokens": 0,
+     "prefixPrimePrefillSeconds": 0,
+     "prefixPrimeSeconds": 0,
+     "prefixPrimeTokens": 0,
+     "promptTokens": 12726,
+     "reasoningBudget": 512,
+     "reasoningBudgetOverrun": 0,
+     "reasoningHistory": "within-request",
+     "reasoningTokens": 232,
+     "recoveryReserve": 256,
+     "replayBoundaryTokens": 12704,
+     "requestSeconds": 6.644292958313599,
+     "requestedContextTokens": 65536,
+     "requestedMemoryBytes": 12884901888,
+     "requestedOutputBudget": 1800,
+     "runtimeRelease": "1.6.1",
+     "scopePrefixTokens": 10519,
+     "speculativeMethod": "DFlash2",
+     "stablePrefixTokens": 6082,
+     "templateIdentity": "aee46acfcba8e4e7aec7512126b926aa311bf7414d0d96ad3b13a86d5bdfe9d3",
+     "toolScope": "all"
+    },
+    {
+     "acceptedDraftTokens": 151,
+     "activations": "bf16",
+     "backend": "splash-native-candidate",
+     "beforeDispatchSeconds": 0.02439329167827964,
+     "contextTokens": 65536,
+     "decodeSeconds": 3.642553,
+     "deduplicatedKVTokens": 256,
+     "diagnosticRequestCacheIsolation": false,
+     "draftedTokens": 301,
+     "engineSHA256": "ce771e5f51081a2fd60df0ee0083f982a278a863ffaeab29fd590f55e9e36e89",
+     "firstAnswerPreviewSeconds": null,
+     "firstTokenSeconds": 1.5419667500536889,
+     "generatedTokens": 195,
+     "grammarSHA256": "5b96c275e9c1a2e618a54a4814a6d9c0de116285e8ffd0814aea01a5c8eecdf1",
+     "helperStartSeconds": 3.332970663905144e-07,
+     "hostPreparationSeconds": 0.00020245835185050964,
+     "maintenanceRecommended": false,
+     "maintenanceThreshold": 49152,
+     "matchedPromptTokens": 12704,
+     "nextToolResultReserve": 3546,
+     "outputBudget": 1800,
+     "prefillSeconds": 1.537154,
+     "prefixPrimeMatchedTokens": 0,
+     "prefixPrimePrefillSeconds": 0,
+     "prefixPrimeSeconds": 0,
+     "prefixPrimeTokens": 0,
+     "promptTokens": 13581,
+     "reasoningBudget": 512,
+     "reasoningBudgetOverrun": 0,
+     "reasoningHistory": "within-request",
+     "reasoningTokens": 167,
+     "recoveryReserve": 256,
+     "replayBoundaryTokens": 13568,
+     "requestSeconds": 5.184509375016205,
+     "requestedContextTokens": 65536,
+     "requestedMemoryBytes": 12884901888,
+     "requestedOutputBudget": 1800,
+     "runtimeRelease": "1.6.1",
+     "scopePrefixTokens": 10519,
+     "speculativeMethod": "DFlash2",
+     "stablePrefixTokens": 6082,
+     "templateIdentity": "aee46acfcba8e4e7aec7512126b926aa311bf7414d0d96ad3b13a86d5bdfe9d3",
+     "toolScope": "all"
+    },
+    {
+     "acceptedDraftTokens": 188,
+     "activations": "bf16",
+     "backend": "splash-native-candidate",
+     "beforeDispatchSeconds": 0.025471666594967246,
+     "contextTokens": 65536,
+     "decodeSeconds": 4.941738,
+     "deduplicatedKVTokens": 192,
+     "diagnosticRequestCacheIsolation": false,
+     "draftedTokens": 364,
+     "engineSHA256": "ce771e5f51081a2fd60df0ee0083f982a278a863ffaeab29fd590f55e9e36e89",
+     "firstAnswerPreviewSeconds": null,
+     "firstTokenSeconds": 1.6012276667170227,
+     "generatedTokens": 241,
+     "grammarSHA256": "5b96c275e9c1a2e618a54a4814a6d9c0de116285e8ffd0814aea01a5c8eecdf1",
+     "helperStartSeconds": 3.334134817123413e-07,
+     "hostPreparationSeconds": 0.00018562492914497852,
+     "maintenanceRecommended": false,
+     "maintenanceThreshold": 49152,
+     "matchedPromptTokens": 13568,
+     "nextToolResultReserve": 3546,
+     "outputBudget": 1800,
+     "prefillSeconds": 1.596338,
+     "prefixPrimeMatchedTokens": 0,
+     "prefixPrimePrefillSeconds": 0,
+     "prefixPrimeSeconds": 0,
+     "prefixPrimeTokens": 0,
+     "promptTokens": 14572,
+     "reasoningBudget": 512,
+     "reasoningBudgetOverrun": 0,
+     "reasoningHistory": "within-request",
+     "reasoningTokens": 185,
+     "recoveryReserve": 256,
+     "replayBoundaryTokens": 14560,
+     "requestSeconds": 6.542963374988176,
+     "requestedContextTokens": 65536,
+     "requestedMemoryBytes": 12884901888,
+     "requestedOutputBudget": 1800,
+     "runtimeRelease": "1.6.1",
+     "scopePrefixTokens": 10519,
+     "speculativeMethod": "DFlash2",
+     "stablePrefixTokens": 6082,
+     "templateIdentity": "aee46acfcba8e4e7aec7512126b926aa311bf7414d0d96ad3b13a86d5bdfe9d3",
+     "toolScope": "all"
+    },
+    {
+     "acceptedDraftTokens": 160,
+     "activations": "bf16",
+     "backend": "splash-native-candidate",
+     "beforeDispatchSeconds": 0.024320333381183445,
+     "contextTokens": 65536,
+     "decodeSeconds": 3.831378,
+     "deduplicatedKVTokens": 224,
+     "diagnosticRequestCacheIsolation": false,
+     "draftedTokens": 308,
+     "engineSHA256": "ce771e5f51081a2fd60df0ee0083f982a278a863ffaeab29fd590f55e9e36e89",
+     "firstAnswerPreviewSeconds": null,
+     "firstTokenSeconds": 1.5342767082620412,
+     "generatedTokens": 205,
+     "grammarSHA256": "5b96c275e9c1a2e618a54a4814a6d9c0de116285e8ffd0814aea01a5c8eecdf1",
+     "helperStartSeconds": 2.9173679649829865e-07,
+     "hostPreparationSeconds": 0.00021383329294621944,
+     "maintenanceRecommended": false,
+     "maintenanceThreshold": 49152,
+     "matchedPromptTokens": 14560,
+     "nextToolResultReserve": 3546,
+     "outputBudget": 1800,
+     "prefillSeconds": 1.52954,
+     "prefixPrimeMatchedTokens": 0,
+     "prefixPrimePrefillSeconds": 0,
+     "prefixPrimeSeconds": 0,
+     "prefixPrimeTokens": 0,
+     "promptTokens": 15407,
+     "reasoningBudget": 512,
+     "reasoningBudgetOverrun": 0,
+     "reasoningHistory": "within-request",
+     "reasoningTokens": 148,
+     "recoveryReserve": 256,
+     "replayBoundaryTokens": 15392,
+     "requestSeconds": 5.365644708275795,
+     "requestedContextTokens": 65536,
+     "requestedMemoryBytes": 12884901888,
+     "requestedOutputBudget": 1800,
+     "runtimeRelease": "1.6.1",
+     "scopePrefixTokens": 10519,
+     "speculativeMethod": "DFlash2",
+     "stablePrefixTokens": 6082,
+     "templateIdentity": "aee46acfcba8e4e7aec7512126b926aa311bf7414d0d96ad3b13a86d5bdfe9d3",
+     "toolScope": "all"
+    },
+    {
+     "acceptedDraftTokens": 109,
+     "activations": "bf16",
+     "backend": "splash-native-candidate",
+     "beforeDispatchSeconds": 0.025428749970160425,
+     "contextTokens": 65536,
+     "decodeSeconds": 3.003013,
+     "deduplicatedKVTokens": 192,
+     "diagnosticRequestCacheIsolation": false,
+     "draftedTokens": 182,
+     "engineSHA256": "ce771e5f51081a2fd60df0ee0083f982a278a863ffaeab29fd590f55e9e36e89",
+     "firstAnswerPreviewSeconds": null,
+     "firstTokenSeconds": 1.551819208310917,
+     "generatedTokens": 136,
+     "grammarSHA256": "5b96c275e9c1a2e618a54a4814a6d9c0de116285e8ffd0814aea01a5c8eecdf1",
+     "helperStartSeconds": 3.334134817123413e-07,
+     "hostPreparationSeconds": 0.0002666666405275464,
+     "maintenanceRecommended": false,
+     "maintenanceThreshold": 49152,
+     "matchedPromptTokens": 15392,
+     "nextToolResultReserve": 3546,
+     "outputBudget": 1800,
+     "prefillSeconds": 1.550527,
+     "prefixPrimeMatchedTokens": 0,
+     "prefixPrimePrefillSeconds": 0,
+     "prefixPrimeSeconds": 0,
+     "prefixPrimeTokens": 0,
+     "promptTokens": 16168,
+     "reasoningBudget": 512,
+     "reasoningBudgetOverrun": 0,
+     "reasoningHistory": "within-request",
+     "reasoningTokens": 78,
+     "recoveryReserve": 256,
+     "replayBoundaryTokens": 16160,
+     "requestSeconds": 4.554837250034325,
+     "requestedContextTokens": 65536,
+     "requestedMemoryBytes": 12884901888,
+     "requestedOutputBudget": 1800,
+     "runtimeRelease": "1.6.1",
+     "scopePrefixTokens": 10519,
+     "speculativeMethod": "DFlash2",
+     "stablePrefixTokens": 6082,
+     "templateIdentity": "aee46acfcba8e4e7aec7512126b926aa311bf7414d0d96ad3b13a86d5bdfe9d3",
+     "toolScope": "all"
+    },
+    {
+     "acceptedDraftTokens": 86,
+     "activations": "bf16",
+     "backend": "splash-native-candidate",
+     "beforeDispatchSeconds": 0.02495737501885742,
+     "contextTokens": 65536,
+     "decodeSeconds": 3.635991,
+     "deduplicatedKVTokens": 0,
+     "diagnosticRequestCacheIsolation": false,
+     "draftedTokens": 238,
+     "engineSHA256": "ce771e5f51081a2fd60df0ee0083f982a278a863ffaeab29fd590f55e9e36e89",
+     "firstAnswerPreviewSeconds": null,
+     "firstTokenSeconds": 1.6027476666495204,
+     "generatedTokens": 121,
+     "grammarSHA256": "5b96c275e9c1a2e618a54a4814a6d9c0de116285e8ffd0814aea01a5c8eecdf1",
+     "helperStartSeconds": 2.916203811764717e-07,
+     "hostPreparationSeconds": 0.00027320836670696735,
+     "maintenanceRecommended": false,
+     "maintenanceThreshold": 49152,
+     "matchedPromptTokens": 16160,
+     "nextToolResultReserve": 3546,
+     "outputBudget": 1800,
+     "prefillSeconds": 1.601347,
+     "prefixPrimeMatchedTokens": 0,
+     "prefixPrimePrefillSeconds": 0,
+     "prefixPrimeSeconds": 0,
+     "prefixPrimeTokens": 0,
+     "promptTokens": 16899,
+     "reasoningBudget": 512,
+     "reasoningBudgetOverrun": 0,
+     "reasoningHistory": "within-request",
+     "reasoningTokens": 68,
+     "recoveryReserve": 256,
+     "replayBoundaryTokens": 16864,
+     "requestSeconds": 5.238729999982752,
+     "requestedContextTokens": 65536,
+     "requestedMemoryBytes": 12884901888,
+     "requestedOutputBudget": 1800,
+     "runtimeRelease": "1.6.1",
+     "scopePrefixTokens": 10519,
+     "speculativeMethod": "DFlash2",
+     "stablePrefixTokens": 6082,
+     "templateIdentity": "aee46acfcba8e4e7aec7512126b926aa311bf7414d0d96ad3b13a86d5bdfe9d3",
+     "toolScope": "all"
+    },
+    {
+     "acceptedDraftTokens": 428,
+     "activations": "bf16",
+     "backend": "splash-native-candidate",
+     "beforeDispatchSeconds": 0.024727624957449734,
+     "contextTokens": 65536,
+     "decodeSeconds": 9.243148,
+     "deduplicatedKVTokens": 128,
+     "diagnosticRequestCacheIsolation": false,
+     "draftedTokens": 770,
+     "engineSHA256": "ce771e5f51081a2fd60df0ee0083f982a278a863ffaeab29fd590f55e9e36e89",
+     "firstAnswerPreviewSeconds": null,
+     "firstTokenSeconds": 1.5845625832444057,
+     "generatedTokens": 539,
+     "grammarSHA256": "5b96c275e9c1a2e618a54a4814a6d9c0de116285e8ffd0814aea01a5c8eecdf1",
+     "helperStartSeconds": 2.50060111284256e-07,
+     "hostPreparationSeconds": 0.0003053749678656459,
+     "maintenanceRecommended": false,
+     "maintenanceThreshold": 49152,
+     "matchedPromptTokens": 16864,
+     "nextToolResultReserve": 3546,
+     "outputBudget": 1800,
+     "prefillSeconds": 1.583193,
+     "prefixPrimeMatchedTokens": 0,
+     "prefixPrimePrefillSeconds": 0,
+     "prefixPrimeSeconds": 0,
+     "prefixPrimeTokens": 0,
+     "promptTokens": 17640,
+     "reasoningBudget": 512,
+     "reasoningBudgetOverrun": 0,
+     "reasoningHistory": "within-request",
+     "reasoningTokens": 512,
+     "recoveryReserve": 256,
+     "replayBoundaryTokens": 17632,
+     "requestSeconds": 10.827713083242998,
+     "requestedContextTokens": 65536,
+     "requestedMemoryBytes": 12884901888,
+     "requestedOutputBudget": 1800,
+     "runtimeRelease": "1.6.1",
+     "scopePrefixTokens": 10519,
+     "speculativeMethod": "DFlash2",
+     "stablePrefixTokens": 6082,
+     "templateIdentity": "aee46acfcba8e4e7aec7512126b926aa311bf7414d0d96ad3b13a86d5bdfe9d3",
+     "toolScope": "all"
+    },
+    {
+     "acceptedDraftTokens": 30,
+     "activations": "bf16",
+     "backend": "splash-native-candidate",
+     "beforeDispatchSeconds": 0.00045341672375798225,
+     "contextTokens": 65536,
+     "decodeSeconds": 0.772745,
+     "deduplicatedKVTokens": 512,
+     "diagnosticRequestCacheIsolation": false,
+     "draftedTokens": 70,
+     "engineSHA256": "ce771e5f51081a2fd60df0ee0083f982a278a863ffaeab29fd590f55e9e36e89",
+     "firstAnswerPreviewSeconds": null,
+     "firstTokenSeconds": 1.4948867916828021,
+     "generatedTokens": 41,
+     "grammarSHA256": "5b96c275e9c1a2e618a54a4814a6d9c0de116285e8ffd0814aea01a5c8eecdf1",
+     "helperStartSeconds": 4.166504368185997e-07,
+     "hostPreparationSeconds": 0.0003015416441485286,
+     "maintenanceRecommended": false,
+     "maintenanceThreshold": 49152,
+     "matchedPromptTokens": 17632,
+     "nextToolResultReserve": 3546,
+     "outputBudget": 1800,
+     "prefillSeconds": 1.493524,
+     "prefixPrimeMatchedTokens": 0,
+     "prefixPrimePrefillSeconds": 0,
+     "prefixPrimeSeconds": 0,
+     "prefixPrimeTokens": 0,
+     "promptTokens": 18443,
+     "reasoningBudget": 512,
+     "reasoningBudgetOverrun": 0,
+     "reasoningHistory": "within-request",
+     "reasoningTokens": 14,
+     "recoveryReserve": 256,
+     "replayBoundaryTokens": 18432,
+     "requestSeconds": 2.2676253750687465,
+     "requestedContextTokens": 65536,
+     "requestedMemoryBytes": 12884901888,
+     "requestedOutputBudget": 1800,
+     "runtimeRelease": "1.6.1",
+     "scopePrefixTokens": 10519,
+     "speculativeMethod": "DFlash2",
+     "stablePrefixTokens": 6082,
+     "templateIdentity": "aee46acfcba8e4e7aec7512126b926aa311bf7414d0d96ad3b13a86d5bdfe9d3",
+     "toolScope": "all"
+    },
+    {
+     "acceptedDraftTokens": 29,
+     "activations": "bf16",
+     "backend": "splash-native-candidate",
+     "beforeDispatchSeconds": 0.0004948333371430635,
+     "contextTokens": 65536,
+     "decodeSeconds": 0.622269,
+     "deduplicatedKVTokens": 32,
+     "diagnosticRequestCacheIsolation": false,
+     "draftedTokens": 63,
+     "engineSHA256": "ce771e5f51081a2fd60df0ee0083f982a278a863ffaeab29fd590f55e9e36e89",
+     "firstAnswerPreviewSeconds": null,
+     "firstTokenSeconds": 1.2446379999164492,
+     "generatedTokens": 39,
+     "grammarSHA256": "5b96c275e9c1a2e618a54a4814a6d9c0de116285e8ffd0814aea01a5c8eecdf1",
+     "helperStartSeconds": 1.6659032553434372e-07,
+     "hostPreparationSeconds": 0.0003545416984707117,
+     "maintenanceRecommended": false,
+     "maintenanceThreshold": 49152,
+     "matchedPromptTokens": 18432,
+     "nextToolResultReserve": 3546,
+     "outputBudget": 1800,
+     "prefillSeconds": 1.243225,
+     "prefixPrimeMatchedTokens": 0,
+     "prefixPrimePrefillSeconds": 0,
+     "prefixPrimeSeconds": 0,
+     "prefixPrimeTokens": 0,
+     "promptTokens": 18747,
+     "reasoningBudget": 512,
+     "reasoningBudgetOverrun": 0,
+     "reasoningHistory": "within-request",
+     "reasoningTokens": 13,
+     "recoveryReserve": 256,
+     "replayBoundaryTokens": 18720,
+     "requestSeconds": 1.8669012499740347,
+     "requestedContextTokens": 65536,
+     "requestedMemoryBytes": 12884901888,
+     "requestedOutputBudget": 1800,
+     "runtimeRelease": "1.6.1",
+     "scopePrefixTokens": 10519,
+     "speculativeMethod": "DFlash2",
+     "stablePrefixTokens": 6082,
+     "templateIdentity": "aee46acfcba8e4e7aec7512126b926aa311bf7414d0d96ad3b13a86d5bdfe9d3",
+     "toolScope": "all"
+    },
+    {
+     "acceptedDraftTokens": 28,
+     "activations": "bf16",
+     "backend": "splash-native-candidate",
+     "beforeDispatchSeconds": 0.0005469167372211814,
+     "contextTokens": 65536,
+     "decodeSeconds": 0.586052,
+     "deduplicatedKVTokens": 64,
+     "diagnosticRequestCacheIsolation": false,
+     "draftedTokens": 63,
+     "engineSHA256": "ce771e5f51081a2fd60df0ee0083f982a278a863ffaeab29fd590f55e9e36e89",
+     "firstAnswerPreviewSeconds": null,
+     "firstTokenSeconds": 1.2701929582981393,
+     "generatedTokens": 38,
+     "grammarSHA256": "5b96c275e9c1a2e618a54a4814a6d9c0de116285e8ffd0814aea01a5c8eecdf1",
+     "helperStartSeconds": 2.4994369596242905e-07,
+     "hostPreparationSeconds": 0.000375083414837718,
+     "maintenanceRecommended": false,
+     "maintenanceThreshold": 49152,
+     "matchedPromptTokens": 18720,
+     "nextToolResultReserve": 3546,
+     "outputBudget": 1800,
+     "prefillSeconds": 1.268688,
+     "prefixPrimeMatchedTokens": 0,
+     "prefixPrimePrefillSeconds": 0,
+     "prefixPrimeSeconds": 0,
+     "prefixPrimeTokens": 0,
+     "promptTokens": 19049,
+     "reasoningBudget": 512,
+     "reasoningBudgetOverrun": 0,
+     "reasoningHistory": "within-request",
+     "reasoningTokens": 12,
+     "recoveryReserve": 256,
+     "replayBoundaryTokens": 19040,
+     "requestSeconds": 1.8562312916619703,
+     "requestedContextTokens": 65536,
+     "requestedMemoryBytes": 12884901888,
+     "requestedOutputBudget": 1800,
+     "runtimeRelease": "1.6.1",
+     "scopePrefixTokens": 10519,
+     "speculativeMethod": "DFlash2",
+     "stablePrefixTokens": 6082,
+     "templateIdentity": "aee46acfcba8e4e7aec7512126b926aa311bf7414d0d96ad3b13a86d5bdfe9d3",
+     "toolScope": "all"
+    }
+   ],
+   "model": "Splash 1.6.1; d8af1054aab0f97de21d043e01aa98af3754f10e; Qwen3.6-35B-A3B-4bit + DFlash2; native Swift candidate; context 65536; memory 12884901888; activations bf16; KV int8; state fp32; ANE on; reasoning budget 512; within-request reasoning retained",
+   "request_message_id": "aa810862-cf76-4e7c-b982-8c2a2e8e5a12",
+   "status": "failed",
+   "steps": 12,
+   "updated": "2026-11-18T21:34:04Z"
+  }
+ ],
+ "saved": {}
+}

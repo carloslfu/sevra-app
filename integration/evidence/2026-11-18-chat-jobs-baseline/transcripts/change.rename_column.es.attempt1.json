@@ -1,0 +1,556 @@
+{
+ "job": "change.rename_column",
+ "language": "es",
+ "profile": "current",
+ "attempt": 1,
+ "prompt": "Cambia el nombre de la columna Unit cost de la tabla Supplier comparison a Price each.",
+ "expected": "The Unit cost column of Supplier comparison is titled Price each, and both rows keep their values.",
+ "failure": "the request ended as needs_review; the column titles are [\"supplier\", \"quantity\", \"unit cost\", \"total\"]",
+ "result": {
+  "answer": "Ready to review: [Review table: Supplier comparison](sevra://item/29f42974-c6b8-4d9b-823e-85995ddd8671). Existing accepted values are unchanged. Accept this proposal to continue.\n\nCouldn’t finish preparing the proposal. Record not found: unit_cost",
+  "citations": [
+   "29f42974-c6b8-4d9b-823e-85995ddd8671"
+  ],
+  "conversationAction": null,
+  "state": "needs_review",
+  "steps": 4
+ },
+ "progress": [
+  "Reading request context",
+  "Checking local model files",
+  "Preparing local AI. The first start can take longer…",
+  "Preparing local AI · 0 of 11 steps",
+  "Preparing local AI · 1 of 11 steps",
+  "Preparing local AI · 2 of 11 steps",
+  "Preparing local AI · 3 of 11 steps",
+  "Preparing local AI · 4 of 11 steps",
+  "Preparing local AI · 5 of 11 steps",
+  "Preparing local AI · 6 of 11 steps",
+  "Preparing local AI · 7 of 11 steps",
+  "Preparing local AI · 8 of 11 steps",
+  "Preparing local AI · 9 of 11 steps",
+  "Preparing local AI · 10 of 11 steps",
+  "Preparing local AI · 11 of 11 steps",
+  "Reading the working context",
+  "Working through the request",
+  "Preparing a response",
+  "Inspecting tables…",
+  "Reviewing the saved result",
+  "Reading the working context",
+  "Working through the request",
+  "Preparing a response",
+  "Propose Table Edit…",
+  "Reviewing a tool failure",
+  "Reading the working context",
+  "Working through the request",
+  "Preparing a response",
+  "Reading table rows…",
+  "Reviewing the saved result",
+  "Reading the working context",
+  "Working through the request",
+  "Preparing a response",
+  "Propose Table…",
+  "Reviewing the saved result"
+ ],
+ "messages": {
+  "main": [
+   {
+    "body": "This example has supplier quotes and a delivery. Try ‘Why do we have 18 brass bolts?’ or ‘Compare the supplier costs and show the evidence.’",
+    "created": "2026-11-18T20:07:36Z",
+    "id": "ee384066-787d-4e8b-8bf8-c6dfaf141766",
+    "role": "assistant",
+    "state": "complete"
+   },
+   {
+    "body": "Cambia el nombre de la columna Unit cost de la tabla Supplier comparison a Price each.",
+    "created": "2026-11-18T20:07:36Z",
+    "id": "0cdf2ffc-bec4-4705-9535-f99503b7a961",
+    "role": "user",
+    "state": "complete"
+   },
+   {
+    "body": {
+     "arguments": {},
+     "assistantText": "",
+     "callID": "call_7db63398-7df3-4dda-8d6c-afbd74ba7f87",
+     "receiptID": "db35ab1b-477e-4384-a482-784aa4209f73",
+     "receiptVersion": 1,
+     "result": [
+      {
+       "archived": false,
+       "columns": [
+        {
+         "id": "supplier",
+         "title": "Supplier",
+         "type": "text"
+        },
+        {
+         "id": "quantity",
+         "title": "Quantity",
+         "type": "decimal"
+        },
+        {
+         "id": "unit_cost",
+         "title": "Unit cost",
+         "type": "decimal"
+        },
+        {
+         "formula": "quantity*unit_cost",
+         "id": "total",
+         "title": "Total",
+         "type": "decimal"
+        }
+       ],
+       "definitionID": "471b32cb-1546-4459-afcf-3908d2e94b0c",
+       "id": "b8e08e02-0e57-4122-8718-19e9d97383ad",
+       "rowCount": 2,
+       "title": "Supplier comparison",
+       "version": 1
+      }
+     ],
+     "resultHash": "4df3539b0253f21ebb8a3f84f151d903d8e5141ba1a2f5360da84ab78d589f5f",
+     "resultIdentity": {},
+     "runID": "26052e9a-3789-4e12-bf96-0ec918fafd6f",
+     "tool": "datasets"
+    },
+    "created": "2026-11-18T20:07:52Z",
+    "id": "b4b985f4-744b-447e-a96e-ce708b2094f0",
+    "role": "tool",
+    "state": "complete"
+   },
+   {
+    "body": {
+     "arguments": {
+      "datasetID": "b8e08e02-0e57-4122-8718-19e9d97383ad",
+      "edits": [
+       {
+        "id": "unit_cost",
+        "values": {
+         "title": "Price each"
+        }
+       }
+      ]
+     },
+     "assistantText": "",
+     "callID": "call_ee2f45dc-2be7-48c1-b8ed-86b1cd7d3adb",
+     "receiptID": "852866bc-51c9-49c2-ae9d-1ebc24fb32a5",
+     "receiptVersion": 1,
+     "result": {
+      "error": "Record not found: unit_cost",
+      "receiptID": "852866bc-51c9-49c2-ae9d-1ebc24fb32a5",
+      "retryInstruction": "The call did not finish successfully. Completed changes remain saved. Inspect the receipt and workbook state before retrying; do not claim no changes occurred. Fix the reported arguments when applicable."
+     },
+     "resultHash": "74f3cb8d8a2f324013e451639d607df840a8e8bff360639d3660e86b6cafff61",
+     "resultIdentity": {},
+     "runID": "26052e9a-3789-4e12-bf96-0ec918fafd6f",
+     "tool": "propose_table_edit"
+    },
+    "created": "2026-11-18T20:08:01Z",
+    "id": "8f2d7b86-2061-47bd-8008-22e46d984d1b",
+    "role": "tool",
+    "state": "complete"
+   },
+   {
+    "body": {
+     "arguments": {
+      "datasetID": "b8e08e02-0e57-4122-8718-19e9d97383ad"
+     },
+     "assistantText": "",
+     "callID": "call_f959368a-e92a-4d49-a83a-5dd5261fff1d",
+     "receiptID": "3cf8082e-3b2d-4dad-88f5-0b056a1b766e",
+     "receiptVersion": 1,
+     "result": {
+      "dataset": {
+       "archived": false,
+       "columns": [
+        {
+         "id": "supplier",
+         "title": "Supplier",
+         "type": "text"
+        },
+        {
+         "id": "quantity",
+         "title": "Quantity",
+         "type": "decimal"
+        },
+        {
+         "id": "unit_cost",
+         "title": "Unit cost",
+         "type": "decimal"
+        },
+        {
+         "formula": "quantity*unit_cost",
+         "id": "total",
+         "title": "Total",
+         "type": "decimal"
+        }
+       ],
+       "definitionID": "471b32cb-1546-4459-afcf-3908d2e94b0c",
+       "id": "b8e08e02-0e57-4122-8718-19e9d97383ad",
+       "rowCount": 2,
+       "title": "Supplier comparison",
+       "version": 1
+      },
+      "rows": [
+       {
+        "id": "ebcdc80b-672a-40aa-ad2a-36f308f557ce",
+        "values": {
+         "quantity": "10",
+         "supplier": "Oak Supply",
+         "total": "24",
+         "unit_cost": "2.40"
+        }
+       },
+       {
+        "id": "aab32d61-aeae-46b3-973a-66cf112fb8b2",
+        "values": {
+         "quantity": "10",
+         "supplier": "Cedar Tools",
+         "total": "27.5",
+         "unit_cost": "2.75"
+        }
+       }
+      ]
+     },
+     "resultHash": "f8502cb9b9ee7e470d0c91c9d5e9e8f2254433d4588b08b58419be8e20d7faa6",
+     "resultIdentity": {},
+     "runID": "26052e9a-3789-4e12-bf96-0ec918fafd6f",
+     "tool": "rows"
+    },
+    "created": "2026-11-18T20:08:16Z",
+    "id": "f33f6925-bfd1-443d-98f4-0dcae294e89c",
+    "role": "tool",
+    "state": "complete"
+   },
+   {
+    "body": {
+     "arguments": {
+      "columns": [
+       {
+        "id": "supplier",
+        "title": "Supplier",
+        "type": "text"
+       },
+       {
+        "id": "quantity",
+        "title": "Quantity",
+        "type": "decimal"
+       },
+       {
+        "id": "price_each",
+        "title": "Price each",
+        "type": "decimal"
+       },
+       {
+        "formula": "quantity * price_each",
+        "id": "total",
+        "title": "Total",
+        "type": "decimal"
+       }
+      ],
+      "inputs": [],
+      "meaning": "actual",
+      "rows": [
+       {
+        "price_each": "2.40",
+        "quantity": "10",
+        "supplier": "Oak Supply",
+        "total": "24"
+       },
+       {
+        "price_each": "2.75",
+        "quantity": "10",
+        "supplier": "Cedar Tools",
+        "total": "27.5"
+       }
+      ],
+      "title": "Supplier comparison"
+     },
+     "assistantText": "",
+     "callID": "call_32f53a53-6da6-48d7-ba67-b600b47938a5",
+     "receiptID": "a6ef9e93-f026-48f8-8750-b84a8c5ef7c2",
+     "receiptVersion": 1,
+     "result": {
+      "category": "record",
+      "created": "2026-11-18T20:08:29Z",
+      "data": {
+       "columns": [
+        {
+         "id": "supplier",
+         "title": "Supplier",
+         "type": "text"
+        },
+        {
+         "id": "quantity",
+         "title": "Quantity",
+         "type": "decimal"
+        },
+        {
+         "id": "price_each",
+         "title": "Price each",
+         "type": "decimal"
+        },
+        {
+         "formula": "quantity * price_each",
+         "id": "total",
+         "title": "Total",
+         "type": "decimal"
+        }
+       ],
+       "rows": [
+        {
+         "price_each": "2.40",
+         "quantity": "10",
+         "supplier": "Oak Supply",
+         "total": "24"
+        },
+        {
+         "price_each": "2.75",
+         "quantity": "10",
+         "supplier": "Cedar Tools",
+         "total": "27.5"
+        }
+       ],
+       "title": "Supplier comparison"
+      },
+      "id": "29f42974-c6b8-4d9b-823e-85995ddd8671",
+      "kind": "table-creation",
+      "logicalID": "fa5b0f40-ae85-4fbc-bf86-c91149027d9b",
+      "meaning": "actual",
+      "scenario": "actual",
+      "status": "draft",
+      "text": "Supplier · Quantity · Price each · Total\n\nOak Supply · 10 · 2.40 · 24\nCedar Tools · 10 · 2.75 · 27.5",
+      "title": "Review table: Supplier comparison",
+      "version": 1
+     },
+     "resultHash": "d0c512354573976b705c229b1608fe6b154428b704b77007fb5c47fc95767eea",
+     "resultIdentity": {
+      "id": "29f42974-c6b8-4d9b-823e-85995ddd8671",
+      "kind": "table-creation",
+      "logicalID": "fa5b0f40-ae85-4fbc-bf86-c91149027d9b",
+      "meaning": "actual",
+      "status": "draft"
+     },
+     "runID": "26052e9a-3789-4e12-bf96-0ec918fafd6f",
+     "tool": "propose_table"
+    },
+    "created": "2026-11-18T20:08:29Z",
+    "id": "f9efbf85-336f-49be-9299-28e0d0c77bb0",
+    "role": "tool",
+    "state": "complete"
+   },
+   {
+    "body": "Ready to review: [Review table: Supplier comparison](sevra://item/29f42974-c6b8-4d9b-823e-85995ddd8671). Existing accepted values are unchanged. Accept this proposal to continue.\n\nCouldn’t finish preparing the proposal. Record not found: unit_cost",
+    "created": "2026-11-18T20:08:29Z",
+    "id": "fcde5700-df32-4c80-811c-fde52bda4f25",
+    "role": "assistant",
+    "state": "needs_review"
+   }
+  ]
+ },
+ "runs": [
+  {
+   "conversation_id": "main",
+   "created": "2026-11-18T20:07:36Z",
+   "id": "26052e9a-3789-4e12-bf96-0ec918fafd6f",
+   "metrics": [
+    {
+     "acceptedDraftTokens": 74,
+     "activations": "bf16",
+     "backend": "splash-native-candidate",
+     "beforeDispatchSeconds": 8.418177541578189,
+     "contextTokens": 65536,
+     "decodeSeconds": 2.204606,
+     "deduplicatedKVTokens": 0,
+     "diagnosticRequestCacheIsolation": false,
+     "draftedTokens": 210,
+     "engineSHA256": "ce771e5f51081a2fd60df0ee0083f982a278a863ffaeab29fd590f55e9e36e89",
+     "firstAnswerPreviewSeconds": null,
+     "firstTokenSeconds": 3.7018297916511074,
+     "generatedTokens": 105,
+     "grammarSHA256": "5b96c275e9c1a2e618a54a4814a6d9c0de116285e8ffd0814aea01a5c8eecdf1",
+     "helperStartSeconds": 4.415957499993965,
+     "hostPreparationSeconds": 0.00014558329712599516,
+     "maintenanceRecommended": false,
+     "maintenanceThreshold": 49152,
+     "matchedPromptTokens": 6016,
+     "nextToolResultReserve": 3546,
+     "outputBudget": 1800,
+     "prefillSeconds": 3.697007,
+     "prefixPrimeMatchedTokens": 0,
+     "prefixPrimePrefillSeconds": 3.976606,
+     "prefixPrimeSeconds": 3.9767382916761562,
+     "prefixPrimeTokens": 6020,
+     "promptTokens": 11179,
+     "reasoningBudget": 512,
+     "reasoningBudgetOverrun": 0,
+     "reasoningHistory": "within-request",
+     "reasoningTokens": 89,
+     "recoveryReserve": 256,
+     "replayBoundaryTokens": 11168,
+     "requestSeconds": 5.906424624961801,
+     "requestedContextTokens": 65536,
+     "requestedMemoryBytes": 12884901888,
+     "requestedOutputBudget": 1800,
+     "runtimeRelease": "1.6.1",
+     "scopePrefixTokens": 10586,
+     "speculativeMethod": "DFlash2",
+     "stablePrefixTokens": 6020,
+     "templateIdentity": "aee46acfcba8e4e7aec7512126b926aa311bf7414d0d96ad3b13a86d5bdfe9d3",
+     "toolScope": "all"
+    },
+    {
+     "acceptedDraftTokens": 212,
+     "activations": "bf16",
+     "backend": "splash-native-candidate",
+     "beforeDispatchSeconds": 2.278310291701928,
+     "contextTokens": 65536,
+     "decodeSeconds": 5.929775,
+     "deduplicatedKVTokens": 96,
+     "diagnosticRequestCacheIsolation": false,
+     "draftedTokens": 434,
+     "engineSHA256": "ce771e5f51081a2fd60df0ee0083f982a278a863ffaeab29fd590f55e9e36e89",
+     "firstAnswerPreviewSeconds": null,
+     "firstTokenSeconds": 1.2047835417324677,
+     "generatedTokens": 275,
+     "grammarSHA256": "5b96c275e9c1a2e618a54a4814a6d9c0de116285e8ffd0814aea01a5c8eecdf1",
+     "helperStartSeconds": 3.334134817123413e-07,
+     "hostPreparationSeconds": 0.00019316666293889284,
+     "maintenanceRecommended": false,
+     "maintenanceThreshold": 49152,
+     "matchedPromptTokens": 11168,
+     "nextToolResultReserve": 3546,
+     "outputBudget": 1800,
+     "prefillSeconds": 1.198515,
+     "prefixPrimeMatchedTokens": 8192,
+     "prefixPrimePrefillSeconds": 2.272515,
+     "prefixPrimeSeconds": 2.277645125053823,
+     "prefixPrimeTokens": 10586,
+     "promptTokens": 11454,
+     "reasoningBudget": 512,
+     "reasoningBudgetOverrun": 0,
+     "reasoningHistory": "within-request",
+     "reasoningTokens": 178,
+     "recoveryReserve": 256,
+     "replayBoundaryTokens": 11424,
+     "requestSeconds": 7.13462133333087,
+     "requestedContextTokens": 65536,
+     "requestedMemoryBytes": 12884901888,
+     "requestedOutputBudget": 1800,
+     "runtimeRelease": "1.6.1",
+     "scopePrefixTokens": 10586,
+     "speculativeMethod": "DFlash2",
+     "stablePrefixTokens": 6020,
+     "templateIdentity": "aee46acfcba8e4e7aec7512126b926aa311bf7414d0d96ad3b13a86d5bdfe9d3",
+     "toolScope": "all"
+    },
+    {
+     "acceptedDraftTokens": 415,
+     "activations": "bf16",
+     "backend": "splash-native-candidate",
+     "beforeDispatchSeconds": 0.0006052500102669001,
+     "contextTokens": 65536,
+     "decodeSeconds": 13.136068,
+     "deduplicatedKVTokens": 288,
+     "diagnosticRequestCacheIsolation": false,
+     "draftedTokens": 1113,
+     "engineSHA256": "ce771e5f51081a2fd60df0ee0083f982a278a863ffaeab29fd590f55e9e36e89",
+     "firstAnswerPreviewSeconds": null,
+     "firstTokenSeconds": 1.4011957084294409,
+     "generatedTokens": 575,
+     "grammarSHA256": "5b96c275e9c1a2e618a54a4814a6d9c0de116285e8ffd0814aea01a5c8eecdf1",
+     "helperStartSeconds": 7.082708179950714e-07,
+     "hostPreparationSeconds": 0.0003057083813473582,
+     "maintenanceRecommended": false,
+     "maintenanceThreshold": 49152,
+     "matchedPromptTokens": 11424,
+     "nextToolResultReserve": 3546,
+     "outputBudget": 1800,
+     "prefillSeconds": 1.39117,
+     "prefixPrimeMatchedTokens": 0,
+     "prefixPrimePrefillSeconds": 0,
+     "prefixPrimeSeconds": 0,
+     "prefixPrimeTokens": 0,
+     "promptTokens": 11831,
+     "reasoningBudget": 512,
+     "reasoningBudgetOverrun": 0,
+     "reasoningHistory": "within-request",
+     "reasoningTokens": 512,
+     "recoveryReserve": 256,
+     "replayBoundaryTokens": 11808,
+     "requestSeconds": 14.537308833329007,
+     "requestedContextTokens": 65536,
+     "requestedMemoryBytes": 12884901888,
+     "requestedOutputBudget": 1800,
+     "runtimeRelease": "1.6.1",
+     "scopePrefixTokens": 10586,
+     "speculativeMethod": "DFlash2",
+     "stablePrefixTokens": 6020,
+     "templateIdentity": "aee46acfcba8e4e7aec7512126b926aa311bf7414d0d96ad3b13a86d5bdfe9d3",
+     "toolScope": "all"
+    },
+    {
+     "acceptedDraftTokens": 438,
+     "activations": "bf16",
+     "backend": "splash-native-candidate",
+     "beforeDispatchSeconds": 0.06281358341220766,
+     "contextTokens": 65536,
+     "decodeSeconds": 10.667513,
+     "deduplicatedKVTokens": 512,
+     "diagnosticRequestCacheIsolation": false,
+     "draftedTokens": 798,
+     "engineSHA256": "ce771e5f51081a2fd60df0ee0083f982a278a863ffaeab29fd590f55e9e36e89",
+     "firstAnswerPreviewSeconds": null,
+     "firstTokenSeconds": 1.786404624930583,
+     "generatedTokens": 553,
+     "grammarSHA256": "5b96c275e9c1a2e618a54a4814a6d9c0de116285e8ffd0814aea01a5c8eecdf1",
+     "helperStartSeconds": 6.667105481028557e-07,
+     "hostPreparationSeconds": 0.0003244583494961262,
+     "maintenanceRecommended": false,
+     "maintenanceThreshold": 49152,
+     "matchedPromptTokens": 11808,
+     "nextToolResultReserve": 3546,
+     "outputBudget": 1800,
+     "prefillSeconds": 1.773721,
+     "prefixPrimeMatchedTokens": 0,
+     "prefixPrimePrefillSeconds": 0,
+     "prefixPrimeSeconds": 0,
+     "prefixPrimeTokens": 0,
+     "promptTokens": 12700,
+     "reasoningBudget": 512,
+     "reasoningBudgetOverrun": 0,
+     "reasoningHistory": "within-request",
+     "reasoningTokens": 325,
+     "recoveryReserve": 256,
+     "replayBoundaryTokens": 12672,
+     "requestSeconds": 12.453884750022553,
+     "requestedContextTokens": 65536,
+     "requestedMemoryBytes": 12884901888,
+     "requestedOutputBudget": 1800,
+     "runtimeRelease": "1.6.1",
+     "scopePrefixTokens": 10586,
+     "speculativeMethod": "DFlash2",
+     "stablePrefixTokens": 6020,
+     "templateIdentity": "aee46acfcba8e4e7aec7512126b926aa311bf7414d0d96ad3b13a86d5bdfe9d3",
+     "toolScope": "all"
+    }
+   ],
+   "model": "Splash 1.6.1; d8af1054aab0f97de21d043e01aa98af3754f10e; Qwen3.6-35B-A3B-4bit + DFlash2; native Swift candidate; context 65536; memory 12884901888; activations bf16; KV int8; state fp32; ANE on; reasoning budget 512; within-request reasoning retained",
+   "request_message_id": "0cdf2ffc-bec4-4705-9535-f99503b7a961",
+   "status": "needs_review",
+   "steps": 4,
+   "updated": "2026-11-18T20:08:29Z"
+  }
+ ],
+ "saved": {
+  "newItems": [
+   {
+    "category": "record",
+    "kind": "table-creation",
+    "status": "draft",
+    "title": "Review table: Supplier comparison",
+    "id": "29f42974-c6b8-4d9b-823e-85995ddd8671"
+   }
+  ]
+ }
+}

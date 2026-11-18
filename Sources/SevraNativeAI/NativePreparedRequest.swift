@@ -44,7 +44,7 @@ package struct NativePreparedRequest {
   package init(
     messages: [InferenceMessage], frontend: SplashTextFrontend,
     configuredReasoning: NativeReasoning, toolScope: InferenceToolScope,
-    citationIDs: [String], interpretation: Value? = nil
+    citationIDs: [String], interpretation: Value? = nil, toolProfile: ToolProfile = .current
   ) throws {
     try ContextBudget.validateEnvelope(messages)
     let excelReview =
@@ -81,7 +81,7 @@ package struct NativePreparedRequest {
         reviewContract: messages.first?.reviewContract ?? .null,
         conversationInput: messages.first?.conversationInput == true,
         visualCaptureIDs: messages.first?.visualCaptureIDs ?? [],
-        countReceiptIDs: messages.first?.countReceiptIDs)
+        countReceiptIDs: messages.first?.countReceiptIDs, toolProfile: toolProfile)
     }
     // Render a stable vocabulary even before the first lookup/history read.
     // Dynamic exact-ID restrictions remain in policy.grammar and policy.validate.
@@ -95,7 +95,7 @@ package struct NativePreparedRequest {
         nativeAppAuthoring: messages.first?.nativeAppAuthoring == true,
         reviewContract: messages.first?.reviewContract ?? .null,
         conversationInput: messages.first?.conversationInput == true,
-        visualCaptureIDs: messages.first?.visualCaptureIDs ?? [])
+        visualCaptureIDs: messages.first?.visualCaptureIDs ?? [], toolProfile: toolProfile)
     } else {
       promptPolicy = policy
     }
