@@ -3,7 +3,7 @@ type: research
 meta-type: conclusion
 id: 01m7qe9zymnywsn5h23fqsjq9a
 created: 2026-11-18T13:42:27.540409+00:00
-updated: 2026-11-18T13:46:19.828729+00:00
+updated: 2026-11-18T16:40:32.323914+00:00
 summary: 'Local token and timing evidence plus published practice on tool selection: a smaller fixed default with groups opened on first read beats a router here.'
 title: Tool selection for the native chat prompt
 ---
@@ -11,7 +11,7 @@ title: Tool selection for the native chat prompt
 
 ## Scope and provenance
 
-Research for [[records/plans/native-chat-prompt-routing]], requested in [[sources/notes/2026/11/chat-tool-routing-direction]]. It answers one question: how should an ordinary chat request get only the tool schemas it needs, and does that call for a router.
+Research for [[records/plans/native-chat-prompt-routing]], requested in [[sources/notes/2026/11/chat-tool-routing-direction]]. That plan was superseded by [[records/plans/general-chat-tools]], which keeps this record's cost model and published evidence and replaces its conclusion about tool groups with a small set of general tools. It answers one question: how should an ordinary chat request get only the tool schemas it needs, and does that call for a router.
 
 There are two kinds of evidence. Local evidence is the retained [five-turn trace](../../../integration/evidence/2026-11-17-native-prompt-cache.json) and a new CPU-only [token count](../../../integration/evidence/2026-11-18-chat-tool-schema-tokens/counts.json) at code `a41c05e0b2894d4e24bd3a87445f423cd6b9b227`. Published evidence was collected on November 18, 2026. Statements about it are paraphrases that keep the numbers their sources give. Most papers cited are preprints. No model ran for this research and no candidate build exists.
 

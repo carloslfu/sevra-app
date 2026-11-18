@@ -2,11 +2,12 @@
 type: index
 scope: type-folder
 folder: sources/notes
-updated: 2026-11-18T13:39:14.995772Z
+updated: 2026-11-18T17:09:55.122299Z
 ---
 
 # sources/notes
 
+- [[sources/notes/2026/11/general-tools-direction]] — Owner directs general chat tools: direct SQL writes, sandboxed code, per-workbook tools, and a shipped pre-read prompt header with no fallback.
 - [[sources/notes/2026/11/chat-tool-routing-direction]] — Owner asks to cut prompt context for ordinary workbook requests with the simplest router, after research and first-principles review.
 - [[sources/notes/2026/11/conversation-latency-fix]] — Owner requests conversation latency fixes, the same-message timing comparison and answer-quality iteration.
 - [[sources/notes/2026/11/readme-launch-wording]] — Carlos requests natural, accurate public README copy and directs Sevra to stop using the MVP label for launch.

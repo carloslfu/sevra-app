@@ -1,0 +1,42 @@
+{
+  "date": "2026-11-18",
+  "what": "Token counts of draft schemas for the six general chat tools other than finish. One compact JSON object per line in draft-tools.jsonl.",
+  "method": "Each line was tokenized with the selected model pack's tokenizer through the app's text frontend, using the probe retained in integration/evidence/2026-11-18-chat-tool-schema-tokens. CPU only. No model was loaded.",
+  "code": "dcb111eccf61bf2b850eab84f2610d0ab8cf10d9",
+  "tools": [
+    {
+      "name": "search",
+      "compact_json_tokens": 67
+    },
+    {
+      "name": "read",
+      "compact_json_tokens": 69
+    },
+    {
+      "name": "sql",
+      "compact_json_tokens": 130
+    },
+    {
+      "name": "run",
+      "compact_json_tokens": 55
+    },
+    {
+      "name": "save",
+      "compact_json_tokens": 112
+    },
+    {
+      "name": "ask",
+      "compact_json_tokens": 121
+    }
+  ],
+  "total_compact_json_tokens": 554,
+  "finish_today": {
+    "compact_json_tokens": 191,
+    "in_chat_template_tokens": 433,
+    "source": "integration/evidence/2026-11-18-chat-tool-schema-tokens/counts.json"
+  },
+  "compared_with": {
+    "ordinary_first_decision_schema_tokens_today": 7305
+  },
+  "limits": "Drafts only. The shipped schemas, the instructions and the function index are measured in phase 7 of the plan."
+}

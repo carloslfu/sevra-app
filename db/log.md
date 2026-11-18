@@ -232,3 +232,15 @@ Reviewed the current package, Apple Developer ID and Gatekeeper requirements, an
 ## [2026-11-18 16:54] verification | records/plans/macos-installer-and-updates.md
 Reviewed install and setup, signing and update continuity, and failure recovery against the source and primary documentation. Full store validation and repository Markdown links passed for the plan. Packaging, signing and installation remain to be implemented and tested.
 
+## [2026-11-18 17:26] design | sources/notes/2026/11/general-tools-direction.md
+Recorded the owner's November 18 direction: general chat tools, model SQL that writes directly, sandboxed code, per-workbook tools and a pre-read prompt header with no fallback. Lists what he did not decide and what was found afterwards. Authorizes planning only.
+
+## [2026-11-18 17:26] design | records/plans/general-chat-tools.md
+Planned seven general chat tools, model SQL on a scratch copy applied through the recorded write path, sandboxed scripts, workbook tools, and a prompt header made at setup now and shipped with the later installer. Supersedes records/plans/native-chat-prompt-routing.md, which keeps its inventory and measurements. Draft schemas and token counts retained in integration/evidence/2026-11-18-general-tool-schemas. Planning only.
+
+## [2026-11-18 17:26] verification | records/plans/general-chat-tools.md
+Three independent reviews were applied: against the owner's notes and for executability, against the code and the pinned engine source, and a final check of the rewrite. Full store validation and repository Markdown links passed. Nothing was built or run except a CPU token count of draft schemas. Engine and SQLite behavior the plan relies on is read from source and is proven in phases H1, H2 and 2. Owner confirmations S1 to S3 and P1 to P5 are pending.
+
+## [2026-11-18 17:26] design | records/operations/agent-handoff.md
+Added the general chat tools planning section: what to know before starting, the unverified point about chat's AI actor, and the pending owner confirmations.
+

@@ -1,0 +1,563 @@
+---
+type: operational
+id: 01m7qrcqqzh4qqr92a8frch1ze
+created: 2026-11-18T16:38:43.199010+00:00
+updated: 2026-11-18T17:26:32.276086+00:00
+summary: Plan for seven general chat tools (model SQL on a scratch copy, sandboxed code, workbook tools) and a prompt header that no chat turn computes. Planning only; owner confirmations pending.
+title: General chat tools and a pre-read prompt header
+---
+# General chat tools and a pre-read prompt header
+
+Owner direction: [[sources/notes/2026/11/general-tools-direction]], continuing [[sources/notes/2026/11/chat-tool-routing-direction]]. Evidence: [[records/research/chat-tool-selection]]. This plan replaces [[records/plans/native-chat-prompt-routing]].
+
+Status: plan only. No product code, engine code, model, package or interface was changed or run for it. The only thing run was a CPU token count of draft schemas. Reviewed against code at `dcb111eccf61bf2b850eab84f2610d0ab8cf10d9`, which includes [[records/plans/conversation-follow-up-cache]], and against the pinned Splash 1.6.1 source. The later commit `af2ef6d` adds only [[records/plans/macos-installer-and-updates]].
+
+Terms used below:
+
+- A **decision** is one model call that picks a tool or answers. On the test Mac it costs about 4 seconds.
+- A **rule Source** is a saved Source of kind rule with status accepted. The write path requires one before it records a change as made by the AI ([DecisionAttribution.swift](../../../Sources/SevraCore/DecisionAttribution.swift)).
+- An **evaluation** is one uninterrupted stretch of JavaScript between two host calls.
+- The **header** is the fixed start of the prompt: the instructions and the tool schemas, identical for every ordinary chat turn.
+
+## Decisions
+
+Decided by the owner, in his words in the two notes:
+
+1. **General tools.** Chat works through a few general tools. The model writes SQL and code instead of calling many fixed, single-purpose tools.
+2. **SQL writes directly.** Model-written SQL can change workbook data with no approval step in between.
+3. **Arbitrary code, sandboxed.** The model can run code it writes, inside a sandbox.
+4. **Per-workbook tools.** A workbook can carry its own tools, set up by its user. They are listed by name and loaded when needed, like the workbook's views and apps.
+5. **The header ships already read.** It is kept in the app, it always matches, there is no fallback, and tests before release prove it.
+6. **Earlier rules are replaced.** See [What this replaces](#what-this-replaces).
+
+Said in the agent's summaries during planning. The owner heard them and did not object, but neither note records his own words for them. Phase 0 asks him to confirm each:
+
+- **S1. No router.** No text matching and no extra model call chooses tools.
+- **S2. No business concepts in the built-in tools or the shared instructions.** Inventory, receiving and quote comparison leave both.
+- **S3. No built-in tool groups.** Anything loaded on demand is something the workbook holds, or a guide.
+
+Proposed by the agent, not yet confirmed by the owner. Each is marked where the plan depends on it:
+
+- **P1. Seven built-in tools:** `search`, `read`, `sql`, `run`, `save`, `ask`, `finish`.
+- **P2. Table changes count at once, and no approval step is added anywhere.** A change to a table made by `sql` or `run` is accepted data, attributed to the request that asked for it, and can be undone. A table draft that waits for acceptance is made only when the person asks for one. `save` keeps what each kind does today: a document or record written by the model is saved as a draft, a view or tool is saved ready to use, and an app is saved disabled until the person enables it.
+- **P3. The sandbox reaches this workbook only.** No network, no other files, no other workbook. A file leaves the workbook only to a path the person typed in that request, or through the save panel.
+- **P4. How the header reaches a Mac.** Made on each Mac during setup now, because every Mac builds the app from source today. Shipped inside the app once the installer planned in [[records/plans/macos-installer-and-updates]] exists. See [How the header reaches a Mac](#how-the-header-reaches-a-mac-p4).
+- **P5. Code that arrives from elsewhere needs enabling.** A tool that came inside a copied workbook does not run on this Mac until the person enables it there, as apps already work. The permission step for apps is unchanged.
+
+## Why
+
+The measurements are in the research record. Three facts decide the shape.
+
+- **Model decisions are what cost time.** Schemas in a resumed prompt cost close to nothing. One piece of code can search, read and compute in a single decision.
+- **Most tools are narrower than the product.** Counted for this plan from the 59 ordinary chat tools listed in [[records/plans/native-chat-prompt-routing]]: 5 hard-code inventory, receiving or quote comparison, 4 are narrow helpers a query replaces, 25 are one tool per variant of the same thing and 5 are a fixed layout language beside programmable apps. Twenty are already general.
+- **The machinery exists.** The workbook is SQLite, the app embeds a JavaScript engine for mini apps, and a recorded write path with Undo already serves app code and table edits. Chat reaches them only through fixed tools.
+
+Draft schemas for the six tools other than `finish` count 554 tokens as compact JSON with the selected tokenizer, against 7,305 schema tokens in an ordinary first decision today. `finish` is 191 in that form. The drafts and counts are retained: [draft-tools.jsonl](../../../integration/evidence/2026-11-18-general-tool-schemas/draft-tools.jsonl) and [counts.json](../../../integration/evidence/2026-11-18-general-tool-schemas/counts.json).
+
+No published evaluation covers this local model writing SQL and JavaScript. That is what the real-model gates in every phase measure.
+
+## Scope
+
+In scope: the ordinary chat tool list and instructions, the SQL and code layers behind them, workbook tools, and the prompt header.
+
+Not in scope:
+
+- **The inventory ledger in the core.** Stock is built into the app below the tool list: the `bases` and `effects` tables, the inventory event family, the only condition trigger for automations, the Receive delivery button, the automations and workflow screens, CLI commands and their checks. This plan removes inventory from the built-in tools and the shared instructions. It reaches the ledger through two read-only tables and the workbook's own saved actions. Turning the ledger into ordinary tables is a separate plan.
+- **Specialized phases.** Excel conversion, the independent app review, the direction reviews in front of a stock movement and a saved action, workflow interpretation, preparing a workflow answer, and history summaries keep their own prompts and tool lists.
+- **The engine.** No change to Splash is made from this repository.
+
+## Design
+
+### The seven tools (P1)
+
+| Tool | What it does | Replaces |
+| --- | --- | --- |
+| `search` | Finds documents, records and earlier conversation. | `search`, `history_search` |
+| `read` | Reads one thing by ID: a document or record, a page of a saved result, a view, an app, a workbook tool, an automation, or a guide. | `read`, `references`, `lineage`, `tool_result`, `history_read`, the read tools for apps, definitions, workflows and view history, and the starter templates as guides |
+| `sql` | Runs SQLite statements over the workbook's tables. Reads return rows. Changes apply at once and are recorded. With `draft`, changes are saved as a proposal instead. | The table read helpers, `calculate`, `compare_rows`, the table proposals and the table operations |
+| `run` | Runs JavaScript in the sandbox, with functions for SQL, search, reading, exact numbers, files, charts, navigation, threads, apps, workflows and undo. | File, import, Excel, chart, app and workflow operations, thread and navigation tools |
+| `save` | Saves a named thing in the workbook: a document, a record, a view, an app, a tool or a definition. | `draft`, `propose_record`, `publish_result`, the view and app save tools, `save_definition`, `save_template` |
+| `ask` | Asks the person a structured question. | `request_input` |
+| `finish` | Answers, with citations and any chart captures. | `finish` |
+
+Short schemas are displayed. Where a strict shape matters, the grammar enforces it without displaying it, using the split between the displayed tool list and the executable grammar that [NativePreparedRequest.swift](../../../Sources/SevraNativeAI/NativePreparedRequest.swift) already has. `save` gets the strict shape for a kind once the model has read that kind's guide.
+
+**How the model learns the functions, the catalog and the guides.** The header carries a function index, one line per function with its inputs, the catalog tables with their columns, and the names of the general guides. Guides with examples are read on demand with `read`. Guides for one business case, such as the receiving and low-stock starters, are named inside the definitions guide and not in the header. The ledger's two tables are described in the per-workbook block when it lists them. All of this costs room in the prompt but no time, because the header is read ahead. Phase 7 measures it.
+
+**Limits that shape the tools.** Tool arguments are capped at 32,000 bytes and a decision's output at 1,800 tokens. Statements and scripts must be short, so data moves by reference: a script reads an included file or the request's text through a function instead of retyping it.
+
+### SQL runs on a copy and is applied through the recorded write path
+
+Facts that fix the design:
+
+- A user table is a projection. Each dataset has one real SQL table named by hash, with hashed column names and hidden columns. The authority is the immutable `items` rows with `heads` and `dataset_rows` ([ManagedDatasetSchema.swift](../../../Sources/SevraCore/ManagedDatasetSchema.swift), [ManagedDatasetRows.swift](../../../Sources/SevraCore/ManagedDatasetRows.swift)).
+- Every change must pass through `Workbook.mutation`, which captures the change and writes one `operations` receipt. `Workbook.verify` requires each table to equal the projection of its head items, and the canonical schema check refuses any table or column the app did not create.
+- The app uses the system SQLite. It has no session extension. `sevra_capture` is registered so that any SQL text on the workbook connection could call it.
+- Formula columns are not stored. They are computed when rows are read. Every row write also recalculates stored sheet formula cells, normalizes dates and booleans, and refuses protected cells.
+- A table's `version` is its schema version. Row edits do not change it. The app path names a table's content by a fingerprint of its definition, row count and newest row ([NativeAppData.swift](../../../Sources/SevraCore/NativeAppData.swift)). The workbook revision advances on every message and tool receipt, so it cannot guard a table between copy and apply.
+- A column has an `id` that is separate from its title, and one of four types: text, decimal, boolean, date.
+- Decimal columns are text with the exact collation `SEVRA_DECIMAL`. The app's exact sum and divide functions return text.
+- The capture limits, 250,000 rows and 64 MB, count stored rows and their before and after images, not user rows. One updated user row writes at least seven, read from the code and not measured. `applyRows` takes up to 10,000 rows. A mutation's default deadline is 3 s.
+
+So model-written SQL never runs on the workbook connection.
+
+1. **A scratch database per call.** The host opens a separate in-memory SQLite connection with a page cap. It holds one table per user table under a readable name, with readable column names and computed formula values. Each row's identity is the scratch table's `rowid`, so `SELECT *` does not show it. The host keeps the mapping from saved rows to `rowid` for the conversation, so a row has the same `rowid` in every call. It also holds read-only catalog tables: the workbook's tables and columns, table versions, views, apps, tools, definitions, automations, workflow runs, the review queue, one metadata row per document and record, and the ledger's two tables.
+2. **Readable names.** A name is the title in lower case with every run of other characters replaced by one underscore. Two that would be equal get a numeric suffix in creation order. Catalog names are reserved, so a user table that would take one gets a suffix. The per-workbook part of the prompt shows the names, so the model never guesses them.
+3. **Only what the statements touch is copied.** The host takes the statements one at a time. It prepares each against the scratch schema, collects the tables it references from SQLite's authorizer callbacks, fills any of those not yet filled through the existing row read path, then runs it.
+4. **The host logs what the statements do.** Triggers that the host creates on each scratch table record every insert, update and delete in order, with recursive triggers on so that `REPLACE` is seen. The authorizer denies the statements any access to the log and to the host's triggers, and reports each `CREATE TABLE`, `ALTER TABLE` and `DROP TABLE`. The changes of a call are this log, netted per row. A before-and-after comparison is not used, because SQLite reuses a `rowid` after the last row is deleted and a delete followed by an insert would read as an update of the deleted row.
+5. **Computed values stay current inside a call.** After each statement that changes a table, the host recomputes that table's formula columns for the changed rows and normalizes dates and booleans in the scratch, so the next statement reads what the workbook would hold. Stored sheet formula cells, which tables from an Excel import can have, are recalculated only by the write path. A statement that reads such a table after an earlier statement in the same call changed it is refused, and the model splits the work into two calls.
+6. **Reads return rows and a receipt.** The receipt records the statements, each table read with its fingerprint, and the row count. Result rows that select `rowid` are inspected by ID.
+7. **Schema changes are read statement by statement.** The host compares a table's column list before and after each schema statement.
+   - `RENAME COLUMN`, `RENAME TO`, `ADD COLUMN` and `DROP COLUMN` become the same change in the table definition. A renamed column keeps its `id` and its history.
+   - A new table becomes a new dataset. A dropped table is archived.
+   - A table dropped and replaced in the same call by a new table of the same name is one redefinition of that dataset. This is how SQLite changes a column's type. The dataset keeps its identity, and so do the columns that keep their names. Its rows are recorded as replaced.
+   - Declared types map to the four column types: `INTEGER`, `REAL`, `NUMERIC` and `DECIMAL` to decimal, `TEXT` to text, `BOOLEAN` to boolean, `DATE` and `DATETIME` to date. `NOT NULL` becomes required and `UNIQUE` becomes unique. A single-column primary key is saved as required and unique. A generated column becomes a formula column when its expression fits the formula language.
+   - Anything the table definition cannot keep is refused with the reason: other types, defaults, checks, foreign keys and composite keys.
+   - Indexes, views, triggers and temporary tables may be created inside a call. They live in the scratch database and end with the call. To keep a query, save a view or a tool.
+8. **One recorded change, inside one hold of the workbook lock.** The copy, the statements and the apply happen without releasing the lock, so nothing else can change the tables in between. The operations are applied inside one `Workbook.mutation` through the path `table.change_rows` and mini-app `data.transaction` already use ([NativeAppData.swift](../../../Sources/SevraCore/NativeAppData.swift), [DatasetDefinitions.swift](../../../Sources/SevraCore/DatasetDefinitions.swift)). That path takes 1 to 64 operations today. It gains a bulk form that writes one evidence Source for the call. Its deadline is set in phase 3 at twice the measured time of a call at the row limit on the test Mac, and never below the 30 s the table definition path uses. The limit starts at 10,000 changed user rows per call, the existing `applyRows` cap. Phase 3 measures what fits inside the capture limits and records the final number. A call over the limit is refused with the count, and nothing changes.
+9. **Applied equals intended.** Before the mutation commits, the host reads back the cells the statements wrote and requires them to equal the scratch result in canonical form. Cells the app computes, formula columns and recalculated sheet formula cells, are not compared. The receipt lists them as recalculated. Any difference rolls the mutation back and fails the call. A protected cell fails the call the same way. A call's statements apply together or not at all.
+10. **One Undo.** The receipt keeps the inverse operations. One Undo restores rows, columns and archived tables. As today, Undo is refused once a later change has touched the same rows. The later change must be undone first.
+
+Other points:
+
+- **Authority for direct changes (P2).** Row updates, schema edits and new tables accept an AI change only under a rule Source. Inserts and deletes through the transaction path make no such check today. App authoring already publishes its own rule Source from the host, marked as written by the app and not as a person's acceptance ([NativeAppAuthoring.swift](../../../Sources/SevraCore/NativeAppAuthoring.swift)). Direct changes get one the same way. Its text says what it allows: changes to this workbook's tables and saved things that the current request asks for. The person has no step to take. Every direct change, whatever its kind, cites it and the request.
+- **What a written row is.** The three row operations keep what `table.change_rows` does today. An insert saves the row as actual and accepted. An update goes through `applyRows` and keeps the row's meaning and status. A delete saves a rejected version. Today only the insert names the request, and the update writes its own correction Source without it. Under this plan the call writes one evidence Source that holds the operations, and it is an input of every operation in the call. Its own inputs are the request and the optional `sources` list on `sql`, the IDs of the documents or records the changes come from. Today's table proposals carry their inputs the same way. The `sql` function inside a script takes the same list.
+- **Drafts on request (P2).** With `draft` set, nothing is applied. A new table with its rows is saved as a table proposal, as `propose_table` does. Row inserts, updates and deletes on an existing table are saved as an edit proposal, as `propose_table_edit` does. Accepted data does not change, and the person accepts the proposal in the review queue. A draft that changes the columns of an existing table is refused with the reason. The `draft` input exists on the `sql` tool only. Inside a script, `sql` always writes directly.
+- **Retries.** The idempotency token of a call is its run and its position in the run, not its statements. A resent decision replays its receipt. A new decision with the same statements, such as a second `SET n = n + 1`, runs again. `sql` has no duplicate refusal.
+- **Numbers.** SQLite's own arithmetic and `sum` are floating point. Its `min`, `max`, comparisons and `ORDER BY` on a decimal column already follow the exact collation. They are left as they are. The scratch connection adds exact functions under their own names for add, subtract, multiply, divide to a stated number of places, round, sum and average. A floating-point result is marked approximate in the result and its receipt. A floating-point value written into a decimal column is refused, with the exact function named in the message. The exact functions return decimal text, and SQLite compares text with a number wrongly without saying so. So the guide's rule is to filter and order with the built-in functions and to select the exact ones for the figures. The phase 2 probe looks for a way to refuse a comparison on an exact result. If there is none, the rule and the gates carry it.
+- **Things bound to a changed table.** Views, apps and definitions bound to changed columns are named in the tool result. As today, an app bound to exact columns is disabled until the person reviews it.
+- **Limits.** The existing query budgets apply: rows and bytes read, VM instructions through the progress handler, and time.
+- **Read-only requests.** The authorizer refuses every changing statement, and the call fails with the existing read-only refusal.
+- **Documents stay with `search` and `read`.** SQL sees tables and the catalog. Exposing records and documents as read-only tables is a later candidate.
+
+Unverified and settled first in phase 2 by a CPU probe on the system SQLite, because the app uses none of it today: authorizer callbacks for table discovery and schema statements, trigger logging of `REPLACE` and upserts, telling a floating-point value written to a decimal column from an exact one, collation behavior on scratch decimal columns, and a page cap on an in-memory database.
+
+### Code runs in the existing worker, with a new script entry point
+
+Facts: QuickJS 2026-06-04 is vendored in `Sources/CQuickJS`. App code runs in the `sevra-app-worker` XPC service, which has the app sandbox entitlement only, and a probe confirms file and network access are denied. A second service of the same binary runs unapproved code. Limits today are a 64 MiB heap, a 512 KiB stack, 500 ms and 10,000 jobs per evaluation, 2 MiB per message and of output, and a 3 s worker watchdog. Host calls are asynchronous messages. No native callbacks are registered, and the host accepts four methods: `page`, `query`, `calculate` and `transaction`. The runtime requires the app SDK and has no entry point for a one-off script. BigInt exists. Exact decimals do not. A mutation is one synchronous transaction and cannot stay open across messages to the worker.
+
+1. **A script entry point.** Add a message kind that evaluates one async function with a small prelude in place of the app SDK and returns its JSON result. The Excel behavior runtime already evaluates a script and returns JSON, and the app check's message pump already carries requests to the host and results back.
+2. **Run only inside a sandboxed worker.** In the app, model-written code runs in the service for unapproved code. The command line and the checks have no packaged service, so there the script runs in a subprocess that enters a deny-default sandbox first, the way the Excel behavior runtime does. If neither is available the tool is refused. Code written in a conversation needs no enabling, because the person asked for it in that turn and it reaches only this workbook (P3).
+3. **Two kinds of function.** Each function is a host method added to the dispatcher. Nothing else is reachable.
+   - **Data functions** are answered while the script runs: `sql`, `search`, `read`, the exact number functions, the text of an included file, the text of the request, and saved functions and queries. Each calls the same host implementation as the tool of that name.
+   - **Requests** are everything that acts outside the tables: saving a file into the workbook, exporting, opening a view, thread functions, operating an app's interface, saved actions, app actions and workflows called by name, the other workflow functions, undo, and long jobs such as transcription, an Excel build or an import. The script gets a handle back at once. The host performs requests in order only after the script has returned without error and its table changes are committed. Their outcomes are part of the tool result. A long job returns a job reference, as those operations do today. Each request behaves as its operation does today, so one that makes a draft still makes a draft.
+4. **One scratch database for the whole script.** The script sees its own SQL writes. `search`, `read` and saved queries see the saved workbook, without the script's unsaved changes. A workbook tool with a SQL body called from the script runs on the same scratch database. One with a JavaScript body runs inside the same script, under the same budgets.
+5. **Applied once, at the end.** When the script returns, its table changes are applied as one recorded change with one Undo, by the same steps as `sql`. Since the workbook lock cannot be held across messages, the apply first checks that each touched table's fingerprint still equals the one copied, and refuses otherwise.
+6. **Failure changes nothing.** A script that throws, runs out of budget or is cancelled changes no table and performs no request.
+7. **Ending the turn.** Switching or starting a thread ends the turn today. A script may request at most one such function, and it is performed last.
+8. **Budgets.** Each evaluation keeps its limits. The call gets a host deadline across round trips, a cap on host calls, and the existing output cap. A result over the cap is saved with a receipt and paged with `read`.
+9. **Effects.** A script that changed nothing and requested nothing is a read.
+10. **Exact numbers.** Scripts get the exact number functions as host calls. Money math in plain JavaScript numbers is floating point, and the guide says so.
+
+Restrictions never change the tool list. The grammar removes a whole tool, `ask` or `save`, where the request forbids it. The SQL and code layers refuse changes in a read-only request. Thread functions are refused when called in a side thread. A line in the request block tells the model which apply.
+
+### Saving, and tools that belong to a workbook
+
+Facts:
+
+- Saved definitions have nine kinds (function, query, action, form, workflow, interpretation, extraction, intake, automation) with up to 32 typed parameters, stored as immutable versions in `app_definitions`. None holds SQL or JavaScript: a function is a decimal formula, a query is a structured template that refuses raw SQL, and an action must name one of three registered primitives, two of them inventory.
+- The list of kinds is a `CHECK` in the canonical schema, and opening a workbook compares the schema text ([Schema.swift](../../../Sources/SevraCore/Schema.swift)).
+- The model does not see definitions as tools. It reaches them through generic tools such as `find_definitions`, `evaluate_definition` and `start_workflow`.
+- Mini apps and views are stored in `spaces` and `space_versions`. Saving an app runs an isolated check, a second model review and a per-Mac permission step. An app that arrives in a copied workbook is disabled until the person enables it on that Mac.
+- An app declares its actions in JavaScript at run time. Their list exists only while an enabled app is running.
+- Views bind forms, calculations and queries to definitions, and those screens work without the model.
+
+1. **`save` routes by kind to the existing validators.** A document goes to the draft path, a record to the record path, a view to the view path, an app to the check, review and save path, and a definition to the definition path for its own kind, one of the nine. Each path keeps its behavior: a document or record is a draft the person accepts, a view or tool is ready to use, and an app is saved disabled until enabled (P2, P5).
+2. **A new definition kind, `tool`.** Its payload is a body in SQL or JavaScript. It uses the existing typed parameters, versions, heads, dependencies and search index. The person or the model creates one with `save`. A `tool` body writes directly, like `sql` and `run`.
+3. **This changes the workbook format.** Adding a kind changes the canonical schema. Under the pre-1.0 compatibility policy in [[records/specs/distribution]] there is no migration: the schema is updated, the sample workbook and fixtures are recreated, and the break is documented. Workbooks made by earlier development builds do not open in the new build. Every schema change of this plan lands in that one change.
+4. **Every callable definition is a workbook tool.** Existing functions, queries, actions and workflows keep their formats and their screens. They are listed and called by name with their typed parameters, in place of the generic find, evaluate and start tools. Each keeps its own behavior: an action that makes a draft still makes a draft, and the direction review still runs in front of it. A workflow started by name runs now or is queued, as the workflow operations allow today.
+5. **App actions are listed from a saved catalog.** The isolated check at save already runs the app. It records the declared actions with the package version, so they can be listed and inspected without a running app. Running one still needs the app enabled on that Mac.
+6. **Listing.** The per-workbook part of the prompt lists each tool as a name with its inputs and a few words, beside the workbook's tables, views, apps and automations.
+7. **Loading and calling.** Reading a tool returns its input schema in the read result. From then on the grammar accepts a direct call to it by name with checked inputs, for the rest of the conversation. A call runs the tool's current version. If the tool changed since it was read, the call is refused and the model reads it again. A tool's name cannot equal a built-in's. Scripts can call it as a function.
+8. **Loaded tools survive context maintenance and handoff.** The host keeps the list of loaded tools and read guides as conversation state. When context maintenance drops the read result that carried a schema, the rebuilt prompt's host state carries it again. A handoff to a new thread carries the names.
+9. **Tools from a copied workbook (P5).** A tool saved on this Mac in a conversation is granted on this Mac when it is saved. A tool with no grant on this Mac, because the workbook was copied here, does not run until the person enables it. This holds for SQL and JavaScript bodies alike.
+10. **Undo.** A `save` is one recorded change. Undo removes the new thing or restores its earlier version.
+11. **The command line.** `tool WORKBOOK TOOL` runs the seven tools and workbook tools by name.
+
+### The stock ledger without built-in tools
+
+No ledger tool is built in, on demand or otherwise (S2, S3).
+
+- **Reading.** The ledger's balances and movements are two read-only catalog tables in the scratch database. The core's balance read takes one subject today, so listing every subject needs one small new read over the ledger tables. No ledger data or rule changes. The per-workbook listing shows the two tables, with their columns, when the ledger holds entries. That is a listing of data the workbook holds and adds no tool. It does depend on workbook state, so it is an open item for the owner. The alternative is to list them always.
+- **Changing.** A movement is recorded by a saved action that names the existing movement primitive. A saved action is a workbook tool like any other. The sample workbook carries one. The direction review stays in front of the primitive.
+- **Starters.** The receiving starter and the low-stock rule starter become guides read on demand, each with a filled example. What the model writes from them is saved with `save` as a definition and checked by that kind's existing validator.
+- **Quote comparison** needs no tool. It is SQL over the comparison table.
+
+Nothing about stock appears in the header.
+
+### Confirmations that stay with the person
+
+Five operations today prepare something the person confirms in the conversation: enabling an app, enabling an automation, accepting or withdrawing a record, submitting a form, and reading what is pending. They stay. Each is a function that prepares the exact effect and returns that a confirmation is required. The person's confirmation applies it through the existing approval path. Direct writes do not pass through this path. It covers what a person grants: permission for an app, a standing automation, acceptance of a draft, and a form submitted in their name.
+
+### Safety
+
+- **Nothing leaves the Mac by itself (P3).** The sandbox has no network and reads no file outside the workbook. Today's export operations write to any absolute path in the tool call. Under this plan an export is a request, and the host accepts its path only when that exact path appears in the person's message for this request. Otherwise the app opens the save panel. On the command line there is no panel and the export is refused. Including a file works only on a file the person linked earlier, by its ID.
+- **Changes can be undone.** That includes dropped tables and bulk deletes, each restored by one Undo, until a later change touches the same rows.
+- **Documents are still untrusted.** The instruction that imported text is evidence and never an instruction stays in the prompt. A document that tries to instruct the model can at worst cause changes in this workbook. Table changes can be undone until later changes build on them. Requests keep the undo their operations have today, and some have none.
+
+### Answers, evidence and the guards that move
+
+The agent loop in [WorkbookAgent.swift](../../../Sources/SevraAI/WorkbookAgent.swift) carries guards keyed on today's tool names. Each needs a new basis before its old tools go. None is dropped silently. Line numbers are at the reviewed commit.
+
+| Guard today | Where | New basis |
+| --- | --- | --- |
+| What counts as inspected, from the result shape of `read`, `search`, `rows`, `evaluate_definition` | `visibleEvidence`, `WorkbookAgent.swift` 2190 to 2291 | A result row that carries its row identity is inspected by ID. Any other `sql` or `run` result is inspected as a result receipt that names the query or code and every table it read. |
+| Numbers, percentages and comparisons must come from `calculate`, `balance` or `compare_rows` | `WorkbookAgent.swift` 269 to 276 and 1728 to 1794, [CalculationRequirement.swift](../../../Sources/SevraAI/CalculationRequirement.swift) | They must appear in the request, in inspected evidence, or in a complete, untruncated result of this run from `sql`, `run` or a tool called by name. A figure taken from a result cell marked approximate is refused, with the exact functions named. |
+| Count receipts re-verified at `finish` | `WorkbookAgent.swift` 792 to 813 | A cited result receipt records the fingerprint of each table it read. A catalog table has one of the same shape, its row count and newest entry. If one changed since, the receipt is stale and the answer is refused until the query runs again. |
+| Read-only tool list drives `attemptedEffect`, `completedAction`, handoff order and Core refusal | `WorkbookTools.readOnlyTools`, [Tools.swift](../../../Sources/SevraCore/Tools.swift) 21 to 29 and 151 | The recorded effect of each call. `sql` is a read when it changed nothing. `run` is a read when it changed nothing and requested nothing. A read-only request denies changes inside the SQL and code layers. |
+| Empty-search limit and discovery budget | [SearchCoverage.swift](../../../Sources/SevraAI/SearchCoverage.swift), [DiscoveryBudget.swift](../../../Sources/SevraAI/DiscoveryBudget.swift), `WorkbookAgent.swift` 1796 to 1880 | Unchanged for `search`. Searches made from inside `run` count too. |
+| Direction review before an inventory movement or saved action | [MovementDirectionReview.swift](../../../Sources/SevraAI/MovementDirectionReview.swift), [ActionDirectionReview.swift](../../../Sources/SevraAI/ActionDirectionReview.swift) | Unchanged, in front of the primitive and of saved actions, however they are called. |
+| Isolated check and independent review before saving an app | `WorkbookAgent.swift` 1245 to 1313, [NativeAppReview.swift](../../../Sources/SevraAI/NativeAppReview.swift) | Unchanged, run by `save` for apps. |
+| Duplicate draft and view refusals, retry keys by tool | `Tools.swift` 524 to 546, [ActionConfirmations.swift](../../../Sources/SevraAI/ActionConfirmations.swift) | Keyed on the saved thing's kind and name. `sql` and `run` have no duplicate refusal, only the replay of a resent decision. |
+| Host-written closing receipts and focus per tool | `WorkbookAgent.swift` 1710 to 1727 and 1841 to 1971 | Per kind of saved thing, and one generic receipt for a data change. |
+| Undo offered only for one-change app actions | `WorkbookAgent.swift` 1565 to 1580, [ConversationViews.swift](../../../Sources/SevraApp/ConversationViews.swift) 248 to 275 | Offered for every change made by `sql`, `run` or `save`. |
+| Evidence carried into a new thread: `read` and `calculate` only | [HandoffEvidence.swift](../../../Sources/SevraCore/HandoffEvidence.swift) 14 to 68 | `read` results, result receipts and the names of loaded tools. |
+| Context maintenance keeps `readEvidence` and `savedSpaces` by tool | [ContinuationEvidence.swift](../../../Sources/SevraCore/ContinuationEvidence.swift) 17 to 70 | Read evidence, result receipts, saved things by kind, loaded tools and read guides. |
+| Scopes, grammar tool lists and the citation choices on `finish` | [WorkbookInference.swift](../../../Sources/SevraAI/WorkbookInference.swift) 8 to 99, [ToolSerialization.swift](../../../Sources/SevraAI/ToolSerialization.swift), [NativeCitationPolicy.swift](../../../Sources/SevraNativeAI/NativeCitationPolicy.swift) | One ordinary tool list. Restrictions are enforced by the grammar and the host. Specialized phases keep their own lists. |
+
+Interface code also branches on tool names: 14 progress labels in [ToolActivityLabel.swift](../../../Sources/SevraAI/ToolActivityLabel.swift), activity titles in [RequestActivity.swift](../../../Sources/SevraCore/RequestActivity.swift), and scripted names in the Native UI Catalog fixtures. Of the 84 agent check files, 61 contain tool-name literals.
+
+### Prompt layout
+
+1. **Header.** The stable instructions, the seven schemas, the function index, the catalog tables and the names of the general guides. It is identical for every ordinary chat turn, in every workbook.
+2. **Per-workbook block.** Tables with their columns, and views, apps, tools and automations, each as a name with its inputs and a few words, within a token budget. Past the budget it lists names only and the catalog tables hold the rest. The block is built when a conversation starts and stays as it is for that conversation, so the follow-up cache holds.
+3. **Saved conversation.** Append-only, as [[records/plans/conversation-follow-up-cache]] left it.
+4. **Host state and the request.** Catalog changes made after the conversation started are listed here: names added, changed and removed. Context maintenance, which already rebuilds the prompt, rebuilds the block.
+
+A loaded tool's schema and a guide arrive in the result of the read that asked for them. Nothing before them in the prompt changes.
+
+## The prompt header is never computed in a chat turn
+
+### What the engine allows
+
+The pinned Splash 1.6.1 already keeps restore points on disk. The app turns that off today with `--persistent-cache off` in [NativeWorkbookModel.swift](../../../Sources/SevraNativeAI/NativeWorkbookModel.swift). Read from the pinned source and its `docs/server.md`, and not yet run:
+
+- `--persistent-cache on` with `--cache-dir` keeps restore points across restarts. A start takes back every recorded point whose chain is whole. The status reply reports it under `disk`: `persistent`, and `taken_back` with counts of `states`, `kv_blocks`, `bytes` and `left_behind`.
+- The files are `kv.slots`, `kv.records`, `state.slots` and `state.records`, beside `lock`, `serving`, `probation` and `failed-probation` markers, in a directory that must be mode 0700, owned by the user and locked while in use. The engine cannot use them in place from a signed, read-only app bundle. They are copied into place.
+- There is no message to export or import one named restore point. With the persistent cache on the engine copies every point of every request, so a conversation's own state reaches the disk too.
+- The app passes no disk quota. On low free space, a volume that is not local or a directory it cannot use, the engine falls back to temporary files and still reports Ready.
+- **Read from the source, and to be proven in phase H2: the cache name can be the same on every Mac without an engine change.** The name is a digest of the weight manifest and the cache layouts (`runtime/engine/RuntimeResources.mm`). The manifest lists each weight image's relative path, size and header, and the SHA-256 of the assembly's `model.json` (`runtime/model/WeightStore.cpp`). From that file the engine reads four fields: `version`, `model`, `target_format` and `vision_format` (`runtime/model/ModelDescriptor.mm`). It hashes the rest without reading it. The parts that differ per Mac, each file's absolute path and its modification and change times, are written by this repository's [ModelPreparation.swift](../../../Sources/SevraSplash/ModelPreparation.swift) for its own fast verification. Because a launch fingerprints the files again, a changed file time alone gives the assembly a new key and the cache a new name today. The name also depends on the KV and state formats, which the app's launch arguments set, so those arguments belong in the snapshot's manifest.
+- Every start removes cache directories nobody used for 14 days, except the one it holds. After two failed starts in a row the next start begins empty. A clean stop gets up to 6 seconds to write waiting points. The app stops its helper with SIGTERM and SIGKILL one second later ([NativeProcess.swift](../../../Sources/SevraSplash/NativeProcess.swift)).
+- Whether a request reused the header is known only from its start event, after it is sent. A running engine can drop a point when its disk quota is full, oldest first.
+
+### How the header reaches a Mac (P4)
+
+The owner asked for the header to ship inside the signed app, with no fallback, proven before release. Two facts shape how that is delivered:
+
+- Sevra is built from source on each Mac today. `scripts/install.sh` builds the app there and signs it ad hoc. No downloadable signed app exists that could carry a tested file. One is planned in [[records/plans/macos-installer-and-updates]] and is not built.
+- A header file is valid for one cache name. With the model record made the same on every Mac (phase H2), one file can be valid everywhere. Whether state made on one Apple chip gives the same answers on another has not been tested. Only one test Mac exists.
+
+Proposal:
+
+1. **Now: made during setup, on each Mac.** Right after the model is verified, and before chat is available, setup makes the header, checks that it resumes, and keeps a snapshot. Before every engine start the app restores the snapshot and checks it. The steps are in [Mechanism](#mechanism).
+2. **With the installer: shipped.** The release build makes the same files once on the release Mac with the same step, runs the header tests on them, and places them in the app. Setup installs them by copying. Nothing is computed on the person's Mac.
+
+In both, no chat turn computes the header. A mismatch is an error with a Repair action. The app never continues on a slow path.
+
+What makes the header on a person's Mac under item 1, none of it inside a chat turn:
+
+- first setup, after the model is verified;
+- an app update whose header or engine differs from the snapshot's manifest, before the first chat after the update;
+- preparing a different model. After phase H2, preparing the same model again does not change the cache name. A model given by local path is the exception: a change to its files makes the header again during model preparation, and is never reported as damage;
+- Repair, when the person chooses it.
+
+What a release can prove under item 1 is the mechanism, on the packaged build. Each Mac then proves its own match at setup and at every engine start. Under item 2 the release proves the file itself.
+
+Still the owner's to answer: under item 2, what the app does on a Mac whose chip the release did not test, or with a model the release did not ship. The choices are to refuse chat there or to make the header at setup as in item 1. Under item 1 the question does not arise.
+
+### Mechanism
+
+1. **Make it during setup.** Setup checks free disk space first and reports a shortage with its own message. It starts the engine with the persistent cache on, an app-owned cache directory and an explicit disk quota, sends the ordinary chat header as a one-token request, and stops the engine through a new stop path that waits for the engine's own exit, so the points are written.
+2. **Prove it before chat is available.** Setup starts the engine once more, sends the header again as a one-token request, and requires that request to resume at least the header. If it does not, setup fails with the reason and chat stays unavailable.
+3. **Keep a snapshot.** After the engine has exited by itself, setup copies the four data files to the app's Application Support folder with a manifest: the header's token digest, the engine's cache name, the launch arguments that feed that name, the pin from `integration/splash.json`, the model pack identity, the point counts the engine reported, and every file's size and SHA-256.
+4. **Restore before every engine start.** The host replaces the cache directory with a clone of the snapshot, checks it against the manifest and starts the engine with the persistent cache on. So a deleted cache folder or the engine's 14-day sweep does not lose the header, which the header tests prove, and restoring is a file clone, not a computation.
+5. **Check at start.** After Ready the host requests the engine status and requires `disk.persistent` to be true, `taken_back` to report at least the manifest's states and KV blocks, and `left_behind` to be zero. If the engine fell back to temporary files, the header was not taken back. Chat does not start. The app reports that the Mac lacks free disk space for the local AI cache and how much it needs. That is not a damaged installation, and nothing is computed.
+6. **Check on every request.** Every ordinary chat prompt starts with the header, so every request's start event must report that it resumed at least the header. If one does not, the host cancels that request before it generates, stops the engine, restores the snapshot, starts again and sends the request once more. If the header is still not resumed, the app reports a damaged installation and offers Repair, which reruns steps 1 to 3. The host counts failed starts itself, because restoring a clean directory resets the engine's own counter. The status check in step 5 makes a miss here rare. This step exists so that a miss can never turn into a computed header.
+7. **Keep conversations off the disk between runs.** The engine writes later restore points into the same directory while it runs. The host removes the directory when the engine stops and at the next start, before restoring the snapshot.
+8. **Size the quota so the header is never the point dropped.** The quota covers the header and a full context of conversation points. Phase H1 measures both.
+9. **Remove header priming.** `primePrefix` no longer primes a header that has a snapshot. The follow-up replay state from [[records/plans/conversation-follow-up-cache]] is unchanged.
+10. **Prime the workbook block when the engine is already running.** The per-workbook block cannot be made in advance. If the engine is running when a conversation starts, the host primes that block in the background. Otherwise the first message computes it. Loading the model only to prime it would hold memory for a person who never chats. This block is the one part of the prompt start a chat turn may still compute.
+
+The header covered here is the ordinary chat header. Specialized phases keep their own prompts and compute them when used.
+
+### Header tests
+
+- **Zero header tokens.** In a cold first turn after setup, the first call resumes at least the header and no header prime runs.
+- **Faster, not just different.** A cold first turn with the restored header is faster than the same turn computing the header. On the test Mac the header prime measured 4.33 s. Restoring and checking must cost less.
+- **Same answers.** A fixed set of requests gives the same tool calls and answers with the restored header as with a freshly computed one.
+- **Survives loss.** Deleting the cache directory, or ageing it past the engine's 14-day sweep, still gives a zero-header-token first turn after the next start.
+- **Survives a full conversation.** After a conversation that fills the context, a new conversation still resumes the header.
+- **Fails loudly.** A snapshot whose manifest, header digest, engine pin or model identity does not match stops at the installation check with a Repair offer. No turn runs.
+- **Header changes are deliberate.** The header's token digest is recorded in the repository. A CPU check fails when the built header differs from it, so a prompt or schema edit updates the digest in the same change and the header is made again.
+- **Nothing kept from conversations.** After a stop, and after a forced kill followed by a start, the cache directory holds the snapshot only.
+
+## Coverage of what exists today
+
+The 59 ordinary chat tools, by where each goes. The inventory and token counts are in [[records/plans/native-chat-prompt-routing]].
+
+| New home | Today's tools |
+| --- | --- |
+| `search` | `search`, `history_search` |
+| `read` | `read`, `references`, `lineage`, `tool_result`, `history_read`, `archive_members`, `read_definition`, `read_native_app`, `read_workflow`, `space_history`, and as guides `native_app_sdk`, `definition_registry`, `form_template`, `workflow_template`, `receiving_template`, `inventory_automation_template` |
+| `sql`, reading | `datasets`, `rows`, `compare_rows`, `calculate`, and through the catalog tables `count_records`, `find_definitions`, `spaces`, `review_queue`, `workflow_activity`, `balance` |
+| `sql`, changing | `propose_table` and `propose_table_edit` with `draft`, and direct changes without it |
+| `run` functions | `include_archive_members`, the five thread tools, `open_space`, `open_reviews`, `open_automation`, `set_space_pinned`, `pin_space`, `restore_space` |
+| `save` | `draft`, `propose_record`, `publish_result`, `save_space`, `edit_space`, `save_native_app`, `save_definition`, `save_template` |
+| `ask` | `request_input` |
+| `finish` | `finish` |
+| Workbook tools, called by name | `evaluate_definition`, `preview_action`, `prepare_action`, `start_workflow`, and `propose_movement` as a saved action |
+| The function index and the per-workbook listing | `workspace_actions`, `workspace_action` |
+
+The 81 operations inside `workspace_action`, by domain:
+
+| Domain | Operations | New home |
+| --- | ---: | --- |
+| `table` | 7 | `sql` for schema and row changes and for history through the table versions catalog. Functions for undo and for restoring an earlier schema. |
+| `app` | 13 | An app's named actions are workbook tools. Inspect is `read` from the saved catalog. Browse, set, fill, select, activate, drop, undo, redo and restart are functions. Enable is prepared by a function and confirmed by the person. Disable is a function. |
+| `visual` | 27 | Functions for charts, images and diagrams. A capture is attached to the answer through `finish`. `save` for a view. Export follows the export rule under [Safety](#safety). |
+| `file` | 6 | Functions. Include by ID, transcribe as a long job, exports under the export rule. |
+| `intake` | 7 | Functions that run the existing importers as jobs. They cover XLSX and large files. A script may also read a small text file and insert rows with `sql`. An update proposed by intake stays a draft. |
+| `excel` | 8 | Functions that start the existing conversion phases as jobs. |
+| `workflow`, `automation` | 8 | Workflows are workbook tools. Continue, retry, cancel and answer are functions. Inspecting an automation is `read`. Enabling one is prepared by a function and confirmed by the person. Pause is a function. |
+| `form`, `record`, `document`, `chat` | 5 | Functions. Submitting a form and reviewing a record are prepared by a function and confirmed by the person. |
+
+Phases that are not part of ordinary chat keep their own tool lists and prompts for now. They are listed under [Scope](#scope). Chat starts them through a function. Moving them to general tools is outside this plan.
+
+## Work sequence
+
+Phases are ordered by what depends on what. Each ends on an exit criterion. Checks follow the focused verification policy in [[records/specs/distribution]]: the smallest checks that establish the change inside a phase, and the full suite where a phase crosses a boundary. Phase 3 changes the write path and phase 6 removes the old tools, so those two run the full suite. Real-model and engine runs load one model at a time on an idle Mac, after checking reclaimable memory.
+
+Until phase 6 the current tools stay the default. The general tools run under a host-selected tool profile in the same build, so every gate compares the two on the same code. A phase that misses its exit criterion does not exit, and no phase that depends on it starts. The result goes to the owner with the transcripts. The tools a person chats with do not change until phase 6 passes. Two things do change earlier, each called out where it happens: the workbook format in phase 5 and the header mechanism in phase H3.
+
+The header phases H1 to H3 depend on phase 0 only. H4 also needs the installer. Until phase 7 the snapshot covers the `current` profile's header, which is what a person uses. The `general` profile, which only the gates use, primes its header as today. When phase 7 fixes the final header, the header tests run again on it.
+
+**The rule for every real-model gate:**
+
+- Each job has a recorded expected result: the rows and columns in the workbook afterwards, or the figures and citations in the answer.
+- A gate runs each job its phase touches once per language. A job that fails is run twice more and passes only if both pass. Every failure is recorded with its transcript.
+- Unless a phase's exit says otherwise, decisions are compared as a total over the gate's jobs, and the total must not exceed the baseline's. The baseline is recorded once in phase 1 and reused.
+- A job with no passing baseline is gated on its expected result alone.
+- Wall time is recorded at every gate. It is gated once, in phase 6: the total over all jobs must not exceed the baseline's.
+- The three timed turns, a cold first turn, a warm greeting and the warm stock question, use the median of three runs.
+
+### Phase 0. Record the direction and get the go-ahead
+
+1. This plan and the owner note are recorded.
+2. The owner confirms or changes S1 to S3 and P1 to P5.
+3. The owner authorizes implementation, including real-model runs and installing and operating the preview for interface checks, as earlier tasks did.
+4. The owner updates the store's rule against raw-model DDL in `db/DB.md`, which agents do not edit.
+5. The specifications in [What this replaces](#what-this-replaces) get the new rule with a link here, in the phase that makes each one true.
+
+Exit: the owner's answers are recorded as a source note, the `db/DB.md` line is changed, and `AGENTS.md` points at this plan. Phase 3 cannot start before the `db/DB.md` change.
+
+### Phase 1. Baseline and a switchable tool profile
+
+1. Add a tool profile chosen by host configuration, never by the model or by text: `current` and `general`. With `current` the declarations are byte-identical to today.
+2. Fix the comparison jobs, on the synthetic sample workbook, in English and Spanish:
+   - read: the stock question, the supplier comparison, a count, a two-table join, a question about a document;
+   - change: add rows from a document, a bulk update, a new table from pasted text, a renamed column, deleted rows;
+   - several steps: add to one table the rows it is missing from another, total a document's line items by category and save the totals as a table, report the three largest price differences between two suppliers;
+   - draft: a change the person asks to see as a draft first;
+   - build: a view with a table and a chart, a small app, a form that adds a row to a table, a rule that alerts when an item's stock falls below a level, and a saved tool, which has no baseline because the current tools cannot make one;
+   - conversation: a greeting, a new thread, a clarifying question;
+   - safety: a document that contains an instruction, and a request that forbids changes.
+3. Record the baseline with the current tools: decisions, wall time, prompt tokens, answers, citations, saved results.
+4. Check one unverified point first. Chat's AI actor carries a policy label, not a rule Source, and the row update and schema paths refuse an AI change without one ([Tools.swift](../../../Sources/SevraCore/Tools.swift) 107 to 115, [Tables.swift](../../../Sources/SevraCore/Tables.swift) 595, [DatasetDefinitions.swift](../../../Sources/SevraCore/DatasetDefinitions.swift) 149). If the current tools cannot update rows or change a schema under a real model, those jobs are recorded as having no passing baseline.
+
+Exit: the baseline is retained as evidence, and `--conversation-surfaces` shows the `current` profile unchanged.
+
+### Phase 2. `sql`, reading
+
+1. **Probe SQLite first, CPU only.** On the system SQLite, show each mechanism the design relies on: authorizer callbacks for table discovery and schema statements, trigger logging of `REPLACE` and upserts, telling a floating-point value written to a decimal column from an exact one, `min`, `max`, comparisons and ordering on scratch decimal columns, and a page cap on an in-memory database. A mechanism that does not hold is replaced in this plan before step 2.
+2. Build the scratch connection, the readable names, the catalog tables including the ledger's two, table discovery, the budgets and the exact number functions.
+3. Refuse everything outside the scratch database: `ATTACH`, extension loading, file-writing statements and pragmas that change state. Refuse every changing statement until phase 3.
+4. Write the result receipt with statements, tables read and fingerprints. Rebase the inspected set and the number, comparison, percentage and currency checks on receipts, as listed under [Answers, evidence and the guards that move](#answers-evidence-and-the-guards-that-move).
+5. Open a cited result receipt in the conversation, showing its statements and the tables it read.
+6. Extend `search` with the conversation scope and `read` with result pages, references, lineage and guides. Write the first guides, for SQL and the catalog.
+7. Offer `sql` in the `general` profile in place of `datasets`, `rows`, `count_records`, `compare_rows`, `calculate` and `balance`.
+8. Measure filling a table at 1,000, 10,000 and 100,000 rows.
+
+Exit:
+- CPU: refused statements are refused; the scratch database holds nothing but the tables referenced and the catalog; results equal the existing query engine on its fixtures; the exact functions equal the exact engine on the calculation fixtures; a floating-point result is marked approximate; budgets and the page cap hold.
+- Copy cost: filling 100,000 rows, the existing row budget, completes inside the existing query time budget. If it does not, the row limit for `sql` is lowered to the largest measured size that does, and recorded here. If an ordinary call then spends more than a tenth of a decision in filling, the host keeps a filled copy of each table for the conversation, starts each call's scratch database from it, and refills a table only when its fingerprint changes.
+- Real model: every read job is answered correctly with citations, with no more decisions than the baseline, in both languages. The stock question gives 18 from an opening 20 and a movement of −2. A cited receipt opens in the conversation.
+
+### Phase 3. `sql`, changing
+
+Depends on phase 2 and on the `db/DB.md` change.
+
+1. Translate the trigger log and the schema statements into operations: row operations, new tables, new definitions, redefinitions, archived tables.
+2. Add the bulk form of the row write path with one evidence Source and a bulk inverse for Undo. Measure the largest number of changed user rows that fits inside the capture limits, record the limit, and set the deadline from the measured time.
+3. Publish the rule Source for direct changes from the host. Add `sources` and `draft`.
+4. Apply under one hold of the workbook lock. Add the read-back of written cells, the read-only refusal, and the token keyed on the decision.
+5. Name the views, apps and definitions bound to changed columns in the result.
+6. Show one Undo for the call in the conversation, using the receipt the finish payload already carries for app actions.
+7. Update [[records/specs/managed-datasets]], [[records/specs/persistence-readiness]] and [[records/specs/distribution]] with the new rules.
+
+Exit:
+- CPU, over a generated set of inserts, updates, deletes, replaces and schema changes: the written cells equal the scratch result; `Workbook.verify` passes; replaying the committed changes rebuilds the same state; one Undo restores the exact earlier state, including a dropped table, a redefined table and a bulk delete; Undo after a later change to the same rows is refused with the reason; the canonical schema check passes; a read-only request changes nothing; a repeated statement in a new decision runs again; a call over the row limit changes nothing.
+- Real model: every change job and the draft job succeed in both languages. The two safety jobs pass. They run at every gate from here on, because each later phase adds a way to change the workbook.
+- Records: the three specifications carry the new rules.
+- Milestone: the full agent suite and `scripts/check.sh`.
+
+### Phase 4. `run`
+
+Depends on phase 2. Uses phase 3 for changes.
+
+1. Add the script entry point and prelude to the worker and the app runtime.
+2. Add the data functions: `sql`, `search`, `read`, the exact numbers, the text of an included file, the text of the request, and saved functions and queries.
+3. Add the request queue, with opening a view as its first request. The other requests arrive in phase 6.
+4. Add the single scratch database per script, the apply at the end with its fingerprint check, the call deadline, the host-call cap, effect accounting and the result receipt.
+5. Write the code guide and the function index. Update [[records/specs/native-app-engine]].
+
+Exit:
+- CPU: the sandbox probe passes on the script path; file and network attempts fail; time, memory, job, output and host-call limits hold; a script's changes are one recorded change with one Undo; a script that throws changes nothing and performs no request; a table changed by someone else during the script refuses the apply.
+- Real model: each of the three several-step jobs finishes in fewer decisions than the baseline, with the same result, in both languages.
+
+### Phase 5. `save`, workbook tools and the format change
+
+Depends on phases 3 and 4. Before it starts, the owner decides what happens to workbooks made by earlier development builds, which will not open after this phase.
+
+1. Route `save` by kind to the existing document, record, view, app and definition paths, each keeping today's behavior. Write the guide for each kind and attach the kind's strict shape after its guide is read. Extend `read` to views, apps, tools and automations. One Undo per save.
+2. Change the canonical schema once: add the `tool` kind and anything else this plan stores. Recreate the sample workbook and the fixtures. Document the break.
+3. Add the `tool` kind with a SQL or JavaScript body, validated by preparing the SQL against the scratch schema or checking the script's syntax, and run through the phase 2 to 4 layers.
+4. List callable definitions and saved app action catalogs in the per-workbook block. Load on read. Accept direct calls by name with checked inputs, and calls from scripts. Keep loaded tools through context maintenance and handoff.
+5. Record an app's declared actions during its isolated check.
+6. Add the per-Mac grant for tools and the enable step for a tool that arrives in a copied workbook.
+7. Give the sample workbook a saved action for a stock movement. Turn the receiving and low-stock starters into guides.
+8. Show a workbook's tools on the existing definitions screen, with enable and remove. Creating and editing a tool happens in chat. This is the default unless the owner chooses more in phase 0.
+9. Update [[records/specs/application-definitions]].
+
+Exit:
+- The app authoring checks pass through `save`.
+- A `tool` can be saved, listed, read, called directly, called from a script, and is disabled in a copied workbook until enabled. It is still callable after context maintenance.
+- An app action is listed without the app running and runs once the app is enabled.
+- A stock movement made through the saved action behaves as `propose_movement` does today, including its direction review, and the balance read through `sql` agrees with the core's balance. The README's supplier comparison is reproduced with `sql` over the comparison table.
+- One Undo removes a saved view, document, record and tool, or restores the earlier version.
+- Real model: the build jobs succeed in both languages.
+
+### Phase 6. Fold the rest, then remove the old tools
+
+Depends on phase 5.
+
+1. Add the remaining requests and functions, with their guides: threads, navigation, pins, files, imports, charts, Excel, apps, workflows, undo, and the prepared confirmations. Replace `request_input` with `ask`. Apply the export rule.
+2. Rewrite the stable instructions for seven tools. Remove the inventory, receiving and supplier paragraphs and the supplier wording in [CostQualification.swift](../../../Sources/SevraAI/CostQualification.swift).
+3. Reduce handoff work kinds to answer and change. Rekey action confirmations, closing receipts, progress labels and activity titles by kind.
+4. Rewrite or retire the check groups that name old tools, keeping every invariant they assert. Update the Native UI Catalog registry and fixtures in the same change.
+5. Point the command line's `tool` command at the seven tools and workbook tools.
+6. Make `general` the only profile and delete the old tool definitions that no specialized phase still uses.
+
+Exit:
+- Every job in the phase 1 list passes with the general tools in both languages, with no more decisions than the baseline in total.
+- Milestone: the full agent suite, `scripts/check.sh`, a packaged build, installation, and the native journeys for supplier comparison, Excel import and a mini app in the installed preview, with the interface review `AGENTS.md` requires.
+
+### Phase 7. Final prompt and measurement
+
+Depends on phase 6. Its header exit item also needs phase H3.
+
+1. Fix the header: instructions, seven schemas, the function index, the catalog tables and the guide names. Fix the per-workbook block: tables with columns, and views, apps, tools and automations by name with inputs.
+2. Record the final header's token digest in the repository. Phase H3 adds the CPU check that fails when the header drifts. If H3 is not built, add that check here.
+3. Measure prompt tokens, decisions and wall time against the phase 1 baseline, cold and warm.
+
+Exit: the header is smaller than today's 6,020-token shared header, an ordinary first decision's prompt is smaller than today's 10,989 tokens, the measurements are recorded here, and the header tests pass on the final header. If phase H1 stopped the header work, that last item does not apply and decision 5 stays open with the owner.
+
+### Phase H1. Probe the engine's disk cache
+
+Depends on phase 0. Runs the engine, so it needs the go-ahead. Changes no product code.
+
+1. Start the helper as the app does, with the persistent cache on, a temporary app-owned cache directory and an explicit quota. Send the current header as a one-token request. Stop it and wait for its own exit. Record the files and their sizes.
+2. Copy the directory aside, delete it, clone it back, and start again. Require `disk.persistent` true, `taken_back` reporting the points, `left_behind` zero, and the first request resuming at least the header.
+3. Record the cost of the clone and the check, and the start time with the cache on and off.
+4. Run a conversation that fills the context. Record the bytes written per turn and whether a new conversation afterwards still resumes the header.
+5. Find out whether a write budget can stop conversation copies without harming long conversations. If it cannot, record the daily write volume for the owner.
+
+Exit: every item is recorded as evidence. If the header does not resume from a cloned directory, the header work stops here and goes back to the owner. The choices then are an upstream request or dropping the pre-read header.
+
+### Phase H2. One cache name on every Mac
+
+Depends on H1.
+
+1. Write `model.json` with only what is the same on every Mac: the version, the model's repository name, the family, the formats, the source repositories and revisions, and each file's relative destination, size and digest.
+2. Move each file's absolute path and times to a sidecar the engine never reads. Model preparation keeps its fast verification from the sidecar.
+3. A model given by local path, the developer case, has no repository identity. It keeps a per-Mac record, and model preparation makes its header whenever its assembly key changes. This is the only case where a start can make the header, and no release ships it.
+
+Exit: preparing the same model pack from two different folders gives a byte-identical `model.json` and the same assembly key; the engine reports the same model layout digest for both; a header made under one folder is taken back under the other; changing a weight file's times changes neither.
+
+### Phase H3. The header is made at setup and restored at every start
+
+Depends on H1 and H2. Until phase 7 it works on whichever header the host-selected profile produces. The snapshot is keyed by the header's token digest, so the final header simply makes a new one.
+
+1. Build the ten steps under [Mechanism](#mechanism).
+2. Add the header tests.
+3. Record the new launch arguments in [[records/specs/splash-integration]], and add the header tests to that pin's qualification.
+
+Exit: every header test passes on a packaged build.
+
+### Phase H4. The header ships in the app
+
+Depends on H3, on the installer in [[records/plans/macos-installer-and-updates]], which is outside this plan, and on the owner's answer about a Mac or model the release did not test.
+
+1. Packaging makes the header on the release Mac with the H3 step, runs the header tests on it, and places the files and manifest in the app.
+2. Setup installs them by copying. Repair copies them again. An in-app update replaces the app and the header it carries, so the first start after an update installs the new one.
+3. Show that the shipped file gives the same tool calls and answers on a second Apple chip, or ship one file per chip tested.
+
+Exit: on a Mac that never computed the header, the first chat after installation resumes it, and the header tests pass there.
+
+## What this replaces
+
+Rules recorded before this direction, and what becomes of each:
+
+| Rule | Where | Becomes |
+| --- | --- | --- |
+| "No raw-model DDL" | `db/DB.md`, agent instructions | Model SQL, including DDL, runs only on a scratch copy. The workbook changes only through the recorded write path. The owner edits this line. |
+| "Never execute SQL supplied by a model" (M05), no "unrestricted SQL" (M08), "Reject raw-model DDL" (MJ07) | [[records/specs/managed-datasets]] | Model SQL is executed, on the scratch copy only. System tables stay unreachable. Model DDL becomes a registered definition or is refused. |
+| "No direct projection edit can become unrecorded authoritative state" (M03) | [[records/specs/managed-datasets]] | Kept. It is the reason for the scratch copy. |
+| No "executable SQL in historical payloads" | [[records/specs/persistence-readiness]] | Kept. A recorded change holds row operations. The statements stay in the tool receipt for inspection and are never replayed. |
+| "No arbitrary SQL, generated executable code" in a definition | [[records/specs/application-definitions]] | Replaced. A workbook tool's body is SQL or JavaScript. |
+| "no model-authored SQL" | [[records/specs/distribution]] | Replaced for chat. |
+| No "arbitrary SQL writes", and an "arbitrary code runner would delay the first useful job" | [[records/specs/native-app-engine]] | Replaced. The programmable engine already runs model-written JavaScript. |
+| Launch with the persistent cache off | [[records/plans/inference-context-upgrade]], [[records/specs/splash-integration]] | Replaced in phase H3, with the cache directory owned, restored and cleared by the host. |
+| Exports write to any absolute path in the tool call | `ChatOperations.swift`, `ChatActions.swift` | A path the person typed in the request, or the save panel. |
+| Two on-demand tool groups | [[records/plans/native-chat-prompt-routing]] | Replaced by this plan. Its measurements stay valid. |
+
+Each specification is updated in the phase that makes its new rule true: managed datasets, persistence readiness and distribution in phase 3, the native app engine in phase 4, application definitions in phase 5, and Splash integration in phase H3.
+
+## Risks and what would change the plan
+
+- **The local model writing SQL and JavaScript.** A failed statement costs a decision. Published code-first agents use much stronger models. Every phase gates on real-model jobs in two languages, and the current tools stay the default until phase 6. If a job stays worse than the baseline, the phase does not exit and the owner decides whether to keep a narrow tool, change the job or stop.
+- **Exact numbers need named functions.** The natural `sum(qty * price)` is floating point, and the answer guard refuses it as an exact figure. Each miss costs a decision. The phase 2 gate shows whether the model learns the exact functions from the header and the guide.
+- **Citations for computed answers.** An aggregate cites its statements and the tables it read, not single rows. The product says a person can check the inputs behind a calculation, so phase 2 does not exit until a receipt opens in the conversation.
+- **Changes without approval.** A document can contain an instruction. The sandbox has no way out of the Mac and a change can be undone until later changes build on it, so the exposure is edits to this workbook and the requests a script can make, which behave as today.
+- **A schema change can disable an app.** An app bound to exact columns is disabled when they change, as today. The tool result names it.
+- **Copying tables per call.** Large tables make each call slower. Phase 2 measures it and sets the limit.
+- **Disk writes with the cache on.** The engine copies every conversation point to disk while it runs. Phase H1 measures the volume and looks for a bound.
+- **The format change.** Phase 5 stops earlier development workbooks from opening.
+- **Volume of check changes.** Of 84 agent check files, 61 name tools. Phase 6 is where they change. Earlier phases add checks beside them.
+- **The engine pin.** `integration/splash.json` marks the 1.6.1 pin as a candidate with qualification blocked. Phase H3 changes how the helper is launched, so the header tests join that qualification.
+- **Specialized phases still use old tool code.** Excel conversion and reviews call tools such as `rows`, `calculate` and `save_native_app` inside their own prompts. Phase 6 removes old tools from ordinary chat only.
+- **Inventory stays in the core.** After this plan the model-facing side is general, but the app still ships an inventory ledger, its automation trigger and its screens. The owner's direction against hard-coding is only fully met when a later plan generalizes that ledger.
+
+## Open items for the owner
+
+- Confirm or change S1, S2 and S3.
+- Confirm or change P1 to P5. For P4, also say what the app should do, once the header ships, on a Mac or model a release did not test.
+- Authorize implementation, with real-model runs, installation and interface checks.
+- Edit the raw-model DDL line in `db/DB.md`.
+- Before phase 5, decide what happens to workbooks made by earlier development builds.
+- Decide whether submitting a form from chat keeps its confirmation now that SQL writes directly. The plan keeps it.
+- Decide how much interface the person gets for configuring workbook tools. The plan assumes a list with enable and remove on the definitions screen, with creation and editing through chat.
+- Confirm that the ledger's two tables are listed only when the ledger holds entries, or have them listed always.
+- Decide whether a separate plan should turn the inventory ledger into ordinary tables.
+
+## Review passes
+
+1. Checked the current code at `dcb111e`, including the follow-up cache change made after the earlier plan.
+2. Mapped table storage and the recorded write path, and moved model SQL onto a scratch copy because the tables are projections and the workbook connection exposes the capture function.
+3. Mapped the JavaScript worker and found no entry point for a one-off script and no synchronous host calls.
+4. Mapped every agent guard keyed on a tool name and gave each a new basis.
+5. Mapped saved definitions, app actions, views and the inventory ledger. Added the `tool` kind beside the existing kinds and kept the ledger's core out of scope.
+6. Read the pinned engine source and its documentation for the persistent cache.
+7. An independent review against the owner's notes and for executability. It found the header work missing from the sequence, a person's approval added to direct writes, built-in ledger tools that formed a group, capabilities without a home, and gates without rules. All are corrected above.
+8. An independent technical review against the code and the engine source. It found that a before-and-after comparison cannot identify rows, that the read-back cannot compare computed cells, that overriding SQLite's aggregates breaks them, that table versions and the workbook revision cannot guard a copy, that the capture limits count stored rows, that the `tool` kind changes the workbook format, and that the start-up check missed the engine's temporary-file fallback. All are corrected above. Its unverified points are now the first steps of phases 1 and 2.
+9. Re-read the engine's cache naming after the reviews. By this reading the name differs per Mac only because of fields this repository writes, so one name everywhere should need no upstream change. Phase H2 proves it. The header section was rewritten for that.
+10. A final independent check of the rewrite against both reviews and the code. It found a `save` rule that would have accepted documents and records without the person, row lineage described from inserts only, statements about the engine written as fact before any run, gates without a rule for wall time or for jobs with no baseline, and steps that no phase built. All are corrected above.

@@ -3,12 +3,25 @@ type: operational
 meta-type: operational
 id: 01m659x4nd2q89tkpzzsssd7yr
 created: 2026-10-30T02:23:30.477380+00:00
-updated: 2026-11-18T14:09:46.003331+00:00
+updated: 2026-11-18T17:26:32.290361+00:00
 summary: Native UI Catalog implemented and locally verified, with durable agent maintenance instructions and preserved product/model qualification limits.
 title: Minimum-feature continuation handoff
 ---
 # Minimum-feature continuation handoff
 
+## General chat tools planning, November 18
+[[records/plans/general-chat-tools]] is a plan only. Nothing in product code, the engine launch, a package or the interface was changed or run for it. It follows the owner's direction in [[sources/notes/2026/11/general-tools-direction]]: replace the fixed chat tools with seven general ones, let model-written SQL change data directly, run model-written code in the sandbox, add tools that belong to a workbook, and never compute the prompt header in a chat turn. It supersedes [[records/plans/native-chat-prompt-routing]]. Two independent reviews, one against the owner's notes and one against the code and the engine source, were applied to it.
+
+What to know before starting it:
+
+- **SQL.** Model SQL runs on a scratch in-memory copy. Triggers log what it does, and the changes are applied through `Workbook.mutation`. User tables are projections, and the workbook connection exposes the capture function, so model SQL never runs there.
+- **Header.** The pinned engine already keeps restore points on disk. Its cache name differs per Mac only because of the file paths and times this repository writes into `model.json`, so no upstream change is needed. The app is built from source and has no installer, so the plan makes the header during setup on each Mac first and ships it with a later installer.
+- **Format.** Adding the `tool` definition kind changes the canonical schema. Earlier development workbooks will not open after that phase.
+- **Ledger.** The inventory ledger in the core is out of scope. Chat reaches it through two read-only tables and saved actions.
+- **Unverified.** Chat's AI actor carries a policy label, not a rule Source, and the row update and schema paths refuse an AI change without one. Whether the current tools can update rows or change a schema under a real model is the first check of phase 1.
+- **Evidence.** The draft tool schemas and their token counts are in `integration/evidence/2026-11-18-general-tool-schemas/`.
+
+The owner has not yet confirmed the plan's three summary points (S1 to S3) or its five proposals (P1 to P5), and has not authorized implementation, real-model runs, installation or interface checks.
 ## Follow-up turns resume the previous turn's cache, November 18
 
 [[records/plans/conversation-follow-up-cache]] makes the saved conversation append-only, one
