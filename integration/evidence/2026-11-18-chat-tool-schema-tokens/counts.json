@@ -1,0 +1,597 @@
+{
+ "date": "2026-11-18",
+ "codeCommit": "a41c05e0b2894d4e24bd3a87445f423cd6b9b227",
+ "method": "CPU-only. The retained probe.swift was compiled against the existing debug build of that commit and linked with its objects. It loads only the selected model pack tokenizer. Tool schemas come from NativeCitationPolicy.make(...).promptTools(), the production prompt serializer. templateTokens is the added prompt length when the schema is rendered by the chat template after one anchor schema; the finish value includes the template tool preamble. compactTokens is the tokenized sorted-key JSON line used for schemas listed in the scope message. No model was loaded and no generation ran.",
+ "limits": "Counts describe this tokenizer and these schemas. Values in schemaTokensWithGroupsClosed are sums of per-schema counts, not a rendered candidate prompt. The scope message label adds about 9 tokens that the sums omit.",
+ "contexts": {
+  "mainFirstDecision": {
+   "displayed": 55,
+   "sharedHeaderSchemas": 31,
+   "sharedHeaderTokens": 3169,
+   "scopeBlockSchemas": 24,
+   "scopeBlockTokens": 4127,
+   "schemaTokens": 7296,
+   "displayedWithGroupsClosed": 34,
+   "schemaTokensWithGroupsClosed": 4076
+  },
+  "mainReadOnly": {
+   "displayed": 34,
+   "sharedHeaderSchemas": 31,
+   "sharedHeaderTokens": 3169,
+   "scopeBlockSchemas": 3,
+   "scopeBlockTokens": 573,
+   "schemaTokens": 3742,
+   "displayedWithGroupsClosed": 24,
+   "schemaTokensWithGroupsClosed": 2910
+  },
+  "sideThread": {
+   "displayed": 58,
+   "sharedHeaderSchemas": 31,
+   "sharedHeaderTokens": 3169,
+   "scopeBlockSchemas": 27,
+   "scopeBlockTokens": 4322,
+   "schemaTokens": 7491,
+   "displayedWithGroupsClosed": 37,
+   "schemaTokensWithGroupsClosed": 4271
+  },
+  "mainDuringAppAuthoring": {
+   "displayed": 56,
+   "sharedHeaderSchemas": 31,
+   "sharedHeaderTokens": 3169,
+   "scopeBlockSchemas": 25,
+   "scopeBlockTokens": 5365,
+   "schemaTokens": 8534,
+   "displayedWithGroupsClosed": 35,
+   "schemaTokensWithGroupsClosed": 5314
+  }
+ },
+ "onDemandGroups": {
+  "views": {
+   "members": [
+    "save_space",
+    "edit_space",
+    "restore_space",
+    "pin_space",
+    "set_space_pinned",
+    "space_history"
+   ],
+   "defaultTokensRemoved": 1971,
+   "tokensWhenOpenCompact": 1951
+  },
+  "behaviors": {
+   "members": [
+    "inventory_automation_template",
+    "evaluate_definition",
+    "preview_action",
+    "workflow_template",
+    "workflow_activity",
+    "read_definition",
+    "read_workflow",
+    "receiving_template",
+    "form_template",
+    "save_template",
+    "save_definition",
+    "start_workflow",
+    "prepare_action",
+    "open_automation",
+    "publish_result"
+   ],
+   "defaultTokensRemoved": 1249,
+   "tokensWhenOpenCompact": 1065
+  },
+  "apps": {
+   "members": [
+    "save_native_app"
+   ],
+   "defaultTokensRemoved": 1238,
+   "tokensWhenOpenCompact": 1238
+  }
+ },
+ "sharedHeaderCompactAlternativeTokens": 2273,
+ "scopePolicyParagraphs": [
+  {
+   "tokens": 220,
+   "starts": "An explicit request to add, change or remove data in a mini app calls "
+  },
+  {
+   "tokens": 107,
+   "starts": "For a programmable mini app with custom interactions, read native_app_"
+  },
+  {
+   "tokens": 189,
+   "starts": "Compose native views when useful. Chart x and y are existing dataset c"
+  },
+  {
+   "tokens": 112,
+   "starts": "Read definition_registry before authoring behaviors; inputs are exact "
+  },
+  {
+   "tokens": 65,
+   "starts": "Inventory rule: find_definitions workflow -> inventory_automation_temp"
+  },
+  {
+   "tokens": 97,
+   "starts": "Saving interpretations/workflows/forms never starts them. start_workfl"
+  },
+  {
+   "tokens": 47,
+   "starts": "To enable, pause or inspect a saved automation, find its exact version"
+  }
+ ],
+ "scopePolicyTokens": 837,
+ "stablePolicyTokens": 2886,
+ "tools": [
+  {
+   "name": "archive_members",
+   "sharedHeader": true,
+   "templateTokens": 71,
+   "compactTokens": 54,
+   "descriptionTokens": 11,
+   "onDemandGroup": null
+  },
+  {
+   "name": "balance",
+   "sharedHeader": true,
+   "templateTokens": 71,
+   "compactTokens": 54,
+   "descriptionTokens": 12,
+   "onDemandGroup": null
+  },
+  {
+   "name": "calculate",
+   "sharedHeader": true,
+   "templateTokens": 96,
+   "compactTokens": 75,
+   "descriptionTokens": 22,
+   "onDemandGroup": null
+  },
+  {
+   "name": "compare_rows",
+   "sharedHeader": true,
+   "templateTokens": 111,
+   "compactTokens": 86,
+   "descriptionTokens": 21,
+   "onDemandGroup": null
+  },
+  {
+   "name": "count_records",
+   "sharedHeader": true,
+   "templateTokens": 127,
+   "compactTokens": 95,
+   "descriptionTokens": 22,
+   "onDemandGroup": null
+  },
+  {
+   "name": "datasets",
+   "sharedHeader": true,
+   "templateTokens": 57,
+   "compactTokens": 45,
+   "descriptionTokens": 9,
+   "onDemandGroup": null
+  },
+  {
+   "name": "definition_registry",
+   "sharedHeader": true,
+   "templateTokens": 52,
+   "compactTokens": 40,
+   "descriptionTokens": 3,
+   "onDemandGroup": null
+  },
+  {
+   "name": "draft",
+   "sharedHeader": false,
+   "templateTokens": 186,
+   "compactTokens": 139,
+   "descriptionTokens": 29,
+   "onDemandGroup": null
+  },
+  {
+   "name": "edit_space",
+   "sharedHeader": false,
+   "templateTokens": 1256,
+   "compactTokens": 889,
+   "descriptionTokens": 39,
+   "onDemandGroup": "views"
+  },
+  {
+   "name": "evaluate_definition",
+   "sharedHeader": true,
+   "templateTokens": 98,
+   "compactTokens": 73,
+   "descriptionTokens": 11,
+   "onDemandGroup": "behaviors"
+  },
+  {
+   "name": "find_definitions",
+   "sharedHeader": true,
+   "templateTokens": 130,
+   "compactTokens": 94,
+   "descriptionTokens": 9,
+   "onDemandGroup": null
+  },
+  {
+   "name": "finish",
+   "sharedHeader": true,
+   "templateTokens": 433,
+   "compactTokens": 191,
+   "descriptionTokens": 24,
+   "onDemandGroup": null
+  },
+  {
+   "name": "form_template",
+   "sharedHeader": true,
+   "templateTokens": 63,
+   "compactTokens": 46,
+   "descriptionTokens": 3,
+   "onDemandGroup": "behaviors"
+  },
+  {
+   "name": "history_read",
+   "sharedHeader": true,
+   "templateTokens": 75,
+   "compactTokens": 58,
+   "descriptionTokens": 15,
+   "onDemandGroup": null
+  },
+  {
+   "name": "history_search",
+   "sharedHeader": true,
+   "templateTokens": 81,
+   "compactTokens": 61,
+   "descriptionTokens": 12,
+   "onDemandGroup": null
+  },
+  {
+   "name": "include_archive_members",
+   "sharedHeader": false,
+   "templateTokens": 107,
+   "compactTokens": 81,
+   "descriptionTokens": 17,
+   "onDemandGroup": null
+  },
+  {
+   "name": "inventory_automation_template",
+   "sharedHeader": true,
+   "templateTokens": 146,
+   "compactTokens": 111,
+   "descriptionTokens": 12,
+   "onDemandGroup": "behaviors"
+  },
+  {
+   "name": "lineage",
+   "sharedHeader": true,
+   "templateTokens": 67,
+   "compactTokens": 50,
+   "descriptionTokens": 7,
+   "onDemandGroup": null
+  },
+  {
+   "name": "native_app_sdk",
+   "sharedHeader": true,
+   "templateTokens": 56,
+   "compactTokens": 44,
+   "descriptionTokens": 6,
+   "onDemandGroup": null
+  },
+  {
+   "name": "open_automation",
+   "sharedHeader": false,
+   "templateTokens": 84,
+   "compactTokens": 67,
+   "descriptionTokens": 23,
+   "onDemandGroup": "behaviors"
+  },
+  {
+   "name": "open_reviews",
+   "sharedHeader": false,
+   "templateTokens": 61,
+   "compactTokens": 49,
+   "descriptionTokens": 12,
+   "onDemandGroup": null
+  },
+  {
+   "name": "open_space",
+   "sharedHeader": false,
+   "templateTokens": 84,
+   "compactTokens": 67,
+   "descriptionTokens": 24,
+   "onDemandGroup": null
+  },
+  {
+   "name": "pin_space",
+   "sharedHeader": false,
+   "templateTokens": 96,
+   "compactTokens": 75,
+   "descriptionTokens": 24,
+   "onDemandGroup": "views"
+  },
+  {
+   "name": "prepare_action",
+   "sharedHeader": false,
+   "templateTokens": 89,
+   "compactTokens": 67,
+   "descriptionTokens": 11,
+   "onDemandGroup": "behaviors"
+  },
+  {
+   "name": "preview_action",
+   "sharedHeader": true,
+   "templateTokens": 90,
+   "compactTokens": 68,
+   "descriptionTokens": 12,
+   "onDemandGroup": "behaviors"
+  },
+  {
+   "name": "propose_movement",
+   "sharedHeader": false,
+   "templateTokens": 240,
+   "compactTokens": 191,
+   "descriptionTokens": 27,
+   "onDemandGroup": null
+  },
+  {
+   "name": "propose_record",
+   "sharedHeader": false,
+   "templateTokens": 147,
+   "compactTokens": 107,
+   "descriptionTokens": 14,
+   "onDemandGroup": null
+  },
+  {
+   "name": "propose_table",
+   "sharedHeader": false,
+   "templateTokens": 253,
+   "compactTokens": 185,
+   "descriptionTokens": 27,
+   "onDemandGroup": null
+  },
+  {
+   "name": "propose_table_edit",
+   "sharedHeader": false,
+   "templateTokens": 167,
+   "compactTokens": 129,
+   "descriptionTokens": 28,
+   "onDemandGroup": null
+  },
+  {
+   "name": "publish_result",
+   "sharedHeader": false,
+   "templateTokens": 152,
+   "compactTokens": 111,
+   "descriptionTokens": 14,
+   "onDemandGroup": "behaviors"
+  },
+  {
+   "name": "read",
+   "sharedHeader": true,
+   "templateTokens": 133,
+   "compactTokens": 103,
+   "descriptionTokens": 33,
+   "onDemandGroup": null
+  },
+  {
+   "name": "read_definition",
+   "sharedHeader": true,
+   "templateTokens": 67,
+   "compactTokens": 50,
+   "descriptionTokens": 7,
+   "onDemandGroup": "behaviors"
+  },
+  {
+   "name": "read_native_app",
+   "sharedHeader": true,
+   "templateTokens": 88,
+   "compactTokens": 71,
+   "descriptionTokens": 27,
+   "onDemandGroup": null
+  },
+  {
+   "name": "read_workflow",
+   "sharedHeader": true,
+   "templateTokens": 67,
+   "compactTokens": 50,
+   "descriptionTokens": 7,
+   "onDemandGroup": "behaviors"
+  },
+  {
+   "name": "receiving_template",
+   "sharedHeader": true,
+   "templateTokens": 65,
+   "compactTokens": 53,
+   "descriptionTokens": 15,
+   "onDemandGroup": "behaviors"
+  },
+  {
+   "name": "references",
+   "sharedHeader": true,
+   "templateTokens": 217,
+   "compactTokens": 163,
+   "descriptionTokens": 40,
+   "onDemandGroup": null
+  },
+  {
+   "name": "rename_current_thread",
+   "sharedHeader": false,
+   "templateTokens": 85,
+   "compactTokens": 68,
+   "descriptionTokens": 24,
+   "onDemandGroup": null
+  },
+  {
+   "name": "request_input",
+   "sharedHeader": false,
+   "templateTokens": 551,
+   "compactTokens": 403,
+   "descriptionTokens": 16,
+   "onDemandGroup": null
+  },
+  {
+   "name": "restore_space",
+   "sharedHeader": false,
+   "templateTokens": 102,
+   "compactTokens": 77,
+   "descriptionTokens": 16,
+   "onDemandGroup": "views"
+  },
+  {
+   "name": "return_to_main",
+   "sharedHeader": false,
+   "templateTokens": 71,
+   "compactTokens": 59,
+   "descriptionTokens": 21,
+   "onDemandGroup": null
+  },
+  {
+   "name": "review_queue",
+   "sharedHeader": true,
+   "templateTokens": 83,
+   "compactTokens": 67,
+   "descriptionTokens": 25,
+   "onDemandGroup": null
+  },
+  {
+   "name": "review_thread_summary",
+   "sharedHeader": false,
+   "templateTokens": 87,
+   "compactTokens": 68,
+   "descriptionTokens": 19,
+   "onDemandGroup": null
+  },
+  {
+   "name": "rows",
+   "sharedHeader": true,
+   "templateTokens": 80,
+   "compactTokens": 60,
+   "descriptionTokens": 10,
+   "onDemandGroup": null
+  },
+  {
+   "name": "save_definition",
+   "sharedHeader": false,
+   "templateTokens": 106,
+   "compactTokens": 79,
+   "descriptionTokens": 11,
+   "onDemandGroup": "behaviors"
+  },
+  {
+   "name": "save_native_app",
+   "sharedHeader": false,
+   "templateTokens": 1660,
+   "compactTokens": 1238,
+   "descriptionTokens": 47,
+   "onDemandGroup": "apps"
+  },
+  {
+   "name": "save_space",
+   "sharedHeader": false,
+   "templateTokens": 1098,
+   "compactTokens": 773,
+   "descriptionTokens": 29,
+   "onDemandGroup": "views"
+  },
+  {
+   "name": "save_template",
+   "sharedHeader": false,
+   "templateTokens": 119,
+   "compactTokens": 90,
+   "descriptionTokens": 17,
+   "onDemandGroup": "behaviors"
+  },
+  {
+   "name": "search",
+   "sharedHeader": true,
+   "templateTokens": 134,
+   "compactTokens": 102,
+   "descriptionTokens": 30,
+   "onDemandGroup": null
+  },
+  {
+   "name": "set_space_pinned",
+   "sharedHeader": false,
+   "templateTokens": 98,
+   "compactTokens": 77,
+   "descriptionTokens": 22,
+   "onDemandGroup": "views"
+  },
+  {
+   "name": "space_history",
+   "sharedHeader": true,
+   "templateTokens": 80,
+   "compactTokens": 60,
+   "descriptionTokens": 10,
+   "onDemandGroup": "views"
+  },
+  {
+   "name": "spaces",
+   "sharedHeader": true,
+   "templateTokens": 53,
+   "compactTokens": 41,
+   "descriptionTokens": 5,
+   "onDemandGroup": null
+  },
+  {
+   "name": "start_thread",
+   "sharedHeader": false,
+   "templateTokens": 103,
+   "compactTokens": 84,
+   "descriptionTokens": 36,
+   "onDemandGroup": null
+  },
+  {
+   "name": "start_thread_and_continue",
+   "sharedHeader": false,
+   "templateTokens": 169,
+   "compactTokens": 134,
+   "descriptionTokens": 39,
+   "onDemandGroup": null
+  },
+  {
+   "name": "start_workflow",
+   "sharedHeader": false,
+   "templateTokens": 105,
+   "compactTokens": 83,
+   "descriptionTokens": 27,
+   "onDemandGroup": "behaviors"
+  },
+  {
+   "name": "tool_result",
+   "sharedHeader": true,
+   "templateTokens": 122,
+   "compactTokens": 91,
+   "descriptionTokens": 17,
+   "onDemandGroup": null
+  },
+  {
+   "name": "workflow_activity",
+   "sharedHeader": true,
+   "templateTokens": 76,
+   "compactTokens": 57,
+   "descriptionTokens": 9,
+   "onDemandGroup": "behaviors"
+  },
+  {
+   "name": "workflow_template",
+   "sharedHeader": true,
+   "templateTokens": 80,
+   "compactTokens": 60,
+   "descriptionTokens": 10,
+   "onDemandGroup": "behaviors"
+  },
+  {
+   "name": "workspace_action",
+   "sharedHeader": false,
+   "templateTokens": 105,
+   "compactTokens": 83,
+   "descriptionTokens": 27,
+   "onDemandGroup": null
+  },
+  {
+   "name": "workspace_actions",
+   "sharedHeader": false,
+   "templateTokens": 116,
+   "compactTokens": 87,
+   "descriptionTokens": 18,
+   "onDemandGroup": null
+  }
+ ]
+}

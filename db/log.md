@@ -205,3 +205,12 @@ Rechecked the current agent against all native scopes. Measured the ordinary and
 ## [2026-11-18 02:58] verification | records/plans/native-chat-prompt-routing.md
 CPU-only probe matched the native template and covered all 25 current scopes, the separate interpretation output and 81 nested operations. Checked the plan names and token table against probe output. Store validation, repository links and diff whitespace passed. Runtime quality and latency are pending.
 
+## [2026-11-18 13:46] design | records/research/chat-tool-selection.md
+Collected the retained per-call timing trace, a new per-schema token count and published practice on tool selection for agents. Concluded that resumed schemas cost no measurable time here, an extra model decision costs seconds, and a smaller fixed default with groups opened on first read fits better than a router.
+
+## [2026-11-18 13:46] design | records/plans/native-chat-prompt-routing.md
+Revised after the owner's direction in sources/notes/2026/11/chat-tool-routing-direction.md. Replaced the greeting-first text match with two tool groups, views and saved behaviors, that open on their first read, following the existing mini-app switch. Withdrew the greeting and stock scopes and kept their replays as controls.
+
+## [2026-11-18 13:46] verification | records/plans/native-chat-prompt-routing.md
+CPU-only tokenizer probe at a41c05e measured all 59 ordinary schemas and reproduced the earlier scope totals within the 9-token scope label. Checked plan and research figures against the probe output and the retained trace. Store validation, repository Markdown links and diff whitespace passed. The 26 cited external links returned HTTP 200. No model ran. Runtime quality and latency are pending.
+
