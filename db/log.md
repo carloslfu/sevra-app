@@ -193,3 +193,9 @@ Review public README for launch, remove visible MVP labels and preserve actual d
 ## [2026-11-17 18:12] implementation | records/plans/native-storybook.md
 Implemented all five native catalog phases; 176 fixtures, 12 focused interactions, 10 flows, 16 extra states and native UX verification pass. Repository check and ordinary native build pass; limits and reused evidence recorded in records/reviews/native-ui-catalog.md.
 
+## [2026-11-18 02:43] design | records/plans/native-chat-prompt-routing.md
+Reviewed the native chat request, prompt, Splash dispatch and workbook evidence paths. Planned two deterministic scope selections with existing recovery, then reviewed code fit, failure cases and measurement.
+
+## [2026-11-18 02:44] verification | records/plans/native-chat-prompt-routing.md
+Planning validation passed with zero db.md findings. Checked repository Markdown links, all 16 local plan references, named agent probe flags and Git diff whitespace. The measurements in the plan refer to the existing native implementation.
+
