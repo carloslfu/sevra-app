@@ -2,11 +2,12 @@
 type: index
 scope: type-folder
 folder: sources/notes
-updated: 2026-11-18T17:09:55.122299Z
+updated: 2026-11-18T17:50:08.869644Z
 ---
 
 # sources/notes
 
+- [[sources/notes/2026/11/general-tools-confirmation]] — Owner confirms the general chat tools plan's three summary points and five proposals as written. Implementation is not yet authorized.
 - [[sources/notes/2026/11/general-tools-direction]] — Owner directs general chat tools: direct SQL writes, sandboxed code, per-workbook tools, and a shipped pre-read prompt header with no fallback.
 - [[sources/notes/2026/11/chat-tool-routing-direction]] — Owner asks to cut prompt context for ordinary workbook requests with the simplest router, after research and first-principles review.
 - [[sources/notes/2026/11/conversation-latency-fix]] — Owner requests conversation latency fixes, the same-message timing comparison and answer-quality iteration.

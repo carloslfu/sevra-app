@@ -244,3 +244,9 @@ Three independent reviews were applied: against the owner's notes and for execut
 ## [2026-11-18 17:26] design | records/operations/agent-handoff.md
 Added the general chat tools planning section: what to know before starting, the unverified point about chat's AI actor, and the pending owner confirmations.
 
+## [2026-11-18 17:50] design | sources/notes/2026/11/general-tools-confirmation.md
+Recorded the owner's answer Confirm all to the plan's three summary points and five proposals. States what it does not cover: the go-ahead to implement, the db/DB.md edit and the later decisions.
+
+## [2026-11-18 17:50] design | records/plans/general-chat-tools.md
+Marked S1 to S3 and P1 to P5 as confirmed by the owner, with the note. Implementation is still not authorized.
+

@@ -2,8 +2,8 @@
 type: operational
 id: 01m7qrcqqzh4qqr92a8frch1ze
 created: 2026-11-18T16:38:43.199010+00:00
-updated: 2026-11-18T17:26:32.276086+00:00
-summary: Plan for seven general chat tools (model SQL on a scratch copy, sandboxed code, workbook tools) and a prompt header that no chat turn computes. Planning only; owner confirmations pending.
+updated: 2026-11-18T17:50:21.974267+00:00
+summary: Plan for seven general chat tools (model SQL on a scratch copy, sandboxed code, workbook tools) and a prompt header that no chat turn computes. Proposals confirmed; implementation not yet authorized.
 title: General chat tools and a pre-read prompt header
 ---
 # General chat tools and a pre-read prompt header
@@ -11,6 +11,8 @@ title: General chat tools and a pre-read prompt header
 Owner direction: [[sources/notes/2026/11/general-tools-direction]], continuing [[sources/notes/2026/11/chat-tool-routing-direction]]. Evidence: [[records/research/chat-tool-selection]]. This plan replaces [[records/plans/native-chat-prompt-routing]].
 
 Status: plan only. No product code, engine code, model, package or interface was changed or run for it. The only thing run was a CPU token count of draft schemas. Reviewed against code at `dcb111eccf61bf2b850eab84f2610d0ab8cf10d9`, which includes [[records/plans/conversation-follow-up-cache]], and against the pinned Splash 1.6.1 source. The later commit `af2ef6d` adds only [[records/plans/macos-installer-and-updates]].
+
+The owner confirmed the plan's three summary points and five proposals as written on November 18, 2026: [[sources/notes/2026/11/general-tools-confirmation]]. Implementation is not yet authorized.
 
 Terms used below:
 
@@ -30,13 +32,13 @@ Decided by the owner, in his words in the two notes:
 5. **The header ships already read.** It is kept in the app, it always matches, there is no fallback, and tests before release prove it.
 6. **Earlier rules are replaced.** See [What this replaces](#what-this-replaces).
 
-Said in the agent's summaries during planning. The owner heard them and did not object, but neither note records his own words for them. Phase 0 asks him to confirm each:
+Said in the agent's summaries during planning, and confirmed by the owner on November 18, 2026 in [[sources/notes/2026/11/general-tools-confirmation]]:
 
 - **S1. No router.** No text matching and no extra model call chooses tools.
 - **S2. No business concepts in the built-in tools or the shared instructions.** Inventory, receiving and quote comparison leave both.
 - **S3. No built-in tool groups.** Anything loaded on demand is something the workbook holds, or a guide.
 
-Proposed by the agent, not yet confirmed by the owner. Each is marked where the plan depends on it:
+Proposed by the agent, and confirmed by the owner as written in the same note. Each is marked where the plan depends on it:
 
 - **P1. Seven built-in tools:** `search`, `read`, `sql`, `run`, `save`, `ask`, `finish`.
 - **P2. Table changes count at once, and no approval step is added anywhere.** A change to a table made by `sql` or `run` is accepted data, attributed to the request that asked for it, and can be undone. A table draft that waits for acceptance is made only when the person asks for one. `save` keeps what each kind does today: a document or record written by the model is saved as a draft, a view or tool is saved ready to use, and an app is saved disabled until the person enables it.
@@ -342,8 +344,8 @@ The header phases H1 to H3 depend on phase 0 only. H4 also needs the installer. 
 
 ### Phase 0. Record the direction and get the go-ahead
 
-1. This plan and the owner note are recorded.
-2. The owner confirms or changes S1 to S3 and P1 to P5.
+1. This plan and the owner note are recorded. Done.
+2. The owner confirms or changes S1 to S3 and P1 to P5. Done on November 18, 2026: he confirmed all of them as written.
 3. The owner authorizes implementation, including real-model runs and installing and operating the preview for interface checks, as earlier tasks did.
 4. The owner updates the store's rule against raw-model DDL in `db/DB.md`, which agents do not edit.
 5. The specifications in [What this replaces](#what-this-replaces) get the new rule with a link here, in the phase that makes each one true.
@@ -539,8 +541,7 @@ Each specification is updated in the phase that makes its new rule true: managed
 
 ## Open items for the owner
 
-- Confirm or change S1, S2 and S3.
-- Confirm or change P1 to P5. For P4, also say what the app should do, once the header ships, on a Mac or model a release did not test.
+- For P4, say what the app should do, once the header ships, on a Mac or model a release did not test.
 - Authorize implementation, with real-model runs, installation and interface checks.
 - Edit the raw-model DDL line in `db/DB.md`.
 - Before phase 5, decide what happens to workbooks made by earlier development builds.

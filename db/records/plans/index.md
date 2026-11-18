@@ -2,12 +2,12 @@
 type: index
 scope: type-folder
 folder: records/plans
-updated: 2026-11-18T17:26:32.276086Z
+updated: 2026-11-18T17:50:21.974267Z
 ---
 
 # records/plans
 
-- [[records/plans/general-chat-tools]] — Plan for seven general chat tools (model SQL on a scratch copy, sandboxed code, workbook tools) and a prompt header that no chat turn computes. Planning only; owner confirmations pending.
+- [[records/plans/general-chat-tools]] — Plan for seven general chat tools (model SQL on a scratch copy, sandboxed code, workbook tools) and a prompt header that no chat turn computes. Proposals confirmed; implementation not yet authorized.
 - [[records/plans/macos-installer-and-updates]] — Plans a standalone Sevra DMG, Sparkle updates through GitHub Releases, the Developer ID transition, and release verification and recovery.
 - [[records/plans/native-chat-prompt-routing]] — Superseded by the general chat tools plan. Keeps the description of the current request path and the measured inventory of the 59 chat tools.
 - [[records/plans/conversation-follow-up-cache]] — Follow-ups recompute every earlier turn. Plan: append-only history and a replay state at its end, with real-model acceptance.

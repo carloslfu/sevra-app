@@ -3,7 +3,7 @@ type: operational
 meta-type: operational
 id: 01m659x4nd2q89tkpzzsssd7yr
 created: 2026-10-30T02:23:30.477380+00:00
-updated: 2026-11-18T17:26:32.290361+00:00
+updated: 2026-11-18T17:50:21.995858+00:00
 summary: Native UI Catalog implemented and locally verified, with durable agent maintenance instructions and preserved product/model qualification limits.
 title: Minimum-feature continuation handoff
 ---
@@ -21,7 +21,7 @@ What to know before starting it:
 - **Unverified.** Chat's AI actor carries a policy label, not a rule Source, and the row update and schema paths refuse an AI change without one. Whether the current tools can update rows or change a schema under a real model is the first check of phase 1.
 - **Evidence.** The draft tool schemas and their token counts are in `integration/evidence/2026-11-18-general-tool-schemas/`.
 
-The owner has not yet confirmed the plan's three summary points (S1 to S3) or its five proposals (P1 to P5), and has not authorized implementation, real-model runs, installation or interface checks.
+The owner confirmed the plan's three summary points (S1 to S3) and its five proposals (P1 to P5) as written on November 18: [[sources/notes/2026/11/general-tools-confirmation]]. He has not yet authorized implementation, real-model runs, installation or interface checks, and has not changed the `db/DB.md` line that phase 3 needs.
 ## Follow-up turns resume the previous turn's cache, November 18
 
 [[records/plans/conversation-follow-up-cache]] makes the saved conversation append-only, one
