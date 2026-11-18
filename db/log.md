@@ -214,3 +214,15 @@ Revised after the owner's direction in sources/notes/2026/11/chat-tool-routing-d
 ## [2026-11-18 13:46] verification | records/plans/native-chat-prompt-routing.md
 CPU-only tokenizer probe at a41c05e measured all 59 ordinary schemas and reproduced the earlier scope totals within the 9-token scope label. Checked plan and research figures against the probe output and the retained trace. Store validation, repository Markdown links and diff whitespace passed. The 26 cited external links returned HTTP 200. No model ran. Runtime quality and latency are pending.
 
+## [2026-11-18 13:52] design | records/plans/conversation-follow-up-cache.md
+Traced why follow-ups resume only the header: the saved conversation is one JSON array and the engine resumes only at the end of the previous prompt. Planned append-only history lines and a replay state at the history end on each request's first decision.
+
+## [2026-11-18 14:09] implementation | records/plans/conversation-follow-up-cache.md
+Rendered the saved conversation one entry per line and moved the first decision's replay state to its end. Header and scope primes are skipped when a known replay prefix covers them. Added tokenizer, fixture and real-model checks and the opt-in follow-up trace.
+
+## [2026-11-18 14:09] verification | records/plans/conversation-follow-up-cache.md
+CPU checks and the 59-group agent suite pass; restoring the array rendering fails the new fixture check. Real model on one Mac: four-turn follow-ups resumed at the previous turn's history end, turn 4 computed 3,725 tokens instead of 9,146; the cache trace passed all five turns. Single runs; app interface and packaged build not exercised.
+
+## [2026-11-18 14:22] verification | records/plans/conversation-follow-up-cache.md
+scripts/check.sh passed after dbmd index rebuild; store validation reported no errors. Packaged app and native journeys were skipped because no package was rebuilt.
+

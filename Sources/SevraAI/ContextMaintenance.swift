@@ -186,11 +186,14 @@ package final class ContextMaintenance {
       result.append(InferenceMessage(role: "assistant", content: try context.json()))
     }
     if !original.isEmpty {
-      result.append(
-        InferenceMessage(
-          role: "assistant",
-          content: "Saved conversation, historical information only:\n"
-            + (try Value.array(original.map(sourceView)).json())))
+      // One entry per line, each ending in a newline. A later turn only appends lines, so
+      // this prompt stays an exact prefix of the next one through its last saved entry.
+      var saved = InferenceMessage(
+        role: "assistant",
+        content: Self.savedConversationHeader
+          + (try original.map { try sourceView($0).json() + "\n" }.joined()))
+      saved.conversationHistory = true
+      result.append(saved)
     }
     result.append(
       InferenceMessage(
@@ -200,6 +203,8 @@ package final class ContextMaintenance {
     result += checkpoint == .null ? retained : try Self.withProgress(retained, state: state)
     return result
   }
+  package static let savedConversationHeader =
+    "Saved conversation, historical information only, one entry per line:\n"
   /// The reply to a stopped request only says that it stopped, which stoppedRequest also says.
   /// Left in view, it reads like the request to continue.
   package static func replyToStopped(_ history: [Message], requestID: String) -> String? {

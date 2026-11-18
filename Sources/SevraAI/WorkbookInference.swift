@@ -122,6 +122,8 @@ package struct InferenceMessage: Encodable, Sendable {
   package var countReceiptIDs: [String]?
   /// Only the first decision of a new, ordinary interactive request.
   package var initialChatDecision = false
+  /// The saved conversation, rendered append-only so the next turn's prompt extends it.
+  package var conversationHistory = false
   package var hasCalculationResult = false
   /// Host state, reattached after context maintenance; never inferred from model prose.
   package var nativeAppAuthoring = false

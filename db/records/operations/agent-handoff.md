@@ -3,11 +3,20 @@ type: operational
 meta-type: operational
 id: 01m659x4nd2q89tkpzzsssd7yr
 created: 2026-10-30T02:23:30.477380+00:00
-updated: 2026-11-18T01:58:25.205105+00:00
+updated: 2026-11-18T14:09:46.003331+00:00
 summary: Native UI Catalog implemented and locally verified, with durable agent maintenance instructions and preserved product/model qualification limits.
 title: Minimum-feature continuation handoff
 ---
 # Minimum-feature continuation handoff
+
+## Follow-up turns resume the previous turn's cache, November 18
+
+[[records/plans/conversation-follow-up-cache]] makes the saved conversation append-only, one
+entry per line, and leaves the first decision's engine replay state at its end. A follow-up
+now resumes where the previous turn's history ended instead of computing every earlier turn
+again after the header. In a four-turn replay the fourth turn's first call computed 3,725
+tokens instead of 9,146. CPU checks, the full agent suite and the real-model cache trace
+pass. The app interface and a packaged build were not exercised.
 
 ## Hardcoded replies removed, November 17
 

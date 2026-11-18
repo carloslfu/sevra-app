@@ -1,0 +1,1084 @@
+{
+  "date": "2026-11-18",
+  "baselineCommit": "9d044b28bfd84397e27e82cb201cb5f4ccb691cf",
+  "baselineProductCode": "a41c05e0b2894d4e24bd3a87445f423cd6b9b227 (later commits change records only)",
+  "candidate": "The commit that adds this file: append-only saved conversation and a replay state at its end.",
+  "method": "sevra-agent-checks --conversation-followup-trace on one 48 GiB M5 Pro, one sequence per process: a new native model instance (Splash 1.6.1, 64K context, 12 GiB engine memory, bounded512 reasoning), a fresh synthetic demo workbook and each prompt 15 seconds after the previous answer. Resumed tokens are the engine's reported reuse; computed tokens are prompt minus resumed. The longest shared prefix compares each prompt with every earlier prompt and its output. Single runs; model decisions vary between runs, so compare first calls of follow-ups, not turn totals.",
+  "summary": {
+    "fourTurnFollowUpFirstCalls": {
+      "before": [
+        {
+          "turn": 2,
+          "resumedTokens": 10976,
+          "computedTokens": 1613,
+          "prefillSeconds": 1.808,
+          "primeSeconds": 0
+        },
+        {
+          "turn": 3,
+          "resumedTokens": 10976,
+          "computedTokens": 6239,
+          "prefillSeconds": 3.227,
+          "primeSeconds": 0
+        },
+        {
+          "turn": 4,
+          "resumedTokens": 10976,
+          "computedTokens": 9146,
+          "prefillSeconds": 5.343,
+          "primeSeconds": 0
+        }
+      ],
+      "after": [
+        {
+          "turn": 2,
+          "resumedTokens": 11072,
+          "computedTokens": 1480,
+          "prefillSeconds": 1.715,
+          "primeSeconds": 0
+        },
+        {
+          "turn": 3,
+          "resumedTokens": 11776,
+          "computedTokens": 5071,
+          "prefillSeconds": 2.899,
+          "primeSeconds": 0
+        },
+        {
+          "turn": 4,
+          "resumedTokens": 15840,
+          "computedTokens": 3725,
+          "prefillSeconds": 2.571,
+          "primeSeconds": 0
+        }
+      ]
+    }
+  },
+  "sequences": {
+    "fourTurn": {
+      "before": [
+        {
+          "turn": 1,
+          "prompt": "How many brass bolts do we have?",
+          "wallSeconds": 22.39,
+          "firstVisibleSeconds": 20.86,
+          "modelDecisions": 2,
+          "answer": "We currently have 18 brass bolts. This is based on an opening stock of 20, minus a delivery of 2 units.",
+          "citationCount": 2,
+          "calls": [
+            {
+              "scope": "all",
+              "promptTokens": 11822,
+              "resumedTokens": 6016,
+              "computedTokens": 5806,
+              "replayBoundaryTokens": null,
+              "longestSharedPrefixTokens": 0,
+              "deduplicatedKVTokens": 0,
+              "primeTokens": 6020,
+              "primeSeconds": 2.637,
+              "helperStartSeconds": 4.784,
+              "prefillSeconds": 2.915,
+              "decodeSeconds": 1.911,
+              "generatedTokens": 76
+            },
+            {
+              "scope": "all",
+              "promptTokens": 12330,
+              "resumedTokens": 11808,
+              "computedTokens": 522,
+              "replayBoundaryTokens": null,
+              "longestSharedPrefixTokens": 11898,
+              "deduplicatedKVTokens": 64,
+              "primeTokens": 10989,
+              "primeSeconds": 2.012,
+              "helperStartSeconds": 0.0,
+              "prefillSeconds": 1.354,
+              "decodeSeconds": 3.804,
+              "generatedTokens": 153
+            }
+          ]
+        },
+        {
+          "turn": 2,
+          "prompt": "Why did it go down?",
+          "wallSeconds": 24.65,
+          "firstVisibleSeconds": 21.62,
+          "modelDecisions": 5,
+          "answer": "The stock went down because 2 brass bolts were delivered to a customer (Willow's customer) on January 2, 2026. This outgoing movement reduced the opening stock of 20 to the current balance of 18.",
+          "citationCount": 2,
+          "calls": [
+            {
+              "scope": "all",
+              "promptTokens": 12589,
+              "resumedTokens": 10976,
+              "computedTokens": 1613,
+              "replayBoundaryTokens": null,
+              "longestSharedPrefixTokens": 11083,
+              "deduplicatedKVTokens": 96,
+              "primeTokens": 0,
+              "primeSeconds": 0,
+              "helperStartSeconds": 0.0,
+              "prefillSeconds": 1.808,
+              "decodeSeconds": 3.843,
+              "generatedTokens": 119
+            },
+            {
+              "scope": "all",
+              "promptTokens": 13451,
+              "resumedTokens": 12576,
+              "computedTokens": 875,
+              "replayBoundaryTokens": null,
+              "longestSharedPrefixTokens": 12653,
+              "deduplicatedKVTokens": 64,
+              "primeTokens": 0,
+              "primeSeconds": 0,
+              "helperStartSeconds": 0.0,
+              "prefillSeconds": 1.594,
+              "decodeSeconds": 2.044,
+              "generatedTokens": 71
+            },
+            {
+              "scope": "all",
+              "promptTokens": 14071,
+              "resumedTokens": 13440,
+              "computedTokens": 631,
+              "replayBoundaryTokens": null,
+              "longestSharedPrefixTokens": 13522,
+              "deduplicatedKVTokens": 64,
+              "primeTokens": 0,
+              "primeSeconds": 0,
+              "helperStartSeconds": 0.0,
+              "prefillSeconds": 1.486,
+              "decodeSeconds": 1.902,
+              "generatedTokens": 77
+            },
+            {
+              "scope": "all",
+              "promptTokens": 14777,
+              "resumedTokens": 14048,
+              "computedTokens": 729,
+              "replayBoundaryTokens": null,
+              "longestSharedPrefixTokens": 14148,
+              "deduplicatedKVTokens": 96,
+              "primeTokens": 0,
+              "primeSeconds": 0,
+              "helperStartSeconds": 0.0,
+              "prefillSeconds": 1.564,
+              "decodeSeconds": 1.846,
+              "generatedTokens": 68
+            },
+            {
+              "scope": "all",
+              "promptTokens": 15427,
+              "resumedTokens": 14752,
+              "computedTokens": 675,
+              "replayBoundaryTokens": null,
+              "longestSharedPrefixTokens": 14845,
+              "deduplicatedKVTokens": 0,
+              "primeTokens": 0,
+              "primeSeconds": 0,
+              "helperStartSeconds": 0.0,
+              "prefillSeconds": 1.601,
+              "decodeSeconds": 5.78,
+              "generatedTokens": 267
+            }
+          ]
+        },
+        {
+          "turn": 3,
+          "prompt": "Which supplier is cheaper for 10 more bolts?",
+          "wallSeconds": 36.15,
+          "firstVisibleSeconds": 18.97,
+          "modelDecisions": 7,
+          "answer": "Oak Supply is cheaper for 10 brass bolts.\n\nOak Supply quotes 2.40 per bolt, totaling 24.00 for 10 bolts. Cedar Tools quotes 2.75 per bolt, totaling 27.50 for 10 bolts. Oak Supply is cheaper by 3.50. Both quotes exclude delivery costs.",
+          "citationCount": 1,
+          "calls": [
+            {
+              "scope": "all",
+              "promptTokens": 17215,
+              "resumedTokens": 10976,
+              "computedTokens": 6239,
+              "replayBoundaryTokens": null,
+              "longestSharedPrefixTokens": 11807,
+              "deduplicatedKVTokens": 800,
+              "primeTokens": 0,
+              "primeSeconds": 0,
+              "helperStartSeconds": 0.0,
+              "prefillSeconds": 3.227,
+              "decodeSeconds": 2.573,
+              "generatedTokens": 91
+            },
+            {
+              "scope": "all",
+              "promptTokens": 17800,
+              "resumedTokens": 17184,
+              "computedTokens": 616,
+              "replayBoundaryTokens": null,
+              "longestSharedPrefixTokens": 17279,
+              "deduplicatedKVTokens": 64,
+              "primeTokens": 0,
+              "primeSeconds": 0,
+              "helperStartSeconds": 0.0,
+              "prefillSeconds": 1.808,
+              "decodeSeconds": 5.033,
+              "generatedTokens": 239
+            },
+            {
+              "scope": "all",
+              "promptTokens": 18641,
+              "resumedTokens": 17792,
+              "computedTokens": 849,
+              "replayBoundaryTokens": null,
+              "longestSharedPrefixTokens": 18039,
+              "deduplicatedKVTokens": 224,
+              "primeTokens": 0,
+              "primeSeconds": 0,
+              "helperStartSeconds": 0.0,
+              "prefillSeconds": 1.662,
+              "decodeSeconds": 6.247,
+              "generatedTokens": 295
+            },
+            {
+              "scope": "all",
+              "promptTokens": 18967,
+              "resumedTokens": 18624,
+              "computedTokens": 343,
+              "replayBoundaryTokens": null,
+              "longestSharedPrefixTokens": 18936,
+              "deduplicatedKVTokens": 288,
+              "primeTokens": 0,
+              "primeSeconds": 0,
+              "helperStartSeconds": 0.0,
+              "prefillSeconds": 1.303,
+              "decodeSeconds": 2.748,
+              "generatedTokens": 129
+            },
+            {
+              "scope": "all",
+              "promptTokens": 19122,
+              "resumedTokens": 18944,
+              "computedTokens": 178,
+              "replayBoundaryTokens": null,
+              "longestSharedPrefixTokens": 19096,
+              "deduplicatedKVTokens": 128,
+              "primeTokens": 0,
+              "primeSeconds": 0,
+              "helperStartSeconds": 0.0,
+              "prefillSeconds": 0.937,
+              "decodeSeconds": 1.367,
+              "generatedTokens": 61
+            },
+            {
+              "scope": "all",
+              "promptTokens": 19211,
+              "resumedTokens": 19104,
+              "computedTokens": 107,
+              "replayBoundaryTokens": null,
+              "longestSharedPrefixTokens": 19183,
+              "deduplicatedKVTokens": 64,
+              "primeTokens": 0,
+              "primeSeconds": 0,
+              "helperStartSeconds": 0.0,
+              "prefillSeconds": 0.822,
+              "decodeSeconds": 1.766,
+              "generatedTokens": 81
+            },
+            {
+              "scope": "all",
+              "promptTokens": 19319,
+              "resumedTokens": 19200,
+              "computedTokens": 119,
+              "replayBoundaryTokens": null,
+              "longestSharedPrefixTokens": 19292,
+              "deduplicatedKVTokens": 64,
+              "primeTokens": 0,
+              "primeSeconds": 0,
+              "helperStartSeconds": 0.0,
+              "prefillSeconds": 0.815,
+              "decodeSeconds": 3.92,
+              "generatedTokens": 203
+            }
+          ]
+        },
+        {
+          "turn": 4,
+          "prompt": "Summarize that in one sentence.",
+          "wallSeconds": 39.57,
+          "firstVisibleSeconds": 7.75,
+          "modelDecisions": 5,
+          "answer": "We currently have 18 brass bolts, reduced from an opening stock of 20 by a delivery of 2 units to a customer on January 2, 2026.",
+          "citationCount": 3,
+          "calls": [
+            {
+              "scope": "all",
+              "promptTokens": 20122,
+              "resumedTokens": 10976,
+              "computedTokens": 9146,
+              "replayBoundaryTokens": null,
+              "longestSharedPrefixTokens": 16212,
+              "deduplicatedKVTokens": 5216,
+              "primeTokens": 0,
+              "primeSeconds": 0,
+              "helperStartSeconds": 0.0,
+              "prefillSeconds": 5.343,
+              "decodeSeconds": 4.144,
+              "generatedTokens": 167
+            },
+            {
+              "scope": "inspection",
+              "promptTokens": 16107,
+              "resumedTokens": 5888,
+              "computedTokens": 10219,
+              "replayBoundaryTokens": null,
+              "longestSharedPrefixTokens": 1828,
+              "deduplicatedKVTokens": 0,
+              "primeTokens": 5900,
+              "primeSeconds": 2.589,
+              "helperStartSeconds": 0.0,
+              "prefillSeconds": 5.653,
+              "decodeSeconds": 5.852,
+              "generatedTokens": 253
+            },
+            {
+              "scope": "all",
+              "promptTokens": 21170,
+              "resumedTokens": 20096,
+              "computedTokens": 1074,
+              "replayBoundaryTokens": null,
+              "longestSharedPrefixTokens": 20186,
+              "deduplicatedKVTokens": 0,
+              "primeTokens": 0,
+              "primeSeconds": 0,
+              "helperStartSeconds": 0.0,
+              "prefillSeconds": 1.775,
+              "decodeSeconds": 1.991,
+              "generatedTokens": 84
+            },
+            {
+              "scope": "all",
+              "promptTokens": 21885,
+              "resumedTokens": 21152,
+              "computedTokens": 733,
+              "replayBoundaryTokens": null,
+              "longestSharedPrefixTokens": 21254,
+              "deduplicatedKVTokens": 96,
+              "primeTokens": 0,
+              "primeSeconds": 0,
+              "helperStartSeconds": 0.0,
+              "prefillSeconds": 1.64,
+              "decodeSeconds": 1.988,
+              "generatedTokens": 78
+            },
+            {
+              "scope": "all",
+              "promptTokens": 22544,
+              "resumedTokens": 21856,
+              "computedTokens": 688,
+              "replayBoundaryTokens": null,
+              "longestSharedPrefixTokens": 21963,
+              "deduplicatedKVTokens": 0,
+              "primeTokens": 0,
+              "primeSeconds": 0,
+              "helperStartSeconds": 0.0,
+              "prefillSeconds": 1.614,
+              "decodeSeconds": 5.415,
+              "generatedTokens": 226
+            }
+          ]
+        }
+      ],
+      "after": [
+        {
+          "turn": 1,
+          "prompt": "How many brass bolts do we have?",
+          "wallSeconds": 19.83,
+          "firstVisibleSeconds": 18.88,
+          "modelDecisions": 2,
+          "answer": "We have 18 brass bolts.",
+          "citationCount": 2,
+          "calls": [
+            {
+              "scope": "all",
+              "promptTokens": 11815,
+              "resumedTokens": 6016,
+              "computedTokens": 5799,
+              "replayBoundaryTokens": 11072,
+              "longestSharedPrefixTokens": 0,
+              "deduplicatedKVTokens": 0,
+              "primeTokens": 6020,
+              "primeSeconds": 2.621,
+              "helperStartSeconds": 4.482,
+              "prefillSeconds": 2.927,
+              "decodeSeconds": 1.944,
+              "generatedTokens": 76
+            },
+            {
+              "scope": "all",
+              "promptTokens": 12319,
+              "resumedTokens": 11072,
+              "computedTokens": 1247,
+              "replayBoundaryTokens": 12288,
+              "longestSharedPrefixTokens": 11891,
+              "deduplicatedKVTokens": 800,
+              "primeTokens": 0,
+              "primeSeconds": 0,
+              "helperStartSeconds": 0.0,
+              "prefillSeconds": 1.625,
+              "decodeSeconds": 3.587,
+              "generatedTokens": 150
+            }
+          ]
+        },
+        {
+          "turn": 2,
+          "prompt": "Why did it go down?",
+          "wallSeconds": 27.83,
+          "firstVisibleSeconds": 24.93,
+          "modelDecisions": 5,
+          "answer": "The inventory of brass bolts went down because of a delivery on January 2, 2026, where 2 brass bolts were handed over to Willow's customer. This reduced the opening stock of 20 down to 18.",
+          "citationCount": 3,
+          "calls": [
+            {
+              "scope": "all",
+              "promptTokens": 12552,
+              "resumedTokens": 11072,
+              "computedTokens": 1480,
+              "replayBoundaryTokens": 11776,
+              "longestSharedPrefixTokens": 11082,
+              "deduplicatedKVTokens": 0,
+              "primeTokens": 0,
+              "primeSeconds": 0,
+              "helperStartSeconds": 0.0,
+              "prefillSeconds": 1.715,
+              "decodeSeconds": 2.507,
+              "generatedTokens": 94
+            },
+            {
+              "scope": "all",
+              "promptTokens": 13075,
+              "resumedTokens": 11776,
+              "computedTokens": 1299,
+              "replayBoundaryTokens": 13056,
+              "longestSharedPrefixTokens": 12616,
+              "deduplicatedKVTokens": 832,
+              "primeTokens": 0,
+              "primeSeconds": 0,
+              "helperStartSeconds": 0.0,
+              "prefillSeconds": 1.698,
+              "decodeSeconds": 4.82,
+              "generatedTokens": 199
+            },
+            {
+              "scope": "all",
+              "promptTokens": 13835,
+              "resumedTokens": 13056,
+              "computedTokens": 779,
+              "replayBoundaryTokens": 13824,
+              "longestSharedPrefixTokens": 13274,
+              "deduplicatedKVTokens": 192,
+              "primeTokens": 0,
+              "primeSeconds": 0,
+              "helperStartSeconds": 0.0,
+              "prefillSeconds": 1.517,
+              "decodeSeconds": 2.873,
+              "generatedTokens": 114
+            },
+            {
+              "scope": "all",
+              "promptTokens": 14570,
+              "resumedTokens": 13824,
+              "computedTokens": 746,
+              "replayBoundaryTokens": 14560,
+              "longestSharedPrefixTokens": 13949,
+              "deduplicatedKVTokens": 96,
+              "primeTokens": 0,
+              "primeSeconds": 0,
+              "helperStartSeconds": 0.0,
+              "prefillSeconds": 1.568,
+              "decodeSeconds": 2.861,
+              "generatedTokens": 132
+            },
+            {
+              "scope": "all",
+              "promptTokens": 15297,
+              "resumedTokens": 14560,
+              "computedTokens": 737,
+              "replayBoundaryTokens": 15264,
+              "longestSharedPrefixTokens": 14702,
+              "deduplicatedKVTokens": 0,
+              "primeTokens": 0,
+              "primeSeconds": 0,
+              "helperStartSeconds": 0.0,
+              "prefillSeconds": 1.652,
+              "decodeSeconds": 5.442,
+              "generatedTokens": 208
+            }
+          ]
+        },
+        {
+          "turn": 3,
+          "prompt": "Which supplier is cheaper for 10 more bolts?",
+          "wallSeconds": 38.48,
+          "firstVisibleSeconds": 21.94,
+          "modelDecisions": 6,
+          "answer": "Oak Supply is cheaper for 10 brass bolts.\n\nAccording to the supplier quotes:\n- Oak Supply offers 10 brass bolts at 2.40 each, totaling 24.00.\n- Cedar Tools offers 10 brass bolts at 2.75 each, totaling 27.50.\n\nBoth quotes exclude delivery costs.",
+          "citationCount": 1,
+          "calls": [
+            {
+              "scope": "all",
+              "promptTokens": 16847,
+              "resumedTokens": 11776,
+              "computedTokens": 5071,
+              "replayBoundaryTokens": 15840,
+              "longestSharedPrefixTokens": 11785,
+              "deduplicatedKVTokens": 0,
+              "primeTokens": 0,
+              "primeSeconds": 0,
+              "helperStartSeconds": 0.0,
+              "prefillSeconds": 2.899,
+              "decodeSeconds": 2.508,
+              "generatedTokens": 92
+            },
+            {
+              "scope": "all",
+              "promptTokens": 17420,
+              "resumedTokens": 15840,
+              "computedTokens": 1580,
+              "replayBoundaryTokens": 17408,
+              "longestSharedPrefixTokens": 16911,
+              "deduplicatedKVTokens": 1056,
+              "primeTokens": 0,
+              "primeSeconds": 0,
+              "helperStartSeconds": 0.0,
+              "prefillSeconds": 1.954,
+              "decodeSeconds": 5.336,
+              "generatedTokens": 259
+            },
+            {
+              "scope": "all",
+              "promptTokens": 18272,
+              "resumedTokens": 17408,
+              "computedTokens": 864,
+              "replayBoundaryTokens": 18240,
+              "longestSharedPrefixTokens": 17679,
+              "deduplicatedKVTokens": 256,
+              "primeTokens": 0,
+              "primeSeconds": 0,
+              "helperStartSeconds": 0.0,
+              "prefillSeconds": 1.558,
+              "decodeSeconds": 9.999,
+              "generatedTokens": 477
+            },
+            {
+              "scope": "all",
+              "promptTokens": 18780,
+              "resumedTokens": 18240,
+              "computedTokens": 540,
+              "replayBoundaryTokens": 18752,
+              "longestSharedPrefixTokens": 18749,
+              "deduplicatedKVTokens": 480,
+              "primeTokens": 0,
+              "primeSeconds": 0,
+              "helperStartSeconds": 0.0,
+              "prefillSeconds": 1.418,
+              "decodeSeconds": 2.387,
+              "generatedTokens": 90
+            },
+            {
+              "scope": "all",
+              "promptTokens": 18896,
+              "resumedTokens": 18752,
+              "computedTokens": 144,
+              "replayBoundaryTokens": 18880,
+              "longestSharedPrefixTokens": 18870,
+              "deduplicatedKVTokens": 96,
+              "primeTokens": 0,
+              "primeSeconds": 0,
+              "helperStartSeconds": 0.0,
+              "prefillSeconds": 0.881,
+              "decodeSeconds": 1.567,
+              "generatedTokens": 59
+            },
+            {
+              "scope": "all",
+              "promptTokens": 18983,
+              "resumedTokens": 18880,
+              "computedTokens": 103,
+              "replayBoundaryTokens": 18976,
+              "longestSharedPrefixTokens": 18955,
+              "deduplicatedKVTokens": 64,
+              "primeTokens": 0,
+              "primeSeconds": 0,
+              "helperStartSeconds": 0.0,
+              "prefillSeconds": 2.276,
+              "decodeSeconds": 4.092,
+              "generatedTokens": 201
+            }
+          ]
+        },
+        {
+          "turn": 4,
+          "prompt": "Summarize that in one sentence.",
+          "wallSeconds": 7.07,
+          "firstVisibleSeconds": 5.24,
+          "modelDecisions": 1,
+          "answer": "We currently have 18 brass bolts because a delivery of 2 bolts was handed over to Willow's customer on January 2, 2026, reducing the opening stock of 20.",
+          "citationCount": 0,
+          "calls": [
+            {
+              "scope": "all",
+              "promptTokens": 19565,
+              "resumedTokens": 15840,
+              "computedTokens": 3725,
+              "replayBoundaryTokens": 18464,
+              "longestSharedPrefixTokens": 15854,
+              "deduplicatedKVTokens": 0,
+              "primeTokens": 0,
+              "primeSeconds": 0,
+              "helperStartSeconds": 0.0,
+              "prefillSeconds": 2.571,
+              "decodeSeconds": 4.194,
+              "generatedTokens": 157
+            }
+          ]
+        }
+      ]
+    },
+    "greetingThenQuestion": {
+      "before": [
+        {
+          "turn": 1,
+          "prompt": "hi",
+          "wallSeconds": 14.55,
+          "firstVisibleSeconds": 13.66,
+          "modelDecisions": 1,
+          "answer": "Hello! How can I help you today?",
+          "citationCount": 0,
+          "calls": [
+            {
+              "scope": "all",
+              "promptTokens": 11803,
+              "resumedTokens": 6016,
+              "computedTokens": 5787,
+              "replayBoundaryTokens": null,
+              "longestSharedPrefixTokens": 0,
+              "deduplicatedKVTokens": 0,
+              "primeTokens": 6020,
+              "primeSeconds": 2.705,
+              "helperStartSeconds": 4.89,
+              "prefillSeconds": 2.93,
+              "decodeSeconds": 1.742,
+              "generatedTokens": 79
+            }
+          ]
+        },
+        {
+          "turn": 2,
+          "prompt": "Why do we have 18 brass bolts?",
+          "wallSeconds": 26.11,
+          "firstVisibleSeconds": 23.36,
+          "modelDecisions": 4,
+          "answer": "We have 18 brass bolts because our opening stock was 20, and we delivered 2 to Willow's customer on January 2, 2026 (20 - 2 = 18).",
+          "citationCount": 2,
+          "calls": [
+            {
+              "scope": "all",
+              "promptTokens": 11953,
+              "resumedTokens": 10976,
+              "computedTokens": 977,
+              "replayBoundaryTokens": null,
+              "longestSharedPrefixTokens": 11076,
+              "deduplicatedKVTokens": 96,
+              "primeTokens": 10989,
+              "primeSeconds": 1.999,
+              "helperStartSeconds": 0.0,
+              "prefillSeconds": 1.565,
+              "decodeSeconds": 2.334,
+              "generatedTokens": 92
+            },
+            {
+              "scope": "all",
+              "promptTokens": 12827,
+              "resumedTokens": 11936,
+              "computedTokens": 891,
+              "replayBoundaryTokens": null,
+              "longestSharedPrefixTokens": 12017,
+              "deduplicatedKVTokens": 64,
+              "primeTokens": 0,
+              "primeSeconds": 0,
+              "helperStartSeconds": 0.0,
+              "prefillSeconds": 1.527,
+              "decodeSeconds": 6.116,
+              "generatedTokens": 278
+            },
+            {
+              "scope": "all",
+              "promptTokens": 13661,
+              "resumedTokens": 12800,
+              "computedTokens": 861,
+              "replayBoundaryTokens": null,
+              "longestSharedPrefixTokens": 13105,
+              "deduplicatedKVTokens": 288,
+              "primeTokens": 0,
+              "primeSeconds": 0,
+              "helperStartSeconds": 0.0,
+              "prefillSeconds": 1.577,
+              "decodeSeconds": 1.63,
+              "generatedTokens": 76
+            },
+            {
+              "scope": "all",
+              "promptTokens": 14316,
+              "resumedTokens": 13632,
+              "computedTokens": 684,
+              "replayBoundaryTokens": null,
+              "longestSharedPrefixTokens": 13737,
+              "deduplicatedKVTokens": 96,
+              "primeTokens": 0,
+              "primeSeconds": 0,
+              "helperStartSeconds": 0.0,
+              "prefillSeconds": 1.544,
+              "decodeSeconds": 6.891,
+              "generatedTokens": 316
+            }
+          ]
+        }
+      ],
+      "after": [
+        {
+          "turn": 1,
+          "prompt": "hi",
+          "wallSeconds": 14.72,
+          "firstVisibleSeconds": 13.88,
+          "modelDecisions": 1,
+          "answer": "Hello! How can I help you today?",
+          "citationCount": 0,
+          "calls": [
+            {
+              "scope": "all",
+              "promptTokens": 11819,
+              "resumedTokens": 6016,
+              "computedTokens": 5803,
+              "replayBoundaryTokens": 11072,
+              "longestSharedPrefixTokens": 0,
+              "deduplicatedKVTokens": 0,
+              "primeTokens": 6020,
+              "primeSeconds": 2.618,
+              "helperStartSeconds": 4.486,
+              "prefillSeconds": 2.947,
+              "decodeSeconds": 2.244,
+              "generatedTokens": 97
+            }
+          ]
+        },
+        {
+          "turn": 2,
+          "prompt": "Why do we have 18 brass bolts?",
+          "wallSeconds": 29.42,
+          "firstVisibleSeconds": 25.9,
+          "modelDecisions": 4,
+          "answer": "We have 18 brass bolts because we started with an opening stock of 20 and delivered 2 to a customer.\n\n*   **Opening Stock:** 20 brass bolts (Workshop inventory)\n*   **Delivery:** 2 brass bolts handed over to Willow's customer (Delivery 1042)\n\n20 - 2 = 18.",
+          "citationCount": 2,
+          "calls": [
+            {
+              "scope": "all",
+              "promptTokens": 11970,
+              "resumedTokens": 11072,
+              "computedTokens": 898,
+              "replayBoundaryTokens": 11168,
+              "longestSharedPrefixTokens": 11087,
+              "deduplicatedKVTokens": 0,
+              "primeTokens": 0,
+              "primeSeconds": 0,
+              "helperStartSeconds": 0.0,
+              "prefillSeconds": 1.491,
+              "decodeSeconds": 2.387,
+              "generatedTokens": 92
+            },
+            {
+              "scope": "all",
+              "promptTokens": 12863,
+              "resumedTokens": 11168,
+              "computedTokens": 1695,
+              "replayBoundaryTokens": 12832,
+              "longestSharedPrefixTokens": 12034,
+              "deduplicatedKVTokens": 864,
+              "primeTokens": 0,
+              "primeSeconds": 0,
+              "helperStartSeconds": 0.0,
+              "prefillSeconds": 1.81,
+              "decodeSeconds": 9.06,
+              "generatedTokens": 435
+            },
+            {
+              "scope": "all",
+              "promptTokens": 13862,
+              "resumedTokens": 12832,
+              "computedTokens": 1030,
+              "replayBoundaryTokens": 13856,
+              "longestSharedPrefixTokens": 13298,
+              "deduplicatedKVTokens": 448,
+              "primeTokens": 0,
+              "primeSeconds": 0,
+              "helperStartSeconds": 0.0,
+              "prefillSeconds": 1.647,
+              "decodeSeconds": 1.971,
+              "generatedTokens": 80
+            },
+            {
+              "scope": "all",
+              "promptTokens": 14525,
+              "resumedTokens": 13856,
+              "computedTokens": 669,
+              "replayBoundaryTokens": 14496,
+              "longestSharedPrefixTokens": 13942,
+              "deduplicatedKVTokens": 64,
+              "primeTokens": 0,
+              "primeSeconds": 0,
+              "helperStartSeconds": 0.0,
+              "prefillSeconds": 1.485,
+              "decodeSeconds": 8.566,
+              "generatedTokens": 381
+            }
+          ]
+        }
+      ]
+    },
+    "questionThenFollowUp": {
+      "before": [
+        {
+          "turn": 1,
+          "prompt": "How many brass bolts do we have?",
+          "wallSeconds": 21.33,
+          "firstVisibleSeconds": 20.38,
+          "modelDecisions": 2,
+          "answer": "We currently have 18 brass bolts.",
+          "citationCount": 2,
+          "calls": [
+            {
+              "scope": "all",
+              "promptTokens": 11812,
+              "resumedTokens": 6016,
+              "computedTokens": 5796,
+              "replayBoundaryTokens": null,
+              "longestSharedPrefixTokens": 0,
+              "deduplicatedKVTokens": 0,
+              "primeTokens": 6020,
+              "primeSeconds": 2.636,
+              "helperStartSeconds": 4.705,
+              "prefillSeconds": 2.913,
+              "decodeSeconds": 1.79,
+              "generatedTokens": 75
+            },
+            {
+              "scope": "all",
+              "promptTokens": 12324,
+              "resumedTokens": 11776,
+              "computedTokens": 548,
+              "replayBoundaryTokens": null,
+              "longestSharedPrefixTokens": 11887,
+              "deduplicatedKVTokens": 96,
+              "primeTokens": 10989,
+              "primeSeconds": 1.984,
+              "helperStartSeconds": 0.0,
+              "prefillSeconds": 1.382,
+              "decodeSeconds": 3.233,
+              "generatedTokens": 133
+            }
+          ]
+        },
+        {
+          "turn": 2,
+          "prompt": "Why did it go down?",
+          "wallSeconds": 11.17,
+          "firstVisibleSeconds": 9.24,
+          "modelDecisions": 2,
+          "answer": "The inventory of brass bolts went down because a delivery of 2 units was recorded on January 2, 2026. This delivery reduced the opening stock of 20 to the current 18.",
+          "citationCount": 2,
+          "calls": [
+            {
+              "scope": "all",
+              "promptTokens": 12556,
+              "resumedTokens": 10976,
+              "computedTokens": 1580,
+              "replayBoundaryTokens": null,
+              "longestSharedPrefixTokens": 11079,
+              "deduplicatedKVTokens": 96,
+              "primeTokens": 0,
+              "primeSeconds": 0,
+              "helperStartSeconds": 0.0,
+              "prefillSeconds": 1.802,
+              "decodeSeconds": 2.503,
+              "generatedTokens": 94
+            },
+            {
+              "scope": "all",
+              "promptTokens": 13088,
+              "resumedTokens": 12544,
+              "computedTokens": 544,
+              "replayBoundaryTokens": null,
+              "longestSharedPrefixTokens": 12620,
+              "deduplicatedKVTokens": 64,
+              "primeTokens": 0,
+              "primeSeconds": 0,
+              "helperStartSeconds": 0.0,
+              "prefillSeconds": 1.401,
+              "decodeSeconds": 4.972,
+              "generatedTokens": 218
+            }
+          ]
+        }
+      ],
+      "after": [
+        {
+          "turn": 1,
+          "prompt": "How many brass bolts do we have?",
+          "wallSeconds": 25.31,
+          "firstVisibleSeconds": 24.05,
+          "modelDecisions": 2,
+          "answer": "We currently have 18 brass bolts.",
+          "citationCount": 2,
+          "calls": [
+            {
+              "scope": "all",
+              "promptTokens": 11829,
+              "resumedTokens": 6016,
+              "computedTokens": 5813,
+              "replayBoundaryTokens": 11072,
+              "longestSharedPrefixTokens": 0,
+              "deduplicatedKVTokens": 0,
+              "primeTokens": 6020,
+              "primeSeconds": 3.95,
+              "helperStartSeconds": 4.563,
+              "prefillSeconds": 4.539,
+              "decodeSeconds": 2.209,
+              "generatedTokens": 76
+            },
+            {
+              "scope": "all",
+              "promptTokens": 12348,
+              "resumedTokens": 11072,
+              "computedTokens": 1276,
+              "replayBoundaryTokens": 12320,
+              "longestSharedPrefixTokens": 11905,
+              "deduplicatedKVTokens": 832,
+              "primeTokens": 0,
+              "primeSeconds": 0,
+              "helperStartSeconds": 0.0,
+              "prefillSeconds": 3.293,
+              "decodeSeconds": 3.902,
+              "generatedTokens": 133
+            }
+          ]
+        },
+        {
+          "turn": 2,
+          "prompt": "Why did it go down?",
+          "wallSeconds": 18.44,
+          "firstVisibleSeconds": 4.08,
+          "modelDecisions": 3,
+          "answer": "The brass bolt count went down from 20 to 18 because of a delivery recorded on January 2, 2026. That delivery removed 2 bolts from our stock.",
+          "citationCount": 2,
+          "calls": [
+            {
+              "scope": "all",
+              "promptTokens": 12580,
+              "resumedTokens": 11072,
+              "computedTokens": 1508,
+              "replayBoundaryTokens": 11776,
+              "longestSharedPrefixTokens": 11087,
+              "deduplicatedKVTokens": 0,
+              "primeTokens": 0,
+              "primeSeconds": 0,
+              "helperStartSeconds": 0.0,
+              "prefillSeconds": 1.719,
+              "decodeSeconds": 4.019,
+              "generatedTokens": 168
+            },
+            {
+              "scope": "inspection",
+              "promptTokens": 8566,
+              "resumedTokens": 5888,
+              "computedTokens": 2678,
+              "replayBoundaryTokens": 8544,
+              "longestSharedPrefixTokens": 1828,
+              "deduplicatedKVTokens": 0,
+              "primeTokens": 5900,
+              "primeSeconds": 2.482,
+              "helperStartSeconds": 0.0,
+              "prefillSeconds": 1.996,
+              "decodeSeconds": 1.667,
+              "generatedTokens": 62
+            },
+            {
+              "scope": "all",
+              "promptTokens": 13327,
+              "resumedTokens": 11776,
+              "computedTokens": 1551,
+              "replayBoundaryTokens": 13312,
+              "longestSharedPrefixTokens": 12644,
+              "deduplicatedKVTokens": 864,
+              "primeTokens": 0,
+              "primeSeconds": 0,
+              "helperStartSeconds": 0.0,
+              "prefillSeconds": 1.834,
+              "decodeSeconds": 4.024,
+              "generatedTokens": 167
+            }
+          ]
+        }
+      ]
+    }
+  },
+  "memory": "During the follow-up traces: peak helper resident memory 2.1 to 2.2 GiB and harness 0.5 GiB; swap stayed at 1,752.69 MiB. Resident memory excludes Metal allocations.",
+  "conversationCacheTrace": {
+    "command": "sevra-agent-checks --conversation-cache-trace MODELS_ROOT GUIDANCE_LIBRARY SPLASH_EXECUTABLE NEW_OUTPUT_DIRECTORY",
+    "turns": [
+      {
+        "prompt": "What is the current stock of brass bolts? Use the balance tool and cite the evidence. Do not change the workbook.",
+        "passed": true,
+        "wallSeconds": 21.88,
+        "firstCallScope": "conversationAnswer",
+        "firstCallResumedTokens": 6016,
+        "firstCallPromptTokens": 7502,
+        "headerTokens": 6606
+      },
+      {
+        "prompt": "How many brass bolts are currently in stock? Use the balance tool and cite the evidence. Do not change the workbook.",
+        "passed": true,
+        "wallSeconds": 11.43,
+        "firstCallScope": "conversationAnswer",
+        "firstCallResumedTokens": 6688,
+        "firstCallPromptTokens": 8303,
+        "headerTokens": 6606
+      },
+      {
+        "prompt": "hey",
+        "passed": true,
+        "wallSeconds": 8.6,
+        "firstCallScope": "all",
+        "firstCallResumedTokens": 10976,
+        "firstCallPromptTokens": 13395,
+        "headerTokens": 10989
+      },
+      {
+        "prompt": "hey",
+        "passed": true,
+        "wallSeconds": 4.87,
+        "firstCallScope": "all",
+        "firstCallResumedTokens": 12576,
+        "firstCallPromptTokens": 13554,
+        "headerTokens": 10989
+      },
+      {
+        "prompt": "What is the current stock of brass bolts? Use the balance tool and cite the evidence. Do not change the workbook.",
+        "passed": true,
+        "wallSeconds": 10.5,
+        "firstCallScope": "conversationAnswer",
+        "firstCallResumedTokens": 7456,
+        "firstCallPromptTokens": 9403,
+        "headerTokens": 6606
+      }
+    ]
+  }
+}

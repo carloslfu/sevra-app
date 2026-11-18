@@ -11,6 +11,9 @@ package struct NativePreparedRequest {
   package let prompt: SplashTextFrontend.Prompt
   package let stablePrefixCount: Int
   package let scopePrefixCount: Int
+  /// A few tokens short of the end of the saved conversation's text. The next turn's prompt
+  /// extends this one through here. Nil without a whole page past the header.
+  package let historyBoundary: Int?
   package let policy: SplashToolPolicy
   package let reasoning: NativeReasoning
   package let requestedOutputBudget: Int
@@ -151,6 +154,28 @@ package struct NativePreparedRequest {
     self.stablePrefixCount = hasStablePrefix ? prompt.tokens.firstIndex(of: 248046).map { $0 + 1 } ?? 0 : 0
     self.scopePrefixCount = hasScopePrefix
       ? prompt.tokens.dropFirst(stablePrefixCount).firstIndex(of: 248046).map { $0 + 1 } ?? 0 : 0
+    var historyBoundary: Int?
+    if hasStablePrefix, let saved = messages.firstIndex(where: \.conversationHistory),
+      messages[..<saved].allSatisfy({ $0.role != "tool" && $0.toolCalls.isEmpty })
+    {
+      // Every turn before the saved conversation is one non-tool message with one end
+      // token, so its end is end token number `turn + 1`. The scope block adds one turn.
+      let turn = saved + (hasScopePrefix ? 1 : 0)
+      var ends = 0
+      for (position, token) in prompt.tokens.enumerated() where token == 248046 {
+        ends += 1
+        guard ends == turn + 1 else { continue }
+        // The template trims the final newline, so the last entry's closing tokens merge
+        // differently once a later turn appends a line. Stop a few tokens short of them.
+        // The engine keeps the state on the last whole 32-token page, past the header.
+        let boundary = position - 4
+        if boundary / 32 * 32 > max(stablePrefixCount, scopePrefixCount) {
+          historyBoundary = boundary
+        }
+        break
+      }
+    }
+    self.historyBoundary = historyBoundary
     let requestedOutputBudget =
       interpretation?["maxOutputTokens"].int
       ?? (excelReview

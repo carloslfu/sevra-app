@@ -376,6 +376,14 @@ do {
   }
   if CommandLine.arguments.dropFirst() == ["--conversation-latency-checks"] {
     try await checkConversationLatency()
+    try await checkConversationHistoryAppendOnly()
+    exit(0)
+  }
+  if CommandLine.arguments.count >= 7 && CommandLine.arguments[1] == "--conversation-followup-trace" {
+    try await runFollowupCacheTrace(
+      modelsRoot: CommandLine.arguments[2], library: CommandLine.arguments[3],
+      engine: CommandLine.arguments[4], output: CommandLine.arguments[5],
+      prompts: Array(CommandLine.arguments.dropFirst(6)))
     exit(0)
   }
   if CommandLine.arguments.count == 6,
@@ -390,6 +398,7 @@ do {
     exit(0)
   }
   try await checkConversationLatency()
+  try await checkConversationHistoryAppendOnly()
   try checkInferenceLease()
   try checkNativeFailures()
   try checkContextBudget()
@@ -582,6 +591,7 @@ do {
     try checkItemReferenceGrammar(frontend: frontend, factory: factory)
     try checkDocumentCopyGrammar(frontend: frontend, factory: factory)
     try checkConversationActionGrammar(frontend: frontend, factory: factory)
+    try checkConversationReplayBoundary(frontend: frontend)
     try checkActionDirectionGrammar(frontend: frontend, factory: factory)
     try checkNativeReviewGrammar(frontend: frontend, factory: factory)
     try checkInterpretationGrammar(frontend: frontend, factory: factory)

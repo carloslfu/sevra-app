@@ -247,6 +247,13 @@ func runConversationLatencyProbe(
       let call = measurements.array.first { $0["matchedPromptTokens"].int != nil }
       try require((call?["matchedPromptTokens"].int ?? 0) >= 2048, "quality",
         "The real helper did not resume a shared workbook prefix.")
+      // Turns 2 and 4 repeat the previous turn's scope, so they resume its saved
+      // conversation instead of computing the earlier turns again after the header.
+      if [1, 3].contains(index) {
+        let header = max(call?["stablePrefixTokens"].int ?? 0, call?["scopePrefixTokens"].int ?? 0)
+        try require((call?["matchedPromptTokens"].int ?? 0) > header, "quality",
+          "A same-scope follow-up resumed only the shared header, not the previous turn.")
+      }
     }
     let row: Value = .object([
       "prompt": .string(prompt),

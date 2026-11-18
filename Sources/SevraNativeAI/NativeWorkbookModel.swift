@@ -331,6 +331,15 @@ private final class NativeWorker: @unchecked Sendable {
     }
     // Engine checkpoints are process-local. Retain the exact token identity, including schemas.
     private var checkpointPrefixes: [[UInt32]] = []
+    /// Page-aligned prompt prefixes whose replay states earlier requests left at the end of
+    /// their saved conversation. A prompt that starts with one resumes past the header.
+    private var replayPrefixes: [[UInt32]] = []
+    func recordReplay(_ prompt: [UInt32], boundary: Int) {
+      let prefix = Array(prompt.prefix(boundary / 32 * 32))
+      replayPrefixes.removeAll { $0 == prefix }
+      if replayPrefixes.count == 4 { replayPrefixes.removeFirst() }
+      replayPrefixes.append(prefix)
+    }
     func primePrefix(
       _ prompt: SplashTextFrontend.Prompt, common: Int, scope: Int, helper: SplashNativeProcess,
       cancellation: Cancellation
@@ -338,9 +347,11 @@ private final class NativeWorker: @unchecked Sendable {
       guard common >= 2048, !configuration.diagnosticRequestCacheIsolation else { return (0, 0, 0, 0) }
       // Prime the shared boundary first. An additional large stable scope earns a separate
       // checkpoint on a later dispatch. Never introduce more than one prime per dispatch.
+      // A deeper replay state the prompt starts with already covers both boundaries.
       let count = [common, scope].first { size in
         (size == common || size >= common + 2048)
           && !checkpointPrefixes.contains { $0.count == size && prompt.tokens.prefix(size).elementsEqual($0) }
+          && !replayPrefixes.contains { $0.count >= size && prompt.tokens.starts(with: $0) }
       }
       guard let count else { return (0, 0, 0, 0) }
       let prefix = Array(prompt.tokens.prefix(count))
@@ -369,6 +380,7 @@ private final class NativeWorker: @unchecked Sendable {
         let lastCompletePage = ((prefix.count - 1) / 32) * 32
         return matched < lastCompletePage && prompt.starts(with: prefix)
       }
+      replayPrefixes.removeAll { matched < $0.count && prompt.starts(with: $0) }
     }
     var requestID: UInt64 = 0
     init(
@@ -721,6 +733,16 @@ private final class NativeWorker: @unchecked Sendable {
       remainingDeadline: 180_000_000)
     request.maxOutput = UInt32(outputBudget)
     request.generationTokens = prompt.generationTokens
+    // Splash keeps a request's reusable state on the last whole page before its last
+    // `generationTokens`. The first decision of a request leaves it at the end of the saved
+    // conversation, which the next turn extends; the host state, request and tool pairs
+    // after it change each turn. Later decisions resume where the previous one stopped.
+    let replayBoundary =
+      interpretation == nil && messages.first?.initialChatDecision == true
+      ? prepared.historyBoundary : nil
+    if let replayBoundary {
+      request.generationTokens = UInt32(prompt.tokens.count - replayBoundary)
+    }
     request.tokenMask = true
     request.thinking = try reasoning.budget(outputTokens: outputBudget)
     if configuration.diagnosticRequestCacheIsolation {
@@ -774,6 +796,7 @@ private final class NativeWorker: @unchecked Sendable {
     try constraint.finish(committed: generated.tokens, requireComplete: true)
     let parsed = try output.finish(generated.done.reason).0
     session.observeResume(prompt: prompt.tokens, matched: matchedPromptTokens)
+    if let replayBoundary { session.recordReplay(prompt.tokens, boundary: replayBoundary) }
     let reasoningTokens = try reasoning.generatedTokens(generated.tokens)
     try require(
       parsed.calls.count == 1 || parsed.refusal != nil, "model_format",
@@ -808,6 +831,10 @@ private final class NativeWorker: @unchecked Sendable {
       "firstAnswerPreviewSeconds": previewAt.map { .number($0 - hostStart) } ?? .null,
       "stablePrefixTokens": .number(Double(prepared.stablePrefixCount)),
       "scopePrefixTokens": .number(Double(prepared.scopePrefixCount)),
+      "replayBoundaryTokens": .number(
+        Double(
+          replayBoundary.map { $0 / 32 * 32 }
+            ?? (prompt.tokens.count - Int(prompt.generationTokens)) / 32 * 32)),
       "prefixPrimeTokens": .number(Double(seed.tokens)),
       "prefixPrimeMatchedTokens": .number(Double(seed.matched)),
       "prefixPrimeSeconds": .number(seed.seconds),

@@ -2,11 +2,12 @@
 type: index
 scope: type-folder
 folder: records/plans
-updated: 2026-11-18T13:46:19.813921Z
+updated: 2026-11-18T14:22:32.911408Z
 ---
 
 # records/plans
 
+- [[records/plans/conversation-follow-up-cache]] — Follow-ups recompute every earlier turn. Plan: append-only history and a replay state at its end, with real-model acceptance.
 - [[records/plans/native-chat-prompt-routing]] — Plan to open rare tool groups on their first read, with no separate router: measured prompt costs, tool inventory, compatibility checks and replay gates.
 - [[records/plans/conversation-latency-fix]] — Bounded product conversation, stable prompt vocabulary and provisional answer delivery with measured replay and preserved authority.
 - [[records/plans/native-storybook]] — Implemented native catalog: 176 entries across app, Home, mini apps, chat and visuals, isolated fixtures, ten compositions and scoped local acceptance.

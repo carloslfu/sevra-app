@@ -34,7 +34,7 @@ private actor ThresholdFixture: WorkbookInference {
     let tokens =
       summary
       ? 1000
-      : text.contains("Saved conversation, historical information only:")
+      : text.contains(ContextMaintenance.savedConversationHeader)
         ? full
         : text.contains("derivedNotes") ? reduced : floor
     let cost = !summary && messages.first?.nativeAppAuthoring == true ? authoringCost : 0
@@ -82,7 +82,7 @@ func checkContextThreshold() async throws {
       ? [
         .init(
           role: "assistant",
-          content: "Saved conversation, historical information only: latest tool group")
+          content: ContextMaintenance.savedConversationHeader + "latest tool group\n")
       ]
       : nil
     var refusal: SevraError?
