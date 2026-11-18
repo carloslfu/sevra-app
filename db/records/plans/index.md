@@ -2,12 +2,12 @@
 type: index
 scope: type-folder
 folder: records/plans
-updated: 2026-11-18T02:43:50.448918Z
+updated: 2026-11-18T02:57:21.138618Z
 ---
 
 # records/plans
 
-- [[records/plans/native-chat-prompt-routing]] — Implementation-ready plan for two narrow native chat tool scopes, existing evidence recovery, and measured prompt and latency comparison.
+- [[records/plans/native-chat-prompt-routing]] — Greeting-first implementation plan with the full native tool inventory, prompt measurements, compatibility checks and a separate stock candidate.
 - [[records/plans/conversation-latency-fix]] — Bounded product conversation, stable prompt vocabulary and provisional answer delivery with measured replay and preserved authority.
 - [[records/plans/native-storybook]] — Implemented native catalog: 176 entries across app, Home, mini apps, chat and visuals, isolated fixtures, ten compositions and scoped local acceptance.
 - [[records/plans/rich-native-visuals]] — Native chat inputs, images, charts and work views implemented in source. The document records focused evidence and remaining visual and release work.

@@ -199,3 +199,9 @@ Reviewed the native chat request, prompt, Splash dispatch and workbook evidence 
 ## [2026-11-18 02:44] verification | records/plans/native-chat-prompt-routing.md
 Planning validation passed with zero db.md findings. Checked repository Markdown links, all 16 local plan references, named agent probe flags and Git diff whitespace. The measurements in the plan refer to the existing native implementation.
 
+## [2026-11-18 02:57] design | records/plans/native-chat-prompt-routing.md
+Rechecked the current agent against all native scopes. Measured the ordinary and narrow prompt schemas with the selected tokenizer. Made the greeting scope the first isolated change and added baseline compatibility coverage for all existing tool groups.
+
+## [2026-11-18 02:58] verification | records/plans/native-chat-prompt-routing.md
+CPU-only probe matched the native template and covered all 25 current scopes, the separate interpretation output and 81 nested operations. Checked the plan names and token table against probe output. Store validation, repository links and diff whitespace passed. Runtime quality and latency are pending.
+
