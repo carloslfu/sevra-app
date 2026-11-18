@@ -268,3 +268,6 @@ Aligned with the release packaging at baadc5c and the build-time header directio
 ## [2026-11-18 18:56] verification | records/plans/general-chat-tools.md
 Three review passes on the aligned header design: owner fidelity and readiness, a technical pass against the packaging scripts, start path and engine cache layout, and a final independent check against the code. Findings applied. Store validation and repository links pass. Engine and SQLite behavior the plan relies on is still read from source and is proven in phases H1, H2 and 2.
 
+## [2026-11-18 19:03] verification | records/plans/general-chat-tools.md
+Phase 2 step 1 run ahead of the phase: a CPU probe of the system SQLite 3.51.0 confirmed table discovery through the authorizer, the trigger log, the refusals and the page cap. A written floating-point value cannot be told from an exact one after SQLite's type conversion, so the Numbers design changed to floating-point cells with an exact side table, which the probe confirmed. Evidence in integration/evidence/2026-11-18-sqlite-scratch-probe.
+

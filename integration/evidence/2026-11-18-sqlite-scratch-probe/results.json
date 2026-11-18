@@ -1,0 +1,2428 @@
+{
+  "A_authorizer_events" : [
+    {
+      "error" : "",
+      "events" : [
+        "21||||",
+        "20|t1|x|main|",
+        "20|t2|y|main|",
+        "20|t1|x|main|",
+        "31||max||",
+        "20|t3|z|main|",
+        "20|t1|id|main|",
+        "20|t2|id|main|",
+        "21||||"
+      ],
+      "rc" : 0,
+      "sql" : "SELECT a.x, b.y FROM t1 a JOIN t2 b ON a.id = b.id WHERE a.x > (SELECT max(z) FROM t3)"
+    },
+    {
+      "error" : "",
+      "events" : [
+        "21||||",
+        "31||count||",
+        "20|t1|||"
+      ],
+      "rc" : 0,
+      "sql" : "SELECT count(*) FROM t1"
+    },
+    {
+      "error" : "",
+      "events" : [
+        "21||||",
+        "20|t2|id|main|v1",
+        "20|t2|y|main|v1",
+        "20|v1|id|main|",
+        "20|v1|y|main|",
+        "21||||v1"
+      ],
+      "rc" : 0,
+      "sql" : "SELECT * FROM v1"
+    },
+    {
+      "error" : "",
+      "events" : [
+        "21||||",
+        "20|t3|z|main|c",
+        "20|t1|id|main|",
+        "20|t1|x|main|",
+        "21||||c"
+      ],
+      "rc" : 0,
+      "sql" : "WITH c AS (SELECT z FROM t3) SELECT * FROM c, t1"
+    },
+    {
+      "error" : "",
+      "events" : [
+        "18|t1||main|",
+        "21||||",
+        "20|t2|id|main|",
+        "20|t2|y|main|"
+      ],
+      "rc" : 0,
+      "sql" : "INSERT INTO t1 SELECT id, y FROM t2"
+    },
+    {
+      "error" : "",
+      "events" : [
+        "23|t1|x|main|",
+        "20|t2|id|main|",
+        "20|t1|id|main|",
+        "21||||"
+      ],
+      "rc" : 0,
+      "sql" : "UPDATE t1 SET x = 1 WHERE id IN (SELECT id FROM t2)"
+    },
+    {
+      "error" : "",
+      "events" : [
+        "9|t3||main|"
+      ],
+      "rc" : 0,
+      "sql" : "DELETE FROM t3"
+    },
+    {
+      "error" : "",
+      "events" : [
+        "18|t1||main|"
+      ],
+      "rc" : 0,
+      "sql" : "INSERT INTO t1(id, x) VALUES (1, 2) ON CONFLICT DO NOTHING"
+    },
+    {
+      "error" : "",
+      "events" : [
+        "18|sqlite_master||main|",
+        "2|n1||main|",
+        "23|sqlite_master|type|main|",
+        "23|sqlite_master|name|main|",
+        "23|sqlite_master|tbl_name|main|",
+        "23|sqlite_master|rootpage|main|",
+        "23|sqlite_master|sql|main|",
+        "20|sqlite_master|ROWID|main|"
+      ],
+      "rc" : 0,
+      "sql" : "CREATE TABLE n1(a INTEGER PRIMARY KEY, b TEXT NOT NULL)"
+    },
+    {
+      "error" : "",
+      "events" : [
+        "26|main|t1||",
+        "21||||",
+        "31||like||",
+        "20|sqlite_master|name|main|",
+        "31||like||",
+        "20|sqlite_master|sql|main|",
+        "31||sqlite_rename_test||",
+        "20|sqlite_master|sql|main|",
+        "20|sqlite_master|type|main|",
+        "20|sqlite_master|name|main|",
+        "21||||",
+        "31||like||",
+        "20|sqlite_temp_master|name|temp|",
+        "31||like||",
+        "20|sqlite_temp_master|sql|temp|",
+        "31||sqlite_rename_test||",
+        "20|sqlite_temp_master|sql|temp|",
+        "20|sqlite_temp_master|type|temp|",
+        "20|sqlite_temp_master|name|temp|",
+        "31||sqlite_rename_quotefix||",
+        "20|sqlite_master|sql|main|",
+        "23|sqlite_master|sql|main|",
+        "31||like||",
+        "20|sqlite_master|name|main|",
+        "31||like||",
+        "20|sqlite_master|sql|main|",
+        "31||sqlite_rename_quotefix||",
+        "20|sqlite_temp_master|sql|temp|",
+        "23|sqlite_temp_master|sql|temp|",
+        "31||like||",
+        "20|sqlite_temp_master|name|temp|",
+        "31||like||",
+        "20|sqlite_temp_master|sql|temp|",
+        "31||sqlite_rename_column||",
+        "20|sqlite_master|sql|main|",
+        "20|sqlite_master|type|main|",
+        "20|sqlite_master|name|main|",
+        "23|sqlite_master|sql|main|",
+        "31||like||",
+        "20|sqlite_master|name|main|",
+        "20|sqlite_master|type|main|",
+        "20|sqlite_master|tbl_name|main|",
+        "31||sqlite_rename_column||",
+        "20|sqlite_temp_master|sql|temp|",
+        "20|sqlite_temp_master|type|temp|",
+        "20|sqlite_temp_master|name|temp|",
+        "23|sqlite_temp_master|sql|temp|",
+        "20|sqlite_temp_master|type|temp|",
+        "21||||",
+        "31||like||",
+        "20|sqlite_master|name|main|",
+        "31||like||",
+        "20|sqlite_master|sql|main|",
+        "31||sqlite_rename_test||",
+        "20|sqlite_master|sql|main|",
+        "20|sqlite_master|type|main|",
+        "20|sqlite_master|name|main|",
+        "21||||",
+        "31||like||",
+        "20|sqlite_temp_master|name|temp|",
+        "31||like||",
+        "20|sqlite_temp_master|sql|temp|",
+        "31||sqlite_rename_test||",
+        "20|sqlite_temp_master|sql|temp|",
+        "20|sqlite_temp_master|type|temp|",
+        "20|sqlite_temp_master|name|temp|"
+      ],
+      "rc" : 0,
+      "sql" : "ALTER TABLE t1 RENAME COLUMN x TO xx"
+    },
+    {
+      "error" : "",
+      "events" : [
+        "26|main|t1||",
+        "31||printf||",
+        "20|sqlite_master|sql|main|",
+        "31||substr||",
+        "20|sqlite_master|sql|main|",
+        "31||length||",
+        "31||printf||",
+        "20|sqlite_master|sql|main|",
+        "23|sqlite_master|sql|main|",
+        "20|sqlite_master|type|main|",
+        "20|sqlite_master|name|main|"
+      ],
+      "rc" : 0,
+      "sql" : "ALTER TABLE t1 ADD COLUMN w TEXT"
+    },
+    {
+      "error" : "",
+      "events" : [
+        "26|main|t1|x|",
+        "21||||",
+        "31||like||",
+        "20|sqlite_master|name|main|",
+        "31||like||",
+        "20|sqlite_master|sql|main|",
+        "31||sqlite_rename_test||",
+        "20|sqlite_master|sql|main|",
+        "20|sqlite_master|type|main|",
+        "20|sqlite_master|name|main|",
+        "21||||",
+        "31||like||",
+        "20|sqlite_temp_master|name|temp|",
+        "31||like||",
+        "20|sqlite_temp_master|sql|temp|",
+        "31||sqlite_rename_test||",
+        "20|sqlite_temp_master|sql|temp|",
+        "20|sqlite_temp_master|type|temp|",
+        "20|sqlite_temp_master|name|temp|",
+        "31||sqlite_rename_quotefix||",
+        "20|sqlite_master|sql|main|",
+        "23|sqlite_master|sql|main|",
+        "31||like||",
+        "20|sqlite_master|name|main|",
+        "31||like||",
+        "20|sqlite_master|sql|main|",
+        "31||sqlite_rename_quotefix||",
+        "20|sqlite_temp_master|sql|temp|",
+        "23|sqlite_temp_master|sql|temp|",
+        "31||like||",
+        "20|sqlite_temp_master|name|temp|",
+        "31||like||",
+        "20|sqlite_temp_master|sql|temp|",
+        "31||sqlite_drop_column||",
+        "20|sqlite_master|sql|main|",
+        "23|sqlite_master|sql|main|",
+        "20|sqlite_master|type|main|",
+        "20|sqlite_master|tbl_name|main|",
+        "21||||",
+        "31||like||",
+        "20|sqlite_master|name|main|",
+        "31||like||",
+        "20|sqlite_master|sql|main|",
+        "31||sqlite_rename_test||",
+        "20|sqlite_master|sql|main|",
+        "20|sqlite_master|type|main|",
+        "20|sqlite_master|name|main|",
+        "21||||",
+        "31||like||",
+        "20|sqlite_temp_master|name|temp|",
+        "31||like||",
+        "20|sqlite_temp_master|sql|temp|",
+        "31||sqlite_rename_test||",
+        "20|sqlite_temp_master|sql|temp|",
+        "20|sqlite_temp_master|type|temp|",
+        "20|sqlite_temp_master|name|temp|"
+      ],
+      "rc" : 0,
+      "sql" : "ALTER TABLE t1 DROP COLUMN x"
+    },
+    {
+      "error" : "",
+      "events" : [
+        "26|main|t1||",
+        "31||sqlite_rename_table||",
+        "20|sqlite_master|type|main|",
+        "20|sqlite_master|name|main|",
+        "20|sqlite_master|sql|main|",
+        "23|sqlite_master|sql|main|",
+        "20|sqlite_master|type|main|",
+        "20|sqlite_master|tbl_name|main|",
+        "31||like||",
+        "20|sqlite_master|name|main|",
+        "23|sqlite_master|tbl_name|main|",
+        "20|sqlite_master|type|main|",
+        "31||like||",
+        "20|sqlite_master|name|main|",
+        "20|sqlite_master|type|main|",
+        "31||substr||",
+        "20|sqlite_master|name|main|",
+        "20|sqlite_master|name|main|",
+        "23|sqlite_master|name|main|",
+        "20|sqlite_master|tbl_name|main|",
+        "20|sqlite_master|type|main|",
+        "20|sqlite_master|type|main|",
+        "20|sqlite_master|type|main|",
+        "31||sqlite_rename_table||",
+        "20|sqlite_temp_master|type|temp|",
+        "20|sqlite_temp_master|name|temp|",
+        "20|sqlite_temp_master|sql|temp|",
+        "23|sqlite_temp_master|sql|temp|",
+        "20|sqlite_temp_master|tbl_name|temp|",
+        "31||sqlite_rename_test||",
+        "20|sqlite_temp_master|sql|temp|",
+        "20|sqlite_temp_master|type|temp|",
+        "20|sqlite_temp_master|name|temp|",
+        "20|sqlite_temp_master|tbl_name|temp|",
+        "23|sqlite_temp_master|tbl_name|temp|",
+        "20|sqlite_temp_master|type|temp|",
+        "21||||",
+        "31||like||",
+        "20|sqlite_master|name|main|",
+        "31||like||",
+        "20|sqlite_master|sql|main|",
+        "31||sqlite_rename_test||",
+        "20|sqlite_master|sql|main|",
+        "20|sqlite_master|type|main|",
+        "20|sqlite_master|name|main|",
+        "21||||",
+        "31||like||",
+        "20|sqlite_temp_master|name|temp|",
+        "31||like||",
+        "20|sqlite_temp_master|sql|temp|",
+        "31||sqlite_rename_test||",
+        "20|sqlite_temp_master|sql|temp|",
+        "20|sqlite_temp_master|type|temp|",
+        "20|sqlite_temp_master|name|temp|"
+      ],
+      "rc" : 0,
+      "sql" : "ALTER TABLE t1 RENAME TO t9"
+    },
+    {
+      "error" : "",
+      "events" : [
+        "9|sqlite_master||main|",
+        "11|t3||main|",
+        "9|t3||main|",
+        "9|sqlite_master||main|",
+        "20|sqlite_master|tbl_name|main|",
+        "20|sqlite_master|type|main|",
+        "23|sqlite_master|rootpage|main|",
+        "20|sqlite_master|rootpage|main|"
+      ],
+      "rc" : 0,
+      "sql" : "DROP TABLE t3"
+    },
+    {
+      "error" : "",
+      "events" : [
+        "18|sqlite_master||main|",
+        "1|i1|t1|main|",
+        "20|t1|x|main|",
+        "18|sqlite_master||main|",
+        "27|i1||main|"
+      ],
+      "rc" : 0,
+      "sql" : "CREATE INDEX i1 ON t1(x)"
+    },
+    {
+      "error" : "",
+      "events" : [
+        "18|sqlite_temp_master||temp|",
+        "4|tmp1||temp|",
+        "23|sqlite_temp_master|type|temp|",
+        "23|sqlite_temp_master|name|temp|",
+        "23|sqlite_temp_master|tbl_name|temp|",
+        "23|sqlite_temp_master|rootpage|temp|",
+        "23|sqlite_temp_master|sql|temp|",
+        "20|sqlite_temp_master|ROWID|temp|"
+      ],
+      "rc" : 0,
+      "sql" : "CREATE TEMP TABLE tmp1(a)"
+    },
+    {
+      "error" : "",
+      "events" : [
+        "18|sqlite_master||main|",
+        "8|v2||main|",
+        "23|sqlite_master|type|main|",
+        "23|sqlite_master|name|main|",
+        "23|sqlite_master|tbl_name|main|",
+        "23|sqlite_master|rootpage|main|",
+        "23|sqlite_master|sql|main|",
+        "20|sqlite_master|ROWID|main|"
+      ],
+      "rc" : 0,
+      "sql" : "CREATE VIEW v2 AS SELECT * FROM t1"
+    },
+    {
+      "error" : "",
+      "events" : [
+        "7|tr1|t1|main|",
+        "18|sqlite_master||main|",
+        "18|sqlite_master||main|"
+      ],
+      "rc" : 0,
+      "sql" : "CREATE TRIGGER tr1 AFTER INSERT ON t1 BEGIN SELECT 1; END"
+    },
+    {
+      "error" : "",
+      "events" : [
+        "24|\/tmp\/should-not-exist.db|||"
+      ],
+      "rc" : 0,
+      "sql" : "ATTACH DATABASE '\/tmp\/should-not-exist.db' AS other"
+    },
+    {
+      "error" : "",
+      "events" : [
+        "19|writable_schema|1||"
+      ],
+      "rc" : 0,
+      "sql" : "PRAGMA writable_schema = 1"
+    },
+    {
+      "error" : "",
+      "events" : [
+        "19|table_xinfo|t1||"
+      ],
+      "rc" : 0,
+      "sql" : "PRAGMA table_xinfo(t1)"
+    },
+    {
+      "error" : "no such function: load_extension",
+      "events" : [
+        "21||||"
+      ],
+      "rc" : 1,
+      "sql" : "SELECT load_extension('x')"
+    },
+    {
+      "error" : "",
+      "events" : [
+
+      ],
+      "rc" : 0,
+      "sql" : "VACUUM INTO '\/tmp\/should-not-exist-2.db'"
+    },
+    {
+      "error" : "",
+      "events" : [
+        "21||||",
+        "20|sqlite_master|type|main|",
+        "20|sqlite_master|name|main|",
+        "20|sqlite_master|tbl_name|main|",
+        "20|sqlite_master|rootpage|main|",
+        "20|sqlite_master|sql|main|"
+      ],
+      "rc" : 0,
+      "sql" : "SELECT * FROM sqlite_master"
+    }
+  ],
+  "A_codes" : {
+    "SQLITE_ALTER_TABLE" : 26,
+    "SQLITE_ATTACH" : 24,
+    "SQLITE_CREATE_INDEX" : 1,
+    "SQLITE_CREATE_TABLE" : 2,
+    "SQLITE_CREATE_TEMP_TABLE" : 4,
+    "SQLITE_CREATE_TRIGGER" : 7,
+    "SQLITE_CREATE_VIEW" : 8,
+    "SQLITE_DELETE" : 9,
+    "SQLITE_DETACH" : 25,
+    "SQLITE_DROP_TABLE" : 11,
+    "SQLITE_DROP_TRIGGER" : 16,
+    "SQLITE_FUNCTION" : 31,
+    "SQLITE_INSERT" : 18,
+    "SQLITE_PRAGMA" : 19,
+    "SQLITE_READ" : 20,
+    "SQLITE_SELECT" : 21,
+    "SQLITE_TRANSACTION" : 22,
+    "SQLITE_UPDATE" : 23
+  },
+  "A_deny_attach" : {
+    "error" : "not authorized",
+    "rc" : 23,
+    "rows" : [
+
+    ],
+    "types" : [
+
+    ]
+  },
+  "A_deny_pragma" : {
+    "error" : "not authorized",
+    "rc" : 23,
+    "rows" : [
+
+    ],
+    "types" : [
+
+    ]
+  },
+  "A_load_extension_default" : {
+    "error" : "no such function: load_extension",
+    "rc" : 1,
+    "rows" : [
+
+    ],
+    "types" : [
+
+    ]
+  },
+  "B_trigger_log" : {
+    "delete_last_then_insert" : {
+      "error" : "",
+      "rc" : 0,
+      "rows" : [
+
+      ],
+      "types" : [
+
+      ]
+    },
+    "direct_read_of_log_denied" : {
+      "error" : "access to host_log.seq is prohibited",
+      "rc" : 23,
+      "rows" : [
+
+      ],
+      "types" : [
+
+      ]
+    },
+    "direct_write_of_log_denied" : {
+      "error" : "not authorized",
+      "rc" : 23,
+      "rows" : [
+
+      ],
+      "types" : [
+
+      ]
+    },
+    "drop_host_trigger_denied" : {
+      "error" : "not authorized",
+      "rc" : 23,
+      "rows" : [
+
+      ],
+      "types" : [
+
+      ]
+    },
+    "drop_log_table_denied" : {
+      "error" : "not authorized",
+      "rc" : 23,
+      "rows" : [
+
+      ],
+      "types" : [
+
+      ]
+    },
+    "insert_two" : {
+      "error" : "",
+      "rc" : 0,
+      "rows" : [
+
+      ],
+      "types" : [
+
+      ]
+    },
+    "log" : {
+      "error" : "",
+      "rc" : 0,
+      "rows" : [
+        [
+          "1",
+          "insert",
+          "NULL",
+          "1"
+        ],
+        [
+          "2",
+          "insert",
+          "NULL",
+          "2"
+        ],
+        [
+          "3",
+          "delete",
+          "1",
+          "NULL"
+        ],
+        [
+          "4",
+          "insert",
+          "NULL",
+          "3"
+        ],
+        [
+          "5",
+          "update",
+          "2",
+          "2"
+        ],
+        [
+          "6",
+          "delete",
+          "3",
+          "NULL"
+        ],
+        [
+          "7",
+          "insert",
+          "NULL",
+          "3"
+        ],
+        [
+          "8",
+          "update",
+          "3",
+          "99"
+        ]
+      ],
+      "types" : [
+        "integer",
+        "text",
+        "null",
+        "integer"
+      ]
+    },
+    "replace_existing" : {
+      "error" : "",
+      "rc" : 0,
+      "rows" : [
+
+      ],
+      "types" : [
+
+      ]
+    },
+    "rows_after" : {
+      "error" : "",
+      "rc" : 0,
+      "rows" : [
+        [
+          "2",
+          "b",
+          "20"
+        ],
+        [
+          "99",
+          "c",
+          "3"
+        ]
+      ],
+      "types" : [
+        "integer",
+        "text",
+        "integer"
+      ]
+    },
+    "update_rowid" : {
+      "error" : "",
+      "rc" : 0,
+      "rows" : [
+
+      ],
+      "types" : [
+
+      ]
+    },
+    "upsert" : {
+      "error" : "",
+      "rc" : 0,
+      "rows" : [
+
+      ],
+      "types" : [
+
+      ]
+    }
+  },
+  "C_before_trigger_typeof" : {
+    "insert_exact_function" : {
+      "error" : "",
+      "rc" : 0,
+      "rows" : [
+
+      ],
+      "types" : [
+
+      ]
+    },
+    "insert_float_arithmetic" : {
+      "error" : "",
+      "rc" : 0,
+      "rows" : [
+
+      ],
+      "types" : [
+
+      ]
+    },
+    "insert_integer_literal" : {
+      "error" : "",
+      "rc" : 0,
+      "rows" : [
+
+      ],
+      "types" : [
+
+      ]
+    },
+    "insert_real_literal" : {
+      "error" : "",
+      "rc" : 0,
+      "rows" : [
+
+      ],
+      "types" : [
+
+      ]
+    },
+    "insert_text" : {
+      "error" : "",
+      "rc" : 0,
+      "rows" : [
+
+      ],
+      "types" : [
+
+      ]
+    },
+    "seen" : {
+      "error" : "",
+      "rc" : 0,
+      "rows" : [
+        [
+          "1",
+          "before insert",
+          "text",
+          "text",
+          "12.50"
+        ],
+        [
+          "2",
+          "after insert",
+          "text",
+          "text",
+          "12.50"
+        ],
+        [
+          "3",
+          "before insert",
+          "text",
+          "text",
+          "12.5"
+        ],
+        [
+          "4",
+          "after insert",
+          "text",
+          "text",
+          "12.5"
+        ],
+        [
+          "5",
+          "before insert",
+          "text",
+          "text",
+          "3"
+        ],
+        [
+          "6",
+          "after insert",
+          "text",
+          "text",
+          "3"
+        ],
+        [
+          "7",
+          "before insert",
+          "text",
+          "text",
+          "0.3"
+        ],
+        [
+          "8",
+          "after insert",
+          "text",
+          "text",
+          "0.3"
+        ],
+        [
+          "9",
+          "before insert",
+          "text",
+          "text",
+          "3.3"
+        ],
+        [
+          "10",
+          "after insert",
+          "text",
+          "text",
+          "3.3"
+        ],
+        [
+          "11",
+          "before update",
+          "text",
+          "text",
+          "13.75"
+        ],
+        [
+          "12",
+          "after update",
+          "text",
+          "text",
+          "13.75"
+        ],
+        [
+          "13",
+          "before update",
+          "text",
+          "text",
+          "3.3"
+        ],
+        [
+          "14",
+          "after update",
+          "text",
+          "text",
+          "3.3"
+        ]
+      ],
+      "types" : [
+        "integer",
+        "text",
+        "text",
+        "text",
+        "text"
+      ]
+    },
+    "stored" : {
+      "error" : "",
+      "rc" : 0,
+      "rows" : [
+        [
+          "text",
+          "text",
+          "13.75"
+        ],
+        [
+          "real literal",
+          "text",
+          "12.5"
+        ],
+        [
+          "integer literal",
+          "text",
+          "3.3"
+        ],
+        [
+          "float arithmetic",
+          "text",
+          "0.3"
+        ],
+        [
+          "exact function",
+          "text",
+          "3.3"
+        ]
+      ],
+      "types" : [
+        "text",
+        "text",
+        "text"
+      ]
+    },
+    "update_exact" : {
+      "error" : "",
+      "rc" : 0,
+      "rows" : [
+
+      ],
+      "types" : [
+
+      ]
+    },
+    "update_float" : {
+      "error" : "",
+      "rc" : 0,
+      "rows" : [
+
+      ],
+      "types" : [
+
+      ]
+    }
+  },
+  "D_decimal_collation_and_exact" : {
+    "avg_builtin" : {
+      "error" : "",
+      "rc" : 0,
+      "rendered" : [
+        [
+          "approximate 20.516666666666666"
+        ]
+      ],
+      "rows" : [
+        [
+          "4034844444444444:20.516666666666666"
+        ]
+      ],
+      "types" : [
+        "real"
+      ]
+    },
+    "bare_column_with_min" : {
+      "error" : "",
+      "rc" : 0,
+      "rendered" : [
+        [
+          "approximate d",
+          "-1"
+        ]
+      ],
+      "rows" : [
+        [
+          "d",
+          "-1"
+        ]
+      ],
+      "types" : [
+        "text",
+        "text"
+      ]
+    },
+    "between" : {
+      "error" : "",
+      "rc" : 0,
+      "rendered" : [
+        [
+          "approximate a"
+        ],
+        [
+          "approximate c"
+        ],
+        [
+          "approximate e"
+        ]
+      ],
+      "rows" : [
+        [
+          "a"
+        ],
+        [
+          "c"
+        ],
+        [
+          "e"
+        ]
+      ],
+      "types" : [
+        "text"
+      ]
+    },
+    "builtin_arithmetic" : {
+      "error" : "",
+      "rc" : 0,
+      "rendered" : [
+        [
+          "approximate a",
+          "approximate 18"
+        ],
+        [
+          "approximate b",
+          "approximate 10"
+        ],
+        [
+          "approximate c",
+          "approximate 10.0"
+        ],
+        [
+          "approximate d",
+          "-1"
+        ],
+        [
+          "approximate e",
+          "approximate 7.5"
+        ],
+        [
+          "approximate f",
+          "approximate 100.1"
+        ]
+      ],
+      "rows" : [
+        [
+          "a",
+          "18"
+        ],
+        [
+          "b",
+          "10"
+        ],
+        [
+          "c",
+          "4024000000000000:10.0"
+        ],
+        [
+          "d",
+          "-1"
+        ],
+        [
+          "e",
+          "401e000000000000:7.5"
+        ],
+        [
+          "f",
+          "4059066666666666:100.1"
+        ]
+      ],
+      "types" : [
+        "text",
+        "integer"
+      ]
+    },
+    "distinct" : {
+      "error" : "",
+      "rc" : 0,
+      "rendered" : [
+        [
+          "-1"
+        ],
+        [
+          "2.50"
+        ],
+        [
+          "approximate 9"
+        ],
+        [
+          "approximate 10"
+        ],
+        [
+          "100.10"
+        ]
+      ],
+      "rows" : [
+        [
+          "-1"
+        ],
+        [
+          "2.50"
+        ],
+        [
+          "9"
+        ],
+        [
+          "10"
+        ],
+        [
+          "100.10"
+        ]
+      ],
+      "types" : [
+        "text"
+      ]
+    },
+    "eq_integer_literal" : {
+      "error" : "",
+      "rc" : 0,
+      "rendered" : [
+        [
+          "approximate b"
+        ]
+      ],
+      "rows" : [
+        [
+          "b"
+        ]
+      ],
+      "types" : [
+        "text"
+      ]
+    },
+    "eq_real_literal" : {
+      "error" : "",
+      "rc" : 0,
+      "rendered" : [
+        [
+          "approximate c"
+        ],
+        [
+          "approximate e"
+        ]
+      ],
+      "rows" : [
+        [
+          "c"
+        ],
+        [
+          "e"
+        ]
+      ],
+      "types" : [
+        "text"
+      ]
+    },
+    "expression_compare" : {
+      "error" : "",
+      "rc" : 0,
+      "rendered" : [
+        [
+          "approximate a"
+        ],
+        [
+          "approximate b"
+        ],
+        [
+          "approximate c"
+        ],
+        [
+          "approximate f"
+        ]
+      ],
+      "rows" : [
+        [
+          "a"
+        ],
+        [
+          "b"
+        ],
+        [
+          "c"
+        ],
+        [
+          "f"
+        ]
+      ],
+      "types" : [
+        "text"
+      ]
+    },
+    "group_by" : {
+      "error" : "",
+      "rc" : 0,
+      "rendered" : [
+        [
+          "-1",
+          "approximate 1"
+        ],
+        [
+          "2.50",
+          "approximate 2"
+        ],
+        [
+          "approximate 9",
+          "approximate 1"
+        ],
+        [
+          "approximate 10",
+          "approximate 1"
+        ],
+        [
+          "100.10",
+          "approximate 1"
+        ]
+      ],
+      "rows" : [
+        [
+          "-1",
+          "1"
+        ],
+        [
+          "2.50",
+          "2"
+        ],
+        [
+          "9",
+          "1"
+        ],
+        [
+          "10",
+          "1"
+        ],
+        [
+          "100.10",
+          "1"
+        ]
+      ],
+      "types" : [
+        "text",
+        "integer"
+      ]
+    },
+    "group_sum_having_order" : {
+      "error" : "",
+      "rc" : 0,
+      "rendered" : [
+        [
+          "approximate 1",
+          "exact 109.1"
+        ]
+      ],
+      "rows" : [
+        [
+          "1",
+          "405b466666666666:109.1"
+        ]
+      ],
+      "types" : [
+        "text",
+        "real"
+      ]
+    },
+    "gt_integer_literal" : {
+      "error" : "",
+      "rc" : 0,
+      "rendered" : [
+        [
+          "approximate b"
+        ],
+        [
+          "approximate f"
+        ]
+      ],
+      "rows" : [
+        [
+          "b"
+        ],
+        [
+          "f"
+        ]
+      ],
+      "types" : [
+        "text"
+      ]
+    },
+    "gt_real_literal" : {
+      "error" : "",
+      "rc" : 0,
+      "rendered" : [
+        [
+          "approximate b"
+        ],
+        [
+          "approximate f"
+        ]
+      ],
+      "rows" : [
+        [
+          "b"
+        ],
+        [
+          "f"
+        ]
+      ],
+      "types" : [
+        "text"
+      ]
+    },
+    "gt_text_literal" : {
+      "error" : "",
+      "rc" : 0,
+      "rendered" : [
+        [
+          "approximate b"
+        ],
+        [
+          "approximate f"
+        ]
+      ],
+      "rows" : [
+        [
+          "b"
+        ],
+        [
+          "f"
+        ]
+      ],
+      "types" : [
+        "text"
+      ]
+    },
+    "in_list" : {
+      "error" : "",
+      "rc" : 0,
+      "rendered" : [
+        [
+          "approximate b"
+        ],
+        [
+          "approximate c"
+        ],
+        [
+          "approximate e"
+        ]
+      ],
+      "rows" : [
+        [
+          "b"
+        ],
+        [
+          "c"
+        ],
+        [
+          "e"
+        ]
+      ],
+      "types" : [
+        "text"
+      ]
+    },
+    "join_on_decimal" : {
+      "error" : "",
+      "rc" : 0,
+      "rendered" : [
+        [
+          "approximate b",
+          "y"
+        ],
+        [
+          "approximate c",
+          "x"
+        ],
+        [
+          "approximate e",
+          "x"
+        ]
+      ],
+      "rows" : [
+        [
+          "b",
+          "y"
+        ],
+        [
+          "c",
+          "x"
+        ],
+        [
+          "e",
+          "x"
+        ]
+      ],
+      "types" : [
+        "text",
+        "text"
+      ]
+    },
+    "min_max" : {
+      "error" : "",
+      "rc" : 0,
+      "rendered" : [
+        [
+          "-1",
+          "100.10"
+        ]
+      ],
+      "rows" : [
+        [
+          "-1",
+          "100.10"
+        ]
+      ],
+      "types" : [
+        "text",
+        "text"
+      ]
+    },
+    "order_by" : {
+      "error" : "",
+      "rc" : 0,
+      "rendered" : [
+        [
+          "-1"
+        ],
+        [
+          "2.50"
+        ],
+        [
+          "2.5"
+        ],
+        [
+          "approximate 9"
+        ],
+        [
+          "approximate 10"
+        ],
+        [
+          "100.10"
+        ]
+      ],
+      "rows" : [
+        [
+          "-1"
+        ],
+        [
+          "2.50"
+        ],
+        [
+          "2.5"
+        ],
+        [
+          "9"
+        ],
+        [
+          "10"
+        ],
+        [
+          "100.10"
+        ]
+      ],
+      "types" : [
+        "text"
+      ]
+    },
+    "sum_all_integers" : {
+      "error" : "",
+      "rc" : 0,
+      "rendered" : [
+        [
+          "exact 3"
+        ]
+      ],
+      "rows" : [
+        [
+          "4008000000000000:3.0"
+        ]
+      ],
+      "types" : [
+        "real"
+      ]
+    },
+    "sum_empty" : {
+      "error" : "",
+      "rc" : 0,
+      "rendered" : [
+        [
+          "NULL"
+        ]
+      ],
+      "rows" : [
+        [
+          "NULL"
+        ]
+      ],
+      "types" : [
+        "null"
+      ]
+    },
+    "sum_in_subquery_and_cte" : {
+      "error" : "",
+      "rc" : 0,
+      "rendered" : [
+        [
+          "exact 123.1",
+          "approximate 1"
+        ]
+      ],
+      "rows" : [
+        [
+          "405ec66666666666:123.1",
+          "1"
+        ]
+      ],
+      "types" : [
+        "real",
+        "integer"
+      ]
+    },
+    "sum_of_exact_products" : {
+      "error" : "",
+      "rc" : 0,
+      "rendered" : [
+        [
+          "exact 144.6"
+        ]
+      ],
+      "rows" : [
+        [
+          "4062133333333333:144.6"
+        ]
+      ],
+      "types" : [
+        "real"
+      ]
+    },
+    "sum_override_exact" : {
+      "error" : "",
+      "rc" : 0,
+      "rendered" : [
+        [
+          "exact 123.1"
+        ]
+      ],
+      "rows" : [
+        [
+          "405ec66666666666:123.1"
+        ]
+      ],
+      "types" : [
+        "real"
+      ]
+    },
+    "sum_override_of_products" : {
+      "error" : "",
+      "rc" : 0,
+      "rendered" : [
+        [
+          "approximate 144.6"
+        ]
+      ],
+      "rows" : [
+        [
+          "4062133333333333:144.6"
+        ]
+      ],
+      "types" : [
+        "real"
+      ]
+    },
+    "sum_window" : {
+      "error" : "",
+      "rc" : 0,
+      "rendered" : [
+        [
+          "approximate a",
+          "exact 9"
+        ],
+        [
+          "approximate b",
+          "exact 19"
+        ],
+        [
+          "approximate c",
+          "exact 12.5"
+        ],
+        [
+          "approximate d",
+          "exact 1.5"
+        ],
+        [
+          "approximate e",
+          "exact 1.5"
+        ],
+        [
+          "approximate f",
+          "exact 102.6"
+        ]
+      ],
+      "rows" : [
+        [
+          "a",
+          "4022000000000000:9.0"
+        ],
+        [
+          "b",
+          "4033000000000000:19.0"
+        ],
+        [
+          "c",
+          "4029000000000000:12.5"
+        ],
+        [
+          "d",
+          "3ff8000000000000:1.5"
+        ],
+        [
+          "e",
+          "3ff8000000000000:1.5"
+        ],
+        [
+          "f",
+          "4059a66666666666:102.6"
+        ]
+      ],
+      "types" : [
+        "text",
+        "real"
+      ]
+    },
+    "total_builtin" : {
+      "error" : "",
+      "rc" : 0,
+      "rendered" : [
+        [
+          "exact 123.1"
+        ]
+      ],
+      "rows" : [
+        [
+          "405ec66666666666:123.1"
+        ]
+      ],
+      "types" : [
+        "real"
+      ]
+    }
+  },
+  "E_page_cap" : {
+    "main_error" : "database or disk is full",
+    "main_rc" : 13,
+    "main_rows_before_full" : 248,
+    "page_size" : {
+      "error" : "",
+      "rc" : 0,
+      "rows" : [
+        [
+          "4096"
+        ]
+      ],
+      "types" : [
+        "integer"
+      ]
+    },
+    "set_cap" : {
+      "error" : "",
+      "rc" : 0,
+      "rows" : [
+        [
+          "64"
+        ]
+      ],
+      "types" : [
+        "integer"
+      ]
+    },
+    "soft_heap_limit_available" : true,
+    "temp_error" : "database or disk is full",
+    "temp_rows_before_full" : 248,
+    "temp_store" : {
+      "error" : "",
+      "rc" : 0,
+      "rows" : [
+        [
+          "64"
+        ]
+      ],
+      "types" : [
+        "integer"
+      ]
+    }
+  },
+  "F_schema_changes" : {
+    "after" : {
+      "error" : "",
+      "rc" : 0,
+      "rows" : [
+        [
+          "0",
+          "a",
+          "INTEGER",
+          "0",
+          "NULL",
+          "0",
+          "0"
+        ],
+        [
+          "1",
+          "b",
+          "TEXT",
+          "0",
+          "NULL",
+          "0",
+          "0"
+        ],
+        [
+          "2",
+          "c",
+          "TEXT",
+          "0",
+          "NULL",
+          "0",
+          "0"
+        ]
+      ],
+      "types" : [
+        "integer",
+        "text",
+        "text",
+        "integer",
+        "null",
+        "integer",
+        "integer"
+      ]
+    },
+    "before" : {
+      "error" : "",
+      "rc" : 0,
+      "rows" : [
+        [
+          "0",
+          "a",
+          "TEXT",
+          "0",
+          "NULL",
+          "0",
+          "0"
+        ],
+        [
+          "1",
+          "b",
+          "TEXT",
+          "0",
+          "NULL",
+          "0",
+          "0"
+        ]
+      ],
+      "types" : [
+        "integer",
+        "text",
+        "text",
+        "integer",
+        "null",
+        "integer",
+        "integer"
+      ]
+    },
+    "rebuild" : {
+      "error" : "",
+      "rc" : 0,
+      "rows" : [
+
+      ],
+      "types" : [
+
+      ]
+    },
+    "rebuild_events" : [
+      "2|s_new||main|",
+      "11|s||main|",
+      "26|main|s_new||"
+    ],
+    "rowids_after" : {
+      "error" : "",
+      "rc" : 0,
+      "rows" : [
+        [
+          "1",
+          "1",
+          "x"
+        ],
+        [
+          "2",
+          "2",
+          "y"
+        ]
+      ],
+      "types" : [
+        "integer",
+        "integer",
+        "text"
+      ]
+    }
+  },
+  "G_real_with_exact_side_table" : {
+    "begin_denied" : {
+      "error" : "not authorized",
+      "rc" : 23,
+      "rows" : [
+
+      ],
+      "types" : [
+
+      ]
+    },
+    "between_in" : {
+      "error" : "",
+      "rc" : 0,
+      "rendered" : [
+        [
+          "a"
+        ],
+        [
+          "b"
+        ],
+        [
+          "c"
+        ],
+        [
+          "e"
+        ]
+      ],
+      "rows" : [
+        [
+          "a"
+        ],
+        [
+          "b"
+        ],
+        [
+          "c"
+        ],
+        [
+          "e"
+        ]
+      ],
+      "types" : [
+        "text"
+      ]
+    },
+    "coalesce_case" : {
+      "error" : "",
+      "rc" : 0,
+      "rendered" : [
+        [
+          "exact 9",
+          "exact 9"
+        ],
+        [
+          "exact 10",
+          "exact 0"
+        ]
+      ],
+      "rows" : [
+        [
+          "4022000000000000:9.0",
+          "4022000000000000:9.0"
+        ],
+        [
+          "4024000000000000:10.0",
+          "0"
+        ]
+      ],
+      "types" : [
+        "real",
+        "real"
+      ]
+    },
+    "division" : {
+      "error" : "",
+      "rc" : 0,
+      "rendered" : [
+        [
+          "approximate 4.5"
+        ],
+        [
+          "exact 10"
+        ]
+      ],
+      "rows" : [
+        [
+          "4012000000000000:4.5"
+        ],
+        [
+          "4024000000000000:10.0"
+        ]
+      ],
+      "types" : [
+        "real"
+      ]
+    },
+    "eq_real_literal" : {
+      "error" : "",
+      "rc" : 0,
+      "rendered" : [
+        [
+          "c"
+        ],
+        [
+          "e"
+        ]
+      ],
+      "rows" : [
+        [
+          "c"
+        ],
+        [
+          "e"
+        ]
+      ],
+      "types" : [
+        "text"
+      ]
+    },
+    "eq_text_literal" : {
+      "error" : "",
+      "rc" : 0,
+      "rendered" : [
+        [
+          "c"
+        ],
+        [
+          "e"
+        ]
+      ],
+      "rows" : [
+        [
+          "c"
+        ],
+        [
+          "e"
+        ]
+      ],
+      "types" : [
+        "text"
+      ]
+    },
+    "exact_product" : {
+      "error" : "",
+      "rc" : 0,
+      "rendered" : [
+        [
+          "c",
+          "exact 10"
+        ],
+        [
+          "g",
+          "exact 0.3"
+        ]
+      ],
+      "rows" : [
+        [
+          "c",
+          "4024000000000000:10.0"
+        ],
+        [
+          "g",
+          "3fd3333333333333:0.3"
+        ]
+      ],
+      "types" : [
+        "text",
+        "real"
+      ]
+    },
+    "float_product" : {
+      "error" : "",
+      "rc" : 0,
+      "rendered" : [
+        [
+          "c",
+          "exact 10"
+        ],
+        [
+          "g",
+          "approximate 0.30000000000000004"
+        ]
+      ],
+      "rows" : [
+        [
+          "c",
+          "4024000000000000:10.0"
+        ],
+        [
+          "g",
+          "3fd3333333333334:0.30000000000000004"
+        ]
+      ],
+      "types" : [
+        "text",
+        "real"
+      ]
+    },
+    "group_by" : {
+      "error" : "",
+      "rc" : 0,
+      "rendered" : [
+        [
+          "exact -1",
+          "1"
+        ],
+        [
+          "exact 0.1",
+          "1"
+        ],
+        [
+          "exact 2.5",
+          "2"
+        ],
+        [
+          "exact 9",
+          "1"
+        ],
+        [
+          "exact 10",
+          "1"
+        ],
+        [
+          "exact 100.1",
+          "1"
+        ]
+      ],
+      "rows" : [
+        [
+          "bff0000000000000:-1.0",
+          "1"
+        ],
+        [
+          "3fb999999999999a:0.1",
+          "1"
+        ],
+        [
+          "4004000000000000:2.5",
+          "2"
+        ],
+        [
+          "4022000000000000:9.0",
+          "1"
+        ],
+        [
+          "4024000000000000:10.0",
+          "1"
+        ],
+        [
+          "4059066666666666:100.1",
+          "1"
+        ]
+      ],
+      "types" : [
+        "real",
+        "integer"
+      ]
+    },
+    "gt_integer_literal" : {
+      "error" : "",
+      "rc" : 0,
+      "rendered" : [
+        [
+          "b"
+        ],
+        [
+          "f"
+        ]
+      ],
+      "rows" : [
+        [
+          "b"
+        ],
+        [
+          "f"
+        ]
+      ],
+      "types" : [
+        "text"
+      ]
+    },
+    "gt_text_literal" : {
+      "error" : "",
+      "rc" : 0,
+      "rendered" : [
+        [
+          "b"
+        ],
+        [
+          "f"
+        ]
+      ],
+      "rows" : [
+        [
+          "b"
+        ],
+        [
+          "f"
+        ]
+      ],
+      "types" : [
+        "text"
+      ]
+    },
+    "having_order" : {
+      "error" : "",
+      "rc" : 0,
+      "rendered" : [
+        [
+          "exact 1",
+          "exact 109.1"
+        ]
+      ],
+      "rows" : [
+        [
+          "3ff0000000000000:1.0",
+          "405b466666666666:109.1"
+        ]
+      ],
+      "types" : [
+        "real",
+        "real"
+      ]
+    },
+    "join" : {
+      "error" : "",
+      "rc" : 0,
+      "rendered" : [
+        [
+          "b",
+          "y"
+        ],
+        [
+          "c",
+          "x"
+        ],
+        [
+          "e",
+          "x"
+        ]
+      ],
+      "rows" : [
+        [
+          "b",
+          "y"
+        ],
+        [
+          "c",
+          "x"
+        ],
+        [
+          "e",
+          "x"
+        ]
+      ],
+      "types" : [
+        "text",
+        "text"
+      ]
+    },
+    "min_max" : {
+      "error" : "",
+      "rc" : 0,
+      "rendered" : [
+        [
+          "exact -1",
+          "exact 100.1"
+        ]
+      ],
+      "rows" : [
+        [
+          "bff0000000000000:-1.0",
+          "4059066666666666:100.1"
+        ]
+      ],
+      "types" : [
+        "real",
+        "real"
+      ]
+    },
+    "order_by" : {
+      "error" : "",
+      "rc" : 0,
+      "rendered" : [
+        [
+          "exact -1"
+        ],
+        [
+          "exact 0.1"
+        ],
+        [
+          "exact 2.5"
+        ],
+        [
+          "exact 2.5"
+        ],
+        [
+          "exact 9"
+        ],
+        [
+          "exact 10"
+        ],
+        [
+          "exact 100.1"
+        ]
+      ],
+      "rows" : [
+        [
+          "bff0000000000000:-1.0"
+        ],
+        [
+          "3fb999999999999a:0.1"
+        ],
+        [
+          "4004000000000000:2.5"
+        ],
+        [
+          "4004000000000000:2.5"
+        ],
+        [
+          "4022000000000000:9.0"
+        ],
+        [
+          "4024000000000000:10.0"
+        ],
+        [
+          "4059066666666666:100.1"
+        ]
+      ],
+      "types" : [
+        "real"
+      ]
+    },
+    "savepoint_denied" : {
+      "error" : "not authorized",
+      "rc" : 23,
+      "rows" : [
+
+      ],
+      "types" : [
+
+      ]
+    },
+    "stored_types" : {
+      "error" : "",
+      "rc" : 0,
+      "rendered" : [
+        [
+          "a",
+          "real",
+          "exact 9"
+        ],
+        [
+          "b",
+          "real",
+          "exact 10"
+        ],
+        [
+          "c",
+          "real",
+          "exact 2.5"
+        ],
+        [
+          "d",
+          "real",
+          "exact -1"
+        ],
+        [
+          "e",
+          "real",
+          "exact 2.5"
+        ],
+        [
+          "f",
+          "real",
+          "exact 100.1"
+        ],
+        [
+          "g",
+          "real",
+          "exact 0.1"
+        ]
+      ],
+      "rows" : [
+        [
+          "a",
+          "real",
+          "4022000000000000:9.0"
+        ],
+        [
+          "b",
+          "real",
+          "4024000000000000:10.0"
+        ],
+        [
+          "c",
+          "real",
+          "4004000000000000:2.5"
+        ],
+        [
+          "d",
+          "real",
+          "bff0000000000000:-1.0"
+        ],
+        [
+          "e",
+          "real",
+          "4004000000000000:2.5"
+        ],
+        [
+          "f",
+          "real",
+          "4059066666666666:100.1"
+        ],
+        [
+          "g",
+          "real",
+          "3fb999999999999a:0.1"
+        ]
+      ],
+      "types" : [
+        "text",
+        "text",
+        "real"
+      ]
+    },
+    "sum_exact" : {
+      "error" : "",
+      "rc" : 0,
+      "rendered" : [
+        [
+          "exact 123.2"
+        ]
+      ],
+      "rows" : [
+        [
+          "405ecccccccccccd:123.2"
+        ]
+      ],
+      "types" : [
+        "real"
+      ]
+    },
+    "sum_tenths" : {
+      "error" : "",
+      "rc" : 0,
+      "rendered" : [
+        [
+          "exact 1.6"
+        ]
+      ],
+      "rows" : [
+        [
+          "3ff999999999999a:1.6"
+        ]
+      ],
+      "types" : [
+        "real"
+      ]
+    },
+    "vacuum_into_denied" : {
+      "error" : "authorization denied",
+      "rc" : 23,
+      "rows" : [
+
+      ],
+      "types" : [
+
+      ]
+    },
+    "vacuum_into_file_exists" : false,
+    "vacuum_plain" : {
+      "error" : "authorization denied",
+      "rc" : 23,
+      "rows" : [
+
+      ],
+      "types" : [
+
+      ]
+    },
+    "written_values" : {
+      "error" : "",
+      "rc" : 0,
+      "rendered" : [
+        [
+          "real literal",
+          "real",
+          "exact 12.5"
+        ],
+        [
+          "integer literal",
+          "real",
+          "exact 3"
+        ],
+        [
+          "text numeral",
+          "real",
+          "exact 7.25"
+        ],
+        [
+          "text word",
+          "text",
+          "abc"
+        ],
+        [
+          "float arithmetic",
+          "real",
+          "approximate 0.30000000000000004"
+        ],
+        [
+          "float product",
+          "real",
+          "approximate 13.750000000000002"
+        ],
+        [
+          "exact product",
+          "real",
+          "exact 13.75"
+        ],
+        [
+          "copied cell",
+          "real",
+          "exact 2.5"
+        ],
+        [
+          "null",
+          "null",
+          "NULL"
+        ]
+      ],
+      "rows" : [
+        [
+          "real literal",
+          "real",
+          "4029000000000000:12.5"
+        ],
+        [
+          "integer literal",
+          "real",
+          "4008000000000000:3.0"
+        ],
+        [
+          "text numeral",
+          "real",
+          "401d000000000000:7.25"
+        ],
+        [
+          "text word",
+          "text",
+          "abc"
+        ],
+        [
+          "float arithmetic",
+          "real",
+          "3fd3333333333334:0.30000000000000004"
+        ],
+        [
+          "float product",
+          "real",
+          "402b800000000001:13.750000000000002"
+        ],
+        [
+          "exact product",
+          "real",
+          "402b800000000000:13.75"
+        ],
+        [
+          "copied cell",
+          "real",
+          "4004000000000000:2.5"
+        ],
+        [
+          "null",
+          "null",
+          "NULL"
+        ]
+      ],
+      "types" : [
+        "text",
+        "text",
+        "real"
+      ]
+    }
+  },
+  "sqliteVersion" : "3.51.0"
+}
