@@ -9,6 +9,10 @@ let nativeCandidate = ProcessInfo.processInfo.environment["SEVRA_NATIVE_CANDIDAT
 let uiCatalog = ProcessInfo.processInfo.environment["SEVRA_UI_CATALOG"] == "1"
 precondition(!uiCatalog || nativeCandidate, "The UI catalog requires SEVRA_NATIVE_CANDIDATE=1")
 
+let sparkleDirectory = ProcessInfo.processInfo.environment["SEVRA_SPARKLE_FRAMEWORK_DIR"]
+precondition(sparkleDirectory == nil || (nativeCandidate && !uiCatalog),
+             "Sparkle is only linked into the native distribution build")
+
 let package = Package(
   name: "Sevra", platforms: [.macOS(.v14)],
   products: [
@@ -227,7 +231,12 @@ let package = Package(
         "SevraDocumentUI", "SevraPreviewUI", "SevraAutomationUI", "SevraAppUI", "SevraAppProtocol",
       ],
       exclude: uiCatalog ? [] : ["Catalog"],
-      swiftSettings: [.swiftLanguageMode(.v5)] + (uiCatalog ? [.define("SEVRA_UI_CATALOG")] : [])),
+      swiftSettings: [.swiftLanguageMode(.v5)] + (uiCatalog ? [.define("SEVRA_UI_CATALOG")] : [])
+        + (sparkleDirectory.map { [.define("SEVRA_DISTRIBUTION"), .unsafeFlags(["-F", $0])] } ?? []),
+      linkerSettings: sparkleDirectory.map {
+        [.unsafeFlags(["-F", $0, "-Xlinker", "-rpath", "-Xlinker", "@executable_path/../Frameworks"]),
+         .linkedFramework("Sparkle")]
+      }),
     .executableTarget(
       name: "SevraCLI", dependencies: ["SevraCore", "SevraAI", "SevraProduct"],
       swiftSettings: [.swiftLanguageMode(.v5)]),

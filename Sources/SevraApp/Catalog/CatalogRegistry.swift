@@ -116,7 +116,7 @@ enum CatalogRegistry {
       ),
       (
         "settings", "Model and reading settings", "SpeechAndSettings.swift",
-        ["Default", "Installing", "Installed", "Loading", "Failure", "Cancelled"]
+        ["Default", "Installing", "Installed", "Loading", "Failure", "Cancelled", "Software updates"]
       ),
       ("voice", "Dictation", "SpeechAndSettings.swift", ["Default", "Recording", "Denied"]),
       ("lifecycle", "Reopen and preserve drafts", "WorkspaceState.swift", ["Default", "Failure"]),

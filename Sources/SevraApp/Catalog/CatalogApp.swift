@@ -450,6 +450,7 @@ struct CatalogStage: View {
 struct CatalogProductionView: View {
   @ObservedObject var session: CatalogSession
   @ObservedObject var state: WorkspaceState
+  @State private var automaticUpdateChecks = false
   @ViewBuilder var body: some View {
     let id = session.story.id
     if id == "main.welcome" {
@@ -461,7 +462,9 @@ struct CatalogProductionView: View {
           state.error = "Synthetic recent file is missing. Create an example instead."
         }, defaults: session.defaults)
     } else if id == "main.settings" {
-      ModelSettingsView(initialState: session.variant)
+      ModelSettingsView(
+        initialState: session.variant,
+        automaticUpdateChecks: session.variant == "Software updates" ? $automaticUpdateChecks : nil)
     } else if id == "main.column-editor", let table = session.table {
       ColumnEditor(table: table, state: state)
     } else if id == "main.navigation" {

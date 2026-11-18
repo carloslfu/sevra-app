@@ -9,8 +9,10 @@ struct ModelSettingsView: View {
   // Scoped initial presentation for deterministic developer previews. Effects
   // still use the app host; ordinary settings have no override.
   private let initialState: String?
-  init(initialState: String? = nil) {
+  private let automaticUpdateChecks: Binding<Bool>?
+  init(initialState: String? = nil, automaticUpdateChecks: Binding<Bool>? = nil) {
     self.initialState = initialState
+    self.automaticUpdateChecks = automaticUpdateChecks
     _busy = State(initialValue: initialState == "Installing" || initialState == "Loading")
     _filesFound = State(initialValue: initialState == "Installed")
     _status = State(
@@ -113,6 +115,12 @@ struct ModelSettingsView: View {
           "Dictation uses on-device speech recognition. Microphone permission is requested when you first use it. Review dictated text before sending."
         ).foregroundStyle(.secondary)
       }
+      if let automaticUpdateChecks {
+        Section("Software updates") {
+          Toggle("Check for updates automatically", isOn: automaticUpdateChecks)
+          Text("Sevra asks before installing an update.").foregroundStyle(.secondary)
+        }
+      }
     }.formStyle(.grouped).padding(12).frame(
       minWidth: 420, idealWidth: 600, minHeight: 400, idealHeight: 580
     )
@@ -123,6 +131,9 @@ struct ModelSettingsView: View {
       let found = await AppHost.installed(at: URL(fileURLWithPath: modelDirectory))
       guard !Task.isCancelled else { return }
       filesFound = found
+    }
+    .onReceive(NotificationCenter.default.publisher(for: .sevraStopping)) { _ in
+      cancellation.cancel()
     }
     .onDisappear { cancellation.cancel() }
   }

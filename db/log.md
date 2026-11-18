@@ -250,3 +250,9 @@ Recorded the owner's answer Confirm all to the plan's three summary points and f
 ## [2026-11-18 17:50] design | records/plans/general-chat-tools.md
 Marked S1 to S3 and P1 to P5 as confirmed by the owner, with the note. Implementation is still not authorized.
 
+## [2026-11-18 18:10] implementation | records/plans/macos-installer-and-updates
+Added native DMG staging, pinned Sparkle, signed appcasts, a separate QA identity and Developer ID notarization options.
+
+## [2026-11-18 18:10] verification | records/plans/macos-installer-and-updates
+Verified GitHub draft checksums, clean-folder copy, two Sparkle replacements, the modified feed and DMG refusals, workbook persistence, and the bundled CLI link on build 3.
+

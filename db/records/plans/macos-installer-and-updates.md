@@ -3,22 +3,22 @@ type: operational
 meta-type: operational
 id: 01m7qs7pxssme08ge55bnt2yx7
 created: 2026-11-18T16:53:27.097954+00:00
-updated: 2026-11-18T16:53:27.097954+00:00
+updated: 2026-11-18T18:10:28.268962+00:00
 summary: Plans a standalone Sevra DMG, Sparkle updates through GitHub Releases, the Developer ID transition, and release verification and recovery.
 title: Standalone macOS installer and updates
 ---
 # Standalone macOS installer and updates
 
-**Status** Proposed implementation plan. Sevra currently ships as a source preview. The native packager builds `Sevra Native Preview.app` with ad-hoc signing. GitHub Releases had no published binary at the time of this review. This plan covers a standalone Mac download, in-app updates and the path from a possible early-access build to the first company-signed public release.
+**Status** Standalone packaging and Sparkle are implemented and rehearsed with ad-hoc QA builds on one Apple Silicon Mac. GitHub Releases holds the rehearsed artifacts in an unpublished draft. The company-signed release and the public appcast still need Developer ID, notarization and live qualification. The public README continues to offer the source preview.
 
 ## Distribution design
 
-| Decision | Proposed release behavior |
+| Decision | Release behavior |
 | --- | --- |
 | Manual install | One Apple Silicon `.dmg` containing `Sevra.app` and an Applications shortcut. The same finalized DMG is the full Sparkle update. |
 | Download hosting | Versioned assets on [GitHub Releases](https://github.com/carloslfu/sevra-app/releases). A website download button and the README link directly to the current verified stable DMG. |
 | Update discovery | Sparkle 2 reads a static, signed HTTPS appcast at the proposed `https://www.sevrahq.com/updates/macos/appcast.xml`. The feed links to exact GitHub release assets. An appcast is the XML list of available versions, downloads and signatures. |
-| Identity | Proposed public bundle ID `com.sevrahq.sevra`, with app name `Sevra.app`. Confirm it on the target team before the first externally distributed installer and keep it across releases. It is distinct from the two existing source-build IDs. |
+| Identity | Public bundle ID `com.sevrahq.sevra`, with app name `Sevra.app`. Confirm it on the target team before the first externally distributed installer and keep it across releases. It is distinct from the two existing source-build IDs. |
 | Launch order | Rehearse packaging and updates while Apple enrollment is pending. An optional ad-hoc early-access installer uses the public bundle ID, feed and Sparkle key from its first build. The public stable release uses company Developer ID signing and Apple notarization. Stable release readiness depends on the signed candidate and live update checks. |
 | Network | Initial download, optional model setup and update checks use the network. Import, search, workbook operations and configured local inference remain available offline. Sparkle system profiling stays disabled. The feed host and GitHub receive ordinary download requests. |
 
@@ -35,14 +35,14 @@ GitHub hosts immutable versioned bytes and the website controls which version Sp
 
 ## 2. Integrate Sparkle and preserve local data
 
-- [ ] Pin a supported stable Sparkle release and use matching packaging/signing tools. Embed the versioned framework with its symlinks and executable permissions. Resolve it via the app's Frameworks directory and sign its retained nested components. Configure XPC services for the host app's actual sandbox status. Keep Sevra's separately sandboxed worker and its entitlements intact. [Sparkle integration](https://sparkle-project.org/documentation/)
+- [x] Pin a supported stable Sparkle release and use matching packaging/signing tools. Embed the versioned framework with its symlinks and executable permissions. Resolve it via the app's Frameworks directory and sign its retained nested components. Configure XPC services for the host app's actual sandbox status. Keep Sevra's separately sandboxed worker and its entitlements intact. [Sparkle integration](https://sparkle-project.org/documentation/)
 - [ ] Use a single `SPUStandardUpdaterController` with the native **Sevra → Check for Updates…** menu and a Settings switch for automatic checks. Leave `SUEnableAutomaticChecks` unset for Sparkle's second-launch opt-in. Users explicitly install updates in the initial policy. Set `SUAllowsAutomaticUpdates` and `SUEnableSystemProfiling` to false. Use Sparkle's preference state and expose actionable messages for offline checks, up-to-date and incompatible versions, denied access, and a copy launched from the DMG or another read-only location. Keep downloads authenticated by Sparkle and use the normal OS authorization flow when needed. [SwiftUI updater setup](https://sparkle-project.org/documentation/programmatic-setup/) · [Sparkle configuration keys](https://sparkle-project.org/documentation/customization/)
 - [ ] Keep the app replacement separate from user data. Ensure the existing quit path can postpone installation while a workbook write, export, inference job or model download needs to finish or be cancelled safely. Use Sparkle's installer and relaunch path. Verify workbook packages and included files, changes, recents, preferences, approvals, and compatible installed models before and after update. Keep models and preferences outside the bundle. Use the existing pre-1.0 policy for earlier development formats. At the first supported release, record the workbook schema/API baseline and test direct upgrades from older supported builds, including users who skipped versions. Verify a backup and interruption-safe migration before shipping any update that changes supported data formats. [[records/specs/distribution]] · [[records/specs/persistence-readiness]]
 - [ ] Generate Sparkle's EdDSA key once for the public app and embed `SUPublicEDKey` and `SUFeedURL`. Use a separate key and feed for disposable QA. Sign each finished DMG, and sign the appcast with embedded release notes for the shipped version. Enable `SUVerifyUpdateBeforeExtraction` and `SURequireSignedFeed`; set `SUSignedFeedFailureExpirationInterval` to `0` so feed validation failures require repair or a verified manual replacement. Keep full DMG updates initially and verify both download and feed signatures. Preserve the public key across the first Apple-signing change. [Sparkle signing and key rotation](https://sparkle-project.org/documentation/#rotating-signing-keys) · [Sparkle signed feed settings](https://sparkle-project.org/documentation/customization/#security-settings)
 
 ## 3. Rehearse before Apple approval
 
-- [ ] Build two distinct ad-hoc QA installers with monotonically increasing build numbers. Use a separate HTTPS QA feed and disposable data. Test a standard browser download, the drag install, first launch, model setup, and a real Sparkle update from the older installed copy. Confirm an empty signed feed gives a normal no-update result. If the ad-hoc host cannot load the framework with library validation enabled, resolve that in the QA build configuration and verify library validation in the Developer ID build. Include a bad-signature control and an interrupted or offline download.
+- [ ] Build two distinct ad-hoc QA installers with monotonically increasing build numbers. Use a separate signed QA feed and disposable data. A loopback HTTP feed is reserved for the local rehearsal. Test the public feed over HTTPS. Test a standard browser download, the drag install, first launch, model setup, and a real Sparkle update from the older installed copy. Confirm an empty signed feed gives a normal no-update result. If the ad-hoc host cannot load the framework with library validation enabled, resolve that in the QA build configuration and verify library validation in the Developer ID build. Include a bad-signature control and an interrupted or offline download.
 - [ ] Decide whether to distribute an early-access DMG. If selected, start from the production-shaped app, include the production key and feed, and publish it as a clearly labeled GitHub prerelease. The stable feed can start with a signed empty appcast. If distributing subsequent early-access updates, use a named `early-access` appcast channel with opt-in confined to those builds. Stable clients use the default channel, and early-access clients can also receive default-channel releases. Verify feed/key continuity before handing out the first preview. Keep the preview and the signed handoff on a compatible workbook format. If a breaking development change intervenes, keep affected builds on a documented export or manual handoff until compatibility is proven.
 - [ ] Give early-access users exact first-launch instructions. Download the official GitHub DMG, drag Sevra to Applications, launch the copy, and if macOS blocks that known download use **System Settings → Privacy & Security → Open Anyway** for Sevra. Some managed Macs disallow the exception. Those users need the signed release and any permissions required by their administrator. Verify the sequence with a tester. Earlier source installs have no in-app updater. Their entry path is to install the signed app once and reopen compatible existing workbooks. Avoid overwriting either existing development app or changing its CLI link implicitly. [Apple's Gatekeeper instructions](https://support.apple.com/en-us/102445) · [Sparkle channels](https://sparkle-project.org/documentation/publishing/#channels)
 
@@ -92,3 +92,94 @@ Sparkle's validator accepts a changed Apple code-signing identity when the old a
 2. If early access is useful, ship the verified ad-hoc preview to a small cohort with the updater already enabled for the bridge.
 3. After enrollment, verify the signed DMG on a clean Mac and prove the bridge if a preview shipped.
 4. Publish the signed download and recoverable update path. Keep the same process for subsequent versions.
+
+## Rehearse a release locally
+The QA app has a separate bundle identifier, Sparkle key and update feed. Use a
+writable, empty install location and a disposable workbook. The loopback host
+lets the app exercise Sparkle with the exact DMG downloaded from an authenticated
+GitHub draft. The production build uses the permanent Sevra HTTPS feed and a
+separate key.
+
+```sh
+python3 scripts/sparkle_release.py key --qa
+bash scripts/build_native.sh --distribution --version 0.9.0 --build 1 \
+  --qa-feed http://127.0.0.1:48765/appcast.xml
+bash scripts/build_native.sh --distribution --version 0.9.0 --build 2 \
+  --qa-feed http://127.0.0.1:48765/appcast.xml
+```
+
+Each build writes a DMG and a `release.json` with its build number, signing
+identity status and archive SHA-256 under `output/releases/`. Stage the installers
+and uniquely named receipts as assets on a GitHub draft prerelease. Re-download
+the assets with an authorized account. Compare their hashes with the local
+receipts before testing. On a supported Mac, mount the older downloaded DMG,
+copy Sevra into the test install location and verify its bundled runtime.
+
+```sh
+python3 scripts/check_release_package.py path/to/downloaded-release.json \
+  path/to/empty-install-folder --full-runtime
+```
+
+Create a QA feed using the newer receipt and an HTML release notes file. Copy
+the downloaded newer DMG into the served folder under its exact filename.
+
+```sh
+python3 scripts/sparkle_release.py feed --account sevra-distribution-qa \
+  --asset-root http://127.0.0.1:48765 \
+  --item path/to/newer-release.json path/to/notes.html \
+  --output output/releases/qa-feed/appcast.xml
+python3 -m http.server 48765 --bind 127.0.0.1 --directory output/releases/qa-feed
+```
+
+Open the installed app with a disposable workbook and choose **Check for
+Updates…**. Test installation, relaunch, the new About build and the workbook.
+Generate an empty signed feed by omitting `--item`. For the signature failure
+case, change a byte in the served XML after signing, then restore the original
+signed file before retrying. Leave the draft unpublished.
+
+### Prepare the public release after Apple enrollment
+
+Use a clean checkout and confirm the release commit and next build number against
+previous release receipts. Create and back up the production Sparkle key with
+`python3 scripts/sparkle_release.py key` before the first public build. Supply the
+confirmed Developer ID Application identity, Team ID and Keychain notarization
+profile to the same packager.
+
+```sh
+bash scripts/build_native.sh --distribution --stage stable \
+  --version "$release_version" --build "$build_number" \
+  --identity "$developer_id_identity" --team-id "$team_id" \
+  --notary-profile "$notary_profile"
+```
+
+The packager waits for acceptance, staples the DMG and records its final hash.
+Qualify that exact artifact on a clean supported Mac. Draft the GitHub release
+for the exact source commit in its receipt and verify the uploaded bytes. Leave
+the published asset at its versioned URL for the life of the feed item. Retain
+previous release receipts and notes needed to regenerate the feed.
+
+```sh
+python3 scripts/sparkle_release.py feed \
+  --item path/to/stable-release.json path/to/notes.html \
+  --output path/to/appcast.xml
+```
+
+Include earlier still-eligible entries using additional `--item` pairs. After the
+asset is publicly reachable, deploy those exact signed XML bytes to
+`https://www.sevrahq.com/updates/macos/appcast.xml` and verify both public URLs.
+Update the README and website download link after the install and in-app update
+checks pass against the live path.
+
+## November 18 installer rehearsal
+- Built Sevra 0.9.0 QA builds 1, 2 and 3 with Sparkle 2.10.1 and a dedicated QA key. GitHub's draft is a prerelease with all three DMGs and receipts. Authenticated downloads matched each original byte length and SHA-256. The newest DMG is 62,732,886 bytes with SHA-256 \`6ea2dee2eaed0c5f66d7ff6952fdc656719e46e896ec19e0fb411a0268f717dd\`.
+- On an Apple M5 Pro with 48 GiB of memory and macOS 26.6.2, copied the older DMG into an empty test Applications folder and ejected the image. Checked the mounted bundle and installed executable UUID, ran the app and bundled CLI with access to the build tree denied and loaded 2,111 Metal functions. Opened a disposable sample workbook. Build 3 also passed a separate fresh install and the CLI symlink test.
+- Ran native **Check for Updates…** with an empty signed feed and saw the up-to-date message. Changed feed bytes and then archive bytes separately. Sparkle rejected each and left build 1 installed. Restored the exact GitHub asset bytes, then installed and relaunched builds 1 → 2 → 3 from the menu. Build 3 reported its version in About and found no newer update. The automatic check switch updated in Settings.
+- Reopened the saved workbook from recents after each replacement. The edited quantity of 12, calculated total of 28.8 and workbook integrity check all survived. The original optional CLI symlink worked after upgrading to build 3. That build resolves resources from the actual installed executable path, including when launched through a symlink.
+- The QA process used an empty folder on the build Mac and a loopback appcast serving verified copies of the GitHub draft assets. Gatekeeper assessment rejected the ad-hoc app as expected. This tested the application replacement, workbook integrity and installed runtime. A clean Mac without developer tools, browser quarantine, properly signed releases, the Apple identity transition, the live HTTPS feed, production Finder associations, model download and inference, and interrupted download recovery remain public-release checks.
+
+The DMG never installs a shell link. The optional executable path under the
+shared Applications folder is
+\`/Applications/Sevra.app/Contents/Helpers/Sevra CLI.app/Contents/MacOS/sevra\`.
+Use the same path under \`~/Applications\` for a per-user copy. A link should be
+created only when the intended destination is unused. The source installer has
+its own explicit CLI installation flow.

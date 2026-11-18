@@ -16,12 +16,8 @@
       let engineFiles: [String: String]
       let grammarSHA256: String
     }
-    private static var executable: URL {
-      (Bundle.main.executableURL ?? URL(fileURLWithPath: CommandLine.arguments[0]))
-        .resolvingSymlinksInPath().deletingLastPathComponent()
-    }
     private static var resourceRoot: URL {
-      Bundle.main.bundleURL.pathExtension == "app" ? Bundle.main.resourceURL! : executable
+      SplashRuntimeResources.resourceRoot
     }
     private static func layout() throws -> (Manifest, URL, URL) {
       let data = try Data(contentsOf: resourceRoot.appendingPathComponent("native-runtime.json"))
@@ -32,16 +28,14 @@
           && manifest.commit == "d8af1054aab0f97de21d043e01aa98af3754f10e"
           && Set(manifest.engineFiles.keys) == ["splash", "splash.metallib", "host-step.metallib"],
         "resources", "The installed runtime does not match this version of Sevra.")
-      let app = Bundle.main.bundleURL.pathExtension == "app"
+      let contents = SplashRuntimeResources.installedBundleContents
+      let executable = SplashRuntimeResources.executableDirectory
       let engine =
-        app
-        ? executable.deletingLastPathComponent().appendingPathComponent("Helpers/Splash/splash")
-        : executable.appendingPathComponent("NativeRuntime/engine/splash")
+        contents?.appendingPathComponent("Helpers/Splash/splash")
+        ?? executable.appendingPathComponent("NativeRuntime/engine/splash")
       let grammar =
-        app
-        ? executable.deletingLastPathComponent().appendingPathComponent(
-          "Frameworks/libllguidance.dylib")
-        : executable.appendingPathComponent("NativeRuntime/libllguidance.dylib")
+        contents?.appendingPathComponent("Frameworks/libllguidance.dylib")
+        ?? executable.appendingPathComponent("NativeRuntime/libllguidance.dylib")
       return (manifest, engine, grammar)
     }
     static func configuration(modelsRoot: URL) throws -> NativeWorkbookModel.Configuration {

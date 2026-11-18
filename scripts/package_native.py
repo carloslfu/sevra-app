@@ -79,8 +79,7 @@ def notices(destination, scratch, splash, grammar):
     (destination / "Rust/packages.json").write_text(json.dumps(receipt, indent=2) + "\n")
 
 
-def main():
-    binary, scratch = map(Path, sys.argv[1:])
+def stage(binary, scratch, app, cli=None, release_info=None):
     pin = json.loads((ROOT / "integration/splash.json").read_text())
     guidance = json.loads((ROOT / "integration/llguidance.json").read_text())
     receipt = json.loads((ROOT / ".build/llguidance-receipt.json").read_text())
@@ -94,30 +93,30 @@ def main():
     for relative, expected in pin["runtime"]["files"].items():
         if sha(splash / relative) != expected:
             raise RuntimeError("Native artifact differs from pin: " + relative)
-    out = ROOT / "output/native"
-    if out.exists():
-        shutil.rmtree(out)
-    app = out / "Sevra Native Preview.app"
     resources = app / "Contents/Resources"
-    cli = out / "bin"
     copy(binary / "SevraDesktop", app / "Contents/MacOS/Sevra")
-    copy(binary / "sevra", cli / "sevra")
     copy(binary / "sevra-extract", app / "Contents/MacOS/sevra-extract")
-    copy(binary / "sevra-extract", cli / "sevra-extract")
+    if cli is not None:
+        copy(binary / "sevra", cli / "sevra")
+        copy(binary / "sevra-extract", cli / "sevra-extract")
     info = plistlib.loads((ROOT / "Resources/Info.plist").read_bytes())
-    info.update(CFBundleIdentifier="com.sevra.workbooks.native-preview",
-                CFBundleName="Sevra Native Preview", CFBundleDisplayName="Sevra Native Preview",
-                LSMinimumSystemVersion="26.4")
-    # Qualification must not steal Finder associations from the installed app.
-    info.pop("CFBundleDocumentTypes", None)
-    info.pop("UTExportedTypeDeclarations", None)
+    info["LSMinimumSystemVersion"] = "26.4"
+    if release_info is None:
+        info.update(CFBundleIdentifier="com.sevra.workbooks.native-preview",
+                    CFBundleName="Sevra Native Preview", CFBundleDisplayName="Sevra Native Preview")
+        # Qualification must not steal Finder associations from the installed app.
+        info.pop("CFBundleDocumentTypes", None)
+        info.pop("UTExportedTypeDeclarations", None)
+    else:
+        info.update(release_info)
     (app / "Contents/Info.plist").write_bytes(plistlib.dumps(info))
     copy(ROOT / "Resources/Sevra.icns", resources / "Sevra.icns")
     bundles = ["Sevra_SevraExtractionWorker", "swift-transformers_Hub", "ZIPFoundation_ZIPFoundation", "swift-crypto_Crypto",
                "Sevra_SevraSplash", "Sevra_SevraSplashText", "Sevra_SevraSplashGrammar"]
     for name in bundles:
         copy(binary / (name + ".bundle"), resources / (name + ".bundle"))
-        copy(binary / (name + ".bundle"), cli / (name + ".bundle"))
+        if cli is not None:
+            copy(binary / (name + ".bundle"), cli / (name + ".bundle"))
     manifest = {"schemaVersion": 1, "release": pin["release"], "commit": pin["commit"],
                 "engineFiles": {Path(k).name: v for k, v in pin["runtime"]["files"].items() if k.startswith("engine/")},
                 "grammarSHA256": receipt["librarySHA256"]}
@@ -132,21 +131,38 @@ def main():
             installed.symlink_to("../../Resources/Splash/" + name)
         else:
             copy(splash / "engine" / name, installed)
-        copy(splash / "engine" / name, cli / "NativeRuntime/engine" / name)
+        if cli is not None:
+            copy(splash / "engine" / name, cli / "NativeRuntime/engine" / name)
     copy(library, app / "Contents/Frameworks/libllguidance.dylib")
-    copy(library, cli / "NativeRuntime/libllguidance.dylib")
-    for folder in [resources, cli]:
-        (folder / "native-runtime.json").write_text(json.dumps(manifest, indent=2) + "\n")
     notices(resources / "Licenses", scratch, splash, grammar)
-    copy(resources / "Licenses", cli / "Licenses")
+    if cli is not None:
+        copy(library, cli / "NativeRuntime/libllguidance.dylib")
+        copy(resources / "Licenses", cli / "Licenses")
     package_app_worker(app, binary)
+    return manifest
+
+
+def write_manifest(folder, manifest):
+    (folder / "native-runtime.json").write_text(json.dumps(manifest, indent=2) + "\n")
+
+
+def main():
+    binary, scratch = map(Path, sys.argv[1:])
+    out = ROOT / "output/native"
+    if out.exists():
+        shutil.rmtree(out)
+    app = out / "Sevra Native Preview.app"
+    cli = out / "bin"
+    manifest = stage(binary, scratch, app, cli)
+    for folder in [app / "Contents/Resources", cli]:
+        write_manifest(folder, manifest)
     # Upstream engine and native grammar are already linker-signed. Preserve
     # their bytes and sign the containing app without --deep rewriting helpers.
     subprocess.run(["codesign", "--force", "--sign", "-", str(app)], check=True)
     subprocess.run(["codesign", "--verify", "--deep", "--strict", str(app)], check=True)
     for name, expected in manifest["engineFiles"].items():
         assert sha(app / "Contents/Helpers/Splash" / name) == expected
-    assert sha(app / "Contents/Frameworks/libllguidance.dylib") == receipt["librarySHA256"]
+    assert sha(app / "Contents/Frameworks/libllguidance.dylib") == manifest["grammarSHA256"]
     print(json.dumps({"app": str(app.relative_to(ROOT)), "cli": str((cli / "sevra").relative_to(ROOT)),
                       "candidate": True, "unchangedEngine": True}))
 

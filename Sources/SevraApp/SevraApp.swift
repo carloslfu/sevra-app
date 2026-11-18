@@ -38,6 +38,11 @@ import UniformTypeIdentifiers
       }
       .defaultSize(width: 1200, height: 800)
       .commands {
+        #if SEVRA_DISTRIBUTION
+          CommandGroup(after: .appInfo) {
+            CheckForUpdatesCommand(updates: documentDelegate.updates)
+          }
+        #endif
         CommandGroup(replacing: .appTermination) {
           Button(
             "Quit \(Bundle.main.object(forInfoDictionaryKey: "CFBundleName") as? String ?? "Sevra")"
@@ -87,7 +92,13 @@ import UniformTypeIdentifiers
           }.keyboardShortcut("e", modifiers: [.command, .shift])
         }
       }
-      Settings { ModelSettingsView().readingFont(.body) }
+      Settings {
+        #if SEVRA_DISTRIBUTION
+          DistributionSettings(updates: documentDelegate.updates).readingFont(.body)
+        #else
+          ModelSettingsView().readingFont(.body)
+        #endif
+      }
     }
   }
 
@@ -183,11 +194,17 @@ private struct WorkbookFileCommands: Commands {
 
 @MainActor final class DocumentDelegate: NSObject, NSApplicationDelegate, ObservableObject {
   @Published var pending: [URL] = []
+  #if SEVRA_DISTRIBUTION
+    let updates = AppUpdates()
+  #endif
   /// From the latest window. It outlives that window, so a file opened from Finder after the last
   /// one closed still gets a window. Until the first window appears, files wait in `pending`.
   var files: WorkbookFiles?
   private var quitting = false
   func applicationDidFinishLaunching(_ notification: Notification) {
+    #if SEVRA_DISTRIBUTION
+      if !CommandLine.arguments.contains("--check-resources") { updates.start() }
+    #endif
     NativeAutomationHost.shared.start()
     let events = NSAppleEventManager.shared()
     events.setEventHandler(

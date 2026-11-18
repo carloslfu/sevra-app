@@ -72,6 +72,9 @@ program named `sevra` appears earlier in your shell's PATH. See
 [Build and run](db/records/operations/build-and-run.md) for build-only commands,
 resource verification, updates and uninstall instructions.
 
+Maintainers can build and test a standalone DMG and Sparkle updates using the
+[macOS release runbook](db/records/plans/macos-installer-and-updates.md#rehearse-a-release-locally).
+
 ### Set up local AI
 
 In Settings, choose **Download model**, or **Verify model files** when files are
