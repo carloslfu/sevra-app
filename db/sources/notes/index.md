@@ -2,11 +2,13 @@
 type: index
 scope: type-folder
 folder: sources/notes
-updated: 2026-11-18T17:50:08.869644Z
+updated: 2026-11-18T18:50:59.279011Z
 ---
 
 # sources/notes
 
+- [[sources/notes/2026/11/general-tools-implementation]] — Owner authorizes implementing the general chat tools plan end to end. Lists what the authorization does not cover.
+- [[sources/notes/2026/11/prebuilt-header-direction]] — Owner directs that the prompt header is calculated at build time and restored at engine start, the same way in development and release. Planning only.
 - [[sources/notes/2026/11/general-tools-confirmation]] — Owner confirms the general chat tools plan's three summary points and five proposals as written. Implementation is not yet authorized.
 - [[sources/notes/2026/11/general-tools-direction]] — Owner directs general chat tools: direct SQL writes, sandboxed code, per-workbook tools, and a shipped pre-read prompt header with no fallback.
 - [[sources/notes/2026/11/chat-tool-routing-direction]] — Owner asks to cut prompt context for ordinary workbook requests with the simplest router, after research and first-principles review.

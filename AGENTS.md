@@ -92,6 +92,13 @@ handoff distinguishes this work from the historical pause and earlier authoring 
 The owner's subsequent [whole-app adversarial review request](db/sources/notes/2026/11/app-engine-adversarial-review.md)
 extends the work through the [app and engine review](db/records/plans/app-engine-adversarial-review.md),
 with the same installation/UI authority and preserved VoiceOver/system-setting boundaries.
+The owner's November 18 [general chat tools authorization](db/sources/notes/2026/11/general-tools-implementation.md)
+authorizes implementing the [general chat tools plan](db/records/plans/general-chat-tools.md)
+end to end, phase by phase on its exit criteria, with the real-model runs, development
+packaging, installation and interface checks those exits require and the same VoiceOver and
+system-setting boundaries. Phase 3 waits for the owner's change to the raw-model DDL rule in
+db/DB.md. Phases 5, H3 and H4 each wait for an owner decision the plan names. Do not push or
+publish a release for it without the owner's word.
 Test enough, as the [owner asked](db/sources/notes/2026/10/ship-with-enough-testing.md): the real
 failure and one counterexample, with the suite and install once on the candidate.
 Work directly on `main`, with no feature branch or pull request. Run `dbmd index rebuild` before

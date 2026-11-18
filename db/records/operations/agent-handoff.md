@@ -3,25 +3,26 @@ type: operational
 meta-type: operational
 id: 01m659x4nd2q89tkpzzsssd7yr
 created: 2026-10-30T02:23:30.477380+00:00
-updated: 2026-11-18T17:50:21.995858+00:00
+updated: 2026-11-18T18:56:03.006841+00:00
 summary: Native UI Catalog implemented and locally verified, with durable agent maintenance instructions and preserved product/model qualification limits.
 title: Minimum-feature continuation handoff
 ---
 # Minimum-feature continuation handoff
 
 ## General chat tools planning, November 18
-[[records/plans/general-chat-tools]] is a plan only. Nothing in product code, the engine launch, a package or the interface was changed or run for it. It follows the owner's direction in [[sources/notes/2026/11/general-tools-direction]]: replace the fixed chat tools with seven general ones, let model-written SQL change data directly, run model-written code in the sandbox, add tools that belong to a workbook, and never compute the prompt header in a chat turn. It supersedes [[records/plans/native-chat-prompt-routing]]. Two independent reviews, one against the owner's notes and one against the code and the engine source, were applied to it.
+[[records/plans/general-chat-tools]] is being implemented phase by phase. The owner authorized it on November 18: [[sources/notes/2026/11/general-tools-implementation]]. Each phase records its results in the plan when it exits. It follows the owner's direction in [[sources/notes/2026/11/general-tools-direction]] and [[sources/notes/2026/11/prebuilt-header-direction]]: replace the fixed chat tools with seven general ones, let model-written SQL change data directly, run model-written code in the sandbox, add tools that belong to a workbook, and calculate the prompt header at build time so the app only restores it. It supersedes [[records/plans/native-chat-prompt-routing]]. Its review passes are listed at its end.
 
 What to know before starting it:
 
 - **SQL.** Model SQL runs on a scratch in-memory copy. Triggers log what it does, and the changes are applied through `Workbook.mutation`. User tables are projections, and the workbook connection exposes the capture function, so model SQL never runs there.
-- **Header.** The pinned engine already keeps restore points on disk. Its cache name differs per Mac only because of the file paths and times this repository writes into `model.json`, so no upstream change is needed. The app is built from source and has no installer, so the plan makes the header during setup on each Mac first and ships it with a later installer.
+- **Header.** One command in the built command line tool makes the header. The staging code that both packaging scripts share copies it into the app before the app is signed. The app restores it before every engine start and has no code that computes it (proposal P6, not yet confirmed). The pinned engine already keeps restore points on disk. Its cache name differs per Mac only because of the file paths and times this repository writes into `model.json`, which phase H2 removes. All of this is read from source and not yet run. Phase H1 probes it first.
+- **Installer.** The release packaging in [[records/plans/macos-installer-and-updates]] exists and is rehearsed. It does not use the model. Once phase H3 is built, a build without a header cannot start the local AI (P6), so that plan must not publish an early-access or stable build without one. Phase H4 lists the changes that plan needs.
 - **Format.** Adding the `tool` definition kind changes the canonical schema. Earlier development workbooks will not open after that phase.
 - **Ledger.** The inventory ledger in the core is out of scope. Chat reaches it through two read-only tables and saved actions.
 - **Unverified.** Chat's AI actor carries a policy label, not a rule Source, and the row update and schema paths refuse an AI change without one. Whether the current tools can update rows or change a schema under a real model is the first check of phase 1.
 - **Evidence.** The draft tool schemas and their token counts are in `integration/evidence/2026-11-18-general-tool-schemas/`.
 
-The owner confirmed the plan's three summary points (S1 to S3) and its five proposals (P1 to P5) as written on November 18: [[sources/notes/2026/11/general-tools-confirmation]]. He has not yet authorized implementation, real-model runs, installation or interface checks, and has not changed the `db/DB.md` line that phase 3 needs.
+The owner confirmed the plan's five proposals as written on November 18: [[sources/notes/2026/11/general-tools-confirmation]]. The agent reads that as covering the plan's three summary points too. He then replaced P4 with the build-time header. P6 to P9 are not confirmed, and phases H3 and H4 wait for them. Phase 3 waits for his change to the `db/DB.md` line. Phase 5 waits for his decision about earlier development workbooks. Nothing is pushed or published for this plan without his word.
 ## Follow-up turns resume the previous turn's cache, November 18
 
 [[records/plans/conversation-follow-up-cache]] makes the saved conversation append-only, one

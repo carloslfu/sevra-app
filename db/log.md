@@ -256,3 +256,15 @@ Added native DMG staging, pinned Sparkle, signed appcasts, a separate QA identit
 ## [2026-11-18 18:10] verification | records/plans/macos-installer-and-updates
 Verified GitHub draft checksums, clean-folder copy, two Sparkle replacements, the modified feed and DMG refusals, workbook persistence, and the bundled CLI link on build 3.
 
+## [2026-11-18 18:56] design | sources/notes/2026/11/prebuilt-header-direction.md
+Recorded the owner's direction that the prompt header is calculated at build time and restored at engine start, in development and in release.
+
+## [2026-11-18 18:56] design | sources/notes/2026/11/general-tools-implementation.md
+Recorded the owner's authorization to implement the general chat tools plan end to end, and what it does not cover.
+
+## [2026-11-18 18:56] design | records/plans/general-chat-tools.md
+Aligned with the release packaging at baadc5c and the build-time header direction. One command makes the header, a packaging helper copies it into the app before signing, and the app only restores it. Added proposals P6 to P9, which the owner has not confirmed.
+
+## [2026-11-18 18:56] verification | records/plans/general-chat-tools.md
+Three review passes on the aligned header design: owner fidelity and readiness, a technical pass against the packaging scripts, start path and engine cache layout, and a final independent check against the code. Findings applied. Store validation and repository links pass. Engine and SQLite behavior the plan relies on is still read from source and is proven in phases H1, H2 and 2.
+

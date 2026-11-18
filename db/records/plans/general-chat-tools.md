@@ -2,17 +2,17 @@
 type: operational
 id: 01m7qrcqqzh4qqr92a8frch1ze
 created: 2026-11-18T16:38:43.199010+00:00
-updated: 2026-11-18T17:50:21.974267+00:00
-summary: Plan for seven general chat tools (model SQL on a scratch copy, sandboxed code, workbook tools) and a prompt header that no chat turn computes. Proposals confirmed; implementation not yet authorized.
+updated: 2026-11-18T18:56:02.982767+00:00
+summary: Plan for seven general chat tools (model SQL on a scratch copy, sandboxed code, workbook tools) and a prompt header calculated at build time and restored at engine start. In implementation.
 title: General chat tools and a pre-read prompt header
 ---
 # General chat tools and a pre-read prompt header
 
 Owner direction: [[sources/notes/2026/11/general-tools-direction]], continuing [[sources/notes/2026/11/chat-tool-routing-direction]]. Evidence: [[records/research/chat-tool-selection]]. This plan replaces [[records/plans/native-chat-prompt-routing]].
 
-Status: plan only. No product code, engine code, model, package or interface was changed or run for it. The only thing run was a CPU token count of draft schemas. Reviewed against code at `dcb111eccf61bf2b850eab84f2610d0ab8cf10d9`, which includes [[records/plans/conversation-follow-up-cache]], and against the pinned Splash 1.6.1 source. The later commit `af2ef6d` adds only [[records/plans/macos-installer-and-updates]].
+Status: implementation started on November 18, 2026 with phase 1. Each phase section records what was done and measured when it exits. When this plan was written and reviewed, no product code, engine code, model, package or interface had been changed or run for it, and the only thing run was a CPU token count of draft schemas. Reviewed against code at `dcb111eccf61bf2b850eab84f2610d0ab8cf10d9`, which includes [[records/plans/conversation-follow-up-cache]], and against the pinned Splash 1.6.1 source. The header section is also written against the packaging scripts at `baadc5c`, which implement [[records/plans/macos-installer-and-updates]]. That commit changes no file this plan cites by line.
 
-The owner confirmed the plan's three summary points and five proposals as written on November 18, 2026: [[sources/notes/2026/11/general-tools-confirmation]]. Implementation is not yet authorized.
+The owner confirmed the plan's three summary points and five proposals as written on November 18, 2026: [[sources/notes/2026/11/general-tools-confirmation]]. He then changed how the header is delivered: [[sources/notes/2026/11/prebuilt-header-direction]]. He authorized implementation on November 18, 2026: [[sources/notes/2026/11/general-tools-implementation]]. That note also lists what the authorization does not cover.
 
 Terms used below:
 
@@ -20,31 +20,41 @@ Terms used below:
 - A **rule Source** is a saved Source of kind rule with status accepted. The write path requires one before it records a change as made by the AI ([DecisionAttribution.swift](../../../Sources/SevraCore/DecisionAttribution.swift)).
 - An **evaluation** is one uninterrupted stretch of JavaScript between two host calls.
 - The **header** is the fixed start of the prompt: the instructions and the tool schemas, identical for every ordinary chat turn.
+- A **restore point** is engine state saved at a position in a prompt. A later request that starts with the same tokens resumes from it and does not read them again.
+- The **model pack** is the pinned set of model files the app uses, named by repository and revision. The **assembly key** is the digest of the record that model preparation writes for it.
+- A **tool profile** is a host setting that selects today's tools (`current`) or the general ones (`general`). It exists until phase 6 ends.
 
 ## Decisions
 
-Decided by the owner, in his words in the two notes:
+Decided by the owner, in his words in the notes:
 
 1. **General tools.** Chat works through a few general tools. The model writes SQL and code instead of calling many fixed, single-purpose tools.
 2. **SQL writes directly.** Model-written SQL can change workbook data with no approval step in between.
 3. **Arbitrary code, sandboxed.** The model can run code it writes, inside a sandbox.
 4. **Per-workbook tools.** A workbook can carry its own tools, set up by its user. They are listed by name and loaded when needed, like the workbook's views and apps.
-5. **The header ships already read.** It is kept in the app, it always matches, there is no fallback, and tests before release prove it.
-6. **Earlier rules are replaced.** See [What this replaces](#what-this-replaces).
+5. **The header is calculated ahead of time and restored when the engine starts.** In his words, it is calculated "during development, before shipping it" and restored "when it starts for real and in dev". For a user in production there is no fallback, and tests before release prove the match.
+6. **Earlier rules are replaced.** He confirmed the direction after hearing that the specifications forbid model-authored SQL and generated code. The full list in [What this replaces](#what-this-replaces) is the agent's.
 
-Said in the agent's summaries during planning, and confirmed by the owner on November 18, 2026 in [[sources/notes/2026/11/general-tools-confirmation]]:
+Said in the agent's summaries during planning. The agent reads the owner's "Confirm all" of November 18, 2026 as covering them, though the question he answered named only the proposals: [[sources/notes/2026/11/general-tools-confirmation]].
 
 - **S1. No router.** No text matching and no extra model call chooses tools.
 - **S2. No business concepts in the built-in tools or the shared instructions.** Inventory, receiving and quote comparison leave both.
 - **S3. No built-in tool groups.** Anything loaded on demand is something the workbook holds, or a guide.
 
-Proposed by the agent, and confirmed by the owner as written in the same note. Each is marked where the plan depends on it:
+Proposed by the agent, and confirmed by the owner as written in the same note, except P4. Each is marked where the plan depends on it:
 
 - **P1. Seven built-in tools:** `search`, `read`, `sql`, `run`, `save`, `ask`, `finish`.
 - **P2. Table changes count at once, and no approval step is added anywhere.** A change to a table made by `sql` or `run` is accepted data, attributed to the request that asked for it, and can be undone. A table draft that waits for acceptance is made only when the person asks for one. `save` keeps what each kind does today: a document or record written by the model is saved as a draft, a view or tool is saved ready to use, and an app is saved disabled until the person enables it.
 - **P3. The sandbox reaches this workbook only.** No network, no other files, no other workbook. A file leaves the workbook only to a path the person typed in that request, or through the save panel.
-- **P4. How the header reaches a Mac.** Made on each Mac during setup now, because every Mac builds the app from source today. Shipped inside the app once the installer planned in [[records/plans/macos-installer-and-updates]] exists. See [How the header reaches a Mac](#how-the-header-reaches-a-mac-p4).
+- **P4. Replaced.** The owner first confirmed a version that made the header during setup on each Mac. He then replaced it with decision 5 as it now reads: [[sources/notes/2026/11/prebuilt-header-direction]].
 - **P5. Code that arrives from elsewhere needs enabling.** A tool that came inside a copied workbook does not run on this Mac until the person enables it there, as apps already work. The permission step for apps is unchanged.
+
+Proposed by the agent after the header direction changed, and not yet confirmed by the owner:
+
+- **P6. The app has no code that computes a header, and a source build pays for that with extra steps.** Not in setup, not in a repair action and not after an update. So after the model download, and again after any change to the prompt, a tool schema, the engine or the model, a developer runs the install command or the header command. Until then the app says so and chat is unavailable. Phase H3 depends on this.
+- **P7. A release claims only the Macs it was tested on.** The shipped header is used on every Mac the app runs on. A release's published requirements list only the Apple chips where the header tests passed. Phase H4 depends on this.
+- **P8. Only ordinary chat gets a prepared header.** Specialized phases keep reading the start of their own prompts when they run. A second prepared header for them would roughly double what the app carries. Phase H3 depends on this.
+- **P9. Chat needs the engine's disk cache.** On a Mac below the engine's free-space floor, or with the cache folder on a volume that is not local, the header cannot be taken back, so the local AI does not start there. It starts there today. Phase H3 depends on this.
 
 ## Why
 
@@ -60,7 +70,7 @@ No published evaluation covers this local model writing SQL and JavaScript. That
 
 ## Scope
 
-In scope: the ordinary chat tool list and instructions, the SQL and code layers behind them, workbook tools, and the prompt header.
+In scope: the ordinary chat tool list and instructions, the SQL and code layers behind them, workbook tools, the prompt header, and the step that makes the header in both packaging scripts.
 
 Not in scope:
 
@@ -228,70 +238,89 @@ Interface code also branches on tool names: 14 progress labels in [ToolActivityL
 
 A loaded tool's schema and a guide arrive in the result of the read that asked for them. Nothing before them in the prompt changes.
 
-## The prompt header is never computed in a chat turn
+## The prompt header is calculated at build time and restored at engine start
+
+Owner direction: [[sources/notes/2026/11/prebuilt-header-direction]]. It replaces the first form of proposal P4, which made the header during setup on each Mac.
 
 ### What the engine allows
 
 The pinned Splash 1.6.1 already keeps restore points on disk. The app turns that off today with `--persistent-cache off` in [NativeWorkbookModel.swift](../../../Sources/SevraNativeAI/NativeWorkbookModel.swift). Read from the pinned source and its `docs/server.md`, and not yet run:
 
 - `--persistent-cache on` with `--cache-dir` keeps restore points across restarts. A start takes back every recorded point whose chain is whole. The status reply reports it under `disk`: `persistent`, and `taken_back` with counts of `states`, `kv_blocks`, `bytes` and `left_behind`.
-- The files are `kv.slots`, `kv.records`, `state.slots` and `state.records`, beside `lock`, `serving`, `probation` and `failed-probation` markers, in a directory that must be mode 0700, owned by the user and locked while in use. The engine cannot use them in place from a signed, read-only app bundle. They are copied into place.
+- The files are `kv.slots`, `kv.records`, `state.slots` and `state.records`, beside `lock`, `serving`, `probation` and `failed-probation` markers, in a folder named by the cache name under the cache directory. The folder must be mode 0700, owned by the user and locked while in use. The engine cannot use them in place from a signed, read-only app bundle. They are copied into place.
 - There is no message to export or import one named restore point. With the persistent cache on the engine copies every point of every request, so a conversation's own state reaches the disk too.
 - The app passes no disk quota. On low free space, a volume that is not local or a directory it cannot use, the engine falls back to temporary files and still reports Ready.
-- **Read from the source, and to be proven in phase H2: the cache name can be the same on every Mac without an engine change.** The name is a digest of the weight manifest and the cache layouts (`runtime/engine/RuntimeResources.mm`). The manifest lists each weight image's relative path, size and header, and the SHA-256 of the assembly's `model.json` (`runtime/model/WeightStore.cpp`). From that file the engine reads four fields: `version`, `model`, `target_format` and `vision_format` (`runtime/model/ModelDescriptor.mm`). It hashes the rest without reading it. The parts that differ per Mac, each file's absolute path and its modification and change times, are written by this repository's [ModelPreparation.swift](../../../Sources/SevraSplash/ModelPreparation.swift) for its own fast verification. Because a launch fingerprints the files again, a changed file time alone gives the assembly a new key and the cache a new name today. The name also depends on the KV and state formats, which the app's launch arguments set, so those arguments belong in the snapshot's manifest.
+- **Read from the source, and to be proven in phase H2: the cache name can be the same on every Mac without an engine change.** The name is a digest of the weight manifest and the cache layouts (`runtime/engine/RuntimeResources.mm`). The manifest lists each weight image's relative path, size and header, and the SHA-256 of the assembly's `model.json` (`runtime/model/WeightStore.cpp`). From that file the engine reads four fields: `version`, `model`, `target_format` and `vision_format` (`runtime/model/ModelDescriptor.mm`). It hashes the rest without reading it. The parts that differ per Mac, each file's absolute path and its modification and change times, are written by this repository's [ModelPreparation.swift](../../../Sources/SevraSplash/ModelPreparation.swift) for its own fast verification. Because a launch fingerprints the files again, a changed file time alone gives the assembly a new key and the cache a new name today. The name also depends on the KV and state formats, which the app's launch arguments set.
 - Every start removes cache directories nobody used for 14 days, except the one it holds. After two failed starts in a row the next start begins empty. A clean stop gets up to 6 seconds to write waiting points. The app stops its helper with SIGTERM and SIGKILL one second later ([NativeProcess.swift](../../../Sources/SevraSplash/NativeProcess.swift)).
 - Whether a request reused the header is known only from its start event, after it is sent. A running engine can drop a point when its disk quota is full, oldest first.
 
-### How the header reaches a Mac (P4)
+### What the builds look like today
 
-The owner asked for the header to ship inside the signed app, with no fallback, proven before release. Two facts shape how that is delivered:
+Read from the scripts at `baadc5c`, which implement [[records/plans/macos-installer-and-updates]]:
 
-- Sevra is built from source on each Mac today. `scripts/install.sh` builds the app there and signs it ad hoc. No downloadable signed app exists that could carry a tested file. One is planned in [[records/plans/macos-installer-and-updates]] and is not built.
-- A header file is valid for one cache name. With the model record made the same on every Mac (phase H2), one file can be valid everywhere. Whether state made on one Apple chip gives the same answers on another has not been tested. Only one test Mac exists.
+- **Two packaging paths.** [build_native.sh](../../../scripts/build_native.sh) runs [package_native.py](../../../scripts/package_native.py) and makes the development app, signed ad hoc, with a separate folder for the command line tool. [install.sh](../../../scripts/install.sh) with `--native` builds and installs it. With `--distribution`, the build script runs [package_release.py](../../../scripts/package_release.py) and makes a DMG that holds the app and a bundled command line app. It has three stages: `qa`, `early-access` and `stable`. Only `stable` uses Developer ID signing and notarization. It writes a `release.json` receipt, and [check_release_package.py](../../../scripts/check_release_package.py) checks an installed copy against it. Both scripts share one staging function, which runs before any signing. Each script then signs in its own order.
+- **Where the command line tool sits.** The source installer copies it into the installed app at `Contents/CLI` and links `~/.local/bin/sevra` to it. A release keeps it in a helper app inside the app. Each resolves resources from its own folder today.
+- **Rehearsed, not released.** Three ad hoc QA builds were installed and updated on one Mac. The packaged app has not downloaded or run the model. The public README still offers the source build.
+- **Neither path uses the model.** The person downloads it in Settings, or points the app at existing files. Both routes record the model by repository and revision ([ModelSetup.swift](../../../Sources/SevraSplash/ModelSetup.swift)). The default folder is the same for every build on a Mac.
+- **The app prepares the model at every engine start**, and gives the assembly a new key when a file's time changed.
+- **An update replaces the whole app** with the full DMG.
+- **Resources resolve from one root:** `Contents/Resources` in an app, the executable's folder in a build tree ([RuntimeResources.swift](../../../Sources/SevraSplash/RuntimeResources.swift)). The release's bundled command line app carries its own copy of the resources.
+- **The tokenizer and the chat template come with the model.** The app loads both from the prepared model, so neither a header's rendered text nor its tokens can be worked out on a Mac that has no model. The header's inputs can: the instruction text and the tool declarations as the app serializes them.
+- **Specialized phases build their prompt starts differently.** Some share today's header. Excel conversion replaces the instructions with its own, and workflow interpretation has no stable start ([NativePreparedRequest.swift](../../../Sources/SevraNativeAI/NativePreparedRequest.swift)).
+- **Restore points sit on 32-token pages.** The app already treats a prompt start as resumed when the engine reuses it up to its last complete page.
+- **One launch setting differs by Mac.** The context size is 64K on a Mac with 48 GiB or more and 32K below that ([NativeProductResources.swift](../../../Sources/SevraProduct/NativeProductResources.swift)). The KV format, the state format and the activations setting are fixed.
 
-Proposal:
+### The design
 
-1. **Now: made during setup, on each Mac.** Right after the model is verified, and before chat is available, setup makes the header, checks that it resumes, and keeps a snapshot. Before every engine start the app restores the snapshot and checks it. The steps are in [Mechanism](#mechanism).
-2. **With the installer: shipped.** The release build makes the same files once on the release Mac with the same step, runs the header tests on them, and places them in the app. Setup installs them by copying. Nothing is computed on the person's Mac.
+1. **One command makes a header.** A command in the built command line tool, `sevra header make`, is the only thing that computes an ordinary chat header. It takes the header from the app's own prompt code, so it cannot differ from what a chat turn sends. It starts the same engine helper with the same launch arguments the app uses, the persistent cache on, a fresh cache directory and an explicit disk quota. It sends the header as a one-token request and waits for the engine's own exit, so the points are written. It then starts the engine again, sends the header once more, and requires that request to resume it. Only then does it write the four data files and a manifest into the build's header cache, `.build/prompt-header/`. It does nothing when the cache already holds a matching header. It takes a tool profile, and a folder to write to. It refuses to start while another engine helper is running or when reclaimable memory is short, so a build never loads a second model. Packaging that needed it then stops with that message, and nothing is packaged.
+2. **A header is named by what it is for.** Its folder name is the digest of the header's inputs: the instruction text and the tool declarations as the app serializes them. These can be worked out without the model. If phase H1 shows that the context setting matters, the name also carries that setting. Its manifest records the inputs digest, the token count and token digest, the engine's cache name, the launch arguments that feed that name, the pin from [integration/splash.json](../../../integration/splash.json), the model pack and the assembly key, the point counts the engine reported, and each file's size and SHA-256.
+3. **One place in a build holds it.** In an app that is `Contents/Resources/PromptHeader/`. Every executable inside the app uses that folder, including the command line tool, which sits in `Contents/CLI` in a development build and in a helper app in a release. An executable outside an app, such as the command line tool in the package output, a build tree or the checks, takes the folder from an explicit setting that the scripts pass, and they pass the header cache. Without that setting it has no header. A release holds one header, or one per context setting if H1 shows that is needed. A development build holds one per tool profile it can select.
+4. **Packaging copies it in before the app is sealed.** One helper, which each packaging script calls at its own point, looks in the header cache for a header whose manifest matches this build: its header inputs, engine pin, model pack and launch arguments, for each tool profile the build can select. If one is missing and the model is on the Mac, it runs the command with the packaged command line tool and writes into the cache. It copies the folder into the app after the nested binaries are signed and the runtime manifest is written, and before the app itself is signed, so the header is sealed with the app. In the release script that point comes after the command line helper app is staged, so the helper app gets no second copy.
+   - A development package made without the model has no header and says so.
+   - A release package at stage `early-access` or `stable` fails without a matching header. Stage `qa`, which rehearses updates with disposable data, follows the development rule.
+   - A header made on another Mac can be placed in the cache, for a release built where the model is not present. Packaging accepts it only if its manifest matches.
+5. **The app only restores.** Before every engine start the host prepares the model as it does today, works out the digest of its header inputs, finds the folder of that name, and checks the manifest against the engine pin, the launch arguments and the prepared model's assembly key. Once the tokenizer is loaded it also checks the token count and digest. It then empties its cache directory, creates a folder there named by the cache name, copies the four files into it with copy-on-write copies, and starts the engine with the persistent cache on and an explicit quota. The app has no code that computes an ordinary chat header (P6). This runs before every engine start, whoever asks for it. Without a matching header the engine is not started, so specialized phases are unavailable too.
+6. **Check at start.** After Ready the host requests the engine status and requires `disk.persistent` to be true, `taken_back` to report at least the manifest's states and KV blocks, and `left_behind` to be zero. If the points are short, the host stops the engine, restores the files once more and starts again. A second failure is reported as a damaged installation (P6). The host checks free disk space before the start. If the engine still fell back to temporary files, the header was not taken back and the local AI does not start (P9). The app reports that the Mac lacks free disk space for the local AI cache and how much it needs. That is not a damaged installation, and nothing is computed.
+7. **Check on every request.** Every ordinary chat prompt starts with the header, so every request's start event must report that it resumed the header up to its last complete page. The engine keeps restore points at 32-token page boundaries, so at most 32 header tokens are read in a turn, as today. If a request resumes less, the host cancels it before it generates, stops the engine, restores the files from the app again, starts again and sends the request once more. If the header is still not resumed, the app reports a damaged installation (P6). The host counts failed starts itself, because restoring a clean directory resets the engine's own counter. The status check in step 6 makes a miss here rare. This step exists so that a miss can never turn into a computed header.
+8. **A missing or mismatched header is an error.** The app says that this build has no prepared prompt for this model, and what to do about it. In a release that is to install the app again. In a development build it is to run the install command or the header command (P6). Chat stays unavailable until then. Nothing is computed.
+9. **Keep conversations off the disk between runs.** The engine writes later restore points into the same directory while it runs. The host removes the directory when the engine stops and at the next start, before restoring the header.
+10. **Size the quota so the header is never the point dropped.** The quota covers the header and a full context of conversation points. Phase H1 measures both.
+11. **What a chat turn may still compute.** The per-workbook block cannot be made in advance. If the engine is running when a conversation starts, the host primes that block in the background. Otherwise the first message computes it. Loading the model only to prime it would hold memory for a person who never chats.
+12. **Specialized phases get no prepared header (P8).** Excel conversion, the reviews, workflow interpretation and history summaries build their prompt starts in their own ways. The app's `primePrefix`, which reads a prompt start ahead of a request, stops priming the ordinary chat header and keeps priming theirs where it does today. Until phase 6 ends, the phases that share today's header resume the prepared one. After phase 6 that header is no longer ordinary chat's, so they read it once per engine start.
 
-In both, no chat turn computes the header. A mismatch is an error with a Repair action. The app never continues on a slow path.
+### Development works the same way
 
-What makes the header on a person's Mac under item 1, none of it inside a chat turn:
+- **The first build has no header,** because the model is not on the Mac yet. The source installer says so and names the next step (P6).
+- **After the model download** the developer runs `bash scripts/install.sh --native` again. The build is incremental. Packaging now finds the model, makes the header and copies it into the app.
+- **After a change to the prompt, a schema, the engine or the model** the header no longer matches, and the app says so. The developer runs the install command again, or `sevra header make` in a build tree (P6).
+- **Unchanged headers are reused.** Packaging takes a matching header from the header cache, so the model is loaded only when the header, the engine or the model changed.
+- **Real-model check scripts run the command first,** so a gate never fails for a missing header and never measures a computed one.
+- **Two tool profiles, two headers.** Until phase 6 ends, each profile has its own header folder, and a development package carries both.
+- **A model given by local path,** the developer layout, has no repository identity. A header made on that Mac matches only there, and any change to the model's files needs the command again.
 
-- first setup, after the model is verified;
-- an app update whose header or engine differs from the snapshot's manifest, before the first chat after the update;
-- preparing a different model. After phase H2, preparing the same model again does not change the cache name. A model given by local path is the exception: a change to its files makes the header again during model preparation, and is never reported as damage;
-- Repair, when the person chooses it.
+[[records/operations/build-and-run]] and the README's setup steps document this when phase H3 builds it.
 
-What a release can prove under item 1 is the mechanism, on the packaged build. Each Mac then proves its own match at setup and at every engine start. Under item 2 the release proves the file itself.
+### What a release proves
 
-Still the owner's to answer: under item 2, what the app does on a Mac whose chip the release did not test, or with a model the release did not ship. The choices are to refuse chat there or to make the header at setup as in item 1. Under item 1 the question does not arise.
-
-### Mechanism
-
-1. **Make it during setup.** Setup checks free disk space first and reports a shortage with its own message. It starts the engine with the persistent cache on, an app-owned cache directory and an explicit disk quota, sends the ordinary chat header as a one-token request, and stops the engine through a new stop path that waits for the engine's own exit, so the points are written.
-2. **Prove it before chat is available.** Setup starts the engine once more, sends the header again as a one-token request, and requires that request to resume at least the header. If it does not, setup fails with the reason and chat stays unavailable.
-3. **Keep a snapshot.** After the engine has exited by itself, setup copies the four data files to the app's Application Support folder with a manifest: the header's token digest, the engine's cache name, the launch arguments that feed that name, the pin from `integration/splash.json`, the model pack identity, the point counts the engine reported, and every file's size and SHA-256.
-4. **Restore before every engine start.** The host replaces the cache directory with a clone of the snapshot, checks it against the manifest and starts the engine with the persistent cache on. So a deleted cache folder or the engine's 14-day sweep does not lose the header, which the header tests prove, and restoring is a file clone, not a computation.
-5. **Check at start.** After Ready the host requests the engine status and requires `disk.persistent` to be true, `taken_back` to report at least the manifest's states and KV blocks, and `left_behind` to be zero. If the engine fell back to temporary files, the header was not taken back. Chat does not start. The app reports that the Mac lacks free disk space for the local AI cache and how much it needs. That is not a damaged installation, and nothing is computed.
-6. **Check on every request.** Every ordinary chat prompt starts with the header, so every request's start event must report that it resumed at least the header. If one does not, the host cancels that request before it generates, stops the engine, restores the snapshot, starts again and sends the request once more. If the header is still not resumed, the app reports a damaged installation and offers Repair, which reruns steps 1 to 3. The host counts failed starts itself, because restoring a clean directory resets the engine's own counter. The status check in step 5 makes a miss here rare. This step exists so that a miss can never turn into a computed header.
-7. **Keep conversations off the disk between runs.** The engine writes later restore points into the same directory while it runs. The host removes the directory when the engine stops and at the next start, before restoring the snapshot.
-8. **Size the quota so the header is never the point dropped.** The quota covers the header and a full context of conversation points. Phase H1 measures both.
-9. **Remove header priming.** `primePrefix` no longer primes a header that has a snapshot. The follow-up replay state from [[records/plans/conversation-follow-up-cache]] is unchanged.
-10. **Prime the workbook block when the engine is already running.** The per-workbook block cannot be made in advance. If the engine is running when a conversation starts, the host primes that block in the background. Otherwise the first message computes it. Loading the model only to prime it would hold memory for a person who never chats. This block is the one part of the prompt start a chat turn may still compute.
-
-The header covered here is the ordinary chat header. Specialized phases keep their own prompts and compute them when used.
+- **The shipped header matches the release.** Packaging accepts a header only when its manifest names this build's header inputs, engine pin, model pack and launch arguments.
+- **It is tested before publishing.** The header tests pass against the release package. Those that need a comparison run, a seam or a different context setting run through the check harness, pointed at the package's engine and header. The rest run in the installed app.
+- **An update brings its own header,** since it replaces the whole app.
+- **Other Macs (P7).** The shipped header is used on every Mac the app runs on. Phase H2 makes its cache name the same everywhere. Whether state made on one Apple chip gives the same answers on another has to be tested on each chip a release claims, and a release's published requirements list only the chips where the header tests passed. The installer plan already intends to publish only the hardware qualified on the released build.
 
 ### Header tests
 
-- **Zero header tokens.** In a cold first turn after setup, the first call resumes at least the header and no header prime runs.
-- **Faster, not just different.** A cold first turn with the restored header is faster than the same turn computing the header. On the test Mac the header prime measured 4.33 s. Restoring and checking must cost less.
-- **Same answers.** A fixed set of requests gives the same tool calls and answers with the restored header as with a freshly computed one.
-- **Survives loss.** Deleting the cache directory, or ageing it past the engine's 14-day sweep, still gives a zero-header-token first turn after the next start.
+- **Match.** `check-resources` reports the header as present and matching, absent or mismatched, without needing the model. It compares the folder name with the digest of the header inputs the app's code produces, and the manifest with the engine pin and the selected model pack. In a development package or install, absent is reported and is not a failure. In a release check at stage `early-access` or `stable`, anything but present and matching fails.
+- **Resumed, not computed.** In a cold first turn, the first call resumes the header up to its last complete page and no header prime runs.
+- **Faster, not just different.** A cold first turn with the restored header is faster than the same turn run through the check harness's comparison setting, where the engine computes the same header. The research record measured today's header prime at 4.33 s on the test Mac.
+- **Same answers.** A fixed set of requests gives the same tool calls and answers with the restored header as in a comparison run where the engine computes the header. The comparison run uses a diagnostic setting that only the check harness can set. The app has no such setting.
+- **Survives loss.** Deleting the cache directory, or ageing it past the engine's 14-day sweep, still gives a resumed header in the first turn after the next start.
 - **Survives a full conversation.** After a conversation that fills the context, a new conversation still resumes the header.
-- **Fails loudly.** A snapshot whose manifest, header digest, engine pin or model identity does not match stops at the installation check with a Repair offer. No turn runs.
-- **Header changes are deliberate.** The header's token digest is recorded in the repository. A CPU check fails when the built header differs from it, so a prompt or schema edit updates the digest in the same change and the header is made again.
-- **Nothing kept from conversations.** After a stop, and after a forced kill followed by a start, the cache directory holds the snapshot only.
+- **Both memory tiers.** A header made at the 64K context setting is restored and resumed at the 32K setting, or each setting has its own header.
+- **Recovers without computing.** With a test seam that reports one missed resume, the request is cancelled, the engine restarts with the header restored, the request runs, and no header is computed.
+- **Fails loudly (P6).** With the header folder removed, its manifest, engine pin or model identity changed, or one data file cut short, the local AI is unavailable with the message. No turn runs and nothing is computed.
+- **Nothing kept from conversations.** After a stop the cache directory is gone. After a forced kill followed by a start it holds the header only.
+- **From the DMG alone.** With the header cache and the app's cache directory removed, a copy of the app installed from the DMG resumes the header in its first chat.
+- **Update.** After an in-app update to a build whose header differs, the first engine start uses the new header.
 
 ## Coverage of what exists today
 
@@ -329,9 +358,9 @@ Phases that are not part of ordinary chat keep their own tool lists and prompts 
 
 Phases are ordered by what depends on what. Each ends on an exit criterion. Checks follow the focused verification policy in [[records/specs/distribution]]: the smallest checks that establish the change inside a phase, and the full suite where a phase crosses a boundary. Phase 3 changes the write path and phase 6 removes the old tools, so those two run the full suite. Real-model and engine runs load one model at a time on an idle Mac, after checking reclaimable memory.
 
-Until phase 6 the current tools stay the default. The general tools run under a host-selected tool profile in the same build, so every gate compares the two on the same code. A phase that misses its exit criterion does not exit, and no phase that depends on it starts. The result goes to the owner with the transcripts. The tools a person chats with do not change until phase 6 passes. Two things do change earlier, each called out where it happens: the workbook format in phase 5 and the header mechanism in phase H3.
+Until phase 6 the current tools stay the default. The general tools run under a host-selected tool profile in the same build, so every gate compares the two on the same code. A phase that misses its exit criterion does not exit, and no phase that depends on it starts. The result goes to the owner with the transcripts. The tools a person chats with do not change until phase 6 passes. Three things do change earlier, each called out where it happens: the model record in phase H2, the header mechanism in phase H3 and the workbook format in phase 5.
 
-The header phases H1 to H3 depend on phase 0 only. H4 also needs the installer. Until phase 7 the snapshot covers the `current` profile's header, which is what a person uses. The `general` profile, which only the gates use, primes its header as today. When phase 7 fixes the final header, the header tests run again on it.
+Header phases H1 and H2 depend on phase 0 only. H3 also needs phase 1 and the owner's answers to P6, P8 and P9. H4 builds on the release packaging that already exists and needs his answer to P7. When phase 7 fixes the final header, it is made again with the same command and the header tests run again on it.
 
 **The rule for every real-model gate:**
 
@@ -340,13 +369,13 @@ The header phases H1 to H3 depend on phase 0 only. H4 also needs the installer. 
 - Unless a phase's exit says otherwise, decisions are compared as a total over the gate's jobs, and the total must not exceed the baseline's. The baseline is recorded once in phase 1 and reused.
 - A job with no passing baseline is gated on its expected result alone.
 - Wall time is recorded at every gate. It is gated once, in phase 6: the total over all jobs must not exceed the baseline's.
-- The three timed turns, a cold first turn, a warm greeting and the warm stock question, use the median of three runs.
+- The three timed turns, a cold first turn, a warm greeting and the warm stock question, use the median of three runs. After phase H3 they are compared with the rerun that H3 records, so the comparison is on the same header mechanism.
 
 ### Phase 0. Record the direction and get the go-ahead
 
-1. This plan and the owner note are recorded. Done.
-2. The owner confirms or changes S1 to S3 and P1 to P5. Done on November 18, 2026: he confirmed all of them as written.
-3. The owner authorizes implementation, including real-model runs and installing and operating the preview for interface checks, as earlier tasks did.
+1. This plan and the owner notes are recorded. Done.
+2. The owner confirms or changes S1 to S3 and P1 to P5. Done on November 18, 2026: he confirmed all of them as written, then replaced P4. P6 to P9 are still his to confirm.
+3. The owner authorizes implementation, including real-model runs and installing and operating the preview for interface checks, as earlier tasks did. Done on November 18, 2026.
 4. The owner updates the store's rule against raw-model DDL in `db/DB.md`, which agents do not edit.
 5. The specifications in [What this replaces](#what-this-replaces) get the new rule with a link here, in the phase that makes each one true.
 
@@ -363,7 +392,7 @@ Exit: the owner's answers are recorded as a source note, the `db/DB.md` line is 
    - build: a view with a table and a chart, a small app, a form that adds a row to a table, a rule that alerts when an item's stock falls below a level, and a saved tool, which has no baseline because the current tools cannot make one;
    - conversation: a greeting, a new thread, a clarifying question;
    - safety: a document that contains an instruction, and a request that forbids changes.
-3. Record the baseline with the current tools: decisions, wall time, prompt tokens, answers, citations, saved results.
+3. Record the baseline with the current tools: decisions, wall time, prompt tokens, answers, citations, saved results. It is recorded before phase H3 changes how the header is read.
 4. Check one unverified point first. Chat's AI actor carries a policy label, not a rule Source, and the row update and schema paths refuse an AI change without one ([Tools.swift](../../../Sources/SevraCore/Tools.swift) 107 to 115, [Tables.swift](../../../Sources/SevraCore/Tables.swift) 595, [DatasetDefinitions.swift](../../../Sources/SevraCore/DatasetDefinitions.swift) 149). If the current tools cannot update rows or change a schema under a real model, those jobs are recorded as having no passing baseline.
 
 Exit: the baseline is retained as evidence, and `--conversation-surfaces` shows the `current` profile unchanged.
@@ -455,25 +484,26 @@ Exit:
 
 ### Phase 7. Final prompt and measurement
 
-Depends on phase 6. Its header exit item also needs phase H3.
+Depends on phase 6. Its header items need phase H3, and phase H4 for the release package.
 
 1. Fix the header: instructions, seven schemas, the function index, the catalog tables and the guide names. Fix the per-workbook block: tables with columns, and views, apps, tools and automations by name with inputs.
-2. Record the final header's token digest in the repository. Phase H3 adds the CPU check that fails when the header drifts. If H3 is not built, add that check here.
+2. Make the final header with the header command, in a development package, and in a release package if phase H4 is built.
 3. Measure prompt tokens, decisions and wall time against the phase 1 baseline, cold and warm.
 
-Exit: the header is smaller than today's 6,020-token shared header, an ordinary first decision's prompt is smaller than today's 10,989 tokens, the measurements are recorded here, and the header tests pass on the final header. If phase H1 stopped the header work, that last item does not apply and decision 5 stays open with the owner.
+Exit: the header is smaller than today's 6,020-token shared header, an ordinary first decision's prompt is smaller than today's 10,989 tokens, the measurements are recorded here, and the header tests pass on the final header. If the header work stopped at phase H1, or phase H3 was not built, that last item does not apply and decision 5 stays open with the owner.
 
 ### Phase H1. Probe the engine's disk cache
 
-Depends on phase 0. Runs the engine, so it needs the go-ahead. Changes no product code.
+Depends on phase 0. Runs the engine, so it needs the go-ahead. It is a probe mode in the check harness, `sevra-agent-checks`, which starts the engine helper directly with its own arguments. No product source changes.
 
-1. Start the helper as the app does, with the persistent cache on, a temporary app-owned cache directory and an explicit quota. Send the current header as a one-token request. Stop it and wait for its own exit. Record the files and their sizes.
-2. Copy the directory aside, delete it, clone it back, and start again. Require `disk.persistent` true, `taken_back` reporting the points, `left_behind` zero, and the first request resuming at least the header.
-3. Record the cost of the clone and the check, and the start time with the cache on and off.
-4. Run a conversation that fills the context. Record the bytes written per turn and whether a new conversation afterwards still resumes the header.
-5. Find out whether a write budget can stop conversation copies without harming long conversations. If it cannot, record the daily write volume for the owner.
+1. Start the helper as the app does, with the persistent cache on, a temporary app-owned cache directory and an explicit quota. Send the current header as a one-token request. Stop it and wait for its own exit. Record the files, their sizes, whether the slot files are sized to their content or to the quota, and what they add to a compressed disk image.
+2. Copy the four data files aside, delete the directory, create the folder named by the cache name again, copy the files back, and start again. Require `disk.persistent` true, `taken_back` reporting the points, `left_behind` zero, and the first request resuming the header up to its last complete page.
+3. Record the cost of the copy and the check, and the start time with the cache on and off.
+4. Make the files with a small quota and restore them under the larger quota the app would use. Record whether they are taken back.
+5. Start the engine at the 32K and the 64K context settings. Record whether the cache name is the same, and whether a header made at 64K is taken back and resumed at 32K.
+6. Run a conversation that fills the context. Record the bytes written to the cache directory, and whether a new conversation afterwards still resumes the header. The engine's write budget paces writes and does not cap them, so the plan sets none. The bytes written go to the owner as a cost.
 
-Exit: every item is recorded as evidence. If the header does not resume from a cloned directory, the header work stops here and goes back to the owner. The choices then are an upstream request or dropping the pre-read header.
+Exit: every item is recorded as evidence, and the measured size goes to the owner. If the header does not resume from copied files, or the files for one header are sized to the quota or larger than 150 MB, the header work stops here and goes back to the owner. The choices then are an upstream request or dropping the pre-read header.
 
 ### Phase H2. One cache name on every Mac
 
@@ -481,29 +511,44 @@ Depends on H1.
 
 1. Write `model.json` with only what is the same on every Mac: the version, the model's repository name, the family, the formats, the source repositories and revisions, and each file's relative destination, size and digest.
 2. Move each file's absolute path and times to a sidecar the engine never reads. Model preparation keeps its fast verification from the sidecar.
-3. A model given by local path, the developer case, has no repository identity. It keeps a per-Mac record, and model preparation makes its header whenever its assembly key changes. This is the only case where a start can make the header, and no release ships it.
+3. Leave the developer layout, a model given by local path, with its per-Mac record.
+
+This changes the model record, so an installed model is prepared again at the next engine start. No file is downloaded again.
 
 Exit: preparing the same model pack from two different folders gives a byte-identical `model.json` and the same assembly key; the engine reports the same model layout digest for both; a header made under one folder is taken back under the other; changing a weight file's times changes neither.
 
-### Phase H3. The header is made at setup and restored at every start
+### Phase H3. The header command, packaging, and an app that only restores
 
-Depends on H1 and H2. Until phase 7 it works on whichever header the host-selected profile produces. The snapshot is keyed by the header's token digest, so the final header simply makes a new one.
+Depends on H1, H2, phase 1 for its tool profile and baseline, and the owner's answers to P6, P8 and P9.
 
-1. Build the ten steps under [Mechanism](#mechanism).
-2. Add the header tests.
-3. Record the new launch arguments in [[records/specs/splash-integration]], and add the header tests to that pin's qualification.
+1. Add `sevra header make`, the header cache and the manifest, with the memory and running-engine guard and a stop path that waits for the engine's own exit.
+2. Add the rule that finds the header folder: the app's own folder for an executable inside an app, an explicit setting otherwise.
+3. Add one packaging helper that finds or makes the header for each tool profile and copies it into the app. Call it from [package_native.py](../../../scripts/package_native.py) after the runtime manifest is written and before the app is signed, and from [package_release.py](../../../scripts/package_release.py) after the nested binaries are signed and the manifests are written and before the command line helper app and the app are signed. Make a release package at stage `early-access` or `stable` fail without it.
+4. Have [install.sh](../../../scripts/install.sh) say when it installed a build without a header and what to run after the model download.
+5. In the app, add the restore before every engine start, the checks at start and on every request, and the error states with their messages. Stop priming the ordinary chat header.
+6. Extend `check-resources` with the three header states.
+7. Have the real-model check scripts run the command first and pass the header cache to the tools they run. Add the comparison setting, the missed-resume seam and the context override to the check harness.
+8. Run the three timed turns on the `current` profile once more and record them beside the phase 1 baseline, so later wall-time comparisons use the same header mechanism.
+9. Document the development flow in [[records/operations/build-and-run]] and the README's setup steps. Record the new launch arguments in [[records/specs/splash-integration]], and add the header tests to that pin's qualification.
+10. Add the header tests, except the two that need a release package.
 
-Exit: every header test passes on a packaged build.
+Exit: those header tests pass on a packaged development build; a build with no header refuses chat with the message and computes nothing; with two tool profiles, each resumes its own header; a release package at stage `early-access` or `stable` fails without a header.
 
-### Phase H4. The header ships in the app
+### Phase H4. A release carries a tested header
 
-Depends on H3, on the installer in [[records/plans/macos-installer-and-updates]], which is outside this plan, and on the owner's answer about a Mac or model the release did not test.
+Depends on H3 and the owner's answer to P7. The packaging it changes exists and is rehearsed. A public release still waits on Developer ID signing and notarization, which [[records/plans/macos-installer-and-updates]] owns.
 
-1. Packaging makes the header on the release Mac with the H3 step, runs the header tests on it, and places the files and manifest in the app.
-2. Setup installs them by copying. Repair copies them again. An in-app update replaces the app and the header it carries, so the first start after an update installs the new one.
-3. Show that the shipped file gives the same tool calls and answers on a second Apple chip, or ship one file per chip tested.
+1. In [package_release.py](../../../scripts/package_release.py), record the header's manifest in `release.json`.
+2. In [check_release_package.py](../../../scripts/check_release_package.py), check the installed header against the receipt. With the model on the Mac, run the header tests against the installed copy, including the one that starts from the DMG alone.
+3. Test an in-app update between two builds whose headers differ.
+4. Update [[records/plans/macos-installer-and-updates]]:
+   - a release needs the model on the Mac that makes its header, or a header supplied from a Mac that has it when the release is built elsewhere;
+   - the download and every update grow by the header's size;
+   - the receipt, the verification matrix and the customer instructions gain the header;
+   - its release order must not publish an early-access or stable build made after phase H3 without a header.
+5. Testing on another Apple chip needs a Mac the project does not have. Until one is tested, the published requirements name only the chip that was (P7).
 
-Exit: on a Mac that never computed the header, the first chat after installation resumes it, and the header tests pass there.
+Exit: on the test Mac, the test that starts from the DMG alone passes; every header test passes in the packaged release app; the update test passes; the installer plan carries the four changes.
 
 ## What this replaces
 
@@ -518,8 +563,8 @@ Rules recorded before this direction, and what becomes of each:
 | "No arbitrary SQL, generated executable code" in a definition | [[records/specs/application-definitions]] | Replaced. A workbook tool's body is SQL or JavaScript. |
 | "no model-authored SQL" | [[records/specs/distribution]] | Replaced for chat. |
 | No "arbitrary SQL writes", and an "arbitrary code runner would delay the first useful job" | [[records/specs/native-app-engine]] | Replaced. The programmable engine already runs model-written JavaScript. |
-| Launch with the persistent cache off | [[records/plans/inference-context-upgrade]], [[records/specs/splash-integration]] | Replaced in phase H3, with the cache directory owned, restored and cleared by the host. |
-| Exports write to any absolute path in the tool call | `ChatOperations.swift`, `ChatActions.swift` | A path the person typed in the request, or the save panel. |
+| Launch with the persistent cache off | [[records/plans/inference-context-upgrade]], [[records/specs/splash-integration]] | Replaced in phase H3. The cache directory is owned by the host, filled from the app's prepared header before each start, and cleared when the engine stops. |
+| Exports write to any absolute path in the tool call | [ChatOperations.swift](../../../Sources/SevraCore/ChatOperations.swift), [ChatActions.swift](../../../Sources/SevraApp/ChatActions.swift) | A path the person typed in the request, or the save panel. |
 | Two on-demand tool groups | [[records/plans/native-chat-prompt-routing]] | Replaced by this plan. Its measurements stay valid. |
 
 Each specification is updated in the phase that makes its new rule true: managed datasets, persistence readiness and distribution in phase 3, the native app engine in phase 4, application definitions in phase 5, and Splash integration in phase H3.
@@ -532,7 +577,13 @@ Each specification is updated in the phase that makes its new rule true: managed
 - **Changes without approval.** A document can contain an instruction. The sandbox has no way out of the Mac and a change can be undone until later changes build on it, so the exposure is edits to this workbook and the requests a script can make, which behave as today.
 - **A schema change can disable an app.** An app bound to exact columns is disabled when they change, as today. The tool result names it.
 - **Copying tables per call.** Large tables make each call slower. Phase 2 measures it and sets the limit.
-- **Disk writes with the cache on.** The engine copies every conversation point to disk while it runs. Phase H1 measures the volume and looks for a bound.
+- **Disk writes with the cache on.** The engine copies every conversation point to disk while it runs. Its write budget paces writes and does not cap them. Phase H1 measures the volume for the owner.
+- **Download size.** The release DMG is 62.7 MB today, and every update is the full DMG. An earlier estimate put the header near 60 MB, from a Splash 1.4.1 measurement that was not rechecked. Phase H1 measures it, and the owner decides whether the larger download is acceptable.
+- **Making a header loads the model.** The command loads it twice, one engine at a time. Packaging runs it only when the header, the engine or the model changed, and a release needs the model on the Mac that makes its header. Packaging did not need the model before.
+- **The header files may not be small.** If the engine sizes its slot files to the quota, they cannot ship as they are. Phase H1 finds out first.
+- **Specialized phases get no prepared header.** After phase 6 the phases that share today's header read it once per engine start, when one of them first runs (P8).
+- **The local AI needs disk room it did not need before.** Below the engine's free-space floor, or on a volume that is not local, it does not start (P9).
+- **Source builds take more steps.** A person who builds from source runs the install command again after the model download, and again after any change to the prompt, a schema, the engine or the model, before chat works (P6).
 - **The format change.** Phase 5 stops earlier development workbooks from opening.
 - **Volume of check changes.** Of 84 agent check files, 61 name tools. Phase 6 is where they change. Earlier phases add checks beside them.
 - **The engine pin.** `integration/splash.json` marks the 1.6.1 pin as a candidate with qualification blocked. Phase H3 changes how the helper is launched, so the header tests join that qualification.
@@ -541,8 +592,9 @@ Each specification is updated in the phase that makes its new rule true: managed
 
 ## Open items for the owner
 
-- For P4, say what the app should do, once the header ships, on a Mac or model a release did not test.
-- Authorize implementation, with real-model runs, installation and interface checks.
+- Say whether "Confirm all" covered S1 to S3.
+- Confirm or change P6, P7, P8 and P9.
+- After phase H1 measures the header, decide whether the larger download is acceptable.
 - Edit the raw-model DDL line in `db/DB.md`.
 - Before phase 5, decide what happens to workbooks made by earlier development builds.
 - Decide whether submitting a form from chat keeps its confirmation now that SQL writes directly. The plan keeps it.
@@ -562,3 +614,6 @@ Each specification is updated in the phase that makes its new rule true: managed
 8. An independent technical review against the code and the engine source. It found that a before-and-after comparison cannot identify rows, that the read-back cannot compare computed cells, that overriding SQLite's aggregates breaks them, that table versions and the workbook revision cannot guard a copy, that the capture limits count stored rows, that the `tool` kind changes the workbook format, and that the start-up check missed the engine's temporary-file fallback. All are corrected above. Its unverified points are now the first steps of phases 1 and 2.
 9. Re-read the engine's cache naming after the reviews. By this reading the name differs per Mac only because of fields this repository writes, so one name everywhere should need no upstream change. Phase H2 proves it. The header section was rewritten for that.
 10. A final independent check of the rewrite against both reviews and the code. It found a `save` rule that would have accepted documents and records without the person, row lineage described from inserts only, statements about the engine written as fact before any run, gates without a rule for wall time or for jobs with no baseline, and steps that no phase built. All are corrected above.
+11. Aligned with the release packaging at `baadc5c` and with the owner's direction that the header is calculated at build time. The header section and phases H1 to H4 were rewritten: one command makes the header, both packaging scripts stage it before signing, and the app only restores it. The setup-time path and the recorded digest check were removed.
+12. A review of the aligned header design for owner fidelity and readiness, and a technical pass against the packaging scripts, the app's start path and the engine's cache layout. They found wording under the owner's decisions that was the agent's reading, a memory tier the probe missed, a header name that needed the model to work out, a command line tool that would not have found the header, and a release that could have been packaged without one between two phases. All are corrected above.
+13. A final independent check of the header design against the code. It found that the header's text cannot be rendered without the model, that the staging point named was not in the shared code, that specialized phases do not all share one header, that the engine's write budget does not cap writes, and that refusing to start without disk room was a new limit not put to the owner. All are corrected above.
