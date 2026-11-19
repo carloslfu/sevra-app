@@ -13,9 +13,10 @@ on:
         default: true
 permissions:
   contents: read
-# A newer push replaces an older run of the same branch.
+# A newer push replaces an older run of the same branch. A manual run is grouped
+# apart, so a push never cancels it.
 concurrency:
-  group: checks-${{ github.ref }}
+  group: checks-${{ github.event_name }}-${{ github.ref }}
   cancel-in-progress: true
 jobs:
   native:
