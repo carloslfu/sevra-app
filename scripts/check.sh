@@ -30,7 +30,19 @@ python3 scripts/build_guidance.py
 swift build -j "$JOBS"
 BIN=$(swift build --show-bin-path)
 python3 scripts/check_native_apps.py
-"$BIN/sevra-checks"
+# The core checks in three shares at once, one per core on hosted CI.
+CORE=()
+for share in 0 1 2; do
+  "$BIN/sevra-checks" --share "$share/3" > ".build/core-checks-$share.log" 2>&1 &
+  CORE+=($!)
+done
+CORE_FAILED=0
+for process in "${CORE[@]}"; do wait "$process" || CORE_FAILED=1; done
+cat .build/core-checks-0.log .build/core-checks-1.log .build/core-checks-2.log
+if [ "$CORE_FAILED" = 1 ]; then
+  echo 'The core checks failed.' >&2
+  exit 1
+fi
 "$BIN/sevra-extraction-checks"
 "$BIN/sevra-automation-ui-checks"
 "$BIN/sevra-voice-checks"

@@ -298,3 +298,6 @@ Testing made light on the owner's direction of November 19. The model harness is
 ## [2026-11-19 20:03] verification | records/specs/distribution
 CI slimmed on the owner's direction of November 19. CI and the Mac share scripts/check.sh: main pushes run --quick (one build of every product, the fast checks, the full default agent suite, --sql-tool and the no-model sql and run chat checks); release tags and a manual dispatch build the package and run the whole list. A newer push cancels an older run, and results are uploaded only from a failed run. The seven-tools CI run had hung in sevra-product-checks until its two-hour timeout because a synthetic model still called save_space; it now calls save with a view and the product checks pass locally. Limits: the new workflow is proven only by its first hosted run; the full mode has not run on hosted CI yet.
 
+## [2026-11-19 21:32] verification | records/specs/distribution
+On the owner's yes of November 19, the 660 core checks run in three shares at once (sevra-checks --share I/N); locally the shares pass 252, 197 and 211, the same 660 as the last sequential CI run, in 54 seconds wall time. Hosted CI now restores the build saved by the last main push and restores the recorded times of unchanged files, so Swift should recompile only what changed. Limits: the cache's gain is unmeasured until a run restores it.
+

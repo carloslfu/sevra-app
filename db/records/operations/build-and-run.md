@@ -214,6 +214,10 @@ crash recovery, search benchmark, signed authoring, the command-line journeys an
 when `output/native` is current, the packaged app. Run that once on a release
 candidate. Release tags and a manual Checks dispatch run the whole list on hosted CI
 after building the package, except transcription, which needs the Mac's speech model.
+The core checks run in three shares at once (`sevra-checks --share I/N`); share 0 also runs
+the opening sequence that builds on one workbook. Hosted CI restores the build saved by the
+last main push and `scripts/ci_file_times.py` gives unchanged files their recorded times, so
+Swift recompiles only what changed.
 
 The checks use a standalone executable so they work with command line tools alone.
 dbmd 0.14.7 or later is required; the knowledge store is validated first.

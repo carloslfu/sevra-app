@@ -30,7 +30,22 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - name: Select current Xcode
-        run: sudo xcode-select -s "$(ls -d /Applications/Xcode*.app | sort -V | tail -1)"
+        id: xcode
+        run: |
+          sudo xcode-select -s "$(ls -d /Applications/Xcode*.app | sort -V | tail -1)"
+          echo "version=$(xcodebuild -version | tr -s '\n ' '--')" >> "$GITHUB_OUTPUT"
+      # The last build on main, so a push recompiles only what changed since. A new Xcode,
+      # package versions or grammar pin start from an empty build.
+      - name: Restore the build from an earlier run
+        uses: actions/cache/restore@v4
+        with:
+          path: |
+            .build
+            !.build/native-product
+          key: build-${{ steps.xcode.outputs.version }}-${{ hashFiles('Package.resolved', 'integration/llguidance.json') }}-${{ github.sha }}
+          restore-keys: build-${{ steps.xcode.outputs.version }}-${{ hashFiles('Package.resolved', 'integration/llguidance.json') }}-
+      - name: Keep the times of unchanged files
+        run: python3 scripts/ci_file_times.py restore
       - name: Install Rust for the grammar library, and dbmd
         env:
           GH_TOKEN: ${{ github.token }}
@@ -53,6 +68,16 @@ jobs:
       - name: Run the checks
         run: |
           if [ "$FULL" = true ]; then bash scripts/check.sh; else bash scripts/check.sh --quick; fi
+      - name: Save the build for later runs
+        if: github.event_name == 'push'
+        run: python3 scripts/ci_file_times.py save
+      - if: github.event_name == 'push'
+        uses: actions/cache/save@v4
+        with:
+          path: |
+            .build
+            !.build/native-product
+          key: build-${{ steps.xcode.outputs.version }}-${{ hashFiles('Package.resolved', 'integration/llguidance.json') }}-${{ github.sha }}
       - name: Keep the results of a failed run
         if: failure()
         uses: actions/upload-artifact@v4
