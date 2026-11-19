@@ -100,7 +100,11 @@ system-setting boundaries. His later [answers](db/sources/notes/2026/11/general-
 settle four points: model SQL may change a table's shape through the recorded write path,
 format changes for this plan need no compatibility work, the header work is paused until the
 tools are done, and `sql` keeps 15-digit numbers. Build it with the plan's fast loop. Do not
-push or publish a release for it without the owner's word.
+push or publish a release for it without the owner's word. He then asked for the tools
+[in the app and the whole plan done](db/sources/notes/2026/11/general-tools-in-the-app.md).
+The seven general tools are built behind the `general` tool profile. `current` stays the default
+in the code until he decides the plan's open items. Read the plan's "The build so far" before
+changing chat tools.
 Test enough, as the [owner asked](db/sources/notes/2026/10/ship-with-enough-testing.md): the real
 failure and one counterexample, with the suite and install once on the candidate.
 Work directly on `main`, with no feature branch or pull request. Run `dbmd index rebuild` before

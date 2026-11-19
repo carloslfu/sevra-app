@@ -3,37 +3,47 @@ type: operational
 meta-type: operational
 id: 01m659x4nd2q89tkpzzsssd7yr
 created: 2026-10-30T02:23:30.477380+00:00
-updated: 2026-11-19T00:26:41.658330+00:00
+updated: 2026-11-19T04:16:57.907029+00:00
 summary: Native UI Catalog implemented and locally verified, with durable agent maintenance instructions and preserved product/model qualification limits.
 title: Minimum-feature continuation handoff
 ---
 # Minimum-feature continuation handoff
 
 ## General chat tools planning, November 18
-[[records/plans/general-chat-tools]] is in implementation. The owner authorized it on November 18: [[sources/notes/2026/11/general-tools-implementation]]. The same day he chose a fast test loop and a thin slice first: [[sources/notes/2026/11/fast-loop-direction]]. It follows his direction in [[sources/notes/2026/11/general-tools-direction]] and [[sources/notes/2026/11/prebuilt-header-direction]]: replace the fixed chat tools with seven general ones, let model-written SQL change data directly, run model-written code in the sandbox, add tools that belong to a workbook, and calculate the prompt header at build time so the app only restores it. It supersedes [[records/plans/native-chat-prompt-routing]].
+[[records/plans/general-chat-tools]] is built through its seven tools. Its gate ran once on November 18 and it is waiting on the owner. He authorized it on November 18: [[sources/notes/2026/11/general-tools-implementation]]. The same day he chose a fast test loop: [[sources/notes/2026/11/fast-loop-direction]], and answered four questions: [[sources/notes/2026/11/general-tools-answers]].
 
 Where it stands:
 
-- **Phase 1 is done.** The host setting `SEVRA_TOOL_PROFILE` selects `current` (today's tools, byte-identical) or `general`. The baseline of today's tools is in `integration/evidence/2026-11-18-chat-jobs-baseline/`.
-- **`sql` works under `general`.** It reads tables, changes rows, creates tables and adds, renames and removes columns, each saved through the recorded write paths with Undo. The profile is cut to `sql` and 20 of today's tools with its own short instructions. `save` with kind `tool` keeps named SQL statements as a row of a "Saved tools" table, and `sql` runs one by name. On the 24 English jobs it passes 22, taking the latest run of each; today's tools pass 12. A first prompt is about 4,500 tokens, down from about 11,180. The two it fails are building an app, which the command line cannot check, and a rule, which needs the automation definitions. The plan's section "The slice so far" lists what it does and what is left out, with reasons.
-- **Nothing a person chats with has changed.** `current` stays the default until the full gate in phase 6.
+- **The model is offered seven tools under the `general` profile:** `search`, `read`, `sql`, `run`, `save`, `ask`, `finish`. Each call is routed to the existing operation that does its work, so the agent's checks, receipts and confirmations are unchanged. The plan's section "The build so far" says what each tool is, what was measured and what was left out.
+- **Results with the real model, one run of each job:** in English 22 of 24 from the command line, and the app job passes inside an app bundle. In Spanish 23 of 25. Today's tools pass 12 of 23 in English. The app job passes about half its runs. The original rule job cannot pass without a workflow in the workbook.
+- **`current` is still the default in the code.** The host reads `SEVRA_TOOL_PROFILE`, then the app's saved setting `SevraToolProfile`. The installed preview on the test Mac has that setting at `general` and was built from `187a3fc`.
+- **Nothing is pushed.** The work is local commits on `main`.
 
 How to work on it:
 
-- **The loop.** Unit checks with no model on every change: `python3 scripts/check_chat_sql.py` and `sevra-agent-checks --sql-tool`. Then an eval in English, one run per job, only the jobs the change touches: `python3 scripts/check_chat_jobs.py --profile general --languages en --single-run --jobs ...`. The full gate, with both languages, reruns and the suite, runs only before the old tools are removed and on the final prompt.
-- **A real-model eval needs the release command line tool.** Build it with `SEVRA_NATIVE_CANDIDATE=1 swift build --scratch-path .build/native-product -c release --product sevra`, then copy it over `output/native/bin/sevra` and sign it ad hoc. That took about two minutes on the test Mac. `scripts/build_native.sh` does the same and also rebuilds the app.
-- **One model process at a time.** The harness refuses to start while another engine helper runs or reclaimable memory is short. Do not build while an eval is being timed.
-- **Read the transcript of every failed job.** Each of the three fixes so far came from one.
+- **No-model checks, on every change:** `python3 scripts/check_chat_sql.py`, `python3 scripts/check_chat_run.py` and `sevra-agent-checks --sql-tool`. The first two need `swift build --product sevra` and `--product sevra-extract`.
+- **An eval,** in English, one run per job, only the jobs the change touches: `python3 scripts/check_chat_jobs.py --profile general --languages en --single-run --jobs 'change.*'`. It uses `output/native/bin/sevra`, so rebuild that first: `SEVRA_NATIVE_CANDIDATE=1 swift build --scratch-path .build/native-product -c release --product sevra`, copy it over `output/native/bin/sevra` and sign it ad hoc.
+- **Do not edit sources while a release build runs.** A build that started before an edit can package a mix of old and new modules.
+- **The app job needs an app bundle.** The app checker is an XPC service, which a bare command line tool cannot reach. Copy the packaged preview, put the release `sevra` in its `Contents/MacOS`, sign it ad hoc, and point `SEVRA_CLI` at that copy.
+- **One model process at a time.** The harness refuses to start while another engine helper runs or reclaimable memory is short.
+- **Read the transcript of every failed job.** Every fix so far came from one.
 
 What to know before going further:
 
-- **Numbers.** `sql` rounds every number that leaves it to 15 significant digits and has no exact side table. The owner chose to keep that.
-- **The AI actor.** The write path refuses an AI row update or schema change without a saved rule Source. The slice publishes one for row changes from the host, as native app authoring does. Today's tools have none, which is why they fall back to drafts.
-- **Header, paused by the owner until the tools are done.** The first question of phase H1 is answered: a header does resume from copied cache files. Today's header is 131.5 MB on disk and saves 2.59 seconds of reading per engine start. The evidence is in `integration/evidence/2026-11-18-header-cache-probe/`. The size is measured again on the final header before he decides, and P6 to P9 stay open until then.
-- **Format.** Adding the `tool` definition kind changes the canonical schema. Earlier development workbooks will not open after that. The owner accepted it: nothing is released, so format changes need no compatibility work.
-- **Ledger.** The inventory ledger in the core is out of scope. `balance` stays until the catalog tables for it exist.
+- **Strict shapes matter to the local model.** With one loose shape per tool it dropped and misplaced fields. `save` and `run` give each kind and each named action its own shape, and the model is shown less than the grammar enforces.
+- **The grammar takes sixteen alternatives and flat top-level inputs.** That is why `save` has one input per kind and `run` has fifteen exact action shapes.
+- **A rule needs a saved workflow.** The original rule job cannot pass in a workbook without one. The model reads the rule guide and asks. A second job with a workflow passes.
+- **Numbers.** `sql` rounds every number that leaves it to 15 significant digits. The owner chose that.
+- **Header, paused by the owner until the tools are done.** A header does resume from copied cache files. The general tools' header is 2,559 tokens and 93.9 MB on disk, and a prepared header would save 2.1 seconds per engine start. Today's is 6,020 tokens and 131.5 MB.
+- **Not looked at on screen.** Access to operate the app's window was declined in this session. The new "Change saved" row with "Undo this change" compiles and its data path is checked, but nobody has seen it, and the UI Catalog has no entry for it.
 
-The owner's answers of November 18 are in [[sources/notes/2026/11/general-tools-answers]]. Nothing waits on him now except the header decision after the tools are done. Nothing is pushed or published for this plan without his word.
+Waiting on the owner:
+
+- Whether `general` becomes the default and the old tool declarations go. That means rewriting the 61 agent check files that script old tool names.
+- The original rule job: a built-in alert for a rule, or a changed job.
+- Whether a saved tool that arrives in a copied workbook needs an enable step.
+- The header decision, with the size measured again.
+- A look at the chat interface, or screen access for an agent to do it.
 ## Follow-up turns resume the previous turn's cache, November 18
 
 [[records/plans/conversation-follow-up-cache]] makes the saved conversation append-only, one
