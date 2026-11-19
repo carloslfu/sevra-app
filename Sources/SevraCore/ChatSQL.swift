@@ -9,7 +9,8 @@ import Foundation
 extension Workbook {
   public func chatSQL(
     statements: [String], readOnly: Bool, draft: Bool = false, token: String,
-    requestSourceID: String?, cancellation: Cancellation = .init()
+    requestSourceID: String?, inputs: [String: Value]? = nil,
+    cancellation: Cancellation = .init()
   ) throws -> Value {
     try require(
       (1...8).contains(statements.count) && statements.allSatisfy { $0.utf8.count <= 8_000 },
@@ -18,14 +19,16 @@ extension Workbook {
       let tables = try datasets()
       // A rehearsal on empty tables finds mistakes and the tables the statements name.
       let rehearsal = try SQLScratch(
-        tables: tables, readOnly: readOnly, draft: draft, cancellation: cancellation)
+        tables: tables, readOnly: readOnly, draft: draft, inputs: inputs,
+        cancellation: cancellation)
       let named: Set<String>
       do {
         defer { rehearsal.close() }
         named = try rehearsal.rehearse(statements)
       }
       let scratch = try SQLScratch(
-        tables: tables, readOnly: readOnly, draft: draft, cancellation: cancellation)
+        tables: tables, readOnly: readOnly, draft: draft, inputs: inputs,
+        cancellation: cancellation)
       defer { scratch.close() }
       try scratch.fill(named) { table in
         var loaded: [(String, [String: Value])] = []
@@ -185,7 +188,9 @@ extension Workbook {
       let line =
         entry.name + "("
         + entry.columns.map {
-          $0.name + ($0.column.formula != nil ? " formula" : $0.column.type == "decimal" ? " number" : "")
+          $0.name
+            + ($0.column.formula != nil
+              ? " REAL GENERATED" : $0.column.type == "decimal" ? " REAL" : " TEXT")
         }.joined(separator: ", ") + ") \(entry.dataset.rowCount) rows"
       guard bytes + line.utf8.count <= byteLimit else { break }
       bytes += line.utf8.count
@@ -195,6 +200,166 @@ extension Workbook {
     return "Tables for sql: " + lines.joined(separator: "; ")
       + (lines.count < named.count
         ? "; \(named.count - lines.count) more in SELECT * FROM tables" : "")
+  }
+
+  // MARK: Saved tools
+
+  /// A workbook's own tools: named SQL statements with inputs, kept as rows of an ordinary
+  /// table so a person can see and edit them. Running one is running its statements through
+  /// `chatSQL`, so a tool can do nothing that sql cannot.
+  public struct SavedTool: Sendable {
+    public let name: String
+    public let description: String
+    public let inputs: [(name: String, number: Bool)]
+    public let statements: [String]
+    var signature: String {
+      name + "(" + inputs.map { $0.name + ($0.number ? " REAL" : " TEXT") }.joined(separator: ", ")
+        + ")"
+    }
+  }
+  static let savedToolsTitle = "Saved tools"
+  private static let savedToolColumns = ["name", "description", "inputs", "statements"]
+
+  public func savedTools() throws -> [SavedTool] {
+    guard
+      let table = try datasets().first(where: {
+        $0.title == Self.savedToolsTitle
+          && Set(Self.savedToolColumns).isSubset(of: Set($0.columns.map(\.id)))
+      })
+    else { return [] }
+    var tools: [SavedTool] = []
+    var offset = 0
+    while true {
+      let page = try rows(table.id, offset: offset, limit: 200)
+      for row in page {
+        let name = row.data["name"].text
+        guard Self.toolName(name), !tools.contains(where: { $0.name == name }) else { continue }
+        tools.append(
+          SavedTool(
+            name: name, description: row.data["description"].text,
+            inputs: row.data["inputs"].text.split(separator: ",").compactMap { part in
+              let words = part.split(separator: " ").map(String.init)
+              guard let first = words.first, Self.toolName(first) else { return nil }
+              return (first, words.dropFirst().contains("number"))
+            },
+            statements: SQLScratch.split(row.data["statements"].text)))
+      }
+      offset += page.count
+      if page.count < 200 || tools.count >= 200 { return tools }
+    }
+  }
+
+  private static func toolName(_ name: String) -> Bool {
+    guard let first = name.unicodeScalars.first, ("a"..."z").contains(first), name.utf8.count <= 48
+    else { return false }
+    return name.unicodeScalars.allSatisfy {
+      ("a"..."z").contains($0) || ("0"..."9").contains($0) || $0 == "_"
+    }
+  }
+
+  /// The saved tools as the request's context names them.
+  public func chatSavedTools(byteLimit: Int = 1_600) throws -> String {
+    var lines: [String] = []
+    var bytes = 0
+    for tool in try savedTools() {
+      let line = tool.signature + ": " + String(tool.description.prefix(120))
+      guard bytes + line.utf8.count <= byteLimit else { break }
+      bytes += line.utf8.count
+      lines.append(line)
+    }
+    return lines.isEmpty ? "" : "Saved tools: " + lines.joined(separator: "; ")
+  }
+
+  /// Saves or replaces a tool after rehearsing its statements with empty inputs.
+  public func chatSaveTool(
+    name: String, description: String, inputs: [(name: String, number: Bool)],
+    statements: [String], token: String, requestSourceID: String?,
+    cancellation: Cancellation = .init()
+  ) throws -> Value {
+    try require(
+      Self.toolName(name) && !["tables", "columns"].contains(name), "tool_name",
+      "Name the tool in lower case with letters, digits and underscores, such as low_stock.")
+    try require(
+      inputs.count <= 16 && inputs.allSatisfy { Self.toolName($0.name) }
+        && Set(inputs.map(\.name)).count == inputs.count,
+      "tool_inputs", "Give up to 16 inputs with distinct lower-case names.")
+    try require(
+      (1...8).contains(statements.count) && statements.allSatisfy { $0.utf8.count <= 8_000 }
+        && description.utf8.count <= 1_000,
+      "tool", "A tool holds one to eight statements and a short description.")
+    return try synchronized(cancellation: cancellation) {
+      let rehearsal = try SQLScratch(
+        tables: datasets(), readOnly: false, draft: false,
+        inputs: Dictionary(uniqueKeysWithValues: inputs.map { ($0.name, Value.null) }),
+        cancellation: cancellation)
+      do {
+        defer { rehearsal.close() }
+        _ = try rehearsal.rehearse(statements)
+      }
+      let exists = try datasets().contains { $0.title == Self.savedToolsTitle }
+      let saved = try chatSQL(
+        statements: (exists
+          ? ["DELETE FROM saved_tools WHERE name = :name"]
+          : ["CREATE TABLE saved_tools (name TEXT, description TEXT, inputs TEXT, statements TEXT)"])
+          + ["INSERT INTO saved_tools (name, description, inputs, statements) VALUES (:name, :description, :inputs, :statements)"],
+        readOnly: false, token: token, requestSourceID: requestSourceID,
+        inputs: [
+          "name": .string(name), "description": .string(description),
+          "inputs": .string(
+            inputs.map { $0.name + ($0.number ? " number" : "") }.joined(separator: ", ")),
+          "statements": .string(statements.joined(separator: ";\n")),
+        ], cancellation: cancellation)
+      return .object([
+        "saved": .string(name),
+        "inputs": .array(inputs.map { .string($0.name + ($0.number ? " number" : "")) }),
+        "run": .string("sql with tool=\(name)" + (inputs.isEmpty ? "" : " and values")),
+        "changes": saved["changes"], "shape": saved["shape"],
+      ])
+    }
+  }
+
+  /// Runs a saved tool: its statements, with the caller's values bound to its inputs.
+  public func chatRunTool(
+    name: String, values: [String: Value], readOnly: Bool, token: String,
+    requestSourceID: String?, cancellation: Cancellation = .init()
+  ) throws -> Value {
+    try synchronized(cancellation: cancellation) {
+      let tools = try savedTools()
+      guard let tool = tools.first(where: { $0.name == name }) else {
+        throw SevraError(
+          "tool",
+          "Unknown workbook tool: \(name)."
+            + (tools.isEmpty
+              ? " This workbook has no saved tools."
+              : " Saved tools: " + tools.map(\.signature).joined(separator: ", ") + "."))
+      }
+      try require(
+        Set(values.keys).isSubset(of: Set(tool.inputs.map(\.name))), "tool_inputs",
+        "\(tool.signature) takes only its own inputs.")
+      var bound: [String: Value] = [:]
+      for input in tool.inputs {
+        let value = values[input.name] ?? .null
+        try require(
+          value != .null && !value.text.isEmpty, "tool_inputs",
+          "\(tool.signature) needs a value for \(input.name).")
+        // A number input stays a number in comparisons and arithmetic.
+        if input.number {
+          guard let decimal = try? Numbers.decimal(value.text),
+            let number = Double(Numbers.string(decimal))
+          else { throw SevraError("tool_inputs", "\(input.name) is a number.") }
+          bound[input.name] = .number(number)
+        } else {
+          bound[input.name] = .string(value.text)
+        }
+      }
+      try require(!tool.statements.isEmpty, "tool", "The saved tool \(name) has no statements.")
+      var result = try chatSQL(
+        statements: tool.statements, readOnly: readOnly, token: token,
+        requestSourceID: requestSourceID, inputs: bound, cancellation: cancellation
+      ).object
+      result["tool"] = .string(tool.signature)
+      return .object(result)
+    }
   }
 
   /// A host-owned, exact rule Source for table changes a person asks for in chat.
@@ -304,6 +469,8 @@ final class SQLScratch {
   private var created = Set<String>()
   private let readOnly: Bool
   private let draft: Bool
+  /// Values for `:name` parameters. Plain sql calls have none, so a parameter is a mistake.
+  private let inputs: [String: Value]?
   private let cancellation: Cancellation
   private var guarded = false
   private var shaping: Shape?
@@ -319,9 +486,13 @@ final class SQLScratch {
     entries[key]!.rows.sorted { $0.key < $1.key }.map(\.value)
   }
 
-  init(tables: [Dataset], readOnly: Bool, draft: Bool, cancellation: Cancellation) throws {
+  init(
+    tables: [Dataset], readOnly: Bool, draft: Bool, inputs: [String: Value]? = nil,
+    cancellation: Cancellation
+  ) throws {
     self.readOnly = readOnly
     self.draft = draft
+    self.inputs = inputs
     self.cancellation = cancellation
     guard
       sqlite3_open_v2(
@@ -332,6 +503,10 @@ final class SQLScratch {
       throw SevraError("sql", "The query workspace could not be opened.")
     }
     sqlite3_limit(handle, SQLITE_LIMIT_ATTACHED, 0)
+    guard sevra_strict_quotes(handle) == SQLITE_OK else {
+      close()
+      throw SevraError("sql", "The query workspace could not be opened.")
+    }
     try execute("PRAGMA trusted_schema=OFF")
     try execute("PRAGMA recursive_triggers=ON")
     // 4 KiB pages: 128 MiB for the copy and everything a statement builds.
@@ -573,7 +748,9 @@ final class SQLScratch {
     return SevraError(
       "sql",
       (index.map { "Statement \($0 + 1): " } ?? "") + message
-        + ". SELECT * FROM columns lists every table and column name.")
+        + (message.contains("no such column")
+          ? ". Use the exact names under Tables for sql, and write text values in single quotes."
+          : ". SELECT * FROM columns lists every table and column name."))
   }
 
   private func prepare(_ sql: String, index: Int? = nil) throws -> OpaquePointer? {
@@ -669,6 +846,23 @@ final class SQLScratch {
       found[name.lowercased()] = Layout(actual: name, columns: columns)
     }
     return found
+  }
+
+  /// One text of several statements, cut where SQLite itself says a statement ends.
+  static func split(_ text: String) -> [String] {
+    var statements: [String] = []
+    var current = ""
+    for character in text {
+      current.append(character)
+      if character == ";", sqlite3_complete(current) != 0 {
+        statements.append(current)
+        current = ""
+      }
+    }
+    statements.append(current)
+    return statements.map { $0.trimmingCharacters(in: .whitespacesAndNewlines) }.filter {
+      !$0.trimmingCharacters(in: CharacterSet(charactersIn: "; \n\t")).isEmpty
+    }
   }
 
   private static func quoted(_ name: String) -> String {
@@ -769,6 +963,23 @@ final class SQLScratch {
       return .object(["changedRows": .number(0)])
     }
     defer { sqlite3_finalize(statement) }
+    let parameters = sqlite3_bind_parameter_count(statement)
+    if parameters > 0 {
+      for position in 1...parameters {
+        let name = sqlite3_bind_parameter_name(statement, position).map {
+          String(String(cString: $0).dropFirst())
+        }
+        guard let inputs, let name, let value = inputs[name] else {
+          throw SevraError(
+            "sql",
+            inputs == nil
+              ? "Write values into the statement. Only a saved tool's statements take :name inputs."
+              : "Statement \(index + 1) uses an input the tool does not declare"
+                + (name.map { ": " + $0 } ?? "") + ". Write each input as :name.")
+        }
+        bind(statement, position, value)
+      }
+    }
     let count = sqlite3_column_count(statement)
     var rows: [Value] = []
     var total = 0

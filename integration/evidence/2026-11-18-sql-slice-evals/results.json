@@ -1049,6 +1049,123 @@
    ],
    "passed": 20,
    "of": 24
+  },
+  {
+   "name": "eval-11",
+   "change": "After saved workbook tools: save with kind=tool, and sql running a tool by name. The saved tool compared a quoted non-column, which SQLite read as text.",
+   "jobs": [
+    {
+     "job": "read.count",
+     "passed": true,
+     "decisions": 2,
+     "wallSeconds": 16.27,
+     "firstPromptTokens": 4492,
+     "tools": [
+      "sql"
+     ],
+     "failure": null,
+     "answer": "There are 4 parts in the Fasteners category.\n\n[Parts, row 3](sevra://item/7535839e-fa52-4144-9bdd-e3065cce23ac) [6 calculation inputs](sevra://item/6dd61aa9-6d43-47cd-86ce-d1efd2c484f8)"
+    },
+    {
+     "job": "change.bulk_update",
+     "passed": true,
+     "decisions": 2,
+     "wallSeconds": 15.23,
+     "firstPromptTokens": 4475,
+     "tools": [
+      "sql"
+     ],
+     "failure": null,
+     "answer": "The quantity has been updated to 20 for every supplier in the Supplier comparison table."
+    },
+    {
+     "job": "build.form",
+     "passed": true,
+     "decisions": 4,
+     "wallSeconds": 28.75,
+     "firstPromptTokens": 4494,
+     "tools": [
+      "save (failed: Statement 1: table reorder_levels has no column named level number. SELECT * FROM columns lists every table and column name.)",
+      "sql",
+      "save"
+     ],
+     "failure": null,
+     "answer": "The form \"New reorder level\" has been created. It allows you to add a new row to the Reorder levels table by specifying the Part and Level."
+    },
+    {
+     "job": "build.saved_tool",
+     "passed": false,
+     "decisions": 4,
+     "wallSeconds": 38.79,
+     "firstPromptTokens": 4502,
+     "tools": [
+      "save",
+      "sql",
+      "sql"
+     ],
+     "failure": "the tool does not list Hex nuts; the tool does not list Hex key set",
+     "answer": "The tool `low_stock` has been saved and is ready to use. It queries the Parts table to identify parts where the stock number is below the reorder level.\n\nWhen executed, the tool returned 0 results, which appears to be because the stock number values in the Parts table currently contain the text \"stock number\" rather than actual numeric quantities. Once proper stock quantities are entered, the tool will correctly identify parts that need reordering."
+    }
+   ],
+   "passed": 3,
+   "of": 4
+  },
+  {
+   "name": "eval-12",
+   "change": "After making a quoted name that is no column an error and listing columns with SQL types.",
+   "jobs": [
+    {
+     "job": "read.join",
+     "passed": true,
+     "decisions": 2,
+     "wallSeconds": 19.76,
+     "firstPromptTokens": 4532,
+     "tools": [
+      "sql"
+     ],
+     "failure": null,
+     "answer": "Two parts are below their reorder level:\n\n1. **Hex key set** (stock: 0, reorder level: 2) \u2014 supplied by **Birch Metals**\n2. **Hex nuts** (stock: 9, reorder level: 25) \u2014 supplied by **Oak Supply**\n\n[Parts, row 2](sevra://item/6251bfd2-2800-4ae0-a4a8-31e1fd8065ed) [Parts, row 4](sevra://item/826f166e-6c36-4858-9f25-b7071e6616a1) [12 calculation inputs](sevra://item/65f61b5a-4ae8-461e-b56e-08a3e5d122af)"
+    },
+    {
+     "job": "steps.missing_rows",
+     "passed": true,
+     "decisions": 3,
+     "wallSeconds": 19.41,
+     "firstPromptTokens": 4516,
+     "tools": [
+      "sql",
+      "sql"
+     ],
+     "failure": null,
+     "answer": "Added 3 parts to the Reorder levels table with level 0: Wood screws, Torque wrench, and Hex key set."
+    },
+    {
+     "job": "build.form",
+     "passed": true,
+     "decisions": 2,
+     "wallSeconds": 21.3,
+     "firstPromptTokens": 4513,
+     "tools": [
+      "save"
+     ],
+     "failure": null,
+     "answer": "The form \"New reorder level\" has been created with fields Part and Level. It will add a new row to the Reorder levels table when run."
+    },
+    {
+     "job": "build.saved_tool",
+     "passed": true,
+     "decisions": 2,
+     "wallSeconds": 20.22,
+     "firstPromptTokens": 4516,
+     "tools": [
+      "save"
+     ],
+     "failure": null,
+     "answer": "The tool `low_stock` has been saved. It lists parts from the Parts table where stock is below the reorder level. You can run it with `sql tool=low_stock`."
+    }
+   ],
+   "passed": 4,
+   "of": 4
   }
  ],
  "latestAgainstBaseline": {
@@ -1770,5 +1887,19 @@
    ]
   },
   "note": "Single English runs, not gate results. build.saved_tool has no baseline. build.app fails in both because the command line cannot reach the app checker."
+ },
+ "generalProfileNow": {
+  "runs": [
+   "eval-10",
+   "eval-11",
+   "eval-12"
+  ],
+  "passed": 22,
+  "of": 24,
+  "failing": [
+   "build.app",
+   "build.rule"
+  ],
+  "note": "The latest single English run of each job since the profile was cut down."
  }
 }

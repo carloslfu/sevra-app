@@ -323,8 +323,32 @@ public struct WorkbookTools {
         }
       }
     case "lineage": return try scopedLineage(string("id"))
+    case "save":
+      // The general chat tools' save. Its first kind is a workbook tool.
+      try require(
+        a["kind"] == .string("tool"), "arguments", "save takes kind=tool for now.")
+      let statements = a["statements"].array.compactMap(\.string)
+      try require(
+        statements.count == a["statements"].array.count, "arguments",
+        "statements is a list of SQL strings.")
+      return try workbook.chatSaveTool(
+        name: string("name"), description: a["description"].text,
+        inputs: a["inputs"].array.map {
+          ($0["name"].text, ["number", "decimal"].contains($0["type"].text))
+        },
+        statements: statements, token: "save-" + (receiptID ?? token),
+        requestSourceID: requestSourceID, cancellation: cancellation)
     case "sql":
       // The general chat tools' table tool. It refuses changes itself when none are allowed.
+      if let name = a["tool"].string {
+        try require(
+          a.object["statements"] == nil && a["draft"] != .bool(true), "arguments",
+          "Send either statements or a saved tool with its values.")
+        return try workbook.chatRunTool(
+          name: name, values: a["values"].object, readOnly: readOnly || inspectionOnly,
+          token: "sql-" + (receiptID ?? token), requestSourceID: requestSourceID,
+          cancellation: cancellation)
+      }
       let statements = a["statements"].array.compactMap(\.string)
       try require(
         statements.count == a["statements"].array.count, "arguments",
@@ -600,7 +624,12 @@ public struct WorkbookTools {
           occurrence: string("occurrence"), effective: string("effective"), input: string("input"),
           meaning: a["meaning"].string ?? "actual", supersedes: a["supersedes"].string,
           token: token, requestSourceID: requestSourceID))
-    default: throw SevraError("tool", "Unknown workbook tool: \(tool)")
+    default:
+      // A name that is not a built-in tool may be one of the workbook's own saved tools.
+      return try workbook.chatRunTool(
+        name: tool, values: a.object, readOnly: readOnly || inspectionOnly,
+        token: "tool-" + (receiptID ?? token), requestSourceID: requestSourceID,
+        cancellation: cancellation)
     }
   }
 }

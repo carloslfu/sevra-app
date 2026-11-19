@@ -286,3 +286,6 @@ sql now creates tables and adds, renames and removes columns through the recorde
 ## [2026-11-19 00:11] verification | records/plans/general-chat-tools
 General profile cut to sql and 20 of today's tools with short instructions. Full English run: 20 of 24 jobs pass (today 12 of 23). First prompt about 4,140 tokens, down from about 11,180. On the 20 passing: 54 decisions and 434 s against 98 and 986.
 
+## [2026-11-19 00:26] verification | records/plans/general-chat-tools
+Saved workbook tools: save with kind=tool writes a row of a Saved tools table, and sql runs a tool by name with values. The saved tool and form jobs pass in 2 decisions each. General profile: 22 of 24 English jobs pass on the latest run of each.
+

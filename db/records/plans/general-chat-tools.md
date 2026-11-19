@@ -2,7 +2,7 @@
 type: operational
 id: 01m7qrcqqzh4qqr92a8frch1ze
 created: 2026-11-18T16:38:43.199010+00:00
-updated: 2026-11-19T00:11:39.135583+00:00
+updated: 2026-11-19T00:26:41.638928+00:00
 summary: Plan for seven general chat tools (model SQL on a scratch copy, sandboxed code, workbook tools) and a prompt header calculated at build time and restored at engine start. In implementation.
 title: General chat tools and a pre-read prompt header
 ---
@@ -397,10 +397,11 @@ Built on November 18, 2026 under the `general` profile. Evidence: [the evals](..
 **Result on all 24 English jobs, one run each, with the profile cut down:** 20 pass. Today's tools pass 12 of the 23 they can attempt. On the 20 that pass, the profile takes 54 decisions and 434 seconds where today's tools take 98 and 986. A first prompt is about 4,140 tokens where today's is about 11,180. A greeting takes 12 seconds where today's takes 23.
 
 - **What today's tools fail and the profile passes:** adding rows from a document, a bulk update, a new table from pasted text, a renamed column, adding the rows one table is missing from another, totals by category saved as a table, a draft change, and building a view.
-- **Still failing:** building an app, a form, a rule and a saved tool. The app job cannot reach the app checker from the command line, under either profile. The other three have no path yet: they are what `save` and workbook tools in phase 5 are for.
-- **How it got here:** the first run of the slice passed 11 of 12. Seven fixes came from reading failed transcripts, each rerun with one counterexample.
+- **Since that run, saved tools:** a form and a saved tool now pass, each in 2 decisions and about 21 seconds. That makes 22 of 24, taking the latest run of each job.
+- **Still failing:** building an app and a rule. The app job cannot reach the app checker from the command line, under either profile. A rule needs the automation definitions, which have no path under `general` yet.
+- **How it got here:** the first run of the slice passed 11 of 12. Nine fixes came from reading failed transcripts, each rerun with one counterexample.
 
-**The profile today.** `general` offers `sql` and 20 of today's tools: `search`, `read`, `finish`, `balance`, `spaces`, `save_space`, `draft`, the five thread tools, `history_search`, `history_read`, `tool_result`, `workspace_actions`, `workspace_action` and the three app tools. It has its own instructions, about a tenth the length of today's. Everything else today's tools do is absent from `general` until a general tool covers it: the coverage tables above list what must be folded before the old tools can go. Specialized phases keep today's tools and instructions.
+**The profile today.** `general` offers `sql`, `save` and 20 of today's tools: `search`, `read`, `finish`, `balance`, `spaces`, `save_space`, `draft`, the five thread tools, `history_search`, `history_read`, `tool_result`, `workspace_actions`, `workspace_action` and the three app tools. It has its own instructions, about a tenth the length of today's. Everything else today's tools do is absent from `general` until a general tool covers it: the coverage tables above list what must be folded before the old tools can go. Specialized phases keep today's tools and instructions.
 
 **What `sql` is today** ([ChatSQL.swift](../../../Sources/SevraCore/ChatSQL.swift)):
 
@@ -414,6 +415,15 @@ Built on November 18, 2026 under the `general` profile. Evidence: [the evals](..
 - Refused, with nothing changed: indexes, views, triggers and temporary tables, `ATTACH`, pragmas, transaction statements, the schema table, the host's log, the catalog tables, a formula column, more than one statement in an entry, text in a number column, a shape change in a draft, and any change in a request that forbids changes.
 - An answer may rest on a query: its figures count as computed, and the host attaches the rows it read, or the table's own Source when there are many.
 - Under the `general` profile a read sent twice in a row is answered with a pointer to the result it already has, and a second repeat makes the model finish.
+
+**Saved tools, built differently from the design above.** A workbook tool is a name, a description, inputs and SQL statements that use each input as `:name`.
+
+- `save` with kind `tool` rehearses the statements and writes the tool as a row of an ordinary table titled "Saved tools", made on first use. A person can read and edit it there like any table.
+- `sql` with `tool` and `values` runs one. So does the command line's `tool WORKBOOK NAME`. The statements run through the same copy, refusals and Undo as any `sql` call, so a tool can do nothing `sql` cannot.
+- The request's context lists the saved tools with their inputs.
+- **This is not the `tool` definition kind of phase 5,** and it changes no format. It was the smallest form that makes a saved tool and a form pass. What it lacks against the design: a per-Mac grant and an enable step for a tool that arrives in a copied workbook, a place on the definitions screen, JavaScript bodies, and binding from forms and automations. The definition kind is built if one of those is needed.
+
+**Two things `sql` does to keep the model out of trouble:** a double-quoted name that is no column is an error, where SQLite would read it as text, and the request lists each column with its SQL type, such as `stock REAL`. Both came from one failed transcript.
 
 **Checks, none needing the model:** [check_chat_sql.py](../../../scripts/check_chat_sql.py) through the command line in about ten seconds, and `sevra-agent-checks --sql-tool` with a scripted model under the AI actor.
 

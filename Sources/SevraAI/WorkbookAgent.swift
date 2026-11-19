@@ -92,8 +92,10 @@ public enum WorkbookAgent {
       // finding them. It rides in the saved context, so a later turn renders the same prompt.
       var context = context
       if await model.toolProfile == .general, excelConversion == nil {
-        let tables = try workbook.chatSQLTables()
-        if !tables.isEmpty { context += (context.isEmpty ? "" : "\n") + tables }
+        for listing in [try workbook.chatSQLTables(), try workbook.chatSavedTools()]
+        where !listing.isEmpty {
+          context += (context.isEmpty ? "" : "\n") + listing
+        }
       }
       let result = try await runPhase(
         prompt, workbook: workbook, conversation: conversation,

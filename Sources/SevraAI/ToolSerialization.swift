@@ -8,7 +8,7 @@ extension NativeTools {
     case .current: return definitions
     case .general:
       // The general tools, and the fixed tools not yet folded into them.
-      return [sqlDefinition] + definitions.filter { generalKept.contains($0.name) }
+      return [sqlDefinition, saveDefinition] + definitions.filter { generalKept.contains($0.name) }
     }
   }
   /// Today's tools the general profile still offers. Each leaves when a general tool covers it.
@@ -35,7 +35,38 @@ extension NativeTools {
         ]),
         "draft": schema(
           "boolean", "True saves UPDATEs as a proposal for the user to review. Nothing changes."),
-      ], required: ["statements"]))
+        "tool": schema("string", "Run this saved tool instead of statements."),
+        "values": .object([
+          "type": .string("object"), "description": .string("The saved tool's inputs by name."),
+        ]),
+      ], required: []))
+  package static let saveDefinition = WorkbookToolDefinition(
+    name: "save",
+    description:
+      "Save a workbook tool: named SQL statements the user wants to keep and run again, such as a report, a check or a form that adds rows. Write each input in the statements as :name. Run it later with sql tool=name.",
+    parameters: object(
+      [
+        "kind": .object(["type": .string("string"), "enum": .array([.string("tool")])]),
+        "name": schema("string", "Lower case with underscores, such as low_stock."),
+        "description": schema("string", "One sentence on what it does."),
+        "inputs": .object([
+          "type": .string("array"), "maxItems": .number(16),
+          "items": .object([
+            "type": .string("object"),
+            "properties": .object([
+              "name": .object(["type": .string("string")]),
+              "type": .object([
+                "type": .string("string"), "enum": .array([.string("text"), .string("number")]),
+              ]),
+            ]),
+            "required": .array([.string("name"), .string("type")]),
+          ]),
+        ]),
+        "statements": .object([
+          "type": .string("array"), "minItems": .number(1), "maxItems": .number(8),
+          "items": .object(["type": .string("string")]),
+        ]),
+      ], required: ["kind", "name", "description", "statements"]))
 
   package static func referenceDefinitions(
     itemReferenceIDs: [String] = [], conversationActions: [String]? = nil,

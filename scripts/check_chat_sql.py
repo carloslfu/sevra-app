@@ -1,4 +1,4 @@
-"""No-model check of the `sql` chat tool: reads, row changes, table shape, Undo, drafts and refusals.
+"""No-model check of the `sql` chat tool: reads, row changes, table shape, saved tools, Undo, drafts and refusals.
 
 Each case calls the tool through the CLI on a temporary synthetic workbook, the same way a
 chat request does, and reads the workbook back. It needs no model and no engine.
@@ -24,7 +24,7 @@ def expect(name, condition, detail=''):
 
 
 def sql(book, *statements, **extra):
-    return book.run('tool', 'sql', dict(statements=list(statements), **extra))
+    return book.run('tool', 'sql', dict(**({'statements': list(statements)} if statements else {}), **extra))
 
 
 def refused(name, book, code, *statements, **extra):
@@ -138,6 +138,54 @@ with tempfile.TemporaryDirectory() as folder:
     expect('drop archives the table', shape.table('Minimum levels') is None)
     expect('drop left the other tables', len(shape.values('Parts')) == 6 and len(shape.values('Reorder plan')) == 3)
 
+    # Saved tools: named statements with inputs, kept as rows of an ordinary table.
+    def save(target, name, statements, inputs=(), description='A check fixture.'):
+        return target.run('tool', 'save', {'kind': 'tool', 'name': name, 'description': description,
+                                           'inputs': [{'name': n, 'type': t} for n, t in inputs],
+                                           'statements': list(statements)})
+
+    def unsaved(name, code, *args, **kwargs):
+        before = shape.values('Saved tools')
+        try:
+            expect(name, False, 'not refused: ' + str(save(shape, *args, **kwargs)))
+        except CLIError as error:
+            expect(name + ' code', error.code == code, error)
+        expect(name + ' saved nothing', shape.values('Saved tools') == before)
+
+    saved = save(shape, 'low_stock', ["SELECT part FROM parts WHERE stock < reorder_level ORDER BY part"])
+    expect('save a tool', saved.get('saved') == 'low_stock' and [r['name'] for r in shape.values('Saved tools')]
+           == ['low_stock'], saved)
+    listed = shape.run('tool', 'low_stock')
+    expect('run a tool by name', [r[0] for r in rows(listed)] == ['Hex key set', 'Hex nuts'], listed)
+    expect('run a tool through sql', rows(sql(shape, tool='low_stock')) == rows(listed))
+    save(shape, 'add_plan', ["INSERT INTO reorder_plan (item, level) VALUES (:item, :level)"],
+         inputs=[('item', 'text'), ('level', 'number')])
+    added = sql(shape, tool='add_plan', values={'item': "Wood screws; 'bulk'", 'level': '50'})
+    expect('a tool changes rows', added['changes'][0]['inserted'] == 1 and
+           ("Wood screws; 'bulk'", '50') in [(r['item'], r['level']) for r in shape.values('Reorder plan')], added)
+    shape.run('tool', 'workspace_action', {'action': 'table.undo_rows', 'arguments': added['changes'][0]['undo']})
+    expect('a tool run undoes', len(shape.values('Reorder plan')) == 3)
+    save(shape, 'low_stock', ["SELECT part, stock FROM parts WHERE stock < reorder_level ORDER BY part"])
+    expect('saving again replaces', [r['name'] for r in shape.values('Saved tools')].count('low_stock') == 1
+           and len(shape.values('Saved tools')) == 2 and rows(shape.run('tool', 'low_stock'))[0] == ['Hex key set', '0'])
+    unsaved('tool name', 'tool_name', 'Low Stock', ["SELECT 1"])
+    unsaved('tool statement refused', 'sql', 'reach_out', ["ATTACH DATABASE '/tmp/sevra-check-should-not-exist.db' AS o"])
+    unsaved('tool with an unknown column', 'sql', 'broken', ["SELECT missing FROM parts"])
+    unsaved('tool with an undeclared input', 'sql', 'loose', ["SELECT * FROM parts WHERE part = :part"])
+    for name, code, arguments in [
+            ('missing tool input', 'tool_inputs', {'tool': 'add_plan', 'values': {'item': 'Bolts'}}),
+            ('text for a number input', 'tool_inputs', {'tool': 'add_plan', 'values': {'item': 'Bolts', 'level': 'many'}}),
+            ('unknown tool input', 'tool_inputs', {'tool': 'low_stock', 'values': {'extra': 1}}),
+            ('unknown tool', 'tool', {'tool': 'nothing_here'}),
+            ('statements with a tool', 'arguments', {'tool': 'low_stock', 'statements': ['SELECT 1']}),
+            ('an input outside a tool', 'sql', {'statements': ['SELECT * FROM parts WHERE part = :part']})]:
+        before = shape.values('Reorder plan')
+        try:
+            expect(name, False, 'not refused: ' + str(shape.run('tool', 'sql', arguments)))
+        except CLIError as error:
+            expect(name + ' code', error.code == code, error)
+        expect(name + ' changed nothing', shape.values('Reorder plan') == before)
+
     # A draft changes nothing.
     draft = sql(book, "UPDATE supplier_comparison SET unit_cost = 2.60 WHERE supplier = 'Cedar Tools'", draft=True)
     expect('draft is saved', draft.get('drafts', [{}])[0].get('draftRows') == 1, draft)
@@ -165,6 +213,7 @@ with tempfile.TemporaryDirectory() as folder:
     refused('two statements in one entry', book, 'sql', "SELECT 1; DELETE FROM supplier_comparison")
     refused('text in a number column', book, 'sql_value', "UPDATE supplier_comparison SET quantity = 'many'")
     refused('unknown column', book, 'sql', "SELECT missing FROM parts")
+    refused('a quoted name that is no column', book, 'sql', 'SELECT part FROM parts WHERE "stock number" < 5')
     refused('later failure undoes earlier statements', book, 'sql',
             "DELETE FROM supplier_comparison", "SELECT missing FROM parts")
     expect('no file was attached', not os.path.exists('/tmp/sevra-check-should-not-exist.db'))

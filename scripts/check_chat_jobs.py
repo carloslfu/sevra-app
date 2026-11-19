@@ -451,8 +451,12 @@ def form_check(run):
     problems = complete(run)
     forms = [d for d in run['saved'].get('newDefinitions', []) if d.get('kind') == 'form']
     apps = [s for s in run['saved'].get('newSpaces', [])]
-    if not forms and not apps:
-        problems.append('no form definition and no app was saved')
+    # Under the general tools a form is a saved tool whose inputs are its fields.
+    tools = [t for t in (run['book'].values('Saved tools') or [])
+             if {'part', 'level'} <= {i.split()[0] for i in t.get('inputs', '').split(',') if i.strip()}
+             and 'reorder_levels' in t.get('statements', '').lower()]
+    if not forms and not apps and not tools:
+        problems.append('no form definition, app or saved tool with the fields Part and Level was saved')
     if not rows_are(run['book'].values('Reorder levels'), LEVELS):
         problems.append('Reorder levels changed while the form was built')
     return problems

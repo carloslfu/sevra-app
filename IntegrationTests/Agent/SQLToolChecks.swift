@@ -17,7 +17,7 @@ func checkSQLTool() async throws {
       try NativeTools.serializedDefinitions(toolScope: scope, toolProfile: .general),
       try NativeTools.serializedDefinitions(toolScope: scope))
   }
-  try expectEqual(general, NativeTools.generalKept.union(["sql"]))
+  try expectEqual(general, NativeTools.generalKept.union(["sql", "save"]))
   try expectEqual(ToolProfile.general.instructions(current: "today"), ToolProfile.generalInstructions)
   try expectEqual(ToolProfile.current.scopeInstructions(current: "today"), "today")
 
@@ -62,7 +62,7 @@ func checkSQLTool() async throws {
   let request = try expectValue(await read.prompts.first?.last { $0.role == "user" }).content
   try expectEqual(
     request.contains(
-      "Tables for sql: supplier_comparison(supplier, quantity number, unit_cost number, total formula) 2 rows"),
+      "Tables for sql: supplier_comparison(supplier TEXT, quantity REAL, unit_cost REAL, total REAL GENERATED) 2 rows"),
     true)
   try expectEqual(try book.chatSQLTables(byteLimit: 10), "")
   // The answer rests on the query: its figures pass, and the host attaches the rows it read.
@@ -115,6 +115,43 @@ func checkSQLTool() async throws {
     try book.dataset(tableID).columns.map(\.title), ["Supplier", "Units", "Unit cost", "Total"])
   try expectEqual(try values(), updated)
 
+  // A saved tool: the model saves it, a later request sees it listed and runs it by name.
+  let keep = ScriptedCalls(
+    [
+      call(
+        "save",
+        .object([
+          "kind": .string("tool"), "name": .string("cheaper_than"),
+          "description": .string("Suppliers whose unit cost is below a limit."),
+          "inputs": .array([.object(["name": .string("limit"), "type": .string("number")])]),
+          "statements": .array([
+            .string("SELECT supplier FROM supplier_comparison WHERE unit_cost < :limit")
+          ]),
+        ])),
+      finish("Saved the tool cheaper_than.", basis: "completed_action"),
+    ], toolProfile: .general)
+  let kept = try await WorkbookAgent.run(
+    "Save a tool named cheaper_than that lists suppliers below a unit cost limit.",
+    workbook: book, model: keep)
+  try expectEqual(kept.state, "complete")
+  try expectEqual(try await toolResult(keep)["saved"], .string("cheaper_than"))
+  let use = ScriptedCalls(
+    [
+      call(
+        "sql",
+        .object(["tool": .string("cheaper_than"), "values": .object(["limit": .string("2.5")])])),
+      finish("Oak Supply is below 2.5.", basis: "evidence"),
+    ], toolProfile: .general)
+  let used = try await WorkbookAgent.run(
+    "Which suppliers are cheaper than 2.5?", workbook: book, model: use)
+  try expectEqual(used.state, "complete")
+  let listing = try expectValue(await use.prompts.first?.last { $0.role == "user" }).content
+  try expectEqual(listing.contains("Saved tools: cheaper_than(limit REAL): Suppliers"), true)
+  try expectEqual(
+    try await toolResult(use)["results"].array.first?["rows"],
+    .array([.array([.string("Oak Supply")])]))
+  try expectEqual(try values(), updated)
+
   // A draft saves a proposal and leaves the table alone.
   let draft = ScriptedCalls(
     [
@@ -151,5 +188,5 @@ func checkSQLTool() async throws {
     try expectValue(await repeated.prompts.last?.last { $0.role == "tool" }).content)
   try expectEqual(second["reusedReceiptID"].string != nil, true)
   try expectEqual(try values(), updated)
-  print("PASS sql tool: general declarations, answers from query results, AI row and shape changes under a rule Source, draft, forbidden change, repeated query")
+  print("PASS sql tool: general declarations, answers from query results, AI row and shape changes under a rule Source, saved tool, draft, forbidden change, repeated query")
 }
