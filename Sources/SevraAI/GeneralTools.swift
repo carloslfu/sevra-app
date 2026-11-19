@@ -166,8 +166,17 @@ package enum GeneralTools {
   /// be saved here.
   package static func definitions(
     operations: [String], threads: Set<String>?, apps: Bool, ask: WorkbookToolDefinition?,
-    readOnly: Bool = false, items: [String] = []
+    readOnly: Bool = false, items: [String] = [], display: Bool = false
   ) -> [WorkbookToolDefinition] {
+    // What the model is shown is shorter than what the grammar enforces. A shape that is not
+    // shown lists its fields by name, and the grammar supplies the rest as the call is written.
+    func fields(_ parameters: Value) -> String {
+      let required = Set(parameters["required"].array.map(\.text))
+      let names = parameters["properties"].object.keys.sorted {
+        (required.contains($0) ? 0 : 1, $0) < (required.contains($1) ? 0 : 1, $1)
+      }
+      return "{" + names.joined(separator: ", ") + "}"
+    }
     func object(_ fields: [String: Value], required: [String]) -> Value {
       NativeTools.object(fields, required: required)
     }
@@ -237,10 +246,23 @@ package enum GeneralTools {
       "code": NativeTools.runDefinition.parameters["properties"]["code"]
     ]
     if !shapes.isEmpty {
-      runProperties["action"] = .object([
-        "type": .string("object"), "anyOf": .array(shapes),
-        "description": .string("One named action with its arguments, instead of code."),
-      ])
+      runProperties["action"] =
+        display
+        ? object(
+          [
+            "name": schema("string", "The action."),
+            "arguments": .object(["type": .string("object")]),
+          ], required: ["name", "arguments"]
+        ).object.merging([
+          "description": .string(
+            "One named action with its arguments, instead of code. "
+              + exact.map { $0 + " " + fields(parameters(actions[$0]!)) }.joined(separator: "; ")
+              + (open.isEmpty ? "" : "; and the actions read kind=actions lists.")),
+        ]) { _, new in new }.wrapped
+        : .object([
+          "type": .string("object"), "anyOf": .array(shapes),
+          "description": .string("One named action with its arguments, instead of code."),
+        ])
     }
     let run = WorkbookToolDefinition(
       name: "run",
@@ -269,7 +291,13 @@ package enum GeneralTools {
     for (kind, target) in saves where apps || kind != "app" {
       var shape = parameters(target).object
       shape["description"] = .string(about[kind]!)
-      kinds[kind] = .object(shape)
+      // The less common kinds are shown by their field names alone.
+      kinds[kind] =
+        display && !["document", "view"].contains(kind)
+        ? .object([
+          "type": .string("object"),
+          "description": .string(about[kind]! + " Fields: " + fields(parameters(target)) + "."),
+        ]) : .object(shape)
     }
     let save = WorkbookToolDefinition(
       name: "save",
@@ -293,4 +321,8 @@ package enum GeneralTools {
         required: []))
     return [search, read, sql, run, save] + (question.map { [$0] } ?? []) + [finish]
   }
+}
+
+extension [String: Value] {
+  fileprivate var wrapped: Value { .object(self) }
 }

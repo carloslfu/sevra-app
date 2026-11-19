@@ -1680,8 +1680,20 @@ public enum WorkbookAgent {
                   : (tool == "sql" || tool == "run") && !callFailed
                     ? .object(storedProjection.object.filter { $0.key != "inputs" })
                     : storedProjection
+        // A saved thing's receipt is often only its ID. Say that it is saved, so the model
+        // finishes instead of saving it again.
+        let shownResult: Value =
+          general && call.name == "save" && !callFailed && !presentedResult.object.isEmpty
+            && result["status"] != .string("confirmation_required")
+          ? .object(
+            presentedResult.object.merging([
+              "saved": .bool(true),
+              "notice": .string(
+                "Saved. Do not save it again. Finish now, unless the request asks for something more."
+              ),
+            ]) { first, _ in first }) : presentedResult
         let projected = try await model.boundToolResult(
-          presentedResult, receiptID: receiptID, directory: modelDirectory,
+          shownResult, receiptID: receiptID, directory: modelDirectory,
           cancellation: cancellation,
           toolScope: inferenceScope, nativeAppAuthoring: nativeAppAuthoring)
         if tool == "workspace_action",

@@ -76,7 +76,7 @@ extension NativeTools {
     toolScope: InferenceToolScope = .all, documentCopyIDs: [String]? = nil,
     historyReferenceIDs: [String]? = nil, nativeAppAuthoring: Bool = true,
     reviewContract: Value = .null, conversationInput: Bool = false, visualCaptureIDs: [String] = [],
-    toolProfile: ToolProfile = .current
+    toolProfile: ToolProfile = .current, display: Bool = false
   ) throws
     -> [WorkbookToolDefinition]
   {
@@ -122,7 +122,7 @@ extension NativeTools {
         operations: toolScope.workspaceOperations.map(\.name),
         threads: conversationActions.map(Set.init), apps: nativeAppAuthoring,
         ask: toolScope.allows("request_input", conversationInput: conversationInput)
-          ? inputDefinition : nil, readOnly: reading, items: ids
+          ? inputDefinition : nil, readOnly: reading, items: ids, display: display
       ).map(showing)
     }
     let available =
@@ -240,14 +240,14 @@ extension NativeTools {
     conversationActions: [String]? = nil, documentCopyIDs: [String]? = nil,
     historyReferenceIDs: [String]? = nil, nativeAppAuthoring: Bool = true,
     reviewContract: Value = .null, conversationInput: Bool = false, visualCaptureIDs: [String] = [],
-    toolProfile: ToolProfile = .current
+    toolProfile: ToolProfile = .current, display: Bool = false
   ) throws -> Data {
     let definitions = try referenceDefinitions(
       itemReferenceIDs: itemReferenceIDs, conversationActions: conversationActions,
       toolScope: toolScope, documentCopyIDs: documentCopyIDs,
       historyReferenceIDs: historyReferenceIDs, nativeAppAuthoring: nativeAppAuthoring,
       reviewContract: reviewContract, conversationInput: conversationInput,
-      visualCaptureIDs: visualCaptureIDs, toolProfile: toolProfile
+      visualCaptureIDs: visualCaptureIDs, toolProfile: toolProfile, display: display
     )
     .filter {
       toolProfile == .general && !toolScope.specialized

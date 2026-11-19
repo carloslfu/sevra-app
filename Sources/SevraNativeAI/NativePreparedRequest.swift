@@ -106,7 +106,8 @@ package struct NativePreparedRequest {
         nativeAppAuthoring: messages.first?.nativeAppAuthoring == true,
         reviewContract: messages.first?.reviewContract ?? .null,
         conversationInput: messages.first?.conversationInput == true,
-        visualCaptureIDs: messages.first?.visualCaptureIDs ?? [], toolProfile: toolProfile)
+        visualCaptureIDs: messages.first?.visualCaptureIDs ?? [], toolProfile: toolProfile,
+        display: true)
     } else {
       promptPolicy = policy
     }

@@ -167,32 +167,6 @@ public final class SplashToolPolicy {
       function["parameters"] = parameters
       tools[index]["function"] = function
     }
-    // The general `run` lists its workspace actions on request the same way. The grammar
-    // keeps their names.
-    if let index = tools.firstIndex(where: {
-      ($0["function"] as? [String: Any])?["name"] as? String == "run"
-    }), var function = tools[index]["function"] as? [String: Any],
-      var parameters = function["parameters"] as? [String: Any],
-      var properties = parameters["properties"] as? [String: Any],
-      var action = properties["action"] as? [String: Any],
-      let shapes = action["anyOf"] as? [[String: Any]]
-    {
-      action["anyOf"] = shapes.map { shape -> [String: Any] in
-        guard var fields = shape["properties"] as? [String: Any],
-          var name = fields["name"] as? [String: Any],
-          let names = name["enum"] as? [Any], names.count > 8
-        else { return shape }
-        var shape = shape
-        name.removeValue(forKey: "enum")
-        fields["name"] = name
-        shape["properties"] = fields
-        return shape
-      }
-      properties["action"] = action
-      parameters["properties"] = properties
-      function["parameters"] = parameters
-      tools[index]["function"] = function
-    }
     // Keep changing exact IDs in the grammar and final validator, outside
     // the reusable prompt prefix. Originals remain in the message context.
     let referenceFields: [String: Set<String>] = [
