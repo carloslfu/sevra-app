@@ -158,7 +158,7 @@ For contributors:
 - [Repository instructions](AGENTS.md) and [specification store](db/DB.md)
 
 The native app is developed in this repository. [sevrahq.com](https://www.sevrahq.com)
-is its marketing website. Slotstream is a separate app and engine.
+is its marketing website.
 
 Report problems in [GitHub Issues](https://github.com/carloslfu/sevra-app/issues).
 Include the app version, reproduction steps and a small synthetic example.
