@@ -60,14 +60,26 @@ package enum GeneralTools {
     case "read":
       guard let kind = a["kind"].string, kind != "item" else { return ("read", rest(without: "kind")) }
       guard let target = reads[kind] else { return (tool, a) }
+      let ref = fields.removeValue(forKey: "ref")
       if kind == "actions" {
-        return (target, a["id"].string.map { .object(["domain": .string($0)]) } ?? .object([:]))
+        return (target, (ref ?? a["id"]).string.map { .object(["domain": .string($0)]) } ?? .object([:]))
       }
+      // `id` is a document or record. Anything else is named by `ref`.
+      if !["references", "lineage", "archive"].contains(kind), let ref { fields["id"] = ref }
       return (target, rest(without: "kind"))
     case "run":
       guard let action = a["action"].string else { return (tool, a) }
       let arguments = a.object["arguments"] ?? .object([:])
-      if let target = actions[action] { return (target, arguments) }
+      if let target = actions[action] {
+        // A continued thread either answers or changes. The change scopes all allow the same
+        // general tools, so one stands for them.
+        if target == "start_thread_and_continue", arguments["work"] != .string("answer") {
+          var fields = arguments.object
+          fields["work"] = .string("draft")
+          return (target, .object(fields))
+        }
+        return (target, arguments)
+      }
       return ("workspace_action", .object(["action": .string(action), "arguments": arguments]))
     case "save":
       guard let kind = a["kind"].string, let target = saves[kind] else { return (tool, a) }
@@ -141,7 +153,7 @@ package enum GeneralTools {
   /// be saved here.
   package static func definitions(
     operations: [String], threads: Set<String>?, apps: Bool, ask: WorkbookToolDefinition?,
-    readOnly: Bool = false
+    readOnly: Bool = false, items: [String] = []
   ) -> [WorkbookToolDefinition] {
     func object(_ fields: [String: Value], required: [String]) -> Value {
       NativeTools.object(fields, required: required)
@@ -165,14 +177,19 @@ package enum GeneralTools {
           "status": schema("string", "Optional status filter."),
           "cursor": schema("string", "Next page, from an earlier result."),
         ], required: ["query"]))
+    // Item IDs come only from what a search or an earlier read returned, so the grammar
+    // offers exactly those once there are any.
+    var item = schema("string", "A document or record, by the exact ID a search or read gave.").object
+    if !items.isEmpty { item["enum"] = .array(items.map(Value.string)) }
     let read = WorkbookToolDefinition(
       name: "read",
       description:
-        "Read one thing by ID. With no kind: a document or record, with offset for later parts. kind=message: an earlier message. result: a page of a long saved tool result. app, definition, workflow: that saved thing. views, reviews, workflows: those lists, with no id. references, lineage, archive: what an item links to, came from, or contains. actions: the actions run can perform, with id as an optional group such as table, app, visual, file, workflow. app_guide: how to write an app. definition_guide: the kinds of saved definitions.",
+        "Read one thing. With id alone: a document or record, with offset for later parts. references, lineage, archive: what that item links to, came from, or contains. Other kinds name their thing with ref. message: an earlier message. result: a page of a long saved tool result. app, definition, workflow, view_history: that saved thing. views, reviews, workflows: those lists, with no ref. actions: the actions run can perform, with ref as an optional group such as table, app, visual, file, workflow. app_guide: how to write an app. definition_guide: the kinds of saved definitions.",
       parameters: object(
         [
-          "id": schema("string", "The exact ID. Lists and guides need none."),
+          "id": .object(item),
           "kind": choice(reads.keys.sorted(), "Default item."),
+          "ref": schema("string", "The exact ID of a thing that is not a document or record."),
           "offset": schema("integer", "Where to continue a long document or result."),
           "path": .object([
             "type": .string("array"), "items": .object(["type": .string("string")]),
@@ -182,7 +199,7 @@ package enum GeneralTools {
     let run = WorkbookToolDefinition(
       name: "run",
       description: NativeTools.runDefinition.description
-        + " Or send action with arguments to perform one named action instead of code: charts, files, imports, apps, workflows, threads, views and undo. read kind=actions lists them with their inputs. Thread actions: thread.start {title, message}, thread.start_and_continue {task, work, title}, thread.rename {title}, thread.return {}. View actions: view.open {target}, view.pin {target, pinned}. Stock: stock.balance {subject}.",
+        + " Or send action with arguments to perform one named action instead of code: charts, files, imports, apps, workflows, threads, views and undo. read kind=actions lists them with their inputs. Thread actions: thread.start {title, message}, thread.start_and_continue {task, work: answer or change, title}, thread.rename {title}, thread.return {}. View actions: view.open {target}, view.pin {target, pinned}.",
       parameters: object(
         [
           "code": NativeTools.runDefinition.parameters["properties"]["code"],

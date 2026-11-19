@@ -22,9 +22,10 @@ func checkSQLTool() async throws {
   try expectEqual(Set(GeneralTools.actions.values).isSubset(of: operations), true)
   try expectEqual(
     Set(GeneralTools.actions.keys).isDisjoint(with: ChatOperations.operations.map(\.name)), true)
-  try expectEqual(
-    GeneralTools.route("read", .object(["kind": .string("message"), "id": .string("m1")])).tool,
-    "history_read")
+  let message = GeneralTools.route(
+    "read", .object(["kind": .string("message"), "ref": .string("m1")]))
+  try expectEqual(message.tool, "history_read")
+  try expectEqual(message.arguments, .object(["id": .string("m1")]))
   try expectEqual(
     GeneralTools.route("run", .object(["action": .string("table.schema")])).tool,
     "workspace_action")
@@ -78,8 +79,9 @@ func checkSQLTool() async throws {
   let request = try expectValue(await read.prompts.first?.last { $0.role == "user" }).content
   try expectEqual(
     request.contains(
-      "Tables for sql: supplier_comparison(supplier TEXT, quantity REAL, unit_cost REAL, total REAL GENERATED) 2 rows"),
+      "supplier_comparison(supplier TEXT, quantity REAL, unit_cost REAL, total REAL GENERATED) 2 rows"),
     true)
+  try expectEqual(request.contains("Tables for sql: stock(subject TEXT"), true)
   try expectEqual(try book.chatSQLTables(byteLimit: 10), "")
   // The answer rests on the query: its figures pass, and the host attaches the rows it read.
   try expectEqual(answered.state, "complete")

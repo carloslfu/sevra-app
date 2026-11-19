@@ -67,6 +67,19 @@ with tempfile.TemporaryDirectory() as folder:
     listed = sql(book, "SELECT title, row_count FROM tables WHERE name = 'supplier_comparison'")
     expect('tables are found by name', rows(listed) == [['Supplier comparison', '2']], rows(listed))
 
+    # The stock ledger reads as two tables, by the ledger's own rules, and cannot be written.
+    ledger = book.run('balance', 'brass bolts', '2099-12-31')
+    held = sql(book, "SELECT subject, quantity, opening FROM stock",
+               "SELECT subject, quantity FROM stock_movements ORDER BY effective")
+    expect('stock reads the current balance', rows(held) == [['brass bolts', ledger['quantity'], ledger['openingQuantity']]],
+           rows(held))
+    expect('stock lists the movements', rows(held, 1) == [['brass bolts', e['quantity']] for e in ledger['effects']],
+           rows(held, 1))
+    expect('stock names its sources', set(held['inputs']) == {ledger['basis']} | {e['item_id'] for e in ledger['effects']},
+           held['inputs'])
+    refused('stock is read-only', book, 'sql', "UPDATE stock SET quantity = 99")
+    refused('movements are read-only', book, 'sql', "DELETE FROM stock_movements")
+
     # Row changes, each one saved transaction with an Undo.
     update = sql(book, "UPDATE supplier_comparison SET quantity = 20")
     change = update.get('changes', [{}])[0]

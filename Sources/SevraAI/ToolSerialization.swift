@@ -122,7 +122,7 @@ extension NativeTools {
         operations: toolScope.workspaceOperations.map(\.name),
         threads: conversationActions.map(Set.init), apps: nativeAppAuthoring,
         ask: toolScope.allows("request_input", conversationInput: conversationInput)
-          ? inputDefinition : nil, readOnly: reading
+          ? inputDefinition : nil, readOnly: reading, items: ids
       ).map(showing)
     }
     let available =
