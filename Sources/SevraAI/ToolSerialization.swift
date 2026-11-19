@@ -2,27 +2,16 @@ import Foundation
 import SevraCore
 
 extension NativeTools {
-  /// The ordinary chat tools a profile offers. `general` offers today's until its own exist.
+  /// The ordinary chat tools a profile offers, before a scope narrows them.
   package static func definitions(for toolProfile: ToolProfile) -> [WorkbookToolDefinition] {
     switch toolProfile {
     case .current: return definitions
     case .general:
-      // The general tools, and the fixed tools not yet folded into them.
-      return [sqlDefinition, runDefinition, saveDefinition]
-        + definitions.filter { generalKept.contains($0.name) }
+      return GeneralTools.definitions(
+        operations: ChatOperations.operations.map(\.name), threads: nil, apps: true,
+        ask: inputDefinition)
     }
   }
-  /// Today's tools the general profile still offers. Each leaves when a general tool covers it.
-  package static let generalKept: Set<String> = [
-    "search", "read", "finish", "balance", "spaces", "save_space", "draft", "history_search",
-    "history_read", "tool_result", "start_thread", "start_thread_and_continue",
-    "rename_current_thread", "return_to_main", "review_thread_summary", "workspace_actions",
-    "workspace_action", "native_app_sdk", "read_native_app", "save_native_app",
-  ]
-  /// Today's tools that `sql` replaces under the general profile.
-  package static let generalReplaced: Set<String> = [
-    "datasets", "rows", "compare_rows", "calculate", "propose_table_edit", "propose_table",
-  ]
   package static let sqlDefinition = WorkbookToolDefinition(
     name: "sql",
     description:
@@ -110,6 +99,32 @@ extension NativeTools {
         Set(conversationActions).isSubset(of: Set(WorkbookTools.conversationTools.values)),
         "tool_schema", "Invalid conversation capability.")
     }
+    func showing(_ definition: WorkbookToolDefinition) -> WorkbookToolDefinition {
+      guard definition.name == "finish", !visualCaptureIDs.isEmpty else { return definition }
+      var parameters = definition.parameters.object
+      var properties = definition.parameters["properties"].object
+      properties["visuals"] = .object([
+        "type": .string("array"), "maxItems": .number(2),
+        "description": .string("Inspected visual capture receipt IDs from this run."),
+        "items": .object([
+          "type": .string("string"), "enum": .array(visualCaptureIDs.map(Value.string)),
+        ]),
+      ])
+      parameters["properties"] = .object(properties)
+      return .init(
+        name: definition.name, description: definition.description,
+        parameters: .object(parameters))
+    }
+    if toolProfile == .general, !toolScope.specialized {
+      // A scope that only reads offers only the actions that only read.
+      let reading = toolScope != .all
+      return GeneralTools.definitions(
+        operations: toolScope.workspaceOperations.map(\.name),
+        threads: conversationActions.map(Set.init), apps: nativeAppAuthoring,
+        ask: toolScope.allows("request_input", conversationInput: conversationInput)
+          ? inputDefinition : nil, readOnly: reading
+      ).map(showing)
+    }
     let available =
       definitions(for: toolScope.specialized ? .current : toolProfile)
       + (toolScope.allows("request_input", conversationInput: conversationInput)
@@ -119,9 +134,7 @@ extension NativeTools {
     return try available.compactMap { definition in
       if definition.name == "workspace_action" {
         // Undo of a sql call exists only beside sql, so today's tool list stays as it was.
-        let operations = toolScope.workspaceOperations.filter {
-          $0.name != "table.undo_sql" || (toolProfile == .general && !toolScope.specialized)
-        }
+        let operations = toolScope.workspaceOperations.filter { $0.name != "table.undo_sql" }
         guard !operations.isEmpty else { return nil }
         var parameters = definition.parameters.object
         var properties = definition.parameters["properties"].object
@@ -133,21 +146,7 @@ extension NativeTools {
           name: definition.name, description: definition.description,
           parameters: .object(parameters))
       }
-      if definition.name == "finish", !visualCaptureIDs.isEmpty {
-        var parameters = definition.parameters.object
-        var properties = definition.parameters["properties"].object
-        properties["visuals"] = .object([
-          "type": .string("array"), "maxItems": .number(2),
-          "description": .string("Inspected visual capture receipt IDs from this run."),
-          "items": .object([
-            "type": .string("string"), "enum": .array(visualCaptureIDs.map(Value.string)),
-          ]),
-        ])
-        parameters["properties"] = .object(properties)
-        return .init(
-          name: definition.name, description: definition.description,
-          parameters: .object(parameters))
-      }
+      if definition.name == "finish", !visualCaptureIDs.isEmpty { return showing(definition) }
       if definition.name == "save_native_app", !nativeAppAuthoring { return nil }
       if definition.name == "save_native_app", [.excelBuild, .excelInterface].contains(toolScope) {
         var parameters = definition.parameters.object
@@ -250,7 +249,11 @@ extension NativeTools {
       reviewContract: reviewContract, conversationInput: conversationInput,
       visualCaptureIDs: visualCaptureIDs, toolProfile: toolProfile
     )
-    .filter { toolScope.allows($0.name, conversationInput: conversationInput) }
+    .filter {
+      toolProfile == .general && !toolScope.specialized
+        ? GeneralTools.allowed($0.name, in: toolScope, conversationInput: conversationInput)
+        : toolScope.allows($0.name, conversationInput: conversationInput)
+    }
     let values: [[String: Any]] = try definitions.map {
       [
         "type": "function",

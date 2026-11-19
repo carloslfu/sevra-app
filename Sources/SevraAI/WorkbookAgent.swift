@@ -618,10 +618,20 @@ public enum WorkbookAgent {
             ))
           continue
         }
-        var a = try Value.parse(call.inputJSON)
-        let tool = call.name
+        // A general tool call is routed to the operation that does its work before any check
+        // below sees it. Those checks, and the saved receipt, use the operation's own name.
+        let general = toolProfile == .general && !toolScope.specialized
+        let routed =
+          general
+          ? GeneralTools.route(call.name, try Value.parse(call.inputJSON))
+          : (tool: call.name, arguments: try Value.parse(call.inputJSON))
+        var a = routed.arguments
+        let tool = routed.tool
         try require(
-          toolScope.allows(tool, conversationInput: canAsk && !attemptedEffect), "tool_scope",
+          general
+            ? GeneralTools.allowed(
+              call.name, in: toolScope, conversationInput: canAsk && !attemptedEffect)
+            : toolScope.allows(tool, conversationInput: canAsk && !attemptedEffect), "tool_scope",
           "The model did not perform the required evidence inspection. No action from this response was applied."
         )
         nextToolScope = toolScope == .workflowAnswer ? .workflowAnswer : .all
@@ -644,6 +654,25 @@ public enum WorkbookAgent {
           InferenceMessage(
             role: "assistant", content: response.text, toolCalls: [call],
             reasoning: response.reasoning))
+        if general, !toolScope.changes, !GeneralTools.reads(tool, a) {
+          // This step may only read, and the call names an operation that changes something.
+          failures += 1
+          try require(
+            failures < 3, "tool_scope",
+            "The model kept asking for a change in a step that can only read. No action from this response was applied."
+          )
+          let receipt = try workbook.prepareToolCall(
+            runID: runID, callID: call.id, tool: tool, arguments: a, assistantText: response.text)
+          let failure: Value = .object([
+            "error": .string(
+              "This step can only read. Finish with what you found, or say what remains to be done."
+            )
+          ])
+          _ = try workbook.completeToolCall(receipt, result: failure, failed: true)
+          messages.append(
+            .init(role: "tool", content: try failure.json(), toolCallId: call.id, toolName: tool))
+          continue
+        }
         if readOnly, let prior = previousCalculation, previousCallID == prior.callID,
           tool == prior.tool, a == prior.arguments
         {
@@ -1367,7 +1396,8 @@ public enum WorkbookAgent {
             : tools.execute(
               tool == "prepare_action" ? "commit_action_preview" : tool,
               commitArguments ?? a, receiptID: receiptID, nativeAppCheck: nativeAppCheck,
-              inspectionOnly: inferenceScope != .all)
+              inspectionOnly: toolProfile == .general
+                ? !inferenceScope.changes : inferenceScope != .all)
           if tool == "workspace_action", let action = value["hostAction"].string {
             let args = routedAppCall.map { $0["arguments"] } ?? value["arguments"]
             let operation = try ChatOperations.validate(action, arguments: args, readOnly: readOnly)

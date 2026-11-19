@@ -46,6 +46,17 @@ package struct NativePreparedRequest {
     configuredReasoning: NativeReasoning, toolScope: InferenceToolScope,
     citationIDs: [String], interpretation: Value? = nil, toolProfile: ToolProfile = .current
   ) throws {
+    // Host text written for the operations names them. The model is told the general tool.
+    let messages =
+      toolProfile == .general && interpretation == nil && !toolScope.specialized
+      ? messages.map { message -> InferenceMessage in
+        guard ["system", "tool"].contains(message.role) else { return message }
+        var worded = message
+        worded.content = GeneralTools.wording(message.content)
+        worded.cacheablePolicy = message.cacheablePolicy.map(GeneralTools.wording)
+        worded.scopePolicy = GeneralTools.wording(message.scopePolicy)
+        return worded
+      } : messages
     try ContextBudget.validateEnvelope(messages)
     let excelReview =
       [.nativeAppReview, .nativeActionReview].contains(toolScope)

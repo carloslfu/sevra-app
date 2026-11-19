@@ -326,7 +326,9 @@ public struct WorkbookTools {
     case "save":
       // The general chat tools' save. Its first kind is a workbook tool.
       try require(
-        a["kind"] == .string("tool"), "arguments", "save takes kind=tool for now.")
+        a["kind"] == .string("tool"), "arguments",
+        "Choose a kind for save: tool, document, view, app, record, definition, template or result."
+      )
       let statements = a["statements"].array.compactMap(\.string)
       try require(
         statements.count == a["statements"].array.count, "arguments",

@@ -7,8 +7,7 @@ import SevraNativeAI
 /// results accepted as the basis of an answer, and its row changes saved under the AI actor.
 func checkSQLTool() async throws {
   let general = Set(NativeTools.definitions(for: .general).map(\.name))
-  try expectEqual(general.contains("sql"), true)
-  try expectEqual(general.isDisjoint(with: NativeTools.generalReplaced), true)
+  try expectEqual(general, Set(GeneralTools.names))
   try expectEqual(NativeTools.definitions(for: .current).contains { $0.name == "sql" }, false)
   // The grammar accepts the declaration, and specialized phases keep today's tools.
   _ = try NativeCitationPolicy.make([], toolScope: .all, toolProfile: .general)
@@ -17,7 +16,24 @@ func checkSQLTool() async throws {
       try NativeTools.serializedDefinitions(toolScope: scope, toolProfile: .general),
       try NativeTools.serializedDefinitions(toolScope: scope))
   }
-  try expectEqual(general, NativeTools.generalKept.union(["sql", "run", "save"]))
+  // Every named action and kind routes to an operation that exists, and none shadows a
+  // workspace action.
+  let operations = Set(NativeTools.definitions.map(\.name))
+  try expectEqual(Set(GeneralTools.actions.values).isSubset(of: operations), true)
+  try expectEqual(
+    Set(GeneralTools.actions.keys).isDisjoint(with: ChatOperations.operations.map(\.name)), true)
+  try expectEqual(
+    GeneralTools.route("read", .object(["kind": .string("message"), "id": .string("m1")])).tool,
+    "history_read")
+  try expectEqual(
+    GeneralTools.route("run", .object(["action": .string("table.schema")])).tool,
+    "workspace_action")
+  try expectEqual(
+    GeneralTools.route(
+      "save",
+      .object(["kind": .string("document"), "sources": .array([.string("s1")])])
+    ).arguments, .object(["inputs": .array([.string("s1")])]))
+  try expectEqual(GeneralTools.route("ask", .object([:])).tool, "request_input")
   try expectEqual(ToolProfile.general.instructions(current: "today"), ToolProfile.generalInstructions)
   try expectEqual(ToolProfile.current.scopeInstructions(current: "today"), "today")
 

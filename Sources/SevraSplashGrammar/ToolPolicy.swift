@@ -167,6 +167,20 @@ public final class SplashToolPolicy {
       function["parameters"] = parameters
       tools[index]["function"] = function
     }
+    // The general `run` lists its actions on request the same way. The grammar keeps the enum.
+    if let index = tools.firstIndex(where: {
+      ($0["function"] as? [String: Any])?["name"] as? String == "run"
+    }), var function = tools[index]["function"] as? [String: Any],
+      var parameters = function["parameters"] as? [String: Any],
+      var properties = parameters["properties"] as? [String: Any],
+      var action = properties["action"] as? [String: Any]
+    {
+      action.removeValue(forKey: "enum")
+      properties["action"] = action
+      parameters["properties"] = properties
+      function["parameters"] = parameters
+      tools[index]["function"] = function
+    }
     // Keep changing exact IDs in the grammar and final validator, outside
     // the reusable prompt prefix. Originals remain in the message context.
     let referenceFields: [String: Set<String>] = [

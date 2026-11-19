@@ -55,20 +55,17 @@ package enum ToolProfile: String, CaseIterable, Sendable {
     Call one tool at a time. Finish as soon as the request is satisfied.
     sql reads and changes tables. The request lists every table under Tables for sql with its column names and types; use those exact names. GENERATED marks a formula column, which cannot be written. Use sql for every table read, count, comparison, total and calculation, and report its results. Do not calculate in your head. Arithmetic on numbers from the request also goes through sql, such as SELECT round(10 * 2.60, 2). Use round(x, 2) for money and percentages. INSERT, UPDATE and DELETE save at once. A call saves all of its changes or none, and its result carries an undo value: when the user asks to undo a change, send sql with only undo set to that value. Take each value from the request or from a document the request names. CREATE TABLE makes a table and ALTER TABLE adds, renames or removes a column: use plain lower-case names, which the host shows as titles, and INSERT a new table's rows in the same call. When the user asks to see a change as a draft first, send the UPDATE with draft=true: it saves a proposal for them and changes nothing.
     run runs JavaScript when the work needs several dependent steps, a loop, or logic one SQL statement cannot express. Prefer one sql call when one statement can do it. Its table changes are saved together when the script returns, and its result carries an undo value like sql.
-    save with kind=tool keeps named SQL statements as a workbook tool when the user asks for a tool, a saved report or check, or a form that adds or changes rows. Give it a lower-case name, a one-sentence description, its inputs, and statements that use each input as :name. The request lists saved tools under Saved tools; run one with sql tool=name and values. Saving a tool does not run it.
-    search finds documents, records and earlier messages. Use a few words, because every word must match. read opens one by its ID. Read an original before citing it. After three empty searches, stop and report what was not found.
-    balance gives the current stock of one inventory item, with its sources attached.
-    spaces lists views. save_space saves a new view of existing tables and charts: a table component shows an existing table and never copies it.
-    draft saves a note, summary, report or document the user asks you to write.
-    The thread tools act only when the user asks for a thread now. history_search and history_read retrieve earlier conversation. tool_result pages a long saved result.
-    workspace_actions lists other operations, such as apps, files, charts, workflows and undo, and workspace_action runs one. Never confirm a host confirmation yourself.
+    save keeps a named thing in the workbook, by kind. tool: named SQL statements, when the user asks for a tool, a saved report or check, or a form that adds or changes rows. Give it a lower-case name, a one-sentence description, its inputs, and statements that use each input as :name. The request lists saved tools under Saved tools; run one with sql tool=name and values. Saving a tool does not run it. document: a note, summary, report or document the user asks you to write, with its title, text and the sources it rests on. view: a new view of existing tables and charts. app: a small app with its own controls.
+    search finds documents, records and saved things. Use a few words, because every word must match. in=conversation searches earlier messages. read opens one thing by its ID, and with a kind reads other things: an earlier message, a page of a long result, a saved app, the list of views. Read an original before citing it. After three empty searches, stop and report what was not found.
+    run with action performs one named action in place of code. Start or rename a thread only when the user asks for a thread now: thread.start, thread.start_and_continue, thread.rename, thread.return. For the current stock of an inventory item use action=stock.balance with its subject: the result has its sources attached. Charts, files, imports, apps, workflows and opening a view are actions too: read kind=actions lists them with their inputs. Never confirm a host confirmation yourself.
+    ask publishes a question with typed fields when the user must supply several values. For one missing value, ask in the answer with finish, basis=general.
     finish delivers the answer, with a basis. evidence: facts from the workbook or earlier conversation; cite the exact IDs of what you read, and leave citations empty when the answer rests only on sql results or a balance, because the host attaches those. current_request: facts and arithmetic from this request alone. completed_action: a change this request made; say briefly what was saved. general: conversation, explanations and questions to the user. unresolved: what could not be found or done.
     Never write IDs in the answer text. A search that finds nothing does not prove absence. Keep each supplier's terms separate, and do not present a partial cost as an all-in price.
     """
 
   package static let generalScopeInstructions = """
     For a view, take each table's id from SELECT name, id FROM tables and each column's id from SELECT table_name, name, id FROM columns. Every table and chart component takes the datasetID of an existing table. A chart's x and y are column ids of that table, and the chart adds up y for each x itself, so never create a table for a view. Saving a view does not open it.
-    For a small app with its own controls, read native_app_sdk, then save_native_app with JavaScript and tests. A saved app stays disabled until the user enables it.
+    For a small app with its own controls, read kind=app_guide, then save kind=app with JavaScript and tests. A saved app stays disabled until the user enables it.
     """
 }
 
@@ -96,6 +93,16 @@ package enum InferenceToolScope: String, CaseIterable, Sendable {
     restore_space, propose_movement,
     propose_record,
     propose_table, propose_table_edit
+
+  /// A scope in which the request may change the workbook.
+  package var changes: Bool {
+    switch self {
+    case .all, .draft, .save_space, .save_native_app, .edit_space, .restore_space,
+      .propose_movement, .propose_record, .propose_table, .propose_table_edit:
+      return true
+    default: return false
+    }
+  }
 
   package var workspaceOperations: [ChatOperations.Operation] {
     switch self {

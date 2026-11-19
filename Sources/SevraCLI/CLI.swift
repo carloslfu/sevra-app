@@ -788,8 +788,10 @@ import SevraProduct
       try book.exportCSV(arg(2), to: url(3), cancellation: cancellation)
       return .bool(true)
     case "tool":
-      return try WorkbookTools(book).execute(
+      // The seven general tools are accepted by name, and so is the operation behind each.
+      let call = try GeneralTools.route(
         arg(2), args.count > 3 ? Value.parseExact(args[3]) : .object([:]))
+      return try WorkbookTools(book).execute(call.tool, call.arguments)
     case "ask":
       let result = try await ProductAI.shared.run(
         arg(2), workbook: book,
