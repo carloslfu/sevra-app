@@ -2048,6 +2048,146 @@
      "answer": "If the unit cost for Cedar Tools were 2.60, the total would be 26.\n\n[Supplier comparison, row 2](sevra://item/f54225a0-fef3-4e94-b7f6-940a37b5414d) [Supplier comparison, row 1](sevra://item/b1c2d5b6-06a4-4926-b165-f2a805b6d02d)"
     }
    ]
+  },
+  {
+   "name": "eval-16",
+   "change": "After each kind of save and each named action got its own strict shape.",
+   "language": "en",
+   "jobs": [
+    {
+     "job": "read.stock",
+     "language": "en",
+     "passed": true,
+     "decisions": 3,
+     "wallSeconds": 18.88,
+     "firstPromptTokens": 7232,
+     "tools": [
+      "sql (failed: Statement 1: no such column: stock. Use the exact names under Tables for sql, and write text values in single quotes.)",
+      "sql"
+     ],
+     "failure": null,
+     "answer": "We have 18 brass bolts.\n\n[Workshop inventory](sevra://item/cf303f3e-f240-4513-a67c-98e8b2c089c4) [brass bolts: -2](sevra://item/059d44b9-80de-4e9a-8609-6002b3639c11)"
+    },
+    {
+     "job": "read.document",
+     "language": "en",
+     "passed": true,
+     "decisions": 3,
+     "wallSeconds": 21.29,
+     "firstPromptTokens": 7233,
+     "tools": [
+      "search",
+      "read"
+     ],
+     "failure": null,
+     "answer": "The payment terms on delivery note 2087 are: Payment is due within 30 days.\n\n[Delivery note 2087](sevra://item/8306fa19-20fb-40a8-b42d-73e308823993?locator=text;%20offset%3D0)"
+    },
+    {
+     "job": "draft.change",
+     "language": "en",
+     "passed": true,
+     "decisions": 2,
+     "wallSeconds": 19.21,
+     "firstPromptTokens": 7267,
+     "tools": [
+      "sql"
+     ],
+     "failure": null,
+     "answer": "I've saved a draft proposal to update Cedar Tools' unit cost from 2.75 to 2.60. The table remains unchanged until you review and apply it."
+    },
+    {
+     "job": "build.view",
+     "language": "en",
+     "passed": false,
+     "decisions": 12,
+     "wallSeconds": 57.43,
+     "firstPromptTokens": 7241,
+     "tools": [
+      "sql",
+      "sql",
+      "save_space",
+      "sql",
+      "sql",
+      "save_space",
+      "sql",
+      "sql",
+      "save_space",
+      "sql",
+      "sql",
+      "save_space"
+     ],
+     "failure": "step_limit: This request reached its step limit. Completed changes are saved. Ask to continue, or narrow the question.",
+     "answer": ""
+    },
+    {
+     "job": "build.form",
+     "language": "en",
+     "passed": true,
+     "decisions": 7,
+     "wallSeconds": 46.5,
+     "firstPromptTokens": 7258,
+     "tools": [
+      "save (failed: Give up to 16 inputs with distinct lower-case names.)",
+      "save",
+      "form_template (failed: The application definition was not found.)",
+      "workspace_actions",
+      "tool_result (failed: No tool receipt exists in this conversation.)",
+      "search"
+     ],
+     "failure": null,
+     "answer": "The form \"New reorder level\" has been created as a saved tool. It accepts two inputs:\n- **Part** (text): The part name\n- **Level** (number): The reorder level value\n\nWhen run, it inserts a new row into the `reorder_levels` table with the provided part and level values.\n\n[Saved tools, row 1](sevra://item/75860c2c-b5e9-432b-8510-286fa38622fc?locator=text;%20offset%3D0)"
+    },
+    {
+     "job": "build.rule",
+     "language": "en",
+     "passed": false,
+     "decisions": 12,
+     "wallSeconds": 70.2,
+     "firstPromptTokens": 7234,
+     "tools": [
+      "workspace_actions",
+      "search",
+      "workflow_activity",
+      "find_definitions",
+      "sql",
+      "find_definitions",
+      "definition_registry",
+      "find_definitions",
+      "find_definitions",
+      "sql",
+      "sql",
+      "find_definitions"
+     ],
+     "failure": "step_limit: This request reached its step limit. Completed changes are saved. Ask to continue, or narrow the question.",
+     "answer": ""
+    },
+    {
+     "job": "build.saved_tool",
+     "language": "en",
+     "passed": true,
+     "decisions": 2,
+     "wallSeconds": 22.47,
+     "firstPromptTokens": 7263,
+     "tools": [
+      "save"
+     ],
+     "failure": null,
+     "answer": "The tool `low_stock` has been saved. It queries the `parts` table for rows where `stock < reorder_level` and returns the part, category, stock, and reorder_level columns."
+    },
+    {
+     "job": "conversation.new_thread",
+     "language": "en",
+     "passed": true,
+     "decisions": 1,
+     "wallSeconds": 13.04,
+     "firstPromptTokens": 7223,
+     "tools": [
+      "start_thread"
+     ],
+     "failure": null,
+     "answer": "Created a thread."
+    }
+   ]
   }
  ],
  "latestAgainstBaseline": {

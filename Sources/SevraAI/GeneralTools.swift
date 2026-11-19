@@ -17,7 +17,7 @@ package enum GeneralTools {
     "workflow": "read_workflow", "references": "references", "lineage": "lineage",
     "archive": "archive_members", "reviews": "review_queue", "workflows": "workflow_activity",
     "actions": "workspace_actions", "app_guide": "native_app_sdk",
-    "definition_guide": "definition_registry",
+    "definition_guide": "definition_registry", "rule_guide": "guide",
   ]
   /// `save` kinds and the operation behind each. A tool is saved by the core's own `save`.
   static let saves: [String: String] = [
@@ -68,6 +68,9 @@ package enum GeneralTools {
       guard let kind = a["kind"].string, kind != "item" else { return ("read", rest(without: "kind")) }
       guard let target = reads[kind] else { return (tool, a) }
       let ref = fields.removeValue(forKey: "ref")
+      if target == "guide" {
+        return (target, .object(["name": .string(String(kind.dropLast("_guide".count)))]))
+      }
       if kind == "actions" {
         return (target, (ref ?? a["id"]).string.map { .object(["domain": .string($0)]) } ?? .object([:]))
       }
@@ -140,7 +143,9 @@ package enum GeneralTools {
       "propose_table": "sql CREATE TABLE", "compare_rows": "sql", "search_history": "search",
       "history_search": "search in=conversation", "find_definitions": "search in=definitions",
     ]
-    for (kind, target) in reads where kind != "item" { phrases[target] = "read kind=" + kind }
+    for (kind, target) in reads where kind != "item" && target != "guide" {
+      phrases[target] = "read kind=" + kind
+    }
     for (kind, target) in saves { phrases[target] = "save with " + kind }
     for (action, target) in actions { phrases[target] = "run action " + action }
     return phrases.filter { $0.key.contains("_") }.sorted {
@@ -206,7 +211,7 @@ package enum GeneralTools {
     let read = WorkbookToolDefinition(
       name: "read",
       description:
-        "Read one thing. With id alone: a document or record, with offset for later parts. references, lineage, archive: what that item links to, came from, or contains. Other kinds name their thing with ref. message: an earlier message. result: a page of a long saved tool result. app, definition, workflow, view_history: that saved thing. views, reviews, workflows: those lists, with no ref. actions: the actions run can perform, with ref as an optional group such as table, app, visual, file, workflow. app_guide: how to write an app. definition_guide: the kinds of saved definitions.",
+        "Read one thing. With id alone: a document or record, with offset for later parts. references, lineage, archive: what that item links to, came from, or contains. Other kinds name their thing with ref. message: an earlier message. result: a page of a long saved tool result. app, definition, workflow, view_history: that saved thing. views, reviews, workflows: those lists, with no ref. actions: the actions run can perform, with ref as an optional group such as table, app, visual, file, workflow. app_guide: how to write an app. definition_guide: the kinds of saved definitions. rule_guide: how to save a rule that watches stock.",
       parameters: object(
         [
           "id": .object(item),

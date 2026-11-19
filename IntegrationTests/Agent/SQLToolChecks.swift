@@ -278,5 +278,25 @@ func checkSQLTool() async throws {
     workbook: book, model: blocked)
   try expectEqual(try await toolResult(blocked)["error"] != .null, true)
   try expectEqual(try values(), updated)
-  print("PASS sql tool: general declarations, answers from query results, AI row and shape changes under a rule Source, one undo from the answer, saved tool, draft, forbidden change, repeated query, a script's changes and refusal")
+  // A file is exported only to a path the person wrote in the request.
+  let exporting = ScriptedCalls(
+    [
+      call(
+        "run",
+        .object([
+          "action": .object([
+            "name": .string("file.export_table"),
+            "arguments": .object([
+              "id": .string(tableID), "path": .string("/tmp/sevra-check-export.csv"),
+            ]),
+          ])
+        ])),
+      finish("Where should I save the export?", basis: "general"),
+    ], toolProfile: .general)
+  _ = try await WorkbookAgent.run(
+    "Export the Supplier comparison table.", workbook: book, model: exporting)
+  try expectEqual(
+    try await toolResult(exporting)["error"].text.contains("path the user wrote"), true)
+  try expectEqual(FileManager.default.fileExists(atPath: "/tmp/sevra-check-export.csv"), false)
+  print("PASS sql tool: general declarations, answers from query results, AI row and shape changes under a rule Source, one undo from the answer, saved tool, draft, forbidden change, repeated query, a script's changes and refusal, an export to an unnamed path")
 }

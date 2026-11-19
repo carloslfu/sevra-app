@@ -13,6 +13,14 @@ public struct WorkbookTools {
   public let readOnly: Bool
   public let conversationTitle: String?
   public let excelConversion: ExcelConversionBuild?
+  static let guides: [String: String] = [
+    "rule": """
+      A rule watches the stock of one inventory item and runs a saved workflow when the stock crosses a level. It never runs by itself until the user enables it.
+      1. A rule needs a saved workflow to run. Find it with search in=definitions. If the workbook has none, say so and ask the user what the rule should do when it fires. Do not invent a workflow.
+      2. run action template.rule with {workflowID: the workflow's exact ID, arguments: the workflow's inputs or {}, subject: the item as the stock table names it, operator: "<" or "<=" or ">" or ">=", threshold: the level}. It returns a template receipt and changes nothing.
+      3. save with template: {templateReceiptID: that receipt's ID, title: a short title}. Saving does not enable the rule.
+      """
+  ]
   public static let conversationTools: [String: String] = [
     "start_thread": "start_thread", "start_thread_and_continue": "start_thread_and_continue",
     "rename_current_thread": "rename_thread",
@@ -24,7 +32,7 @@ public struct WorkbookTools {
     "review_queue", "references", "space_history", "find_definitions", "read_definition",
     "definition_registry", "receiving_template", "form_template", "workflow_template",
     "inventory_automation_template",
-    "evaluate_definition", "native_app_sdk", "read_native_app", "workspace_actions",
+    "evaluate_definition", "native_app_sdk", "read_native_app", "workspace_actions", "guide",
     "preview_action", "workflow_activity", "read_workflow",
   ]
   public init(
@@ -340,6 +348,12 @@ public struct WorkbookTools {
         },
         statements: statements, token: "save-" + (receiptID ?? token),
         requestSourceID: requestSourceID, cancellation: cancellation)
+    case "guide":
+      // Short how-to texts the general tools read on demand.
+      guard let text = Self.guides[a["name"].text] else {
+        throw SevraError("arguments", "No guide has that name.")
+      }
+      return .object(["guide": .string(text)])
     case "run":
       // The general chat tools' code tool: one script in the sandbox, or one named action.
       if let action = a["action"].string {

@@ -65,6 +65,7 @@ package enum ToolProfile: String, CaseIterable, Sendable {
 
   package static let generalScopeInstructions = """
     For a view, take each table's id from SELECT name, id FROM tables and each column's id from SELECT table_name, name, id FROM columns. Every table and chart component takes the datasetID of an existing table. A chart's x and y are column ids of that table, and the chart adds up y for each x itself, so never create a table for a view. Saving a view does not open it.
+    For a rule that watches stock and alerts or acts, read kind=rule_guide first.
     For a small app with its own controls, read kind=app_guide, then save with app: its package of JavaScript, and tests. A saved app stays disabled until the user enables it.
     """
 }

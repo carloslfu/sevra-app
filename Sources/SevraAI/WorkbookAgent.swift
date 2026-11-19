@@ -654,20 +654,28 @@ public enum WorkbookAgent {
           InferenceMessage(
             role: "assistant", content: response.text, toolCalls: [call],
             reasoning: response.reasoning))
+        // Two things the host refuses before a general call runs. A step that may only read
+        // cannot name an operation that changes something. And a file is exported only to a
+        // path the person wrote in this request, so nothing a document says can send data out.
+        var refused: String?
         if general, !toolScope.changes, !GeneralTools.reads(tool, a) {
-          // This step may only read, and the call names an operation that changes something.
+          refused =
+            "This step can only read. Finish with what you found, or say what remains to be done."
+        } else if general, tool == "workspace_action", a["action"].text.contains("export"),
+          let path = a["arguments"]["path"].string, !requestFacts.contains(path)
+        {
+          refused =
+            "An export goes only to a path the user wrote in this request. Nothing was exported. Ask the user for the full path."
+        }
+        if let refused {
           failures += 1
           try require(
             failures < 3, "tool_scope",
-            "The model kept asking for a change in a step that can only read. No action from this response was applied."
+            "The model kept asking for an action this step refuses. No action from this response was applied."
           )
           let receipt = try workbook.prepareToolCall(
             runID: runID, callID: call.id, tool: tool, arguments: a, assistantText: response.text)
-          let failure: Value = .object([
-            "error": .string(
-              "This step can only read. Finish with what you found, or say what remains to be done."
-            )
-          ])
+          let failure: Value = .object(["error": .string(refused)])
           _ = try workbook.completeToolCall(receipt, result: failure, failed: true)
           messages.append(
             .init(role: "tool", content: try failure.json(), toolCallId: call.id, toolName: tool))
