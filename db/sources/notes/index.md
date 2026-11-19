@@ -2,11 +2,12 @@
 type: index
 scope: type-folder
 folder: sources/notes
-updated: 2026-11-19T16:34:29.754968Z
+updated: 2026-11-19T20:02:43.807714Z
 ---
 
 # sources/notes
 
+- [[sources/notes/2026/11/slim-ci]] — Carlos has the app CI slimmed: one shared check list, a quick mode for every push and the full set for releases.
 - [[sources/notes/2026/11/general-tools-only]] — Carlos makes the seven tools the only chat tools and asks to remove the old way, with no backward compatibility.
 - [[sources/notes/2026/11/light-testing-direction]] — Carlos stops the overtesting: this app is tested in English, and model tests cover happy paths and edge cases in minutes.
 - [[sources/notes/2026/11/general-tools-in-the-app]] — Carlos asks to put the general tools in the app and finish the whole plan end to end.

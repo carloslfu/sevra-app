@@ -111,7 +111,7 @@ Commit messages never say Claude in any form, trailers and author names included
 CLAUDE.md link or a .claude/ file, write "the agent instructions" or "the agent settings". The
 repository's agent settings keep the tool from adding attribution lines.
 Work directly on `main`, with no feature branch or pull request. Run `dbmd index rebuild` before
-the suite, because its last step validates the records.
+the suite, because its first step validates the records.
 Cloud sync, transport, replica coordination and a new resolver are out of scope.
 Preserve unrelated changes. Do not change the website business as a side effect.
 Keep public claims tied to measured acceptance.

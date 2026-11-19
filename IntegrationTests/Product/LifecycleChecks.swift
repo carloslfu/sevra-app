@@ -88,9 +88,9 @@ actor PausedModel: WorkbookInference {
         text: "",
         calls: [
           .init(
-            id: "save", name: "save_space",
+            id: "save", name: "save",
             inputJSON:
-              "{\"title\":\"Memory check\",\"definition\":{\"version\":1,\"components\":[{\"id\":\"note\",\"type\":\"text\",\"title\":\"Memory check\",\"text\":\"Saved before pressure.\"}]}}"
+              "{\"view\":{\"title\":\"Memory check\",\"definition\":{\"version\":1,\"components\":[{\"id\":\"note\",\"type\":\"text\",\"title\":\"Memory check\",\"text\":\"Saved before pressure.\"}]}}}"
           )
         ])
     }

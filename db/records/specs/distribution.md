@@ -137,12 +137,16 @@ failing detailed explanation, one direct acceptance-boundaries contrast, and the
 existing context-budget regression because this change actually exposed it.
 Broader cohorts already performed remain evidence, not a reason to repeat them.
 
-Remote CI follows the same owner-approved policy. The existing complete Checks
-job retains all 36 steps and assertions, but runs automatically only on main
-integration pushes, v-prefixed release-tag pushes, and non-draft pull requests
-when opened, reopened or marked ready for review. Ordinary development pushes
-and pull-request synchronize events do not launch it. Draft jobs are skipped;
-skipped or untriggered checks are never evidence of passing verification.
+Remote CI follows the same owner-approved policy. On November 19, 2026 the owner
+had it slimmed ([[sources/notes/2026/11/slim-ci]]): CI and the Mac share one list,
+`scripts/check.sh`. Main pushes and non-draft pull requests, when opened, reopened
+or marked ready for review, run `scripts/check.sh --quick`: one build of every
+product and the fast checks. A newer push cancels an older run of the same branch.
+v-prefixed release tags and a manual dispatch build the packaged app and run the
+whole list. Pushes to other branches and pull-request synchronize events do not
+launch it. Draft jobs are skipped; skipped, cancelled or untriggered checks are never
+evidence of passing verification, and a quick run is not evidence for the slow
+journeys it leaves out.
 
 Use focused local checks during development. At a meaningful integration,
 pre-merge or release milestone, explicitly dispatch Checks for the intended

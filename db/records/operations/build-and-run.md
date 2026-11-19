@@ -194,19 +194,29 @@ while the app is open.
 
 ## Verification and development
 
-Full checks also build the native grammar. Install the pinned Rust 1.96.0
+The checks build the native grammar. Install the pinned Rust 1.96.0
 toolchain through rustup once; it is a build dependency, not required by the
 installed app.
 
 ~~~sh
 rustup toolchain install 1.96.0 --profile minimal
+./scripts/check.sh --quick
 ./scripts/check.sh
 swift build -c release --product sevra-benchmark
 .build/release/sevra-benchmark
 ~~~
 
+`scripts/check.sh` is the one list for this Mac and hosted CI. `--quick` is what
+every main push runs: the records, links and brand, the app SDK, one build of every
+product, the core, interface, Splash, workflow-fixture, grammar and agent checks, and
+the no-model `sql` and `run` chat checks. With no option it adds the scale limits,
+crash recovery, search benchmark, signed authoring, the command-line journeys and,
+when `output/native` is current, the packaged app. Run that once on a release
+candidate. Release tags and a manual Checks dispatch run the whole list on hosted CI
+after building the package, except transcription, which needs the Mac's speech model.
+
 The checks use a standalone executable so they work with command line tools alone.
-dbmd 0.14.7 or later is required for the final knowledge-store validation.
+dbmd 0.14.7 or later is required; the knowledge store is validated first.
 See the official [db.md repository](https://github.com/carloslfu/db.md) for
 installation. The benchmark retains synthetic workbooks and JSON evidence in a
 new .build/search-scale-<id> directory printed at startup. It runs both row and
