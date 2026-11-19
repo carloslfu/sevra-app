@@ -236,6 +236,19 @@ def levels(book):
     book.new_table('Reorder levels', [('part', 'Part', 'text'), ('level', 'Level', 'decimal')], LEVELS)
 
 
+def report_workflow(book):
+    """A saved function and a workflow that evaluates it, for a rule to run."""
+    import uuid
+    function = book.run('definition-save', str(uuid.uuid4()), {
+        'kind': 'function', 'title': 'Report count', 'description': 'Synthetic fixture.',
+        'parameters': [], 'payload': {'expression': '3'}}, 'new', str(uuid.uuid4()))
+    book.run('definition-save', str(uuid.uuid4()), {
+        'kind': 'workflow', 'title': 'Low-stock report', 'description': 'Synthetic fixture.', 'parameters': [],
+        'payload': {'readPolicy': 'latest-at-step', 'steps': [{
+            'id': 'calculate', 'kind': 'evaluate', 'binding': {'mode': 'exact', 'versionID': function['id']},
+            'arguments': {}}]}}, 'new', str(uuid.uuid4()))
+
+
 def unchanged(run):
     return [] if not run['saved'] else ['the workbook changed: ' + json.dumps(run['saved'])[:400]]
 
@@ -665,6 +678,10 @@ JOBS = [
         'Create a rule that alerts me when the stock of brass bolts falls below 10.',
         'Crea una regla que me avise cuando el stock de brass bolts baje de 10.',
         rule_check, None, None, timeout=600),
+    Job('build.rule_for_workflow', 'A rule is saved, not enabled, that runs the Low-stock report when the stock of brass bolts is below 10. The workbook holds that workflow, which the first rule job lacks.',
+        'Create a rule that runs the Low-stock report workflow when the stock of brass bolts falls below 10. Do not enable it.',
+        'Crea una regla que ejecute el flujo Low-stock report cuando el stock de brass bolts baje de 10. No la actives.',
+        rule_check, lambda book: report_workflow(book) or {}, None, timeout=600),
     Job('build.saved_tool', 'A workbook tool named low_stock is saved, and calling it lists exactly Hex nuts and Hex key set. The current tools cannot make one, so this job has no baseline.',
         'Save a tool named low_stock that lists the parts in the Parts table whose stock is below their reorder level.',
         'Guarda una herramienta llamada low_stock que liste las piezas de la tabla Parts cuyo stock está por debajo de su nivel de reorden.',

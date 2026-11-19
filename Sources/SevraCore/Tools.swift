@@ -16,9 +16,11 @@ public struct WorkbookTools {
   static let guides: [String: String] = [
     "rule": """
       A rule watches the stock of one inventory item and runs a saved workflow when the stock crosses a level. It never runs by itself until the user enables it.
-      1. A rule needs a saved workflow to run. Find it with search in=definitions. If the workbook has none, say so and ask the user what the rule should do when it fires. Do not invent a workflow.
-      2. run action template.rule with {workflowID: the workflow's exact ID, arguments: the workflow's inputs or {}, subject: the item as the stock table names it, operator: "<" or "<=" or ">" or ">=", threshold: the level}. It returns a template receipt and changes nothing.
-      3. save with template: {templateReceiptID: that receipt's ID, title: a short title}. Saving does not enable the rule.
+      1. A rule needs a saved workflow to run. Find it with search in=definitions, using one or two words of its title. If the workbook has none, say so and ask the user what the rule should do when it fires. Do not invent a workflow.
+      2. In the hit, id is the workflow's exact version ID. Use id everywhere below. Never use logical_id or source_id.
+      3. read kind=definition with ref set to that id.
+      4. run action template.rule with {workflowID: that id, arguments: the workflow's inputs or {}, subject: the item as the stock table names it, operator: "<" or "<=" or ">" or ">=", threshold: the level as a number}. It returns a template receipt and changes nothing.
+      5. save with template: {templateReceiptID: that receipt's ID, title: a short title}. Saving does not enable the rule.
       """
   ]
   public static let conversationTools: [String: String] = [
