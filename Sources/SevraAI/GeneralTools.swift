@@ -241,8 +241,15 @@ package enum GeneralTools {
             ], required: ["name", "arguments"])
         ])
       + exact.map { name in
-        object(
-          ["name": choice([name], ""), "arguments": parameters(actions[name]!)],
+        var inputs = parameters(actions[name]!).object
+        if name == "template.rule" {
+          // A level is a number. As free text the model wrote stray markup into it.
+          var properties = inputs["properties"]!.object
+          properties["threshold"] = .object(["type": .string("number")])
+          inputs["properties"] = .object(properties)
+        }
+        return object(
+          ["name": choice([name], ""), "arguments": .object(inputs)],
           required: ["name", "arguments"])
       }
     var runProperties: [String: Value] = [
