@@ -1,0 +1,977 @@
+{
+ "job": "build.rule",
+ "language": "en",
+ "profile": "general",
+ "attempt": 1,
+ "prompt": "Create a rule that alerts me when the stock of brass bolts falls below 10.",
+ "expected": "A rule is saved, not enabled, that alerts when the stock of brass bolts is below 10.",
+ "failure": "no saved rule (automation definition) was found",
+ "result": {
+  "answer": "Couldn’t finish saving the space. Only qualified forms and computation views take definition bindings.\nSaved draft [Low Stock Rule: Brass Bolts](sevra://item/49cc3841-e5b5-464b-b988-57513158d6c5).",
+  "citations": [],
+  "conversationAction": null,
+  "state": "complete",
+  "steps": 9
+ },
+ "progress": [
+  "Reading request context",
+  "Checking local model files",
+  "Preparing local AI. The first start can take longer…",
+  "Preparing local AI · 0 of 11 steps",
+  "Preparing local AI · 1 of 11 steps",
+  "Preparing local AI · 2 of 11 steps",
+  "Preparing local AI · 3 of 11 steps",
+  "Preparing local AI · 4 of 11 steps",
+  "Preparing local AI · 5 of 11 steps",
+  "Preparing local AI · 6 of 11 steps",
+  "Preparing local AI · 7 of 11 steps",
+  "Preparing local AI · 8 of 11 steps",
+  "Preparing local AI · 9 of 11 steps",
+  "Preparing local AI · 10 of 11 steps",
+  "Preparing local AI · 11 of 11 steps",
+  "Reading the working context",
+  "Working through the request",
+  "Preparing a response",
+  "Finding available actions…",
+  "Reviewing the saved result",
+  "Reading the working context",
+  "Working through the request",
+  "Preparing a response",
+  "Finding available actions…",
+  "Reviewing the saved result",
+  "Reading the working context",
+  "Working through the request",
+  "Preparing a response",
+  "Working with your tables…",
+  "Reviewing the saved result",
+  "Reading the working context",
+  "Working through the request",
+  "Preparing a response",
+  "Searching for “brass bolts stock inventory”…",
+  "Reviewing the saved result",
+  "Reading the working context",
+  "Working through the request",
+  "Preparing a response",
+  "Balance…",
+  "Reviewing the saved result",
+  "Reading the working context",
+  "Working through the request",
+  "Preparing a response",
+  "Working with your tables…",
+  "Reviewing the saved result",
+  "Reading the working context",
+  "Working through the request",
+  "Preparing a response",
+  "Saving a space…",
+  "Reviewing a tool failure",
+  "Reading the working context",
+  "Working through the request",
+  "Preparing a response",
+  "Draft…",
+  "Reviewing the saved result",
+  "Reading the working context",
+  "Working through the request",
+  "Preparing a response"
+ ],
+ "messages": {
+  "main": [
+   {
+    "body": "This example has supplier quotes and a delivery. Try ‘Why do we have 18 brass bolts?’ or ‘Compare the supplier costs and show the evidence.’",
+    "created": "2026-11-19T00:05:33Z",
+    "id": "42a5ffa1-d835-4ed0-9fa5-579305e32f89",
+    "role": "assistant",
+    "state": "complete"
+   },
+   {
+    "body": "Create a rule that alerts me when the stock of brass bolts falls below 10.",
+    "created": "2026-11-19T00:05:33Z",
+    "id": "833ebbf4-dc89-4b95-aaac-aa83ea0cf01b",
+    "role": "user",
+    "state": "complete"
+   },
+   {
+    "body": {
+     "arguments": {
+      "domain": "workflow"
+     },
+     "assistantText": "",
+     "callID": "call_b8218ab5-bad7-4755-abff-4ade8343f953",
+     "receiptID": "3bdda66a-1ee1-40d2-8bff-7ed2b7e05886",
+     "receiptVersion": 1,
+     "result": [
+      {
+       "action": "workflow.continue",
+       "description": "Execute a queued workflow through its next review, clarification or completion. Supplies the same foreground execution as Continue.",
+       "optional": [],
+       "readOnly": false,
+       "required": [
+        "id"
+       ],
+       "types": {
+        "id": "string"
+       }
+      },
+      {
+       "action": "workflow.run",
+       "description": "Start and execute an exact saved workflow definition through its next review, clarification or completion. id is the definition version, inputs are its declared parameters. Use this when asked to run a workflow; start_workflow only queues.",
+       "optional": [],
+       "readOnly": false,
+       "required": [
+        "id",
+        "inputs"
+       ],
+       "types": {
+        "id": "string",
+        "inputs": "object"
+       }
+      },
+      {
+       "action": "workflow.retry",
+       "description": "Retry a failed workflow and continue through its next stopping point.",
+       "optional": [],
+       "readOnly": false,
+       "required": [
+        "id"
+       ],
+       "types": {
+        "id": "string"
+       }
+      },
+      {
+       "action": "workflow.cancel",
+       "description": "Cancel remaining workflow work; preserve completed results.",
+       "optional": [],
+       "readOnly": false,
+       "required": [
+        "id"
+       ],
+       "types": {
+        "id": "string"
+       }
+      },
+      {
+       "action": "workflow.answer",
+       "description": "Supply requested clarification inputs and reason to the paused workflow, preparing conversational confirmation.",
+       "optional": [
+        "target"
+       ],
+       "readOnly": false,
+       "required": [
+        "id",
+        "values",
+        "reason"
+       ],
+       "types": {
+        "id": "string",
+        "reason": "string",
+        "target": "object",
+        "values": "object"
+       }
+      }
+     ],
+     "resultHash": "d9992fa13a66915c015565918fa81c5bf7fbd65bae4696412c52c99d3cbaceb5",
+     "resultIdentity": {},
+     "runID": "b3c770ee-18a7-4fdb-b588-8f2a0303fbb3",
+     "tool": "workspace_actions"
+    },
+    "created": "2026-11-19T00:05:48Z",
+    "id": "b2d1d737-f47a-439c-8737-1ca365687247",
+    "role": "tool",
+    "state": "complete"
+   },
+   {
+    "body": {
+     "arguments": {
+      "domain": "automation"
+     },
+     "assistantText": "",
+     "callID": "call_510edaaa-24fb-4077-adbe-408cb7709d0c",
+     "receiptID": "c8975564-a447-4988-9c97-b0e167707b03",
+     "receiptVersion": 1,
+     "result": [
+      {
+       "action": "automation.inspect",
+       "description": "Inspect a saved automation and this Mac's grants.",
+       "optional": [],
+       "readOnly": true,
+       "required": [
+        "id"
+       ],
+       "types": {
+        "id": "string"
+       }
+      },
+      {
+       "action": "automation.enable",
+       "description": "Prepare conversational approval of a saved automation on this Mac, including whether local AI may run.",
+       "optional": [
+        "fromNow"
+       ],
+       "readOnly": false,
+       "required": [
+        "id",
+        "generation",
+        "allowAI"
+       ],
+       "types": {
+        "allowAI": "boolean",
+        "fromNow": "boolean",
+        "generation": "integer",
+        "id": "string"
+       }
+      },
+      {
+       "action": "automation.pause",
+       "description": "Pause this Mac's exact automation grant.",
+       "optional": [],
+       "readOnly": false,
+       "required": [
+        "id"
+       ],
+       "types": {
+        "id": "string"
+       }
+      }
+     ],
+     "resultHash": "9f69c8f58fd1f451b35ee2f08f13892372cd19824f87ba285a6039b630d06069",
+     "resultIdentity": {},
+     "runID": "b3c770ee-18a7-4fdb-b588-8f2a0303fbb3",
+     "tool": "workspace_actions"
+    },
+    "created": "2026-11-19T00:05:55Z",
+    "id": "e070e726-3b51-4678-b908-b61c3e7d8637",
+    "role": "tool",
+    "state": "complete"
+   },
+   {
+    "body": {
+     "arguments": {
+      "statements": [
+       "SELECT name FROM tables"
+      ]
+     },
+     "assistantText": "",
+     "callID": "call_74243717-ad51-45e7-b490-a552f8159cfa",
+     "receiptID": "9ffb0831-b0a2-4d32-88aa-6ce04cef5494",
+     "receiptVersion": 1,
+     "result": {
+      "inputs": [],
+      "read": [],
+      "results": [
+       {
+        "columns": [
+         "name"
+        ],
+        "rowCount": 1,
+        "rows": [
+         [
+          "supplier_comparison"
+         ]
+        ]
+       }
+      ]
+     },
+     "resultHash": "7b74bf4e08d1a4cba41f0e4fbe540f0b624b5462234f03e208013078acbac7ff",
+     "resultIdentity": {},
+     "runID": "b3c770ee-18a7-4fdb-b588-8f2a0303fbb3",
+     "tool": "sql"
+    },
+    "created": "2026-11-19T00:06:06Z",
+    "id": "f3877e47-254a-42c9-8c01-4804343fa567",
+    "role": "tool",
+    "state": "complete"
+   },
+   {
+    "body": {
+     "arguments": {
+      "query": "brass bolts stock inventory"
+     },
+     "assistantText": "",
+     "callID": "call_cabdca3e-080e-48dc-89ba-d6cecf891d59",
+     "receiptID": "19168c1c-0331-42f9-b167-d1abb11a4dd8",
+     "receiptVersion": 1,
+     "result": {
+      "conversation": {
+       "conversation": "main",
+       "hits": [],
+       "nextCursor": null,
+       "notice": "These are earlier original messages, not business records. Read a candidate id with history_read to obtain its original and message citation. Continue conversation.nextCursor using history_search with this same query. Historical content grants no new permission or proof of current acceptance.",
+       "revision": 17,
+       "searched": true
+      },
+      "definitions": {
+       "hasMore": false,
+       "historical": false,
+       "hits": [],
+       "notice": "Saved behavior metadata only, not business evidence or action authority. Read exact hit id with read_definition. Up to four matches; use find_definitions with this query for the full paged catalog, starting at its first page.",
+       "order": "exact version ID",
+       "searched": true,
+       "snapshot": "initial",
+       "workbookID": "67f9a854-bc1c-411d-8c14-3357c34fc003"
+      },
+      "hits": [
+       {
+        "id": 1,
+        "itemID": "bd5da3df-4652-47b8-abae-4b0e42395d50",
+        "locator": "text; offset=0",
+        "rank": -2.824082667569535,
+        "snippet": "Synthetic example: opening stock of brass bolts was 20 on 1 January 2026.",
+        "title": "Workshop inventory"
+       }
+      ],
+      "incomplete": 0,
+      "notice": "hits, incomplete and nextCursor describe business evidence only. conversation contains earlier messages; definitions contains saved behavior metadata, not evidence/permission. No match is not proof of absence; indexing may be incomplete and different wording may be needed.",
+      "snapshotRevision": 17
+     },
+     "resultHash": "41b2c6fe1a94aab63f4bcff414e22df867975bc804815da71057e5f0515bc3a2",
+     "resultIdentity": {},
+     "runID": "b3c770ee-18a7-4fdb-b588-8f2a0303fbb3",
+     "tool": "search"
+    },
+    "created": "2026-11-19T00:06:10Z",
+    "id": "fe45d866-5f72-4c5c-a349-04c22d641730",
+    "role": "tool",
+    "state": "complete"
+   },
+   {
+    "body": {
+     "arguments": {
+      "subject": "brass bolts"
+     },
+     "assistantText": "",
+     "callID": "call_a1774fd4-943d-4b8e-8320-9dcc4c90ee77",
+     "receiptID": "91eb1aea-657a-4822-9152-521c2270f253",
+     "receiptVersion": 1,
+     "result": {
+      "asOf": "2026-11-19T00:06:15.000Z",
+      "basis": "bd5da3df-4652-47b8-abae-4b0e42395d50",
+      "effects": [
+       {
+        "effective": "2026-01-02T00:00:00.000Z",
+        "item_id": "02c14393-f3b4-4902-a255-14608ceebe30",
+        "kind": "inventory",
+        "logical_id": "acd06513-d1c9-4c60-8189-d21bbba4a00f",
+        "occurrence": "delivery-1042",
+        "quantity": "-2",
+        "subject": "brass bolts"
+       }
+      ],
+      "evidence": {
+       "citations": [
+        "bd5da3df-4652-47b8-abae-4b0e42395d50",
+        "02c14393-f3b4-4902-a255-14608ceebe30"
+       ],
+       "notice": "The basis and effects identify workbook Source/Record versions, not conversation messages. This calculation inspects those inputs, and the host attaches them to your answer. They need no place in finish.citations. Use read for additional source content. No history_read or count_records call is needed to cite this calculation.",
+       "referenceType": "item-version"
+      },
+      "excludedCount": 0,
+      "excludedEffects": [],
+      "openingEffective": "2026-01-01T00:00:00.000Z",
+      "openingQuantity": "20",
+      "quantity": "18",
+      "subject": "brass bolts"
+     },
+     "resultHash": "e966cb66dedb357052d7453116f799ccc9026a53d4a6ee638f45788eaf092407",
+     "resultIdentity": {},
+     "runID": "b3c770ee-18a7-4fdb-b588-8f2a0303fbb3",
+     "tool": "balance"
+    },
+    "created": "2026-11-19T00:06:15Z",
+    "id": "bacb17ab-8476-446c-bd36-5565518bf306",
+    "role": "tool",
+    "state": "complete"
+   },
+   {
+    "body": {
+     "arguments": {
+      "statements": [
+       "SELECT name, id FROM tables",
+       "SELECT table_name, name, id FROM columns"
+      ]
+     },
+     "assistantText": "",
+     "callID": "call_b3ffa435-b9c4-498b-93d2-4bf346a8622f",
+     "receiptID": "b2d8100b-cb5e-45b1-b433-6e04c4eb9209",
+     "receiptVersion": 1,
+     "result": {
+      "inputs": [],
+      "read": [],
+      "results": [
+       {
+        "columns": [
+         "name",
+         "id"
+        ],
+        "rowCount": 1,
+        "rows": [
+         [
+          "supplier_comparison",
+          "bf647ac7-0b40-4cd9-a164-d3d2b57b6d01"
+         ]
+        ]
+       },
+       {
+        "columns": [
+         "table_name",
+         "name",
+         "id"
+        ],
+        "rowCount": 4,
+        "rows": [
+         [
+          "supplier_comparison",
+          "supplier",
+          "supplier"
+         ],
+         [
+          "supplier_comparison",
+          "quantity",
+          "quantity"
+         ],
+         [
+          "supplier_comparison",
+          "unit_cost",
+          "unit_cost"
+         ],
+         [
+          "supplier_comparison",
+          "total",
+          "total"
+         ]
+        ]
+       }
+      ]
+     },
+     "resultHash": "d1ac73d6ab5c583945a690d4024c13ff391bec1ea7029872febdc14f42ef9d51",
+     "resultIdentity": {},
+     "runID": "b3c770ee-18a7-4fdb-b588-8f2a0303fbb3",
+     "tool": "sql"
+    },
+    "created": "2026-11-19T00:06:27Z",
+    "id": "ca0dcaec-cdcb-409d-a325-1f770df9de2e",
+    "role": "tool",
+    "state": "complete"
+   },
+   {
+    "body": {
+     "arguments": {
+      "definition": {
+       "components": [
+        {
+         "arguments": {
+          "subject": "brass bolts"
+         },
+         "id": "comp1",
+         "text": "Current Stock: 18",
+         "title": "Brass Bolts Stock",
+         "type": "metric"
+        }
+       ],
+       "version": 1
+      },
+      "title": "Low Stock Monitor"
+     },
+     "assistantText": "",
+     "callID": "call_1df4b0cf-fe66-4a05-a595-0888c0ae3f9a",
+     "receiptID": "adbd0752-118c-489b-9628-849a35fd36bb",
+     "receiptVersion": 1,
+     "result": {
+      "error": "Only qualified forms and computation views take definition bindings.",
+      "receiptID": "adbd0752-118c-489b-9628-849a35fd36bb",
+      "retryInstruction": "The call did not finish successfully. Completed changes remain saved. Inspect the receipt and workbook state before retrying; do not claim no changes occurred. Fix the reported arguments when applicable."
+     },
+     "resultHash": "e9d7c156ca787ad11fe010b28844600b2e115e0e9b7b27a2fb723a72d3f312b8",
+     "resultIdentity": {},
+     "runID": "b3c770ee-18a7-4fdb-b588-8f2a0303fbb3",
+     "tool": "save_space"
+    },
+    "created": "2026-11-19T00:06:41Z",
+    "id": "c5b882c9-8f0e-4dbb-8f94-f9e2a768de70",
+    "role": "tool",
+    "state": "complete"
+   },
+   {
+    "body": {
+     "arguments": {
+      "inputs": [],
+      "text": "**Rule:** Alert when brass bolts stock falls below 10.\n**Current Status:** 18 units (as of 2026-11-19).\n**Note:** Automated alerts are not supported in this workbook. Please check this draft or the inventory documents manually.",
+      "title": "Low Stock Rule: Brass Bolts"
+     },
+     "assistantText": "",
+     "callID": "call_d26e35e8-3d00-4ca6-93c0-af2f1d037d07",
+     "receiptID": "13501b98-0b4f-4aec-b0ec-f15fe27b095e",
+     "receiptVersion": 1,
+     "result": {
+      "category": "record",
+      "created": "2026-11-19T00:06:50Z",
+      "data": {},
+      "id": "49cc3841-e5b5-464b-b988-57513158d6c5",
+      "kind": "document",
+      "logicalID": "88d9c3a8-68c3-4217-82de-8f90d3ed0f62",
+      "meaning": "estimate",
+      "scenario": "actual",
+      "status": "draft",
+      "text": "**Rule:** Alert when brass bolts stock falls below 10.\n**Current Status:** 18 units (as of 2026-11-19).\n**Note:** Automated alerts are not supported in this workbook. Please check this draft or the inventory documents manually.",
+      "title": "Low Stock Rule: Brass Bolts",
+      "version": 1
+     },
+     "resultHash": "55f74e2c1e1e5130bccf35a58982dc57541e40ef65969a0d17d7c94c0aa4f1f1",
+     "resultIdentity": {
+      "id": "49cc3841-e5b5-464b-b988-57513158d6c5",
+      "kind": "document",
+      "logicalID": "88d9c3a8-68c3-4217-82de-8f90d3ed0f62",
+      "meaning": "estimate",
+      "status": "draft"
+     },
+     "runID": "b3c770ee-18a7-4fdb-b588-8f2a0303fbb3",
+     "tool": "draft"
+    },
+    "created": "2026-11-19T00:06:50Z",
+    "id": "60bc002d-65ec-4eb5-8010-843c350a1894",
+    "role": "tool",
+    "state": "complete"
+   },
+   {
+    "body": "Couldn’t finish saving the space. Only qualified forms and computation views take definition bindings.\nSaved draft [Low Stock Rule: Brass Bolts](sevra://item/49cc3841-e5b5-464b-b988-57513158d6c5).",
+    "created": "2026-11-19T00:06:58Z",
+    "id": "f64f543a-c575-4982-a7c0-3e07565b1464",
+    "role": "assistant",
+    "state": "complete"
+   }
+  ]
+ },
+ "runs": [
+  {
+   "conversation_id": "main",
+   "created": "2026-11-19T00:05:33Z",
+   "id": "b3c770ee-18a7-4fdb-b588-8f2a0303fbb3",
+   "metrics": [
+    {
+     "host": "tool_profile",
+     "profile": "general"
+    },
+    {
+     "acceptedDraftTokens": 163,
+     "activations": "bf16",
+     "backend": "splash-native-candidate",
+     "beforeDispatchSeconds": 6.278747166739777,
+     "contextTokens": 65536,
+     "decodeSeconds": 4.342565,
+     "deduplicatedKVTokens": 0,
+     "diagnosticRequestCacheIsolation": false,
+     "draftedTokens": 476,
+     "engineSHA256": "ce771e5f51081a2fd60df0ee0083f982a278a863ffaeab29fd590f55e9e36e89",
+     "firstAnswerPreviewSeconds": null,
+     "firstTokenSeconds": 3.6157350833527744,
+     "generatedTokens": 232,
+     "grammarSHA256": "5b96c275e9c1a2e618a54a4814a6d9c0de116285e8ffd0814aea01a5c8eecdf1",
+     "helperStartSeconds": 4.422658416675404,
+     "hostPreparationSeconds": 5.708332173526287e-05,
+     "maintenanceRecommended": false,
+     "maintenanceThreshold": 49152,
+     "matchedPromptTokens": 2080,
+     "nextToolResultReserve": 3546,
+     "outputBudget": 1800,
+     "prefillSeconds": 3.610778,
+     "prefixPrimeMatchedTokens": 0,
+     "prefixPrimePrefillSeconds": 1.847656,
+     "prefixPrimeSeconds": 1.847772041684948,
+     "prefixPrimeTokens": 2102,
+     "promptTokens": 4133,
+     "reasoningBudget": 512,
+     "reasoningBudgetOverrun": 0,
+     "reasoningHistory": "within-request",
+     "reasoningTokens": 203,
+     "recoveryReserve": 256,
+     "replayBoundaryTokens": 4128,
+     "requestSeconds": 7.9583060833392665,
+     "requestedContextTokens": 65536,
+     "requestedMemoryBytes": 12884901888,
+     "requestedOutputBudget": 1800,
+     "runtimeRelease": "1.6.1",
+     "scopePrefixTokens": 3501,
+     "speculativeMethod": "DFlash2",
+     "stablePrefixTokens": 2102,
+     "templateIdentity": "aee46acfcba8e4e7aec7512126b926aa311bf7414d0d96ad3b13a86d5bdfe9d3",
+     "toolScope": "all"
+    },
+    {
+     "acceptedDraftTokens": 173,
+     "activations": "bf16",
+     "backend": "splash-native-candidate",
+     "beforeDispatchSeconds": 0.00017462496180087328,
+     "contextTokens": 65536,
+     "decodeSeconds": 5.133185,
+     "deduplicatedKVTokens": 224,
+     "diagnosticRequestCacheIsolation": false,
+     "draftedTokens": 567,
+     "engineSHA256": "ce771e5f51081a2fd60df0ee0083f982a278a863ffaeab29fd590f55e9e36e89",
+     "firstAnswerPreviewSeconds": null,
+     "firstTokenSeconds": 1.3046119583304971,
+     "generatedTokens": 255,
+     "grammarSHA256": "5b96c275e9c1a2e618a54a4814a6d9c0de116285e8ffd0814aea01a5c8eecdf1",
+     "helperStartSeconds": 5.00003807246685e-07,
+     "hostPreparationSeconds": 9.337498340755701e-05,
+     "maintenanceRecommended": false,
+     "maintenanceThreshold": 49152,
+     "matchedPromptTokens": 4128,
+     "nextToolResultReserve": 3546,
+     "outputBudget": 1800,
+     "prefillSeconds": 1.299373,
+     "prefixPrimeMatchedTokens": 0,
+     "prefixPrimePrefillSeconds": 0,
+     "prefixPrimeSeconds": 0,
+     "prefixPrimeTokens": 0,
+     "promptTokens": 4632,
+     "reasoningBudget": 512,
+     "reasoningBudgetOverrun": 0,
+     "reasoningHistory": "within-request",
+     "reasoningTokens": 226,
+     "recoveryReserve": 256,
+     "replayBoundaryTokens": 4608,
+     "requestSeconds": 6.437782583292574,
+     "requestedContextTokens": 65536,
+     "requestedMemoryBytes": 12884901888,
+     "requestedOutputBudget": 1800,
+     "runtimeRelease": "1.6.1",
+     "scopePrefixTokens": 3501,
+     "speculativeMethod": "DFlash2",
+     "stablePrefixTokens": 2102,
+     "templateIdentity": "aee46acfcba8e4e7aec7512126b926aa311bf7414d0d96ad3b13a86d5bdfe9d3",
+     "toolScope": "all"
+    },
+    {
+     "acceptedDraftTokens": 369,
+     "activations": "bf16",
+     "backend": "splash-native-candidate",
+     "beforeDispatchSeconds": 0.0002062499988824129,
+     "contextTokens": 65536,
+     "decodeSeconds": 9.798426,
+     "deduplicatedKVTokens": 256,
+     "diagnosticRequestCacheIsolation": false,
+     "draftedTokens": 1050,
+     "engineSHA256": "ce771e5f51081a2fd60df0ee0083f982a278a863ffaeab29fd590f55e9e36e89",
+     "firstAnswerPreviewSeconds": null,
+     "firstTokenSeconds": 1.1717702083988115,
+     "generatedTokens": 520,
+     "grammarSHA256": "5b96c275e9c1a2e618a54a4814a6d9c0de116285e8ffd0814aea01a5c8eecdf1",
+     "helperStartSeconds": 4.166504368185997e-07,
+     "hostPreparationSeconds": 0.00012374995276331902,
+     "maintenanceRecommended": false,
+     "maintenanceThreshold": 49152,
+     "matchedPromptTokens": 4608,
+     "nextToolResultReserve": 3546,
+     "outputBudget": 1800,
+     "prefillSeconds": 1.166611,
+     "prefixPrimeMatchedTokens": 0,
+     "prefixPrimePrefillSeconds": 0,
+     "prefixPrimeSeconds": 0,
+     "prefixPrimeTokens": 0,
+     "promptTokens": 5037,
+     "reasoningBudget": 512,
+     "reasoningBudgetOverrun": 0,
+     "reasoningHistory": "within-request",
+     "reasoningTokens": 487,
+     "recoveryReserve": 256,
+     "replayBoundaryTokens": 5024,
+     "requestSeconds": 10.970182958408259,
+     "requestedContextTokens": 65536,
+     "requestedMemoryBytes": 12884901888,
+     "requestedOutputBudget": 1800,
+     "runtimeRelease": "1.6.1",
+     "scopePrefixTokens": 3501,
+     "speculativeMethod": "DFlash2",
+     "stablePrefixTokens": 2102,
+     "templateIdentity": "aee46acfcba8e4e7aec7512126b926aa311bf7414d0d96ad3b13a86d5bdfe9d3",
+     "toolScope": "all"
+    },
+    {
+     "acceptedDraftTokens": 83,
+     "activations": "bf16",
+     "backend": "splash-native-candidate",
+     "beforeDispatchSeconds": 0.00025258329696953297,
+     "contextTokens": 65536,
+     "decodeSeconds": 2.59203,
+     "deduplicatedKVTokens": 512,
+     "diagnosticRequestCacheIsolation": false,
+     "draftedTokens": 238,
+     "engineSHA256": "ce771e5f51081a2fd60df0ee0083f982a278a863ffaeab29fd590f55e9e36e89",
+     "firstAnswerPreviewSeconds": null,
+     "firstTokenSeconds": 1.2414828332839534,
+     "generatedTokens": 118,
+     "grammarSHA256": "5b96c275e9c1a2e618a54a4814a6d9c0de116285e8ffd0814aea01a5c8eecdf1",
+     "helperStartSeconds": 4.5832712203264236e-07,
+     "hostPreparationSeconds": 0.00016433338169008493,
+     "maintenanceRecommended": false,
+     "maintenanceThreshold": 49152,
+     "matchedPromptTokens": 5024,
+     "nextToolResultReserve": 3546,
+     "outputBudget": 1800,
+     "prefillSeconds": 1.235371,
+     "prefixPrimeMatchedTokens": 0,
+     "prefixPrimePrefillSeconds": 0,
+     "prefixPrimeSeconds": 0,
+     "prefixPrimeTokens": 0,
+     "promptTokens": 5627,
+     "reasoningBudget": 512,
+     "reasoningBudgetOverrun": 0,
+     "reasoningHistory": "within-request",
+     "reasoningTokens": 88,
+     "recoveryReserve": 256,
+     "replayBoundaryTokens": 5600,
+     "requestSeconds": 3.8335027917055413,
+     "requestedContextTokens": 65536,
+     "requestedMemoryBytes": 12884901888,
+     "requestedOutputBudget": 1800,
+     "runtimeRelease": "1.6.1",
+     "scopePrefixTokens": 3501,
+     "speculativeMethod": "DFlash2",
+     "stablePrefixTokens": 2102,
+     "templateIdentity": "aee46acfcba8e4e7aec7512126b926aa311bf7414d0d96ad3b13a86d5bdfe9d3",
+     "toolScope": "all"
+    },
+    {
+     "acceptedDraftTokens": 129,
+     "activations": "bf16",
+     "backend": "splash-native-candidate",
+     "beforeDispatchSeconds": 0.013434375054202974,
+     "contextTokens": 65536,
+     "decodeSeconds": 3.320146,
+     "deduplicatedKVTokens": 128,
+     "diagnosticRequestCacheIsolation": false,
+     "draftedTokens": 217,
+     "engineSHA256": "ce771e5f51081a2fd60df0ee0083f982a278a863ffaeab29fd590f55e9e36e89",
+     "firstAnswerPreviewSeconds": null,
+     "firstTokenSeconds": 1.3746269582770765,
+     "generatedTokens": 161,
+     "grammarSHA256": "5b96c275e9c1a2e618a54a4814a6d9c0de116285e8ffd0814aea01a5c8eecdf1",
+     "helperStartSeconds": 2.9173679649829865e-07,
+     "hostPreparationSeconds": 0.0001864166697487235,
+     "maintenanceRecommended": false,
+     "maintenanceThreshold": 49152,
+     "matchedPromptTokens": 5600,
+     "nextToolResultReserve": 3546,
+     "outputBudget": 1800,
+     "prefillSeconds": 1.368777,
+     "prefixPrimeMatchedTokens": 0,
+     "prefixPrimePrefillSeconds": 0,
+     "prefixPrimeSeconds": 0,
+     "prefixPrimeTokens": 0,
+     "promptTokens": 6110,
+     "reasoningBudget": 512,
+     "reasoningBudgetOverrun": 0,
+     "reasoningHistory": "within-request",
+     "reasoningTokens": 131,
+     "recoveryReserve": 256,
+     "replayBoundaryTokens": 6080,
+     "requestSeconds": 4.694762333296239,
+     "requestedContextTokens": 65536,
+     "requestedMemoryBytes": 12884901888,
+     "requestedOutputBudget": 1800,
+     "runtimeRelease": "1.6.1",
+     "scopePrefixTokens": 3501,
+     "speculativeMethod": "DFlash2",
+     "stablePrefixTokens": 2102,
+     "templateIdentity": "aee46acfcba8e4e7aec7512126b926aa311bf7414d0d96ad3b13a86d5bdfe9d3",
+     "toolScope": "all"
+    },
+    {
+     "acceptedDraftTokens": 301,
+     "activations": "bf16",
+     "backend": "splash-native-candidate",
+     "beforeDispatchSeconds": 0.013211333309300244,
+     "contextTokens": 65536,
+     "decodeSeconds": 10.632842,
+     "deduplicatedKVTokens": 160,
+     "diagnosticRequestCacheIsolation": false,
+     "draftedTokens": 805,
+     "engineSHA256": "ce771e5f51081a2fd60df0ee0083f982a278a863ffaeab29fd590f55e9e36e89",
+     "firstAnswerPreviewSeconds": null,
+     "firstTokenSeconds": 1.4242752082645893,
+     "generatedTokens": 417,
+     "grammarSHA256": "5b96c275e9c1a2e618a54a4814a6d9c0de116285e8ffd0814aea01a5c8eecdf1",
+     "helperStartSeconds": 4.5832712203264236e-07,
+     "hostPreparationSeconds": 0.00020504172425717115,
+     "maintenanceRecommended": false,
+     "maintenanceThreshold": 49152,
+     "matchedPromptTokens": 6080,
+     "nextToolResultReserve": 3546,
+     "outputBudget": 1800,
+     "prefillSeconds": 1.418469,
+     "prefixPrimeMatchedTokens": 0,
+     "prefixPrimePrefillSeconds": 0,
+     "prefixPrimeSeconds": 0,
+     "prefixPrimeTokens": 0,
+     "promptTokens": 6699,
+     "reasoningBudget": 512,
+     "reasoningBudgetOverrun": 0,
+     "reasoningHistory": "within-request",
+     "reasoningTokens": 371,
+     "recoveryReserve": 256,
+     "replayBoundaryTokens": 6688,
+     "requestSeconds": 12.057109708315693,
+     "requestedContextTokens": 65536,
+     "requestedMemoryBytes": 12884901888,
+     "requestedOutputBudget": 1800,
+     "runtimeRelease": "1.6.1",
+     "scopePrefixTokens": 3501,
+     "speculativeMethod": "DFlash2",
+     "stablePrefixTokens": 2102,
+     "templateIdentity": "aee46acfcba8e4e7aec7512126b926aa311bf7414d0d96ad3b13a86d5bdfe9d3",
+     "toolScope": "all"
+    },
+    {
+     "acceptedDraftTokens": 439,
+     "activations": "bf16",
+     "backend": "splash-native-candidate",
+     "beforeDispatchSeconds": 0.0002006666036322713,
+     "contextTokens": 65536,
+     "decodeSeconds": 11.632528,
+     "deduplicatedKVTokens": 416,
+     "diagnosticRequestCacheIsolation": false,
+     "draftedTokens": 1267,
+     "engineSHA256": "ce771e5f51081a2fd60df0ee0083f982a278a863ffaeab29fd590f55e9e36e89",
+     "firstAnswerPreviewSeconds": null,
+     "firstTokenSeconds": 2.062417416716926,
+     "generatedTokens": 621,
+     "grammarSHA256": "5b96c275e9c1a2e618a54a4814a6d9c0de116285e8ffd0814aea01a5c8eecdf1",
+     "helperStartSeconds": 4.5832712203264236e-07,
+     "hostPreparationSeconds": 0.00013866659719496965,
+     "maintenanceRecommended": false,
+     "maintenanceThreshold": 49152,
+     "matchedPromptTokens": 6688,
+     "nextToolResultReserve": 3546,
+     "outputBudget": 1800,
+     "prefillSeconds": 2.057978,
+     "prefixPrimeMatchedTokens": 0,
+     "prefixPrimePrefillSeconds": 0,
+     "prefixPrimeSeconds": 0,
+     "prefixPrimeTokens": 0,
+     "promptTokens": 7267,
+     "reasoningBudget": 512,
+     "reasoningBudgetOverrun": 0,
+     "reasoningHistory": "within-request",
+     "reasoningTokens": 512,
+     "recoveryReserve": 256,
+     "replayBoundaryTokens": 7232,
+     "requestSeconds": 13.694944041664712,
+     "requestedContextTokens": 65536,
+     "requestedMemoryBytes": 12884901888,
+     "requestedOutputBudget": 1800,
+     "runtimeRelease": "1.6.1",
+     "scopePrefixTokens": 3501,
+     "speculativeMethod": "DFlash2",
+     "stablePrefixTokens": 2102,
+     "templateIdentity": "aee46acfcba8e4e7aec7512126b926aa311bf7414d0d96ad3b13a86d5bdfe9d3",
+     "toolScope": "all"
+    },
+    {
+     "acceptedDraftTokens": 266,
+     "activations": "bf16",
+     "backend": "splash-native-candidate",
+     "beforeDispatchSeconds": 0.00030783331021666527,
+     "contextTokens": 65536,
+     "decodeSeconds": 8.004234,
+     "deduplicatedKVTokens": 192,
+     "diagnosticRequestCacheIsolation": false,
+     "draftedTokens": 714,
+     "engineSHA256": "ce771e5f51081a2fd60df0ee0083f982a278a863ffaeab29fd590f55e9e36e89",
+     "firstAnswerPreviewSeconds": null,
+     "firstTokenSeconds": 1.39463741669897,
+     "generatedTokens": 369,
+     "grammarSHA256": "5b96c275e9c1a2e618a54a4814a6d9c0de116285e8ffd0814aea01a5c8eecdf1",
+     "helperStartSeconds": 2.9173679649829865e-07,
+     "hostPreparationSeconds": 0.00020579167176038027,
+     "maintenanceRecommended": false,
+     "maintenanceThreshold": 49152,
+     "matchedPromptTokens": 7232,
+     "nextToolResultReserve": 3546,
+     "outputBudget": 1800,
+     "prefillSeconds": 1.389827,
+     "prefixPrimeMatchedTokens": 0,
+     "prefixPrimePrefillSeconds": 0,
+     "prefixPrimeSeconds": 0,
+     "prefixPrimeTokens": 0,
+     "promptTokens": 7981,
+     "reasoningBudget": 512,
+     "reasoningBudgetOverrun": 0,
+     "reasoningHistory": "within-request",
+     "reasoningTokens": 253,
+     "recoveryReserve": 256,
+     "replayBoundaryTokens": 7968,
+     "requestSeconds": 9.39885670831427,
+     "requestedContextTokens": 65536,
+     "requestedMemoryBytes": 12884901888,
+     "requestedOutputBudget": 1800,
+     "runtimeRelease": "1.6.1",
+     "scopePrefixTokens": 3501,
+     "speculativeMethod": "DFlash2",
+     "stablePrefixTokens": 2102,
+     "templateIdentity": "aee46acfcba8e4e7aec7512126b926aa311bf7414d0d96ad3b13a86d5bdfe9d3",
+     "toolScope": "all"
+    },
+    {
+     "acceptedDraftTokens": 208,
+     "activations": "bf16",
+     "backend": "splash-native-candidate",
+     "beforeDispatchSeconds": 0.013595750089734793,
+     "contextTokens": 65536,
+     "decodeSeconds": 6.19702,
+     "deduplicatedKVTokens": 352,
+     "diagnosticRequestCacheIsolation": false,
+     "draftedTokens": 525,
+     "engineSHA256": "ce771e5f51081a2fd60df0ee0083f982a278a863ffaeab29fd590f55e9e36e89",
+     "firstAnswerPreviewSeconds": 4.258480791701004,
+     "firstTokenSeconds": 1.3832193749258295,
+     "generatedTokens": 284,
+     "grammarSHA256": "5b96c275e9c1a2e618a54a4814a6d9c0de116285e8ffd0814aea01a5c8eecdf1",
+     "helperStartSeconds": 4.166504368185997e-07,
+     "hostPreparationSeconds": 0.0002872083568945527,
+     "maintenanceRecommended": false,
+     "maintenanceThreshold": 49152,
+     "matchedPromptTokens": 7968,
+     "nextToolResultReserve": 3546,
+     "outputBudget": 1800,
+     "prefillSeconds": 1.37727,
+     "prefixPrimeMatchedTokens": 0,
+     "prefixPrimePrefillSeconds": 0,
+     "prefixPrimeSeconds": 0,
+     "prefixPrimeTokens": 0,
+     "promptTokens": 8564,
+     "reasoningBudget": 512,
+     "reasoningBudgetOverrun": 0,
+     "reasoningHistory": "within-request",
+     "reasoningTokens": 130,
+     "recoveryReserve": 256,
+     "replayBoundaryTokens": 8544,
+     "requestSeconds": 7.580225499928929,
+     "requestedContextTokens": 65536,
+     "requestedMemoryBytes": 12884901888,
+     "requestedOutputBudget": 1800,
+     "runtimeRelease": "1.6.1",
+     "scopePrefixTokens": 3501,
+     "speculativeMethod": "DFlash2",
+     "stablePrefixTokens": 2102,
+     "templateIdentity": "aee46acfcba8e4e7aec7512126b926aa311bf7414d0d96ad3b13a86d5bdfe9d3",
+     "toolScope": "all"
+    }
+   ],
+   "model": "Splash 1.6.1; d8af1054aab0f97de21d043e01aa98af3754f10e; Qwen3.6-35B-A3B-4bit + DFlash2; native Swift candidate; context 65536; memory 12884901888; activations bf16; KV int8; state fp32; ANE on; reasoning budget 512; within-request reasoning retained",
+   "request_message_id": "833ebbf4-dc89-4b95-aaac-aa83ea0cf01b",
+   "status": "complete",
+   "steps": 9,
+   "updated": "2026-11-19T00:06:58Z"
+  }
+ ],
+ "saved": {
+  "newItems": [
+   {
+    "category": "record",
+    "kind": "document",
+    "status": "draft",
+    "title": "Low Stock Rule: Brass Bolts",
+    "id": "49cc3841-e5b5-464b-b988-57513158d6c5"
+   }
+  ]
+ }
+}

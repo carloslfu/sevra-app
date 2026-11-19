@@ -3,7 +3,7 @@ type: operational
 meta-type: operational
 id: 01m659x4nd2q89tkpzzsssd7yr
 created: 2026-10-30T02:23:30.477380+00:00
-updated: 2026-11-18T23:51:29.519424+00:00
+updated: 2026-11-19T00:11:39.155469+00:00
 summary: Native UI Catalog implemented and locally verified, with durable agent maintenance instructions and preserved product/model qualification limits.
 title: Minimum-feature continuation handoff
 ---
@@ -15,7 +15,7 @@ title: Minimum-feature continuation handoff
 Where it stands:
 
 - **Phase 1 is done.** The host setting `SEVRA_TOOL_PROFILE` selects `current` (today's tools, byte-identical) or `general`. The baseline of today's tools is in `integration/evidence/2026-11-18-chat-jobs-baseline/`.
-- **`sql` works under `general`.** It reads tables, changes rows, creates tables and adds, renames and removes columns, each saved through the recorded write paths with Undo. On 22 English jobs it passes 19; today's tools pass 11. The three it fails are building an app, a form and a rule, which fail today too and wait for `save` and its guides. The plan's section "The slice so far" lists what it does and what is left out, with reasons.
+- **`sql` works under `general`.** It reads tables, changes rows, creates tables and adds, renames and removes columns, each saved through the recorded write paths with Undo. The profile is cut to `sql` and 20 of today's tools with its own short instructions. On all 24 English jobs it passes 20; today's tools pass 12. A first prompt is about 4,140 tokens, down from about 11,180. The four it fails are building an app, a form, a rule and a saved tool, which wait for `save` and workbook tools. The plan's section "The slice so far" lists what it does and what is left out, with reasons.
 - **Nothing a person chats with has changed.** `current` stays the default until the full gate in phase 6.
 
 How to work on it:

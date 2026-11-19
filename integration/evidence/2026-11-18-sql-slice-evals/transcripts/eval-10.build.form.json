@@ -1,0 +1,515 @@
+{
+ "job": "build.form",
+ "language": "en",
+ "profile": "general",
+ "attempt": 1,
+ "prompt": "Create a form named New reorder level with the fields Part and Level that adds a row to the Reorder levels table.",
+ "expected": "A form (or an app that is one) named New reorder level is saved for the Reorder levels table, and the table itself is unchanged. Submitting the form is not exercised by this harness.",
+ "failure": "no form definition and no app was saved",
+ "result": {
+  "answer": "Couldn’t finish saving the space. A declared view requires an exact app version.\nCouldn’t finish saving the space. A declared view requires an exact app version.",
+  "citations": [],
+  "conversationAction": null,
+  "state": "complete",
+  "steps": 5
+ },
+ "progress": [
+  "Reading request context",
+  "Checking local model files",
+  "Preparing local AI. The first start can take longer…",
+  "Preparing local AI · 0 of 11 steps",
+  "Preparing local AI · 1 of 11 steps",
+  "Preparing local AI · 2 of 11 steps",
+  "Preparing local AI · 3 of 11 steps",
+  "Preparing local AI · 4 of 11 steps",
+  "Preparing local AI · 5 of 11 steps",
+  "Preparing local AI · 6 of 11 steps",
+  "Preparing local AI · 7 of 11 steps",
+  "Preparing local AI · 8 of 11 steps",
+  "Preparing local AI · 9 of 11 steps",
+  "Preparing local AI · 10 of 11 steps",
+  "Preparing local AI · 11 of 11 steps",
+  "Reading the working context",
+  "Working through the request",
+  "Preparing a response",
+  "Working with your tables…",
+  "Reviewing the saved result",
+  "Reading the working context",
+  "Working through the request",
+  "Preparing a response",
+  "Finding available actions…",
+  "Reviewing the saved result",
+  "Reading the working context",
+  "Working through the request",
+  "Preparing a response",
+  "Saving a space…",
+  "Reviewing a tool failure",
+  "Reading the working context",
+  "Working through the request",
+  "Preparing a response",
+  "Saving a space…",
+  "Reviewing a tool failure",
+  "Reading the working context",
+  "Working through the request",
+  "Preparing a response"
+ ],
+ "messages": {
+  "main": [
+   {
+    "body": "This example has supplier quotes and a delivery. Try ‘Why do we have 18 brass bolts?’ or ‘Compare the supplier costs and show the evidence.’",
+    "created": "2026-11-19T00:04:53Z",
+    "id": "96fdcc97-b7ba-4269-ac4b-a2b92aca503c",
+    "role": "assistant",
+    "state": "complete"
+   },
+   {
+    "body": "Create a form named New reorder level with the fields Part and Level that adds a row to the Reorder levels table.",
+    "created": "2026-11-19T00:04:53Z",
+    "id": "e44df693-9333-4957-8ae8-60c65892f002",
+    "role": "user",
+    "state": "complete"
+   },
+   {
+    "body": {
+     "arguments": {
+      "statements": [
+       "SELECT name, id FROM tables WHERE name = 'reorder_levels';",
+       "SELECT table_name, name, id FROM columns WHERE table_name = 'reorder_levels';"
+      ]
+     },
+     "assistantText": "",
+     "callID": "call_87d0a844-aeaf-4077-88be-b5e2adb2bacf",
+     "receiptID": "17caf42a-34e4-47f5-abda-2d4217348064",
+     "receiptVersion": 1,
+     "result": {
+      "inputs": [],
+      "read": [],
+      "results": [
+       {
+        "columns": [
+         "name",
+         "id"
+        ],
+        "rowCount": 1,
+        "rows": [
+         [
+          "reorder_levels",
+          "b4ed320d-a211-45e5-8c29-d8f2fe0d9c4f"
+         ]
+        ]
+       },
+       {
+        "columns": [
+         "table_name",
+         "name",
+         "id"
+        ],
+        "rowCount": 2,
+        "rows": [
+         [
+          "reorder_levels",
+          "part",
+          "part"
+         ],
+         [
+          "reorder_levels",
+          "level",
+          "level"
+         ]
+        ]
+       }
+      ]
+     },
+     "resultHash": "efef9ce604ac462a4dc39dbaeac5fcaa1dace4c8dc3f759a20944ebafc5c5c82",
+     "resultIdentity": {},
+     "runID": "a42e4b5f-ca30-4eae-b29e-cd8d9799bdfb",
+     "tool": "sql"
+    },
+    "created": "2026-11-19T00:05:06Z",
+    "id": "ce41e937-896a-4943-b4f5-625987b03d1f",
+    "role": "tool",
+    "state": "complete"
+   },
+   {
+    "body": {
+     "arguments": {
+      "domain": "form"
+     },
+     "assistantText": "",
+     "callID": "call_8d4df9f9-a779-4153-82e4-05c6db2bc5db",
+     "receiptID": "c3c0d8c4-5a15-4233-aece-d35e5cbe7ac6",
+     "receiptVersion": 1,
+     "result": [
+      {
+       "action": "form.inspect",
+       "description": "Inspect a saved form's named inputs and current target, without opening it.",
+       "optional": [],
+       "readOnly": true,
+       "required": [
+        "id"
+       ],
+       "types": {
+        "id": "string"
+       }
+      },
+      {
+       "action": "form.submit",
+       "description": "Fill and submit all typed form inputs through chat. Previews the exact effect for conversational confirmation.",
+       "optional": [
+        "preview"
+       ],
+       "readOnly": false,
+       "required": [
+        "id",
+        "inputs"
+       ],
+       "types": {
+        "id": "string",
+        "inputs": "object",
+        "preview": "object"
+       }
+      }
+     ],
+     "resultHash": "3c06471c3656060b982765915851845db93c212a31cd81f67e74cb036c7c5b21",
+     "resultIdentity": {},
+     "runID": "a42e4b5f-ca30-4eae-b29e-cd8d9799bdfb",
+     "tool": "workspace_actions"
+    },
+    "created": "2026-11-19T00:05:09Z",
+    "id": "36a395f3-b3a4-4b78-b6ea-09d27b222910",
+    "role": "tool",
+    "state": "complete"
+   },
+   {
+    "body": {
+     "arguments": {
+      "definition": {
+       "components": [
+        {
+         "id": "form1",
+         "query": "INSERT INTO reorder_levels (part, level) VALUES (@part, @level)",
+         "text": "",
+         "title": "New reorder level",
+         "type": "form",
+         "viewID": "",
+         "viewVersion": 0,
+         "x": "",
+         "y": ""
+        }
+       ],
+       "version": 1
+      },
+      "title": "New reorder level"
+     },
+     "assistantText": "",
+     "callID": "call_a6646583-46d3-49f7-b338-17551a055041",
+     "receiptID": "b366a31f-4c67-4b55-82b7-99eff38089e9",
+     "receiptVersion": 1,
+     "result": {
+      "error": "A declared view requires an exact app version.",
+      "receiptID": "b366a31f-4c67-4b55-82b7-99eff38089e9",
+      "retryInstruction": "The call did not finish successfully. Completed changes remain saved. Inspect the receipt and workbook state before retrying; do not claim no changes occurred. Fix the reported arguments when applicable."
+     },
+     "resultHash": "da0dff89bd812c5019bfb9c1e295fc098667b1b17cd85b034afe7f53ac6bce61",
+     "resultIdentity": {},
+     "runID": "a42e4b5f-ca30-4eae-b29e-cd8d9799bdfb",
+     "tool": "save_space"
+    },
+    "created": "2026-11-19T00:05:18Z",
+    "id": "d38a7ee6-9fb2-4429-b441-dd14d947eed1",
+    "role": "tool",
+    "state": "complete"
+   },
+   {
+    "body": {
+     "arguments": {
+      "definition": {
+       "components": [
+        {
+         "id": "form1",
+         "query": "INSERT INTO reorder_levels (part, level) VALUES (@part, @level)",
+         "title": "New reorder level",
+         "type": "form",
+         "viewID": "",
+         "viewVersion": 0,
+         "x": "",
+         "y": ""
+        }
+       ],
+       "version": 1
+      },
+      "title": "New reorder level"
+     },
+     "assistantText": "",
+     "callID": "call_216e74e5-4e79-44c9-a5b4-cfe152bef91c",
+     "receiptID": "42fa11f8-cb89-4cbf-af0a-809cdc005615",
+     "receiptVersion": 1,
+     "result": {
+      "error": "A declared view requires an exact app version.",
+      "receiptID": "42fa11f8-cb89-4cbf-af0a-809cdc005615",
+      "retryInstruction": "The call did not finish successfully. Completed changes remain saved. Inspect the receipt and workbook state before retrying; do not claim no changes occurred. Fix the reported arguments when applicable."
+     },
+     "resultHash": "e21207ecdc5d22a69fb45a414fbddc70ac5e0715ab43d1d424b57aacde8195d0",
+     "resultIdentity": {},
+     "runID": "a42e4b5f-ca30-4eae-b29e-cd8d9799bdfb",
+     "tool": "save_space"
+    },
+    "created": "2026-11-19T00:05:23Z",
+    "id": "329f2205-daf0-481d-bb83-fa72fa429b56",
+    "role": "tool",
+    "state": "complete"
+   },
+   {
+    "body": "Couldn’t finish saving the space. A declared view requires an exact app version.\nCouldn’t finish saving the space. A declared view requires an exact app version.",
+    "created": "2026-11-19T00:05:32Z",
+    "id": "e6e7e8a4-e830-47d9-a33f-96c4047f5e06",
+    "role": "assistant",
+    "state": "complete"
+   }
+  ]
+ },
+ "runs": [
+  {
+   "conversation_id": "main",
+   "created": "2026-11-19T00:04:53Z",
+   "id": "a42e4b5f-ca30-4eae-b29e-cd8d9799bdfb",
+   "metrics": [
+    {
+     "host": "tool_profile",
+     "profile": "general"
+    },
+    {
+     "acceptedDraftTokens": 106,
+     "activations": "bf16",
+     "backend": "splash-native-candidate",
+     "beforeDispatchSeconds": 6.192367166746408,
+     "contextTokens": 65536,
+     "decodeSeconds": 3.02218,
+     "deduplicatedKVTokens": 0,
+     "diagnosticRequestCacheIsolation": false,
+     "draftedTokens": 287,
+     "engineSHA256": "ce771e5f51081a2fd60df0ee0083f982a278a863ffaeab29fd590f55e9e36e89",
+     "firstAnswerPreviewSeconds": null,
+     "firstTokenSeconds": 2.3045901666628197,
+     "generatedTokens": 148,
+     "grammarSHA256": "5b96c275e9c1a2e618a54a4814a6d9c0de116285e8ffd0814aea01a5c8eecdf1",
+     "helperStartSeconds": 4.429919291636907,
+     "hostPreparationSeconds": 4.816672299057245e-05,
+     "maintenanceRecommended": false,
+     "maintenanceThreshold": 49152,
+     "matchedPromptTokens": 2080,
+     "nextToolResultReserve": 3546,
+     "outputBudget": 1800,
+     "prefillSeconds": 2.299988,
+     "prefixPrimeMatchedTokens": 0,
+     "prefixPrimePrefillSeconds": 1.753894,
+     "prefixPrimeSeconds": 1.7540114582516253,
+     "prefixPrimeTokens": 2102,
+     "promptTokens": 4141,
+     "reasoningBudget": 512,
+     "reasoningBudgetOverrun": 0,
+     "reasoningHistory": "within-request",
+     "reasoningTokens": 85,
+     "recoveryReserve": 256,
+     "replayBoundaryTokens": 4128,
+     "requestSeconds": 5.326759624993429,
+     "requestedContextTokens": 65536,
+     "requestedMemoryBytes": 12884901888,
+     "requestedOutputBudget": 1800,
+     "runtimeRelease": "1.6.1",
+     "scopePrefixTokens": 3501,
+     "speculativeMethod": "DFlash2",
+     "stablePrefixTokens": 2102,
+     "templateIdentity": "aee46acfcba8e4e7aec7512126b926aa311bf7414d0d96ad3b13a86d5bdfe9d3",
+     "toolScope": "all"
+    },
+    {
+     "acceptedDraftTokens": 79,
+     "activations": "bf16",
+     "backend": "splash-native-candidate",
+     "beforeDispatchSeconds": 0.0001957083586603403,
+     "contextTokens": 65536,
+     "decodeSeconds": 2.01477,
+     "deduplicatedKVTokens": 160,
+     "diagnosticRequestCacheIsolation": false,
+     "draftedTokens": 140,
+     "engineSHA256": "ce771e5f51081a2fd60df0ee0083f982a278a863ffaeab29fd590f55e9e36e89",
+     "firstAnswerPreviewSeconds": null,
+     "firstTokenSeconds": 1.1153722499730065,
+     "generatedTokens": 100,
+     "grammarSHA256": "5b96c275e9c1a2e618a54a4814a6d9c0de116285e8ffd0814aea01a5c8eecdf1",
+     "helperStartSeconds": 2.9173679649829865e-07,
+     "hostPreparationSeconds": 9.154167491942644e-05,
+     "maintenanceRecommended": false,
+     "maintenanceThreshold": 49152,
+     "matchedPromptTokens": 4128,
+     "nextToolResultReserve": 3546,
+     "outputBudget": 1800,
+     "prefillSeconds": 1.110209,
+     "prefixPrimeMatchedTokens": 0,
+     "prefixPrimePrefillSeconds": 0,
+     "prefixPrimeSeconds": 0,
+     "prefixPrimeTokens": 0,
+     "promptTokens": 4428,
+     "reasoningBudget": 512,
+     "reasoningBudgetOverrun": 0,
+     "reasoningHistory": "within-request",
+     "reasoningTokens": 71,
+     "recoveryReserve": 256,
+     "replayBoundaryTokens": 4416,
+     "requestSeconds": 3.130129750003107,
+     "requestedContextTokens": 65536,
+     "requestedMemoryBytes": 12884901888,
+     "requestedOutputBudget": 1800,
+     "runtimeRelease": "1.6.1",
+     "scopePrefixTokens": 3501,
+     "speculativeMethod": "DFlash2",
+     "stablePrefixTokens": 2102,
+     "templateIdentity": "aee46acfcba8e4e7aec7512126b926aa311bf7414d0d96ad3b13a86d5bdfe9d3",
+     "toolScope": "all"
+    },
+    {
+     "acceptedDraftTokens": 381,
+     "activations": "bf16",
+     "backend": "splash-native-candidate",
+     "beforeDispatchSeconds": 0.00019241671543568373,
+     "contextTokens": 65536,
+     "decodeSeconds": 8.356298,
+     "deduplicatedKVTokens": 96,
+     "diagnosticRequestCacheIsolation": false,
+     "draftedTokens": 1043,
+     "engineSHA256": "ce771e5f51081a2fd60df0ee0083f982a278a863ffaeab29fd590f55e9e36e89",
+     "firstAnswerPreviewSeconds": null,
+     "firstTokenSeconds": 0.9618563749827445,
+     "generatedTokens": 531,
+     "grammarSHA256": "5b96c275e9c1a2e618a54a4814a6d9c0de116285e8ffd0814aea01a5c8eecdf1",
+     "helperStartSeconds": 3.7497375160455704e-07,
+     "hostPreparationSeconds": 0.00011041667312383652,
+     "maintenanceRecommended": false,
+     "maintenanceThreshold": 49152,
+     "matchedPromptTokens": 4416,
+     "nextToolResultReserve": 3546,
+     "outputBudget": 1800,
+     "prefillSeconds": 0.956666,
+     "prefixPrimeMatchedTokens": 0,
+     "prefixPrimePrefillSeconds": 0,
+     "prefixPrimeSeconds": 0,
+     "prefixPrimeTokens": 0,
+     "promptTokens": 4641,
+     "reasoningBudget": 512,
+     "reasoningBudgetOverrun": 0,
+     "reasoningHistory": "within-request",
+     "reasoningTokens": 414,
+     "recoveryReserve": 256,
+     "replayBoundaryTokens": 4608,
+     "requestSeconds": 9.318141458323225,
+     "requestedContextTokens": 65536,
+     "requestedMemoryBytes": 12884901888,
+     "requestedOutputBudget": 1800,
+     "runtimeRelease": "1.6.1",
+     "scopePrefixTokens": 3501,
+     "speculativeMethod": "DFlash2",
+     "stablePrefixTokens": 2102,
+     "templateIdentity": "aee46acfcba8e4e7aec7512126b926aa311bf7414d0d96ad3b13a86d5bdfe9d3",
+     "toolScope": "all"
+    },
+    {
+     "acceptedDraftTokens": 137,
+     "activations": "bf16",
+     "backend": "splash-native-candidate",
+     "beforeDispatchSeconds": 0.00023754173889756203,
+     "contextTokens": 65536,
+     "decodeSeconds": 3.822977,
+     "deduplicatedKVTokens": 448,
+     "diagnosticRequestCacheIsolation": false,
+     "draftedTokens": 336,
+     "engineSHA256": "ce771e5f51081a2fd60df0ee0083f982a278a863ffaeab29fd590f55e9e36e89",
+     "firstAnswerPreviewSeconds": null,
+     "firstTokenSeconds": 1.3020412916084751,
+     "generatedTokens": 186,
+     "grammarSHA256": "5b96c275e9c1a2e618a54a4814a6d9c0de116285e8ffd0814aea01a5c8eecdf1",
+     "helperStartSeconds": 5.416804924607277e-07,
+     "hostPreparationSeconds": 0.00014470831956714392,
+     "maintenanceRecommended": false,
+     "maintenanceThreshold": 49152,
+     "matchedPromptTokens": 4608,
+     "nextToolResultReserve": 3546,
+     "outputBudget": 1800,
+     "prefillSeconds": 1.296208,
+     "prefixPrimeMatchedTokens": 0,
+     "prefixPrimePrefillSeconds": 0,
+     "prefixPrimeSeconds": 0,
+     "prefixPrimeTokens": 0,
+     "promptTokens": 5277,
+     "reasoningBudget": 512,
+     "reasoningBudgetOverrun": 0,
+     "reasoningHistory": "within-request",
+     "reasoningTokens": 73,
+     "recoveryReserve": 256,
+     "replayBoundaryTokens": 5248,
+     "requestSeconds": 5.125021124957129,
+     "requestedContextTokens": 65536,
+     "requestedMemoryBytes": 12884901888,
+     "requestedOutputBudget": 1800,
+     "runtimeRelease": "1.6.1",
+     "scopePrefixTokens": 3501,
+     "speculativeMethod": "DFlash2",
+     "stablePrefixTokens": 2102,
+     "templateIdentity": "aee46acfcba8e4e7aec7512126b926aa311bf7414d0d96ad3b13a86d5bdfe9d3",
+     "toolScope": "all"
+    },
+    {
+     "acceptedDraftTokens": 258,
+     "activations": "bf16",
+     "backend": "splash-native-candidate",
+     "beforeDispatchSeconds": 0.00029458338394761086,
+     "contextTokens": 65536,
+     "decodeSeconds": 6.55608,
+     "deduplicatedKVTokens": 96,
+     "diagnosticRequestCacheIsolation": false,
+     "draftedTokens": 707,
+     "engineSHA256": "ce771e5f51081a2fd60df0ee0083f982a278a863ffaeab29fd590f55e9e36e89",
+     "firstAnswerPreviewSeconds": 6.1029197917087,
+     "firstTokenSeconds": 2.1960677499882877,
+     "generatedTokens": 360,
+     "grammarSHA256": "5b96c275e9c1a2e618a54a4814a6d9c0de116285e8ffd0814aea01a5c8eecdf1",
+     "helperStartSeconds": 5.416804924607277e-07,
+     "hostPreparationSeconds": 0.00018841668497771025,
+     "maintenanceRecommended": false,
+     "maintenanceThreshold": 49152,
+     "matchedPromptTokens": 5248,
+     "nextToolResultReserve": 3546,
+     "outputBudget": 1800,
+     "prefillSeconds": 2.189121,
+     "prefixPrimeMatchedTokens": 0,
+     "prefixPrimePrefillSeconds": 0,
+     "prefixPrimeSeconds": 0,
+     "prefixPrimeTokens": 0,
+     "promptTokens": 5564,
+     "reasoningBudget": 512,
+     "reasoningBudgetOverrun": 0,
+     "reasoningHistory": "within-request",
+     "reasoningTokens": 221,
+     "recoveryReserve": 256,
+     "replayBoundaryTokens": 5536,
+     "requestSeconds": 8.752140041673556,
+     "requestedContextTokens": 65536,
+     "requestedMemoryBytes": 12884901888,
+     "requestedOutputBudget": 1800,
+     "runtimeRelease": "1.6.1",
+     "scopePrefixTokens": 3501,
+     "speculativeMethod": "DFlash2",
+     "stablePrefixTokens": 2102,
+     "templateIdentity": "aee46acfcba8e4e7aec7512126b926aa311bf7414d0d96ad3b13a86d5bdfe9d3",
+     "toolScope": "all"
+    }
+   ],
+   "model": "Splash 1.6.1; d8af1054aab0f97de21d043e01aa98af3754f10e; Qwen3.6-35B-A3B-4bit + DFlash2; native Swift candidate; context 65536; memory 12884901888; activations bf16; KV int8; state fp32; ANE on; reasoning budget 512; within-request reasoning retained",
+   "request_message_id": "e44df693-9333-4957-8ae8-60c65892f002",
+   "status": "complete",
+   "steps": 5,
+   "updated": "2026-11-19T00:05:32Z"
+  }
+ ],
+ "saved": {}
+}

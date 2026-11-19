@@ -7,10 +7,17 @@ extension NativeTools {
     switch toolProfile {
     case .current: return definitions
     case .general:
-      // First slice: sql takes over reading tables, comparing rows and arithmetic.
-      return definitions.filter { !generalReplaced.contains($0.name) } + [sqlDefinition]
+      // The general tools, and the fixed tools not yet folded into them.
+      return [sqlDefinition] + definitions.filter { generalKept.contains($0.name) }
     }
   }
+  /// Today's tools the general profile still offers. Each leaves when a general tool covers it.
+  package static let generalKept: Set<String> = [
+    "search", "read", "finish", "balance", "spaces", "save_space", "draft", "history_search",
+    "history_read", "tool_result", "start_thread", "start_thread_and_continue",
+    "rename_current_thread", "return_to_main", "review_thread_summary", "workspace_actions",
+    "workspace_action", "native_app_sdk", "read_native_app", "save_native_app",
+  ]
   /// Today's tools that `sql` replaces under the general profile.
   package static let generalReplaced: Set<String> = [
     "datasets", "rows", "compare_rows", "calculate", "propose_table_edit", "propose_table",

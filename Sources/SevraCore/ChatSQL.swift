@@ -339,7 +339,7 @@ final class SQLScratch {
     try execute(
       "CREATE TABLE tables(name TEXT, title TEXT, row_count INTEGER, id TEXT, version INTEGER, definition_id TEXT)")
     try execute(
-      "CREATE TABLE columns(table_name TEXT, name TEXT, title TEXT, type TEXT, formula TEXT)")
+      "CREATE TABLE columns(table_name TEXT, name TEXT, title TEXT, type TEXT, formula TEXT, id TEXT)")
     try execute("CREATE TABLE \"\(Self.log)\"(tbl TEXT, id INTEGER)")
     for (name, dataset, columns) in Self.named(tables) {
       try execute(
@@ -355,11 +355,11 @@ final class SQLScratch {
         ])
       for entry in columns {
         try execute(
-          "INSERT INTO columns VALUES(?,?,?,?,?)",
+          "INSERT INTO columns VALUES(?,?,?,?,?,?)",
           [
             .string(name), .string(entry.name), .string(entry.column.title),
             .string(entry.column.formula == nil ? entry.column.type : "formula"),
-            entry.column.formula.map(Value.string) ?? .null,
+            entry.column.formula.map(Value.string) ?? .null, .string(entry.column.id),
           ])
       }
       entries[name] = Entry(

@@ -283,3 +283,6 @@ Build jobs under the general profile: the view job passes, app, form and rule fa
 ## [2026-11-18 23:51] verification | records/plans/general-chat-tools
 sql now creates tables and adds, renames and removes columns through the recorded paths. Latest English evals: 19 of 22 jobs pass, against 11 of 22 for today's tools. Owner's four answers recorded; the DDL line in DB.md changed on his delegation.
 
+## [2026-11-19 00:11] verification | records/plans/general-chat-tools
+General profile cut to sql and 20 of today's tools with short instructions. Full English run: 20 of 24 jobs pass (today 12 of 23). First prompt about 4,140 tokens, down from about 11,180. On the 20 passing: 54 decisions and 434 s against 98 and 986.
+

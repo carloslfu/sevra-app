@@ -2,7 +2,7 @@
 type: operational
 id: 01m7qrcqqzh4qqr92a8frch1ze
 created: 2026-11-18T16:38:43.199010+00:00
-updated: 2026-11-18T23:51:29.501517+00:00
+updated: 2026-11-19T00:11:39.135583+00:00
 summary: Plan for seven general chat tools (model SQL on a scratch copy, sandboxed code, workbook tools) and a prompt header calculated at build time and restored at engine start. In implementation.
 title: General chat tools and a pre-read prompt header
 ---
@@ -394,9 +394,13 @@ Owner direction, November 18, 2026: [[sources/notes/2026/11/fast-loop-direction]
 
 Built on November 18, 2026 under the `general` profile. Evidence: [the evals](../../../integration/evidence/2026-11-18-sql-slice-evals/results.json).
 
-**Result on 22 English jobs, one run each:** 19 pass. Today's tools pass 11 of the same 22. On the 19 that pass, the slice takes 51 decisions and 534 seconds where today's tools take 97 and 970. The eight that today's tools fail and the slice passes are adding rows from a document, a bulk update, a new table from pasted text, a renamed column, adding the rows one table is missing from another, totals by category saved as a table, a draft change, and building a view. The first run of the slice passed 11 of 12. Six fixes came from reading the failures, each rerun with one counterexample.
+**Result on all 24 English jobs, one run each, with the profile cut down:** 20 pass. Today's tools pass 12 of the 23 they can attempt. On the 20 that pass, the profile takes 54 decisions and 434 seconds where today's tools take 98 and 986. A first prompt is about 4,140 tokens where today's is about 11,180. A greeting takes 12 seconds where today's takes 23.
 
-**Still failing under `general`, as under today's tools:** building an app, a form and a rule. The model cannot produce the definition formats, and the app job also cannot reach the app checker from the command line. These are what `save` and its guides in phase 5 are for.
+- **What today's tools fail and the profile passes:** adding rows from a document, a bulk update, a new table from pasted text, a renamed column, adding the rows one table is missing from another, totals by category saved as a table, a draft change, and building a view.
+- **Still failing:** building an app, a form, a rule and a saved tool. The app job cannot reach the app checker from the command line, under either profile. The other three have no path yet: they are what `save` and workbook tools in phase 5 are for.
+- **How it got here:** the first run of the slice passed 11 of 12. Seven fixes came from reading failed transcripts, each rerun with one counterexample.
+
+**The profile today.** `general` offers `sql` and 20 of today's tools: `search`, `read`, `finish`, `balance`, `spaces`, `save_space`, `draft`, the five thread tools, `history_search`, `history_read`, `tool_result`, `workspace_actions`, `workspace_action` and the three app tools. It has its own instructions, about a tenth the length of today's. Everything else today's tools do is absent from `general` until a general tool covers it: the coverage tables above list what must be folded before the old tools can go. Specialized phases keep today's tools and instructions.
 
 **What `sql` is today** ([ChatSQL.swift](../../../Sources/SevraCore/ChatSQL.swift)):
 
@@ -410,7 +414,6 @@ Built on November 18, 2026 under the `general` profile. Evidence: [the evals](..
 - Refused, with nothing changed: indexes, views, triggers and temporary tables, `ATTACH`, pragmas, transaction statements, the schema table, the host's log, the catalog tables, a formula column, more than one statement in an entry, text in a number column, a shape change in a draft, and any change in a request that forbids changes.
 - An answer may rest on a query: its figures count as computed, and the host attaches the rows it read, or the table's own Source when there are many.
 - Under the `general` profile a read sent twice in a row is answered with a pointer to the result it already has, and a second repeat makes the model finish.
-- Under the `general` profile `sql` replaces `datasets`, `rows`, `compare_rows`, `calculate`, `propose_table_edit` and `propose_table`. Specialized phases keep today's tools.
 
 **Checks, none needing the model:** [check_chat_sql.py](../../../scripts/check_chat_sql.py) through the command line in about ten seconds, and `sevra-agent-checks --sql-tool` with a scripted model under the AI actor.
 

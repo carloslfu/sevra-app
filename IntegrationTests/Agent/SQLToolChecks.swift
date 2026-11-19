@@ -17,10 +17,9 @@ func checkSQLTool() async throws {
       try NativeTools.serializedDefinitions(toolScope: scope, toolProfile: .general),
       try NativeTools.serializedDefinitions(toolScope: scope))
   }
-  for (old, new) in ToolProfile.sqlRewording {
-    let reworded = ToolProfile.general.instructions(current: "A. " + old + " B.")
-    try expectEqual(reworded.hasPrefix("A. " + new + " B."), true)
-  }
+  try expectEqual(general, NativeTools.generalKept.union(["sql"]))
+  try expectEqual(ToolProfile.general.instructions(current: "today"), ToolProfile.generalInstructions)
+  try expectEqual(ToolProfile.current.scopeInstructions(current: "today"), "today")
 
   let root = FileManager.default.temporaryDirectory.appendingPathComponent(
     "sevra-sql-tool-" + identifier())
@@ -57,8 +56,8 @@ func checkSQLTool() async throws {
   let instructions = try expectValue(await read.prompts.first?.first?.cacheablePolicy)
   try expectEqual(instructions.contains("compare_rows"), false)
   try expectEqual(instructions.contains("use calculate"), false)
-  try expectEqual(instructions.contains(ToolProfile.sqlInstructions), true)
-  try expectEqual(instructions.contains("table.change_rows makes"), false)
+  try expectEqual(instructions.contains(ToolProfile.generalInstructions), true)
+  try expectEqual(instructions.contains("datasets"), false)
   // The request names the tables as sql knows them, so the model need not look them up.
   let request = try expectValue(await read.prompts.first?.last { $0.role == "user" }).content
   try expectEqual(
