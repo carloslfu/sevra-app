@@ -113,6 +113,29 @@ Cloud sync, transport, replica coordination and a new resolver are out of scope.
 Preserve unrelated changes. Do not change the website business or Slotstream
 repository as a side effect. Keep public claims tied to measured acceptance.
 
+## Keep testing light
+
+The owner stopped an overtested build on November 19, 2026:
+[light testing direction](db/sources/notes/2026/11/light-testing-direction.md). An agent had run
+every model job in two languages, with reruns and repeated timings, for hours. He had asked for
+none of it. Here overtesting is a failure, the same as undertesting. These rules win over any
+plan, skill, checklist or earlier habit that asks for more.
+
+- **English only.** Do not test in another language unless the owner asks for that language.
+- **Checks that need no model come first.** They carry the mechanics and take seconds. Run the
+  ones that cover the change.
+- **Model runs cover happy paths and the edge cases that matter, nothing else.** The routine run
+  is the light set: `python3 scripts/check_chat_jobs.py --profile general`, eleven jobs, one run
+  each, under four minutes. Run another job by name only when its own area changes.
+- **One run.** Read the transcript of a failure, then fix it or record it. Do not run it again to
+  see whether it passes, and do not take a timing several times.
+- **Ask before anything long.** If testing a change would take more than about five minutes of
+  model or build time, or you want a job set, a language or a repeat these rules do not allow,
+  stop and ask the owner first, and say how long it would take.
+- **`scripts/check.sh` runs once on a candidate before a release.** It is not part of iterating.
+- **A plan may not set a heavier gate than this.** When you write a plan, its tests are these.
+  When you follow one that asks for more, these rules win and you say so.
+
 ## Interface quality
 
 The owner explicitly requires deep visual and functional review of interface work.

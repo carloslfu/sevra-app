@@ -2,7 +2,7 @@
 type: operational
 id: 01m7qrcqqzh4qqr92a8frch1ze
 created: 2026-11-18T16:38:43.199010+00:00
-updated: 2026-11-19T04:16:57.891093+00:00
+updated: 2026-11-19T14:06:36.228677+00:00
 summary: Plan for seven general chat tools (model SQL on a scratch copy, sandboxed code, workbook tools) and a prompt header calculated at build time and restored at engine start. In implementation.
 title: General chat tools and a pre-read prompt header
 ---
@@ -362,25 +362,31 @@ Phases that are not part of ordinary chat keep their own tool lists and prompts 
 
 Phases are ordered by what depends on what. Each ends on an exit criterion. Checks follow the focused verification policy in [[records/specs/distribution]]: the smallest checks that establish the change. Real-model and engine runs load one model at a time on an idle Mac, after checking reclaimable memory.
 
-Until phase 6 the current tools stay the default. The general tools run under a host-selected tool profile in the same build, so the two are compared on the same code. The tools a person chats with do not change until the full gate in phase 6 passes. Three things do change earlier, each called out where it happens: the model record in phase H2, the header mechanism in phase H3 and the workbook format in phase 5.
+Until phase 6 the current tools stay the default. The general tools run under a host-selected tool profile in the same build, so the two are compared on the same code. The tools a person chats with do not change until the owner says so. Three things do change earlier, each called out where it happens: the model record in phase H2, the header mechanism in phase H3 and the workbook format in phase 5.
 
 ### The test loop and the order
 
-Owner direction, November 18, 2026: [[sources/notes/2026/11/fast-loop-direction]]. The first baseline showed the earlier rule was too slow to build with: 45 minutes for half its runs, and more than half of that spent rerunning jobs that had already failed. This section replaces that rule. Where a phase below says otherwise, this section governs.
+Owner direction: [[sources/notes/2026/11/fast-loop-direction]] on November 18, 2026, and [[sources/notes/2026/11/light-testing-direction]] on November 19. This section governs. Where a phase below asks for more testing than this, this section wins.
 
-**Three levels of test:**
+**The agent overtested this plan, and the owner stopped it.** The first rule here grew into a gate with every job in two languages, reruns of failed jobs and timings taken three times. He had asked for none of it. Spanish alone cost about an hour of model runs. The app is tested in English.
 
-- **No model.** Unit checks on the layer being changed, on every change.
-- **Eval.** The jobs the change touches, in English, one run each, with no reruns. Each job has a recorded expected result: the rows and columns in the workbook afterwards, or the figures and citations in the answer. A failure is read from its transcript, then fixed or recorded. This is the loop for building.
-- **Full gate.** Every job in English and Spanish, a failed job run twice more and passing only if both pass, the three timed turns as the median of three runs, the full agent suite and `scripts/check.sh`. It runs twice: before the old tools are removed in phase 6, and on the final prompt in phase 7.
+**How this plan is tested:**
 
-**What that changes in the phases below:**
+- **No model, on every change.** Checks on the layer being changed. They take seconds and carry the mechanics: reads, row and column changes, Undo, refusals, scripts, the sandbox and the routing of the seven tools.
+- **The light set, when chat behavior changes.** Eleven model jobs in English, one run each, under four minutes in all: one happy path for each kind of work and the edge cases that matter. `python3 scripts/check_chat_jobs.py --profile general` runs it.
+  - Happy paths: a table question, a question answered from a document, a row change, a new table, a script, a saved view and a new thread.
+  - Edge cases: a change the person wants as a draft first, a request missing a value, a document that contains an instruction, and a request that forbids changes.
+- **A job for its area, when that area changes.** The other jobs in the harness run by name: the app job when app building changes, a rule job when rules change.
+- **The suite, once on a candidate before a release:** `scripts/check.sh`.
 
-- A phase exit before phase 6 that says "in both languages" means the eval in English. Spanish and reruns wait for the full gates.
-- The phase 3 milestone, the full agent suite and `scripts/check.sh`, moves to the phase 6 gate. Until then, a change to code the current tools also use runs the checks that cover that code.
-- Decisions and wall time are recorded at every eval. They are compared with the baseline at the full gates, as totals over the jobs, and must not exceed it. A job with no passing baseline is gated on its expected result alone.
-- After phase H3 the timed turns are compared with the rerun that H3 records, so the comparison is on the same header mechanism.
-- A single English run can miss flaky behavior and a Spanish regression. The full gates exist to catch both.
+**What is not done:**
+
+- No second language.
+- No rerun of a failed job to see whether it passes. Its transcript is read, and it is fixed or recorded.
+- No timing taken several times. Timing is measured once, when the prompt changes.
+- No run of every job. The harness refuses more than twelve jobs without the owner's word.
+
+**What that changes in the phases below:** an exit that asks for every job, a rerun or a repeated timing means the light set, once. Decisions and wall time are recorded at each run. The phase 3 milestone, the full agent suite and `scripts/check.sh`, moves to the candidate before a release.
 
 **Order:**
 
@@ -394,19 +400,21 @@ Owner direction, November 18, 2026: [[sources/notes/2026/11/fast-loop-direction]
 
 Built on November 18, 2026 under the `general` profile. Evidence: [the evals](../../../integration/evidence/2026-11-18-sql-slice-evals/results.json). This section is the current state. Where a phase below describes something differently, this section says what was built and why.
 
-**Result, one run of each job with the real model:** in English 22 of 24 from the command line, and the app job passes when it runs inside an app bundle, which makes 23 of 24. In Spanish 23 of 25, counting an added rule job. Today's tools pass 12 of the 23 they can attempt in English. On the 11 jobs that pass under both, the seven tools take 26 decisions and 219 seconds where today's take 40 and 394. A first prompt is about 4,600 tokens where today's is about 11,180.
+**Result, one run of each job with the real model:** 22 of 24 from the command line, and the app job passes when it runs inside an app bundle, which makes 23 of 24. Today's tools pass 12 of the 23 they can attempt. On the 11 jobs that pass under both, the seven tools take 26 decisions and 219 seconds where today's take 40 and 394. A first prompt is about 4,600 tokens where today's is about 11,180.
 
 - **What today's tools fail and the general tools pass:** adding rows from a document, a bulk update, a new table from pasted text, a renamed column, adding the rows one table is missing from another, totals by category saved as a table, a draft change, building a view, a form and a saved tool.
 - **Still failing:**
 
-  - **The rule job as written.** A rule needs a saved workflow to run, and the sample workbook has none. The model reads the rule guide, finds no workflow and asks what the rule should run. That is the right answer and not what the job expects. An added job, `build.rule_for_workflow`, has a workflow in its workbook and passes in both languages in 6 decisions.
-  - **The app job is not reliable.** It needs the app checker, so it runs inside an app bundle. It passed 2 of 3 runs in English and 1 of 3 in Spanish, in 11 to 15 decisions. Each failed run ended at the step limit or on a repeated action after app checks that found real faults in the app the model wrote. Today's tools have no result to compare: the job was never run where the checker could be reached.
+  - **The rule job as written.** A rule needs a saved workflow to run, and the sample workbook has none. The model reads the rule guide, finds no workflow and asks what the rule should run. That is the right answer and not what the job expects. An added job, `build.rule_for_workflow`, has a workflow in its workbook and passes in 6 decisions.
+  - **The app job is not reliable.** It needs the app checker, so it runs inside an app bundle. It passed 2 of 3 runs, in 11 to 13 decisions. Each failed run ended at the step limit or on a repeated action after app checks that found real faults in the app the model wrote. Today's tools have no result to compare: the job was never run where the checker could be reached.
 
-**The gate, run once on the final build:**
+**The light set, the routine model run from November 19, 2026:** 11 of 11 pass, in 26 decisions and 3 minutes 51 seconds. It includes the first job in which the model wrote and ran a script, in 2 decisions.
 
-- **Reruns.** Every job that failed at some point during the build passed its rerun in both languages, except the app job above.
-- **Timed turns, the median of three:** a cold first turn 13.6 s, a warm greeting 4.7 s, a warm stock question 8.9 s. Today's tools, one run each: 18.0 s, 4.2 s and 10.8 s.
+**Measured once on the final build:**
+
+- **Timing:** a cold first turn 13.6 s, a warm greeting 4.7 s, a warm stock question 8.9 s. Today's tools: 18.0 s, 4.2 s and 10.8 s.
 - **The suite.** `scripts/check.sh` ran through 955 passing checks and stopped at its grammar step on one failure this work had caused: the rule guide was in the read-only tool set that the old answer scopes are checked against. That was fixed, the step passed, and the remaining steps passed from there, with the packaged native journeys on the rebuilt package. The packaged journeys of the older non-native build were skipped, as the script does when that build is not current.
+- **Runs the owner did not ask for.** During the build every job was also run in Spanish, failed jobs were run again, and timings were taken three times. Those results stay in the evidence file and are not part of how this plan is tested.
 
 **The model is offered exactly seven tools:** `search`, `read`, `sql`, `run`, `save`, `ask` and `finish` ([GeneralTools.swift](../../../Sources/SevraAI/GeneralTools.swift)).
 
@@ -465,7 +473,7 @@ Each changed row version adds about 8 KB to the workbook file, which is what the
 
 **Left out, with the reason:**
 
-- **Removing the old tool declarations.** They remain for the specialized phases and behind the `current` profile, which 61 of the 84 agent check files script by name. Removing them means rewriting those checks. The preview uses the general tools through its saved setting. Making `general` the only profile waits for the full gate and the owner's word.
+- **Removing the old tool declarations.** They remain for the specialized phases and behind the `current` profile, which 61 of the 84 agent check files script by name. Removing them means rewriting those checks. The preview uses the general tools through its saved setting. Making `general` the only profile waits for the owner's word.
 - **One transaction for a whole call.** The existing write paths each open their own transaction. Taking back the earlier steps gives the same result for the person.
 - **The exact side table and exact functions.** The owner chose 15-digit numbers: [[sources/notes/2026/11/general-tools-answers]].
 - **Catalog tables for views, apps, definitions, automations, workflow runs and the review queue.** `read` lists them by kind and `search` finds definitions. No job needed them as tables.
@@ -490,7 +498,7 @@ Exit: the owner's answers are recorded as a source note, the `db/DB.md` line is 
 ### Phase 1. Baseline and a switchable tool profile
 
 1. Add a tool profile chosen by host configuration, never by the model or by text: `current` and `general`. With `current` the declarations are byte-identical to today.
-2. Fix the comparison jobs, on the synthetic sample workbook, in English and Spanish:
+2. Fix the comparison jobs, on the synthetic sample workbook, in English:
    - read: the stock question, the supplier comparison, a count, a two-table join, a question about a document;
    - change: add rows from a document, a bulk update, a new table from pasted text, a renamed column, deleted rows;
    - several steps: add to one table the rows it is missing from another, total a document's line items by category and save the totals as a table, report the three largest price differences between two suppliers;
@@ -507,7 +515,7 @@ Exit: the baseline is retained as evidence, and `--conversation-surfaces` shows 
 
 - **Profile.** The host reads `SEVRA_TOOL_PROFILE`. Unset means `current`, and an unknown name is refused. `sevra-agent-checks --conversation-surfaces` passes with `current` byte-identical to a build without a profile.
 - **Jobs.** [check_chat_jobs.py](../../../scripts/check_chat_jobs.py) holds the 24 jobs with their expected results and runs them under either profile.
-- **How it was recorded.** The first 26 results ran in both languages under the earlier rerun rule. The owner then chose the fast loop, and the remaining jobs ran once in English.
+- **How it was recorded.** The first 26 results ran under an earlier rerun rule, in two languages the owner had not asked for. He then chose the fast loop, and the remaining jobs ran once in English.
 - **Baseline in English, today's tools: 12 of 23 jobs pass.**
   - Reads: 5 of 5, in 3 to 4 decisions and 23 to 48 seconds each.
   - Table changes: 1 of 5. Only deleting rows passes.
@@ -540,7 +548,7 @@ Exit: the baseline is retained as evidence, and `--conversation-surfaces` shows 
 Exit:
 - CPU: refused statements are refused; the scratch database holds nothing but the tables referenced and the catalog; results equal the existing query engine on its fixtures; the exact functions equal the exact engine on the calculation fixtures; a floating-point result is marked approximate; budgets and the page cap hold.
 - Copy cost: filling 100,000 rows, the existing row budget, completes inside the existing query time budget. If it does not, the row limit for `sql` is lowered to the largest measured size that does, and recorded here. If an ordinary call then spends more than a tenth of a decision in filling, the host keeps a filled copy of each table for the conversation, starts each call's scratch database from it, and refills a table only when its fingerprint changes.
-- Real model: every read job is answered correctly with citations, with no more decisions than the baseline, in both languages. The stock question gives 18 from an opening 20 and a movement of −2. A cited receipt opens in the conversation.
+- Real model: every read job is answered correctly with citations, with no more decisions than the baseline. The stock question gives 18 from an opening 20 and a movement of −2. A cited receipt opens in the conversation.
 
 ### Phase 3. `sql`, changing
 
@@ -556,7 +564,7 @@ Depends on phase 2 and on the `db/DB.md` change.
 
 Exit:
 - CPU, over a generated set of inserts, updates, deletes, replaces and schema changes: the written cells equal the scratch result; `Workbook.verify` passes; replaying the committed changes rebuilds the same state; one Undo restores the exact earlier state, including a dropped table, a redefined table and a bulk delete; Undo after a later change to the same rows is refused with the reason; the canonical schema check passes; a read-only request changes nothing; a repeated statement in a new decision runs again; a call over the row limit changes nothing.
-- Real model: every change job and the draft job succeed in both languages. The two safety jobs pass. They run at every gate from here on, because each later phase adds a way to change the workbook.
+- Real model: every change job and the draft job succeed. The two safety jobs pass. They run at every gate from here on, because each later phase adds a way to change the workbook.
 - Records: the three specifications carry the new rules.
 - Milestone: the full agent suite and `scripts/check.sh`.
 
@@ -572,7 +580,7 @@ Depends on phase 2. Uses phase 3 for changes.
 
 Exit:
 - CPU: the sandbox probe passes on the script path; file and network attempts fail; time, memory, job, output and host-call limits hold; a script's changes are one recorded change with one Undo; a script that throws changes nothing and performs no request; a table changed by someone else during the script refuses the apply.
-- Real model: each of the three several-step jobs finishes in fewer decisions than the baseline, with the same result, in both languages.
+- Real model: each of the three several-step jobs finishes in fewer decisions than the baseline, with the same result.
 
 ### Phase 5. `save`, workbook tools and the format change
 
@@ -594,7 +602,7 @@ Exit:
 - An app action is listed without the app running and runs once the app is enabled.
 - A stock movement made through the saved action behaves as `propose_movement` does today, including its direction review, and the balance read through `sql` agrees with the core's balance. The README's supplier comparison is reproduced with `sql` over the comparison table.
 - One Undo removes a saved view, document, record and tool, or restores the earlier version.
-- Real model: the build jobs succeed in both languages.
+- Real model: the build jobs succeed.
 
 ### Phase 6. Fold the rest, then remove the old tools
 
@@ -608,7 +616,7 @@ Depends on phase 5.
 6. Make `general` the only profile and delete the old tool definitions that no specialized phase still uses.
 
 Exit:
-- Every job in the phase 1 list passes with the general tools in both languages, with no more decisions than the baseline in total.
+- Every job in the phase 1 list passes with the general tools, with no more decisions than the baseline in total.
 - Milestone: the full agent suite, `scripts/check.sh`, a packaged build, installation, and the native journeys for supplier comparison, Excel import and a mini app in the installed preview, with the interface review `AGENTS.md` requires.
 
 ### Phase 7. Final prompt and measurement
@@ -712,7 +720,7 @@ Each specification is updated in the phase that makes its new rule true: managed
 
 ## Risks and what would change the plan
 
-- **The local model writing SQL and JavaScript.** A failed statement costs a decision. Published code-first agents use much stronger models. Every phase gates on real-model jobs in two languages, and the current tools stay the default until phase 6. If a job stays worse than the baseline, the phase does not exit and the owner decides whether to keep a narrow tool, change the job or stop.
+- **The local model writing SQL and JavaScript.** A failed statement costs a decision. Published code-first agents use much stronger models. Every phase gates on real-model jobs, and the current tools stay the default until phase 6. If a job stays worse than the baseline, the phase does not exit and the owner decides whether to keep a narrow tool, change the job or stop.
 - **Exact products and divisions need named functions.** A plain `sum` over a decimal column is exact. The natural `sum(qty * price)` is floating point, and the answer guard refuses it as an exact figure. Each miss costs a decision. The phase 2 gate shows whether the model learns the exact functions from the header and the guide.
 - **Citations for computed answers.** An aggregate cites its statements and the tables it read, not single rows. The product says a person can check the inputs behind a calculation, so phase 2 does not exit until a receipt opens in the conversation.
 - **Changes without approval.** A document can contain an instruction. The sandbox has no way out of the Mac and a change can be undone until later changes build on it, so the exposure is edits to this workbook and the requests a script can make, which behave as today.
@@ -735,7 +743,7 @@ Each specification is updated in the phase that makes its new rule true: managed
 
 - **Make the general tools the default, and remove the old ones.** The preview on the test Mac uses them through its saved setting. In the code `current` is still the default. Removing the old tool declarations means rewriting the 61 agent check files that script them by name.
 - **The rule job.** A rule cannot exist without a saved workflow. Either the product gets a built-in alert that a rule can run, or the job changes to the one that has a workflow.
-- **The app job.** It passes about half the time under the general tools. Decide whether that blocks making them the default, given that today's tools were never measured on it.
+- **The app job.** It passed 2 of 3 runs under the general tools. Decide whether that blocks making them the default, given that today's tools were never measured on it.
 - **A look at the chat interface.** Access to operate the app's window was declined in the building session. Nobody has seen the "Change saved" row with "Undo this change", or how `sql` and `run` activity reads in the conversation. The UI Catalog has no entry for the row.
 - **Saved tools from a copied workbook (P5).** A tool that arrives in a copied workbook runs when the person asks for it by name. Its changes can be undone. An enable step is not built.
 - **A save panel for exports.** Today the model asks for the path when the request has none.
@@ -762,3 +770,4 @@ Each specification is updated in the phase that makes its new rule true: managed
 13. A final independent check of the header design against the code. It found that the header's text cannot be rendered without the model, that the staging point named was not in the shared code, that specialized phases do not all share one header, that the engine's write budget does not cap writes, and that refusing to start without disk room was a new limit not put to the owner. All are corrected above.
 14. Phase 2's SQLite probe, run ahead of the phase. It confirmed table discovery, the trigger log, the refusals and the page cap. It showed that a written floating-point value cannot be told from an exact one once SQLite has converted it, so the Numbers design changed to floating-point cells with an exact side table, which the probe then confirmed.
 15. The build itself, November 18, 2026. Each failed real-model job was read from its transcript. They showed that the local model needs strict shapes, which reshaped `save` and `run`, and that a bare ID as a result makes it repeat a save.
+16. The owner's review of the testing, November 19, 2026. He had not asked for Spanish, reruns or repeated timings, and wanted model testing that takes minutes. The test section was rewritten around a light set of eleven jobs, and the harness now refuses a long run.

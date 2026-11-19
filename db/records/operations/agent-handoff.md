@@ -3,7 +3,7 @@ type: operational
 meta-type: operational
 id: 01m659x4nd2q89tkpzzsssd7yr
 created: 2026-10-30T02:23:30.477380+00:00
-updated: 2026-11-19T04:16:57.907029+00:00
+updated: 2026-11-19T14:06:36.245947+00:00
 summary: Native UI Catalog implemented and locally verified, with durable agent maintenance instructions and preserved product/model qualification limits.
 title: Minimum-feature continuation handoff
 ---
@@ -15,18 +15,19 @@ title: Minimum-feature continuation handoff
 Where it stands:
 
 - **The model is offered seven tools under the `general` profile:** `search`, `read`, `sql`, `run`, `save`, `ask`, `finish`. Each call is routed to the existing operation that does its work, so the agent's checks, receipts and confirmations are unchanged. The plan's section "The build so far" says what each tool is, what was measured and what was left out.
-- **Results with the real model, one run of each job:** in English 22 of 24 from the command line, and the app job passes inside an app bundle. In Spanish 23 of 25. Today's tools pass 12 of 23 in English. The app job passes about half its runs. The original rule job cannot pass without a workflow in the workbook.
+- **Results with the real model:** the light set passes 11 of 11 in under four minutes. Over the whole job list, 22 of 24 pass from the command line and the app job passes inside an app bundle, where today's tools pass 12 of 23. The app job passed 2 of 3 runs. The original rule job cannot pass without a workflow in the workbook.
 - **`current` is still the default in the code.** The host reads `SEVRA_TOOL_PROFILE`, then the app's saved setting `SevraToolProfile`. The installed preview on the test Mac has that setting at `general` and was built from `187a3fc`.
 - **Nothing is pushed.** The work is local commits on `main`.
 
-How to work on it:
+How to test it, and how not to:
 
-- **No-model checks, on every change:** `python3 scripts/check_chat_sql.py`, `python3 scripts/check_chat_run.py` and `sevra-agent-checks --sql-tool`. The first two need `swift build --product sevra` and `--product sevra-extract`.
-- **An eval,** in English, one run per job, only the jobs the change touches: `python3 scripts/check_chat_jobs.py --profile general --languages en --single-run --jobs 'change.*'`. It uses `output/native/bin/sevra`, so rebuild that first: `SEVRA_NATIVE_CANDIDATE=1 swift build --scratch-path .build/native-product -c release --product sevra`, copy it over `output/native/bin/sevra` and sign it ad hoc.
+- **Keep it light.** The owner stopped an overtested build on November 19: [[sources/notes/2026/11/light-testing-direction]]. `AGENTS.md` has the rule. English only, no reruns, no repeated timings, no run of every job.
+- **No-model checks, on every change:** `python3 scripts/check_chat_sql.py`, `python3 scripts/check_chat_run.py` and `sevra-agent-checks --sql-tool`. The first two need `swift build --product sevra` and `--product sevra-extract`. They take seconds.
+- **The light set, when chat behavior changes:** `python3 scripts/check_chat_jobs.py --profile general --output NEW_DIRECTORY`. Eleven jobs, one run each, under four minutes. It uses `output/native/bin/sevra`, so rebuild that first: `SEVRA_NATIVE_CANDIDATE=1 swift build --scratch-path .build/native-product -c release --product sevra`, copy it over `output/native/bin/sevra` and sign it ad hoc.
+- **A job for its area:** `--jobs build.app` when app building changes, `--jobs build.rule_for_workflow` when rules change. The app job needs an app bundle, because the app checker is an XPC service: copy the packaged preview, put the release `sevra` in its `Contents/MacOS`, sign it ad hoc, and point `SEVRA_CLI` at that copy.
+- **Read the transcript of a failed job.** Do not run it again to see if it passes.
 - **Do not edit sources while a release build runs.** A build that started before an edit can package a mix of old and new modules.
-- **The app job needs an app bundle.** The app checker is an XPC service, which a bare command line tool cannot reach. Copy the packaged preview, put the release `sevra` in its `Contents/MacOS`, sign it ad hoc, and point `SEVRA_CLI` at that copy.
 - **One model process at a time.** The harness refuses to start while another engine helper runs or reclaimable memory is short.
-- **Read the transcript of every failed job.** Every fix so far came from one.
 
 What to know before going further:
 

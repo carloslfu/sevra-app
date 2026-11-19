@@ -2,11 +2,12 @@
 type: index
 scope: type-folder
 folder: sources/notes
-updated: 2026-11-19T03:36:56.278075Z
+updated: 2026-11-19T14:06:36.202933Z
 ---
 
 # sources/notes
 
+- [[sources/notes/2026/11/light-testing-direction]] — Carlos stops the overtesting: this app is tested in English, and model tests cover happy paths and edge cases in minutes.
 - [[sources/notes/2026/11/general-tools-in-the-app]] — Carlos asks to put the general tools in the app and finish the whole plan end to end.
 - [[sources/notes/2026/11/general-tools-answers]] — Owner's four answers after the first sql slice: agent decides the DB.md DDL line, format changes need no compatibility, header paused, 15-digit numbers kept.
 - [[sources/notes/2026/11/fast-loop-direction]] — Owner chooses a fast test loop for the general chat tools: thin slice first, English single-run evals while building, full gate twice.
