@@ -117,13 +117,6 @@ actor PausedModel: WorkbookInference {
 @main struct LifecycleChecks {
   static func main() async {
     do {
-      #if !SEVRA_NATIVE_CANDIDATE
-        if CommandLine.arguments.count == 3 && CommandLine.arguments[1] == "--baseline" {
-          try await baselinePressureChecks(modelFolder: CommandLine.arguments[2])
-          print("PASS baseline product lifecycle checks")
-          return
-        }
-      #endif
       if CommandLine.arguments.count == 4 && CommandLine.arguments[1] == "--native" {
         try await nativePressureChecks(
           modelsRoot: CommandLine.arguments[2], packagedBin: CommandLine.arguments[3])

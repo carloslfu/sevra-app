@@ -245,8 +245,7 @@ with the ordinary parameter format and no defaults. An exact `interpret` workflo
 step binds that definition. Map a prior interpretation output using
 `{step:"STEP_ID",field:"FIELD_ID",unit:"items"}` with a compatible signature.
 Native/CLI continuation uses the installed Python-free native model only for these
-steps; deterministic-only workflows do not load it. The preserved Slotstream
-baseline cannot execute interpretation steps.
+steps; deterministic-only workflows do not load it.
 
 The host retains exact bounded evidence and a model request before releasing the
 write lock. Files require ready, untruncated retained extraction. The first bound

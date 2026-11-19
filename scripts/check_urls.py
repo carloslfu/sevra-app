@@ -4,7 +4,7 @@ from pathlib import Path
 import argparse, json, plistlib, subprocess, tempfile, threading
 root=Path(__file__).resolve().parent.parent
 parser=argparse.ArgumentParser(description=__doc__)
-parser.add_argument('--cli',type=Path,default=root/'output/bin/sevra')
+parser.add_argument('--cli',type=Path,default=root/'output/native/bin/sevra')
 cli=parser.parse_args().cli.resolve(strict=True)
 # Capture allows HTTP as well as HTTPS, so the app needs App Transport Security to allow it too.
 assert plistlib.loads((root/'Resources/Info.plist').read_bytes())['NSAppTransportSecurity']=={'NSAllowsArbitraryLoads':True}

@@ -117,18 +117,12 @@ python3 scripts/check_item_reference_probe.py
 swift build --product SevraDesktop -j "${SEVRA_BUILD_JOBS:-4}"
 # Packaged journeys test the last build, so only one at least as new as the sources counts.
 current() { [ -x "$1" ] && [ -z "$(find Sources Package.swift -newer "$1" -print -quit)" ]; }
-if current output/bin/sevra; then
-  python3 scripts/check_install.py
-  python3 scripts/check_extraction_package.py --product output
-else
-  echo 'Skipped the packaged app journeys: run scripts/build.sh first.' >&2
-fi
 if current output/native/bin/sevra; then
   python3 scripts/check_native_package.py
-  python3 scripts/check_install.py --native
+  python3 scripts/check_install.py
   python3 scripts/check_extraction_package.py
 else
-  echo 'Skipped the packaged native journeys: run scripts/build_native.sh first.' >&2
+  echo 'Skipped the packaged app journeys: run scripts/build_native.sh first.' >&2
 fi
 python3 scripts/check_links.py
 if command -v dbmd >/dev/null; then dbmd validate --all db --json; else echo 'dbmd is required for specification validation.' >&2; exit 1; fi

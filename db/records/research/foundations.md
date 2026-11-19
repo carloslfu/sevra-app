@@ -3,14 +3,14 @@ type: research
 meta-type: conclusion
 id: 01m5rbxzbx5q4atmjp4471w04d
 created: 2026-10-25T01:48:47.357164+00:00
-updated: 2026-10-27T19:16:07.199388+00:00
-summary: Primary sources for SQLite retrieval/durability, native readers, on-device voice and current Slotstream integration.
+updated: 2026-11-19T16:00:23+00:00
+summary: Primary sources for SQLite retrieval/durability, native readers, on-device voice and the native Splash engine.
 title: Foundation research
 ---
 # Research, October 24, 2026
 
-This is an engineering synthesis, not copied documentation. The local public
-Slotstream source and current primary references were inspected before design.
+This is an engineering synthesis, not copied documentation. Current primary
+references were inspected before design.
 
 - [SQLite FTS5](https://sqlite.org/fts5.html): lexical indexing, Unicode tokenizer,
 prefix/trigram modes, BM25/snippets, external-content triggers and rebuilds.
@@ -32,11 +32,6 @@ do not serialize gigabytes into an in-memory FileWrapper on each edit.
 - [ZIPFoundation](https://github.com/weichsel/ZIPFoundation): Swift archive library
 with large-file support and bounded-memory APIs. Our own path/decompression bounds
 and complete snapshot verification remain required.
-- [Slotstream](https://github.com/carloslfu/slotstream): MIT, native Swift package,
-public Engine, ModelPack and versioned deployment APIs. Local and remote main both
-resolved to 7578fb21e57ec362d19f5050922e0f583914935d at research time. Fast pack
-includes Qwen3.6-35B-A3B and DFlash2. Current main is newer than v0.2.30; pin commit,
-exercise actual library API, package the matching MLX metallib and qualify locally.
 
 ## Open evidence
 

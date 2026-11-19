@@ -11,5 +11,5 @@
   "license": "MIT",
   "productionDependency": false,
   "upstreamReference": "Splash 1.6.1 install/requirements.txt and server/constraints.py; unchanged from 1.4.1",
-  "limits": "The native source preview uses this pinned C ABI. Production adoption remains blocked by the separate engine/workflow gates; the Slotstream build and prior native preview are preserved."
+  "limits": "The native source preview uses this pinned C ABI. Production adoption remains blocked by the separate engine/workflow gates."
 }

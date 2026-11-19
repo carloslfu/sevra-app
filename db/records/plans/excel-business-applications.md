@@ -3,7 +3,7 @@ type: operational
 meta-type: operational
 id: 01m7ebv28bxsk6szwx72sbrcyp
 created: 2026-11-15T01:06:11.339074+00:00
-updated: 2026-11-16T15:04:01.237982+00:00
+updated: 2026-11-19T16:00:23+00:00
 summary: Close realistic Excel business application reconstruction, reliable autonomous generation, and integrated chat/native qualification gaps.
 title: Realistic Excel business applications
 status: in-progress
@@ -39,7 +39,7 @@ Acceptance requires two consecutive complete six-application fresh batches on un
 - [ ] Inspect all six generated native apps and the import/clarification/approval/chat journeys, including loading, errors, spacing, row alignment, compact windows and shared state after chat edits. Fix observed product defects and recheck affected paths.
 - [ ] Adversarial passes: hostile workbook evidence and prompt injection; code capability isolation/resource bounds; cross-table/row/formula permissions; missing/ambiguous/duplicate inputs; rollback/stale/version/approval replay; fabricated success and overfitting; copied-workbook authority; cancellation/reopen/Undo; evidence freshness and source provenance.
 - [ ] Complete focused regressions, required full suite, exact-code hosted checks, release package/install/extraction and native identity verification. Avoid competing model runs during package refusal tests.
-- [ ] Publish sanitized receipts, unchanged generated packages, trial failures and limits; update specs/handoff, commit and push. Remove only task recents/grants, undo UI test edits and preserve workbooks/models/baseline app.
+- [ ] Publish sanitized receipts, unchanged generated packages, trial failures and limits; update specs/handoff, commit and push. Remove only task recents/grants, undo UI test edits and preserve workbooks/models.
 
 ## Design constraints
 

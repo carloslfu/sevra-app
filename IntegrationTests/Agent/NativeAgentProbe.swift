@@ -1,6 +1,5 @@
 import Foundation
 import SevraAI
-import SevraBaseline
 import SevraCore
 import SevraNativeAI
 import SevraSplash
@@ -332,10 +331,16 @@ func runNativeAgentProbe(
         ]).json())
     }
     try expectEqual(await model.unload(), true)
-    // The native helper must release the shared lease; a competing backend can
-    // acquire it immediately after unload, without loading another set of weights.
-    try await LocalModel.shared.beginRun()
-    await LocalModel.shared.endRun()
+    // The native helper must release the shared lease, so another process can
+    // acquire it immediately after unload.
+    let lock = Darwin.open(
+      FileManager.default.homeDirectoryForCurrentUser.appendingPathComponent(
+        "Library/Application Support/Sevra/inference.lock"
+      ).path, O_RDWR | O_NOFOLLOW | O_CLOEXEC)
+    try expectEqual(lock >= 0, true)
+    defer { Darwin.close(lock) }
+    try expectEqual(flock(lock, LOCK_EX | LOCK_NB), 0)
+    flock(lock, LOCK_UN)
     print(
       "PASS autonomous native workbook proposal/review/reopen/lineage, evidence comparison, native space, hostile document, missing evidence, cancellation/retry and lease release"
     )

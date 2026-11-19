@@ -67,10 +67,8 @@ struct ModelSettingsView: View {
         Button(filesFound ? "Verify model files" : "Download model") { setup() }
           .buttonStyle(.borderedProminent).disabled(busy)
         DisclosureGroup("Model files and storage") {
-          TextField(
-            ProductAI.canReuseModel ? "Model storage folder" : "Model folder", text: $modelDirectory
-          )
-          .disabled(busy)
+          TextField("Model storage folder", text: $modelDirectory)
+            .disabled(busy)
           HStack {
             Button("Choose folder…") {
               let panel = AppHost.openPanel()
@@ -79,20 +77,17 @@ struct ModelSettingsView: View {
               if panel.runModal() == .OK, let url = panel.url { modelDirectory = url.path }
             }.disabled(busy)
           }
-          if ProductAI.canReuseModel {
-            Button("Use existing model files…") {
-              let panel = AppHost.openPanel()
-              panel.title = "Choose the model folder containing its dflash folder"
-              panel.directoryURL = ProductAI.suggestedReuseDirectory
-              panel.canChooseDirectories = true
-              panel.canChooseFiles = false
-              if panel.runModal() == .OK, let source = panel.url { setup(reusing: source) }
-            }.disabled(busy)
-            Text(
-              "Existing weights are verified and reused in place. Keep their original folder available."
-            )
-            .readingFont(.caption).foregroundStyle(.secondary)
-          }
+          Button("Use existing model files…") {
+            let panel = AppHost.openPanel()
+            panel.title = "Choose the model folder containing its dflash folder"
+            panel.canChooseDirectories = true
+            panel.canChooseFiles = false
+            if panel.runModal() == .OK, let source = panel.url { setup(reusing: source) }
+          }.disabled(busy)
+          Text(
+            "Existing weights are verified and reused in place. Keep their original folder available."
+          )
+          .readingFont(.caption).foregroundStyle(.secondary)
           Button("Unload model from memory") {
             Task {
               let released = await AppHost.ai.unload()

@@ -2,7 +2,7 @@
 set -euo pipefail
 ROOT=$(cd "$(dirname "$0")/.." && pwd)
 cd "$ROOT"
-export SEVRA_NATIVE_CANDIDATE=1 SEVRA_UI_CATALOG=1
+export SEVRA_UI_CATALOG=1
 CONFIG=${SEVRA_CONFIGURATION:-debug}
 JOBS=${SEVRA_BUILD_JOBS:-4}
 SCRATCH="$ROOT/.build/ui-catalog"

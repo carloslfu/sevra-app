@@ -1,7 +1,7 @@
 {
   "schemaVersion": 1,
   "state": "candidate",
-  "activeBackend": "slotstream",
+  "activeBackend": "splash",
   "release": "1.6.1",
   "source": "https://github.com/incoai/splash.git",
   "commit": "d8af1054aab0f97de21d043e01aa98af3754f10e",

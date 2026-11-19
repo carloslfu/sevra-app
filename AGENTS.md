@@ -1,7 +1,7 @@
 # Sevra app
 
 This is the open-source native local-AI workbook app, separate from Sevra's
-website service and Slotstream's app/engine. Read db/DB.md and
+website service. Read db/DB.md and
 [Start here](db/records/overview/start-here.md) before changing the project.
 
 Before work, read the [checkout context](db/records/operations/agent-handoff.md#checkout-context)
@@ -22,9 +22,9 @@ distinctions, claim boundaries and publication checks.
 
 ## Engineering and verification
 
-Swift/SwiftUI/AppKit; shared Swift core and CLI. Adopt upstream Splash C++/Metal
-through a Python-free Swift adapter. The current Slotstream build is a preserved
-baseline until the [integration gates](db/records/specs/splash-integration.md) pass.
+Swift/SwiftUI/AppKit; shared Swift core and CLI. Local inference uses upstream
+Splash C++/Metal through a Python-free Swift adapter, under the
+[integration spec](db/records/specs/splash-integration.md).
 Use the repo-owned [update-splash skill](skills/update-splash/SKILL.md) for engine
 upgrades. Keep the unchanged native engine separate from the Swift frontend.
 Every file asset is outside SQLite inside the workbook unless explicitly linked.
@@ -113,8 +113,8 @@ repository's agent settings keep the tool from adding attribution lines.
 Work directly on `main`, with no feature branch or pull request. Run `dbmd index rebuild` before
 the suite, because its last step validates the records.
 Cloud sync, transport, replica coordination and a new resolver are out of scope.
-Preserve unrelated changes. Do not change the website business or Slotstream
-repository as a side effect. Keep public claims tied to measured acceptance.
+Preserve unrelated changes. Do not change the website business as a side effect.
+Keep public claims tied to measured acceptance.
 
 ## Keep testing light
 

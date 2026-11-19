@@ -10,7 +10,7 @@ import tempfile
 
 ROOT = Path(__file__).resolve().parents[1]
 parser = argparse.ArgumentParser(description=__doc__)
-parser.add_argument("--cli", type=Path, default=ROOT / "output/bin/sevra")
+parser.add_argument("--cli", type=Path, default=ROOT / "output/native/bin/sevra")
 parser.add_argument("--checks", type=Path, default=ROOT / ".build/debug/sevra-checks")
 args = parser.parse_args()
 CLI = args.cli.resolve()

@@ -3,7 +3,7 @@ type: spec
 meta-type: conclusion
 id: 01m5wps1qcharh0qv8vq40wbjr
 created: 2026-10-26T18:15:17.996137+00:00
-updated: 2026-11-16T21:15:44.864893+00:00
+updated: 2026-11-19T16:00:23+00:00
 summary: Python-free Swift integration of pinned upstream Splash, explicit behavior mapping, differential verification and measured adoption gates.
 title: Native Splash integration and upgrades
 status: reviewed
@@ -12,7 +12,7 @@ status: reviewed
 
 Revision 10, November 16, 2026. The owner authorized a focused preview upgrade and a practical 32K versus 64K comparison. Splash 1.6.1 is installed in the native preview. The source chooses 64K on Macs with at least 48 GiB of unified memory and 32K below that tier, with a 12 GiB engine budget and automatic context maintenance in both cases. The previous 1.4.1 bundle and model selection are backed up. Broader production qualification retains the earlier failures. See [[records/operations/inference-context-execution]].
 Authority: [[sources/notes/2026/10/workbook-primary-splash-direction]].
-The existing Slotstream build is a preserved baseline, not the future architecture.
+On November 19, 2026, by owner direction, the Slotstream/MLX build and its product dependencies were removed. Native Splash is the only inference engine; the open gates below are unchanged.
 
 ## Product boundary
 
@@ -77,7 +77,7 @@ and last accepted data. Never silently replay an accepted mutation.
 The selected Swift frontend probes generation-suffix tokens at startup and verifies the suffix on every rendered prompt. It may reuse exact large request envelopes in a four-entry in-memory cache with an 8 MiB payload budget after validating inputs and the current context limit. The cache is scoped to the frontend lifetime and never grants authority or persists history. Changed envelopes render normally; unlike the upstream tokenizer cache, this initial cache does not reuse partial message prefixes.
 ## Native grammar implementation
 
-I14. The candidate uses pinned LLGuidance 1.8.0 through its C ABI. This is the
+I14. Sevra uses pinned LLGuidance 1.8.0 through its C ABI. This is the
 native Rust grammar library already used by the Splash reference, not another
 inference engine. Swift owns its tokenizer callback, byte vocabulary, per-request
 matcher state, cache and speculative masks. No Python extension or interpreter
@@ -91,16 +91,16 @@ token and the full bitmask bytes. Match the reference's stopped-EOS handling.
 Speculative prefixes use cloned state; rejected proposals never advance committed
 state. Every final generated batch is checked after the last mask.
 
-The candidate is loaded only from an explicit trusted, hash-verified native library
+The grammar library is loaded only from an explicit trusted, hash-verified native library
 path. Never accept that path from workbook content or model output. Cache at most
 32 immutable grammar states within an 8 MiB source budget; each run gets its own
 clone. Compiler limits remain enabled; suppress detailed grammar/output dumps in
 errors. Bound simulation to eight tokens and validate mask dimensions exactly.
 
-The pinned Rust toolchain is a contributor build/check dependency. Native library
-packaging, all transitive license notices, signed-library identity and production
-app wiring remain part of I12's adoption gate. Current app installation does not
-need Rust or the candidate library. A direct C ABI does not imply that arbitrary
+The pinned Rust toolchain is a contributor build/check dependency; the installed
+app does not need Rust. The app packages the grammar library. All transitive
+license notices and signed-library identity remain part of I12's adoption gate.
+A direct C ABI does not imply that arbitrary
 upstream Python tool/schema semantics have already been ported.
 
 ## Streaming output and tool candidates
@@ -175,16 +175,14 @@ against the upstream template.
 ## Workbook inference and conversation state
 
 I17. The workbook owns its conversation messages, tool-call values and agent loop.
-Keep a package-internal inference boundary for qualifying the native candidate
-against the preserved backend. This is not a provider catalog, user backend
-selector or public compatibility API. The production app continues to depend on
-the baseline until the adoption gates pass.
+Keep a package-internal inference boundary between the agent and the engine.
+This is not a provider catalog, user backend selector or public compatibility API.
 
-The native candidate runs blocking engine pipes, tokenizer and grammar work on
+The native adapter runs blocking engine pipes, tokenizer and grammar work on
 one serial worker, outside the main actor and Swift cooperative pool. Verify the
 executable and both Metal files before launch, use verified model preparation,
 and validate the native grammar library. Keep one process-wide inference lease
-across app/CLI backends. Close and reap the owned helper before releasing that
+across app and CLI processes. Close and reap the owned helper before releasing that
 lease; cancel, unload, failure and owner disposal obey the same ownership rule.
 A failed stream discards the session. The next request explicitly initializes a
 verified helper. Normal idle release remains two minutes.
@@ -195,7 +193,7 @@ zero. Space and table IDs, earlier-turn citations and invented UUIDs cannot pass
 this field merely because they look valid. Balance results admit their exact opening-basis and accepted effect versions to
 this inspected set, just as deterministic row comparisons admit their inputs.
 Keep the existing host validator too; a schema-valid reference does not prove that the cited text supports a claim.
-The candidate bounds this enum to 256 references and the same context budget;
+The native adapter bounds this enum to 256 references and the same context budget;
 larger retrieval histories need further context/retrieval qualification.
 
 Use all actual workbook tools with a required single-call grammar. Only a complete,
@@ -281,7 +279,6 @@ I12. Source/runtime dependencies remain reproducible from public URLs. Package o
 native artifacts and required tokenizer/grammar resources. Scan shipped contents
 and loaded processes to prove no Python or MLX inference runtime is present in
 the final Splash product. Source/build tooling may use Python and is documented.
-The current Slotstream build must remain explicitly labeled during transition.
 I13. Splash's current floor is Apple M3 or newer and macOS 26.4+. Detect capability
 before model setup; do not retain the old unconditional macOS 14 inference claim.
 Qualify physical hardware individually. Source builds need suitable Metal tooling;
@@ -298,25 +295,27 @@ verified upstream prebuilt kernels/runtime are allowed where tools are unavailab
    32K and practical 64K workloads under C01–C13, then select measured defaults.
 7. Run matched model/workbook comparisons; fix regressions before adoption.
 8. Remove Slotstream/MLX product dependencies, package, test a clean install and UI.
+   The removal was done on November 19, 2026, by owner direction, before step 7
+   finished. Clean-install and UI tests remain.
 9. Publish honest measured support/limits and an explicitly qualified release.
 
 Record each checkpoint in [[records/operations/implementation]] and the append-only
 log. This plan does not remove existing product acceptance journeys J01–J10.
 
-## Native setup candidate
-Native setup now has a candidate Swift-only service and a standalone sevra-native-setup executable, depending only on SevraSplash. It downloads the selected immutable target/draft files with URLSession into private snapshot folders, streams bytes to disk, resumes by verified Content-Range, restarts when a server ignores Range, checks pinned byte counts and SHA-256, keeps partial data on interruption/cancellation, checks available storage and atomically publishes the existing verified assembly format. Compatible explicitly selected target/draft folders can be reused without downloading weights. Failed setup leaves the prior selection intact.
+## Native setup
+Native setup has a Swift-only service and a standalone sevra-native-setup executable, depending only on SevraSplash. It downloads the selected immutable target/draft files with URLSession into private snapshot folders, streams bytes to disk, resumes by verified Content-Range, restarts when a server ignores Range, checks pinned byte counts and SHA-256, keeps partial data on interruption/cancellation, checks available storage and atomically publishes the existing verified assembly format. Compatible explicitly selected target/draft folders can be reused without downloading weights. Failed setup leaves the prior selection intact.
 
-The initial preflight enforces the pinned engine floor of Apple M3 and macOS 26.4. That does not qualify every such Mac for a particular context/memory profile. The isolated native app and CLI now package the helper/grammar and share this setup service. A fresh 21,481,463,614-byte download, deliberate cancellation/resume, jobs using those files and native Settings reuse have passed on the reference Mac. Settings subsequently passed fresh download start, cancellation, partial resume, cancellation again, invalid-folder failure and restored-folder verification. Cancelled setup leaves downloaded bytes resumable without publishing an incomplete selection. The UI clears old progress at start/error and ignores progress from a finished or cancelled operation; cancellation is a normal resumable state. A full fresh download solely through Settings was not separately run. These checks do not qualify all hardware, the complete UI, or performance. Production adoption still requires those gates. The candidate CLI does not switch the installed app.
+The initial preflight enforces the pinned engine floor of Apple M3 and macOS 26.4. That does not qualify every such Mac for a particular context/memory profile. The native app and CLI package the helper/grammar and share this setup service. A fresh 21,481,463,614-byte download, deliberate cancellation/resume, jobs using those files and native Settings reuse have passed on the reference Mac. Settings subsequently passed fresh download start, cancellation, partial resume, cancellation again, invalid-folder failure and restored-folder verification. Cancelled setup leaves downloaded bytes resumable without publishing an incomplete selection. The UI clears old progress at start/error and ignores progress from a finished or cancelled operation; cancellation is a normal resumable state. A full fresh download solely through Settings was not separately run. These checks do not qualify all hardware, the complete UI, or performance. Production adoption still requires those gates.
 
 Implementation references: pinned install/local.py, install/models.py, install/assembly.py and install/upstream.py; Apple URLSessionDataDelegate https://developer.apple.com/documentation/foundation/urlsessiondatadelegate ; HTTP range response semantics https://www.rfc-editor.org/rfc/rfc9110.html#name-range-requests . No dynamic model catalog, remote manifest trust or Python setup process is added.
 ## Native product isolation
-The workbook agent owns tool schemas and conversation values without importing Slotstream or MLX. The preserved engine and history conversion live in SevraBaseline. SevraProduct is the single app/CLI entry point for setup, status, unload and workbook runs. The migration build switch is internal; users do not choose a backend.
+The workbook agent owns tool schemas and conversation values. SevraProduct is the single app/CLI entry point for setup, status, unload and workbook runs. Users do not choose a backend.
 
-The native candidate uses the verified installed assembly, including its separate tokenizer and draft folders. Settings downloads into managed storage by default and can explicitly reuse a complete existing Fast pack in place. Reused originals must remain available. Setup and inference are serialized; cancellation preserves resumable bytes and never publishes an incomplete selection. New sessions validate selected source identities and original files: each launch checks sizes and recorded identities and hashes only a file whose identity moved. Verify model files hashes every file of an existing pinned assembly before considering a download; this preserves explicit reuse without creating a second weight copy. Only a missing or changed original starts a download, repaired into managed snapshots with the previous selection retained until the replacement verifies. Any other failure, such as a busy lock, stops setup with its error.
+The app uses the verified installed assembly, including its separate tokenizer and draft folders. Settings downloads into managed storage by default and can explicitly reuse a complete existing compatible model folder in place. Reused originals must remain available. Setup and inference are serialized; cancellation preserves resumable bytes and never publishes an incomplete selection. New sessions validate selected source identities and original files: each launch checks sizes and recorded identities and hashes only a file whose identity moved. Verify model files hashes every file of an existing pinned assembly before considering a download; this preserves explicit reuse without creating a second weight copy. Only a missing or changed original starts a download, repaired into managed snapshots with the previous selection retained until the replacement verifies. Any other failure, such as a busy lock, stops setup with its error.
 
-An isolated preview app and CLI package the unchanged Splash helper and Metal files, native grammar library, resource bundles and dependency notices. Runtime lookups resolve only installed locations. Missing packaged resources must fail even when the contributor build tree exists. The preview has a distinct bundle identifier and does not register workbook associations or replace the installed baseline. Candidate builds keep automatic compaction disabled until its adoption gate passes. The 32K context, bounded512 reasoning and 12 GiB engine budget remain qualification settings, not a broad hardware performance claim.
+The app and CLI package the unchanged Splash helper and Metal files, native grammar library, resource bundles and dependency notices. Runtime lookups resolve only installed locations. Missing packaged resources must fail even when the contributor build tree exists. The preview has its own bundle identifier and does not register workbook associations. Candidate builds keep automatic compaction disabled until its adoption gate passes. The 32K context, bounded512 reasoning and 12 GiB engine budget remain qualification settings, not a broad hardware performance claim.
 
-The native product must be tested with build-folder access denied, missing and altered resources, actual model setup and complete workbook jobs. Code signatures and runtime hashes must agree after packaging. CI additionally builds the preview from a fresh checkout and checks installed paths, grammar loading, signatures and missing resources without GPU qualification. Local checks separately exercise Metal and missing-model guidance. SwiftPM still resolves baseline source packages for comparative tests; they are absent from the native product binary. Performance adoption still requires the matched reference comparison in this specification.
+The native product must be tested with build-folder access denied, missing and altered resources, actual model setup and complete workbook jobs. Code signatures and runtime hashes must agree after packaging. CI additionally builds the preview from a fresh checkout and checks installed paths, grammar loading, signatures and missing resources without GPU qualification. Local checks separately exercise Metal and missing-model guidance. Performance adoption still requires the matched reference comparison in this specification.
 
 ## Nested schema property order
 LLGuidance fixes JSON object property order to the order supplied in each schema. Canonically sorting every nested property alphabetically placed optional formula before required id; once a model emitted id it could no longer add a formula. A real native planning-table test exposed both a fixed numeric replacement and a missing total. Prompt-only changes did not repair this constraint.

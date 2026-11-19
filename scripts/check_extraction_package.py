@@ -59,7 +59,7 @@ with tempfile.TemporaryDirectory(prefix='sevra-extraction-package-') as director
             if format == 'xlsx':
                 assert reply['result']['sheets'][0]['formulas'] == {'B1': '6*2'}, reply
         libraries = subprocess.check_output(['otool', '-L', str(helper)], text=True).lower()
-        assert not any(name in libraries for name in ['python', 'mlx', 'slotstream'])
+        assert not any(name in libraries for name in ['python', 'mlx'])
         print(json.dumps({'helper': str(helper.relative_to(product)), 'buildTreeDenied': True,
                           'textPDFDOCX': True, 'structuredCSVXLSX': True, 'cachedFormulaPreserved': True, 'noPythonOrModelRuntime': True}), flush=True)
     cli = product / 'bin/sevra'

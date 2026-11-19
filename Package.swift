@@ -2,16 +2,11 @@
 import Foundation
 import PackageDescription
 
-// Qualification builds use an isolated product directory. This is a build-time
-// migration switch, never a user-selectable runtime backend.
-let nativeCandidate = ProcessInfo.processInfo.environment["SEVRA_NATIVE_CANDIDATE"] == "1"
-
 let uiCatalog = ProcessInfo.processInfo.environment["SEVRA_UI_CATALOG"] == "1"
-precondition(!uiCatalog || nativeCandidate, "The UI catalog requires SEVRA_NATIVE_CANDIDATE=1")
 
 let sparkleDirectory = ProcessInfo.processInfo.environment["SEVRA_SPARKLE_FRAMEWORK_DIR"]
-precondition(sparkleDirectory == nil || (nativeCandidate && !uiCatalog),
-             "Sparkle is only linked into the native distribution build")
+precondition(sparkleDirectory == nil || !uiCatalog,
+             "Sparkle is only linked into the distribution build")
 
 let package = Package(
   name: "Sevra", platforms: [.macOS(.v14)],
@@ -46,9 +41,6 @@ let package = Package(
     .executable(name: "sevra-workflow-performance", targets: ["SevraWorkflowPerformance"]),
   ],
   dependencies: [
-    .package(
-      url: "https://github.com/carloslfu/slotstream.git",
-      revision: "7578fb21e57ec362d19f5050922e0f583914935d"),
     .package(url: "https://github.com/weichsel/ZIPFoundation.git", exact: "0.9.20"),
     .package(url: "https://github.com/huggingface/swift-transformers.git", exact: "1.3.5"),
     .package(url: "https://github.com/swiftlang/swift-markdown.git", exact: "0.9.0"),
@@ -184,10 +176,6 @@ let package = Package(
       name: "SevraAI", dependencies: ["SevraCore", "SevraAppProtocol"],
       swiftSettings: [.swiftLanguageMode(.v5)]),
     .target(
-      name: "SevraBaseline",
-      dependencies: ["SevraAI", "SevraCore", .product(name: "Slotstream", package: "slotstream")],
-      swiftSettings: [.swiftLanguageMode(.v5)]),
-    .target(
       name: "SevraNativeAI",
       dependencies: [
         "SevraAI", "SevraCore", "SevraSplash", "SevraSplashText", "SevraSplashGrammar",
@@ -195,14 +183,11 @@ let package = Package(
       swiftSettings: [.swiftLanguageMode(.v5)]),
     .target(
       name: "SevraProduct",
-      dependencies: nativeCandidate
-        ? [
-          "SevraCore", "SevraAI", "SevraNativeAI", "SevraSplash", "SevraSplashText",
-          "SevraSplashGrammar",
-        ]
-        : ["SevraCore", "SevraAI", "SevraBaseline"],
-      swiftSettings: [.swiftLanguageMode(.v5)]
-        + (nativeCandidate ? [.define("SEVRA_NATIVE_CANDIDATE")] : [])),
+      dependencies: [
+        "SevraCore", "SevraAI", "SevraNativeAI", "SevraSplash", "SevraSplashText",
+        "SevraSplashGrammar",
+      ],
+      swiftSettings: [.swiftLanguageMode(.v5)]),
     .target(
       name: "SevraTableUI", dependencies: ["SevraCore"],
       swiftSettings: [.swiftLanguageMode(.v5)]),
@@ -219,10 +204,9 @@ let package = Package(
       name: "SevraProductChecks",
       dependencies: [
         "SevraProduct", "SevraCore", "SevraAI", "SevraNativeAI", "SevraSplash", "SevraSplashText",
-      ] + (nativeCandidate ? [] : ["SevraBaseline"]),
+      ],
       path: "IntegrationTests/Product",
-      swiftSettings: [.swiftLanguageMode(.v5)]
-        + (nativeCandidate ? [.define("SEVRA_NATIVE_CANDIDATE")] : [])),
+      swiftSettings: [.swiftLanguageMode(.v5)]),
     .executableTarget(
       name: "SevraApp",
       dependencies: [
@@ -251,7 +235,7 @@ let package = Package(
       name: "SevraAgentChecks",
       dependencies: [
         "SevraAppUI",
-        "SevraNativeAI", "SevraAI", "SevraBaseline", "SevraCore", "SevraSplashGrammar",
+        "SevraNativeAI", "SevraAI", "SevraCore", "SevraSplashGrammar",
         "SevraSplashText",
         "SevraSplash",
       ],

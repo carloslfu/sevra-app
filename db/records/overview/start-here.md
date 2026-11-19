@@ -3,7 +3,7 @@ type: operational
 meta-type: conclusion
 id: 01m5rbxz8vn3x44zb6n5k97y8q
 created: 2026-10-25T01:48:47.259629+00:00
-updated: 2026-11-16T21:03:50.814714+00:00
+updated: 2026-11-19T16:00:23+00:00
 summary: Splash 1.6.1 native preview installed with scoped accounting, continuity fixes and a context default selected by installed memory.
 title: Start here
 ---
@@ -20,7 +20,6 @@ The product name is Sevra; Sevra Workbooks is a descriptive offer. This public
 repository is `sevra-app` because the separate website business uses `sevra`.
 Workbook is the primary product and homepage, with a small Websites navigation link
 for the secondary service. Website pricing/support does not apply to this app.
-Slotstream remains independent.
 
 ## Current preview and delivery order
 
@@ -126,8 +125,8 @@ The existing review records installed observations and exact verification limits
 
 - The native app uses SwiftUI/AppKit. The Swift core also serves the independent
   CLI and repo-owned harness skill. The preview integrates pinned Splash C++/Metal
-  through a Python-free Swift adapter. The prior Slotstream build stays a separate
-  baseline until the native engine adoption gates pass.
+  through a Python-free Swift adapter. It is the only inference engine; its
+  open qualification gates are in [[records/specs/splash-integration]].
 - A `.sevra` workbook is a SQLite document package. Included original assets are
   ordinary files inside the package and outside SQLite. Explicit external links
   retain their distinct ownership and availability behavior. `.sevraz` is the

@@ -2,7 +2,7 @@
 import json, os, re, resource, subprocess, tempfile, time
 from pathlib import Path
 root=Path(__file__).resolve().parent.parent
-cli=root/"output/bin/sevra"
+cli=root/"output/native/bin/sevra"
 def run(*args):
     start=time.monotonic()
     result=subprocess.run(["/usr/bin/time","-l",str(cli),*map(str,args)],capture_output=True,text=True,check=True)

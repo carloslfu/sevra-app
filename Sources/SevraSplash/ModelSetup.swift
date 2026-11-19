@@ -1,7 +1,7 @@
 import Darwin
 import Foundation
 
-/// The candidate's setup service, independent of Python, MLX and Slotstream.
+/// The model setup service, independent of Python and MLX.
 /// Run off the main actor; cancellation must be safe to read from this worker.
 public enum SplashModelSetup {
   public struct Progress {

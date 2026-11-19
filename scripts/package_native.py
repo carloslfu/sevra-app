@@ -28,8 +28,8 @@ def notices(destination, scratch, splash, grammar):
     copy(ROOT / "LICENSE", destination / "Sevra.txt")
     copy(ROOT / "Resources/Brand/Poppins-OFL.txt", destination / "Poppins-OFL.txt")
     copy(ROOT / "Package.resolved", destination / "Package.resolved")
-    # SwiftPM resolves baseline packages too. Include their notices conservatively;
-    # this list is licensing evidence, not a claim they are linked in the candidate.
+    # Include every resolved package's notices conservatively; this list is
+    # licensing evidence, not a claim that each package is linked.
     for package in (scratch / "checkouts").iterdir():
         for source in package.rglob("*"):
             if source.is_file() and ".git" not in source.parts and source.name.lower().split(".")[0] in {

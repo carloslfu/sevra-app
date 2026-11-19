@@ -3,7 +3,7 @@ type: operational
 meta-type: operational
 id: 01m7ax1jh6ks73q16h2s9tjezk
 created: 2026-11-13T16:49:52.678022+00:00
-updated: 2026-11-13T18:48:10.604395+00:00
+updated: 2026-11-19T16:00:23+00:00
 summary: Single Excel import and native workflow reconstruction
 title: Single Excel import and native workflow reconstruction
 ---
@@ -31,7 +31,7 @@ An Excel file enters through the ordinary Add files/drop path. Sevra preserves t
 - [x] E. Actual local-model analysis/build on several distinct business files; independently inspect generated behavior, failure/retry and no-model fallback. Preserve all failed attempts, not just successes.
 - [x] F. Adversarial review: source prompt injection, forged conversion/approval/proofs, cross-workbook bindings, stale transitions, duplicate requests, cancellation, malformed/oversized archives and plans, missing cached formulas, external links/macros, destructive update routing and partial import. Repair actionable findings and rerun focused regressions.
 - [x] G. Installed native UI: initial/working/empty/error/retry states, long names and narrow windows, labels, keyboard focus, spacing, row alignment, access approval and actual operation. Use audit/polish findings to fix and reinspect.
-- [x] H. Required suite, exact packaged/installed identity, records/evidence, commit/push and current handoff. Preserve unrelated workbooks, model files, baseline app and historical proof; remove owned disposable test state after retaining receipts.
+- [x] H. Required suite, exact packaged/installed identity, records/evidence, commit/push and current handoff. Preserve unrelated workbooks, model files and historical proof; remove owned disposable test state after retaining receipts.
 
 ## Verification strategy
 

@@ -58,7 +58,7 @@ For a fresh checkout:
 git clone https://github.com/carloslfu/sevra-app.git
 cd sevra-app
 rustup toolchain install 1.96.0 --profile minimal
-bash scripts/install.sh --native
+bash scripts/install.sh
 open "$HOME/Applications/Sevra Native Preview.app"
 ```
 

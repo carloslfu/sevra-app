@@ -3,7 +3,7 @@ type: spec
 meta-type: conclusion
 id: 01m5x2pp178p3a4ay7hbfx7wdg
 created: 2026-10-26T21:43:43.399273+00:00
-updated: 2026-11-16T21:15:44.849287+00:00
+updated: 2026-11-19T16:00:23+00:00
 summary: Automatic compaction, preserved conversation history, authoritative continuation state and measured larger-context qualification.
 title: Continuing conversation and context management
 status: reviewed
@@ -157,7 +157,7 @@ The maintenance threshold is `min(floor(0.75*C), C-O-T-256)`, where C is admitte
 
 T starts at 2,048; a scope that can supply the native SDK, or active authoring, reserves its complete tokenizer-measured guide (currently 3,612 including framing). Native result presentation enforces that bound before admitting evidence. Complete original receipts and their reproducible byte projections stay in the existing journal; larger transient presentations use whole fields or explicit Unicode-scalar pages with original locators and accurate continuation offsets. Missing values never imply absence. Current 32K normal H remains 24,576; full-output authoring H is 20,708. Summaries reserve no fictitious next tool result and fit prompt + 1,400 + 256 without a recursive maintenance trigger.
 
-The preserved baseline uses its canonical scoped measurement interface and remains independently configured. Native profiling and CPU/real-model observations are recorded in [[records/operations/inference-context-execution]]; these do not qualify new product capacities or a general hardware envelope.
+Native profiling and CPU/real-model observations are recorded in [[records/operations/inference-context-execution]]; these do not qualify new product capacities or a general hardware envelope.
 
 After completed tool groups, maintenance compacts only eligible history. Before
 each generation, another measurement catches carried handoff proof or recovery
@@ -225,10 +225,6 @@ entries and token-measured smaller batches. Its latency is foreground work. Nati
 retry still searched business documents instead of recalling original conversation.
 Repeated end-to-end continuity is not qualified. Detailed results belong in the implementation
 register and evidence; synthetic controller checks alone are not model quality.
-The preserved Slotstream adapter has a separate opt-in qualification probe. It
-failed recall by searching business documents instead of conversation history, so
-production Slotstream keeps automatic compaction disabled. This is an explicit
-capability gate, not a runtime switch or hidden provider fallback.
 
 General persisted-job restart after process death remains unfinished. A prepared
 journal makes an uncertain interval inspectable; it is not the complete action
@@ -265,7 +261,7 @@ The R5 follow-up passes 15/15 automatic task checks, two complete native continu
 These results do not erase earlier failed continuations or qualify every narrative assertion. Manual review found a workbook-wide absence overclaim after non-exhaustive searches despite correct forecast status/meaning. C12/J10, broad grounding, long-lived constraints, process death, physical hardware and performance remain open. Native adoption, a larger production context default and baseline automatic compaction remain disabled. See [[records/specs/intelligence]], [[records/reviews/design-passes]] and [[records/operations/implementation]]; complete evidence is in integration/evidence/2026-10-26-bounded-reasoning.json.
 
 ## Historical context without automatic compaction
-The preserved backend keeps automatic compaction disabled. Its recent-context path now presents up to eight prior conversational entries as explicitly historical data, rather than replaying earlier requests as active user turns. Preserve original message IDs, authorship, states, bounded text and truncation flags. Text projection is limited to 1,600 characters per entry; full originals remain available through history_read and keep their original bytes.
+When automatic compaction is off, the recent-context path presents up to eight prior conversational entries as explicitly historical data, rather than replaying earlier requests as active user turns. Preserve original message IDs, authorship, states, bounded text and truncation flags. Text projection is limited to 1,600 characters per entry; full originals remain available through history_read and keep their original bytes.
 
 Parent-conversation excerpts remain separate. Pending-review messages carry current proposal version, acceptance, meaning and dataset identity from the workbook. Unresolved-call notices remain host information, not new user requests or authority to replay an action. The actual current request follows this context. At the start of the run, historical user messages do not become live user-role messages. Existing validation feedback later in the run remains host-controlled.
 
@@ -274,9 +270,9 @@ This projection aligns the authority boundary with native context maintenance wi
 ## Stopped requests in automatic context
 Requests linked to cancelled, failed or interrupted runs enter automatic context as status plus a reference to the original message. Do not repeat their imperative text as a new pending task. Full original bytes, authorship and message IDs remain available through history_read when the current user request needs them. Exact indexed request-to-run linkage is independent of the recent-run display limit.
 
-Apply the same reference-only projection when preparing summary inputs and presenting existing notes that cite a stopped request. This changes model context, not durable conversation evidence, and does not grant citation eligibility. It does not enable automatic compaction in either product path.
+Apply the same reference-only projection when preparing summary inputs and presenting existing notes that cite a stopped request. This changes model context, not durable conversation evidence, and does not grant citation eligibility. It does not enable automatic compaction.
 
-Keep lifecycle recovery and following a new request as separate checks. A clean release is insufficient when the next answer addresses a different task. The preserved reasoning-off baseline still failed a new request to reply Ready after cancellation, including after this projection change. Native bounded512 passed that sequence. Neither establishes universal request relevance. The request-admission follow-up now qualifies crash-left running requests and lease refusal before linkage. Admission atomically preserves the message/run relationship; recovery precedes context projection and a current-message boundary excludes later submissions. An actual packaged-native CLI kill, forced lease refusal and Ready follow-up passed. This does not fix the separately recorded baseline relevance failure or qualify every crash boundary.
+Keep lifecycle recovery and following a new request as separate checks. A clean release is insufficient when the next answer addresses a different task. Native bounded512 passed that sequence. It does not establish universal request relevance. The request-admission follow-up now qualifies crash-left running requests and lease refusal before linkage. Admission atomically preserves the message/run relationship; recovery precedes context projection and a current-message boundary excludes later submissions. An actual packaged-native CLI kill, forced lease refusal and Ready follow-up passed. This does not qualify every crash boundary.
 
 ## Inherited parent evidence
 A tangent may read an exact original message from the same fixed parent excerpt it already inherits. The host admits only those explicit message IDs through history_read, records their owning conversation and links citations back to that original conversation. History search, checkpoint scope and saved tool-result access remain confined to the tangent. Earlier parent messages outside the excerpt, later parent messages, sibling conversations and transitive ancestors remain inaccessible. Merely seeing an inherited excerpt does not grant a citation; history_read must expose the eligible original first. Current/later request messages still cannot be cited as earlier evidence. Bringing an exchange back to main creates a preserved copy with the original conversation link.

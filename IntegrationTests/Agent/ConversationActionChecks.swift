@@ -1,6 +1,5 @@
 import Foundation
 import SevraAI
-import SevraBaseline
 import SevraCore
 import SevraNativeAI
 import SevraSplashGrammar
@@ -65,15 +64,6 @@ func checkConversationActions() async throws {
   let restrictedTools = try NativeTools.referenceDefinitions(conversationActions: [])
   try expectEqual(
     restrictedTools.contains { WorkbookTools.conversationTools[$0.name] != nil }, false)
-  let baseline = try LocalModel.baselineDefinitions(conversationActions: [
-    "start_thread", "start_thread_and_continue",
-  ])
-  let native = try NativeTools.referenceDefinitions(conversationActions: [
-    "start_thread", "start_thread_and_continue",
-  ])
-  try expectEqual(
-    try Value.parse(baseline.first { $0.name == "start_thread" }!.parameters.jsonText),
-    native.first { $0.name == "start_thread" }!.parameters)
   let root = FileManager.default.temporaryDirectory.appendingPathComponent(
     "sevra-conversation-actions-" + identifier())
   defer { try? FileManager.default.removeItem(at: root) }

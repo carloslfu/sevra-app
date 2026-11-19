@@ -1,6 +1,5 @@
 import Foundation
 import SevraAI
-import SevraBaseline
 import SevraCore
 import SevraNativeAI
 
@@ -217,8 +216,6 @@ func runContextRecoveryProbe(model: any WorkbookInference, directory: URL, root:
 private func unloadContinuityModel(_ model: any WorkbookInference) async throws {
   if let native = model as? NativeWorkbookModel {
     try expectEqual(await native.unload(), true)
-  } else if let baseline = model as? LocalModel {
-    try expectEqual(await baseline.unload(), true)
   } else {
     throw SevraError("fixture", "Unknown inference adapter in continuity probe.")
   }

@@ -186,61 +186,18 @@ jobs:
           shasum -a 256 -c selected.sha256
           tar -xzf "$ASSET"
           "./dbmd-0.14.7-darwin-$ARCH/dbmd" validate --all "$GITHUB_WORKSPACE/db" --json
-      - name: Build native app and CLI
-        env:
-          SEVRA_BUILD_JOBS: 3
-        run: ./scripts/build.sh
-      - name: Exercise packaged CLI and installation
-        run: |
-          python3 scripts/check_schedule_preview.py --cli output/bin/sevra --output .build/calendar-preview-installed
-          python3 scripts/check_condition_transitions.py --cli output/bin/sevra --output .build/condition-preview-installed
-          python3 scripts/check_business_events.py --cli output/bin/sevra --worker .build/debug/sevra-checks --output .build/business-events-installed.json
-          python3 scripts/check_inventory_event_state.py --cli output/bin/sevra --output .build/inventory-event-state-installed.json
-          python3 scripts/check_inventory_conditions.py --cli output/bin/sevra --worker .build/debug/sevra-checks --output .build/inventory-conditions-installed.json
-          python3 scripts/check_condition_inputs.py --cli output/bin/sevra --worker .build/debug/sevra-checks --output .build/condition-inputs-installed.json
-          python3 scripts/check_automatic_ancestry.py --cli output/bin/sevra --worker .build/debug/sevra-checks --output .build/automatic-ancestry-installed.json
-          python3 scripts/check_derivation_roles.py --cli output/bin/sevra --worker .build/debug/sevra-checks --output .build/derivation-roles-installed.json
-          python3 scripts/check_business_origins.py --cli output/bin/sevra --worker .build/debug/sevra-checks --output .build/business-origins-installed.json
-          python3 scripts/check_condition_origins.py --cli output/bin/sevra --worker .build/debug/sevra-checks --output .build/condition-origins-installed.json
-          python3 scripts/check_business_inputs.py --cli output/bin/sevra --worker .build/debug/sevra-checks --output .build/business-inputs-installed.json
-          python3 scripts/check_automation_definitions.py --cli output/bin/sevra --output .build/automation-definitions-installed
-          python3 scripts/check_automation_planning.py --cli output/bin/sevra --output .build/automation-planning-installed
-          python3 scripts/check_automation_execution.py --cli output/bin/sevra --output .build/automation-execution-installed
-          python3 scripts/check_automation_causality.py --cli output/bin/sevra --output .build/automation-causality-installed
-          python3 scripts/check_shared_admissions.py --cli output/bin/sevra --worker .build/debug/sevra-checks --output .build/shared-admissions-installed.json
-          python3 scripts/check_condition_dispatch.py --cli output/bin/sevra --worker .build/debug/sevra-checks --output .build/condition-dispatch-installed.json
-          python3 scripts/check_install.py
-          python3 scripts/check_document_cli.py
-          python3 scripts/check_history.py
-          python3 scripts/check_receipts.py
-          python3 scripts/check_concurrency.py --cli output/bin/sevra
-          python3 scripts/check_urls.py
-          python3 scripts/check_extraction_package.py --product output
-          python3 scripts/check_computation_views.py --cli output/bin/sevra
-          python3 scripts/check_document_actions.py --cli output/bin/sevra
-          python3 scripts/check_workflow_intake.py --cli output/bin/sevra
-          python3 scripts/check_workflow_lookup.py --cli output/bin/sevra
-          python3 scripts/check_workflow_clarification.py --cli output/bin/sevra --worker .build/debug/sevra-workflow-durability
-          python3 scripts/check_application_actions.py --cli output/bin/sevra
-          python3 scripts/check_application_definitions.py --cli output/bin/sevra
-          python3 scripts/check_bulk_intake.py --cli output/bin/sevra
-          python3 scripts/check_contextual_intake.py --cli output/bin/sevra
-          python3 scripts/check_dataset_definitions.py --cli output/bin/sevra
-          python3 scripts/check_dataset_queries.py --cli output/bin/sevra
-          python3 scripts/check_extracted_references.py --cli output/bin/sevra
-          python3 scripts/check_managed_datasets.py --cli output/bin/sevra
-          python3 scripts/check_persistence.py --cli output/bin/sevra
-          python3 scripts/check_references.py --cli output/bin/sevra
-          python3 scripts/check_sheet_formulas.py --cli output/bin/sevra
-          python3 scripts/check_space_editing.py output/bin/sevra
-          python3 scripts/check_table_updates.py --cli output/bin/sevra
-      - name: Build and check the isolated Splash preview
+      - name: Build and check the packaged app and CLI
         env:
           SEVRA_BUILD_JOBS: 3
         run: |
           bash scripts/build_native.sh
           python3 scripts/check_native_package.py --paths-only
-          python3 scripts/check_install.py --native
+          python3 scripts/check_install.py
+          python3 scripts/check_document_cli.py
+          python3 scripts/check_history.py
+          python3 scripts/check_receipts.py
+          python3 scripts/check_concurrency.py --cli output/native/bin/sevra
+          python3 scripts/check_urls.py
           python3 scripts/check_schedule_preview.py --cli output/native/bin/sevra --output .build/calendar-preview-native
           python3 scripts/check_condition_transitions.py --cli output/native/bin/sevra --output .build/condition-preview-native
           python3 scripts/check_business_events.py --cli output/native/bin/sevra --worker .build/debug/sevra-checks --output .build/business-events-native.json
@@ -277,7 +234,7 @@ jobs:
           python3 scripts/check_sheet_formulas.py --cli output/native/bin/sevra
           python3 scripts/check_space_editing.py output/native/bin/sevra
           python3 scripts/check_table_updates.py --cli output/native/bin/sevra
-          SEVRA_NATIVE_CANDIDATE=1 swift build --scratch-path .build/native-product -c release --product sevra-extraction-checks -j 3
+          swift build --scratch-path .build/native-product -c release --product sevra-extraction-checks -j 3
           .build/native-product/release/sevra-extraction-checks
       - name: Retain automatic admission race evidence
         if: always()
@@ -285,11 +242,8 @@ jobs:
         with:
           name: automatic-admission-races
           path: |
-            .build/automation-causality-installed/result.json
             .build/automation-causality-native/result.json
-            .build/shared-admissions-installed.json
             .build/shared-admissions-native.json
-            .build/condition-dispatch-installed.json
             .build/condition-dispatch-native.json
           include-hidden-files: true
           if-no-files-found: ignore
@@ -299,7 +253,6 @@ jobs:
         with:
           name: condition-change-inputs
           path: |
-            .build/condition-inputs-installed.json
             .build/condition-inputs-native.json
           include-hidden-files: true
           if-no-files-found: ignore

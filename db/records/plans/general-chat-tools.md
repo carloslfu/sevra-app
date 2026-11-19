@@ -2,7 +2,7 @@
 type: operational
 id: 01m7qrcqqzh4qqr92a8frch1ze
 created: 2026-11-18T16:38:43.199010+00:00
-updated: 2026-11-19T14:06:36.228677+00:00
+updated: 2026-11-19T16:00:23+00:00
 summary: Plan for seven general chat tools (model SQL on a scratch copy, sandboxed code, workbook tools) and a prompt header calculated at build time and restored at engine start. In implementation.
 title: General chat tools and a pre-read prompt header
 ---
@@ -262,7 +262,7 @@ The pinned Splash 1.6.1 already keeps restore points on disk. The app turns that
 
 Read from the scripts at `baadc5c`, which implement [[records/plans/macos-installer-and-updates]]:
 
-- **Two packaging paths.** [build_native.sh](../../../scripts/build_native.sh) runs [package_native.py](../../../scripts/package_native.py) and makes the development app, signed ad hoc, with a separate folder for the command line tool. [install.sh](../../../scripts/install.sh) with `--native` builds and installs it. With `--distribution`, the build script runs [package_release.py](../../../scripts/package_release.py) and makes a DMG that holds the app and a bundled command line app. It has three stages: `qa`, `early-access` and `stable`. Only `stable` uses Developer ID signing and notarization. It writes a `release.json` receipt, and [check_release_package.py](../../../scripts/check_release_package.py) checks an installed copy against it. Both scripts share one staging function, which runs before any signing. Each script then signs in its own order.
+- **Two packaging paths.** [build_native.sh](../../../scripts/build_native.sh) runs [package_native.py](../../../scripts/package_native.py) and makes the development app, signed ad hoc, with a separate folder for the command line tool. [install.sh](../../../scripts/install.sh) builds and installs it. With `--distribution`, the build script runs [package_release.py](../../../scripts/package_release.py) and makes a DMG that holds the app and a bundled command line app. It has three stages: `qa`, `early-access` and `stable`. Only `stable` uses Developer ID signing and notarization. It writes a `release.json` receipt, and [check_release_package.py](../../../scripts/check_release_package.py) checks an installed copy against it. Both scripts share one staging function, which runs before any signing. Each script then signs in its own order.
 - **Where the command line tool sits.** The source installer copies it into the installed app at `Contents/CLI` and links `~/.local/bin/sevra` to it. A release keeps it in a helper app inside the app. Each resolves resources from its own folder today.
 - **Rehearsed, not released.** Three ad hoc QA builds were installed and updated on one Mac. The packaged app has not downloaded or run the model. The public README still offers the source build.
 - **Neither path uses the model.** The person downloads it in Settings, or points the app at existing files. Both routes record the model by repository and revision ([ModelSetup.swift](../../../Sources/SevraSplash/ModelSetup.swift)). The default folder is the same for every build on a Mac.
@@ -295,7 +295,7 @@ Read from the scripts at `baadc5c`, which implement [[records/plans/macos-instal
 ### Development works the same way
 
 - **The first build has no header,** because the model is not on the Mac yet. The source installer says so and names the next step (P6).
-- **After the model download** the developer runs `bash scripts/install.sh --native` again. The build is incremental. Packaging now finds the model, makes the header and copies it into the app.
+- **After the model download** the developer runs `bash scripts/install.sh` again. The build is incremental. Packaging now finds the model, makes the header and copies it into the app.
 - **After a change to the prompt, a schema, the engine or the model** the header no longer matches, and the app says so. The developer runs the install command again, or `sevra header make` in a build tree (P6).
 - **Unchanged headers are reused.** Packaging takes a matching header from the header cache, so the model is loaded only when the header, the engine or the model changed.
 - **Real-model check scripts run the command first,** so a gate never fails for a missing header and never measures a computed one.

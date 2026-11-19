@@ -1,6 +1,5 @@
 import Foundation
 import SevraAI
-import SevraBaseline
 import SevraCore
 import SevraNativeAI
 import SevraSplashGrammar
@@ -180,13 +179,6 @@ func checkItemReferences() async throws {
           ("answer", "An uninspected claim"), ("basis", "evidence"),
           ("citations", "[\"\(correctReference)\"]"),
         ], policy: uncited)))
-  let baseline = try LocalModel.baselineDefinitions(itemReferenceIDs: [correctReference])
-  let native = try NativeTools.referenceDefinitions(itemReferenceIDs: [correctReference])
-  try expectEqual(baseline.count, native.count)
-  for name in ["read", "lineage", "references"] {
-    let parameters = try Value.parse(baseline.first { $0.name == name }!.parameters.jsonText)
-    try expectEqual(parameters, native.first { $0.name == name }!.parameters)
-  }
   let before = try encoded(book.items())
   let model = ReferenceRefusalFixture(id: current.id, wrong: failedReference)
   let reply = try await WorkbookAgent.run(
@@ -202,7 +194,7 @@ func checkItemReferences() async throws {
   try expectEqual(try encoded(book.items().filter { $0.kind != "request" }), before)
   try expectEqual(try book.verify()["ok"], .bool(true))
   print(
-    "PASS exact item candidates, separate citation authority, context rebuild, shared refusal receipts and baseline/native schema parity"
+    "PASS exact item candidates, separate citation authority, context rebuild and shared refusal receipts"
   )
 }
 

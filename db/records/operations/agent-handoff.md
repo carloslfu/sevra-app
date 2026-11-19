@@ -3,11 +3,14 @@ type: operational
 meta-type: operational
 id: 01m659x4nd2q89tkpzzsssd7yr
 created: 2026-10-30T02:23:30.477380+00:00
-updated: 2026-11-19T14:06:36.245947+00:00
+updated: 2026-11-19T16:00:23+00:00
 summary: Native UI Catalog implemented and locally verified, with durable agent maintenance instructions and preserved product/model qualification limits.
 title: Minimum-feature continuation handoff
 ---
 # Minimum-feature continuation handoff
+
+## One inference engine, November 19
+By owner direction, the Slotstream/MLX build is removed: its module, package dependency, `scripts/build.sh`, `scripts/check_model.py` and baseline-only check modes. Native Splash is the only engine and `bash scripts/build_native.sh` is the only build. The install, uninstall and install-check scripts no longer take `--native`. Earlier dated sections that mention a preserved baseline app or baseline packaging are history. This removal does not qualify the native engine; its open gates are unchanged.
 
 ## General chat tools planning, November 18
 [[records/plans/general-chat-tools]] is built through its seven tools. Its gate ran once on November 18 and it is waiting on the owner. He authorized it on November 18: [[sources/notes/2026/11/general-tools-implementation]]. The same day he chose a fast test loop: [[sources/notes/2026/11/fast-loop-direction]], and answered four questions: [[sources/notes/2026/11/general-tools-answers]].
@@ -23,7 +26,7 @@ How to test it, and how not to:
 
 - **Keep it light.** The owner stopped an overtested build on November 19: [[sources/notes/2026/11/light-testing-direction]]. `AGENTS.md` has the rule. English only, no reruns, no repeated timings, no run of every job.
 - **No-model checks, on every change:** `python3 scripts/check_chat_sql.py`, `python3 scripts/check_chat_run.py` and `sevra-agent-checks --sql-tool`. The first two need `swift build --product sevra` and `--product sevra-extract`. They take seconds.
-- **The light set, when chat behavior changes:** `python3 scripts/check_chat_jobs.py --profile general --output NEW_DIRECTORY`. Eleven jobs, one run each, under four minutes. It uses `output/native/bin/sevra`, so rebuild that first: `SEVRA_NATIVE_CANDIDATE=1 swift build --scratch-path .build/native-product -c release --product sevra`, copy it over `output/native/bin/sevra` and sign it ad hoc.
+- **The light set, when chat behavior changes:** `python3 scripts/check_chat_jobs.py --profile general --output NEW_DIRECTORY`. Eleven jobs, one run each, under four minutes. It uses `output/native/bin/sevra`, so rebuild that first: `swift build --scratch-path .build/native-product -c release --product sevra`, copy it over `output/native/bin/sevra` and sign it ad hoc.
 - **A job for its area:** `--jobs build.app` when app building changes, `--jobs build.rule_for_workflow` when rules change. The app job needs an app bundle, because the app checker is an XPC service: copy the packaged preview, put the release `sevra` in its `Contents/MacOS`, sign it ad hoc, and point `SEVRA_CLI` at that copy.
 - **Read the transcript of a failed job.** Do not run it again to see if it passes.
 - **Do not edit sources while a release build runs.** A build that started before an edit can package a mix of old and new modules.

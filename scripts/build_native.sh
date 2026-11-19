@@ -1,10 +1,9 @@
 #!/bin/bash
-# Builds the isolated qualification app or a standalone distribution image.
+# Builds the app and CLI, or a standalone distribution image.
 set -euo pipefail
 ROOT=$(cd "$(dirname "$0")/.." && pwd)
 cd "$ROOT"
-[ "$(uname -m)" = arm64 ] || { echo 'The native candidate requires Apple Silicon.' >&2; exit 1; }
-export SEVRA_NATIVE_CANDIDATE=1
+[ "$(uname -m)" = arm64 ] || { echo 'Sevra requires Apple Silicon.' >&2; exit 1; }
 CONFIG=${SEVRA_CONFIGURATION:-release}
 JOBS=${SEVRA_BUILD_JOBS:-4}
 SCRATCH="$ROOT/.build/native-product"

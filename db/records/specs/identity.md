@@ -2,7 +2,7 @@
 type: spec
 id: 01m5wv7836pwvthpfcpa39g0hq
 created: 2026-10-26T19:32:57.574249+00:00
-updated: 2026-10-26T19:32:57.574249+00:00
+updated: 2026-11-19T16:00:23+00:00
 summary: Approved Observer zebra, exact original Mac icon, native outlined wordmark and restrained light/dark placement.
 title: Sevra workbook visual identity
 status: reviewed
@@ -11,7 +11,7 @@ status: reviewed
 
 B01. Reuse the approved Observer zebra and lighter lowercase sevra wordmark.
 This is the same identity as the Sevra website and the historical Sevra-named
-Mac app. Do not substitute the earlier striped S or current Slotstream icon.
+Mac app. Do not substitute the earlier striped S or another product's icon.
 Owner authority: [[sources/notes/2026/10/observer-workbook-identity]].
 
 B02. Resources/Sevra.icns is the original Mac app icon, unchanged. Declare it
@@ -46,7 +46,7 @@ Resources/Sevra.icns SHA-256:
 `b28f2df8e40cafc2e89fb3ae5a0e361b5470851d833495df9b3dd4ca0395471d`.
 Imported from the public Slotstream history at commit
 `848025db92ea8fe105651b6928d40194cfaa89d8`, path
-apps/macos/Resources/Sevra.icns. That repository is a reference, not modified.
+apps/macos/Resources/Sevra.icns.
 
 scripts/generate_brand.py deterministically translates the two local SVG files
 into Sources/SevraApp/BrandShapes.swift. Its restricted primitive set is intentional;

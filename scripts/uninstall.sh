@@ -1,13 +1,8 @@
 #!/bin/bash
 set -euo pipefail
-NAME=Sevra
-BUNDLE_ID=com.sevra.workbooks
-case "${1:-}" in
-  '') ;;
-  --native) NAME='Sevra Native Preview'; BUNDLE_ID=com.sevra.workbooks.native-preview ;;
-  *) echo 'Usage: uninstall.sh [--native]' >&2; exit 2 ;;
-esac
-[ "$#" -le 1 ] || { echo 'Usage: uninstall.sh [--native]' >&2; exit 2; }
+NAME='Sevra Native Preview'
+BUNDLE_ID=com.sevra.workbooks.native-preview
+[ "$#" -eq 0 ] || { echo 'Usage: uninstall.sh' >&2; exit 2; }
 APP_TARGET=${SEVRA_APP_INSTALL_DIR:-"$HOME/Applications"}
 CLI_TARGET=${SEVRA_CLI_INSTALL_DIR:-"$HOME/.local/bin"}
 TRASH=${SEVRA_UNINSTALL_TRASH_DIR:-"$HOME/.Trash"}

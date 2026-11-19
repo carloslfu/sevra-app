@@ -7,10 +7,6 @@ import SevraProduct
 import SevraSplash
 import SevraSplashText
 
-#if !SEVRA_NATIVE_CANDIDATE
-  import SevraBaseline
-#endif
-
 private func helperPIDs() throws -> [Int32] {
   let process = Process()
   process.executableURL = URL(fileURLWithPath: "/bin/ps")
@@ -29,8 +25,8 @@ private func helperPIDs() throws -> [Int32] {
     return Int32(fields[0])
   }
 }
-private func checkReleased(_ pids: [Int32], native: Bool) throws {
-  try expect(!native || !pids.isEmpty, "No loaded helper was observed before pressure")
+private func checkReleased(_ pids: [Int32]) throws {
+  try expect(!pids.isEmpty, "No loaded helper was observed before pressure")
   for pid in pids {
     try expect(kill(pid, 0) == -1 && errno == ESRCH, "Native helper survived release")
   }
@@ -47,21 +43,19 @@ private func checkReleased(_ pids: [Int32], native: Bool) throws {
 private actor PressureTrigger {
   let service: ProductAI
   let critical: Bool
-  let native: Bool
   var fired = false
   var response: ProductAI.PressureResponse?
   var pids: [Int32] = []
   var failure: String?
-  init(_ service: ProductAI, critical: Bool, native: Bool) {
+  init(_ service: ProductAI, critical: Bool) {
     self.service = service
     self.critical = critical
-    self.native = native
   }
   func observe(_ message: String) async {
     guard message == "Thinking locally", !fired else { return }
     fired = true
     do {
-      if native { pids = try helperPIDs() }
+      pids = try helperPIDs()
       try await Task.sleep(nanoseconds: 200_000_000)
       response = await service.handleMemoryPressure(critical: critical)
     } catch { failure = error.localizedDescription }
@@ -87,20 +81,10 @@ func nativePressureChecks(modelsRoot: String, packagedBin: String) async throws 
       modelsRoot: URL(fileURLWithPath: modelsRoot), memoryBytes: 12_884_901_888,
       contextBudget: .init(profile: .evaluation32K), reasoning: .bounded512,
       modelLayout: .installed, contextMaintenanceEnabled: false))
-  try await runModelPressureChecks(
-    model: model, directory: URL(fileURLWithPath: modelsRoot), native: true)
+  try await runModelPressureChecks(model: model, directory: URL(fileURLWithPath: modelsRoot))
 }
 
-#if !SEVRA_NATIVE_CANDIDATE
-  func baselinePressureChecks(modelFolder: String) async throws {
-    try await runModelPressureChecks(
-      model: LocalModel(), directory: URL(fileURLWithPath: modelFolder), native: false)
-  }
-#endif
-
-private func runModelPressureChecks(model: any WorkbookInference, directory: URL, native: Bool)
-  async throws
-{
+private func runModelPressureChecks(model: any WorkbookInference, directory: URL) async throws {
   let service = ProductAI(qualifying: model)
   let root = FileManager.default.temporaryDirectory.appendingPathComponent(
     "sevra-native-pressure-" + identifier() + ".sevra")
@@ -112,7 +96,7 @@ private func runModelPressureChecks(model: any WorkbookInference, directory: URL
   var semanticFailures: [String] = []
   do {
     for critical in [true, false] {
-      let trigger = PressureTrigger(service, critical: critical, native: native)
+      let trigger = PressureTrigger(service, critical: critical)
       let token = Cancellation()
       let began = Date()
       var answer: AgentResult?
@@ -128,7 +112,7 @@ private func runModelPressureChecks(model: any WorkbookInference, directory: URL
       let receipt = await trigger.receipt()
       print(
         try Value.object([
-          "backend": .string(native ? "native" : "baseline"),
+          "backend": .string("native"),
           "pressureInjected": .bool(true), "level": .string(critical ? "critical" : "warning"),
           "seconds": .number(Date().timeIntervalSince(began)),
           "fired": .bool(receipt.0), "response": receipt.1.map { .string($0.rawValue) } ?? .null,
@@ -157,7 +141,7 @@ private func runModelPressureChecks(model: any WorkbookInference, directory: URL
             "The warning trial did not follow the new request to reply Ready.")
         }
       }
-      try checkReleased(receipt.2, native: native)
+      try checkReleased(receipt.2)
       try expect(
         try book.items().filter { ids.contains($0.id) } == original,
         "Pressure changed original business items")
@@ -172,13 +156,13 @@ private func runModelPressureChecks(model: any WorkbookInference, directory: URL
     try expect(
       result.state == "complete" && result.answer.contains("18") && !result.citations.isEmpty,
       "Fresh request did not recover after pressure release")
-    let recoveryPIDs = native ? try helperPIDs() : []
+    let recoveryPIDs = try helperPIDs()
     let released = await service.unload()
     try expect(released, "Recovery model did not unload")
-    try checkReleased(recoveryPIDs, native: native)
+    try checkReleased(recoveryPIDs)
     print(
       try Value.object([
-        "backend": .string(native ? "native" : "baseline"), "recovery": .bool(true),
+        "backend": .string("native"), "recovery": .bool(true),
         "answer": .string(result.answer),
         "steps": .number(Double(result.steps)), "runs": .array(try book.agentRuns()),
         "integrity": try book.verify(),
@@ -186,7 +170,7 @@ private func runModelPressureChecks(model: any WorkbookInference, directory: URL
     print("PASS fresh actual-model workbook request after both pressure levels and explicit unload")
     print(
       try Value.object([
-        "backend": .string(native ? "native" : "baseline"), "lifecyclePassed": .bool(true),
+        "backend": .string("native"), "lifecyclePassed": .bool(true),
         "requestSemanticsPassed": .bool(semanticFailures.isEmpty),
         "semanticFailures": .array(semanticFailures.map(Value.string)),
       ]).json())

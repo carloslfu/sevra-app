@@ -3,7 +3,7 @@ type: spec
 meta-type: conclusion
 id: 01m5rbxzb0mz1b78ergkwybtnp
 created: 2026-10-25T01:48:47.328971+00:00
-updated: 2026-11-01T16:40:00+00:00
+updated: 2026-11-19T16:00:23+00:00
 summary: Native Splash direction, Swift adapter, bounded tools, proposal acceptance, on-device voice and declarative spaces.
 title: Local intelligence and rendering
 status: reviewed
@@ -11,9 +11,8 @@ status: reviewed
 # Local intelligence
 
 A01. Adopt upstream Splash C++/Metal with the Python-free Swift adapter described
-in [[records/specs/splash-integration]]. Pin and qualify upgrades; preserve the
-existing Slotstream build as a comparison baseline until adoption passes. First
-model remains Qwen3.6-35B-A3B 4-bit with matching DFlash2. No universal 100–150 tok/s
+in [[records/specs/splash-integration]]. It is the only inference engine. Pin and
+qualify upgrades. First model remains Qwen3.6-35B-A3B 4-bit with matching DFlash2. No universal 100–150 tok/s
 claim. Measure complete workbook jobs, tool success, context latency and memory.
 A02. Setup explains download size, disk, memory and hardware before starting.
 Native download is resumable/cancellable and digest verified. Reuse explicitly
@@ -114,8 +113,7 @@ within the selected conversation. Current requests are excluded from history sea
 Historical output cannot grant action authority or acceptance. Failed/unfinished calls
 retain operation evidence and uncertainty. The same prepared call ID is never replayed.
 This storage boundary is active. Automatic context maintenance is on for the native
-32K bounded512 product path, as recorded in [[records/specs/conversation-context]]. The
-baseline initializer keeps it off after its recall probe failed. General action
+32K bounded512 product path, as recorded in [[records/specs/conversation-context]]. General action
 recovery after process death remains open.
 A read returns the requested exact version plus current-version metadata and a
 snapshot revision. Current-version metadata is a navigation pointer, not newly
@@ -153,7 +151,7 @@ failed runs and the exact scope of any adopted candidate setting. Preserve the
 same model and workbook authority boundaries in either mode.
 
 ## Reasoning continuity within a request
-Retain parsed reasoning in ephemeral assistant messages between tools within the same request. The exact pinned template places reasoning_content in its thinking block after the latest user query. Count it in preparation and rendered-token budgets. Do not save it in original messages, tool receipts, summaries, Sources or Records. New requests reconstruct evidence from durable history with no old private reasoning. Context maintenance may discard older reasoning while retaining the latest complete tool group, with the same measured budget and citation reset rules. This is model execution state, never authority or independently citeable evidence. Reasoning remains disabled in the non-thinking control and the preserved Slotstream backend; shared host validation applies to both adapters.
+Retain parsed reasoning in ephemeral assistant messages between tools within the same request. The exact pinned template places reasoning_content in its thinking block after the latest user query. Count it in preparation and rendered-token budgets. Do not save it in original messages, tool receipts, summaries, Sources or Records. New requests reconstruct evidence from durable history with no old private reasoning. Context maintenance may discard older reasoning while retaining the latest complete tool group, with the same measured budget and citation reset rules. This is model execution state, never authority or independently citeable evidence. Reasoning remains disabled in the non-thinking control; shared host validation applies in both modes.
 
 ## Calculated answer provenance
 The host retains the inspected input version IDs used by balance and compare_rows, including both opening stock and inventory effects. It attaches them from their receipts to any answer that reports work, so the model never retypes them and a list too long for an answer can still be carried. They render as one link, labeled "[N calculation inputs]" when there are several, and the finish payload records their count and receipt IDs as calculationInputs. A receipt with more than 32 inputs offers the model only the versions it names as citation choices. Unresolved, completed-action and preview answers and host-built outcomes state no calculation and carry none. Clear them when compaction invalidates the corresponding inspected calculations; retain the latest calculation inputs with its visible tool group. Do not add uninspected or historical IDs merely because a summary mentions them.
@@ -194,7 +192,7 @@ failure to catch an uncited answer generated directly from saved context.
 An event's effective date, a Source's creation time and an acceptance decision's time are separate facts. Do not infer one from another. If inspected evidence does not establish a timestamp, omit that claim. The agent policy states this explicitly after a real-model inventory answer mislabeled the starting date. This policy is not a deterministic semantic verifier; preserve and review complete answers in evaluations.
 
 ## Evidence inspection recovery
-When an evidence-based finish has no citations and the current run has no eligible inspected evidence, the next model response must use a read-only inspection tool. Temporarily remove finish and mutation tools from the available set. Native generation constrains the same set in its grammar; the shared host checks the selected scope again before dispatch, including for the preserved backend. After one valid inspection call, restore the ordinary tool set and validate the next answer normally.
+When an evidence-based finish has no citations and the current run has no eligible inspected evidence, the next model response must use a read-only inspection tool. Temporarily remove finish and mutation tools from the available set. Native generation constrains the same set in its grammar; the shared host checks the selected scope again before dispatch. After one valid inspection call, restore the ordinary tool set and validate the next answer normally.
 
 This recovery step prevents repeated identical invalid finishes after reopening. It does not import citation eligibility from an earlier run, infer source facts from a digest, automatically accept a proposal or replay a completed mutation. Unknown/failed inspection results still need truthful handling. Existing format, final-validation and twelve-step limits remain; cancellation continues to release the run. Scope is ephemeral host execution state and appears in request metrics, never an instruction accepted from retrieved text. Exact prompt budgeting may conservatively count the full tool set before a narrower recovery response.
 
@@ -204,7 +202,7 @@ For basis=current_request, each numeric value in the answer must occur in the cu
 Spelled-out arithmetic remains possible: the model can use calculate to establish the operation and result. Retain its checked numbers only while the matching operation is visible; compaction clears omitted calculation evidence. This guard does not verify the meaning of prose, units, a calculation's relevance, or classification into other answer bases. It complements original citations and semantic evaluation rather than establishing general factual correctness.
 
 ## Search claim boundaries
-Search matches and complete structured counts have different authority. The host rejects recognized unsupported absence/exhaustiveness wording and renders exact current-record counts only from visible current-run count_records receipts, revalidated before finish. See [[records/specs/search]] for scope, cancellation, history and language limits. This rule applies to the preserved baseline and native candidate. A valid citation alone does not prove a global absence claim.
+Search matches and complete structured counts have different authority. The host rejects recognized unsupported absence/exhaustiveness wording and renders exact current-record counts only from visible current-run count_records receipts, revalidated before finish. See [[records/specs/search]] for scope, cancellation, history and language limits. A valid citation alone does not prove a global absence claim.
 
 When an uncited unresolved response follows empty searches, the host renders their actual query receipts and the most recent search's incomplete-source count. The same search report accompanies a count-only response after empty searches, so an unrelated total cannot hide the retrieval limitation. Original model arguments stay in the diagnostic payload, separate from the displayed answer. Query text is escaped and treated as quoted search input, not a factual claim or executable link. A report of no incomplete sources describes the search's indexing status, not proof that the requested document does not exist.
 
@@ -273,7 +271,7 @@ Observed inventory failures included copying the wrong suffix of a long item ID 
 
 Attach the verified choices as ephemeral host metadata on inference messages. Do not persist that metadata as evidence, parse it from model output or accept it as action authority. A UUID mentioned in untrusted text may be a read candidate only if it resolves exactly in this workbook; that does not make the text true, admit a citation or authorize a mutation. Citation admission continues to use the separately maintained inspected-result set. Historical references remain historical until refreshed.
 
-Both adapters use the same dynamic tool schema for read/lineage/references choices and exact prompt measurement. The native grammar enforces the choices during decoding; the shared host validates them again before executing a read. Baseline prompting and host validation retain their own capabilities without claiming native mask enforcement. An empty vocabulary keeps explicit discovery/unknown-ID lookup behavior available. Bound the vocabulary and fail with a narrower-context request rather than silently dropping choices. Compaction rebuilds candidates from retained visible context, not a hidden global registry.
+The dynamic tool schema for read/lineage/references choices is also used for exact prompt measurement. The native grammar enforces the choices during decoding; the shared host validates them again before executing a read. An empty vocabulary keeps explicit discovery/unknown-ID lookup behavior available. Bound the vocabulary and fail with a narrower-context request rather than silently dropping choices. Compaction rebuilds candidates from retained visible context, not a hidden global registry.
 
 Qualify the recorded mistyped-ID regression and a preregistered varied-ID cohort, including correct current/historical/logical references, forged IDs, candidate versus citation separation, large/truncated/history results, context measurement and cancellation. Preserve prior failed runs and actual request/output receipts. This work does not clear the independent native/reference generation mismatch or production adoption gate.
 
@@ -340,7 +338,7 @@ The model receives the current conversation identity/title and only the conversa
 actions available in that host state. Main can start a thread, with or without explicitly requested follow-up work;
 a side discussion can also rename, return or prepare review. A carried request
 has no further conversation-action capability. Explicit read-only mode removes the
-action tool. Both backends use the same declarations for measurement and generation;
+action tool. Measurement and generation use the same declarations;
 reference annotations and compaction preserve this host metadata. These are
 capability limits, not proof that a requested action was interpreted correctly.
 Tool descriptions distinguish creating a new discussion, renaming the current one,

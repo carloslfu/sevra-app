@@ -2,7 +2,7 @@
 type: operational
 id: 01m5refyq97sez3da1rywz08wf
 created: 2026-10-25T02:33:33.673437+00:00
-updated: 2026-11-17T17:24:23.714928+00:00
+updated: 2026-11-19T16:00:23+00:00
 summary: Current-checkout discovery, portable source installation and build paths, local AI setup, independent CLI use, verification and uninstall.
 title: Build and run
 ---
@@ -36,16 +36,15 @@ bash scripts/build_native.sh
 output/native/bin/sevra check-resources
 ~~~
 
-This builds `output/native/Sevra Native Preview.app`. Quit the running preview, then use `bash scripts/install.sh --native --no-build` to install the exact built product. For an upgrade from 1.4.1, use Settings > Model files and storage > Use existing model files to rebuild the model assembly from the same compatible weights.
+This builds `output/native/Sevra Native Preview.app`. Quit the running preview, then use `bash scripts/install.sh --no-build` to install the exact built product. For an upgrade from 1.4.1, use Settings > Model files and storage > Use existing model files to rebuild the model assembly from the same compatible weights.
 The installer stages the matching native app, CLI, extraction helper and all engine/
 grammar resources, verifies them before replacement, and preserves upstream signed
 engine bytes. The CLI link is `~/.local/bin/sevra`; add that folder to PATH or use
 its full path. An unrelated existing CLI is preserved and the installation refuses.
-Either install can retarget the CLI link from the other identified Sevra installation,
-preserving that app and all workbooks.
 It refuses a different tool or a mismatched application identity.
 
 Source builds are locally ad-hoc signed, not production Developer ID notarized.
+Do not describe them as App Store approved or tell users to disable system security.
 This preview uses Open inside Sevra and leaves the Finder default for workbooks in place.
 
 In Settings, choose Download model, Verify model files when files are found, or
@@ -57,16 +56,16 @@ Progress and Cancel are visible; partial downloads can resume. No hidden hosted
 fallback is used. First generation may compile native components.
 Deterministic document operations remain usable without a model.
 
-Quit before updating the installed app. To uninstall only the native preview:
+Quit before updating the installed app. To uninstall it:
 
 ~~~sh
-bash scripts/uninstall.sh --native
+bash scripts/uninstall.sh
 ~~~
 
 This moves its app to Trash and removes only its own CLI link. Workbooks,
 preferences and model files remain. The environment overrides documented below
-also support isolated native installations. `python3 scripts/check_install.py
---native` checks that route using disposable targets.
+also support isolated installations. `python3 scripts/check_install.py` checks
+that route using disposable targets.
 ## Welcome and compact navigation
 
 The welcome screen centers its primary actions and shows five recent workbooks.
@@ -151,44 +150,6 @@ apps control their own number/text/formula interpretation; verify identifiers
 such as leading-zero codes after pasting elsewhere. Clipboard operations are
 bounded to 4 MB text and 100,000 cells. Select less or export CSV for larger data.
 
-## Preserved baseline instructions
-
-
-The baseline commands below describe the preserved Slotstream build. Explicit native candidate sections use the pinned Python-free Splash build under [[records/specs/splash-integration]]. Keep product output paths and model requirements distinct. Native candidate scoped proof does not establish production engine adoption.
-
-
-The development app targets Apple Silicon Macs. macOS 14 is the declared minimum;
-the current verified host is macOS 26.6.2, 48 GB unified memory, Swift 6.3.3.
-Older OS versions and smaller memory profiles are still qualification targets.
-The inference engine chooses a hardware plan; a token-per-second claim requires
-measurement on that hardware.
-
-## Source installation
-
-Install Apple's command line developer tools if absent. Use a Swift 6.3 toolchain (6.2 minimum for the pinned Markdown parser),
-Git and Python 3. A full Xcode installation was not needed on the verified host.
-
-~~~sh
-git clone https://github.com/carloslfu/sevra-app.git
-cd sevra-app
-./scripts/build.sh
-./output/bin/sevra version
-./scripts/install.sh --no-build
-open "$HOME/Applications/Sevra.app"
-~~~
-
-The build resolves the committed package revisions. It downloads verified MLX
-Metal kernels through Slotstream's pinned build helper. Build dependencies and
-kernels need network access on first setup. The installed app is designed to work
-without the source checkout; fresh-checkout resource isolation remains a release gate.
-The installer places the app in ~/Applications and the CLI link in ~/.local/bin;
-add the latter to your PATH if needed. It refuses to replace an unrelated app or
-CLI. Isolated install/update/uninstall and conflict-refusal checks pass. Full installation qualification is tracked in [[records/operations/implementation]].
-
-This is locally ad-hoc signed software, not yet a Developer ID notarized release.
-Do not describe it as App Store approved or tell users to disable system security.
-Model weights are downloaded separately, with their own license, outside workbooks.
-
 ## Example and deterministic features
 
 ~~~sh
@@ -213,12 +174,10 @@ in [[records/specs/distribution]] D05.
 
 ## Local AI
 
-The preserved baseline settings below use their own model setup controls; do not
-confuse them with the native preview settings described above. Select an existing
-compatible Slotstream Fast model folder or download/verify it in that build. Setup needs roughly 21.5 GB of model files plus
-working space. The pinned model is Qwen3.6 35B A3B 4-bit with the Fast pack's DFlash
-draft files. Only that verified pack is qualified by this integration. The default
-location is ~/.slotstream/models/qwen36-35b-a3b-4bit.
+The CLI uses the same model setup as the app Settings described above. Setup needs
+roughly 21.5 GB of model files plus working space. The pinned model is Qwen3.6 35B
+A3B 4-bit with its matching DFlash draft files. `sevra model-setup` downloads it to
+the default model storage; see the native app and CLI package section below for reuse.
 
 ~~~sh
 sevra model-status
@@ -235,9 +194,9 @@ while the app is open.
 
 ## Verification and development
 
-Full checks also build the candidate native grammar. Install the pinned Rust
-1.96.0 toolchain through rustup once; it is a development dependency, not required
-by the installed app or by the current baseline's ordinary build command.
+Full checks also build the native grammar. Install the pinned Rust 1.96.0
+toolchain through rustup once; it is a build dependency, not required by the
+installed app.
 
 ~~~sh
 rustup toolchain install 1.96.0 --profile minimal
@@ -255,10 +214,10 @@ multi-chunk document corpora at 10k and 100k by default. Use --rows-only or
 --documents-only for an explicitly narrower diagnostic, or --self-check for the
 small fixture/regression run included in CI. Neither a small run nor a single
 corpus qualifies the complete scale requirement. See [[records/specs/search]].
-## Candidate Splash checks
+## Splash adapter checks
 
-These are development checks for the candidate adapter, not the app's active
-engine. Native transport/setup checks use Swift and need no model or Python:
+These are development checks for the native Splash adapter. Native
+transport/setup checks use Swift and need no model or Python:
 
 ~~~sh
 python3 scripts/fetch_splash.py
@@ -267,8 +226,8 @@ swift build --product sevra-splash-checks
 ~~~
 
 The fetch step is build tooling. It verifies the pinned upstream source/archive
-and retains only the native executable, Metal kernels and licenses as candidate
-runtime files. Real-engine tests require supported hardware and the exact selected
+and retains only the native executable, Metal kernels and licenses as runtime
+files. Real-engine tests require supported hardware and the exact selected
 Qwen target plus matching DFlash2 weights. The original files are only read.
 
 For the differential preparation/reference-token smoke check, use an isolated
@@ -410,8 +369,8 @@ See [[records/operations/implementation]] for the complete pending release gates
 
 ## Autonomous native workbook qualification
 
-The package-internal SevraNativeAI target connects the candidate to the actual
-WorkbookAgent. It is linked by development checks, not the production app/CLI.
+The package-internal SevraNativeAI target connects the native engine to the actual
+WorkbookAgent. The app and CLI reach it through SevraProduct.
 Run from the repository root after preparing the pinned native engine and grammar.
 Use the selected full model folder, containing dflash/, rather than the tokenizer-only
 fixture folder. These commands do not download model weights:
@@ -428,7 +387,7 @@ swift build --product sevra-agent-checks
 
 The first command without arguments checks the actual schemas and workbook actor
 lifecycle without loading weights. It covers cancellation before dispatch, terminal
-run history, exact baseline history types, proposal draft/acceptance/withdrawal
+run history, proposal draft/acceptance/withdrawal
 context, meaning preservation and the deterministic three-search coverage response.
 The full grammar script also runs these checks, so they are part of regular CI.
 
@@ -438,7 +397,7 @@ It creates and removes only its own temporary synthetic workbooks, checks propos
 before separate fixture acceptance, comparisons and citations, native table/chart
 spaces, a hostile document, missing evidence, cancellation/retry and lease release.
 Its emitted metrics are correctness diagnostics, not a matched speed benchmark.
-The candidate validates runtime/Metal digests and selected model preparation before
+The native adapter validates runtime/Metal digests and selected model preparation before
 launch. Production packaging, full clean-download qualification and wider application acceptance
 remain open.
 
@@ -482,8 +441,7 @@ hardware/memory budgets require separate recorded qualification.
 Newly built app/CLI binaries use database schema 3. Opening a canonical schema-1 or schema-2
 workbook migrates its database transactionally and builds the history index.
 The package manifest remains version 1; older binaries refuse schema 3 on opening.
-Use matching app and CLI builds. The installed earlier baseline has not been
-replaced as part of this development checkpoint.
+Use matching app and CLI builds.
 
 ~~~sh
 sevra history Workbook.sevra main
@@ -498,10 +456,11 @@ sevra checkpoint Workbook.sevra main CHECKPOINT_ID
 History pages preserve whole messages and optional original receipts. Search is
 scoped to one conversation and returns newest matches with an append-safe keyset cursor bound to the query and conversation.
 Checkpoint inspection projects current input acceptance and meaning from records;
-it does not trust the digest's wording. Checkpoint creation is automatic in the candidate agent and inspectable through
+it does not trust the digest's wording. Checkpoint creation is automatic in the agent and inspectable through
 this core API and CLI; it is not a user-facing manual maintenance step.
 
-After scripts/build.sh, run python3 scripts/check_history.py. It uses only its own
+After `bash scripts/build_native.sh`, run `python3 scripts/check_history.py --cli
+output/native/bin/sevra`. It uses only its own
 synthetic schema-1 fixture, pages 700 messages, reads an older exact message, tests
 search pagination and verifies a portable copy offline. Core checks additionally
 cover rollback/refusal, cancellation, stale checkpoint publication, chains, exact
@@ -554,19 +513,8 @@ digests against current forecast acceptance. Cancellation during summary generat
 must retain the previous checkpoint; explicit retry must reacquire the model.
 For the focused authority/cancellation part, use --context-recovery. No weights
 are downloaded. Probe output and failures must be recorded before a
-profile is described as qualified.
-
-The same scenario is available for the preserved Slotstream baseline:
-
-~~~sh
-.build/debug/sevra-agent-checks --baseline-continuity /path/to/qwen36-35b-a3b-4bit
-~~~
-
-That debug executable needs mlx.metallib beside it, from the existing verified
-build preparation. This is development comparison tooling, not a product backend
-picker. Run one model probe at a time so the inference lock and memory budget are
-meaningful. The production build remains Slotstream until adoption gates pass. Its automatic
-compaction capability remains disabled after the opt-in baseline recall probe failed.
+profile is described as qualified. Run one model probe at a time so the inference
+lock and memory budget are meaningful.
 
 The ordinary no-argument checks cover deterministic repeated maintenance, original
 history hashes, changed acceptance during summarization, unfinished earlier calls,
@@ -599,7 +547,7 @@ Use --inspection-recovery with the same four paths as --reasoning-comparison. It
 The first fixture version required the contiguous phrase 0.10 kg. Its fourth live response correctly separated quantity and unit, so that run retains a nonzero test exit. The corrected assertion checks the exact decimal spelling and unit independently. Engine/runtime source is unchanged by that fixture correction.
 
 
-## Native setup candidate
+## Native setup
 
 Build the separate Python-free setup executable:
 
@@ -608,7 +556,7 @@ swift build --product sevra-native-setup -j 4
 .build/debug/sevra-native-setup /path/to/sevra-native-models
 ```
 
-This downloads the pinned selected target and draft, checks storage, streams files to disk, verifies size and SHA-256 and publishes the native model assembly. Cancel with Ctrl-C; run the same command again to resume. The command requires Apple M3 or newer and macOS 26.4 or newer. These are the engine's minimum requirements, not a qualified memory/context profile for every device. It installs no Python or inference dependencies and does not switch the installed app's backend. A build still resolves this repository's Swift dependencies.
+This downloads the pinned selected target and draft, checks storage, streams files to disk, verifies size and SHA-256 and publishes the native model assembly. Cancel with Ctrl-C; run the same command again to resume. The command requires Apple M3 or newer and macOS 26.4 or newer. These are the engine's minimum requirements, not a qualified memory/context profile for every device. It installs no Python or inference dependencies. A build still resolves this repository's Swift dependencies.
 
 Reuse a complete existing compatible pack without downloading weights:
 
@@ -617,7 +565,7 @@ Reuse a complete existing compatible pack without downloading weights:
   --reuse /path/to/verified/model /path/to/verified/model/dflash
 ```
 
-Reused files are verified and remain in their original location. Do not move or delete them while the assembly uses them. Incomplete or different reused packs fail visibly; omit --reuse to download the selected pack into the candidate's own snapshot storage. Partial downloads live under .snapshots. Failed setup preserves a prior selection. Native helper/grammar packaging and production Settings wiring remain open.
+Reused files are verified and remain in their original location. Do not move or delete them while the assembly uses them. Incomplete or different reused packs fail visibly; omit --reuse to download the selected pack into its own snapshot storage. Partial downloads live under .snapshots. Failed setup preserves a prior selection. The app Settings and `sevra model-setup` offer the same setup and reuse flows.
 
 Synthetic transfer/preparation/hardware checks run with sevra-splash-checks in scripts/check.sh. The optional bounded live-network check downloads only the two pinned configuration files, then repeats each transfer from a partial file:
 
@@ -627,16 +575,14 @@ Synthetic transfer/preparation/hardware checks run with sevra-splash-checks in s
 
 For search scope qualification, --coverage takes the same four paths as --reasoning-comparison. It runs the frozen accepted-forecast case and exact movement-count cases with reasoning off and bounded512. A hidden movement deliberately lacks the search term in its text, and the zero-count workbook has an unreadable Source. The checks require host-rendered counts with every filter, unchanged business state and clean unload. Save stdout and stderr separately so complete JSON evidence cannot interleave with progress messages.
 
-The preserved-backend real-weight suite now includes explicit positive and zero scoped-count cases. Run python3 scripts/check_model.py coverage for those two cases alone, or omit the argument for the complete suite. It requires host-only rendered counts, all stated filters, unchanged business records and successful completion. These tests use the selected local weights and temporary synthetic workbooks, without hosted inference.
+## Native app and CLI package
+Build the app with `bash scripts/build_native.sh`, then run `python3 scripts/check_native_package.py`. This uses the pinned Rust toolchain to build the native grammar library and Python for contributor packaging only. The installed preview, its model setup and CLI use no Python runtime. The unchanged upstream helper and Metal kernels remain hash checked after signing.
 
-## Isolated native app and CLI preview
-Build the separate preview with `bash scripts/build_native.sh`, then run `python3 scripts/check_native_package.py`. This uses the pinned Rust toolchain to build the native grammar library and Python for contributor packaging only. The installed preview, its model setup and CLI use no Python runtime. The unchanged upstream helper and Metal kernels remain hash checked after signing.
+The output is `output/native/Sevra Native Preview.app` and `output/native/bin/sevra`. This command does not install the app. The app does not register Finder associations. The package check denies build-folder reads, verifies both Metal libraries and the grammar dylib, and refuses missing or altered packaged resources. It also exercises a missing-model run, so run it when no other Sevra model job is active. CI uses `python3 scripts/check_native_package.py --paths-only` to verify packaging without qualifying its GPU or executing a model run.
 
-The output is `output/native/Sevra Native Preview.app` and `output/native/bin/sevra`. This command does not install the preview or replace `output/Sevra.app`. The preview has separate settings and does not register Finder associations. The package check denies build-folder reads, verifies both Metal libraries and the grammar dylib, checks that baseline modules are absent, and refuses missing or altered packaged resources. It also exercises a missing-model run, so run it when no other Sevra model job is active. CI uses `python3 scripts/check_native_package.py --paths-only` to verify packaging without qualifying its GPU or executing a model run.
+Run `output/native/bin/sevra model-setup MODELS_ROOT` to download the pinned target and draft. To reuse existing verified weights, run `output/native/bin/sevra model-setup MODELS_ROOT --reuse EXISTING_MODEL_DIRECTORY`; that directory must contain its matching `dflash` folder and must remain available. `MODELS_ROOT` is the parent of the selected assembly, not a legacy raw target folder. The preview Settings offers the same setup and reuse flows.
 
-Run `output/native/bin/sevra model-setup MODELS_ROOT` to download the pinned target and draft. To reuse the original weights from an existing verified Fast folder, run `output/native/bin/sevra model-setup MODELS_ROOT --reuse EXISTING_FAST_DIRECTORY`; that directory must contain its matching `dflash` folder and must remain available. `MODELS_ROOT` is the parent of the selected assembly, not a legacy raw target folder. The preview Settings offers the same setup and reuse flows.
-
-For actual-model checks without changing any user settings, use `SEVRA_CLI=output/native/bin/sevra SEVRA_MODEL_DIRECTORY=MODELS_ROOT python3 scripts/check_model.py`. Those environment variables select qualification inputs for the test script, not a runtime backend preference. Run only one real model workload at a time. Capture failures and tool receipts. Background downloads/builds make these behavior checks unsuitable for controlled performance claims.
+For actual-model chat checks, use the light job set in [[records/operations/agent-handoff]]. Run only one real model workload at a time. Capture failures and tool receipts. Background downloads/builds make these behavior checks unsuitable for controlled performance claims.
 
 The preview uses a provisional 32K context, bounded512 reasoning and 12 GiB engine budget, with automatic context maintenance on. It is a qualification artifact until matched performance, memory, setup, application and hardware gates pass.
 
@@ -718,23 +664,14 @@ swift build --product sevra-product-checks -j 4
 .build/debug/sevra-product-checks
 ~~~
 
-After building the native preview and installing its selected weights, run the actual-model policy-event probe separately from all other inference:
+After building the native app and installing its selected weights, run the actual-model policy-event probe separately from all other inference:
 
 ~~~sh
-SEVRA_NATIVE_CANDIDATE=1 swift build --scratch-path .build/native-product --product sevra-product-checks -j 4
+swift build --scratch-path .build/native-product --product sevra-product-checks -j 4
 .build/native-product/debug/sevra-product-checks --native /path/to/Models output/native/bin
 ~~~
 
-The preserved baseline uses its existing model layout. Build it first so MLX kernels are available, then copy the fetched development metallib next to the debug test executable:
-
-~~~sh
-bash scripts/build.sh
-swift build --product sevra-product-checks -j 4
-cp .build/metal/mlx.metallib .build/debug/mlx.metallib
-.build/debug/sevra-product-checks --baseline /path/to/qwen36-35b-a3b-4bit
-~~~
-
-These probes inject the same policy event used by the OS observer without exhausting RAM. They check terminal status, preserved business items, native helper reaping, inference-lock release, a new Ready request and a subsequent cited stock answer. They do not prove actual OS pressure delivery or whole-app physical-memory headroom. The runner keeps request semantics separate from resource lifecycle and exits nonzero if either fails; a baseline follow-up failure must remain a failure even if resources release correctly.
+This probe injects the same policy event used by the OS observer without exhausting RAM. It checks terminal status, preserved business items, native helper reaping, inference-lock release, a new Ready request and a subsequent cited stock answer. It does not prove actual OS pressure delivery or whole-app physical-memory headroom. The runner keeps request semantics separate from resource lifecycle and exits nonzero if either fails; a follow-up request failure must remain a failure even if resources release correctly.
 
 ## Native process-death and request recovery
 Run this opt-in probe after building the native preview and installing its selected model. No other local model process may be active:
@@ -883,18 +820,10 @@ The baseline must have the original I1 source/configuration identity. The probe 
 
 Acceptance requires all original stock/citation/business-state assertions, no rejected finishes or history/count detours, complete process sampling/cleanup and valid power/thermal conditions. Timings are observations, not a performance gate. The first typed-reference-only attempt fixed the history detour but retained one formatting correction on each measured job, so its strict recovery report remains failed. Native citation rendering is evaluated in a separate later attempt. Preserve both versions and their exact loaded sources.
 
-After rebuilding the isolated native preview, check the final installed CLI without the benchmark wrapper:
-
-```sh
-SEVRA_CLI=output/native/bin/sevra \
-SEVRA_MODEL_DIRECTORY=.build/native-fresh-setup \
-  python3 scripts/check_model.py inventory missing
-```
-
-The explicit inventory check verifies the complete stock answer, opening/movement citations, no rejected finish or history/count detour, unchanged accepted Records/spaces/balance and workbook integrity. It preserves the actual answer and tool receipts before asserting. The missing check independently verifies actual empty queries and incomplete-index disclosure. These are functional checks, not a latency comparison.
+The `scripts/check_model.py` inventory and missing-evidence checks recorded here were removed on November 19, 2026. Their recorded results remain in [[records/operations/implementation]].
 
 ## Exact reference and Settings qualification
-The native and preserved baseline share exact read/lineage candidate selection. Citation admission remains separate. The full local check covers dynamic schema validation, the recorded wrong suffix through actual grammar, complete context accounting and refusal receipts. The model-free collector check preserves the failed R2 detours:
+The native agent uses exact read/lineage candidate selection. Citation admission remains separate. The full local check covers dynamic schema validation, the recorded wrong suffix through actual grammar, complete context accounting and refusal receipts. The model-free collector check preserves the failed R2 detours:
 
 ```sh
 bash scripts/check.sh
@@ -925,11 +854,9 @@ python3 scripts/probe_item_references.py --models-root .build/native-fresh-setup
 
 Use a new output folder. The retained successful run is integration/evidence/2026-10-27-count-purpose-replay.json.gz; the original failed seed-6 runs remain in integration/evidence/2026-10-27-exact-item-references.json.gz. This is a functional check, not a performance qualification. Preserve every failed run and do not reroll identifiers.
 
-After building the native preview, test requested counts and missing evidence separately:
+After building the native app, run the search UI checks:
 
 ```sh
-SEVRA_CLI=output/native/bin/sevra SEVRA_MODEL_DIRECTORY=.build/native-fresh-setup python3 scripts/check_model.py coverage
-SEVRA_CLI=output/native/bin/sevra SEVRA_MODEL_DIRECTORY=.build/native-fresh-setup python3 scripts/check_model.py missing
 swift build --product sevra-search-ui-checks -j 4
 .build/debug/sevra-search-ui-checks
 ```
@@ -1024,8 +951,8 @@ windows and disposable synthetic workbooks.
 ~~~sh
 swift build --product sevra-document-checks -j 4
 .build/debug/sevra-document-checks
-./scripts/build.sh
-python3 scripts/check_document_cli.py
+bash scripts/build_native.sh
+python3 scripts/check_document_cli.py --cli output/native/bin/sevra
 ~~~
 
 For an authorized revision through a harness, use an exact document version and a
@@ -1176,7 +1103,7 @@ session and core snapshot API. These checks supplement, rather than replace,
 visible app and whole-process responsiveness measurements.
 
 ## Native large-media playback and teardown
-After packaging the candidate, create a new synthetic workbook with:
+After packaging the native app, create a new synthetic workbook with:
 
 ```sh
 python3 scripts/prepare_large_media.py
@@ -1214,7 +1141,7 @@ identities; the 2026-10-27 repair evidence retains both sides of this comparison
 
 ## Isolated document extraction
 
-Both build scripts now package the native sevra-extract executable beside the app
+The build script packages the native sevra-extract executable beside the app
 and standalone CLI. Python is build/test tooling only; extraction uses Swift and
 Apple frameworks. A raw SwiftPM executable that imports files needs its adjacent
 helper built first:
@@ -1223,13 +1150,12 @@ helper built first:
 swift build --product sevra-extract -j 4
 swift build --product sevra-extraction-checks -j 4
 .build/debug/sevra-extraction-checks
-python3 scripts/check_extraction_package.py --product output
 python3 scripts/check_extraction_package.py
 ~~~
 
-The package checks need their respective baseline/native build output. They deny
-build-tree reads, extract synthetic text/PDF/DOCX through both packaged helper
-locations and exercise standalone CLI import/read/integrity. scripts/check.sh and
+The package check needs the native build output. It denies
+build-tree reads, extracts synthetic text/PDF/DOCX through both packaged helper
+locations and exercises standalone CLI import/read/integrity. scripts/check.sh and
 hosted CI include the worker tests; native CI also runs the optimized release checks.
 
 The worker tests cover crashes, uncooperative hangs, cancellation, output floods,
@@ -1297,7 +1223,7 @@ Command-Option-F searches the active conversation. Next/Previous matches browse
 and later controls move through bounded windows, and Return to latest resumes the
 newest exchanges. No model setup is required for these native actions.
 
-The app and both packaged CLIs share the core operations:
+The app and packaged CLI share the core operations:
 
 ```sh
 sevra start-thread Workbook.sevra MESSAGE_ID
@@ -1520,9 +1446,7 @@ ownership and resumable bounded import checks remain valid in their narrower sco
 
 ## Edit Home and existing spaces
 
-These commands apply to matching current-format baseline/native CLI builds. The
-Python-free native preview is built separately below; it is not a qualified
-production replacement for the preserved baseline.
+These commands apply to matching current-format CLI builds.
 
 ~~~sh
 sevra spaces /path/to/Work.sevra
@@ -1731,9 +1655,9 @@ review/accept/undo/restore. Actual VoiceOver and full appearance/media/hardware/
 fresh-install/notarized release checks remain open.
 
 ## Reusable computation checks
-The baseline and separate native candidate expose component-evaluate and definition-publish through the same core. See [[records/specs/application-definitions]] for exact binding/typed arguments, snapshots, current-run receipt publication and bounds. Save result is available for a complete first page and preserves explicit meaning separately from acceptance. Partial pinned pages remain frozen.
+The app and CLI expose component-evaluate and definition-publish through the same core. See [[records/specs/application-definitions]] for exact binding/typed arguments, snapshots, current-run receipt publication and bounds. Save result is available for a complete first page and preserves explicit meaning separately from acceptance. Partial pinned pages remain frozen.
 
-After the native build, run python3 scripts/check_computation_views.py --cli output/native/bin/sevra for packaged calculation/query, stale/forged/partial refusals, exact retries, portable reopening and inert reconstruction. The native candidate remains separate from the installed Slotstream baseline until adoption gates pass. Current evidence/limits are linked in [[records/operations/implementation]].
+After the native build, run python3 scripts/check_computation_views.py --cli output/native/bin/sevra for packaged calculation/query, stale/forged/partial refusals, exact retries, portable reopening and inert reconstruction. Current evidence/limits are linked in [[records/operations/implementation]].
 
 ## Manual workflow checks
 Run the scoped synthetic checks without opening user data:
@@ -1765,7 +1689,7 @@ The agent can find/read/save exact workflow definitions, create associated form 
 Run swift build --product sevra-agent-checks -j3, then .build/debug/sevra-agent-checks for scripted scope/receipt checks. Use --workflow-tools MODEL_ROOT GRAMMAR_LIBRARY ENGINE NEW_OUTPUT for the three actual-model author/form/queue jobs. MODEL_ROOT is the native installed layout. The output must not exist. It retains results/messages and a synthetic workbook. This is functional32K/bounded512 proof, not throughput or full workflow execution. The final shared check script includes paging/recovery/grammar checks; historical and current evidence is in [[records/operations/implementation]].
 
 ## Explicit local AI workflow continuation
-workflow-continue WORKBOOK RUN_ID [MODEL_DIRECTORY] uses the shared ProductAI owner and installed native Qwen/DFlash2 engine only for an unfinished interpret step. Native Activity Continue and workflow form Start use the same asynchronous coordinator. Deterministic steps and post-review completion do not require a model. The preserved Slotstream baseline intentionally refuses explicit interpretation; it remains separately usable for its existing features. Agent start_workflow still queues without executing.
+workflow-continue WORKBOOK RUN_ID [MODEL_DIRECTORY] uses the shared ProductAI owner and installed native Qwen/DFlash2 engine only for an unfinished interpret step. Native Activity Continue and workflow form Start use the same asynchronous coordinator. Deterministic steps and post-review completion do not require a model. Agent start_workflow still queues without executing.
 
 Save interpretation/workflow JSON with definition-save and the typed contract in [[records/specs/manual-workflows]]. Interpretation output becomes a draft Record and cannot accept inventory. Inspect workflow-inspect/Activity for exact retained evidence, model, issues and any rejected raw response; Retry is deliberate, not automatic model correction.
 
@@ -1786,7 +1710,7 @@ The sevra-agent-checks --preparation-authoring MODEL_ROOT GRAMMAR_LIBRARY ENGINE
 
 ## Registered document workflow checks
 
-Run swift build --product sevra-checks -j 3 and .build/debug/sevra-checks --document-actions for focused invariants. scripts/check.sh includes scripts/check_document_actions.py --cli .build/debug/sevra and 15 workflow process-death boundaries. Use python3 scripts/check_document_actions.py --cli output/native/bin/sevra --model-root MODELS_ROOT --output NEW_DIRECTORY for the explicit actual native six-step receiving/report job. The output directory must be new; retain prior results. It uses synthetic evidence and explicit synthetic human review, not user data. Without --model-root, the check exercises document form/workflow/review and keeps stock unchanged without inference. GitHub checks run the default job against the baseline and native packaged CLI products.
+Run swift build --product sevra-checks -j 3 and .build/debug/sevra-checks --document-actions for focused invariants. scripts/check.sh includes scripts/check_document_actions.py --cli .build/debug/sevra and 15 workflow process-death boundaries. Use python3 scripts/check_document_actions.py --cli output/native/bin/sevra --model-root MODELS_ROOT --output NEW_DIRECTORY for the explicit actual native six-step receiving/report job. The output directory must be new; retain prior results. It uses synthetic evidence and explicit synthetic human review, not user data. Without --model-root, the check exercises document form/workflow/review and keeps stock unchanged without inference. GitHub checks run the default job against the packaged native CLI.
 
 The actual qualification output is .build/document-actions-native-model-v2, with 37 independent CLI calls; its immutable receipt is linked from [[records/specs/manual-workflows]]. The final frozen-source native build is document-action-v8; final whole shared checks are document-action-v11. Earlier diagnostics remain retained. Native resource tests are paths-only; latest UI/VoiceOver and full engine/performance release qualification remain open.
 
@@ -1804,11 +1728,11 @@ Build sevra-agent-checks and run .build/debug/sevra-agent-checks --intake-author
 
 ## Workflow lookup qualification
 
-Build sevra-checks and run .build/debug/sevra-checks --workflows for focused workflow checks. Run python3 scripts/check_workflow_lookup.py --cli output/native/bin/sevra --output NEW_DIRECTORY for deterministic exact match/repair/review/reconstruction, after bash scripts/build_native.sh. Add --model-root MODELS_ROOT for the synthetic seven-step actual native preparation/interpretation/match/stock-review/report-review job. The output directory must not exist. It captures source/product/runtime identities before inference. It expects a zero-match refusal, repairs only its synthetic catalog, explicitly retries the same run and resumes with an absent model directory to prove completed AI outputs are reused. Synthetic human acceptance occurs only inside the synthetic fixture. Never use user workbooks. scripts/check.sh and both packaged CI products include the default deterministic job. Do not replace output/native while a probe uses its runtime. Current proof/limits: [[records/specs/manual-workflows]].
+Build sevra-checks and run .build/debug/sevra-checks --workflows for focused workflow checks. Run python3 scripts/check_workflow_lookup.py --cli output/native/bin/sevra --output NEW_DIRECTORY for deterministic exact match/repair/review/reconstruction, after bash scripts/build_native.sh. Add --model-root MODELS_ROOT for the synthetic seven-step actual native preparation/interpretation/match/stock-review/report-review job. The output directory must not exist. It captures source/product/runtime identities before inference. It expects a zero-match refusal, repairs only its synthetic catalog, explicitly retries the same run and resumes with an absent model directory to prove completed AI outputs are reused. Synthetic human acceptance occurs only inside the synthetic fixture. Never use user workbooks. scripts/check.sh and packaged CI include the default deterministic job. Do not replace output/native while a probe uses its runtime. Current proof/limits: [[records/specs/manual-workflows]].
 
 ## Workflow clarification qualification
 
-After building sevra-workflow-durability, run python3 scripts/check_workflow_clarification.py --cli output/native/bin/sevra --worker .build/debug/sevra-workflow-durability --output NEW_DIRECTORY for the deterministic submission/review/reconstruction job plus two SIGKILL boundaries. The default worker produces a clearly labeled synthetic missing-information response. Add --skip-crashes to reuse unchanged death proof. For actual local inference use --model-root MODELS_ROOT --skip-crashes and omit the worker. The script captures source/product/pin identities before inference. All values, acceptances and files are synthetic; CLI attribution remains programmatic. Native and baseline packaged CI and scripts/check.sh include the deterministic job. workflow-clarification reads the exact target; workflow-clarify supplies target JSON, values JSON, reason and retry token. Never substitute user data or replace output/native during a probe. See [[records/specs/manual-workflows]].
+After building sevra-workflow-durability, run python3 scripts/check_workflow_clarification.py --cli output/native/bin/sevra --worker .build/debug/sevra-workflow-durability --output NEW_DIRECTORY for the deterministic submission/review/reconstruction job plus two SIGKILL boundaries. The default worker produces a clearly labeled synthetic missing-information response. Add --skip-crashes to reuse unchanged death proof. For actual local inference use --model-root MODELS_ROOT --skip-crashes and omit the worker. The script captures source/product/pin identities before inference. All values, acceptances and files are synthetic; CLI attribution remains programmatic. Packaged CI and scripts/check.sh include the deterministic job. workflow-clarification reads the exact target; workflow-clarify supplies target JSON, values JSON, reason and retry token. Never substitute user data or replace output/native during a probe. See [[records/specs/manual-workflows]].
 
 ## Native clarification verification
 
@@ -1942,7 +1866,7 @@ Focused checks: `.build/debug/sevra-checks --condition-inputs`; actual boundary:
 
 `sevra lineage Shop.sevra EXACT_ITEM_ID` and the existing `sevra automation-ancestry Shop.sevra EXACT_ITEM_ID [ITEM_ID...]` now render named data/control/producer/revision arrays. The broad ancestry inspector continues to include control links and does not resolve business causes or dispatch eligibility. `sevra verify Shop.sevra` checks each item's complete role/revision seal. Schema26 development workbooks are preserved/refused; there is no migration/reset command.
 
-Focused core: `.build/debug/sevra-checks --derivation-roles`. Installed check: `python3 scripts/check_derivation_roles.py --cli output/native/bin/sevra --worker .build/debug/sevra-checks --output NEW_RESULT.json`. It creates disposable synthetic fixtures, independently recomputes canonical seals, checks named role output and unchanged commits, reconstructs inertly and refuses damaged copies. scripts/check.sh and both packaged CI paths include it. Role-aware bounded business-origin/condition resolution is still pending. See [[records/specs/business-provenance]].
+Focused core: `.build/debug/sevra-checks --derivation-roles`. Installed check: `python3 scripts/check_derivation_roles.py --cli output/native/bin/sevra --worker .build/debug/sevra-checks --output NEW_RESULT.json`. It creates disposable synthetic fixtures, independently recomputes canonical seals, checks named role output and unchanged commits, reconstructs inertly and refuses damaged copies. scripts/check.sh and packaged CI include it. Role-aware bounded business-origin/condition resolution is still pending. See [[records/specs/business-provenance]].
 
 ## Inspect business origins
 
@@ -1962,13 +1886,13 @@ Run `.build/debug/sevra-checks --condition-origins` for 41 focused window/input/
 
 `sevra condition-causes WORKBOOK OBSERVATION_ID` reads the complete retained window and reports resolved or blocked, declared/inherited root IDs and exact automatic parents. Different consumers of one input share its root. Effective-time activation does not mint another. Missing/unclassified causes and more than eight roots/parents stay blocked; no partial roots become dispatchable. The bounded reader adds at most16MiB of creating envelopes to existing graph limits, before decoding. No live permission, charge or automatic work follows from reading it.
 
-Focused check: `.build/debug/sevra-checks --business-inputs`. Installed synthetic check: `python3 scripts/check_business_inputs.py --cli output/native/bin/sevra --worker .build/debug/sevra-checks --output NEW_RESULT.json`. Both packaged CI paths and check.sh include it. Schema28 is the canonical development contract; unsupported prior workbooks stay preserved/refused. Evidence and unfinished dispatch/production gates: [[records/specs/business-provenance]].
+Focused check: `.build/debug/sevra-checks --business-inputs`. Installed synthetic check: `python3 scripts/check_business_inputs.py --cli output/native/bin/sevra --worker .build/debug/sevra-checks --output NEW_RESULT.json`. Packaged CI and check.sh include it. Schema28 is the canonical development contract; unsupported prior workbooks stay preserved/refused. Evidence and unfinished dispatch/production gates: [[records/specs/business-provenance]].
 
 ## Shared automatic business-root admission qualification
 
 `sevra automation-causality WORKBOOK RUN_ID` now renders retained independentInputs in each automatic origin alongside parents/roots and charged work. Business roots come from explicit original-input creating commits; calendar roots remain exact clock occurrences. Historical output still grants no live permission. The internal admission primitive enforces one shared32-run budget across unrelated reacting targets, with existing self/depth/fan-out limits. Production calendar calls use calendar causes. Actual automatic condition selection/binding/dispatch remains unfinished; condition-causes stays read-only.
 
-Focused check: `.build/debug/sevra-checks --automation-causality`. Installed synthetic race/death check: `python3 scripts/check_shared_admissions.py --cli output/native/bin/sevra --worker .build/debug/sevra-checks --output NEW_RESULT.json`. Both packaged CI paths and check.sh include it. The fixture bridge is test-only, with no ordinary model/CLI override for independent inputs or parents. Schema29 is canonical; unsupported prior development workbooks stay preserved/refused. [[records/specs/automation-causality]] records539 broad/30 final focused groups,22 installed calls, failures, exact resource checks and open production gates.
+Focused check: `.build/debug/sevra-checks --automation-causality`. Installed synthetic race/death check: `python3 scripts/check_shared_admissions.py --cli output/native/bin/sevra --worker .build/debug/sevra-checks --output NEW_RESULT.json`. Packaged CI and check.sh include it. The fixture bridge is test-only, with no ordinary model/CLI override for independent inputs or parents. Schema29 is canonical; unsupported prior development workbooks stay preserved/refused. [[records/specs/automation-causality]] records539 broad/30 final focused groups,22 installed calls, failures, exact resource checks and open production gates.
 
 ## Condition dispatch qualification
 

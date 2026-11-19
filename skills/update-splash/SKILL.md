@@ -61,8 +61,9 @@ reopen, and --context-recovery for false digests, current acceptance, summary
 cancellation and explicit retry. Preserve failed runs, not only final passes.
 Recheck native helper shutdown on the serial worker; teardown must be bounded
 and retain the model lease if the child has not been reaped.
-The internal candidate boundary must not become a user backend picker. Keep the
-production baseline until the packaging, performance and application gates pass.
+The internal inference boundary must not become a user backend picker. A new
+Splash version stays a candidate until the packaging, performance and application
+gates pass.
 
 Implement affected Swift behavior in small steps. Test protocol bytes against
 the pinned upstream goldens, then exact prompt token IDs and parsed results.

@@ -31,9 +31,9 @@ def main():
         assert (value['kernelCount'] == 0 if options.paths_only else value['kernelCount'] > 0), value
         symbols = subprocess.check_output(['nm', '-j', str(binary)], text=True)
         demangled = subprocess.run(['xcrun', 'swift-demangle'], input=symbols, capture_output=True, text=True, check=True).stdout
-        assert not any(name in demangled for name in ['Slotstream.', 'MLX.', 'SevraBaseline.'])
+        assert 'MLX.' not in demangled
         linked = subprocess.check_output(['otool', '-L', str(binary)], text=True)
-        assert not any(name.lower() in linked.lower() for name in ['python', 'mlx', 'slotstream'])
+        assert not any(name in linked.lower() for name in ['python', 'mlx'])
         if binary == app / 'Contents/MacOS/Sevra':
             assert '/AVKit.framework/' in linked, 'Native media view lost its runtime framework'
             assert '/_AVKit_SwiftUI.framework/' not in linked, 'Unexpected SwiftUI video overlay dependency'

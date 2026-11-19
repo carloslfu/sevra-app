@@ -2,7 +2,7 @@
 type: spec
 id: 01m64d0z6f9sj5c9pwzx5mr7k4
 created: 2026-10-29T17:58:47.247749+00:00
-updated: 2026-10-29T17:58:47.247749+00:00
+updated: 2026-11-19T16:00:23+00:00
 summary: 'Owner-directed fast MVP: one complete native file-to-result journey, focused verification, coherent setup and deferred infrastructure.'
 title: Fast MVP delivery
 status: reviewed
@@ -59,16 +59,16 @@ Start by running this journey and listing observed failures before adding featur
 - Use existing bounded filename/FTS/structured retrieval, source reads and citations.
   No new embedding or generalized search infrastructure is required unless an actual
   journey failure demonstrates the need. Unprocessed content is not negative evidence.
-- Use the existing Python-free native Splash candidate and qualified model setup.
+- Use the existing Python-free native Splash engine and qualified model setup.
   Reuse installed compatible weights. Show missing-model, progress, failure and
   cancellation states; deterministic workbook operations work without inference.
-  Keep Slotstream independent. No upstream upgrade or port rewrite for this MVP.
+  No upstream upgrade or port rewrite for this MVP.
 - Keep deterministic calculations, saved results, normal edits and reversible review.
   Consequential business changes require the existing explicit review boundary.
   Keep source/record lineage and actual/estimate/plan distinctions in the core.
 - Provide one correct build/install/launch route for the native MVP, with matching
-  app, CLI, extraction helper and engine resources. The current baseline-only
-  installer/native-output mismatch is a delivery gap to resolve. Reuse safe
+  app, CLI, extraction helper and engine resources. Since November 19, 2026,
+  `scripts/install.sh` installs only the native app. Reuse safe
   installation behavior rather than introducing an installer framework.
 - Put exact prerequisites, first launch, model storage/download requirements,
   one example task and honest limitations at the front of the quick start.
@@ -95,7 +95,7 @@ incorrect-calculation, invented-evidence, or unintended-execution bug is a block
 Do not remove safeguards or weaken assertions to make a preview pass.
 
 For each fix, check the actual failure and one relevant counterexample. Reuse
-unchanged evidence. Run the complete journey once on the final native candidate,
+unchanged evidence. Run the complete journey once on the final native build,
 including a real local-model interaction and visible UI. Check a missing-evidence
 case and a relevant failure/cancellation path without losing saved work. Verify
 installation, close/reopen and portable export/reopen using disposable fixtures.

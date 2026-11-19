@@ -1,16 +1,10 @@
 import Foundation
 import SevraAI
 import SevraCore
+import SevraNativeAI
+import SevraSplash
 
-#if SEVRA_NATIVE_CANDIDATE
-  import SevraNativeAI
-  import SevraSplash
-#else
-  import SevraBaseline
-#endif
-
-/// One application model, shared by the native UI and CLI. The baseline adapter
-/// remains available to qualification tests without entering a native product.
+/// One application model, shared by the native UI and CLI.
 public actor ProductAI {
   public static let shared = ProductAI()
   private var active = false
@@ -22,9 +16,6 @@ public actor ProductAI {
 
   private init() {
     observesSystemPressure = true
-    #if !SEVRA_NATIVE_CANDIDATE
-      model = LocalModel.shared
-    #endif
   }
   /// Internal qualification seam, shared with the workbook agent's synthetic and native checks.
   package init(qualifying model: any WorkbookInference) {
@@ -52,53 +43,26 @@ public actor ProductAI {
   public enum PressureResponse: String, Sendable {
     case released, deferred, stopping, releasePending
   }
-  #if SEVRA_NATIVE_CANDIDATE
-    public static let name = "Local AI · Native preview"
-    public static let detail = "Qwen3.6 35B · Splash · DFlash 2"
-    public static let revision = "splash-1.6.1-native-candidate"
-    public static let preferenceKey = "nativeModelsRoot"
-    public static let canReuseModel = true
-    public static var defaultDirectory: URL {
-      FileManager.default.homeDirectoryForCurrentUser.appendingPathComponent(
-        "Library/Application Support/Sevra/Models")
-    }
-    public static var downloadBytes: Int64 {
-      guard let pack = try? SplashModelPack.selected() else { return 0 }
-      return (pack.target.files + pack.draft.files).reduce(0) { $0 + $1.bytes }
-    }
-  #else
-    public static let name = "Slotstream Fast"
-    public static let detail = "Qwen3.6 35B · MLX · DFlash 2"
-    public static let revision = LocalModel.revision
-    public static let preferenceKey = "modelDirectory"
-    public static let canReuseModel = false
-    public static var defaultDirectory: URL { LocalModel.defaultDirectory }
-    public static var downloadBytes: Int64 { LocalModel.downloadBytes }
-  #endif
-
-  public static var suggestedReuseDirectory: URL? {
-    #if SEVRA_NATIVE_CANDIDATE
-      guard let name = try? SplashModelPack.selected().name else { return nil }
-      let directory = FileManager.default.homeDirectoryForCurrentUser
-        .appendingPathComponent(".slotstream/models/" + name)
-      return FileManager.default.fileExists(atPath: directory.path) ? directory : nil
-    #else
-      return nil
-    #endif
+  public static let name = "Local AI · Native preview"
+  public static let detail = "Qwen3.6 35B · Splash · DFlash 2"
+  public static let revision = "splash-1.6.1-native-candidate"
+  public static let preferenceKey = "nativeModelsRoot"
+  public static var defaultDirectory: URL {
+    FileManager.default.homeDirectoryForCurrentUser.appendingPathComponent(
+      "Library/Application Support/Sevra/Models")
+  }
+  public static var downloadBytes: Int64 {
+    guard let pack = try? SplashModelPack.selected() else { return 0 }
+    return (pack.target.files + pack.draft.files).reduce(0) { $0 + $1.bytes }
   }
 
   public static func checkResources(validateMetal: Bool = true) async throws -> Value {
     try require(
       FileManager.default.isExecutableFile(atPath: ExtractionWorker.bundledExecutable.path),
       "resources", "The installed document extractor is missing.")
-    let result: Value
-    #if SEVRA_NATIVE_CANDIDATE
-      result = try await Task.detached {
-        try NativeProductResources.check(validateMetal: validateMetal)
-      }.value
-    #else
-      result = try await PackageResources.check(validateMetal: validateMetal)
-    #endif
+    let result = try await Task.detached {
+      try NativeProductResources.check(validateMetal: validateMetal)
+    }.value
     var fields = result.object
     fields["extractionWorker"] = .bool(true)
     return .object(fields)
@@ -107,13 +71,9 @@ public actor ProductAI {
   /// Presence is a quick UI hint. Setup and every new native session perform
   /// verification; this never claims that file existence proves usable weights.
   public func installed(at directory: URL = ProductAI.defaultDirectory) async -> Bool {
-    #if SEVRA_NATIVE_CANDIDATE
-      guard let pack = try? SplashModelPack.selected() else { return false }
-      return FileManager.default.fileExists(
-        atPath: directory.appendingPathComponent(pack.name + "/model.json").path)
-    #else
-      return await LocalModel.shared.installed(at: directory)
-    #endif
+    guard let pack = try? SplashModelPack.selected() else { return false }
+    return FileManager.default.fileExists(
+      atPath: directory.appendingPathComponent(pack.name + "/model.json").path)
   }
 
   public func setup(
@@ -124,22 +84,15 @@ public actor ProductAI {
       let released = await model?.releaseResources() ?? true
       releaseRequested = !released
       try require(released, "busy", "The model has not stopped yet. Retry setup.")
-      #if SEVRA_NATIVE_CANDIDATE
-        try await Task.detached(priority: .userInitiated) {
-          let updates = SetupProgress(progress)
-          _ = try SplashModelSetup.install(
-            modelsRoot: directory, reusingTarget: source,
-            reusingDraft: source?.appendingPathComponent("dflash"),
-            cancelled: { cancellation.isCancelled || cancellation.isExpired },
-            progress: updates.receive)
-          try cancellation.check()
-        }.value
-      #else
-        try require(
-          source == nil, "model_setup", "Choose the existing model folder before verification.")
-        try await LocalModel.shared.setup(
-          at: directory, cancellation: cancellation, progress: progress)
-      #endif
+      try await Task.detached(priority: .userInitiated) {
+        let updates = SetupProgress(progress)
+        _ = try SplashModelSetup.install(
+          modelsRoot: directory, reusingTarget: source,
+          reusingDraft: source?.appendingPathComponent("dflash"),
+          cancelled: { cancellation.isCancelled || cancellation.isExpired },
+          progress: updates.receive)
+        try cancellation.check()
+      }.value
     }
   }
 
@@ -221,12 +174,10 @@ public actor ProductAI {
   }
 
   private func workflowModel(directory: URL) throws -> any WorkbookInference {
-    #if SEVRA_NATIVE_CANDIDATE
-      if model == nil {
-        model = NativeWorkbookModel(
-          configuration: try NativeProductResources.configuration(modelsRoot: directory))
-      }
-    #endif
+    if model == nil {
+      model = NativeWorkbookModel(
+        configuration: try NativeProductResources.configuration(modelsRoot: directory))
+    }
     guard let model else { throw SevraError("model", "The local model is unavailable.") }
     return model
   }
@@ -257,13 +208,11 @@ public actor ProductAI {
     conversationInput: Bool = false, inputAnswerID: String? = nil
   ) async throws -> AgentResult {
     try await perform(cancellation: cancellation) {
-      #if SEVRA_NATIVE_CANDIDATE
-        if model == nil {
-          model = NativeWorkbookModel(
-            configuration:
-              try NativeProductResources.configuration(modelsRoot: modelDirectory))
-        }
-      #endif
+      if model == nil {
+        model = NativeWorkbookModel(
+          configuration:
+            try NativeProductResources.configuration(modelsRoot: modelDirectory))
+      }
       guard let model else { throw SevraError("model", "The local model is unavailable.") }
       return try await WorkbookAgent.run(
         prompt, workbook: workbook, conversation: conversation, context: context,
@@ -292,36 +241,34 @@ public actor ProductAI {
 
 }
 
-#if SEVRA_NATIVE_CANDIDATE
-  /// Network callbacks may arrive many times per frame. Keep UI updates bounded
-  /// without delaying cancellation or disk writes.
-  private final class SetupProgress: @unchecked Sendable {
-    private let lock = NSLock()
-    private var lastTime = -Double.infinity
-    private var lastFile = ""
-    private let report: @Sendable (String) -> Void
-    init(_ report: @escaping @Sendable (String) -> Void) { self.report = report }
-    func receive(_ update: SplashModelSetup.Progress) {
-      lock.lock()
-      let now = ProcessInfo.processInfo.systemUptime
-      let key = update.phase + "/" + update.file
-      let emit =
-        key != lastFile || now - lastTime >= 0.2 || update.completedBytes == update.totalBytes
-      if emit {
-        lastTime = now
-        lastFile = key
+/// Network callbacks may arrive many times per frame. Keep UI updates bounded
+/// without delaying cancellation or disk writes.
+private final class SetupProgress: @unchecked Sendable {
+  private let lock = NSLock()
+  private var lastTime = -Double.infinity
+  private var lastFile = ""
+  private let report: @Sendable (String) -> Void
+  init(_ report: @escaping @Sendable (String) -> Void) { self.report = report }
+  func receive(_ update: SplashModelSetup.Progress) {
+    lock.lock()
+    let now = ProcessInfo.processInfo.systemUptime
+    let key = update.phase + "/" + update.file
+    let emit =
+      key != lastFile || now - lastTime >= 0.2 || update.completedBytes == update.totalBytes
+    if emit {
+      lastTime = now
+      lastFile = key
+    }
+    lock.unlock()
+    if emit {
+      if update.totalBytes == 0 {
+        report("\(update.phase): \(update.file)")
+        return
       }
-      lock.unlock()
-      if emit {
-        if update.totalBytes == 0 {
-          report("\(update.phase): \(update.file)")
-          return
-        }
-        let amount = ByteCountFormatter.string(
-          fromByteCount: update.completedBytes, countStyle: .file)
-        let total = ByteCountFormatter.string(fromByteCount: update.totalBytes, countStyle: .file)
-        report("\(update.phase): \(update.file) · \(amount) of \(total)")
-      }
+      let amount = ByteCountFormatter.string(
+        fromByteCount: update.completedBytes, countStyle: .file)
+      let total = ByteCountFormatter.string(fromByteCount: update.totalBytes, countStyle: .file)
+      report("\(update.phase): \(update.file) · \(amount) of \(total)")
     }
   }
-#endif
+}

@@ -3,7 +3,7 @@ type: spec
 meta-type: conclusion
 id: 01m5rbxzbe4pdmde0k72e3j6n6
 created: 2026-10-25T01:48:47.342811+00:00
-updated: 2026-11-19T03:18:37.605786+00:00
+updated: 2026-11-19T16:00:23+00:00
 summary: Independent source build, native bundle, CLI skill, portable format and end-to-end release gates.
 title: Distribution and verification
 status: reviewed
@@ -15,19 +15,17 @@ private repository links or absolute developer paths required. Preserve upstream
 licenses/notices for redistributed dependencies. Product trademark is not licensed
 as endorsement by a fork. Synthetic sample workbook is generated deterministically.
 D02. The Splash integration targets Apple M3+ and macOS 26.4+, subject to physical
-runtime qualification. The earlier macOS 14 declaration described the Slotstream
-baseline, not future Splash support. Package pinned native engine and Metal
+runtime qualification. Package pinned native engine and Metal
 resources with verified hashes and licenses. Source builds may use upstream
 development tools; the shipped app's setup and inference must not need Python.
-D03. `scripts/build.sh` builds CLI/app/check runner and the native sevra-extract
+D03. `scripts/build_native.sh` builds the app, CLI and the native sevra-extract
 helper, stages a valid `.app`, required
 resources, Info.plist document types, microphone/speech usage strings and signatures.
-Both product layouts ship sevra-extract adjacent to the real app/CLI executable.
+The product layout ships sevra-extract adjacent to the real app and CLI executables.
 Resolving an installed CLI symlink must still find its helper. A missing helper
 refuses extraction without silently returning to in-process parsing.
 `scripts/install.sh` installs to user Applications plus a user-owned CLI bin folder,
-refuses unexpected overwrite, and records version. Either Sevra install takes the CLI
-link back from the other, once that app's identity checks, and leaves that app alone.
+refuses unexpected overwrite, and records version.
 Uninstall removes binaries only;
 workbooks/model files survive. Unsigned/ad-hoc builds are labeled honestly.
 D04. README gives exact prerequisites, fresh-checkout commands, launch, setup, demo,
@@ -186,8 +184,7 @@ lineage, Undo, cancellation/reopen and portable export/reopen remain requirement
 This permits resetting selected development fixtures, not silently deleting an
 incompatible workbook on open or wiping unrelated/user files, model installations,
 original assets or historical evidence. External Excel/CSV continuity and declared
-third-party protocols remain separate interoperability requirements. Slotstream's
-independent repository/API commitments are outside this app policy.
+third-party protocols remain separate interoperability requirements.
 
 This section controls older active migration/backward-compatibility requirements
 throughout the specs, implementation plan, saved-definition contracts and tests.

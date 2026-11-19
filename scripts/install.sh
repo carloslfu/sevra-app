@@ -1,29 +1,20 @@
 #!/bin/bash
 set -euo pipefail
 ROOT=$(cd "$(dirname "$0")/.." && pwd)
-NATIVE=0
 BUILD=1
 for ARG in "$@"; do
   case "$ARG" in
-    --native) NATIVE=1 ;;
     --no-build) BUILD=0 ;;
-    *) echo 'Usage: install.sh [--native] [--no-build]' >&2; exit 2 ;;
+    *) echo 'Usage: install.sh [--no-build]' >&2; exit 2 ;;
   esac
 done
-NAME=Sevra
-BUNDLE_ID=com.sevra.workbooks
-PRODUCT="$ROOT/output"
-if [ "$NATIVE" = 1 ]; then
-  NAME='Sevra Native Preview'
-  BUNDLE_ID=com.sevra.workbooks.native-preview
-  PRODUCT="$ROOT/output/native"
-  [ "$(uname -m)" = arm64 ] || { echo 'Native preview requires Apple Silicon.' >&2; exit 1; }
-fi
-if [ "$BUILD" = 1 ]; then
-  if [ "$NATIVE" = 1 ]; then "$ROOT/scripts/build_native.sh"; else "$ROOT/scripts/build.sh"; fi
-fi
+NAME='Sevra Native Preview'
+BUNDLE_ID=com.sevra.workbooks.native-preview
+PRODUCT="$ROOT/output/native"
+[ "$(uname -m)" = arm64 ] || { echo 'Sevra requires Apple Silicon.' >&2; exit 1; }
+if [ "$BUILD" = 1 ]; then "$ROOT/scripts/build_native.sh"; fi
 [ -d "$PRODUCT/$NAME.app" ] && [ -x "$PRODUCT/bin/sevra" ] || {
-  echo 'Build the selected product before using --no-build.' >&2; exit 1;
+  echo 'Build the app before using --no-build.' >&2; exit 1;
 }
 APP_TARGET=${SEVRA_APP_INSTALL_DIR:-"$HOME/Applications"}
 CLI_TARGET=${SEVRA_CLI_INSTALL_DIR:-"$HOME/.local/bin"}
@@ -36,24 +27,7 @@ if [ -e "$APP" ] || [ -L "$APP" ]; then
   [ "$ID" = "$BUNDLE_ID" ] || { echo 'Refusing to replace an unrelated application.' >&2; exit 1; }
 fi
 if [ -e "$LINK" ] || [ -L "$LINK" ]; then
-  OWNED=0
-  if [ -L "$LINK" ]; then
-    TARGET=$(readlink "$LINK")
-    if [ "$TARGET" = "$APP/Contents/CLI/sevra" ]; then OWNED=1; fi
-    # Either Sevra app may take the link back from the other.
-    if [ "$NATIVE" = 1 ]; then
-      OTHER_NAME=Sevra
-      OTHER_ID=com.sevra.workbooks
-    else
-      OTHER_NAME='Sevra Native Preview'
-      OTHER_ID=com.sevra.workbooks.native-preview
-    fi
-    if [ "$TARGET" = "$APP_TARGET/$OTHER_NAME.app/Contents/CLI/sevra" ]; then
-      FOUND_ID=$(/usr/libexec/PlistBuddy -c 'Print CFBundleIdentifier' "$APP_TARGET/$OTHER_NAME.app/Contents/Info.plist" 2>/dev/null || true)
-      if [ "$FOUND_ID" = "$OTHER_ID" ]; then OWNED=1; fi
-    fi
-  fi
-  [ "$OWNED" = 1 ] || {
+  [ -L "$LINK" ] && [ "$(readlink "$LINK")" = "$APP/Contents/CLI/sevra" ] || {
     echo "Refusing to replace an unrelated CLI at $LINK." >&2; exit 1;
   }
 fi
@@ -71,15 +45,8 @@ cleanup() {
 trap cleanup EXIT
 ditto "$PRODUCT/$NAME.app" "$STAGE/Sevra.app"
 ditto "$PRODUCT/bin" "$STAGE/Sevra.app/Contents/CLI"
-if [ "$NATIVE" = 1 ]; then
-  # Upstream helpers are already signed. --deep would change pinned engine bytes.
-  codesign --force --sign - "$STAGE/Sevra.app"
-else
-  # The baseline CLI copy also embeds an unsigned Metal library. Native preview
-  # runtime bytes are pinned, so only the baseline takes this explicit leaf step.
-  codesign --force --sign - "$STAGE/Sevra.app/Contents/CLI/mlx.metallib"
-  codesign --force --sign - "$STAGE/Sevra.app"
-fi
+# Upstream helpers are already signed. --deep would change pinned engine bytes.
+codesign --force --sign - "$STAGE/Sevra.app"
 codesign --verify --deep --strict "$STAGE/Sevra.app"
 "$STAGE/Sevra.app/Contents/CLI/sevra" version
 "$STAGE/Sevra.app/Contents/CLI/sevra" check-resources --paths-only
