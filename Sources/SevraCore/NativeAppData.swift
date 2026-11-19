@@ -41,9 +41,9 @@ extension Workbook {
       }
     }
   }
-  public func chatTableTransaction(
+  @discardableResult public func chatTableTransaction(
     _ id: String, expectedDefinitionID: String, operations: [Value], undo: String? = nil,
-    token: String = identifier(), requestSourceID: String? = nil,
+    token: String = identifier(), requestSourceID: String? = nil, limit: Int = 64,
     cancellation: Cancellation = .init()
   ) throws -> Value {
     try synchronized(cancellation: cancellation) {
@@ -69,7 +69,8 @@ extension Workbook {
         try saved.map { try Value.parse($0)["arguments"]["expectedRevision"].int ?? revision() }
         ?? revision()
       return try nativeAppTransaction(
-        access, operations: scoped, expectedRevision: base, token: token, undo: undo)
+        access, operations: scoped, expectedRevision: base, token: token, undo: undo,
+        limit: limit, deadlineSeconds: SQLScratch.applySeconds)
     }
   }
   public func nativeAppConversationRow(
@@ -225,14 +226,15 @@ extension Workbook {
   /// All operations either commit together with existing captured history, or none do.
   public func nativeAppTransaction(
     _ access: NativeAppAccess, operations: [Value], expectedRevision: Int, token: String,
-    undo: String? = nil, reverseRedo: Bool? = nil
+    undo: String? = nil, reverseRedo: Bool? = nil, limit: Int = 64,
+    deadlineSeconds: TimeInterval = 3
   ) throws -> Value {
     try require(
       token.utf8.count <= 256 && !token.isEmpty && expectedRevision >= 0,
       "app_command", "A command needs an operation token and base revision.")
     try require(
-      operations.count <= 64 && (undo == nil ? !operations.isEmpty : operations.isEmpty),
-      "app_command", "Use 1 to 64 operations, or undo one receipt.")
+      operations.count <= limit && (undo == nil ? !operations.isEmpty : operations.isEmpty),
+      "app_command", "Use 1 to \(limit) operations, or undo one receipt.")
     let request: Value = .object(
       [
         "space": .string(access.spaceID), "digest": .string(access.package.digest),
@@ -247,7 +249,7 @@ extension Workbook {
           actor: access.tableOperation
             ? ChangeAttribution.actor ?? .programmatic("Sevra.chat-table")
             : .programmatic("native-app:" + access.package.digest),
-          commitGuard: { try access.authorized(self) {} }
+          deadlineSeconds: deadlineSeconds, commitGuard: { try access.authorized(self) {} }
         ) {
           var requested = operations
           var behaviorCommand = false
@@ -297,7 +299,52 @@ extension Workbook {
             transformation: "native-app-command-v1")
           var output: [Value] = []
           var inverse: [Value] = []
-          for operation in requested {
+          // A large change saves its updates as one edit, with one correction Source,
+          // where the loop below would write one for every row.
+          var together: Set<Int> = []
+          if requested.count > 64 {
+            let updates = requested.enumerated().filter { $0.element["op"].text == "update" }
+            if let alias = updates.first?.element["table"].text,
+              updates.allSatisfy({ $0.element["table"].text == alias })
+            {
+              let table = try nativeAppBoundTable(try access.binding(alias, write: true))
+              let recalculating = try recalculatingColumns(table.id)
+              let formulas = Set(table.columns.filter { $0.formula != nil }.map(\.id))
+              let olds = try updates.map { update -> Item in
+                let old = try item(update.element["id"].text)
+                try require(
+                  old.id == update.element["id"].text && item(old.logicalID).id == old.id,
+                  "stale_revision", "This row changed. Refresh before editing.")
+                return old
+              }
+              let saved = try applyRows(
+                table.id,
+                edits: zip(olds, updates).map { old, update in
+                  RowEdit(
+                    id: old.id,
+                    values: Self.current(old, table).merging(update.element["values"].object) {
+                      _, new in new
+                    })
+                },
+                request: .object([
+                  "token": .string(token), "rows": .number(Double(updates.count)),
+                ]), deferSheetCalculation: true)["items"].array
+              for (index, update) in updates.enumerated() {
+                output.append(.object(["id": saved[index]]))
+                let computed = formulas.union(recalculating[olds[index].logicalID] ?? [])
+                let previous = update.element["values"].object.keys
+                  .filter { !computed.contains($0) }
+                  .reduce(into: [String: Value]()) { $0[$1] = olds[index].data[$1] }
+                inverse.insert(
+                  .object([
+                    "op": .string("update"), "table": .string(alias), "id": saved[index],
+                    "values": .object(previous),
+                  ]), at: 0)
+                together.insert(update.offset)
+              }
+            }
+          }
+          for (offset, operation) in requested.enumerated() where !together.contains(offset) {
             let alias = operation["table"].text
             let binding = try access.binding(alias, write: true)
             let table = try nativeAppBoundTable(binding)
@@ -338,7 +385,9 @@ extension Workbook {
                 kind == "restore" ? member == nil : member != nil, "app_permission",
                 "This row is not in the expected table state.")
               if kind == "update" {
-                let values = old.data.object.merging(operation["values"].object) { _, new in new }
+                let values = Self.current(old, table).merging(operation["values"].object) {
+                  _, new in new
+                }
                 let result = try applyRows(
                   table.id, edits: [.init(id: old.id, values: values)], request: request,
                   deferSheetCalculation: true)
@@ -411,6 +460,15 @@ extension Workbook {
         }
       }
     }
+  }
+}
+
+extension Workbook {
+  /// A saved row's values for the table's columns today. An older row version can still
+  /// carry a column the table has since dropped, which an edit must not write back.
+  static func current(_ row: Item, _ table: Dataset) -> [String: Value] {
+    let known = Set(table.columns.map(\.id))
+    return row.data.object.filter { known.contains($0.key) }
   }
 }
 

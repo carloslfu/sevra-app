@@ -36,6 +36,8 @@ extension NativeTools {
         "draft": schema(
           "boolean", "True saves UPDATEs as a proposal for the user to review. Nothing changes."),
         "tool": schema("string", "Run this saved tool instead of statements."),
+        "undo": schema(
+          "string", "Sent alone: undo everything an earlier sql call saved, by its undo value."),
         "values": .object([
           "type": .string("object"), "description": .string("The saved tool's inputs by name."),
         ]),
@@ -104,7 +106,10 @@ extension NativeTools {
         ? [excelEvidenceDefinition, excelBehaviorDefinition] : [])
     return try available.compactMap { definition in
       if definition.name == "workspace_action" {
-        let operations = toolScope.workspaceOperations
+        // Undo of a sql call exists only beside sql, so today's tool list stays as it was.
+        let operations = toolScope.workspaceOperations.filter {
+          $0.name != "table.undo_sql" || (toolProfile == .general && !toolScope.specialized)
+        }
         guard !operations.isEmpty else { return nil }
         var parameters = definition.parameters.object
         var properties = definition.parameters["properties"].object

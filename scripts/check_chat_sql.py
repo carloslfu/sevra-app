@@ -73,8 +73,13 @@ with tempfile.TemporaryDirectory() as folder:
     expect('update counts', (change.get('updated'), change.get('inserted'), change.get('deleted')) == (2, 0, 0), update)
     after = {r['supplier']: (r['quantity'], r['total']) for r in book.values(SUPPLIERS)}
     expect('update recalculates', after == {'Oak Supply': ('20', '48'), 'Cedar Tools': ('20', '55')}, after)
-    book.run('tool', 'workspace_action', {'action': 'table.undo_rows', 'arguments': change['undo']})
-    expect('undo restores', book.values(SUPPLIERS) == start, book.values(SUPPLIERS))
+    undone = sql(book, undo=update['undo'])
+    expect('undo restores', undone.get('undone') is True and book.values(SUPPLIERS) == start, book.values(SUPPLIERS))
+    try:
+        sql(book, undo=update['undo'])
+        expect('a second undo is refused', False)
+    except CLIError as error:
+        expect('a second undo is refused', error.code == 'sql_undo', error)
     mixed = sql(book,
                 "INSERT INTO supplier_comparison(supplier, quantity, unit_cost) VALUES ('Birch Metals', 10, 2.55)",
                 "UPDATE supplier_comparison SET unit_cost = unit_cost * 1.1 WHERE supplier = 'Oak Supply'",
@@ -83,8 +88,17 @@ with tempfile.TemporaryDirectory() as folder:
     expect('mixed counts', (change.get('inserted'), change.get('updated'), change.get('deleted')) == (1, 1, 1), mixed)
     after = {r['supplier']: (r['quantity'], r['unit_cost'], r['total']) for r in book.values(SUPPLIERS)}
     expect('mixed result', after == {'Oak Supply': ('10', '2.64', '26.4'), 'Birch Metals': ('10', '2.55', '25.5')}, after)
-    book.run('tool', 'workspace_action', {'action': 'table.undo_rows', 'arguments': change['undo']})
+    book.run('tool', 'workspace_action', {'action': 'table.undo_sql', 'arguments': {'token': mixed['undo']}})
     expect('one undo for the call', book.values(SUPPLIERS) == start, book.values(SUPPLIERS))
+    first = sql(book, "UPDATE supplier_comparison SET quantity = 30")
+    sql(book, "UPDATE supplier_comparison SET quantity = 40")
+    try:
+        sql(book, undo=first['undo'])
+        expect('undo under a later change is refused', False)
+    except CLIError as error:
+        expect('undo under a later change is refused', error.code == 'sql_undo', error)
+    sql(book, "UPDATE supplier_comparison SET quantity = 10")
+    expect('back to the start', book.values(SUPPLIERS) == start, book.values(SUPPLIERS))
     filled = sql(book, "INSERT INTO reorder_levels(part, level) SELECT part, 0 FROM parts "
                        "WHERE part NOT IN (SELECT part FROM reorder_levels)")
     expect('insert from another table', filled['changes'][0]['inserted'] == 3, filled)
@@ -121,8 +135,21 @@ with tempfile.TemporaryDirectory() as folder:
     expect('rename a column', 'Minimum stock' in titles('Parts') and 'Reorder level' not in titles('Parts'),
            titles('Parts'))
     expect('rename keeps the values', shape.values('Parts') == before)
-    shape.run('tool', 'workspace_action', renamed['shape'][0]['undo'])
+    sql(shape, undo=renamed['undo'])
     expect('undo a rename', 'Reorder level' in titles('Parts'), titles('Parts'))
+    shelved = sql(shape, "ALTER TABLE parts ADD COLUMN shelf TEXT", "UPDATE parts SET shelf = 'S1'",
+                  "CREATE TABLE shelf_notes (note TEXT)", "INSERT INTO shelf_notes VALUES ('checked')")
+    expect('a column, its values and a table in one call', 'Shelf' in titles('Parts')
+           and shape.table('Shelf notes') is not None, shelved)
+    sql(shape, undo=shelved['undo'])
+    gone = shape.table('Shelf notes')
+    expect('one undo takes back the column, its values and the table', 'Shelf' not in titles('Parts')
+           and shape.values('Parts') == before and (gone is None or gone.get('archived')), (titles('Parts'), gone))
+    sql(shape, "ALTER TABLE parts ADD COLUMN temp TEXT", "UPDATE parts SET temp = 'x'")
+    sql(shape, "ALTER TABLE parts DROP COLUMN temp")
+    bumped = sql(shape, "UPDATE parts SET stock = stock + 1 WHERE part = 'Hex nuts'")
+    expect('rows update after a dropped column', bumped['changes'][0]['updated'] == 1, bumped)
+    sql(shape, undo=bumped['undo'])
     sql(shape, "ALTER TABLE parts ADD COLUMN bin TEXT", "UPDATE parts SET bin = 'A1' WHERE part = 'Hex nuts'")
     binned = {r['part']: r.get('bin') for r in shape.values('Parts')}
     expect('add a column and fill it', 'Bin' in titles('Parts') and binned['Hex nuts'] == 'A1'
@@ -163,7 +190,7 @@ with tempfile.TemporaryDirectory() as folder:
     added = sql(shape, tool='add_plan', values={'item': "Wood screws; 'bulk'", 'level': '50'})
     expect('a tool changes rows', added['changes'][0]['inserted'] == 1 and
            ("Wood screws; 'bulk'", '50') in [(r['item'], r['level']) for r in shape.values('Reorder plan')], added)
-    shape.run('tool', 'workspace_action', {'action': 'table.undo_rows', 'arguments': added['changes'][0]['undo']})
+    sql(shape, undo=added['undo'])
     expect('a tool run undoes', len(shape.values('Reorder plan')) == 3)
     save(shape, 'low_stock', ["SELECT part, stock FROM parts WHERE stock < reorder_level ORDER BY part"])
     expect('saving again replaces', [r['name'] for r in shape.values('Saved tools')].count('low_stock') == 1
@@ -217,6 +244,40 @@ with tempfile.TemporaryDirectory() as folder:
     refused('later failure undoes earlier statements', book, 'sql',
             "DELETE FROM supplier_comparison", "SELECT missing FROM parts")
     expect('no file was attached', not os.path.exists('/tmp/sevra-check-should-not-exist.db'))
+
+    # A call saves everything or nothing, even when the saved table refuses its last step.
+    atomic = Book(Path(folder) / 'atomic.sevra')
+    parts(atomic)
+    levels(atomic)
+    table = atomic.table('Parts')
+    atomic.run('tool', 'workspace_action', {'action': 'table.edit_schema', 'arguments': {
+        'id': table['id'], 'expectedVersion': table['version'], 'expectedDefinitionID': table['definitionID'],
+        'columns': [dict(c, required=True) if c['id'] == 'category' else c for c in table['columns']]}})
+    held = atomic.values('Parts')
+    try:
+        sql(atomic, "CREATE TABLE side_table (a TEXT)", "INSERT INTO side_table VALUES ('x')",
+            "ALTER TABLE reorder_levels ADD COLUMN flag TEXT",
+            "UPDATE parts SET category = NULL WHERE part = 'Hex nuts'")
+        expect('a refused last step fails the call', False)
+    except CLIError as error:
+        expect('a refused last step fails the call', error.code == 'required' and 'Nothing was changed' in str(error), error)
+    side = atomic.table('Side table')
+    expect('the earlier steps were taken back', (side is None or side.get('archived')) and atomic.values('Parts') == held
+           and 'Flag' not in [c['title'] for c in atomic.table('Reorder levels')['columns']],
+           (side, [c['title'] for c in atomic.table('Reorder levels')['columns']]))
+    atomic.run('verify')
+
+    # A large change is one saved edit with one Undo.
+    bulk = Book(Path(folder) / 'bulk.sevra')
+    sql(bulk, "CREATE TABLE stock_lines (sku TEXT, qty REAL)",
+        "WITH RECURSIVE n(i) AS (SELECT 1 UNION ALL SELECT i + 1 FROM n WHERE i < 300) "
+        "INSERT INTO stock_lines SELECT 'SKU-' || i, i FROM n")
+    raised = sql(bulk, "UPDATE stock_lines SET qty = qty + 1")
+    expect('a bulk update', raised['changes'][0]['updated'] == 300
+           and rows(sql(bulk, "SELECT sum(qty) FROM stock_lines")) == [['45450']], raised.get('changes'))
+    sql(bulk, undo=raised['undo'])
+    expect('a bulk undo', rows(sql(bulk, "SELECT sum(qty), count(*) FROM stock_lines")) == [['45150', '300']])
+    bulk.run('verify')
 
 print('\n'.join(failures) if failures else 'sql chat tool: passed')
 sys.exit(1 if failures else 0)

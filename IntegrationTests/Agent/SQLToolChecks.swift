@@ -86,6 +86,27 @@ func checkSQLTool() async throws {
   let saved = try await toolResult(change)
   try expectEqual(saved["error"], .null)
   try expectEqual(saved["changes"].array.first?["updated"], .number(1))
+  // The answer carries the call that saved the change, and the conversation can undo it.
+  let saidSo = try expectValue(
+    try book.messages().last { $0.role == "assistant" && $0.state == "complete" })
+  let receipt = try expectValue(try book.conversationSQLReceipt(saidSo.id, conversation: "main"))
+  try expectEqual(receipt, saved["undo"].string)
+  try expectEqual(try book.chatSQLState(receipt), "saved")
+  _ = try WorkbookTools(book).execute(
+    "workspace_action",
+    .object(["action": .string("table.undo_sql"), "arguments": .object(["token": .string(receipt)])]))
+  try expectEqual(try values(), start)
+  try expectEqual(try book.chatSQLState(receipt), "undone")
+  try expectThrows(try book.chatSQLUndo(receipt))
+  let again = ScriptedCalls(
+    [
+      sql("UPDATE supplier_comparison SET unit_cost = 2.60 WHERE supplier = 'Cedar Tools'"),
+      finish("Cedar Tools now costs 2.60 each.", basis: "completed_action"),
+    ], toolProfile: .general)
+  try expectEqual(
+    try await WorkbookAgent.run(
+      "Change the Cedar Tools unit cost to 2.60 again.", workbook: book, model: again
+    ).state, "complete")
   let cedar = try expectValue(try values().first { $0["supplier"] == .string("Cedar Tools") })
   try expectEqual(try Numbers.decimal(cedar["unit_cost"]?.text ?? ""), try Numbers.decimal("2.6"))
   try expectEqual(try Numbers.decimal(cedar["total"]?.text ?? ""), try Numbers.decimal("26"))
@@ -188,5 +209,5 @@ func checkSQLTool() async throws {
     try expectValue(await repeated.prompts.last?.last { $0.role == "tool" }).content)
   try expectEqual(second["reusedReceiptID"].string != nil, true)
   try expectEqual(try values(), updated)
-  print("PASS sql tool: general declarations, answers from query results, AI row and shape changes under a rule Source, saved tool, draft, forbidden change, repeated query")
+  print("PASS sql tool: general declarations, answers from query results, AI row and shape changes under a rule Source, one undo from the answer, saved tool, draft, forbidden change, repeated query")
 }

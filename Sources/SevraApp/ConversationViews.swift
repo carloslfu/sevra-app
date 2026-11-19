@@ -219,12 +219,24 @@ private struct ConversationReversalView: View {
   let messageID: String
   @State private var receipt: ConversationAppReceipt?
   @State private var current: (token: String, redo: Bool)?
+  @State private var sql: (token: String, state: String)?
   @State private var busy = false
   @State private var failure: String?
 
   var body: some View {
     Group {
-      if let receipt {
+      if let sql {
+        HStack {
+          Text(sql.state == "undone" ? "Change undone" : "Change saved")
+            .foregroundStyle(.secondary)
+          if sql.state == "saved" {
+            Button("Undo this change") {
+              Task { await undo(sql.token) }
+            }.buttonStyle(.link).disabled(busy || state.busy)
+          }
+        }.font(.caption)
+        if let failure { Text(failure).font(.caption).foregroundStyle(.secondary) }
+      } else if let receipt {
         HStack {
           Text(
             current?.redo == true
@@ -255,6 +267,21 @@ private struct ConversationReversalView: View {
       try Task.checkCancellation()
       guard state.workbook === book && state.conversation == chat else { return }
       receipt = saved
+      if saved == nil {
+        // Changes made through sql keep their own receipt: the call that saved them.
+        let found = try await Task.detached { () -> (token: String, state: String)? in
+          guard let token = try book.conversationSQLReceipt(messageID, conversation: chat),
+            let state = try book.chatSQLState(token)
+          else { return nil }
+          return (token, state)
+        }.value
+        try Task.checkCancellation()
+        guard state.workbook === book && state.conversation == chat else { return }
+        sql = found
+        current = nil
+        return
+      }
+      sql = nil
       guard let saved, let app = state.spaces.first(where: { $0.id == saved.appID }),
         app.version == saved.version && app.definition.app != nil
       else {
@@ -267,6 +294,25 @@ private struct ConversationReversalView: View {
     } catch {
       guard !Task.isCancelled else { return }
       current = nil
+    }
+  }
+
+  private func undo(_ token: String) async {
+    guard let (book, operation) = state.beginOperation("Undoing change") else { return }
+    busy = true
+    defer {
+      busy = false
+      state.finishOperation(operation, in: book)
+    }
+    do {
+      _ = try await state.performChatAction(
+        "table.undo_sql", arguments: .object(["token": .string(token)]), book: book, readOnly: false,
+        cancellation: operation.cancellation)
+      failure = nil
+      await refresh()
+    } catch {
+      failure = error.localizedDescription
+      await refresh()
     }
   }
 

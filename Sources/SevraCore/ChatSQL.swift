@@ -65,75 +65,79 @@ extension Workbook {
             ]))
         }
       }
-      // The write path records an AI change only under an exact saved rule Source.
-      var actor = ChangeAttribution.actor
       let changing = !changes.isEmpty || !reshapes.isEmpty || !created.isEmpty
-      if !draft, changing, let model = actor, model.kind == "ai" {
-        actor = .ai(
-          model.component, model: model.model!,
-          policy: try chatTableChangePolicy(cancellation: cancellation))
-      }
       var shaped: [Value] = []
       var current: [String: Dataset] = [:]
-      try ChangeAttribution.$actor.withValue(actor) {
-        for reshape in reshapes {
-          let before = reshape.table
-          try updateDatasetDefinition(
-            before.id, expectedVersion: before.version, expectedDefinitionID: before.definitionID,
-            title: reshape.title, columns: reshape.columns, archived: reshape.archived ? true : nil,
-            token: token + "-shape-" + reshape.key, cancellation: cancellation)
-          let after = try dataset(before.id)
-          current[reshape.key] = after
-          shaped.append(
-            .object([
-              "table": .string(reshape.name), "title": .string(after.title),
-              "change": .string(reshape.archived ? "archived" : "reshaped"),
-              "what": .array(reshape.notes.map(Value.string)),
-              "undo": .object([
-                "action": .string("table.restore_schema"),
-                "arguments": .object([
-                  "id": .string(before.id), "definitionID": .string(before.definitionID),
-                  "expectedVersion": .number(Double(after.version)),
-                  "expectedDefinitionID": .string(after.definitionID),
-                ]),
-              ]),
-            ]))
+      var applied = 0
+      do {
+        try withChatChangeActor(needed: !draft && changing, cancellation: cancellation) {
+          for reshape in reshapes {
+            let before = reshape.table
+            try updateDatasetDefinition(
+              before.id, expectedVersion: before.version,
+              expectedDefinitionID: before.definitionID, title: reshape.title,
+              columns: reshape.columns, archived: reshape.archived ? true : nil,
+              token: token + "-shape-" + reshape.key, cancellation: cancellation)
+            applied += 1
+            let after = try dataset(before.id)
+            current[reshape.key] = after
+            shaped.append(
+              .object([
+                "table": .string(reshape.name), "title": .string(after.title),
+                "change": .string(reshape.archived ? "archived" : "reshaped"),
+                "what": .array(reshape.notes.map(Value.string)),
+              ]))
+          }
+          for table in created {
+            let source =
+              try requestSourceID
+              ?? addItem(
+                category: "source", kind: "note", title: table.title + " (created with sql)",
+                text: "A sql statement created this table.", status: "accepted").id
+            let made = try createDataset(
+              title: table.title, columns: table.columns, rows: table.rows, sourceID: source,
+              token: token + "-create-" + table.name)
+            applied += 1
+            shaped.append(
+              .object([
+                "table": .string(table.name), "title": .string(made.title),
+                "change": .string("created"), "id": .string(made.id),
+                "columns": .array(made.columns.map { .string($0.title) }),
+                "rows": .number(Double(table.rows.count)),
+              ]))
+          }
+          for change in draft ? [] : changes {
+            let table = current[change.key] ?? change.table
+            try chatTableTransaction(
+              table.id, expectedDefinitionID: table.definitionID,
+              operations: change.operations, token: token + "-" + change.key,
+              requestSourceID: requestSourceID, limit: SQLScratch.changeLimit,
+              cancellation: cancellation)
+            applied += 1
+            saved.append(
+              .object([
+                "table": .string(change.name), "title": .string(table.title),
+                "inserted": .number(Double(change.inserted)),
+                "updated": .number(Double(change.updated)),
+                "deleted": .number(Double(change.deleted)),
+              ]))
+          }
         }
-        for table in created {
-          let source =
-            try requestSourceID
-            ?? addItem(
-              category: "source", kind: "note", title: table.title + " (created with sql)",
-              text: "A sql statement created this table.", status: "accepted").id
-          let made = try createDataset(
-            title: table.title, columns: table.columns, rows: table.rows, sourceID: source,
-            token: token + "-create-" + table.name)
-          shaped.append(
-            .object([
-              "table": .string(table.name), "title": .string(made.title),
-              "change": .string("created"), "id": .string(made.id),
-              "columns": .array(made.columns.map { .string($0.title) }),
-              "rows": .number(Double(table.rows.count)),
-            ]))
+      } catch let failure as SevraError where applied > 0 {
+        // A call saves all of its changes or none: take back the steps already saved.
+        do {
+          try withChatChangeActor(needed: true, cancellation: cancellation) {
+            try undoChatSQLSteps(
+              chatSQLSteps(token), token: token + "~rollback", cancellation: cancellation)
+          }
+        } catch {
+          throw SevraError(
+            failure.code,
+            failure.message
+              + " Part of this call was saved before that and could not be taken back. Inspect the tables."
+          )
         }
-        for change in draft ? [] : changes {
-          let table = current[change.key] ?? change.table
-          let transaction = try chatTableTransaction(
-            table.id, expectedDefinitionID: table.definitionID,
-            operations: change.operations, token: token + "-" + change.key,
-            requestSourceID: requestSourceID, cancellation: cancellation)
-          saved.append(
-            .object([
-              "table": .string(change.name), "title": .string(table.title),
-              "inserted": .number(Double(change.inserted)),
-              "updated": .number(Double(change.updated)),
-              "deleted": .number(Double(change.deleted)),
-              "undo": .object([
-                "id": .string(table.id), "expectedDefinitionID": .string(table.definitionID),
-                "token": transaction["token"],
-              ]),
-            ]))
-        }
+        throw SevraError(failure.code, failure.message + " Nothing was changed.")
       }
       // What the answer rests on: the rows of small tables, or the table's own Source.
       // Rows this call replaced are no longer current, so a changed table offers none.
@@ -169,8 +173,9 @@ extension Workbook {
         fields["notice"] = .string(
           "Saved as a proposal for the user to review. The table is unchanged.")
       } else if !saved.isEmpty || !shaped.isEmpty {
+        fields["undo"] = .string(token)
         fields["notice"] = .string(
-          "Saved. Row changes undo with workspace_action table.undo_rows and each table's undo values. A reshaped table lists its own undo action.")
+          "Saved. If the user asks to undo this, send sql with undo set to this result's undo value.")
       }
       return .object(fields)
     }
@@ -399,8 +404,147 @@ extension Workbook {
   }
 }
 
+/// One saved step of a sql call, as its own operation receipt recorded it.
+struct SQLStep {
+  enum Kind { case rows, shape, created }
+  let operation: String
+  let kind: Kind
+  let tableID: String
+  /// A shape change's table definitions, before and after.
+  var before: String?
+  var after: String?
+}
+
+extension Workbook {
+  /// Runs a change under the rule Source the write path needs from the model.
+  func withChatChangeActor<T>(
+    needed: Bool, cancellation: Cancellation, _ body: () throws -> T
+  ) throws -> T {
+    var actor = ChangeAttribution.actor
+    if needed, let model = actor, model.kind == "ai" {
+      actor = .ai(
+        model.component, model: model.model!,
+        policy: try chatTableChangePolicy(cancellation: cancellation))
+    }
+    return try ChangeAttribution.$actor.withValue(actor) { try body() }
+  }
+
+  /// What one sql call saved, oldest first. Each step kept the call's token in its own.
+  func chatSQLSteps(_ token: String) throws -> [SQLStep] {
+    try db.execute(
+      "SELECT id,kind,request,result FROM operations WHERE id>=? AND id<? ORDER BY revision",
+      [.string(token + "-"), .string(token + ".")]
+    ).compactMap { row in
+      let id = row["id"]!.text
+      let request = try Value.parse(row["request"]!.text)
+      let arguments = request.object["arguments"] ?? request
+      let result = try Value.parse(row["result"]!.text)
+      switch row["kind"]!.text {
+      case "native_app_transaction":
+        let space = arguments["space"].text
+        guard space.hasPrefix("table:"), arguments["undo"] == .null else { return nil }
+        return SQLStep(operation: id, kind: .rows, tableID: String(space.dropFirst(6)))
+      case "dataset_definition":
+        return SQLStep(
+          operation: id, kind: .shape, tableID: arguments["datasetID"].text,
+          before: arguments["baseDefinitionID"].text, after: result.text)
+      case "dataset": return SQLStep(operation: id, kind: .created, tableID: result.text)
+      default: return nil
+      }
+    }
+  }
+
+  /// The token of the sql call a chat answer saved changes with, when it was the only one.
+  public func conversationSQLReceipt(_ messageID: String, conversation: String) throws -> String? {
+    try synchronized {
+      try db.scalar(
+        """
+        SELECT json_extract(p.payload,'$.reversibleOutcome.sql')
+        FROM messages m JOIN message_payloads p ON p.message_id=m.id
+        WHERE m.id=? AND m.conversation_id=? AND m.role='assistant' AND m.state='complete'
+          AND json_extract(p.payload,'$.tool')='finish'
+        """, [.string(messageID), .string(conversation)]
+      ).string
+    }
+  }
+
+  /// Where a sql call's changes stand: "saved" while one Undo can take them all back,
+  /// "undone" after that, "fixed" once a later change built on them. Nil if it saved nothing.
+  public func chatSQLState(_ token: String) throws -> String? {
+    try synchronized {
+      let steps = try chatSQLSteps(token)
+      if steps.isEmpty { return nil }
+      if try db.scalar(
+        "SELECT count(*) FROM operations WHERE id>=? AND id<?",
+        [.string(token + "~undo-"), .string(token + "~undo.")]
+      ).int ?? 0 > 0 {
+        return "undone"
+      }
+      for step in steps {
+        guard let table = try? dataset(step.tableID) else { return "fixed" }
+        switch step.kind {
+        case .created: if table.archived { return "fixed" }
+        case .shape: if table.definitionID != step.after { return "fixed" }
+        case .rows:
+          if table.archived { return "fixed" }
+          let access = try NativeAppAccess(
+            workbook: self, table: table, requestSourceID: nil, cancellation: .init())
+          defer { access.revoke() }
+          guard let now = try nativeAppReversal(access, original: step.operation), !now.redo
+          else { return "fixed" }
+        }
+      }
+      return "saved"
+    }
+  }
+
+  /// One Undo for everything a sql call saved: rows, new tables and table shapes.
+  public func chatSQLUndo(_ token: String, cancellation: Cancellation = .init()) throws -> Value {
+    try synchronized(cancellation: cancellation) {
+      let state = try chatSQLState(token)
+      try require(state != nil, "sql_undo", "No saved change has that undo value.")
+      try require(state != "undone", "sql_undo", "That change is already undone.")
+      try require(
+        state == "saved", "sql_undo",
+        "A later change built on that one. Undo the later change first.")
+      let steps = try chatSQLSteps(token)
+      try withChatChangeActor(needed: true, cancellation: cancellation) {
+        try undoChatSQLSteps(steps, token: token + "~undo", cancellation: cancellation)
+      }
+      return .object([
+        "undone": .bool(true),
+        "tables": .array(
+          try Set(steps.map(\.tableID)).sorted().map { .string(try dataset($0).title) }),
+      ])
+    }
+  }
+
+  func undoChatSQLSteps(_ steps: [SQLStep], token: String, cancellation: Cancellation) throws {
+    for (index, step) in steps.enumerated().reversed() {
+      let table = try dataset(step.tableID)
+      let own = token + "-\(index)"
+      switch step.kind {
+      case .rows:
+        try chatTableTransaction(
+          table.id, expectedDefinitionID: table.definitionID, operations: [],
+          undo: step.operation, token: own, cancellation: cancellation)
+      case .shape:
+        try restoreDatasetDefinition(
+          table.id, definitionID: step.before!, expectedVersion: table.version,
+          expectedDefinitionID: table.definitionID, token: own, cancellation: cancellation)
+      case .created:
+        try updateDatasetDefinition(
+          table.id, expectedVersion: table.version, expectedDefinitionID: table.definitionID,
+          archived: true, token: own, cancellation: cancellation)
+      }
+    }
+  }
+}
+
 final class SQLScratch {
-  static let changeLimit = 64
+  /// Changed rows of one table in one call. Measured on the test Mac: see the plan.
+  static let changeLimit = 5_000
+  static let applySeconds: TimeInterval = 60
   static let namedRowLimit = 24
   static let rowLimit = 20_000
   static let createdRowLimit = 5_000

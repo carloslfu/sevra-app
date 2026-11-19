@@ -340,6 +340,13 @@ public struct WorkbookTools {
         requestSourceID: requestSourceID, cancellation: cancellation)
     case "sql":
       // The general chat tools' table tool. It refuses changes itself when none are allowed.
+      if let undo = a["undo"].string {
+        try require(
+          a.object.count == 1 && !readOnly && !inspectionOnly, "arguments",
+          readOnly || inspectionOnly
+            ? "This request cannot change the workbook." : "Send undo alone.")
+        return try workbook.chatSQLUndo(undo, cancellation: cancellation)
+      }
       if let name = a["tool"].string {
         try require(
           a.object["statements"] == nil && a["draft"] != .bool(true), "arguments",

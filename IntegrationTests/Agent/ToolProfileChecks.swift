@@ -7,14 +7,19 @@ import SevraSplashGrammar
 /// The tool profile is host configuration. `current` declares exactly what a build without a
 /// profile declares, and nothing a request or a tool result says can select another one.
 func checkToolProfile() async throws {
-  try expectEqual(try ToolProfile.host(environment: [:]), .current)
-  try expectEqual(try ToolProfile.host(environment: [ToolProfile.environmentKey: ""]), .current)
+  try expectEqual(try ToolProfile.host(environment: [:], saved: nil), .current)
+  try expectEqual(try ToolProfile.host(environment: [:], saved: "general"), .general)
   try expectEqual(
-    try ToolProfile.host(environment: [ToolProfile.environmentKey: "current"]), .current)
+    try ToolProfile.host(environment: [ToolProfile.environmentKey: "current"], saved: "general"),
+    .current)
+  try expectThrows(try ToolProfile.host(environment: [:], saved: "everything"))
+  try expectEqual(try ToolProfile.host(environment: [ToolProfile.environmentKey: ""], saved: nil), .current)
   try expectEqual(
-    try ToolProfile.host(environment: [ToolProfile.environmentKey: "general"]), .general)
+    try ToolProfile.host(environment: [ToolProfile.environmentKey: "current"], saved: nil), .current)
+  try expectEqual(
+    try ToolProfile.host(environment: [ToolProfile.environmentKey: "general"], saved: nil), .general)
   for name in ["General", "all", " general"] {
-    try expectThrows(try ToolProfile.host(environment: [ToolProfile.environmentKey: name]))
+    try expectThrows(try ToolProfile.host(environment: [ToolProfile.environmentKey: name], saved: nil))
   }
 
   // Every declaration `current` serializes equals the default's bytes, in every scope and with

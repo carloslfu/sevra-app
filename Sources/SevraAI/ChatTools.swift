@@ -29,7 +29,10 @@ extension NativeTools {
             "description": .string(
               "Exact workspace operation. Named mini-app actions go inside arguments.action for app.run."
             ),
-            "enum": .array(ChatOperations.operations.map { .string($0.name) }),
+            "enum": .array(
+              ChatOperations.operations.filter { $0.name != "table.undo_sql" }.map {
+                .string($0.name)
+              }),
           ]),
           "arguments": .object([
             "type": .string("object"),

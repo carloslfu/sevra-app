@@ -1621,6 +1621,12 @@ public enum WorkbookAgent {
               "partial": .bool(callFailed || result["errors"].array.count > 0),
             ]) : .object([:])
         }
+        // What one sql call saved can be undone from the answer. Two changing calls in one
+        // answer have no single Undo to offer.
+        if tool == "sql", !callFailed, let undo = result["undo"].string {
+          reversibleOutcome =
+            reversibleOutcome == .null ? .object(["sql": .string(undo)]) : .object([:])
+        }
         let storedProjection = try workbook.completeToolCall(
           receiptID, result: recordedResult, failed: callFailed)
         let presentedResult =
