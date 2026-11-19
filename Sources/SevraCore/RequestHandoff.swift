@@ -1,12 +1,9 @@
 import Foundation
 
+/// What a continued thread does: answer, or change the workbook. Each names the chat scope
+/// the continuation runs in.
 public enum ContinuedWork: String, Codable, Sendable {
-  // Serialized tool identifiers match the shared command registry.
-  // swift-format-ignore: AlwaysUseLowerCamelCase
-  case answer, draft, save_space, save_native_app, edit_space, restore_space, propose_movement,
-    propose_record,
-    propose_table,
-    propose_table_edit
+  case answer, change
 }
 
 /// Host-owned continuation of one admitted submission, never a model rewrite.
@@ -41,8 +38,20 @@ extension Workbook {
         try require(
           payload["kind"].text != "continued_request", "handoff_limit",
           "This request already moved into its new thread. Finish the remaining work here.")
+        // A query or script that saved nothing is a read. Each saves all of its changes or
+        // none, so a failed one saved nothing.
         let calls = try db.execute(
-          "SELECT t.tool,t.state,o.id AS committed FROM tool_calls t LEFT JOIN operations o ON o.id=t.operation_token WHERE t.run_id=? ORDER BY t.rowid LIMIT 13",
+          """
+          SELECT t.tool,t.state,o.id AS committed,
+            CASE WHEN t.tool IN ('sql','run') AND t.state IN ('completed','failed')
+              AND coalesce(json_array_length(t.result,'$.changes'),0)
+                + coalesce(json_array_length(t.result,'$.drafts'),0)
+                + coalesce(json_array_length(t.result,'$.shape'),0)
+                + coalesce(json_array_length(t.result,'$.actions'),0) = 0
+            THEN 1 ELSE 0 END AS query
+          FROM tool_calls t LEFT JOIN operations o ON o.id=t.operation_token
+          WHERE t.run_id=? ORDER BY t.rowid LIMIT 13
+          """,
           [.string(runID)])
         try require(
           !calls.isEmpty && calls.count <= 12
@@ -50,6 +59,7 @@ extension Workbook {
             && ["prepared", "completed"].contains(calls.last?["state"]?.text ?? "")
             && calls.dropLast().allSatisfy { call in
               WorkbookTools.readOnlyTools.contains(call["tool"]?.text ?? "")
+                || (call["query"]?.int == 1 && call["committed"] == .null)
                 || (call["tool"]?.text == "start_thread_and_continue"
                   && call["state"]?.text == "failed" && call["committed"] == .null)
             }, "handoff_order",

@@ -102,9 +102,9 @@ format changes for this plan need no compatibility work, the header work is paus
 tools are done, and `sql` keeps 15-digit numbers. Build it with the plan's fast loop. Do not
 push or publish a release for it without the owner's word. He then asked for the tools
 [in the app and the whole plan done](db/sources/notes/2026/11/general-tools-in-the-app.md).
-The seven general tools are built behind the `general` tool profile. `current` stays the default
-in the code until he decides the plan's open items. Read the plan's "The build so far" before
-changing chat tools.
+On November 19 he made the seven tools the only chat tools and had the old way
+[removed](db/sources/notes/2026/11/general-tools-only.md), with no tool profile and no backward
+compatibility. Read the plan's "The build so far" before changing chat tools.
 Test enough, as the [owner asked](db/sources/notes/2026/10/ship-with-enough-testing.md): the real
 failure and one counterexample, with the suite and install once on the candidate.
 Commit messages never say Claude in any form, trailers and author names included. To name the
@@ -128,7 +128,7 @@ plan, skill, checklist or earlier habit that asks for more.
 - **Checks that need no model come first.** They carry the mechanics and take seconds. Run the
   ones that cover the change.
 - **Model runs cover happy paths and the edge cases that matter, nothing else.** The routine run
-  is the light set: `python3 scripts/check_chat_jobs.py --profile general`, eleven jobs, one run
+  is the light set: `python3 scripts/check_chat_jobs.py --output DIR`, eleven jobs, one run
   each, under four minutes. Run another job by name only when its own area changes.
 - **One run.** Read the transcript of a failure, then fix it or record it. Do not run it again to
   see whether it passes, and do not take a timing several times.

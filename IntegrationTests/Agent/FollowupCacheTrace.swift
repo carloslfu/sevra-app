@@ -72,7 +72,7 @@ func runFollowupCacheTrace(
     grammarSHA256: base.grammarSHA256, modelsRoot: base.modelsRoot,
     memoryBytes: base.memoryBytes, contextBudget: base.contextBudget, reasoning: base.reasoning,
     modelLayout: base.modelLayout, contextMaintenanceEnabled: true,
-    observeRequest: { log.append($0) }, toolProfile: base.toolProfile)
+    observeRequest: { log.append($0) })
   let model = NativeWorkbookModel(configuration: configuration)
   let bookURL = root.appendingPathComponent("Business.sevra")
   _ = try Demo.create(at: bookURL)

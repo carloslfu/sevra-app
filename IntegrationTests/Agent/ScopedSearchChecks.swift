@@ -47,7 +47,7 @@ private actor PagedSearchInference: WorkbookInference {
     return NativeReply(
       text: "",
       calls: [
-        InferenceCall(id: "page-\(steps)", name: tool, inputJSON: try arguments.json())
+        try InferenceCall(id: "page-\(steps)", operation: tool, arguments, scope: toolScope)
       ])
   }
 }

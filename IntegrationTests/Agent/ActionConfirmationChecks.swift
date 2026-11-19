@@ -59,7 +59,7 @@ private actor ConfirmationModel: WorkbookInference {
         "citations": .array(factual ? [.string(source.id)] : []),
       ])
     }
-    return .init(text: "", calls: [.init(id: identifier(), name: tool, inputJSON: try args.json())])
+    return .init(text: "", calls: [try .init(id: identifier(), operation: tool, args, scope: toolScope)])
   }
 }
 
@@ -94,7 +94,7 @@ private func checkRefusedRepeats() throws {
   let bad: Value = .object(["error": .string("Column total is missing.")])
   let table: Value = .object(["title": .string("Quotes")])
   var proposals = ActionConfirmations()
-  proposals.recordFailure(tool: "propose_table", arguments: table, result: bad, receiptID: "a")
+  proposals.recordFailure(tool: "propose_record", arguments: table, result: bad, receiptID: "a")
   proposals.recordFailure(
     tool: "include_archive_members", arguments: .object(["id": .string("zip")]), result: bad,
     receiptID: "b")
@@ -105,11 +105,11 @@ private func checkRefusedRepeats() throws {
     "Couldn’t finish preparing the proposal. Column total is missing.\n"
       + "Couldn’t finish including the archive files. Column total is missing.")
   proposals.record(
-    tool: "propose_table", arguments: .object(["title": .string("Other")]),
+    tool: "propose_record", arguments: .object(["title": .string("Other")]),
     result: .object(["id": .string("t")]), receiptID: "d")
   try expectEqual(proposals.rendered?.contains("preparing the proposal"), true)
   proposals.record(
-    tool: "propose_table", arguments: table, result: .object(["id": .string("t")]), receiptID: "e")
+    tool: "propose_record", arguments: table, result: .object(["id": .string("t")]), receiptID: "e")
   proposals.record(
     tool: "include_archive_members", arguments: .object(["id": .string("zip")]),
     result: .object(["included": .array([])]), receiptID: "f")
@@ -465,6 +465,6 @@ private actor FailedDefinitionConfirmationModel: WorkbookInference {
       ])
     }
     return .init(
-      text: "", calls: [.init(id: identifier(), name: name, inputJSON: try arguments.json())])
+      text: "", calls: [try .init(id: identifier(), operation: name, arguments, scope: toolScope)])
   }
 }

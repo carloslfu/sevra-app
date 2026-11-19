@@ -745,15 +745,17 @@ check("agent table creation uses the preserved user request as evidence") {
     category: "source", kind: "request", title: "User request",
     text: "Plan ten brass units next month", meaning: "plan", status: "accepted")
   let tools = WorkbookTools(book, runID: "table-tool-fixture", requestSourceID: request.id)
-  let result = try tools.execute(
-    "propose_table",
+  _ = try tools.execute(
+    "sql",
     .object([
-      "title": .string("Production plan"), "meaning": .string("plan"), "inputs": .array([]),
-      "columns": .array([
-        .object(["id": .string("units"), "title": .string("Units"), "type": .string("decimal")])
-      ]), "rows": .array([.object(["units": .string("10")])]),
+      "statements": .array([
+        .string("CREATE TABLE production_plan (units REAL)"),
+        .string("INSERT INTO production_plan (units) VALUES (10)"),
+      ])
     ]))
-  try expect(try book.lineage(result["id"].text).contains { $0["parent"].text == request.id })
+  let made = try book.datasets().first { $0.title == "Production plan" }
+  try expect(made != nil)
+  try expect(try book.datasetSource(made!.id) == request.id)
   try expect(try !book.search("next month").hits.contains { $0.itemID == request.id })
   try expect(
     try book.search("next month", kind: "request").hits.contains { $0.itemID == request.id })
@@ -1005,23 +1007,6 @@ check("search deduplicates chunks, paginates and rejects a stale cursor") {
   try refuses("stale_cursor") { _ = try book.search("pagination", cursor: first.nextCursor) }
 }
 
-check("supplier comparison uses the expensive quote as its percentage denominator") {
-  let t = try book.createDataset(
-    title: "Prices",
-    columns: [
-      .init(id: "name", title: "Name"), .init(id: "price", title: "Price", type: "decimal"),
-    ],
-    rows: [
-      ["name": .string("Oak"), "price": .string("24")],
-      ["name": .string("Cedar"), "price": .string("27.5")],
-    ], sourceID: source.id)
-  let comparison = try book.compareRows(t.id, labelColumn: "name", valueColumn: "price")
-  try expect(comparison["minimum"]["label"].text == "Oak")
-  try expect(comparison["difference"].text == "3.5")
-  try expect(comparison["percentageDenominator"].text == "27.5")
-  try expect(comparison["percentCheaper"].text.hasPrefix("12.727272"))
-  try expect(comparison["inputs"].array.count == 2)
-}
 check("CSV export preserves calculated values and quoted multiline cells") {
   let t = try book.createDataset(
     title: "Export",

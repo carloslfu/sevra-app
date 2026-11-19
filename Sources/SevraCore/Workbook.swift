@@ -358,7 +358,7 @@ public final class Workbook: @unchecked Sendable {
       !Item.hostOwnedKinds.contains(kind)
         || (category == "source" && ["request", "annotation"].contains(kind)),
       "proposal_tool",
-      "Sevra writes this kind itself. Use propose_table, propose_table_edit, propose_movement or publish_result, or name a domain kind such as forecast or analysis."
+      "Sevra writes this kind itself. Use sql for table rows, propose_movement for stock or publish_result for a result, or name a domain kind such as forecast or analysis."
     )
     if meaning == "actual", let supersedes {
       let previous = try item(supersedes)

@@ -16,7 +16,7 @@ private actor InterfaceAnswerModel: WorkbookInference {
     citationIDs: [String]
   ) async throws -> NativeReply {
     responses += 1
-    try expectEqual(messages[0].content.contains("share the same Sources, Records"), true)
+    try expectEqual(messages[0].content.contains(GeneralTools.instructions), true)
     return .init(
       text: "",
       calls: [
@@ -82,7 +82,7 @@ func checkInterfaceGuidance() async throws {
   } catch let e as SevraError { try expectEqual(e.code, "answer_validation") }
   let rejected = try book.messages().filter { $0.role == "tool" }
   try expectEqual(rejected.count, 4)
-  try expectEqual(rejected.allSatisfy { $0.body.contains("compare_rows or calculate") }, true)
+  try expectEqual(rejected.allSatisfy { $0.body.contains("arithmetic with sql") }, true)
 
   let parent = try book.addMessage("Explore stock separately.", role: "user")
   let thread = try book.startThread(parentMessage: parent)
@@ -106,14 +106,17 @@ func checkInterfaceGuidance() async throws {
   try expectEqual(try mainTools.execute("balance", balance)["quantity"].text, "18")
   try expectEqual(try threadTools.execute("balance", balance)["quantity"].text, "18")
   let sourceCount = try book.items().filter { $0.category == "source" }.count
-  let calculation = try threadTools.execute("calculate", .object(["expression": .string("20-2")]))
+  let calculation = try threadTools.execute(
+    "sql", .object(["statements": .array([.string("SELECT CAST(20 - 2 AS TEXT) AS quantity")])]))
   let analysis = try threadTools.execute(
     "propose_record",
     .object([
       "kind": .string("analysis"), "title": .string("Stock interpretation"),
       "text": .string("Calculated from the original stock observation."),
       "meaning": .string("estimate"), "inputs": .array([.string(observation.id)]),
-      "data": .object(["quantity": calculation["result"]]),
+      "data": .object([
+        "quantity": calculation["results"].array.first?["rows"].array.first?.array.first ?? .null
+      ]),
     ]))
   try expectEqual(analysis["data"]["quantity"].text, "18")
   try expectEqual(analysis["category"].text, "record")

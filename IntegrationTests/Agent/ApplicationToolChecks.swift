@@ -97,7 +97,7 @@ private actor ApplicationToolModel: WorkbookInference {
         ])
       }
     }
-    return .init(text: "", calls: [.init(id: identifier(), name: name, inputJSON: try args.json())])
+    return .init(text: "", calls: [try .init(id: identifier(), operation: name, args, scope: toolScope)])
   }
 }
 
@@ -261,8 +261,8 @@ func checkApplicationTools() async throws {
     "PASS document action preview identifies meaning and new prose; unreviewed direct preparation stays closed and routes to conversational form submission"
   )
   try expectEqual(InferenceToolScope.actionDirection.allows("prepare_action"), false)
-  try expectEqual(InferenceToolScope.propose_movement.allows("prepare_action"), true)
-  try expectEqual(InferenceToolScope.draft.allows("prepare_action"), false)
+  try expectEqual(InferenceToolScope.change.allows("prepare_action"), true)
+  try expectEqual(InferenceToolScope.answer.allows("prepare_action"), false)
   let unusual = "a" + String(repeating: "\u{301}", count: 30_000) + "incoming"
   let clipped = ActionDirectionReview.excerpt([unusual], maximumBytes: 320)
   try expectEqual(clipped.utf8.count <= 320 && unusual.utf8.starts(with: clipped.utf8), true)

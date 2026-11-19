@@ -20,8 +20,7 @@ func nativeProbeConfiguration(
       uniqueKeysWithValues: files.map { (String($0.key.dropFirst(7)), $0.value.text) }),
     grammarLibrary: URL(fileURLWithPath: library), grammarSHA256: guidance["librarySHA256"].text,
     modelsRoot: URL(fileURLWithPath: modelsRoot), memoryBytes: 12_884_901_888,
-    contextBudget: budget, reasoning: reasoning, modelLayout: modelLayout,
-    toolProfile: try ToolProfile.host())
+    contextBudget: budget, reasoning: reasoning, modelLayout: modelLayout)
 }
 
 /// Opt-in, actual WorkbookAgent. The model chooses freely among the complete
@@ -229,15 +228,10 @@ func runNativeAgentProbe(
     let toolMessages = try book.messages().filter { $0.role == "tool" }.map {
       try Value.parse($0.body)
     }
-    let arithmetic = toolMessages.filter {
-      ["compare_rows", "calculate"].contains($0["tool"].text)
-    }
+    let arithmetic = toolMessages.filter { ["sql", "run"].contains($0["tool"].text) }
     print(try Value.object(["comparisonArithmetic": .array(arithmetic)]).json())
     try expectEqual(
-      arithmetic.contains {
-        ($0["tool"].text == "compare_rows" && $0["result"]["difference"].text == "0.35")
-          || ($0["tool"].text == "calculate" && $0["result"]["result"].text == "0.35")
-      }, true)
+      try arithmetic.contains { try $0["result"].json().contains("0.35") }, true)
 
     let view = try await run(
       "Create a space named Supplier comparison containing the existing Supplier quotes table and a bar chart of its unit prices by supplier. Do not change any prices or create another table.",
@@ -320,9 +314,8 @@ func runNativeAgentProbe(
       try Value.parse($0.body)
     }
     try expectEqual(
-      retryTools.contains {
-        $0["tool"].text == "calculate" && $0["result"]["result"].text == "24.8"
-      }, true)
+      try retryTools.contains { try $0["tool"].text == "sql" && $0["result"].json().contains("24.8") },
+      true)
     for current in [book, hostile, empty, cancelled] {
       print(
         try Value.object([

@@ -13,16 +13,21 @@ func checkInterpretationGrammar(frontend: SplashTextFrontend, factory: SplashGra
     let answerPolicy = try NativeCitationPolicy.make(
       [], toolScope: .workflowAnswer, thinking: thinking)
     let parser = try SplashOutputParser(tools: answerPolicy.outputTools)
-    // XML parameters use the same sorted order as the native tool grammar.
-    let body =
-      "<tool_call>\n<function=prepare_workflow_answer>\n<parameter=quotes>\n{\"quantity\":\"I counted 5 received bolts.\"}\n</parameter>\n<parameter=readReceiptID>\nread-receipt\n</parameter>\n<parameter=reason>\nSupplied in the current message.\n</parameter>\n<parameter=values>\n{\"quantity\":\"5\"}\n</parameter>\n</function>\n</tool_call>"
+    // The answer is prepared by a run action. Its fields follow the grammar's order.
+    let receipt = #""readReceiptID":"read-receipt","#
+    func call(_ receipt: String) -> String {
+      "<tool_call>\n<function=run>\n<parameter=action>\n"
+        + #"{"name":"workflow.prepare_answer","arguments":{"# + receipt
+        + #""values":{"quantity":"5"},"quotes":{"quantity":"I counted 5 received bolts."},"reason":"Supplied in the current message."}}"#
+        + "\n</parameter>\n</function>\n</tool_call>"
+    }
+    let body = call(receipt)
     let answer = (thinking ? "Inspect the current submission.</think>" : "") + body
     let grammar = try factory.create(grammar: answerPolicy.grammar)
     try grammar.finish(committed: frontend.encode(answer), requireComplete: true)
     _ = try parser.append(body)
     try answerPolicy.validate(expectValue(parser.finish(.stop).0.calls.first))
-    let invalid = body.replacingOccurrences(
-      of: "<parameter=readReceiptID>\nread-receipt\n</parameter>\n", with: "")
+    let invalid = call("")
     let refused = try factory.create(grammar: answerPolicy.grammar)
     try expectThrows(
       try refused.finish(

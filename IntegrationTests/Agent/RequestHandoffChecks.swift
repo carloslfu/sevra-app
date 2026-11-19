@@ -27,35 +27,43 @@ private actor HandoffModel: WorkbookInference {
     if calls == 2 && mode == "fail" {
       throw SevraError("fixture_failure", "Synthetic continuation failed")
     }
+    func action(_ name: String, _ arguments: [String: Value]) -> Value {
+      .object(["action": .object(["name": .string(name), "arguments": .object(arguments)])])
+    }
     let tool: String
     let arguments: Value
     if (calls == 1 && !["late", "after_read"].contains(mode))
       || (calls == 2 && ["late", "after_read", "invalid_task"].contains(mode))
     {
-      tool = "start_thread_and_continue"
-      arguments = .object([
-        "title": .string("Delivery comparison"),
-        "task": .string(
-          mode == "invalid_task" && calls == 1
-            ? "Invented task" : "calculate the difference between 14.80 and 12.40"),
-      ])
+      tool = "run"
+      arguments = action(
+        "thread.start_and_continue",
+        [
+          "title": .string("Delivery comparison"),
+          "task": .string(
+            mode == "invalid_task" && calls == 1
+              ? "Invented task" : "calculate the difference between 14.80 and 12.40"),
+        ])
     } else if calls == 1 && mode == "late" {
-      tool = "save_space"
+      tool = "save"
       arguments = .object([
-        "title": .string("Already saved"),
-        "definition": .object(["version": .number(1), "components": .array([])]),
+        "view": .object([
+          "title": .string("Already saved"),
+          "definition": .object(["version": .number(1), "components": .array([])]),
+        ])
       ])
-    } else if calls == 2 && mode == "repeat" {
-      tool = "start_thread"
-      arguments = .object(["title": .string("Should not exist")])
+    } else if calls >= 2 && mode == "repeat" {
+      tool = "run"
+      arguments = action("thread.start", ["title": .string("Should not exist")])
     } else if mode == "budget" {
-      tool = "datasets"
-      arguments = .object([:])
+      // A different query each time, so none is a repeat the host answers itself.
+      tool = "sql"
+      arguments = .object(["statements": .array([.string("SELECT \(calls)")])])
     } else if (calls == 2 && mode != "late") || (mode == "after_read" && calls == 1)
       || (mode == "invalid_task" && calls == 3)
     {
-      tool = "calculate"
-      arguments = .object(["expression": .string("14.80-12.40")])
+      tool = "sql"
+      arguments = .object(["statements": .array([.string("SELECT round(14.80 - 12.40, 2)")])])
     } else {
       tool = "finish"
       arguments = .object([
@@ -71,25 +79,20 @@ private actor HandoffModel: WorkbookInference {
 }
 
 func checkRequestHandoffs() async throws {
-  for scope in [
-    InferenceToolScope.answer, .draft, .save_space, .edit_space, .restore_space, .propose_movement,
-    .propose_record,
-    .propose_table, .propose_table_edit,
-  ] {
+  // A continued thread answers or changes. Either way it offers no thread actions.
+  for scope in [InferenceToolScope.answer, .change] {
     let values = try Value.parse(
-      String(decoding: NativeTools.serializedDefinitions(toolScope: scope), as: UTF8.self))
-    let names = Set(values.array.map { $0["function"]["name"].text })
-    let extra =
-      scope == .answer
-      ? []
-      : scope == .propose_movement
-        ? [scope.rawValue, "prepare_action"]
-        : scope == .propose_record ? [scope.rawValue, "publish_result"] : [scope.rawValue]
-    try expectEqual(names, WorkbookTools.readOnlyTools.union(["finish"]).union(extra))
-    try expectEqual(scope.allows("start_thread"), false)
+      String(
+        decoding: NativeTools.serializedDefinitions(toolScope: scope, conversationActions: []),
+        as: UTF8.self))
+    let names = values.array.map { $0["function"]["name"].text }
+    try expectEqual(
+      names, ["search", "read", "sql", "run"] + (scope == .change ? ["save"] : []) + ["finish"])
+    try expectEqual(try values.json().contains("thread."), false)
   }
+  try expectEqual(InferenceToolScope.answer.allows("start_thread"), false)
   // No scope may reach the commit without the direction review in prepare_action.
-  for scope in [InferenceToolScope.all, .propose_movement, .answer] {
+  for scope in [InferenceToolScope.all, .change, .answer] {
     try expectEqual(scope.allows("commit_action_preview"), false)
   }
   try expectEqual(InferenceToolScope.all.allows("prepare_action"), true)

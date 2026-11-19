@@ -61,9 +61,9 @@ private actor ScriptedInference: WorkbookInference {
         return NativeReply(
           text: "",
           calls: [
-            .init(
-              id: "inspect-before-finish", name: "history_search",
-              inputJSON: "{\"query\":\"missing fixture\"}")
+            try .init(
+              id: "inspect-before-finish", operation: "history_search",
+              .object(["query": .string("missing fixture")]))
           ])
       }
       try expectEqual(responses, initialBasis == "evidence" ? 3 : 2)
@@ -80,9 +80,11 @@ private actor ScriptedInference: WorkbookInference {
         return NativeReply(
           text: "",
           calls: [
-            .init(
-              id: "unwanted-draft", name: "draft",
-              inputJSON: "{\"title\":\"Unwanted\",\"text\":\"No\",\"inputs\":[]}")
+            try .init(
+              id: "unwanted-draft", operation: "draft",
+              .object([
+                "title": .string("Unwanted"), "text": .string("No"), "inputs": .array([]),
+              ]))
           ])
       }
       try expectEqual(responses, 2)
@@ -93,9 +95,9 @@ private actor ScriptedInference: WorkbookInference {
         return NativeReply(
           text: "",
           calls: [
-            InferenceCall(
-              id: "balance-call", name: "balance",
-              inputJSON: "{\"subject\":\"brass bolts\"}")
+            try InferenceCall(
+              id: "balance-call", operation: "balance",
+              .object(["subject": .string("brass bolts")]))
           ])
       }
       if responses == 2 {

@@ -37,7 +37,7 @@ private actor WorkflowToolModel: WorkbookInference {
         "basis": .string(readOnly ? "unresolved" : "completed_action"), "citations": .array([]),
       ])
     }
-    return .init(text: "", calls: [.init(id: identifier(), name: tool, inputJSON: try args.json())])
+    return .init(text: "", calls: [try .init(id: identifier(), operation: tool, args, scope: toolScope)])
   }
 }
 
@@ -105,7 +105,7 @@ func checkWorkflowAgentTools() async throws {
     try expectEqual(try book.verify()["ok"], .bool(true))
   }
   try expectEqual(InferenceToolScope.inspection.allows("start_workflow"), false)
-  try expectEqual(InferenceToolScope.propose_movement.allows("start_workflow"), false)
+  try expectEqual(InferenceToolScope.answer.allows("start_workflow"), false)
   try expectEqual(InferenceToolScope.answer.allows("read_workflow"), true)
   print(
     "PASS workflow queue host confirmation, current request lineage, read-only and handoff refusal; no steps executed"

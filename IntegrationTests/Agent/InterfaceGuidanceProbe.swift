@@ -177,12 +177,12 @@ func runInterfaceGuidanceProbe(modelsRoot: String, library: String, engine: Stri
       } else {
         let calls = receipts.filter { $0["tool"] != .string("finish") }
         try require(
-          calls.contains { ["calculate", "compare_rows"].contains($0["tool"].text) }, "guidance",
+          calls.contains { $0["tool"].text == "sql" }, "guidance",
           "Missing deterministic calculation.")
         try require(result.answer.contains("2.4"), "guidance", "Missing correct price difference.")
         if name == "supplied-prices" {
           try require(
-            calls.allSatisfy { $0["tool"] == .string("calculate") }, "guidance",
+            calls.allSatisfy { $0["tool"] == .string("sql") }, "guidance",
             "Unrelated tool for supplied arithmetic.")
         } else {
           try require(

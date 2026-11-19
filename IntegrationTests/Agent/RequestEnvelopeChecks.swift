@@ -43,10 +43,10 @@ private actor RequestEnvelopeModel: WorkbookInference {
     } else {
       try expectEqual(host["continuation"]["remainingTask"].text, "prepare a forecast")
       try expectEqual(messages[0].conversationActions, [])
-      try expectEqual(toolScope, .propose_record)
+      try expectEqual(toolScope, .change)
       let completed = messages.last!
       try expectEqual(completed.role, "tool")
-      try expectEqual(completed.toolName, "start_thread_and_continue")
+      try expectEqual(completed.toolName, "run")
       let result = try Value.parse(completed.content)
       try expectEqual(result["kind"].text, "created")
       try expectEqual(messages[messages.count - 2].toolCalls.first?.id, completed.toolCallId)
@@ -56,7 +56,7 @@ private actor RequestEnvelopeModel: WorkbookInference {
     if branch && responses == 1 {
       name = "start_thread_and_continue"
       arguments = .object([
-        "task": .string("prepare a forecast"), "work": .string("propose_record"),
+        "task": .string("prepare a forecast"), "work": .string("change"),
       ])
     } else {
       name = "propose_record"
@@ -67,7 +67,7 @@ private actor RequestEnvelopeModel: WorkbookInference {
       ])
     }
     return .init(
-      text: "", calls: [.init(id: identifier(), name: name, inputJSON: try arguments.json())])
+      text: "", calls: [try .init(id: identifier(), operation: name, arguments, scope: toolScope)])
   }
 }
 

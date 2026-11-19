@@ -1,11 +1,11 @@
-"""Comparison jobs for the general chat tools plan. Real model, no download, no hosted calls.
+"""Model jobs for the chat tools. Real model, no download, no hosted calls.
 
 Each job is one request, in English, to the native preview CLI on its own temporary
 synthetic workbook, with a recorded expected result: the rows and columns in the workbook
 afterwards, or the figures and citations in the answer.
 
-    python3 scripts/check_chat_jobs.py --profile general               # the light set
-    python3 scripts/check_chat_jobs.py --profile general --jobs build.app
+    python3 scripts/check_chat_jobs.py --output DIR                    # the light set
+    python3 scripts/check_chat_jobs.py --jobs build.app --output DIR
     python3 scripts/check_chat_jobs.py --self-test        # no model: fixtures and checks only
     python3 scripts/check_chat_jobs.py --list
 
@@ -21,8 +21,7 @@ for each request and unloads it on exit, and this script refuses to start a requ
 another engine helper runs or reclaimable memory is short.
 
 Run after scripts/build_native.sh with the selected model installed. SEVRA_CLI selects
-another CLI and SEVRA_MODEL_DIRECTORY another models folder. The profile reaches the CLI as
-SEVRA_TOOL_PROFILE, which only this developer harness sets: `current` leaves it unset.
+another CLI and SEVRA_MODEL_DIRECTORY another models folder.
 """
 from decimal import Decimal, InvalidOperation
 from pathlib import Path
@@ -73,14 +72,26 @@ class Book:
         return self.run('add', {'title': title, 'text': text, 'status': 'accepted'})['id']
 
     def new_table(self, title, columns, rows):
-        """A fixture table, made the way a person's accepted proposal makes one."""
-        source = self.document(title + ' fixture', 'Synthetic fixture for the ' + title + ' table.')
-        ids = [c[0] for c in columns]
-        proposal = self.run('tool', 'propose_table', {
-            'title': title, 'meaning': 'actual', 'inputs': [source],
-            'columns': [{'id': c[0], 'title': c[1], 'type': c[2]} for c in columns],
-            'rows': [dict(zip(ids, map(str, row))) for row in rows]})
-        return self.run('accept', proposal['id'])['data']['datasetID']
+        """A fixture table: made with sql, its column names the fixture's IDs, then given its
+        exact titles."""
+        name = re.sub(r'[^a-z0-9]+', '_', title.lower()).strip('_')
+
+        def literal(value, kind):
+            return str(Decimal(str(value))) if kind == 'decimal' else "'" + str(value).replace("'", "''") + "'"
+        fields = ', '.join(c[0] for c in columns)
+        statements = ['CREATE TABLE %s (%s)' % (name, ', '.join(
+            c[0] + (' REAL' if c[2] == 'decimal' else ' TEXT') for c in columns))]
+        if rows:
+            statements.append('INSERT INTO %s (%s) VALUES %s' % (name, fields, ', '.join(
+                '(' + ', '.join(literal(v, c[2]) for v, c in zip(row, columns)) + ')' for row in rows)))
+        self.run('tool', 'sql', {'statements': statements})
+        made = next(t for t in self.tables() if re.sub(r'[^a-z0-9]+', '_', t['title'].lower()).strip('_') == name)
+        exact = [{'id': c[0], 'title': c[1], 'type': c[2]} for c in columns]
+        if made['title'] != title or [{k: c[k] for k in ('id', 'title', 'type')} for c in made['columns']] != exact:
+            self.run('tool', 'workspace_action', {'action': 'table.edit_schema', 'arguments': {
+                'id': made['id'], 'expectedVersion': made['version'],
+                'expectedDefinitionID': made['definitionID'], 'title': title, 'columns': exact}})
+        return made['id']
 
     def tables(self):
         return self.run('tables')
@@ -287,10 +298,10 @@ def complete(run):
 
 class Job:
     def __init__(self, identifier, expected, prompt, check, setup=None, oracle=None,
-                 baseline=True, timeout=420, accept_drafts=False):
+                 timeout=420, accept_drafts=False):
         self.id, self.expected, self.prompts = identifier, expected, {'en': prompt}
         self.check, self.setup, self.oracle = check, setup or (lambda book: {}), oracle
-        self.baseline, self.timeout, self.accept_drafts = baseline, timeout, accept_drafts
+        self.timeout, self.accept_drafts = timeout, accept_drafts
         self.group = identifier.split('.')[0]
 
 
@@ -444,10 +455,8 @@ def draft_check(run):
 
 
 def draft_oracle(book, context):
-    table = book.table(SUPPLIERS)
-    row = next(r for r in book.rows(table['id']) if r['values']['supplier'] == 'Cedar Tools')
-    book.run('tool', 'propose_table_edit', {'datasetID': table['id'], 'edits': [
-        {'id': row['id'], 'values': {'supplier': 'Cedar Tools', 'quantity': '10', 'unit_cost': '2.60'}}]})
+    book.run('tool', 'sql', {'draft': True, 'statements': [
+        "UPDATE supplier_comparison SET quantity = 10, unit_cost = 2.60 WHERE supplier = 'Cedar Tools'"]})
     return {'answer': 'A draft is waiting for your review.'}
 
 
@@ -673,9 +682,9 @@ JOBS = [
         lambda book: book.new_table('Price list', [('item', 'Item', 'text'), ('oak_price', 'Oak Supply price', 'decimal'),
                                                    ('cedar_price', 'Cedar Tools price', 'decimal')], PRICES) and {},
         answer('Torque wrench 7.50, Hex key set 2.50 and Brass bolts 0.35.')),
-    Job('steps.script', 'A script runs. Hex nuts has stock 50 and Hex key set has stock 4, the other parts are unchanged, and the answer says 2 parts changed. The current tools have no script tool, so this job has no baseline.',
+    Job('steps.script', 'A script runs. Hex nuts has stock 50 and Hex key set has stock 4, the other parts are unchanged, and the answer says 2 parts changed.',
         'Use a script to go through the Parts table: for each part whose stock is below its reorder level, set its stock to twice its reorder level. Tell me how many parts changed.',
-        script_check, lambda book: parts(book) or {}, script_oracle, baseline=False),
+        script_check, lambda book: parts(book) or {}, script_oracle),
     Job('draft.change', 'The accepted rows are unchanged, one draft table change waits for review, and accepting it sets Cedar Tools to 2.60 with total 26.',
         'In the Supplier comparison table, change the Cedar Tools unit cost from 2.75 to 2.60, but show it to me as a draft first. Do not apply it until I review it.',
         draft_check, None, draft_oracle),
@@ -694,9 +703,9 @@ JOBS = [
     Job('build.rule_for_workflow', 'A rule is saved, not enabled, that runs the Low-stock report when the stock of brass bolts is below 10. The workbook holds that workflow, which the first rule job lacks.',
         'Create a rule that runs the Low-stock report workflow when the stock of brass bolts falls below 10. Do not enable it.',
         rule_check, lambda book: report_workflow(book) or {}, None, timeout=600),
-    Job('build.saved_tool', 'A workbook tool named low_stock is saved, and calling it lists exactly Hex nuts and Hex key set. The current tools cannot make one, so this job has no baseline.',
+    Job('build.saved_tool', 'A workbook tool named low_stock is saved, and calling it lists exactly Hex nuts and Hex key set.',
         'Save a tool named low_stock that lists the parts in the Parts table whose stock is below their reorder level.',
-        tool_check, lambda book: parts(book) or {}, None, baseline=False),
+        tool_check, lambda book: parts(book) or {}, None),
     Job('conversation.greeting', 'A plain reply in one decision, with no citations. Nothing is saved.',
         'hey', greeting_check, None, answer('Hello. How can I help?')),
     Job('conversation.new_thread', 'A new thread with the given title exists. No table or view changes.',
@@ -782,14 +791,10 @@ def reap():
     return True
 
 
-def ask(book, prompt, profile, timeout):
-    environment = dict(os.environ)
-    environment.pop('SEVRA_TOOL_PROFILE', None)
-    if profile != 'current':
-        environment['SEVRA_TOOL_PROFILE'] = profile
+def ask(book, prompt, timeout):
     command = [str(CLI), 'ask', book.path, prompt] + ([MODEL_DIRECTORY] if MODEL_DIRECTORY else [])
     started = time.monotonic()
-    process = subprocess.Popen(command, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True, env=environment)
+    process = subprocess.Popen(command, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
     timed_out = False
     try:
         output, errors = process.communicate(timeout=timeout)
@@ -816,7 +821,7 @@ def ask(book, prompt, profile, timeout):
     return result, failure, seconds, errors
 
 
-def trace(book, profile):
+def trace(book):
     """Model calls, tool calls and prompt sizes of every run in this workbook, as saved."""
     runs = book.run('runs')
     calls, hosts = [], []
@@ -832,11 +837,6 @@ def trace(book, profile):
                     'scopePrefixTokens', 'generatedTokens',
                     'reasoningTokens', 'requestSeconds', 'prefillSeconds', 'decodeSeconds',
                     'prefixPrimeSeconds', 'helperStartSeconds') if metric.get(k) is not None})
-    recorded = [h['profile'] for h in hosts if h.get('host') == 'tool_profile']
-    wanted = [] if profile == 'current' else [profile]
-    if runs and sorted(set(recorded)) != wanted:
-        raise SystemExit('The run used tool profile %s, not %s. Is this CLI built with the profile?'
-                         % (recorded or ['current'], profile))
     run_ids = {r['id'] for r in runs}
     tools, messages = [], {}
     for conversation in book.threads():
@@ -854,7 +854,7 @@ def trace(book, profile):
     return {'runs': runs, 'calls': calls, 'hosts': hosts, 'tools': tools, 'messages': messages}
 
 
-def attempt(job, language, profile, folder, number, redact, minimum, self_test=None, keep=False):
+def attempt(job, language, folder, number, redact, minimum, self_test=None, keep=False):
     """One request on a fresh workbook. `self_test` replaces the model with the job's oracle."""
     book = Book(Path(folder) / ('%s.%s.%d.sevra' % (job.id, language, number)))
     context = job.setup(book) or {}
@@ -862,7 +862,7 @@ def attempt(job, language, profile, folder, number, redact, minimum, self_test=N
     record = {'attempt': number}
     if self_test is None:
         admit(minimum)
-        result, failure, seconds, progress = ask(book, job.prompts[language], profile, job.timeout)
+        result, failure, seconds, progress = ask(book, job.prompts[language], job.timeout)
         record['helperStopped'] = reap()
     else:
         seconds, progress, failure = 0.0, '', None
@@ -876,7 +876,7 @@ def attempt(job, language, profile, folder, number, redact, minimum, self_test=N
            'language': language, 'answer': (result or {}).get('answer', ''),
            'citations': (result or {}).get('citations', []), 'state': (result or {}).get('state'),
            'steps': (result or {}).get('steps'), 'action': (result or {}).get('conversationAction')}
-    traced = trace(book, profile) if self_test is None else {'runs': [], 'calls': [], 'hosts': [], 'tools': [], 'messages': {}}
+    traced = trace(book) if self_test is None else {'runs': [], 'calls': [], 'hosts': [], 'tools': [], 'messages': {}}
     run['tools'] = traced['tools'] if self_test is None else None
     problems = [failure] if failure else job_check(job, language)(run)
     record.update({
@@ -891,8 +891,8 @@ def attempt(job, language, profile, folder, number, redact, minimum, self_test=N
         # The workbook holds the expected result, yet the reply says the work did not finish.
         record['answerReportsFailure'] = True
     if problems and job.accept_drafts and self_test is None:
-        # Today's tools draft a table for review. Whether the draft held the right content is
-        # recorded beside the result. It does not turn a failed run into a passed one.
+        # A run may draft a change for review instead of making it. Whether the draft held the
+        # right content is recorded beside the result. It does not turn a failed run into a passed one.
         drafts = [i for i in run['saved'].get('newItems', []) if i['status'] == 'draft']
         if drafts:
             try:
@@ -906,7 +906,7 @@ def attempt(job, language, profile, folder, number, redact, minimum, self_test=N
                 record['afterAcceptingDrafts'] = {'passed': False, 'error': str(error)}
     if (problems or keep) and self_test is None:
         name = '%s.%s.attempt%d.json' % (job.id, language, number)
-        transcript = {'job': job.id, 'language': language, 'profile': profile, 'attempt': number,
+        transcript = {'job': job.id, 'language': language, 'attempt': number,
                       'prompt': job.prompts[language], 'expected': job.expected, 'failure': record['failure'],
                       'result': result, 'progress': progress.splitlines(),
                       'messages': {c: [dict(m, body=parsed(m['body'])) for m in ms]
@@ -926,10 +926,10 @@ def parsed(body):
         return body
 
 
-def gate(job, language, profile, folder, redact, minimum, keep=False):
+def gate(job, language, folder, redact, minimum, keep=False):
     """One run of one job. A failure is read from its transcript, not run again."""
-    first = attempt(job, language, profile, folder, 1, redact, minimum, keep=keep)
-    return dict(first, job=job.id, group=job.group, language=language, profile=profile, expected=job.expected,
+    first = attempt(job, language, folder, 1, redact, minimum, keep=keep)
+    return dict(first, job=job.id, group=job.group, language=language, expected=job.expected,
                 passedFirstRun=first['passed'], attempts=1, retries=[])
 
 
@@ -941,8 +941,8 @@ def self_test(selected, languages):
         folder.mkdir()
         for job in selected:
             for language in languages:
-                idle = attempt(job, language, 'current', folder, 1, str, 0, self_test=False)
-                made = attempt(job, language, 'current', folder, 2, str, 0, self_test=True) \
+                idle = attempt(job, language, folder, 1, str, 0, self_test=False)
+                made = attempt(job, language, folder, 2, str, 0, self_test=True) \
                     if job_oracle(job, language) else None
                 good = not idle['passed'] and (made is None or made['passed'])
                 failures += not good
@@ -953,17 +953,13 @@ def self_test(selected, languages):
     return failures
 
 
-def timed_turns(count, profile, folder, redact, minimum):
+def timed_turns(count, folder, redact, minimum):
     """A cold first turn, a warm greeting and the warm stock question, each the median of
     `count` runs. One model process per run, through the follow-up trace in the agent checks."""
     checks = Path(os.environ.get('SEVRA_AGENT_CHECKS', ROOT / '.build/debug/sevra-agent-checks'))
     models = MODEL_DIRECTORY or str(Path.home() / 'Library/Application Support/Sevra/Models')
     prompts = ['hello', 'hey', 'How many brass bolts do we have?']
     names_ = ['coldFirstTurn', 'warmGreeting', 'warmStockQuestion']
-    environment = dict(os.environ)
-    environment.pop('SEVRA_TOOL_PROFILE', None)
-    if profile != 'current':
-        environment['SEVRA_TOOL_PROFILE'] = profile
     runs = []
     for index in range(count):
         admit(minimum)
@@ -971,7 +967,7 @@ def timed_turns(count, profile, folder, redact, minimum):
         done = subprocess.run(
             [str(checks), '--conversation-followup-trace', models,
              str(CLI.parent / 'NativeRuntime/libllguidance.dylib'), str(CLI.parent / 'NativeRuntime/engine/splash'),
-             str(output), *prompts], cwd=ROOT, capture_output=True, text=True, timeout=900, env=environment)
+             str(output), *prompts], cwd=ROOT, capture_output=True, text=True, timeout=900)
         reap()
         if done.returncode != 0:
             raise SystemExit('The timed turns failed: ' + redact(done.stderr[-600:]))
@@ -1007,11 +1003,8 @@ def summarize(lines):
     summary = {}
     for line in lines:
         group = summary.setdefault(line['group'], {})
-        entry = group.setdefault(line['language'], {'passed': 0, 'failed': 0, 'notApplicable': 0,
+        entry = group.setdefault(line['language'], {'passed': 0, 'failed': 0,
                                                     'steps': 0, 'modelCalls': 0, 'wallSeconds': 0.0})
-        if line.get('baseline') == 'not applicable':
-            entry['notApplicable'] += 1
-            continue
         entry['passed' if line['passed'] else 'failed'] += 1
         entry['steps'] += line['steps'] or 0
         entry['modelCalls'] += line['modelCalls']
@@ -1021,7 +1014,6 @@ def summarize(lines):
 
 def main():
     parser = argparse.ArgumentParser(description=__doc__.split('\n')[0])
-    parser.add_argument('--profile', choices=['current', 'general'], default='current')
     parser.add_argument('--jobs', default='light',
                         help='light (the routine set), or comma-separated job ids or patterns, such as '
                              'build.app; none for the timed turns alone')
@@ -1042,7 +1034,7 @@ def main():
     assert selected or options.jobs == 'none', 'Unknown job'
     if options.list:
         for job in selected:
-            print(json.dumps({'job': job.id, 'baseline': job.baseline, 'expected': job.expected,
+            print(json.dumps({'job': job.id, 'expected': job.expected,
                               'prompts': job.prompts}, ensure_ascii=False))
         return 0
     assert CLI.exists(), 'Build the native preview first: bash scripts/build_native.sh'
@@ -1073,19 +1065,14 @@ def main():
         try:
             for job in selected:
                 for language in languages:
-                    if profile_skips(job, options.profile):
-                        line = {'job': job.id, 'group': job.group, 'language': language, 'profile': options.profile,
-                                'expected': job.expected, 'baseline': 'not applicable', 'passed': None,
-                                'failure': 'not run: the current tools cannot make a saved tool'}
-                    else:
-                        line = gate(job, language, options.profile, folder, redact, options.min_reclaimable_gb,
-                                    keep=options.all_transcripts)
+                    line = gate(job, language, folder, redact, options.min_reclaimable_gb,
+                                keep=options.all_transcripts)
                     lines.append(line)
                     text = redact(json.dumps(line, ensure_ascii=False))
                     print(text, flush=True)
                     with open(output / 'jobs.jsonl', 'a') as stream:
                         stream.write(text + '\n')
-            timed = timed_turns(options.timed_turns, options.profile, temporary, redact,
+            timed = timed_turns(options.timed_turns, temporary, redact,
                                 options.min_reclaimable_gb) if options.timed_turns else None
         finally:
             reap()
@@ -1094,9 +1081,9 @@ def main():
                 (output / 'transcripts').mkdir(exist_ok=True)
                 for file in transcripts.iterdir():
                     (output / 'transcripts' / file.name).write_text(file.read_text())
-        ran = [l for l in lines if l.get('baseline') != 'not applicable']
+        ran = lines
         results = {
-            'date': started, 'profile': options.profile,
+            'date': started,
             'commit': subprocess.run(['git', 'rev-parse', 'HEAD'], cwd=ROOT, capture_output=True, text=True).stdout.strip(),
             'workingTreeChanges': subprocess.run(['git', 'status', '--porcelain', '--untracked-files=no'], cwd=ROOT,
                                                  capture_output=True, text=True).stdout.splitlines(),
@@ -1118,10 +1105,6 @@ def main():
         print(json.dumps({'summary': results['summary'], 'totals': results['totals'],
                           'timedTurns': timed and timed['median']}), flush=True)
     return 0
-
-
-def profile_skips(job, profile):
-    return profile == 'current' and not job.baseline
 
 
 if __name__ == '__main__':

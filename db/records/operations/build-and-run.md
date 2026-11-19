@@ -320,23 +320,10 @@ Without the export variable, the check compares the fixture with the actual app
 schemas and refuses drift. These manual check executables work with Command Line
 Tools; XCTest or a separate test framework is not required.
 
-To run the synthetic native workbook slice after the assembly setup above:
-
-~~~sh
-.build/debug/sevra-agent-checks \
-  /path/to/verified/model \
-  .build/upstream/llguidance-1.8.0/target/release/libllguidance.dylib \
-  .build/upstream/splash-native-1.4.1/engine/splash \
-  /path/to/the/assembly/printed/by/prepare
-~~~
-
-The probe owns a temporary workbook and Sevra's inference lock. It asks the real
-model for calculation and table-proposal calls, validates them, invokes the actual
-workbook dispatcher, checks the proposal before a separate fixture acceptance,
-reopens the table, verifies values and lineage, cancels a request and verifies a
-successful retry. Only the probe's own temporary workbook is removed. Tools are
-explicitly selected to isolate this integration; it does not qualify autonomous
-WorkbookAgent behavior or installed UI interactions.
+The fixture holds every operation's declaration, which the seven chat tools take their shapes
+from and which reviews and Excel conversion offer directly. The synthetic native workbook slice
+that asked the model for table-proposal calls was removed on November 19, 2026 with the old chat
+tools. Model behavior is checked by the model jobs in `scripts/check_chat_jobs.py`.
 
 ## Harness integration
 

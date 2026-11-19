@@ -7,14 +7,12 @@ import SevraNativeAI
 actor ScriptedCalls: WorkbookInference {
   typealias Step = @Sendable ([InferenceMessage]) throws -> (String, Value)
   let identity = "synthetic scripted calls"
-  let toolProfile: ToolProfile
   let lastMetrics: Value = .null
   private var steps: [Step]
   private(set) var prompts: [[InferenceMessage]] = []
   private(set) var vocabularies: [[String]] = []
-  init(_ steps: [Step], toolProfile: ToolProfile = .current) {
+  init(_ steps: [Step]) {
     self.steps = steps
-    self.toolProfile = toolProfile
   }
   func beginRun() {}
   func endRun() {}
@@ -31,7 +29,7 @@ actor ScriptedCalls: WorkbookInference {
     let (tool, arguments) = try steps.removeFirst()(messages)
     if tool == "refused" { return .init(text: "", calls: [], refusal: arguments.text) }
     return .init(
-      text: "", calls: [.init(id: identifier(), name: tool, inputJSON: try arguments.json())])
+      text: "", calls: [try .init(id: identifier(), operation: tool, arguments, scope: toolScope)])
   }
   /// What the host answered to each finish it refused.
   var refusals: [String] {
@@ -41,6 +39,72 @@ actor ScriptedCalls: WorkbookInference {
       }
       return last.content
     }
+  }
+}
+
+/// The chat call a model sends to ask for one operation, which `GeneralTools.route` reads
+/// back as that operation. A fixture names the operation it means. Reviews and Excel
+/// conversion call their own tools by name, so their scopes pass the call through.
+func chatCall(_ operation: String, _ arguments: Value, scope: InferenceToolScope = .all)
+  -> (name: String, arguments: Value)
+{
+  guard !scope.specialized else { return (operation, arguments) }
+  var fields = arguments.object
+  func read(_ kind: String) -> (String, Value) {
+    if !["references", "lineage", "archive", "actions"].contains(kind),
+      let id = fields.removeValue(forKey: "id")
+    {
+      fields["ref"] = id
+    }
+    if kind == "actions", let domain = fields.removeValue(forKey: "domain") {
+      fields["ref"] = domain
+    }
+    fields["kind"] = .string(kind)
+    return ("read", .object(fields))
+  }
+  switch operation {
+  case "read", "sql", "run", "finish", "search": return (operation, arguments)
+  case "save" where fields["kind"] == .string("tool"):
+    fields["kind"] = nil
+    return ("save", .object(["tool": .object(fields)]))
+  case "save": return (operation, arguments)
+  case "history_search", "find_definitions":
+    fields["in"] = .string(operation == "history_search" ? "conversation" : "definitions")
+    return ("search", .object(fields))
+  case "request_input": return ("ask", arguments)
+  case "workspace_action":
+    return (
+      "run",
+      .object([
+        "action": .object([
+          "name": arguments["action"], "arguments": arguments.object["arguments"] ?? .object([:]),
+        ])
+      ])
+    )
+  default: break
+  }
+  if let kind = GeneralTools.reads.first(where: { $0.value == operation })?.key {
+    return read(kind)
+  }
+  if let kind = GeneralTools.saves.first(where: { $0.value == operation })?.key {
+    return ("save", .object([kind: arguments]))
+  }
+  if let action = GeneralTools.actions.first(where: { $0.value == operation })?.key {
+    return (
+      "run", .object(["action": .object(["name": .string(action), "arguments": arguments])])
+    )
+  }
+  // Not an operation chat can ask for. The host refuses it as the model would see.
+  return (operation, arguments)
+}
+
+extension InferenceCall {
+  /// The chat call that asks for `operation`.
+  init(id: String, operation: String, _ arguments: Value, scope: InferenceToolScope = .all)
+    throws
+  {
+    let call = chatCall(operation, arguments, scope: scope)
+    self.init(id: id, name: call.name, inputJSON: try call.arguments.json())
   }
 }
 
@@ -139,28 +203,30 @@ func checkAttachedCalculationInputs() async throws {
       sourceID: source.id)
   }
   func compare(_ table: Dataset) -> ScriptedCalls.Step {
-    call(
-      "compare_rows",
+    let name = table.title.lowercased().replacingOccurrences(of: " ", with: "_")
+    return call(
+      "sql",
       .object([
-        "datasetID": .string(table.id), "labelColumn": .string("supplier"),
-        "valueColumn": .string("total"),
+        "statements": .array([
+          .string("SELECT supplier, total FROM \(name) ORDER BY total LIMIT 1")
+        ])
       ]))
   }
 
-  // Past 16,000 bytes the receipt is paged and past 256 rows no grammar can name its inputs. The
-  // comparison still counts, and the model owes no list of them.
+  // A query over a long table rests on the table's own Source, attached as one link. The model
+  // owes no list of the rows.
   let long = try table("Long quotes", rows: 500)
   let model = ScriptedCalls([compare(long), finish("S0 has the lowest total.", basis: "evidence")])
   let answer = try await WorkbookAgent.run(
     "Which quote is cheapest?", workbook: book, context: "Table: \(long.id)", model: model)
   try expectEqual(answer.state, "complete")
   try expectEqual(answer.steps, 2)
-  try expectEqual(answer.citations.count, 500)
+  try expectEqual(answer.citations, [source.id])
   try expectEqual(answer.answer.components(separatedBy: "sevra://item/").count, 2)
-  try expectEqual(answer.answer.contains("[500 calculation inputs](sevra://item/"), true)
+  try expectEqual(answer.answer.contains("](sevra://item/\(source.id))"), true)
   try expectEqual(await model.vocabularies.last!.count <= 3, true)
   let saved = try expectValue(book.messages().last { $0.role == "assistant" })
-  try expectEqual(try book.messagePayload(saved.id)["calculationInputs"]["attached"].int, 500)
+  try expectEqual(try book.messagePayload(saved.id)["calculationInputs"]["attached"].int, 1)
 
   let count = try book.addItem(
     category: "source", kind: "note", title: "Count", text: "Opening count: 20 brass bolts.",
@@ -226,7 +292,7 @@ func checkAttachedCalculationInputs() async throws {
   let refused = await uninspected.refusals
   try expectEqual(refused.count, 1)
   try expectEqual(refused[0].contains("Citations must be inspected"), true)
-  let bare = ScriptedCalls([finish("It is S0.", basis: "evidence"), call("datasets")])
+  let bare = ScriptedCalls([finish("It is S0.", basis: "evidence"), call("spaces")])
   do {
     _ = try await WorkbookAgent.run("Which quote is cheapest?", workbook: book, model: bare)
     throw SevraError("fixture", "An uncited answer completed.")
@@ -324,21 +390,18 @@ func checkTerminalReceipts() async throws {
       "title": .string("Memo"), "text": .string("About bolts."),
       "inputs": .array([.string(note.id)]),
     ]))
-  func table(_ rows: Value) -> ScriptedCalls.Step {
+  func table(_ meaning: String) -> ScriptedCalls.Step {
     call(
-      "propose_table",
+      "propose_record",
       .object([
-        "title": .string("Plan"), "meaning": .string("plan"),
-        "columns": .array([
-          .object(["id": .string("units"), "title": .string("Units"), "type": .string("decimal")])
-        ]),
-        "rows": rows,
+        "title": .string("Plan"), "kind": .string("plan"), "text": .string("Order 5 units."),
+        "meaning": .string(meaning), "inputs": .array([.string(note.id)]),
       ]))
   }
-  let good = Value.array([.object(["units": .string("5")])])
+  let good = "plan"
   let saved = ScriptedCalls([draft, table(good)])
   let proposal = try await WorkbookAgent.run(
-    "Write a memo and propose a plan table.", workbook: book, model: saved)
+    "Write a memo and propose a plan.", workbook: book, model: saved)
   try expectEqual(proposal.state, "needs_review")
   try expectEqual(proposal.answer.hasPrefix("Ready to review: ["), true)
   try expectEqual(proposal.answer.contains("Saved draft [Memo](sevra://item/"), true)
@@ -349,16 +412,16 @@ func checkTerminalReceipts() async throws {
   try expectEqual(payload["actionConfirmations"].array.count, 1)
 
   // A proposal that failed cannot read as done, and retrying it clears the failure.
-  let bad = Value.array([.object(["units": .string("many")])])
+  let bad = "many"
   let failed = ScriptedCalls([table(bad), finish("The plan is ready.", basis: "completed_action")])
   let claimed = try await WorkbookAgent.run(
-    "Propose a plan table.", workbook: book, model: failed)
+    "Propose a plan.", workbook: book, model: failed)
   try expectEqual(claimed.state, "complete")
   try expectEqual(claimed.answer.hasPrefix("Couldn’t finish preparing the proposal."), true)
   try expectEqual(claimed.answer.contains("The plan is ready"), false)
   let retried = ScriptedCalls([table(bad), table(good)])
   let settled = try await WorkbookAgent.run(
-    "Propose a plan table.", workbook: book, model: retried)
+    "Propose a plan.", workbook: book, model: retried)
   try expectEqual(settled.state, "needs_review")
   try expectEqual(settled.answer.contains("Couldn’t finish"), false)
   print("PASS every run ending keeps what else it saved, and every write failure is reported")
@@ -428,8 +491,9 @@ func checkRefusedToolCalls() async throws {
   print("PASS refused or cut-off responses reach the model for correction, three times at most")
 }
 
-/// A table read to its end can outrun the 256 IDs the grammar can name. The run carries on, every
-/// row read stays evidence, and the answer links the table.
+/// A query over a long table answers from rows the grammar could never name one by one. The
+/// host attaches what it read: a long table's own Source, a short table's rows. A figure the
+/// query did not return is still refused.
 func checkPagedTableRows() async throws {
   let root = FileManager.default.temporaryDirectory.appendingPathComponent(
     "sevra-paged-rows-" + identifier())
@@ -445,8 +509,12 @@ func checkPagedTableRows() async throws {
         ["supplier": .string("S\($0)"), "note": .string($0 == 5 ? "Discount 19%" : "None")]
       }, sourceID: source.id)
   }
-  func page(_ table: Dataset, _ offset: Int) -> ScriptedCalls.Step {
-    call("rows", .object(["datasetID": .string(table.id), "offset": .number(Double(offset))]))
+  func discounts(_ table: String) -> ScriptedCalls.Step {
+    call(
+      "sql",
+      .object([
+        "statements": .array([.string("SELECT supplier, note FROM \(table) WHERE note <> 'None'")])
+      ]))
   }
   // Pages of a saved query leave the citation choices the same way, by naming their table.
   let queried: Value = .object([
@@ -462,67 +530,40 @@ func checkPagedTableRows() async throws {
     ])
   ])
   try expectEqual(WorkbookAgent.queryRowTables(queried), ["row": "table"])
-  let long = try table("Long prices", rows: 350)
-  let rows = try book.rows(long.id, limit: 350).map(\.id)
-  try expectEqual(rows.count, 350)
-
-  // Three full pages, then a fourth to show further pages keep working.
+  _ = try table("Long prices", rows: 350)
   let model = ScriptedCalls([
-    page(long, 0), page(long, 100), page(long, 200), page(long, 300),
-    // Row 349 was read, and row 5's rate is on a page that left the citation choices.
-    finish("S5 has a 19% discount.", basis: "evidence", citations: [rows[349]]),
+    discounts("long_prices"), finish("S5 has a 19% discount.", basis: "evidence"),
   ])
   let answer = try await WorkbookAgent.run(
-    "List every supplier with a discount.", workbook: book, context: "Table: \(long.id)",
-    model: model)
+    "List every supplier with a discount.", workbook: book, model: model)
   try expectEqual(answer.state, "complete")
-  try expectEqual(answer.steps, 5)
-  let refusedRate = await model.refusals
-  try expectEqual(refusedRate, [])
-  try expectEqual(answer.answer.contains("[Long prices, 350 rows read](sevra://item/\(source.id))"), true)
-  try expectEqual(answer.citations.contains(source.id), true)
-  let choices = await model.vocabularies
-  try expectEqual(choices.allSatisfy { $0.count <= 256 }, true)
-  try expectEqual(choices.last!.contains(rows[349]), true)
-  try expectEqual(choices.last!.contains(rows[0]), false)
-  // The same limits the live grammar applies, on the prompt that reached the model.
-  let last = try expectValue(await model.prompts.last)
-  _ = try NativeCitationPolicy.make(
-    choices.last!, itemReferenceIDs: try ItemReferenceCandidates.ids(in: last))
-  let saved = try expectValue(book.messages().last { $0.role == "assistant" })
-  try expectEqual(try book.messagePayload(saved.id)["readTables"].array.count, 1)
+  try expectEqual(answer.steps, 2)
+  try expectEqual(await model.refusals, [])
+  try expectEqual(answer.citations, [source.id])
+  try expectEqual(await model.vocabularies.allSatisfy { $0.count <= 256 }, true)
 
-  // Past the choices a read row is still evidence. An unread row never was, and a wrong rate
-  // is still wrong.
+  // A rate the query did not return is refused, and the right one passes.
   let bounded = ScriptedCalls([
-    page(long, 0), page(long, 100), page(long, 200),
-    finish("S340 has no discount.", basis: "evidence", citations: [rows[340]]),
-    finish("S5 has an 18% discount.", basis: "evidence", citations: [rows[5]]),
-    finish("S5 has a 19% discount.", basis: "evidence", citations: [rows[5]]),
+    discounts("long_prices"),
+    finish("S5 has an 18% discount.", basis: "evidence"),
+    finish("S5 has a 19% discount.", basis: "evidence"),
   ])
   let kept = try await WorkbookAgent.run(
-    "List every supplier with a discount.", workbook: book, context: "Table: \(long.id)",
-    model: bounded)
+    "List every supplier with a discount.", workbook: book, model: bounded)
   try expectEqual(kept.state, "complete")
-  try expectEqual(kept.citations.contains(rows[340]), false)
-  try expectEqual(kept.citations.contains(rows[5]), true)
   let refused = await bounded.refusals
-  try expectEqual(refused.count, 2)
-  try expectEqual(refused[0].contains("Citations must be inspected"), true)
-  try expectEqual(refused[1].contains("percentage is unsupported"), true)
+  try expectEqual(refused.count, 1)
+  try expectEqual(refused[0].contains("percentage is unsupported"), true)
 
-  // Under the limit nothing changes: every row is a choice and the host adds no link.
-  let short = try table("Short prices", rows: 150)
-  let shortRows = try book.rows(short.id, limit: 150).map(\.id)
+  // A short table's rows are named themselves.
+  let short = try table("Short prices", rows: 12)
+  let shortRows = try book.rows(short.id).map(\.id)
   let plain = ScriptedCalls([
-    page(short, 0), page(short, 100),
-    finish("S5 has a 19% discount.", basis: "evidence", citations: [shortRows[5]]),
+    discounts("short_prices"), finish("S5 has a 19% discount.", basis: "evidence"),
   ])
   let cited = try await WorkbookAgent.run(
-    "List every supplier with a discount.", workbook: book, context: "Table: \(short.id)",
-    model: plain)
-  try expectEqual(cited.citations, [shortRows[5]])
+    "List every supplier with a discount.", workbook: book, model: plain)
+  try expectEqual(Set(cited.citations), Set(shortRows))
   try expectEqual(cited.answer.contains("rows read"), false)
-  try expectEqual(await plain.vocabularies.last!.count, 150)
-  print("PASS a table can be paged past the citation limit; read rows stay evidence, unread refused")
+  print("PASS a query over a long table attaches its Source; short tables attach rows; wrong rates refused")
 }

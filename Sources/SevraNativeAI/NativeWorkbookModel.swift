@@ -24,8 +24,6 @@ package actor NativeWorkbookModel: WorkbookInference {
     package let reasoning: NativeReasoning
     package let modelLayout: ModelLayout
     package let contextMaintenanceEnabled: Bool
-    /// Host-selected chat tools. Nothing in a request or a result changes it.
-    package let toolProfile: ToolProfile
     /// Evaluation-only startup status sampling; absent from product and timing cohorts.
     package let observeAdmission: (@Sendable (Value) -> Void)?
     package let observeRequest: (@Sendable (Value) -> Void)?
@@ -40,7 +38,7 @@ package actor NativeWorkbookModel: WorkbookInference {
       observeRequest: (@Sendable (Value) -> Void)? = nil,
       observeMask: (@Sendable ([UInt32], [UInt32], UInt32, [UInt32]) -> Void)? = nil,
       diagnosticRequestCacheIsolation: Bool = false, activations: Activations = .bf16,
-      observeAdmission: (@Sendable (Value) -> Void)? = nil, toolProfile: ToolProfile = .current
+      observeAdmission: (@Sendable (Value) -> Void)? = nil
     ) {
       self.engine = engine
       self.engineFiles = engineFiles
@@ -53,7 +51,6 @@ package actor NativeWorkbookModel: WorkbookInference {
       self.reasoning = reasoning
       self.modelLayout = modelLayout
       self.contextMaintenanceEnabled = contextMaintenanceEnabled
-      self.toolProfile = toolProfile
       self.observeAdmission = observeAdmission
       self.observeRequest = observeRequest
       self.observeMask = observeMask
@@ -61,7 +58,6 @@ package actor NativeWorkbookModel: WorkbookInference {
     }
   }
   package let identity: String
-  package let toolProfile: ToolProfile
   package private(set) var lastMetrics: Value = .null
   private let worker: NativeWorker
   private let contextMaintenanceEnabled: Bool
@@ -73,7 +69,6 @@ package actor NativeWorkbookModel: WorkbookInference {
   package init(configuration: Configuration) {
     worker = NativeWorker(configuration)
     contextMaintenanceEnabled = configuration.contextMaintenanceEnabled
-    toolProfile = configuration.toolProfile
     identity =
       "Splash 1.6.1; d8af1054aab0f97de21d043e01aa98af3754f10e; Qwen3.6-35B-A3B-4bit + DFlash2; native Swift candidate"
       + "; context \(configuration.contextBudget.contextTokens); memory \(configuration.memoryBytes); activations \(configuration.activations.rawValue); KV int8; state fp32; ANE on"
@@ -317,8 +312,7 @@ private final class NativeWorker: @unchecked Sendable {
       if let interpretation {
         return try NativePreparedRequest(
           messages: messages, frontend: frontend, configuredReasoning: configuration.reasoning,
-          toolScope: scope, citationIDs: citations, interpretation: interpretation,
-          toolProfile: configuration.toolProfile)
+          toolScope: scope, citationIDs: citations, interpretation: interpretation)
       }
       let encoder = JSONEncoder()
       encoder.outputFormatting = [.sortedKeys]
@@ -330,7 +324,7 @@ private final class NativeWorker: @unchecked Sendable {
       }
       let prepared = try NativePreparedRequest(
         messages: messages, frontend: frontend, configuredReasoning: configuration.reasoning,
-        toolScope: scope, citationIDs: citations, toolProfile: configuration.toolProfile)
+        toolScope: scope, citationIDs: citations)
       if measuredRequests.count == 2 { measuredRequests.removeFirst() }
       measuredRequests.append((key, prepared))
       return prepared

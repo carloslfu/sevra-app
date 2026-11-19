@@ -37,18 +37,20 @@ private actor CurrencyFault: WorkbookInference {
         text: "",
         calls: [
           .init(
-            id: "injected-comparison", name: "compare_rows",
+            id: "injected-comparison", name: "sql",
             inputJSON: try Value.object([
-              "datasetID": .string(datasetID), "labelColumn": .string("supplier"),
-              "valueColumn": .string("total"),
+              "statements": .array([
+                .string(
+                  "SELECT min(total) AS lowest, max(total) AS highest, max(total) - min(total) AS difference, round(100.0 * (max(total) - min(total)) / max(total), 2) AS percent FROM supplier_comparison"
+                )
+              ])
             ]).json())
         ])
     }
     if responses == 2 {
-      let result = try Value.parse(messages.last!.content)
-      inputs = result["inputs"].array.compactMap(\.string)
+      // The query's rows are what the host offers to cite.
+      inputs = citationIDs.sorted()
       try expectEqual(inputs.count, 2)
-      try expectEqual(Set(inputs).isSubset(of: Set(citationIDs)), true)
       if opaqueOnly {
         return try finish(
           "Oak Supply is 3.5 cheaper, or 12.73%. Supporting evidence: (" + inputs[0] + "), row "

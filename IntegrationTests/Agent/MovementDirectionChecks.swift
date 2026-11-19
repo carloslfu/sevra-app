@@ -26,12 +26,12 @@ private actor DirectionModel: WorkbookInference {
       return .init(
         text: "",
         calls: [
-          .init(id: identifier(), name: "review_movement_direction", inputJSON: try verdict.json())
+          try .init(id: identifier(), operation: "review_movement_direction", verdict, scope: toolScope)
         ])
     }
     return .init(
       text: "",
-      calls: [.init(id: identifier(), name: "propose_movement", inputJSON: try arguments.json())])
+      calls: [try .init(id: identifier(), operation: "propose_movement", arguments, scope: toolScope)])
   }
 }
 

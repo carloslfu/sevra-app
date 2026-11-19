@@ -33,7 +33,7 @@ private actor ChatOperationModel: WorkbookInference {
     }
     index += 1
     return .init(
-      text: "", calls: [.init(id: "chat-\(index)", name: call.0, inputJSON: try call.1.json())])
+      text: "", calls: [try .init(id: "chat-\(index)", operation: call.0, call.1, scope: toolScope)])
   }
 }
 

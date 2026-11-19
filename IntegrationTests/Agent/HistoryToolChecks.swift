@@ -34,8 +34,18 @@ private actor HistoryToolInference: WorkbookInference {
     let args: Value
     if phase == 1 {
       try expectEqual(messages.contains { $0.content.contains("MAPLE-27") }, false)
-      tool = large ? "datasets" : unified ? "search" : "history_search"
-      args = large ? .object([:]) : .object(["query": .string("purchase code")])
+      tool = large ? "sql" : unified ? "search" : "history_search"
+      // One wide cell takes the query's result past what a tool result shows at once.
+      args =
+        large
+        ? .object([
+          "statements": .array([
+            .string("SELECT 'Large table' AS name"),
+            .string(
+              "SELECT group_concat(name || ' ' || title || ' ' || id || ' ' || type || ' ' || title || ' ' || id || ' ' || title || ' ' || name) AS every_column FROM columns WHERE table_name = 'large_table'"
+            ),
+          ])
+        ]) : .object(["query": .string("purchase code")])
     } else if phase == 2 {
       let result = try Value.parse(messages.last!.content)
       try expectEqual(messages.last!.content.utf8.count <= 16_000, true)
@@ -44,7 +54,8 @@ private actor HistoryToolInference: WorkbookInference {
         try expectEqual(result["receiptID"].text.isEmpty, false)
         tool = "tool_result"
         args = .object([
-          "id": result["receiptID"], "path": .array([.string("0"), .string("title")]),
+          "id": result["receiptID"],
+          "path": .array(["results", "0", "rows", "0", "0"].map(Value.string)),
         ])
       } else {
         let hit = try expectValue((unified ? result["conversation"] : result)["hits"].array.first)
@@ -73,7 +84,7 @@ private actor HistoryToolInference: WorkbookInference {
     }
     return NativeReply(
       text: "",
-      calls: [InferenceCall(id: "history-\(steps)", name: tool, inputJSON: try args.json())])
+      calls: [try InferenceCall(id: "history-\(steps)", operation: tool, args, scope: toolScope)])
   }
 }
 
@@ -135,7 +146,7 @@ private actor UncitedHistoryInference: WorkbookInference {
       ])
     }
     return NativeReply(
-      text: "", calls: [.init(id: "uncited-\(step)", name: tool, inputJSON: try args.json())])
+      text: "", calls: [try .init(id: "uncited-\(step)", operation: tool, args, scope: toolScope)])
   }
 }
 

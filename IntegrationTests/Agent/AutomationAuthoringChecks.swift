@@ -69,7 +69,7 @@ private actor InventoryAutomationAuthor: WorkbookInference {
       ])
     }
     return .init(
-      text: "", calls: [.init(id: identifier(), name: tool, inputJSON: try arguments.json())])
+      text: "", calls: [try .init(id: identifier(), operation: tool, arguments, scope: toolScope)])
   }
 }
 
@@ -112,7 +112,8 @@ func checkInventoryAutomationAuthoring() async throws {
       : "Save an inventory rule using Low-stock report with no inputs when parts becomes less than 10. Do not enable it."
     let result = try await WorkbookAgent.run(prompt, workbook: book, model: model)
     let hits = try book.searchApplicationDefinitions("", kind: "automation")["hits"].array
-    if ["template", "custom"].contains(mode) {
+    // The rule action takes its level as a number, so a number saves like decimal text.
+    if ["template", "custom", "number"].contains(mode) {
       try expectEqual(hits.count, 1)
       try expectEqual(await model.calls, 3)
       let saved = try book.applicationDefinition(hits[0]["id"].text)

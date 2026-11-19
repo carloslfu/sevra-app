@@ -53,12 +53,11 @@ private actor SurfaceModel: WorkbookInference {
       arguments = .object(fields)
     }
     return NativeReply(
-      text: "", calls: [.init(id: "surface-\(step)", name: tool, inputJSON: try arguments.json())])
+      text: "", calls: [try .init(id: "surface-\(step)", operation: tool, arguments, scope: toolScope)])
   }
 }
 
 @MainActor func checkConversationSurfaces() async throws {
-  try await checkToolProfile()
   let root = FileManager.default.temporaryDirectory.appendingPathComponent(identifier())
   try FileManager.default.createDirectory(at: root, withIntermediateDirectories: false)
   defer { try? FileManager.default.removeItem(at: root) }
@@ -76,7 +75,7 @@ private actor SurfaceModel: WorkbookInference {
       let tools = try NativeTools.referenceDefinitions(
         toolScope: scope, conversationInput: capability)
       try expectEqual(
-        tools.contains { $0.name == "request_input" },
+        tools.contains { $0.name == (scope.specialized ? "request_input" : "ask") },
         scope.allows("request_input", conversationInput: capability))
       _ = try NativeCitationPolicy.make([], toolScope: scope, conversationInput: capability)
     }

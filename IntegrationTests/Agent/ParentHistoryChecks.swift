@@ -21,9 +21,9 @@ private actor ParentHistoryInference: WorkbookInference {
       return .init(
         text: "",
         calls: [
-          .init(
-            id: "inherited-read", name: "history_read",
-            inputJSON: try Value.object(["id": .string(original)]).json())
+          try .init(
+            id: "inherited-read", operation: "history_read",
+            .object(["id": .string(original)]))
         ])
     }
     try expectEqual(step, 2)

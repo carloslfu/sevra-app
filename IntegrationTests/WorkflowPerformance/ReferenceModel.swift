@@ -134,7 +134,6 @@ actor ReferenceModel: WorkbookInference {
       itemReferenceIDs: ItemReferenceCandidates.ids(in: messages),
       conversationActions: messages.first?.conversationActions,
       documentCopyIDs: DocumentCopyCandidates.ids(in: messages),
-      historyReferenceIDs: ItemReferenceCandidates.historyIDs(in: messages),
       nativeAppAuthoring: messages.first?.nativeAppAuthoring == true,
       reviewContract: messages.first?.reviewContract ?? .null)
     let body: [String: Any] = [

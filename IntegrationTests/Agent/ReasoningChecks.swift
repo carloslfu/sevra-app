@@ -62,10 +62,11 @@ func checkReasoningGrammar(frontend: SplashTextFrontend, factory: SplashGrammarF
   let retained = InferenceMessage(
     role: "assistant", content: "",
     toolCalls: [
-      .init(id: "lookup", name: "history_read", inputJSON: "{\"id\":\"original\"}")
+      .init(
+        id: "lookup", name: "read", inputJSON: "{\"kind\":\"message\",\"ref\":\"original\"}")
     ], reasoning: "Synthetic intermediate plan.")
   let tool = InferenceMessage(
-    role: "tool", content: "Original evidence", toolCallId: "lookup", toolName: "history_read")
+    role: "tool", content: "Original evidence", toolCallId: "lookup", toolName: "read")
   let current = try frontend.prepare(
     messages: messages + [try nativeTemplateMessage(retained), try nativeTemplateMessage(tool)],
     tools: policy.promptTools(), thinking: true)
@@ -82,12 +83,12 @@ func checkReasoningGrammar(frontend: SplashTextFrontend, factory: SplashGrammarF
   try expectEqual(try broken.finish(.length).0.calls.isEmpty, true)
   for thinking in [false, true] {
     let inspection = try NativeCitationPolicy.make([], toolScope: .inspection, thinking: thinking)
-    try expectEqual(Set(inspection.outputTools.map(\.name)), WorkbookTools.readOnlyTools)
+    try expectEqual(inspection.outputTools.map(\.name), ["search", "read", "sql", "run"])
     let grammar = try factory.create(grammar: inspection.grammar)
     let prefix = thinking ? "Inspect the original. </think>\n" : ""
     let read =
       prefix
-      + "<tool_call>\n<function=history_read>\n<parameter=id>\noriginal\n</parameter>\n</function>\n</tool_call>"
+      + "<tool_call>\n<function=read>\n<parameter=kind>\nmessage\n</parameter>\n<parameter=ref>\noriginal\n</parameter>\n</function>\n</tool_call>"
     try grammar.finish(committed: frontend.encode(read), requireComplete: true)
     let excluded = try factory.create(grammar: inspection.grammar)
     let finish = thinking ? text : String(text.split(separator: "</think>", maxSplits: 1)[1])
@@ -128,8 +129,7 @@ private actor ReasoningHistoryFixture: WorkbookInference {
         text: "",
         calls: [
           .init(
-            id: identifier(), name: "calculate",
-            inputJSON: "{\"expression\":\"2 + 2\",\"values\":{}}")
+            id: identifier(), name: "sql", inputJSON: "{\"statements\":[\"SELECT 2 + 2\"]}")
         ], reasoning: "Private synthetic intermediate state.")
     }
     try expectEqual(step, 2)

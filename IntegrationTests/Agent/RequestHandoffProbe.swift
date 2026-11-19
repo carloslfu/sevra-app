@@ -200,7 +200,7 @@ func runRequestHandoffProbe(modelsRoot: String, library: String, engine: String,
               throw SevraError("handoff", "Carried evidence is outside the live originating run.")
             }
             try require(
-              ["read", "calculate"].contains(entry["tool"].text)
+              ["read", "sql"].contains(entry["tool"].text)
                 && original["result"] == entry["result"]
                 && original["resultHash"] == entry["resultHash"]
                 && original["arguments"] == entry["arguments"],
@@ -208,9 +208,7 @@ func runRequestHandoffProbe(modelsRoot: String, library: String, engine: String,
           }
           if name.contains("prices") {
             try require(
-              (carried + calls).contains {
-                ["calculate", "compare_rows"].contains($0["tool"].text)
-              }
+              (carried + calls).contains { $0["tool"].text == "sql" }
                 && result.answer.contains("2.4"), "handoff", "Missing checked price difference.")
             if ["stored-prices", "report-prices"].contains(name) {
               try require(
@@ -225,8 +223,8 @@ func runRequestHandoffProbe(modelsRoot: String, library: String, engine: String,
                 })
               try require(
                 Set([birch.id, cedar.id]).isSubset(of: readIDs)
-                  && mainCalls.contains { $0["tool"].text == "calculate" },
-                "handoff", "The explicit read/calculate-before-branch order was not honored.")
+                  && mainCalls.contains { $0["tool"].text == "sql" },
+                "handoff", "The explicit read/sql-before-branch order was not honored.")
             }
           } else {
             try require(

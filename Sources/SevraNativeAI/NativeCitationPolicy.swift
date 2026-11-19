@@ -10,10 +10,8 @@ package enum NativeCitationPolicy {
   package static func make(
     _ citationIDs: [String], toolScope: InferenceToolScope = .all, thinking: Bool = false,
     itemReferenceIDs: [String] = [], conversationActions: [String]? = nil,
-    documentCopyIDs: [String]? = [], historyReferenceIDs: [String]? = nil,
-    nativeAppAuthoring: Bool = true, reviewContract: Value = .null, conversationInput: Bool = false,
-    visualCaptureIDs: [String] = [], countReceiptIDs: [String]? = nil,
-    toolProfile: ToolProfile = .current, display: Bool = false
+    documentCopyIDs: [String]? = [], nativeAppAuthoring: Bool = true, reviewContract: Value = .null, conversationInput: Bool = false,
+    visualCaptureIDs: [String] = [], countReceiptIDs: [String]? = nil, display: Bool = false
   ) throws
     -> SplashToolPolicy
   {
@@ -25,9 +23,9 @@ package enum NativeCitationPolicy {
     let serialized = try NativeTools.serializedDefinitions(
       toolScope: toolScope, itemReferenceIDs: itemReferenceIDs,
       conversationActions: conversationActions, documentCopyIDs: documentCopyIDs,
-      historyReferenceIDs: historyReferenceIDs, nativeAppAuthoring: nativeAppAuthoring,
+      nativeAppAuthoring: nativeAppAuthoring,
       reviewContract: reviewContract, conversationInput: conversationInput,
-      visualCaptureIDs: visualCaptureIDs, toolProfile: toolProfile, display: display)
+      visualCaptureIDs: visualCaptureIDs, display: display)
     if !toolScope.allows("finish") {
       return try SplashToolPolicy(toolsJSON: serialized, choice: .required, thinking: thinking)
     }
@@ -45,7 +43,7 @@ package enum NativeCitationPolicy {
       var items = citations["items"] as? [String: Any]
     else { throw SevraError("tool_schema", "The workbook citation schema changed.") }
     citations["description"] =
-      "Basis=evidence requires at least one inspected Source/Record version or exact message:ID reference from history_read. A balance result supplies its inspected inputs automatically; finish with empty citations for that calculation. Otherwise inspect missing evidence. Message references support prior conversation, not current business facts. Never cite a space or table ID."
+      "Basis=evidence requires at least one inspected Source/Record version or exact message:ID reference from read kind=message. A balance result supplies its inspected inputs automatically; finish with empty citations for that calculation. Otherwise inspect missing evidence. Message references support prior conversation, not current business facts. Never cite a space or table ID."
     if ids.isEmpty {
       citations["maxItems"] = 0
     } else {

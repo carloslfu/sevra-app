@@ -35,7 +35,7 @@ private actor VersionModel: WorkbookInference {
       try expectEqual(messages.last!.content.contains("A cited version is historical"), true)
       try expectEqual(messages.last!.content.contains(current.id), true)
       if dropsCitation {
-        tool = "datasets"
+        tool = "spaces"
         a = .object([:])
       } else {
         a = .object(["id": .string(current.id)])
@@ -57,7 +57,7 @@ private actor VersionModel: WorkbookInference {
         "basis": .string("evidence"), "citations": .array([.string(old.id), .string(current.id)]),
       ])
     }
-    return .init(text: "", calls: [.init(id: identifier(), name: tool, inputJSON: try a.json())])
+    return .init(text: "", calls: [try .init(id: identifier(), operation: tool, a, scope: toolScope)])
   }
 }
 

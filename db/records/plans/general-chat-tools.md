@@ -10,7 +10,7 @@ title: General chat tools and a pre-read prompt header
 
 Owner direction: [[sources/notes/2026/11/general-tools-direction]], continuing [[sources/notes/2026/11/chat-tool-routing-direction]]. Evidence: [[records/research/chat-tool-selection]]. This plan replaces [[records/plans/native-chat-prompt-routing]].
 
-Status: built through the seven tools, gate run once, waiting on the owner. The model is offered `search`, `read`, `sql`, `run`, `save`, `ask` and `finish` under the `general` profile, and the installed preview on the test Mac uses them. See [The build so far](#the-build-so-far) for what was built, measured and left out, and [Open items for the owner](#open-items-for-the-owner) for what waits on him. Implementation started on November 18, 2026. The same day the owner chose a faster test loop: [[sources/notes/2026/11/fast-loop-direction]], and asked for the tools in the app and the whole plan done: [[sources/notes/2026/11/general-tools-in-the-app]]. [The test loop and the order](#the-test-loop-and-the-order) governs where a phase section says otherwise.
+Status: built through the seven tools, gate run once. The model is offered `search`, `read`, `sql`, `run`, `save`, `ask` and `finish`, and nothing else in chat: on November 19, 2026 the owner made them the only chat tools and had the old way removed, [[sources/notes/2026/11/general-tools-only]]. See [The build so far](#the-build-so-far) for what was built, measured and left out, and [Open items for the owner](#open-items-for-the-owner) for what waits on him. Implementation started on November 18, 2026. The same day the owner chose a faster test loop: [[sources/notes/2026/11/fast-loop-direction]], and asked for the tools in the app and the whole plan done: [[sources/notes/2026/11/general-tools-in-the-app]]. [The test loop and the order](#the-test-loop-and-the-order) governs where a phase section says otherwise.
 
 The owner confirmed the plan's three summary points and five proposals as written on November 18, 2026: [[sources/notes/2026/11/general-tools-confirmation]]. He then changed how the header is delivered: [[sources/notes/2026/11/prebuilt-header-direction]]. He authorized implementation on November 18, 2026: [[sources/notes/2026/11/general-tools-implementation]]. That note also lists what the authorization does not cover.
 
@@ -22,7 +22,7 @@ Terms used below:
 - The **header** is the fixed start of the prompt: the instructions and the tool schemas, identical for every ordinary chat turn.
 - A **restore point** is engine state saved at a position in a prompt. A later request that starts with the same tokens resumes from it and does not read them again.
 - The **model pack** is the pinned set of model files the app uses, named by repository and revision. The **assembly key** is the digest of the record that model preparation writes for it.
-- A **tool profile** is a host setting that selects today's tools (`current`) or the general ones (`general`). It exists until phase 6 ends.
+- A **tool profile** was a host setting that selected the old tools (`current`) or the seven (`general`). The owner had it removed on November 19, 2026. Earlier sections that name a profile are history.
 
 ## Decisions
 
@@ -299,7 +299,7 @@ Read from the scripts at `baadc5c`, which implement [[records/plans/macos-instal
 - **After a change to the prompt, a schema, the engine or the model** the header no longer matches, and the app says so. The developer runs the install command again, or `sevra header make` in a build tree (P6).
 - **Unchanged headers are reused.** Packaging takes a matching header from the header cache, so the model is loaded only when the header, the engine or the model changed.
 - **Real-model check scripts run the command first,** so a gate never fails for a missing header and never measures a computed one.
-- **Two tool profiles, two headers.** Until phase 6 ends, each profile has its own header folder, and a development package carries both.
+- **One set of tools, one header.** The tool profile is gone, so a package carries one header.
 - **A model given by local path,** the developer layout, has no repository identity. A header made on that Mac matches only there, and any change to the model's files needs the command again.
 
 [[records/operations/build-and-run]] and the README's setup steps document this when phase H3 builds it.
@@ -362,7 +362,7 @@ Phases that are not part of ordinary chat keep their own tool lists and prompts 
 
 Phases are ordered by what depends on what. Each ends on an exit criterion. Checks follow the focused verification policy in [[records/specs/distribution]]: the smallest checks that establish the change. Real-model and engine runs load one model at a time on an idle Mac, after checking reclaimable memory.
 
-Until phase 6 the current tools stay the default. The general tools run under a host-selected tool profile in the same build, so the two are compared on the same code. The tools a person chats with do not change until the owner says so. Three things do change earlier, each called out where it happens: the model record in phase H2, the header mechanism in phase H3 and the workbook format in phase 5.
+The seven tools are the only chat tools since November 19, 2026. Until then the old tools were the default and the seven ran under a host-selected tool profile in the same build, so the two were compared on the same code. Three things do change earlier, each called out where it happens: the model record in phase H2, the header mechanism in phase H3 and the workbook format in phase 5.
 
 ### The test loop and the order
 
@@ -373,7 +373,7 @@ Owner direction: [[sources/notes/2026/11/fast-loop-direction]] on November 18, 2
 **How this plan is tested:**
 
 - **No model, on every change.** Checks on the layer being changed. They take seconds and carry the mechanics: reads, row and column changes, Undo, refusals, scripts, the sandbox and the routing of the seven tools.
-- **The light set, when chat behavior changes.** Eleven model jobs in English, one run each, under four minutes in all: one happy path for each kind of work and the edge cases that matter. `python3 scripts/check_chat_jobs.py --profile general` runs it.
+- **The light set, when chat behavior changes.** Eleven model jobs in English, one run each, under four minutes in all: one happy path for each kind of work and the edge cases that matter. `python3 scripts/check_chat_jobs.py --output NEW_DIRECTORY` runs it.
   - Happy paths: a table question, a question answered from a document, a row change, a new table, a script, a saved view and a new thread.
   - Edge cases: a change the person wants as a draft first, a request missing a value, a document that contains an instruction, and a request that forbids changes.
 - **A job for its area, when that area changes.** The other jobs in the harness run by name: the app job when app building changes, a rule job when rules change.
@@ -415,6 +415,14 @@ Built on November 18, 2026 under the `general` profile. Evidence: [the evals](..
 - **Timing:** a cold first turn 13.6 s, a warm greeting 4.7 s, a warm stock question 8.9 s. Today's tools: 18.0 s, 4.2 s and 10.8 s.
 - **The suite.** `scripts/check.sh` ran through 955 passing checks and stopped at its grammar step on one failure this work had caused: the rule guide was in the read-only tool set that the old answer scopes are checked against. That was fixed, the step passed, and the remaining steps passed from there, with the packaged native journeys on the rebuilt package. The packaged journeys of the older non-native build were skipped, as the script does when that build is not current.
 - **Runs the owner did not ask for.** During the build every job was also run in Spanish, failed jobs were run again, and timings were taken three times. Those results stay in the evidence file and are not part of how this plan is tested.
+
+**The seven tools became the only chat tools on November 19, 2026** ([[sources/notes/2026/11/general-tools-only]]):
+
+- **Removed:** the tool profile with `SEVRA_TOOL_PROFILE` and the app's `SevraToolProfile` setting; the old chat instructions; the old-only tools `compare_rows`, `propose_table` and `propose_table_edit`; the core's unused text tool guide; the profile's byte-identity check and fixture; and two probes that only exercised the removed tools. Thread continuations answer or change, nothing finer.
+- **Kept:** the operations the seven tools route to, and the tool lists of the reviews and of Excel conversion, which are not chat. Those lists still include `datasets`, `rows` and `calculate`, and the schema fixture of every operation is regenerated from them.
+- **Converted:** a paused workflow now takes its answer through `run` with the action `workflow.prepare_answer`, offered only in that step and shaped exactly by the grammar. The passage-copy limit moved to `save` with a document. Read-only `sql` results cross into a new thread as carried evidence, as reads do.
+- **Fixed on the way:** a `sql` or `run` call that only read was counted as a change. That turned off `ask` after any query and refused a move to a new thread after one. Only a call that saved something counts now. And the tool text the model is shown is now the same in every chat scope and thread, so read-only turns share the cached header with ordinary ones; the grammar still offers only what the scope allows.
+- **Checks:** the 59 scripted agent groups, the grammar checks against regenerated reference masks, the core and preview checks, the `sql` and `run` checks and the model-job harness's self-test all run on the seven tools. The light set then passed 11 of 11 on the packaged build, in 27 decisions and 3 minutes 57 seconds: [the run](../../../integration/evidence/2026-11-19-seven-tools-only-light/results.json).
 
 **The model is offered exactly seven tools:** `search`, `read`, `sql`, `run`, `save`, `ask` and `finish` ([GeneralTools.swift](../../../Sources/SevraAI/GeneralTools.swift)).
 
@@ -473,7 +481,7 @@ Each changed row version adds about 8 KB to the workbook file, which is what the
 
 **Left out, with the reason:**
 
-- **Removing the old tool declarations.** They remain for the specialized phases and behind the `current` profile, which 61 of the 84 agent check files script by name. Removing them means rewriting those checks. The preview uses the general tools through its saved setting. Making `general` the only profile waits for the owner's word.
+- **Incoming references.** `read` with kind references follows what an item links to. The old tool's options for incoming mentions and history are not in the seven tools' shapes. No job needed them.
 - **One transaction for a whole call.** The existing write paths each open their own transaction. Taking back the earlier steps gives the same result for the person.
 - **The exact side table and exact functions.** The owner chose 15-digit numbers: [[sources/notes/2026/11/general-tools-answers]].
 - **Catalog tables for views, apps, definitions, automations, workflow runs and the review queue.** `read` lists them by kind and `search` finds definitions. No job needed them as tables.
@@ -613,7 +621,7 @@ Depends on phase 5.
 3. Reduce handoff work kinds to answer and change. Rekey action confirmations, closing receipts, progress labels and activity titles by kind.
 4. Rewrite or retire the check groups that name old tools, keeping every invariant they assert. Update the Native UI Catalog registry and fixtures in the same change.
 5. Point the command line's `tool` command at the seven tools and workbook tools.
-6. Make `general` the only profile and delete the old tool definitions that no specialized phase still uses.
+6. Make `general` the only profile and delete the old tool definitions that no specialized phase still uses. Done on November 19, 2026, with steps 3 and 4 for the parts that profile removal needed.
 
 Exit:
 - Every job in the phase 1 list passes with the general tools, with no more decisions than the baseline in total.
@@ -668,20 +676,20 @@ Exit: preparing the same model pack from two different folders gives a byte-iden
 
 ### Phase H3. The header command, packaging, and an app that only restores
 
-Depends on H1, H2, phase 1 for its tool profile and baseline, and the owner's answers to P6, P8 and P9.
+Depends on H1, H2, phase 1 for its baseline, and the owner's answers to P6, P8 and P9.
 
 1. Add `sevra header make`, the header cache and the manifest, with the memory and running-engine guard and a stop path that waits for the engine's own exit.
 2. Add the rule that finds the header folder: the app's own folder for an executable inside an app, an explicit setting otherwise.
-3. Add one packaging helper that finds or makes the header for each tool profile and copies it into the app. Call it from [package_native.py](../../../scripts/package_native.py) after the runtime manifest is written and before the app is signed, and from [package_release.py](../../../scripts/package_release.py) after the nested binaries are signed and the manifests are written and before the command line helper app and the app are signed. Make a release package at stage `early-access` or `stable` fail without it.
+3. Add one packaging helper that finds or makes the header and copies it into the app. Call it from [package_native.py](../../../scripts/package_native.py) after the runtime manifest is written and before the app is signed, and from [package_release.py](../../../scripts/package_release.py) after the nested binaries are signed and the manifests are written and before the command line helper app and the app are signed. Make a release package at stage `early-access` or `stable` fail without it.
 4. Have [install.sh](../../../scripts/install.sh) say when it installed a build without a header and what to run after the model download.
 5. In the app, add the restore before every engine start, the checks at start and on every request, and the error states with their messages. Stop priming the ordinary chat header.
 6. Extend `check-resources` with the three header states.
 7. Have the real-model check scripts run the command first and pass the header cache to the tools they run. Add the comparison setting, the missed-resume seam and the context override to the check harness.
-8. Run the three timed turns on the `current` profile once more and record them beside the phase 1 baseline, so later wall-time comparisons use the same header mechanism.
+8. Run the three timed turns once more and record them beside the phase 1 baseline, so later wall-time comparisons use the same header mechanism.
 9. Document the development flow in [[records/operations/build-and-run]] and the README's setup steps. Record the new launch arguments in [[records/specs/splash-integration]], and add the header tests to that pin's qualification.
 10. Add the header tests, except the two that need a release package.
 
-Exit: those header tests pass on a packaged development build; a build with no header refuses chat with the message and computes nothing; with two tool profiles, each resumes its own header; a release package at stage `early-access` or `stable` fails without a header.
+Exit: those header tests pass on a packaged development build; a build with no header refuses chat with the message and computes nothing; a release package at stage `early-access` or `stable` fails without a header.
 
 ### Phase H4. A release carries a tested header
 
@@ -741,9 +749,8 @@ Each specification is updated in the phase that makes its new rule true: managed
 
 ## Open items for the owner
 
-- **Make the general tools the default, and remove the old ones.** The preview on the test Mac uses them through its saved setting. In the code `current` is still the default. Removing the old tool declarations means rewriting the 61 agent check files that script them by name.
 - **The rule job.** A rule cannot exist without a saved workflow. Either the product gets a built-in alert that a rule can run, or the job changes to the one that has a workflow.
-- **The app job.** It passed 2 of 3 runs under the general tools. Decide whether that blocks making them the default, given that today's tools were never measured on it.
+- **The app job.** It passed 2 of 3 runs. It is not in the light set.
 - **A look at the chat interface.** Access to operate the app's window was declined in the building session. Nobody has seen the "Change saved" row with "Undo this change", or how `sql` and `run` activity reads in the conversation. The UI Catalog has no entry for the row.
 - **Saved tools from a copied workbook (P5).** A tool that arrives in a copied workbook runs when the person asks for it by name. Its changes can be undone. An enable step is not built.
 - **A save panel for exports.** Today the model asks for the path when the request has none.
@@ -771,3 +778,4 @@ Each specification is updated in the phase that makes its new rule true: managed
 14. Phase 2's SQLite probe, run ahead of the phase. It confirmed table discovery, the trigger log, the refusals and the page cap. It showed that a written floating-point value cannot be told from an exact one once SQLite has converted it, so the Numbers design changed to floating-point cells with an exact side table, which the probe then confirmed.
 15. The build itself, November 18, 2026. Each failed real-model job was read from its transcript. They showed that the local model needs strict shapes, which reshaped `save` and `run`, and that a bare ID as a result makes it repeat a save.
 16. The owner's review of the testing, November 19, 2026. He had not asked for Spanish, reruns or repeated timings, and wanted model testing that takes minutes. The test section was rewritten around a light set of eleven jobs, and the harness now refuses a long run.
+17. The owner made the seven tools the only chat tools, November 19, 2026. Moving every scripted check to them found two faults the profile had hidden: a query that only read counted as a change, and the shown tool text differed by scope, which split the cached header. Both are fixed, and recorded under The build so far.

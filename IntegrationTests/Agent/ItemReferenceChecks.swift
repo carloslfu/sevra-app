@@ -72,16 +72,6 @@ func checkItemReferences() async throws {
     workbook: book, history: ("main", nil))
   try expectEqual(ItemReferenceCandidates.historyIDs(in: compacted)?.contains(said), true)
   try expectEqual(compacted[0].content, digest)
-  let offered = try NativeTools.referenceDefinitions(historyReferenceIDs: [said])
-  try expectEqual(
-    offered.first { $0.name == "history_read" }?.parameters["properties"]["id"]["enum"],
-    .array([.string(said)]))
-  let quiet = try NativeTools.referenceDefinitions(historyReferenceIDs: [])
-  try expectEqual(quiet.contains { $0.name == "history_read" }, false)
-  let unconstrained = try NativeTools.referenceDefinitions()
-  try expectEqual(
-    unconstrained.first { $0.name == "history_read" }?.parameters["properties"]["id"]["enum"], .null
-  )
   let annotated = try ItemReferenceCandidates.annotate([input], workbook: book)
   try expectEqual(
     try ItemReferenceCandidates.ids(in: annotated), [old.id, old.logicalID, current.id].sorted())
@@ -164,10 +154,13 @@ func checkItemReferences() async throws {
   for scope in [InferenceToolScope.all, .inspection] {
     let policy = try NativeCitationPolicy.make(
       [], toolScope: scope, itemReferenceIDs: [correctReference])
-    for tool in ["read", "lineage", "references"] {
-      try policy.validate(checks.candidate(tool, [("id", correctReference)], policy: policy))
+    // An item, what it links to and what it came from are all read by the item's exact ID.
+    for kind in [[], [("kind", "lineage")], [("kind", "references")]] {
+      try policy.validate(
+        checks.candidate("read", [("id", correctReference)] + kind, policy: policy))
       try expectThrows(
-        try policy.validate(checks.candidate(tool, [("id", failedReference)], policy: policy)))
+        try policy.validate(
+          checks.candidate("read", [("id", failedReference)] + kind, policy: policy)))
     }
   }
   let uncited = try NativeCitationPolicy.make([], itemReferenceIDs: [correctReference])
@@ -231,7 +224,7 @@ private actor ReferenceRefusalFixture: WorkbookInference {
     return NativeReply(
       text: "",
       calls: [
-        .init(id: identifier(), name: step == 3 ? "finish" : "read", inputJSON: try args.json())
+        try .init(id: identifier(), operation: step == 3 ? "finish" : "read", args, scope: toolScope)
       ])
   }
 }
@@ -261,10 +254,12 @@ func checkItemReferenceGrammar(frontend: SplashTextFrontend, factory: SplashGram
     // reusable prompt prefix. One choice and 256 choices have the same prompt.
     try expectEqual(bounded.tokens, base.tokens)
     if !thinking { try expectEqual(full.tokens, bounded.tokens) }
-    for tool in ["read", "lineage", "references"] {
+    for kind in ["", "lineage", "references"] {
       func output(_ id: String) -> String {
         (thinking ? "Inspect the known reference.</think>\n" : "")
-          + "<tool_call>\n<function=\(tool)>\n<parameter=id>\n\(id)\n</parameter>\n</function>\n</tool_call>"
+          + "<tool_call>\n<function=read>\n<parameter=id>\n\(id)\n</parameter>\n"
+          + (kind.isEmpty ? "" : "<parameter=kind>\n\(kind)\n</parameter>\n")
+          + "</function>\n</tool_call>"
       }
       let valid = try factory.create(grammar: policy.grammar)
       try valid.finish(committed: frontend.encode(output(correctReference)), requireComplete: true)

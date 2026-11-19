@@ -44,11 +44,11 @@ package struct NativePreparedRequest {
   package init(
     messages: [InferenceMessage], frontend: SplashTextFrontend,
     configuredReasoning: NativeReasoning, toolScope: InferenceToolScope,
-    citationIDs: [String], interpretation: Value? = nil, toolProfile: ToolProfile = .current
+    citationIDs: [String], interpretation: Value? = nil
   ) throws {
-    // Host text written for the operations names them. The model is told the general tool.
+    // Host text written for the operations names them. The model is told the chat tool.
     let messages =
-      toolProfile == .general && interpretation == nil && !toolScope.specialized
+      interpretation == nil && !toolScope.specialized
       ? messages.map { message -> InferenceMessage in
         guard ["system", "tool"].contains(message.role) else { return message }
         var worded = message
@@ -87,12 +87,11 @@ package struct NativePreparedRequest {
         itemReferenceIDs: ItemReferenceCandidates.ids(in: messages),
         conversationActions: messages.first?.conversationActions,
         documentCopyIDs: DocumentCopyCandidates.ids(in: messages),
-        historyReferenceIDs: ItemReferenceCandidates.historyIDs(in: messages),
         nativeAppAuthoring: messages.first?.nativeAppAuthoring == true,
         reviewContract: messages.first?.reviewContract ?? .null,
         conversationInput: messages.first?.conversationInput == true,
         visualCaptureIDs: messages.first?.visualCaptureIDs ?? [],
-        countReceiptIDs: messages.first?.countReceiptIDs, toolProfile: toolProfile)
+        countReceiptIDs: messages.first?.countReceiptIDs)
     }
     // Render a stable vocabulary even before the first lookup/history read.
     // Dynamic exact-ID restrictions remain in policy.grammar and policy.validate.
@@ -101,13 +100,11 @@ package struct NativePreparedRequest {
     if interpretation == nil {
       promptPolicy = try NativeCitationPolicy.make(
         [], toolScope: toolScope, thinking: reasoning.enabled,
-        conversationActions: messages.first?.conversationActions,
-        documentCopyIDs: nil, historyReferenceIDs: nil,
+        conversationActions: messages.first?.conversationActions, documentCopyIDs: nil,
         nativeAppAuthoring: messages.first?.nativeAppAuthoring == true,
         reviewContract: messages.first?.reviewContract ?? .null,
         conversationInput: messages.first?.conversationInput == true,
-        visualCaptureIDs: messages.first?.visualCaptureIDs ?? [], toolProfile: toolProfile,
-        display: true)
+        visualCaptureIDs: messages.first?.visualCaptureIDs ?? [], display: true)
     } else {
       promptPolicy = policy
     }

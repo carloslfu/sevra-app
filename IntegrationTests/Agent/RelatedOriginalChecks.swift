@@ -46,7 +46,7 @@ private actor RelatedOriginalInference: WorkbookInference {
         "basis": .string("evidence"), "citations": .array([.string(brio)]),
       ])
     }
-    return .init(text: "", calls: [.init(id: identifier(), name: tool, inputJSON: try args.json())])
+    return .init(text: "", calls: [try .init(id: identifier(), operation: tool, args, scope: toolScope)])
   }
 }
 
@@ -88,8 +88,8 @@ private actor StalledOriginalInference: WorkbookInference {
       try expectEqual(toolScope.allows("search"), false)
       try expectEqual(toolScope.allows("history_search"), false)
       try expectEqual(messages[0].content.contains("Host exploration limit"), true)
-      tool = "calculate"
-      args = .object(["expression": .string("SUM(120,10)")])
+      tool = "sql"
+      args = .object(["statements": .array([.string("SELECT 120 + 10")])])
     default:
       try expectEqual(step, 7)
       try expectEqual(toolScope, .boundedAnswer)
@@ -101,7 +101,7 @@ private actor StalledOriginalInference: WorkbookInference {
         "basis": .string("evidence"), "citations": .array([.string(atlas), .string(brio)]),
       ])
     }
-    return .init(text: "", calls: [.init(id: identifier(), name: tool, inputJSON: try args.json())])
+    return .init(text: "", calls: [try .init(id: identifier(), operation: tool, args, scope: toolScope)])
   }
 }
 
@@ -136,7 +136,7 @@ private actor EmptySearchesAfterEvidence: WorkbookInference {
         "citations": .array([.string(atlas)]),
       ])
     }
-    return .init(text: "", calls: [.init(id: identifier(), name: tool, inputJSON: try args.json())])
+    return .init(text: "", calls: [try .init(id: identifier(), operation: tool, args, scope: toolScope)])
   }
 }
 
@@ -169,8 +169,8 @@ private actor MissingCostInference: WorkbookInference {
       let result = try Value.parse(messages.last!.content)
       try expectEqual(result["item"]["id"].text, quotes)
       try expectEqual(result["requestEvidence"]["originals"].array.isEmpty, true)
-      tool = "calculate"
-      args = .object(["expression": .string("SUM(100*1.20, 10)")])
+      tool = "sql"
+      args = .object(["statements": .array([.string("SELECT 100 * 1.20 + 10")])])
     case 4:
       tool = "finish"
       args = .object([
@@ -191,7 +191,7 @@ private actor MissingCostInference: WorkbookInference {
         "basis": .string("evidence"), "citations": .array([.string(quotes)]),
       ])
     }
-    return .init(text: "", calls: [.init(id: identifier(), name: tool, inputJSON: try args.json())])
+    return .init(text: "", calls: [try .init(id: identifier(), operation: tool, args, scope: toolScope)])
   }
 }
 

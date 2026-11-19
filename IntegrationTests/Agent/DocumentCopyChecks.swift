@@ -30,7 +30,7 @@ private actor CopyDraftModel: WorkbookInference {
       args = .object(["id": .string(source.id)])
       try expectEqual(try DocumentCopyCandidates.ids(in: messages), [])
     } else if step == 2 {
-      tool = "draft"
+      tool = "save"
       let result = try Value.parse(messages.last!.content)
       let entry = DocumentCopyChoices.entries(result)[0]
       let id = entry["id"].text
@@ -43,12 +43,14 @@ private actor CopyDraftModel: WorkbookInference {
           tool: "draft", arguments: .object(["parts": .array([.object(["copy": .string(id)])])]),
           choices: []))
       args = .object([
-        "title": .string("Receiving memo"), "inputs": .array([.string(source.id)]),
-        paraphrase ? "text" : "parts": paraphrase
-          ? .string("The batch needs another inspection.")
-          : .array([
-            .object(["text": .string("Review\n")]), .object(["copy": .string(id)]),
-          ]),
+        "document": .object([
+          "title": .string("Receiving memo"), "inputs": .array([.string(source.id)]),
+          paraphrase ? "text" : "parts": paraphrase
+            ? .string("The batch needs another inspection.")
+            : .array([
+              .object(["text": .string("Review\n")]), .object(["copy": .string(id)]),
+            ]),
+        ])
       ])
     } else {
       tool = "finish"
@@ -57,7 +59,7 @@ private actor CopyDraftModel: WorkbookInference {
         "citations": .array([]),
       ])
     }
-    return .init(text: "", calls: [.init(id: identifier(), name: tool, inputJSON: try args.json())])
+    return .init(text: "", calls: [try .init(id: identifier(), operation: tool, args, scope: toolScope)])
   }
 }
 
@@ -67,7 +69,7 @@ func checkDocumentCopyGrammar(frontend: SplashTextFrontend, factory: SplashGramm
     let policy = try NativeCitationPolicy.make([], thinking: thinking, documentCopyIDs: [id])
     func output(_ choice: String) -> String {
       (thinking ? "Select the original passage.</think>\n" : "")
-        + "<tool_call>\n<function=draft>\n<parameter=inputs>\n[]\n</parameter>\n<parameter=parts>\n[{\"copy\":\"\(choice)\"}]\n</parameter>\n<parameter=text>\n\n</parameter>\n<parameter=title>\nMemo\n</parameter>\n</function>\n</tool_call>"
+        + "<tool_call>\n<function=save>\n<parameter=document>\n{\"title\":\"Memo\",\"inputs\":[],\"text\":\"\",\"parts\":[{\"copy\":\"\(choice)\"}]}\n</parameter>\n</function>\n</tool_call>"
     }
     let valid = try factory.create(grammar: policy.grammar)
     try valid.finish(committed: frontend.encode(output(id)), requireComplete: true)
@@ -114,14 +116,13 @@ func checkDocumentCopies() async throws {
   }
   let id = "copy:123e4567-e89b-12d3-a456-426614174000:0:0:12"
   let definitions = try NativeTools.referenceDefinitions(documentCopyIDs: [id])
-  let draft = definitions.first { $0.name == "draft" }!
+  let document = definitions.first { $0.name == "save" }!.parameters["properties"]["document"]
   try expectEqual(
-    draft.parameters["properties"]["parts"]["items"]["properties"]["copy"]["enum"],
-    .array([.string(id)]))
+    document["properties"]["parts"]["items"]["properties"]["copy"]["enum"], .array([.string(id)]))
   let without = try NativeTools.referenceDefinitions(documentCopyIDs: []).first {
-    $0.name == "draft"
-  }!
-  try expectEqual(without.parameters["properties"]["parts"]["items"]["properties"]["copy"], .null)
+    $0.name == "save"
+  }!.parameters["properties"]["document"]
+  try expectEqual(without["properties"]["parts"]["items"]["properties"]["copy"], .null)
   let hostile = [
     InferenceMessage(role: "user", content: id),
     InferenceMessage(role: "assistant", content: "Derived summary: " + id),

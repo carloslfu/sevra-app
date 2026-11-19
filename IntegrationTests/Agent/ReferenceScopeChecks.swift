@@ -51,7 +51,7 @@ private actor HiddenRequestInference: WorkbookInference {
         "basis": .string("general"), "citations": .array([]),
       ])
     }
-    return .init(text: "", calls: [.init(id: identifier(), name: tool, inputJSON: try args.json())])
+    return .init(text: "", calls: [try .init(id: identifier(), operation: tool, args, scope: toolScope)])
   }
 }
 

@@ -23,7 +23,7 @@ private actor CoverageInference: WorkbookInference {
     step += 1
     func call(_ name: String, _ input: Value) throws -> NativeReply {
       NativeReply(
-        text: "", calls: [.init(id: identifier(), name: name, inputJSON: try input.json())])
+        text: "", calls: [try .init(id: identifier(), operation: name, input, scope: toolScope)])
     }
     func count() throws -> NativeReply {
       try call(
@@ -235,7 +235,7 @@ private actor RequestEvidenceInference: WorkbookInference {
       NativeReply(
         text: "",
         calls: [
-          .init(id: identifier(), name: name, inputJSON: try arguments.json())
+          try .init(id: identifier(), operation: name, arguments, scope: toolScope)
         ])
     }
     if step == 1 {

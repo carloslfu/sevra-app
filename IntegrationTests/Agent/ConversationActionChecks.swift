@@ -31,8 +31,7 @@ private actor ConversationActionModel: WorkbookInference {
       return .init(
         text: "This untrusted assistant claim must not be published.",
         calls: [
-          .init(
-            id: "interface-action", name: tool, inputJSON: try Value.object(fields).json())
+          try .init(id: "interface-action", operation: tool, .object(fields), scope: toolScope)
         ])
     }
     try require(
@@ -55,15 +54,15 @@ func checkConversationActions() async throws {
   let mainPolicy = try NativeCitationPolicy.make(
     [], conversationActions: ["start_thread", "start_thread_and_continue"])
   try mainPolicy.validate(
-    checks.candidate("start_thread", [], policy: mainPolicy))
+    checks.candidate(
+      "run", [("action", #"{"name":"thread.start","arguments":{}}"#)], policy: mainPolicy))
   try expectThrows(
     try mainPolicy.validate(
       checks.candidate(
-        "rename_current_thread", [("title", "Other")], policy: mainPolicy
-      )))
-  let restrictedTools = try NativeTools.referenceDefinitions(conversationActions: [])
-  try expectEqual(
-    restrictedTools.contains { WorkbookTools.conversationTools[$0.name] != nil }, false)
+        "run", [("action", #"{"name":"thread.rename","arguments":{"title":"Other"}}"#)],
+        policy: mainPolicy)))
+  let restrictedTools = try NativeTools.serializedDefinitions(conversationActions: [])
+  try expectEqual(String(decoding: restrictedTools, as: UTF8.self).contains("thread."), false)
   let root = FileManager.default.temporaryDirectory.appendingPathComponent(
     "sevra-conversation-actions-" + identifier())
   defer { try? FileManager.default.removeItem(at: root) }
@@ -151,13 +150,15 @@ func checkConversationActionGrammar(
       [], thinking: thinking, conversationActions: [])
     func output(_ action: String) -> [UInt32] {
       let tool = WorkbookTools.conversationTools.first { $0.value == action }!.key
+      let name = GeneralTools.actions.first { $0.value == tool }!.key
+      let arguments =
+        action == "start_thread_and_continue"
+        ? #"{"task":"calculate the difference","work":"answer"}"# : "{}"
       return frontend.encode(
         (thinking ? "Use the available interface action.</think>\n" : "")
-          + "<tool_call>\n<function=" + tool + ">\n"
-          + (action == "start_thread_and_continue"
-            ? "<parameter=task>\ncalculate the difference\n</parameter>\n<parameter=work>\nanswer\n</parameter>\n"
-            : "")
-          + "</function>\n</tool_call>")
+          + "<tool_call>\n<function=run>\n<parameter=action>\n"
+          + #"{"name":""# + name + #"","arguments":"# + arguments + "}"
+          + "\n</parameter>\n</function>\n</tool_call>")
     }
     let create = try factory.create(grammar: main.grammar)
     try create.finish(committed: output("start_thread"), requireComplete: true)

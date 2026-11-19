@@ -141,19 +141,11 @@ private actor ReviewReadGate {
   try expect(session.items.count == 20 && session.pageNumber == 1)
   await session.load(scope: "second", revision: 0) { _, _ in try other.reviewQueue() }
   try expect(session.items.isEmpty && !session.hasPrevious)
-  let tableProposal = try WorkbookTools(book).execute(
-    "propose_table",
-    .object([
-      "title": .string("Proposed orders"), "meaning": .string("plan"),
-      "inputs": .array([.string(source.id)]),
-      "columns": .array([
-        .object([
-          "id": .string("quantity"), "title": .string("Quantity"), "type": .string("decimal"),
-        ])
-      ]),
-      "rows": .array([.object(["quantity": .string("2")])]),
-    ]))
-  let declinedTable = try book.withdrawDraft(tableProposal["id"].text)
+  let tableProposal = try book.proposeTable(
+    title: "Proposed orders",
+    columns: [.init(id: "quantity", title: "Quantity", type: "decimal")],
+    rows: [["quantity": .string("2")]], meaning: "plan", inputs: [source.id])
+  let declinedTable = try book.withdrawDraft(tableProposal.id)
   try expect(try book.datasets().isEmpty)
   let restoredTable = try book.undoItem(declinedTable.id)
   try expect(restoredTable.status == "draft" && book.datasets().isEmpty)

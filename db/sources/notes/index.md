@@ -2,11 +2,12 @@
 type: index
 scope: type-folder
 folder: sources/notes
-updated: 2026-11-19T14:06:36.202933Z
+updated: 2026-11-19T16:34:29.754968Z
 ---
 
 # sources/notes
 
+- [[sources/notes/2026/11/general-tools-only]] — Carlos makes the seven tools the only chat tools and asks to remove the old way, with no backward compatibility.
 - [[sources/notes/2026/11/light-testing-direction]] — Carlos stops the overtesting: this app is tested in English, and model tests cover happy paths and edge cases in minutes.
 - [[sources/notes/2026/11/general-tools-in-the-app]] — Carlos asks to put the general tools in the app and finish the whole plan end to end.
 - [[sources/notes/2026/11/general-tools-answers]] — Owner's four answers after the first sql slice: agent decides the DB.md DDL line, format changes need no compatibility, header paused, 15-digit numbers kept.

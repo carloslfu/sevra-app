@@ -30,9 +30,7 @@ private actor AppAuthoringModel: WorkbookInference {
       return .init(
         text: "",
         calls: [
-          .init(
-            id: "review", name: "review_native_app",
-            inputJSON: try review.json())
+          try .init(id: "review", operation: "review_native_app", review, scope: toolScope)
         ])
     }
     authoringModes.append(messages.first?.nativeAppAuthoring == true)
@@ -48,7 +46,7 @@ private actor AppAuthoringModel: WorkbookInference {
       )
     index += 1
     return .init(
-      text: "", calls: [.init(id: "app-\(index)", name: action.0, inputJSON: try action.1.json())])
+      text: "", calls: [try .init(id: "app-\(index)", operation: action.0, action.1, scope: toolScope)])
   }
 }
 

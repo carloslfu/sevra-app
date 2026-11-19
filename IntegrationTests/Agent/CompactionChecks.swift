@@ -443,8 +443,8 @@ private actor RunningJobFixture: WorkbookInference {
       if responses == 9 {
         try expectEqual(messages.last!.content.contains("percentage is unsupported"), true)
       }
-      name = "calculate"
-      input = .object(["expression": .string("12.73"), "values": .object([:])])
+      name = "sql"
+      input = .object(["statements": .array([.string("SELECT 12.73")])])
     } else if arithmetic && responses == 8 {
       name = "finish"
       input = .object([
@@ -458,8 +458,12 @@ private actor RunningJobFixture: WorkbookInference {
         "inputs": .array([]),
       ])
     } else if responses <= 7 {
+      // The same read twice in a row is answered from the first, so alternate how it is asked.
       name = "read"
-      input = .object(["id": .string(sourceID)])
+      input = .object(
+        ["id": .string(sourceID)].merging(responses % 2 == 0 ? [:] : ["offset": .number(0)]) {
+          first, _ in first
+        })
     } else {
       if !arithmetic { try expectEqual(citationIDs.contains(sourceID), true) }
       name = "finish"
@@ -472,7 +476,7 @@ private actor RunningJobFixture: WorkbookInference {
     }
     return NativeReply(
       text: "",
-      calls: [InferenceCall(id: "job-\(responses)", name: name, inputJSON: try input.json())])
+      calls: [try InferenceCall(id: "job-\(responses)", operation: name, input, scope: toolScope)])
   }
 }
 

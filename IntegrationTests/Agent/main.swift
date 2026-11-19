@@ -32,11 +32,10 @@ final class ToolPolicyChecks {
       (normalized.first { ($0["function"] as! [String: Any])["name"] as? String == name }![
         "function"] as! [String: Any])
     }
-    let fields = function("propose_table")["parameters"] as! [String: Any]
+    let fields = function("propose_record")["parameters"] as! [String: Any]
     let properties = fields["properties"] as! [String: Any]
-    let rows = properties["rows"] as! [String: Any]
-    let item = rows["items"] as! [String: Any]
-    try expectEqual(item["additionalProperties"] as? Bool, true)
+    let data = properties["data"] as! [String: Any]
+    try expectEqual(data["additionalProperties"] as? Bool, true)
     try expectEqual(fields["additionalProperties"] as? Bool, false)
     try expectEqual(
       (function("save_definition")["parameters"] as! [String: Any])["required"] as? [String],
@@ -73,14 +72,6 @@ final class ToolPolicyChecks {
   func testWorkbookArguments() throws {
     let policy = try SplashToolPolicy(toolsJSON: actualTools())
     try policy.validate(candidate("datasets", [], policy: policy))
-    try policy.validate(
-      candidate(
-        "propose_table",
-        [
-          ("title", "Suppliers"), ("meaning", "plan"), ("inputs", "[\"source-1\"]"),
-          ("columns", "[{\"id\":\"price\",\"title\":\"Price\",\"type\":\"decimal\"}]"),
-          ("rows", "[{\"price\":\"12.40\",\"optional\":null}]"),
-        ], policy: policy))
     try policy.validate(
       candidate(
         "propose_record",
@@ -365,10 +356,6 @@ do {
     try await checkSQLTool()
     exit(0)
   }
-  if CommandLine.arguments.dropFirst() == ["--model-actor-table-probe"] {
-    try await runModelActorTableProbe()
-    exit(0)
-  }
   if CommandLine.arguments.dropFirst() == ["--chat-checks"] {
     try await checkChatAgentOperations()
     exit(0)
@@ -577,7 +564,7 @@ do {
       historyOnly: CommandLine.arguments[1] == "--history",
       continuityOnly: CommandLine.arguments[1] == "--continuity",
       contextRecoveryOnly: CommandLine.arguments[1] == "--context-recovery")
-  } else if [3, 5].contains(CommandLine.arguments.count) {
+  } else if CommandLine.arguments.count == 3 {
     let frontend = try SplashTextFrontend(
       modelFolder: URL(fileURLWithPath: CommandLine.arguments[1]))
     let library = URL(fileURLWithPath: CommandLine.arguments[2])
@@ -594,14 +581,9 @@ do {
     try checkActionDirectionGrammar(frontend: frontend, factory: factory)
     try checkNativeReviewGrammar(frontend: frontend, factory: factory)
     try checkInterpretationGrammar(frontend: frontend, factory: factory)
-    if CommandLine.arguments.count == 5 {
-      try runNativeWorkbookProbe(
-        frontend: frontend, factory: factory, engine: CommandLine.arguments[3],
-        assembly: CommandLine.arguments[4])
-    }
   } else if CommandLine.arguments.count != 1 {
     throw SplashError(
-      "Usage: sevra-agent-checks --reference-traversal MODEL_FOLDER PINNED_NATIVE_LIBRARY ENGINE NEW_OUTPUT_DIRECTORY or --document-composition/--movement-direction/--request-handoff/--interface-guidance/--conversation-actions MODELS_ROOT PINNED_NATIVE_LIBRARY ENGINE NEW_OUTPUT_DIRECTORY or --active-context/--active-context-maintained MODELS_ROOT PINNED_NATIVE_LIBRARY ENGINE NEW_OUTPUT_DIRECTORY or --continuity-workflow MODELS_ROOT PINNED_NATIVE_LIBRARY ENGINE NEW_OUTPUT_DIRECTORY or [MODEL_FOLDER PINNED_NATIVE_LIBRARY [ENGINE ASSEMBLY]] or --autonomous/--inventory/--occupied/--history/--continuity/--context-recovery/--reasoning-comparison/--reasoning-boundary/--inspection-recovery/--coverage MODEL_FOLDER PINNED_NATIVE_LIBRARY ENGINE MODELS_ROOT. The continuity workflow uses native-installed models, 32K and bounded512; reference traversal uses local-pack models at those same budgets. SEVRA_NATIVE_CONTEXT_TOKENS selects 8192/32768/65536/131072/262144 and SEVRA_NATIVE_REASONING selects 0/512 in other development checks. Reasoning comparison fixes 32K and accepts SEVRA_REASONING_SAVE_FIXTURES or SEVRA_REASONING_FIXTURES; SEVRA_REASONING_BOUNDED_ONLY=1 runs only the bounded arm."
+      "Usage: sevra-agent-checks --reference-traversal MODEL_FOLDER PINNED_NATIVE_LIBRARY ENGINE NEW_OUTPUT_DIRECTORY or --document-composition/--movement-direction/--request-handoff/--interface-guidance/--conversation-actions MODELS_ROOT PINNED_NATIVE_LIBRARY ENGINE NEW_OUTPUT_DIRECTORY or --active-context/--active-context-maintained MODELS_ROOT PINNED_NATIVE_LIBRARY ENGINE NEW_OUTPUT_DIRECTORY or --continuity-workflow MODELS_ROOT PINNED_NATIVE_LIBRARY ENGINE NEW_OUTPUT_DIRECTORY or [MODEL_FOLDER PINNED_NATIVE_LIBRARY] or --autonomous/--inventory/--occupied/--history/--continuity/--context-recovery/--reasoning-comparison/--reasoning-boundary/--inspection-recovery/--coverage MODEL_FOLDER PINNED_NATIVE_LIBRARY ENGINE MODELS_ROOT. The continuity workflow uses native-installed models, 32K and bounded512; reference traversal uses local-pack models at those same budgets. SEVRA_NATIVE_CONTEXT_TOKENS selects 8192/32768/65536/131072/262144 and SEVRA_NATIVE_REASONING selects 0/512 in other development checks. Reasoning comparison fixes 32K and accepts SEVRA_REASONING_SAVE_FIXTURES or SEVRA_REASONING_FIXTURES; SEVRA_REASONING_BOUNDED_ONLY=1 runs only the bounded arm."
     )
   }
 } catch {

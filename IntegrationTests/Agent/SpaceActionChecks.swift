@@ -22,8 +22,8 @@ private actor SpaceActionModel: WorkbookInference {
       return .init(
         text: "",
         calls: [
-          .init(
-            id: "space-\(index)", name: actions[index].0, inputJSON: try actions[index].1.json())
+          try .init(
+            id: "space-\(index)", operation: actions[index].0, actions[index].1, scope: toolScope)
         ])
     }
     let refused = messages.last?.content.contains("error") == true
@@ -54,7 +54,7 @@ private actor SpaceActionModel: WorkbookInference {
   var opened: [String] = []
   let model = SpaceActionModel([
     ("set_space_pinned", pin), ("open_space", target),
-    ("calculate", .object(["expression": .string("9-2")])),
+    ("sql", .object(["statements": .array([.string("SELECT 9 - 2")])])),
   ])
   _ = try await WorkbookAgent.run(
     "Pin Purchasing, open it and calculate 9 minus 2.", workbook: book, model: model,

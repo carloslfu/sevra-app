@@ -174,8 +174,8 @@ package enum NativeTools {
   // Keep the same schemas, bounds and enums while reserving context for actual work.
   private static let compactParameterDescriptions: Set<String> = [
     "start_thread_and_continue", "start_thread", "review_thread_summary", "tool_result",
-    "read", "compare_rows", "propose_table", "edit_space", "draft", "finish",
-    "workflow_template", "save_definition", "include_archive_members", "propose_table_edit",
+    "read", "edit_space", "draft", "finish",
+    "workflow_template", "save_definition", "include_archive_members",
     "space_history", "references", "calculate", "workspace_action", "workspace_actions",
     "inventory_automation_template", "workflow_activity",
   ]
@@ -199,15 +199,9 @@ package enum NativeTools {
             ),
             "work": .object([
               "type": .string("string"),
-              "enum": .array(
-                [
-                  "answer", "draft", "save_space", "save_native_app", "edit_space", "restore_space",
-                  "propose_movement",
-                  "propose_record",
-                  "propose_table", "propose_table_edit",
-                ].map(Value.string)),
+              "enum": .array([.string("answer"), .string("change")]),
               "description": .string(
-                "Requested operation: answer=research/calculation/report; draft=document; proposals=inventory/Record/new data/values; spaces=new/edit/historical. Titles request no artifact."
+                "answer: research, a calculation or a report. change: anything that saves or changes the workbook. Titles request no artifact."
               ),
             ]),
           ], required: ["task", "work"])),
@@ -291,38 +285,6 @@ package enum NativeTools {
               "JSON segments; empty path."
             ),
           ], required: ["id"])),
-      .init(
-        name: "propose_table",
-        description:
-          "Draft an evidence-based table,40columns/100rows. Acceptance separate; preserve meaning, including estimates/plans.",
-        parameters: object(
-          [
-            "title": schema("string", "Table name."),
-            "meaning": schema(
-              "string",
-              "actual, estimate, plan, commitment, rule or assumption. Use plan for a new planning table."
-            ), "inputs": evidenceList,
-            "columns": .object([
-              "type": .string("array"), "maxItems": .number(40),
-              "items": object(
-                [
-                  "id": schema("string", "Unique column ID."),
-                  "title": schema("string", "Column label."),
-                  "type": schema("string", "text, decimal, boolean or date."),
-                  "formula": schema(
-                    "string", "Optional formula over column IDs."),
-                  "unit": schema("string", "Optional explicit unit label."),
-                ], required: ["id", "title", "type"]),
-            ]),
-            "rows": .object([
-              "type": .string("array"), "maxItems": .number(100),
-              "items": .object([
-                "type": .string("object"),
-                "description": .string(
-                  "Column IDs mapped to values; decimals are strings. Never invent missing facts."),
-              ]),
-            ]),
-          ], required: ["title", "columns", "rows", "meaning", "inputs"])),
       .init(
         name: "archive_members",
         description:
@@ -445,16 +407,6 @@ package enum NativeTools {
             "offset": schema("integer", "Row offset, normally zero."),
           ], required: ["datasetID"])),
       .init(
-        name: "compare_rows",
-        description:
-          "Deterministic comparison: min/max/difference, percent cheaper relative to max. Use instead of mental math.",
-        parameters: object(
-          [
-            "datasetID": schema("string", "Table ID."),
-            "labelColumn": schema("string", "Column with supplier/item names."),
-            "valueColumn": schema("string", "Numeric or calculated column to compare."),
-          ], required: ["datasetID", "labelColumn", "valueColumn"])),
-      .init(
         name: "review_queue",
         description:
           "Current drafts, oldest first,20/page. No requests/rows; edits are table proposals. Read originals before claims.",
@@ -496,26 +448,6 @@ package enum NativeTools {
             "id": schema("string", "Existing space ID."),
             "title": schema("string", "Name of pinned copy."),
           ], required: ["id", "title"])),
-      .init(
-        name: "propose_table_edit",
-        description:
-          "Draft requested proposals only; accepted data unchanged. Direct edits use app.run/table.change_rows. Read exact row versions; send changed fields only.",
-        parameters: object(
-          [
-            "datasetID": schema("string", "Existing table ID."),
-            "edits": .object([
-              "type": .string("array"), "maxItems": .number(100),
-              "items": object(
-                [
-                  "id": schema("string", "Exact inspected row version ID."),
-                  "values": .object([
-                    "type": .string("object"),
-                    "description": .string(
-                      "Changed column IDs to new values; decimals are strings."),
-                  ]),
-                ], required: ["id", "values"]),
-            ]),
-          ], required: ["datasetID", "edits"])),
       .init(
         name: "calculate",
         description:

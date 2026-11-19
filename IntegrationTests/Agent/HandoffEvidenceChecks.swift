@@ -34,8 +34,8 @@ private actor EvidenceHandoffModel: WorkbookInference {
       tool = "read"
       arguments = .object(["id": .string(originals[calls - 2].id)])
     case 4:
-      tool = "calculate"
-      arguments = .object(["expression": .string("14.80 - 12.40")])
+      tool = "sql"
+      arguments = .object(["statements": .array([.string("SELECT round(14.80 - 12.40, 2)")])])
     case 5:
       if stale {
         _ = try book.addItem(
@@ -58,10 +58,9 @@ private actor EvidenceHandoffModel: WorkbookInference {
       let carried = messages.flatMap(\.toolCalls).map(\.name)
       try expectEqual(
         carried,
-        (stale ? ["read"] : ["read", "read", "calculate"])
-          + ["start_thread_and_continue"])
+        (stale ? ["read"] : ["read", "read", "sql"]) + ["run"])
       let creation = try Value.parse(messages.last!.content)
-      try expectEqual(messages.last!.toolName, "start_thread_and_continue")
+      try expectEqual(messages.last!.toolName, "run")
       try expectEqual(creation["kind"].text, "created")
       try expectEqual(
         try book.conversations().contains { $0["id"] == creation["conversation"] }, true)
@@ -79,7 +78,7 @@ private actor EvidenceHandoffModel: WorkbookInference {
     }
     return .init(
       text: "Untrusted assistant prose",
-      calls: [.init(id: identifier(), name: tool, inputJSON: try arguments.json())],
+      calls: [try .init(id: identifier(), operation: tool, arguments, scope: toolScope)],
       reasoning: "Private ephemeral reasoning")
   }
 }
@@ -143,7 +142,7 @@ func checkHandoffEvidence() async throws {
           ? .object(["padding": .string(String(repeating: "x", count: 11000))]) : .object([:]))
       _ = try execute("read", .object(["id": .string(item.id)]), failed: mode == "failed")
     }
-    _ = try execute("calculate", .object(["expression": .string("14.8-12.4")]))
+    _ = try execute("sql", .object(["statements": .array([.string("SELECT 14.8 - 12.4")])]))
     let receipt = try execute(
       "start_thread_and_continue",
       .object(["task": .string("compare the original quotes"), "work": .string("answer")]))
@@ -163,6 +162,6 @@ func checkHandoffEvidence() async throws {
     try expectEqual(try book.verify()["ok"], .bool(true))
   }
   print(
-    "PASS handoff evidence: exact same-request reads/calculation, scoped history, changed heads, projection/failure refusal, byte/count bounds and replay"
+    "PASS handoff evidence: exact same-request reads and queries, scoped history, changed heads, projection/failure refusal, byte/count bounds and replay"
   )
 }

@@ -2,16 +2,6 @@ import Foundation
 import SevraCore
 
 extension NativeTools {
-  /// The ordinary chat tools a profile offers, before a scope narrows them.
-  package static func definitions(for toolProfile: ToolProfile) -> [WorkbookToolDefinition] {
-    switch toolProfile {
-    case .current: return definitions
-    case .general:
-      return GeneralTools.definitions(
-        operations: ChatOperations.operations.map(\.name), threads: nil, apps: true,
-        ask: inputDefinition)
-    }
-  }
   package static let sqlDefinition = WorkbookToolDefinition(
     name: "sql",
     description:
@@ -74,9 +64,8 @@ extension NativeTools {
   package static func referenceDefinitions(
     itemReferenceIDs: [String] = [], conversationActions: [String]? = nil,
     toolScope: InferenceToolScope = .all, documentCopyIDs: [String]? = nil,
-    historyReferenceIDs: [String]? = nil, nativeAppAuthoring: Bool = true,
-    reviewContract: Value = .null, conversationInput: Bool = false, visualCaptureIDs: [String] = [],
-    toolProfile: ToolProfile = .current, display: Bool = false
+    nativeAppAuthoring: Bool = true, reviewContract: Value = .null, conversationInput: Bool = false,
+    visualCaptureIDs: [String] = [], display: Bool = false
   ) throws
     -> [WorkbookToolDefinition]
   {
@@ -92,6 +81,7 @@ extension NativeTools {
         ExcelConversionAgent.definition,
       ]
     }
+    if toolScope.specialized { return excelDefinitions(toolScope) }
     let ids = try ItemReferenceCandidates.normalized(itemReferenceIDs)
     let copies = try documentCopyIDs.map(DocumentCopyCandidates.normalized)
     if let conversationActions {
@@ -99,7 +89,14 @@ extension NativeTools {
         Set(conversationActions).isSubset(of: Set(WorkbookTools.conversationTools.values)),
         "tool_schema", "Invalid conversation capability.")
     }
-    func showing(_ definition: WorkbookToolDefinition) -> WorkbookToolDefinition {
+    // A scope that only reads offers only the actions that only read.
+    return GeneralTools.definitions(
+      operations: toolScope.workspaceOperations.map(\.name),
+      threads: conversationActions.map(Set.init), apps: nativeAppAuthoring,
+      ask: toolScope.allows("request_input", conversationInput: conversationInput)
+        ? inputDefinition : nil, readOnly: !toolScope.changes, items: ids, display: display,
+      copies: copies, answersWorkflow: toolScope == .workflowAnswer
+    ).map { definition in
       guard definition.name == "finish", !visualCaptureIDs.isEmpty else { return definition }
       var parameters = definition.parameters.object
       var properties = definition.parameters["properties"].object
@@ -115,122 +112,48 @@ extension NativeTools {
         name: definition.name, description: definition.description,
         parameters: .object(parameters))
     }
-    if toolProfile == .general, !toolScope.specialized {
-      // A scope that only reads offers only the actions that only read.
-      let reading = toolScope != .all
-      return GeneralTools.definitions(
-        operations: toolScope.workspaceOperations.map(\.name),
-        threads: conversationActions.map(Set.init), apps: nativeAppAuthoring,
-        ask: toolScope.allows("request_input", conversationInput: conversationInput)
-          ? inputDefinition : nil, readOnly: reading, items: ids, display: display
-      ).map(showing)
-    }
-    let available =
-      definitions(for: toolScope.specialized ? .current : toolProfile)
-      + (toolScope.allows("request_input", conversationInput: conversationInput)
-        ? [inputDefinition] : [])
-      + ([.excelBuild, .excelCalculation, .excelInterface].contains(toolScope)
-        ? [excelEvidenceDefinition, excelBehaviorDefinition] : [])
-    return try available.compactMap { definition in
-      if definition.name == "workspace_action" {
-        // Undo of a sql call exists only beside sql, so today's tool list stays as it was.
-        let operations = toolScope.workspaceOperations.filter { $0.name != "table.undo_sql" }
-        guard !operations.isEmpty else { return nil }
-        var parameters = definition.parameters.object
-        var properties = definition.parameters["properties"].object
-        var action = properties["action"]!.object
-        action["enum"] = .array(operations.map { .string($0.name) })
-        properties["action"] = .object(action)
-        parameters["properties"] = .object(properties)
-        return .init(
-          name: definition.name, description: definition.description,
-          parameters: .object(parameters))
+  }
+
+  /// An Excel conversion stage's own tools.
+  private static func excelDefinitions(_ toolScope: InferenceToolScope) -> [WorkbookToolDefinition] {
+    (definitions + [excelEvidenceDefinition, excelBehaviorDefinition]).map { definition in
+      guard definition.name == "save_native_app", toolScope != .excelCalculation else {
+        return definition
       }
-      if definition.name == "finish", !visualCaptureIDs.isEmpty { return showing(definition) }
-      if definition.name == "save_native_app", !nativeAppAuthoring { return nil }
-      if definition.name == "save_native_app", [.excelBuild, .excelInterface].contains(toolScope) {
-        var parameters = definition.parameters.object
-        var properties = definition.parameters["properties"].object
-        properties.removeValue(forKey: "id")
-        properties.removeValue(forKey: "expectedVersion")
-        var package = properties["package"]!.object
-        var fields = package["properties"]!.object
-        if toolScope == .excelBuild {
-          fields["excelBehavior"] = excelBehaviorSchema
-        } else {
-          fields.removeValue(forKey: "excelBehavior")
-        }
-        fields["datasets"] = .object([
-          "type": .string("object"),
-          "additionalProperties": NativeTools.object(
-            ["writable": .object(["type": .string("boolean")])], required: ["writable"]),
-          "description": .string(
-            "Use every supplied short alias (sheet1, sheet2, …), each with only writable:true or false. The HOST fills in datasetID, title and exact columns. Do not supply them."
-          ),
-        ])
-        package["properties"] = .object(fields)
-        properties["package"] = .object(package)
-        parameters["properties"] = .object(properties)
-        parameters["required"] = .array(
-          Array(
-            Set(parameters["required"]?.array.map(\.text) ?? [])
-              .union(["fixtures"])
-          ).sorted().map(Value.string))
-        return .init(
-          name: definition.name,
-          description: (toolScope == .excelInterface
-            ? "Author the interface and shared record actions only. Calculation behavior is host-owned in this stage; do not supply excelBehavior or reimplement working formulas. "
-            : "")
-            + "Save this Excel conversion's native workspace. Omit package.excelBehavior to reuse the last host-matched calculation draft from this request, or supply a replacement explicitly. Calculation drafts survive later UI/test/review failures; failed compare_excel_behavior calls clear them. The host supplies app identity, version and exact table bindings. package.datasets is only {sheet1:{writable:true/false},...}. Use all supplied aliases; do not supply datasetID/title/columns inside bindings or id/expectedVersion. Tests use synthetic fixtures, never imported rows. Include fixture rows before selecting/editing them. Failed checks save no app; fix the error and resubmit.",
-          parameters: .object(parameters))
-      }
-      if let action = WorkbookTools.conversationTools[definition.name], let conversationActions {
-        guard conversationActions.contains(action) else { return nil }
-      }
-      if definition.name == "draft", let copies {
-        var parameters = definition.parameters.object
-        var properties = definition.parameters["properties"].object
-        var parts = properties["parts"]!.object
-        var item = parts["items"]!.object
-        var fields = item["properties"]!.object
-        if copies.isEmpty {
-          fields.removeValue(forKey: "copy")
-        } else {
-          var copy = fields["copy"]!.object
-          copy["enum"] = .array(copies.map(Value.string))
-          fields["copy"] = .object(copy)
-        }
-        item["properties"] = .object(fields)
-        parts["items"] = .object(item)
-        properties["parts"] = .object(parts)
-        parameters["properties"] = .object(properties)
-        return .init(
-          name: definition.name, description: definition.description,
-          parameters: .object(parameters))
-      }
-      if definition.name == "history_read", let historyReferenceIDs {
-        guard !historyReferenceIDs.isEmpty else { return nil }
-        var parameters = definition.parameters.object
-        var properties = definition.parameters["properties"].object
-        var id = properties["id"]!.object
-        id["enum"] = .array(historyReferenceIDs.map(Value.string))
-        properties["id"] = .object(id)
-        parameters["properties"] = .object(properties)
-        return .init(
-          name: definition.name, description: definition.description,
-          parameters: .object(parameters))
-      }
-      guard !ids.isEmpty else { return definition }
-      guard ["read", "lineage", "references"].contains(definition.name) else { return definition }
       var parameters = definition.parameters.object
       var properties = definition.parameters["properties"].object
-      var id = properties["id"]?.object ?? [:]
-      try require(id["type"] == .string("string"), "tool_schema", "The item lookup schema changed.")
-      id["enum"] = .array(ids.map(Value.string))
-      properties["id"] = .object(id)
+      properties.removeValue(forKey: "id")
+      properties.removeValue(forKey: "expectedVersion")
+      var package = properties["package"]!.object
+      var fields = package["properties"]!.object
+      if toolScope == .excelBuild {
+        fields["excelBehavior"] = excelBehaviorSchema
+      } else {
+        fields.removeValue(forKey: "excelBehavior")
+      }
+      fields["datasets"] = .object([
+        "type": .string("object"),
+        "additionalProperties": NativeTools.object(
+          ["writable": .object(["type": .string("boolean")])], required: ["writable"]),
+        "description": .string(
+          "Use every supplied short alias (sheet1, sheet2, …), each with only writable:true or false. The HOST fills in datasetID, title and exact columns. Do not supply them."
+        ),
+      ])
+      package["properties"] = .object(fields)
+      properties["package"] = .object(package)
       parameters["properties"] = .object(properties)
-      return WorkbookToolDefinition(
-        name: definition.name, description: definition.description, parameters: .object(parameters))
+      parameters["required"] = .array(
+        Array(
+          Set(parameters["required"]?.array.map(\.text) ?? [])
+            .union(["fixtures"])
+        ).sorted().map(Value.string))
+      return .init(
+        name: definition.name,
+        description: (toolScope == .excelInterface
+          ? "Author the interface and shared record actions only. Calculation behavior is host-owned in this stage; do not supply excelBehavior or reimplement working formulas. "
+          : "")
+          + "Save this Excel conversion's native workspace. Omit package.excelBehavior to reuse the last host-matched calculation draft from this request, or supply a replacement explicitly. Calculation drafts survive later UI/test/review failures; failed compare_excel_behavior calls clear them. The host supplies app identity, version and exact table bindings. package.datasets is only {sheet1:{writable:true/false},...}. Use all supplied aliases; do not supply datasetID/title/columns inside bindings or id/expectedVersion. Tests use synthetic fixtures, never imported rows. Include fixture rows before selecting/editing them. Failed checks save no app; fix the error and resubmit.",
+        parameters: .object(parameters))
     }
   }
 
@@ -238,21 +161,20 @@ extension NativeTools {
   package static func serializedDefinitions(
     toolScope: InferenceToolScope = .all, itemReferenceIDs: [String] = [],
     conversationActions: [String]? = nil, documentCopyIDs: [String]? = nil,
-    historyReferenceIDs: [String]? = nil, nativeAppAuthoring: Bool = true,
-    reviewContract: Value = .null, conversationInput: Bool = false, visualCaptureIDs: [String] = [],
-    toolProfile: ToolProfile = .current, display: Bool = false
+    nativeAppAuthoring: Bool = true, reviewContract: Value = .null, conversationInput: Bool = false,
+    visualCaptureIDs: [String] = [], display: Bool = false
   ) throws -> Data {
     let definitions = try referenceDefinitions(
       itemReferenceIDs: itemReferenceIDs, conversationActions: conversationActions,
       toolScope: toolScope, documentCopyIDs: documentCopyIDs,
-      historyReferenceIDs: historyReferenceIDs, nativeAppAuthoring: nativeAppAuthoring,
+      nativeAppAuthoring: nativeAppAuthoring,
       reviewContract: reviewContract, conversationInput: conversationInput,
-      visualCaptureIDs: visualCaptureIDs, toolProfile: toolProfile, display: display
+      visualCaptureIDs: visualCaptureIDs, display: display
     )
     .filter {
-      toolProfile == .general && !toolScope.specialized
-        ? GeneralTools.allowed($0.name, in: toolScope, conversationInput: conversationInput)
-        : toolScope.allows($0.name, conversationInput: conversationInput)
+      toolScope.specialized
+        ? toolScope.allows($0.name, conversationInput: conversationInput)
+        : GeneralTools.allowed($0.name, in: toolScope, conversationInput: conversationInput)
     }
     let values: [[String: Any]] = try definitions.map {
       [

@@ -3,18 +3,18 @@ import SevraAI
 import SevraCore
 import SevraNativeAI
 
-/// The `sql` tool as a model run reaches it: declared only under the general profile, its
-/// results accepted as the basis of an answer, and its row changes saved under the AI actor.
+/// The `sql` tool as a model run reaches it: one of the seven chat tools, its results
+/// accepted as the basis of an answer, and its row changes saved under the AI actor.
 func checkSQLTool() async throws {
-  let general = Set(NativeTools.definitions(for: .general).map(\.name))
-  try expectEqual(general, Set(GeneralTools.names))
-  try expectEqual(NativeTools.definitions(for: .current).contains { $0.name == "sql" }, false)
-  // The grammar accepts the declaration, and specialized phases keep today's tools.
-  _ = try NativeCitationPolicy.make([], toolScope: .all, toolProfile: .general)
-  for scope in InferenceToolScope.allCases where scope.specialized {
+  // Chat offers the seven tools and nothing else. Reviews and Excel conversion keep theirs.
+  let chat = try NativeTools.referenceDefinitions(conversationInput: true).map(\.name)
+  try expectEqual(chat, GeneralTools.names)
+  try expectEqual(NativeTools.definitions.contains { $0.name == "sql" }, false)
+  _ = try NativeCitationPolicy.make([], toolScope: .all)
+  for scope in InferenceToolScope.allCases {
+    let names = try NativeTools.referenceDefinitions(toolScope: scope).map(\.name)
     try expectEqual(
-      try NativeTools.serializedDefinitions(toolScope: scope, toolProfile: .general),
-      try NativeTools.serializedDefinitions(toolScope: scope))
+      Set(names).isSubset(of: GeneralTools.names), !scope.specialized || names.isEmpty)
   }
   // Every named action and kind routes to an operation that exists, and none shadows a
   // workspace action.
@@ -47,8 +47,6 @@ func checkSQLTool() async throws {
   try expectEqual(ownTool.tool, "save")
   try expectEqual(ownTool.arguments["kind"], .string("tool"))
   try expectEqual(GeneralTools.route("ask", .object([:])).tool, "request_input")
-  try expectEqual(ToolProfile.general.instructions(current: "today"), ToolProfile.generalInstructions)
-  try expectEqual(ToolProfile.current.scopeInstructions(current: "today"), "today")
 
   let root = FileManager.default.temporaryDirectory.appendingPathComponent(
     "sevra-sql-tool-" + identifier())
@@ -74,18 +72,18 @@ func checkSQLTool() async throws {
   }
   let start = try values()
 
-  // Today's instructions name the replaced tools. The general profile's do not.
+  // The instructions name only the seven tools.
   let read = ScriptedCalls(
     [
       sql("SELECT supplier, total FROM supplier_comparison ORDER BY total"),
       finish("Oak Supply has the lower total: 24 against 27.5.", basis: "evidence"),
-    ], toolProfile: .general)
+    ])
   let answered = try await WorkbookAgent.run(
     "Which supplier has the lower total?", workbook: book, model: read)
   let instructions = try expectValue(await read.prompts.first?.first?.cacheablePolicy)
   try expectEqual(instructions.contains("compare_rows"), false)
   try expectEqual(instructions.contains("use calculate"), false)
-  try expectEqual(instructions.contains(ToolProfile.generalInstructions), true)
+  try expectEqual(instructions.contains(GeneralTools.instructions), true)
   try expectEqual(instructions.contains("datasets"), false)
   // The request names the tables as sql knows them, so the model need not look them up.
   let request = try expectValue(await read.prompts.first?.last { $0.role == "user" }).content
@@ -109,7 +107,7 @@ func checkSQLTool() async throws {
     [
       sql("UPDATE supplier_comparison SET unit_cost = 2.60 WHERE supplier = 'Cedar Tools'"),
       finish("Cedar Tools now costs 2.60 each.", basis: "completed_action"),
-    ], toolProfile: .general)
+    ])
   let changed = try await WorkbookAgent.run(
     "Change the Cedar Tools unit cost to 2.60.", workbook: book, model: change)
   try expectEqual(changed.state, "complete")
@@ -132,7 +130,7 @@ func checkSQLTool() async throws {
     [
       sql("UPDATE supplier_comparison SET unit_cost = 2.60 WHERE supplier = 'Cedar Tools'"),
       finish("Cedar Tools now costs 2.60 each.", basis: "completed_action"),
-    ], toolProfile: .general)
+    ])
   try expectEqual(
     try await WorkbookAgent.run(
       "Change the Cedar Tools unit cost to 2.60 again.", workbook: book, model: again
@@ -151,7 +149,7 @@ func checkSQLTool() async throws {
         "INSERT INTO reorder_levels VALUES ('Brass bolts', 12), ('Hex nuts', 25)",
         "ALTER TABLE supplier_comparison RENAME COLUMN quantity TO units"),
       finish("Created Reorder levels and renamed the column.", basis: "completed_action"),
-    ], toolProfile: .general)
+    ])
   let shaped = try await WorkbookAgent.run(
     "Create a table named Reorder levels with Item and Level, and rename Quantity to Units.",
     workbook: book, model: shape)
@@ -180,7 +178,7 @@ func checkSQLTool() async throws {
           ]),
         ])),
       finish("Saved the tool cheaper_than.", basis: "completed_action"),
-    ], toolProfile: .general)
+    ])
   let kept = try await WorkbookAgent.run(
     "Save a tool named cheaper_than that lists suppliers below a unit cost limit.",
     workbook: book, model: keep)
@@ -192,7 +190,7 @@ func checkSQLTool() async throws {
         "sql",
         .object(["tool": .string("cheaper_than"), "values": .object(["limit": .string("2.5")])])),
       finish("Oak Supply is below 2.5.", basis: "evidence"),
-    ], toolProfile: .general)
+    ])
   let used = try await WorkbookAgent.run(
     "Which suppliers are cheaper than 2.5?", workbook: book, model: use)
   try expectEqual(used.state, "complete")
@@ -208,7 +206,7 @@ func checkSQLTool() async throws {
     [
       sql("UPDATE supplier_comparison SET units = 12 WHERE supplier = 'Oak Supply'", draft: true),
       finish("The draft is ready for review.", basis: "completed_action"),
-    ], toolProfile: .general)
+    ])
   _ = try await WorkbookAgent.run(
     "Draft a change of the Oak Supply quantity to 12 for my review.", workbook: book, model: draft)
   try expectEqual(try await toolResult(draft)["drafts"].array.first?["draftRows"], .number(1))
@@ -219,7 +217,7 @@ func checkSQLTool() async throws {
     [
       sql("DELETE FROM supplier_comparison"),
       finish("Nothing was changed.", basis: "unresolved"),
-    ], toolProfile: .general)
+    ])
   _ = try await WorkbookAgent.run(
     "Do not change anything. What would happen if every supplier were removed?",
     workbook: book, model: forbidden)
@@ -231,7 +229,7 @@ func checkSQLTool() async throws {
     [
       query, query,
       finish("Which supplier should I add, and at what quantity and unit cost?", basis: "general"),
-    ], toolProfile: .general)
+    ])
   let asked = try await WorkbookAgent.run(
     "Add the new supplier to the Supplier comparison table.", workbook: book, model: repeated)
   try expectEqual(asked.state, "complete")
@@ -253,7 +251,7 @@ func checkSQLTool() async throws {
         return rows.length;
         """),
       finish("Raised the quantity of 2 suppliers by one.", basis: "completed_action"),
-    ], toolProfile: .general)
+    ])
   let looped = try await WorkbookAgent.run(
     "Raise every supplier's quantity by one.", workbook: book, model: looping)
   try expectEqual(looped.state, "complete")
@@ -272,7 +270,7 @@ func checkSQLTool() async throws {
     [
       script("await sql('DELETE FROM supplier_comparison'); return 1;"),
       finish("Nothing was changed.", basis: "unresolved"),
-    ], toolProfile: .general)
+    ])
   _ = try await WorkbookAgent.run(
     "Do not change anything. What would happen if every supplier were removed?",
     workbook: book, model: blocked)
@@ -292,7 +290,7 @@ func checkSQLTool() async throws {
           ])
         ])),
       finish("Where should I save the export?", basis: "general"),
-    ], toolProfile: .general)
+    ])
   _ = try await WorkbookAgent.run(
     "Export the Supplier comparison table.", workbook: book, model: exporting)
   try expectEqual(

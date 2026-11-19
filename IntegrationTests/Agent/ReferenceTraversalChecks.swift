@@ -145,7 +145,7 @@ private actor TraversalInference: WorkbookInference {
         "citations": .array([.string(fixture.original.id), .string(fixture.current.id)]),
       ])
     }
-    return .init(text: "", calls: [.init(id: identifier(), name: tool, inputJSON: try args.json())])
+    return .init(text: "", calls: [try .init(id: identifier(), operation: tool, args, scope: toolScope)])
   }
 }
 
@@ -186,7 +186,7 @@ private actor IncomingPageInference: WorkbookInference {
     }
     return .init(
       text: "",
-      calls: [.init(id: identifier(), name: tool, inputJSON: try Value.object(args).json())])
+      calls: [try .init(id: identifier(), operation: tool, Value.object(args), scope: toolScope)])
   }
 }
 
@@ -211,15 +211,13 @@ func checkReferenceTraversal() async throws {
   }
   let policy = try NativeCitationPolicy.make([], itemReferenceIDs: [fixture.overview.id])
   let checks = ToolPolicyChecks()
-  try policy.validate(
-    checks.candidate(
-      "references", [("id", fixture.overview.id), ("direction", "incoming")], policy: policy))
+  let references = [("id", fixture.overview.id), ("kind", "references")]
+  try policy.validate(checks.candidate("read", references, policy: policy))
   for fields in [
-    [("id", fixture.overview.id), ("direction", "both")],
-    [("id", fixture.overview.id), ("historicalOrigins", "\"true\"")],
-    [("id", fixture.overview.id), ("limit", "100")],
+    references + [("direction", "both")], references + [("historicalOrigins", "\"true\"")],
+    references + [("limit", "100")], [("id", identifier()), ("kind", "references")],
   ] {
-    try expectThrows(try policy.validate(checks.candidate("references", fields, policy: policy)))
+    try expectThrows(try policy.validate(checks.candidate("read", fields, policy: policy)))
   }
   for index in 0..<24 {
     _ = try fixture.book.addItem(

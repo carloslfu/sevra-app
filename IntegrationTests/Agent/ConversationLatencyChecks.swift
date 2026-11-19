@@ -57,8 +57,7 @@ private actor RepeatingCalculationFixture: WorkbookInference {
         "basis": .string("evidence"), "citations": .array([])])
       : .object(["subject": .string(subjects[index])])
     index += 1
-    return .init(text: "", calls: [.init(id: "lookup-\(index)",
-      name: final ? "finish" : "balance", inputJSON: try arguments.json())])
+    return .init(text: "", calls: [try .init(id: "lookup-\(index)", operation: final ? "finish" : "balance", arguments, scope: toolScope)])
   }
 }
 
@@ -137,7 +136,7 @@ func checkConversationLatency() async throws {
   // Different exact choices produce identical prompt declarations, but the
   // original constrained schemas still reject invented or out-of-scope IDs.
   func policy(_ id: String) throws -> SplashToolPolicy {
-    try NativeCitationPolicy.make([id], itemReferenceIDs: [id], historyReferenceIDs: [id])
+    try NativeCitationPolicy.make([id], itemReferenceIDs: [id])
   }
   let first = identifier()
   let second = identifier()

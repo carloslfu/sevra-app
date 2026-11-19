@@ -36,8 +36,7 @@ func checkWorkbookGrammars(frontend: SplashTextFrontend, factory: SplashGrammarF
   }
   var masks = 0
   var largestPrompt = 0
-  // Only SDK/source discovery is offered in ordinary chat. The detailed save/test
-  // schema becomes available after the host enters authoring mode.
+  // Without app authoring, chat can read the app guide but cannot save an app.
   let ordinary = try SplashToolPolicy(
     toolsJSON: NativeTools.serializedDefinitions(nativeAppAuthoring: false), choice: .required,
     thinking: false)
@@ -48,12 +47,16 @@ func checkWorkbookGrammars(frontend: SplashTextFrontend, factory: SplashGrammarF
     throw SplashError(
       "Ordinary tool prompt uses \(ordinaryPrompt.tokens.count) tokens, over its 8448-token check")
   }
-  let ordinaryNames = try NativeTools.referenceDefinitions(nativeAppAuthoring: false).map(\.name)
-  try expectEqual(ordinaryNames.contains("save_native_app"), false)
-  try expectEqual(ordinaryNames.contains("native_app_sdk"), true)
+  let ordinaryTools = try NativeTools.referenceDefinitions(nativeAppAuthoring: false)
+  try expectEqual(ordinaryTools.map(\.name), GeneralTools.names.filter { $0 != "ask" })
+  let save = try expectValue(ordinaryTools.first { $0.name == "save" })
+  try expectEqual(save.parameters["properties"]["app"], .null)
+  let read = try expectValue(ordinaryTools.first { $0.name == "read" })
+  try expectEqual(
+    read.parameters["properties"]["kind"]["enum"].array.contains(.string("app_guide")), true)
   let layoutPolicy = try SplashToolPolicy(
     toolsJSON: NativeTools.serializedDefinitions(nativeAppAuthoring: false),
-    choice: .named("edit_space"), thinking: false)
+    choice: .named("run"), thinking: false)
   let component = #""component":{"id":"stock","type":"app","title":"Stock","spaceID":"app-id"}"#
   for (edit, allowed) in [
     (#"{"operation":"insert","at":"last","# + component + "}", true),
@@ -65,9 +68,9 @@ func checkWorkbookGrammars(frontend: SplashTextFrontend, factory: SplashGrammarF
     (#"{"operation":"reset","title":"Stock"}"#, false),
   ] {
     let tokens = frontend.encode(
-      "<tool_call>\n<function=edit_space>\n<parameter=edits>\n[" + edit
-        + "]\n</parameter>\n<parameter=expectedVersion>\n1\n</parameter>\n"
-        + "<parameter=id>\nhome\n</parameter>\n</function>\n</tool_call>")
+      "<tool_call>\n<function=run>\n<parameter=action>\n"
+        + #"{"name":"view.edit","arguments":{"id":"home","expectedVersion":1,"edits":["#
+        + edit + "]}}\n</parameter>\n</function>\n</tool_call>")
     let grammar = try factory.create(grammar: layoutPolicy.grammar)
     if allowed {
       try grammar.finish(committed: tokens, requireComplete: true)

@@ -130,8 +130,7 @@ private actor HistoryRecordingFixture: WorkbookInference {
         "answer": .string("There are 18 brass bolts."), "basis": .string("evidence"),
         "citations": .array([]),
       ])
-    return .init(text: "", calls: [.init(id: "history-\(calls.count)",
-      name: lookup ? "balance" : "finish", inputJSON: try arguments.json())])
+    return .init(text: "", calls: [try .init(id: "history-\(calls.count)", operation: lookup ? "balance" : "finish", arguments, scope: toolScope)])
   }
 }
 

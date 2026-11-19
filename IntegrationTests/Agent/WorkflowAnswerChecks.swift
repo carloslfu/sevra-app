@@ -21,9 +21,8 @@ private actor WorkflowAnswerModel: WorkbookInference {
       return .init(
         text: "",
         calls: [
-          .init(
-            id: identifier(), name: "read_workflow",
-            inputJSON: try Value.object(["id": .string(runID)]).json())
+          try .init(
+            id: identifier(), operation: "read_workflow", .object(["id": .string(runID)]))
         ])
     }
     try expectEqual(toolScope, .workflowAnswer)
@@ -31,13 +30,13 @@ private actor WorkflowAnswerModel: WorkbookInference {
     return .init(
       text: "",
       calls: [
-        .init(
-          id: identifier(), name: "prepare_workflow_answer",
-          inputJSON: try Value.object([
+        try .init(
+          id: identifier(), operation: "prepare_workflow_answer",
+          .object([
             "readReceiptID": read["receiptID"], "values": .object(["quantity": .string("5")]),
             "quotes": .object(["quantity": .string("I counted 5 received bolts.")]),
             "reason": .string("The current message supplies the missing count."),
-          ]).json())
+          ]))
       ])
   }
 }
@@ -119,8 +118,9 @@ func checkWorkflowAnswerAgent() async throws {
   try expectEqual(InferenceToolScope.workflowAnswer.allows("start_workflow"), false)
   let all = try NativeTools.serializedDefinitions()
   let scoped = try NativeTools.serializedDefinitions(toolScope: .workflowAnswer)
-  try expectEqual(String(decoding: all, as: UTF8.self).contains("prepare_workflow_answer"), false)
-  try expectEqual(String(decoding: scoped, as: UTF8.self).contains("prepare_workflow_answer"), true)
+  // Only a paused workflow read in this request offers the action that prepares its answer.
+  try expectEqual(String(decoding: all, as: UTF8.self).contains("workflow.prepare_answer"), false)
+  try expectEqual(String(decoding: scoped, as: UTF8.self).contains("workflow.prepare_answer"), true)
   try expectEqual(try book.verify()["ok"], .bool(true))
   print(
     "PASS conversation workflow answer: contextual scope, exact current-message preparation, host unsent confirmation, original output and no business submission"

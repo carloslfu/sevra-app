@@ -11,10 +11,8 @@ import SevraSplashText
 private actor HeaderCaptureFixture: WorkbookInference {
   let identity = "header capture fixture"
   let lastMetrics: Value = .null
-  let toolProfile: ToolProfile
   private(set) var first:
     (messages: [InferenceMessage], scope: InferenceToolScope, citations: [String])?
-  init(toolProfile: ToolProfile) { self.toolProfile = toolProfile }
   func beginRun() {}
   func endRun() {}
   // The native model maintains context; keep the same message shape.
@@ -178,8 +176,7 @@ func runHeaderCacheProbe(modelsRoot: String, engine: String, work: String) async
   let frontend = try SplashTextFrontend(modelFolder: assembly.appendingPathComponent("tokenizer"))
 
   // The header is what the app's own prompt code puts first in an ordinary chat turn.
-  let profile = try ToolProfile.host()
-  let fixture = HeaderCaptureFixture(toolProfile: profile)
+  let fixture = HeaderCaptureFixture()
   let bookURL = root.appendingPathComponent("Business.sevra")
   _ = try Demo.create(at: bookURL)
   _ = try? await WorkbookAgent.run(
@@ -190,7 +187,7 @@ func runHeaderCacheProbe(modelsRoot: String, engine: String, work: String) async
   }
   let prepared = try NativePreparedRequest(
     messages: first.messages, frontend: frontend, configuredReasoning: .bounded512,
-    toolScope: first.scope, citationIDs: first.citations, toolProfile: profile)
+    toolScope: first.scope, citationIDs: first.citations)
   let prompt = prepared.prompt
   let header = Array(prompt.tokens.prefix(prepared.stablePrefixCount))
   try require(
@@ -232,7 +229,7 @@ func runHeaderCacheProbe(modelsRoot: String, engine: String, work: String) async
       "tokenSHA256": .string(
         hex(SHA256.hash(data: header.withUnsafeBufferPointer { Data(buffer: $0) }))),
       "lastCompletePage": .number(Double(lastCompletePage)),
-      "toolProfile": .string(profile.rawValue), "toolScope": .string(first.scope.rawValue),
+      "toolScope": .string(first.scope.rawValue),
       "scopePrefixTokens": .number(Double(prepared.scopePrefixCount)),
       "firstPromptTokens": .number(Double(prompt.tokens.count)),
     ]),

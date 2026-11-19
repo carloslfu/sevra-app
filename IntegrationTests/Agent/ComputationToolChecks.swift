@@ -37,7 +37,7 @@ private actor ComputationReceiptModel: WorkbookInference {
       ])
     }
     return .init(
-      text: "", calls: [.init(id: identifier(), name: tool, inputJSON: try arguments.json())])
+      text: "", calls: [try .init(id: identifier(), operation: tool, arguments, scope: toolScope)])
   }
 }
 
