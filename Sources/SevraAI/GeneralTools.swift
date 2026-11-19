@@ -91,6 +91,15 @@ package enum GeneralTools {
           fields["work"] = .string("draft")
           return (target, .object(fields))
         }
+        if target == "inventory_automation_template", case .number(let level) = arguments["threshold"]
+        {
+          // The grammar takes the level as a number. The template keeps exact decimal text.
+          var fields = arguments.object
+          fields["threshold"] = .string(
+            level == level.rounded() && abs(level) < 1e15
+              ? String(Int64(level)) : String(level))
+          return (target, .object(fields))
+        }
         return (target, arguments)
       }
       return ("workspace_action", .object(["action": .string(action), "arguments": arguments]))
