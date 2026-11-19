@@ -17,7 +17,7 @@ func checkSQLTool() async throws {
       try NativeTools.serializedDefinitions(toolScope: scope, toolProfile: .general),
       try NativeTools.serializedDefinitions(toolScope: scope))
   }
-  try expectEqual(general, NativeTools.generalKept.union(["sql", "save"]))
+  try expectEqual(general, NativeTools.generalKept.union(["sql", "run", "save"]))
   try expectEqual(ToolProfile.general.instructions(current: "today"), ToolProfile.generalInstructions)
   try expectEqual(ToolProfile.current.scopeInstructions(current: "today"), "today")
 
@@ -209,5 +209,44 @@ func checkSQLTool() async throws {
     try expectValue(await repeated.prompts.last?.last { $0.role == "tool" }).content)
   try expectEqual(second["reusedReceiptID"].string != nil, true)
   try expectEqual(try values(), updated)
-  print("PASS sql tool: general declarations, answers from query results, AI row and shape changes under a rule Source, one undo from the answer, saved tool, draft, forbidden change, repeated query")
+  // A script's changes are saved under the same rule, with one Undo, and its result is a
+  // figure the answer may state.
+  func script(_ code: String) -> ScriptedCalls.Step { call("run", .object(["code": .string(code)])) }
+  let looping = ScriptedCalls(
+    [
+      script(
+        """
+        const rows = await sql('SELECT supplier, units FROM supplier_comparison');
+        for (const row of rows) {
+          await sql('UPDATE supplier_comparison SET units = :n WHERE supplier = :s', {n: row.units + 1, s: row.supplier});
+        }
+        return rows.length;
+        """),
+      finish("Raised the quantity of 2 suppliers by one.", basis: "completed_action"),
+    ], toolProfile: .general)
+  let looped = try await WorkbookAgent.run(
+    "Raise every supplier's quantity by one.", workbook: book, model: looping)
+  try expectEqual(looped.state, "complete")
+  let ran = try await toolResult(looping)
+  try expectEqual(ran["error"], .null)
+  try expectEqual(ran["value"], .number(2))
+  try expectEqual(ran["changes"].array.first?["updated"], .number(2))
+  let raised = try expectValue(
+    try book.messages().last { $0.role == "assistant" && $0.state == "complete" })
+  let scriptReceipt = try expectValue(
+    try book.conversationSQLReceipt(raised.id, conversation: "main"))
+  try expectEqual(try book.chatSQLState(scriptReceipt), "saved")
+  _ = try book.chatSQLUndo(scriptReceipt)
+  try expectEqual(try values(), updated)
+  let blocked = ScriptedCalls(
+    [
+      script("await sql('DELETE FROM supplier_comparison'); return 1;"),
+      finish("Nothing was changed.", basis: "unresolved"),
+    ], toolProfile: .general)
+  _ = try await WorkbookAgent.run(
+    "Do not change anything. What would happen if every supplier were removed?",
+    workbook: book, model: blocked)
+  try expectEqual(try await toolResult(blocked)["error"] != .null, true)
+  try expectEqual(try values(), updated)
+  print("PASS sql tool: general declarations, answers from query results, AI row and shape changes under a rule Source, one undo from the answer, saved tool, draft, forbidden change, repeated query, a script's changes and refusal")
 }

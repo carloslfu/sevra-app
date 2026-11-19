@@ -111,7 +111,7 @@ public struct WorkbookTools {
           "WorkbookTools", model: $0,
           policy: tool == "save_native_app"
             ? "native-app-authoring-v1"
-            : tool == "workspace_action" || tool == "sql"
+            : ["workspace_action", "sql", "run"].contains(tool)
               ? "chat-workspace-actions-v1" : "workbook-tools-draft-policy-v1")
       } ?? .programmatic("WorkbookTools")
     return try ChangeAttribution.$actor.withValue(actor) {
@@ -153,8 +153,8 @@ public struct WorkbookTools {
       }
     }
     try require(
-      !readOnly || Self.readOnlyTools.contains(tool) || tool == "workspace_action"
-        || tool == "sql",
+      !readOnly || Self.readOnlyTools.contains(tool)
+        || ["workspace_action", "sql", "run"].contains(tool),
       "read_only_request",
       "The current request explicitly forbids changes. Read evidence and answer; do not create a draft, proposal, space, copy or import."
     )
@@ -338,6 +338,38 @@ public struct WorkbookTools {
         },
         statements: statements, token: "save-" + (receiptID ?? token),
         requestSourceID: requestSourceID, cancellation: cancellation)
+    case "run":
+      // The general chat tools' code tool: one script in the sandbox, or one named action.
+      if let action = a["action"].string {
+        try require(
+          a.object["code"] == nil, "arguments", "Send either code or one action with its arguments.")
+        return try executeAttributed(
+          "workspace_action",
+          .object(["action": .string(action), "arguments": a.object["arguments"] ?? .object([:])]),
+          receiptID: receiptID, nativeAppCheck: nativeAppCheck, inspectionOnly: inspectionOnly)
+      }
+      let unchanging = readOnly || inspectionOnly
+      return try workbook.chatRun(
+        code: string("code"), readOnly: unchanging, token: "run-" + (receiptID ?? token),
+        requestSourceID: requestSourceID,
+        host: { method, arguments in
+          switch method {
+          case "search", "read":
+            return try executeAttributed(
+              method, arguments, receiptID: nil, nativeAppCheck: nil, inspectionOnly: true)
+          case "check_action":
+            let operation = try ChatOperations.validate(
+              arguments["action"].text, arguments: arguments["arguments"], readOnly: unchanging)
+            try require(
+              !operation.host, "run",
+              arguments["action"].text
+                + " needs the app. Call it alone with run action, not inside code. Nothing was changed.")
+            return .null
+          default:
+            return try executeChatOperation(
+              arguments["action"].text, arguments: arguments["arguments"])
+          }
+        }, cancellation: cancellation)
     case "sql":
       // The general chat tools' table tool. It refuses changes itself when none are allowed.
       if let undo = a["undo"].string {

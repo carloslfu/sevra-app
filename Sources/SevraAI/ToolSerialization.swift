@@ -8,7 +8,8 @@ extension NativeTools {
     case .current: return definitions
     case .general:
       // The general tools, and the fixed tools not yet folded into them.
-      return [sqlDefinition, saveDefinition] + definitions.filter { generalKept.contains($0.name) }
+      return [sqlDefinition, runDefinition, saveDefinition]
+        + definitions.filter { generalKept.contains($0.name) }
     }
   }
   /// Today's tools the general profile still offers. Each leaves when a general tool covers it.
@@ -42,6 +43,17 @@ extension NativeTools {
           "type": .string("object"), "description": .string("The saved tool's inputs by name."),
         ]),
       ], required: []))
+  package static let runDefinition = WorkbookToolDefinition(
+    name: "run",
+    description:
+      "Run JavaScript for work one SQL statement cannot do: several dependent steps, a loop, or logic over rows. Write the body of an async function and return the result. Inside it: await sql(statement, {name: value}) returns a SELECT's rows as objects with numbers as numbers, or {changedRows} for a change, and :name in the statement takes the value; await search(words); await read(id); today is the date as YYYY-MM-DD. Table changes are saved together when the script returns, with one Undo. A script that throws changes nothing.",
+    parameters: object(
+      [
+        "code": schema(
+          "string",
+          "The function body, such as: const rows = await sql('SELECT part, stock FROM parts'); return rows.filter(r => r.stock < 5).length;"
+        )
+      ], required: ["code"]))
   package static let saveDefinition = WorkbookToolDefinition(
     name: "save",
     description:

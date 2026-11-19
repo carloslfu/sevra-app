@@ -1623,7 +1623,7 @@ public enum WorkbookAgent {
         }
         // What one sql call saved can be undone from the answer. Two changing calls in one
         // answer have no single Undo to offer.
-        if tool == "sql", !callFailed, let undo = result["undo"].string {
+        if tool == "sql" || tool == "run", !callFailed, let undo = result["undo"].string {
           reversibleOutcome =
             reversibleOutcome == .null ? .object(["sql": .string(undo)]) : .object([:])
         }
@@ -1647,7 +1647,7 @@ public enum WorkbookAgent {
                 : tool == "read"
                   ? ToolResultProjection.presentedRead(storedProjection)
                   // The host cites a query's inputs itself, so the model need not read their IDs.
-                  : tool == "sql" && !callFailed
+                  : (tool == "sql" || tool == "run") && !callFailed
                     ? .object(storedProjection.object.filter { $0.key != "inputs" })
                     : storedProjection
         let projected = try await model.boundToolResult(
@@ -1738,8 +1738,10 @@ public enum WorkbookAgent {
             "The model repeated an unsuccessful action. Completed changes and receipts are saved; inspect them before continuing."
           )
         } else {
-          if ["search", "history_search", "datasets", "rows", "count_records", "references", "sql"]
-            .contains(tool)
+          if [
+            "search", "history_search", "datasets", "rows", "count_records", "references", "sql",
+            "run",
+          ].contains(tool)
           {
             retrievalObserved = true
           }
@@ -1751,9 +1753,10 @@ public enum WorkbookAgent {
           }
           if tool == "count_records", projected == result { countReceipts[receiptID] = result }
           if !WorkbookTools.readOnlyTools.contains(tool)
-            && !(tool == "sql" && result["changes"].array.isEmpty
-              && result["drafts"].array.isEmpty && result["shape"].array.isEmpty)
-            && !(tool == "workspace_action"
+            && !((tool == "sql" || tool == "run") && result["changes"].array.isEmpty
+              && result["drafts"].array.isEmpty && result["shape"].array.isEmpty
+              && result["actions"].array.isEmpty && a["action"] == .null)
+            && !((tool == "workspace_action" || tool == "run")
               && ChatOperations.operations.first { $0.name == a["action"].text }?.readOnly == true)
             && result["status"] != .string("confirmation_required")
             && result["outcome"] != .string("failed")
@@ -1816,10 +1819,12 @@ public enum WorkbookAgent {
             admitCalculation(inputs, naming: inputs)
           }
           // A query's results are figures the host computed, and the rows it read are its inputs.
-          if tool == "sql", projected["results"] != .null {
+          if tool == "sql" || tool == "run",
+            projected[tool == "sql" ? "results" : "value"] != .null
+          {
             computed = true
             computedThisStep = true
-            let figures = try projected["results"].json()
+            let figures = try projected[tool == "sql" ? "results" : "value"].json()
             computedNumbersThisStep = numericValues(figures)
             computedNumbers.formUnion(computedNumbersThisStep)
             let numbers = computedNumbersThisStep.compactMap { try? Numbers.decimal($0) }
@@ -2052,8 +2057,9 @@ public enum WorkbookAgent {
         previousRead =
           toolProfile == .general && !callFailed
             && (WorkbookTools.readOnlyTools.contains(tool)
-              || (tool == "sql" && result["changes"].array.isEmpty
-                && result["drafts"].array.isEmpty && result["shape"].array.isEmpty))
+              || ((tool == "sql" || tool == "run") && result["changes"].array.isEmpty
+                && result["drafts"].array.isEmpty && result["shape"].array.isEmpty
+                && result["actions"].array.isEmpty && a["action"] == .null))
           ? ReusableCalculation(tool: tool, arguments: a, callID: call.id, receipt: receiptID)
           : nil
         if readOnly, !callFailed, !calculationInputsThisStep.receipts.isEmpty {

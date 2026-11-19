@@ -48,6 +48,7 @@ python3 scripts/check_contextual_intake.py --cli "$BIN/sevra"
 python3 scripts/check_transcription.py --cli "$BIN/sevra"
 python3 scripts/check_table_updates.py --cli "$BIN/sevra"
 SEVRA_CLI="$BIN/sevra" python3 scripts/check_chat_sql.py
+SEVRA_CLI="$BIN/sevra" python3 scripts/check_chat_run.py
 python3 scripts/check_bulk_intake.py --cli "$BIN/sevra"
 python3 scripts/check_sheet_formulas.py --cli "$BIN/sevra"
 python3 scripts/check_persistence.py --cli "$BIN/sevra"

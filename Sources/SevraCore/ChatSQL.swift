@@ -16,30 +16,22 @@ extension Workbook {
       (1...8).contains(statements.count) && statements.allSatisfy { $0.utf8.count <= 8_000 },
       "sql", "Send one to eight statements, each under 8,000 bytes.")
     return try synchronized(cancellation: cancellation) {
-      let tables = try datasets()
-      // A rehearsal on empty tables finds mistakes and the tables the statements name.
-      let rehearsal = try SQLScratch(
-        tables: tables, readOnly: readOnly, draft: draft, inputs: inputs,
-        cancellation: cancellation)
-      let named: Set<String>
-      do {
-        defer { rehearsal.close() }
-        named = try rehearsal.rehearse(statements)
-      }
-      let scratch = try SQLScratch(
-        tables: tables, readOnly: readOnly, draft: draft, inputs: inputs,
-        cancellation: cancellation)
-      defer { scratch.close() }
-      try scratch.fill(named) { table in
-        var loaded: [(String, [String: Value])] = []
-        while true {
-          let page = try rows(table.id, offset: loaded.count, limit: 200)
-          loaded += page.map { ($0.id, calculatedValues($0, columns: table.columns)) }
-          if page.count < 200 { return loaded }
-          try cancellation.check()
-        }
-      }
-      let results = try scratch.run(statements)
+      let session = try ChatSQLSession(
+        self, readOnly: readOnly, draft: draft, inputs: inputs, cancellation: cancellation)
+      defer { session.close() }
+      let results = try session.run(statements)
+      return try saveChatSQL(
+        session.scratch, results: results, draft: draft, token: token,
+        requestSourceID: requestSourceID, cancellation: cancellation)
+    }
+  }
+
+  /// Applies what the statements did on the copy through the recorded write paths.
+  func saveChatSQL(
+    _ scratch: SQLScratch, results: [Value], draft: Bool, token: String,
+    requestSourceID: String?, cancellation: Cancellation
+  ) throws -> Value {
+    try synchronized(cancellation: cancellation) {
       let reshapes = try scratch.reshapes()
       let created = try scratch.createdTables()
       let changes = try scratch.changes()
@@ -541,6 +533,62 @@ extension Workbook {
   }
 }
 
+/// The copies one sql call, or one script, works on. Each statement is rehearsed on empty
+/// tables first, which finds mistakes and the tables to copy in before it runs.
+final class ChatSQLSession {
+  let scratch: SQLScratch
+  private let rehearsal: SQLScratch
+  private let workbook: Workbook
+  private let cancellation: Cancellation
+  private var filled = Set<String>()
+
+  init(
+    _ workbook: Workbook, readOnly: Bool, draft: Bool = false, inputs: [String: Value]? = nil,
+    cancellation: Cancellation
+  ) throws {
+    self.workbook = workbook
+    self.cancellation = cancellation
+    let tables = try workbook.datasets()
+    rehearsal = try SQLScratch(
+      tables: tables, readOnly: readOnly, draft: draft, inputs: inputs,
+      cancellation: cancellation)
+    do {
+      scratch = try SQLScratch(
+        tables: tables, readOnly: readOnly, draft: draft, inputs: inputs,
+        cancellation: cancellation)
+    } catch {
+      rehearsal.close()
+      throw error
+    }
+  }
+
+  func run(_ statements: [String], inputs: [String: Value]? = nil) throws -> [Value] {
+    if let inputs {
+      rehearsal.inputs = inputs
+      scratch.inputs = inputs
+    }
+    let named = try rehearsal.rehearse(statements).subtracting(filled)
+    let workbook = workbook
+    let cancellation = cancellation
+    try scratch.fill(named) { table in
+      var loaded: [(String, [String: Value])] = []
+      while true {
+        let page = try workbook.rows(table.id, offset: loaded.count, limit: 200)
+        loaded += page.map { ($0.id, workbook.calculatedValues($0, columns: table.columns)) }
+        if page.count < 200 { return loaded }
+        try cancellation.check()
+      }
+    }
+    filled.formUnion(named)
+    return try scratch.run(statements)
+  }
+
+  func close() {
+    rehearsal.close()
+    scratch.close()
+  }
+}
+
 final class SQLScratch {
   /// Changed rows of one table in one call. Measured on the test Mac: see the plan.
   static let changeLimit = 5_000
@@ -614,7 +662,13 @@ final class SQLScratch {
   private let readOnly: Bool
   private let draft: Bool
   /// Values for `:name` parameters. Plain sql calls have none, so a parameter is a mistake.
-  private let inputs: [String: Value]?
+  var inputs: [String: Value]?
+  /// What one result may show. A script reads more rows than a model is shown.
+  var shownRows = SQLScratch.shownRows
+  var shownBytes = SQLScratch.shownBytes
+  /// A script gets numbers as numbers. A model is shown them as exact decimal text.
+  var numbers = false
+  private var filledRows = 0
   private let cancellation: Cancellation
   private var guarded = false
   private var shaping: Shape?
@@ -954,10 +1008,13 @@ final class SQLScratch {
   private func cell(_ statement: OpaquePointer?, _ index: Int32) -> Value {
     switch sqlite3_column_type(statement, index) {
     case SQLITE_NULL: return .null
-    case SQLITE_INTEGER: return .string(String(sqlite3_column_int64(statement, index)))
+    case SQLITE_INTEGER:
+      let whole = sqlite3_column_int64(statement, index)
+      return numbers ? .number(Double(whole)) : .string(String(whole))
     case SQLITE_FLOAT:
       let number = sqlite3_column_double(statement, index)
-      return .string(Self.decimalText(number) ?? String(number))
+      let text = Self.decimalText(number) ?? String(number)
+      return numbers ? .number(Double(text) ?? number) : .string(text)
     case SQLITE_TEXT: return .string(String(cString: sqlite3_column_text(statement, index)))
     default: return .string("(binary)")
     }
@@ -1022,13 +1079,12 @@ final class SQLScratch {
 
   /// Copies in the named tables, then starts recording row changes.
   func fill(_ named: Set<String>, _ load: (Dataset) throws -> [(String, [String: Value])]) throws {
-    var total = 0
     for key in order where named.contains(key) {
       var entry = entries[key]!
       let rows = try load(entry.dataset)
-      total += rows.count
+      filledRows += rows.count
       try require(
-        total <= Self.rowLimit, "sql_limit",
+        filledRows <= Self.rowLimit, "sql_limit",
         "These tables hold more than \(Self.rowLimit) rows, which sql cannot read yet.")
       let insert = try prepare(
         "INSERT INTO \"\(key)\"(rowid,"
@@ -1132,7 +1188,7 @@ final class SQLScratch {
       if code == SQLITE_DONE { break }
       guard code == SQLITE_ROW else { throw failure(index) }
       total += 1
-      guard rows.count < Self.shownRows, shown < Self.shownBytes else { continue }
+      guard rows.count < shownRows, shown < shownBytes else { continue }
       let row = Value.array((0..<count).map { cell(statement, $0) })
       shown += (try? row.json().utf8.count) ?? 0
       rows.append(row)

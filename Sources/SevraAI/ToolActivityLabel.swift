@@ -19,6 +19,7 @@ enum ToolActivityLabel {
     case "datasets": return "Inspecting tables…"
     case "rows": return "Reading table rows…"
     case "sql": return "Working with your tables…"
+    case "run": return "Running a script…"
     case "calculate": return "Calculating…"
     case "compare_rows": return "Comparing table rows…"
     case "save_space": return "Saving a space…"

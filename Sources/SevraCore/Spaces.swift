@@ -278,7 +278,10 @@ extension Workbook {
       }
       if ["table", "chart", "metric"].contains(c.type) {
         guard let id = c.datasetID else {
-          throw SevraError("view", "Component \(c.id) (\(c.type)) requires its own datasetID.")
+          throw SevraError(
+            "view",
+            "Component \(c.id) (\(c.type)) needs datasetID: the id of the existing table it draws from. It can be the same table another component shows. Do not create a table for it."
+          )
         }
         let table = try dataset(id)
         // A snapshot answers for the columns it saved, whatever the table has become.

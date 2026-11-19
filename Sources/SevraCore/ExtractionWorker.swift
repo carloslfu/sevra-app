@@ -98,6 +98,21 @@ public struct ExtractionWorker: Sendable {
     return try run(input, mode: ["--excel-behavior"], cancellation: cancellation)
   }
 
+  /// One pass of a `run` chat script in the helper's sandbox. See `Workbook.chatRun`.
+  public func chatScript(_ request: Value, cancellation: Cancellation = .init()) throws -> Value {
+    let bytes = Data(try request.json().utf8)
+    try require(bytes.count <= 4_000_000, "run_limit", "The script's input exceeds 4 MB.")
+    let root = FileManager.default.temporaryDirectory.appendingPathComponent(
+      "sevra-run-" + identifier())
+    try FileManager.default.createDirectory(
+      at: root, withIntermediateDirectories: false,
+      attributes: [.posixPermissions: 0o700])
+    defer { try? FileManager.default.removeItem(at: root) }
+    let input = root.appendingPathComponent("request.json")
+    try bytes.write(to: input, options: .atomic)
+    return try run(input, mode: ["--chat-script"], cancellation: cancellation)
+  }
+
   /// A ZIP library that traps on a hostile file stops this helper, which is a refused file.
   public func zipMembers(_ url: URL, cancellation: Cancellation = .init()) throws -> [ZIPMember] {
     do {
@@ -260,7 +275,8 @@ public struct ExtractionWorker: Sendable {
 
   /// Dedicated helper entry point. No workbook or network service is opened.
   public static func runMain(
-    behavior: ((URL) throws -> Value)? = nil, layout: ((URL) throws -> Value)? = nil
+    behavior: ((URL) throws -> Value)? = nil, layout: ((URL) throws -> Value)? = nil,
+    script: ((URL) throws -> Value)? = nil
   ) -> Never {
     let arguments = Array(CommandLine.arguments.dropFirst())
     let format: StructuredFormat?
@@ -268,10 +284,13 @@ public struct ExtractionWorker: Sendable {
     let evidence = arguments.count == 2 && arguments[0] == "--excel-evidence"
     let calculating = arguments.count == 2 && arguments[0] == "--excel-behavior"
     let diagram = arguments.count == 2 && arguments[0] == "--diagram-layout"
+    let scripting = arguments.count == 2 && arguments[0] == "--chat-script"
     let imageSize =
       arguments.count == 3 && arguments[0].hasPrefix("--image-preview=")
       ? Int(arguments[0].dropFirst("--image-preview=".count)) : nil
-    if arguments.count == 1 || listing || evidence || calculating || diagram || imageSize != nil {
+    if arguments.count == 1 || listing || evidence || calculating || diagram || scripting
+      || imageSize != nil
+    {
       format = nil
     } else if arguments.count == 2, arguments[0].hasPrefix("--structured="),
       let selected = StructuredFormat(rawValue: String(arguments[0].dropFirst(13)))
@@ -302,6 +321,12 @@ public struct ExtractionWorker: Sendable {
             throw SevraError("diagram_layout", "Diagram layout is unavailable.")
           }
           return try layout(url)
+        }
+      }
+      if scripting {
+        return writeReply {
+          guard let script else { throw SevraError("run", "The script helper is unavailable.") }
+          return try script(url)
         }
       }
       if calculating {
