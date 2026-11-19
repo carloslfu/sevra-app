@@ -107,6 +107,9 @@ in the code until he decides the plan's open items. Read the plan's "The build s
 changing chat tools.
 Test enough, as the [owner asked](db/sources/notes/2026/10/ship-with-enough-testing.md): the real
 failure and one counterexample, with the suite and install once on the candidate.
+Commit messages never say Claude in any form, trailers and author names included. To name the
+CLAUDE.md link or a .claude/ file, write "the agent instructions" or "the agent settings". The
+repository's agent settings keep the tool from adding attribution lines.
 Work directly on `main`, with no feature branch or pull request. Run `dbmd index rebuild` before
 the suite, because its last step validates the records.
 Cloud sync, transport, replica coordination and a new resolver are out of scope.
