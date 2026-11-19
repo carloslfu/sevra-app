@@ -301,3 +301,6 @@ CI slimmed on the owner's direction of November 19. CI and the Mac share scripts
 ## [2026-11-19 21:32] verification | records/specs/distribution
 On the owner's yes of November 19, the 660 core checks run in three shares at once (sevra-checks --share I/N); locally the shares pass 252, 197 and 211, the same 660 as the last sequential CI run, in 54 seconds wall time. Hosted CI now restores the build saved by the last main push and restores the recorded times of unchanged files, so Swift should recompile only what changed. Limits: the cache's gain is unmeasured until a run restores it.
 
+## [2026-11-19 22:16] verification | records/specs/distribution
+Hosted CI measured once each on 2876aec. Push run 44619873641 (core checks in three shares, empty cache): 13.5 minutes, core checks 2.5 minutes instead of 6.2, saving the 780 MB build cache took 23 seconds. Quick run 44625605328 restoring that cache with no changed files: 8.1 minutes, restore 23 seconds, Swift build 36 seconds instead of 5.3 minutes, grammar library 1.4 seconds instead of 38. Full release run 44618500223 on 4fd942f, before the split: passed in 41.7 minutes, 10.9 for the package and 30.3 for every check. Limits: the cached run is the best case; a push that changes code also recompiles those files and the modules that depend on them.
+
