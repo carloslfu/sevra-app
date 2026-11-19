@@ -2,7 +2,7 @@
 from pathlib import Path
 import argparse, hashlib, json, os, plistlib, subprocess, tempfile
 argparse.ArgumentParser(description=__doc__).parse_args()
-name="Sevra Native Preview"
+name="Sevra"
 root=Path(__file__).resolve().parent.parent
 with tempfile.TemporaryDirectory(prefix="sevra-install-check-") as path:
     folder=Path(path)
@@ -16,7 +16,14 @@ with tempfile.TemporaryDirectory(prefix="sevra-install-check-") as path:
     (other/"Contents/CLI").mkdir(parents=True)
     (other/"Contents/Info.plist").write_bytes(plistlib.dumps({"CFBundleIdentifier":"unrelated.app"}))
     (other/"Contents/CLI/sevra").write_text("preserved sentinel")
+    # An app installed under the earlier name gives up its CLI link and goes to the Trash.
+    old=folder/"Applications"/"Sevra Native Preview.app"
+    (old/"Contents/CLI").mkdir(parents=True)
+    (old/"Contents/Info.plist").write_bytes(plistlib.dumps({"CFBundleIdentifier":"com.sevra.workbooks.native-preview"}))
+    (folder/"bin").mkdir()
+    (folder/"bin/sevra").symlink_to(old/"Contents/CLI/sevra")
     script("install.sh","--no-build")
+    assert not old.exists() and list((folder/"Trash").glob("Sevra Native Preview-*.app"))
     app = folder/"Applications"/(name+".app")/"Contents"
     product = root / "output/native" / (name + ".app") / "Contents"
     for identity in ["com.sevra.workbooks.app-worker", "com.sevra.workbooks.app-check-worker"]:
@@ -58,7 +65,7 @@ with tempfile.TemporaryDirectory(prefix="sevra-install-check-") as path:
     assert command("verify",workbook)["ok"]
     script("uninstall.sh")
     assert workbook.exists() and not cli.exists()
-    assert list((folder/"Trash").glob(name+"-*.app"))
+    assert list((folder/"Trash").glob(name+"-[0-9]*.app"))
     (folder/"bin/sevra").write_text("unrelated sentinel")
     script("install.sh","--no-build",success=False)
     assert (folder/"bin/sevra").read_text()=="unrelated sentinel"
@@ -74,4 +81,4 @@ with tempfile.TemporaryDirectory(prefix="sevra-install-check-") as path:
     skill=(folder/"skills/sevra/SKILL.md").read_bytes()
     conflict=subprocess.run([str(root/"scripts/install_skill.sh"),"claude"],env=skill_env,capture_output=True,text=True)
     assert conflict.returncode!=0 and (folder/"skills/sevra/SKILL.md").read_bytes()==skill
-    print(json.dumps({"appWorkerSandbox":True,"skillInstallAndConflict":True,"installed":True,"updated":True,"standaloneCLI":True,"uninstalled":True,"workbookPreserved":True,"unrelatedCLIProtected":True}))
+    print(json.dumps({"appWorkerSandbox":True,"earlierNameReplaced":True,"skillInstallAndConflict":True,"installed":True,"updated":True,"standaloneCLI":True,"uninstalled":True,"workbookPreserved":True,"unrelatedCLIProtected":True}))

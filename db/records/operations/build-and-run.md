@@ -36,7 +36,7 @@ bash scripts/build_native.sh
 output/native/bin/sevra check-resources
 ~~~
 
-This builds `output/native/Sevra Native Preview.app`. Quit the running preview, then use `bash scripts/install.sh --no-build` to install the exact built product. For an upgrade from 1.4.1, use Settings > Model files and storage > Use existing model files to rebuild the model assembly from the same compatible weights.
+This builds `output/native/Sevra.app`. Quit the running app, then use `bash scripts/install.sh --no-build` to install the exact built product. For an upgrade from 1.4.1, use Settings > Model files and storage > Use existing model files to rebuild the model assembly from the same compatible weights.
 The installer stages the matching native app, CLI, extraction helper and all engine/
 grammar resources, verifies them before replacement, and preserves upstream signed
 engine bytes. The CLI link is `~/.local/bin/sevra`; add that folder to PATH or use
@@ -578,7 +578,7 @@ For search scope qualification, --coverage takes the same four paths as --reason
 ## Native app and CLI package
 Build the app with `bash scripts/build_native.sh`, then run `python3 scripts/check_native_package.py`. This uses the pinned Rust toolchain to build the native grammar library and Python for contributor packaging only. The installed preview, its model setup and CLI use no Python runtime. The unchanged upstream helper and Metal kernels remain hash checked after signing.
 
-The output is `output/native/Sevra Native Preview.app` and `output/native/bin/sevra`. This command does not install the app. The app does not register Finder associations. The package check denies build-folder reads, verifies both Metal libraries and the grammar dylib, and refuses missing or altered packaged resources. It also exercises a missing-model run, so run it when no other Sevra model job is active. CI uses `python3 scripts/check_native_package.py --paths-only` to verify packaging without qualifying its GPU or executing a model run.
+The output is `output/native/Sevra.app` and `output/native/bin/sevra`. This command does not install the app. The app declares the `.sevra` and `.sevraz` document types, so Finder opens workbooks with it. The package check denies build-folder reads, verifies both Metal libraries and the grammar dylib, and refuses missing or altered packaged resources. It also exercises a missing-model run, so run it when no other Sevra model job is active. CI uses `python3 scripts/check_native_package.py --paths-only` to verify packaging without qualifying its GPU or executing a model run.
 
 Run `output/native/bin/sevra model-setup MODELS_ROOT` to download the pinned target and draft. To reuse existing verified weights, run `output/native/bin/sevra model-setup MODELS_ROOT --reuse EXISTING_MODEL_DIRECTORY`; that directory must contain its matching `dflash` folder and must remain available. `MODELS_ROOT` is the parent of the selected assembly, not a legacy raw target folder. The preview Settings offers the same setup and reuse flows.
 

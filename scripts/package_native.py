@@ -101,13 +101,7 @@ def stage(binary, scratch, app, cli=None, release_info=None):
         copy(binary / "sevra-extract", cli / "sevra-extract")
     info = plistlib.loads((ROOT / "Resources/Info.plist").read_bytes())
     info["LSMinimumSystemVersion"] = "26.4"
-    if release_info is None:
-        info.update(CFBundleIdentifier="com.sevra.workbooks.native-preview",
-                    CFBundleName="Sevra Native Preview", CFBundleDisplayName="Sevra Native Preview")
-        # Qualification must not steal Finder associations from the installed app.
-        info.pop("CFBundleDocumentTypes", None)
-        info.pop("UTExportedTypeDeclarations", None)
-    else:
+    if release_info is not None:
         info.update(release_info)
     (app / "Contents/Info.plist").write_bytes(plistlib.dumps(info))
     copy(ROOT / "Resources/Sevra.icns", resources / "Sevra.icns")
@@ -151,7 +145,7 @@ def main():
     out = ROOT / "output/native"
     if out.exists():
         shutil.rmtree(out)
-    app = out / "Sevra Native Preview.app"
+    app = out / "Sevra.app"
     cli = out / "bin"
     manifest = stage(binary, scratch, app, cli)
     for folder in [app / "Contents/Resources", cli]:

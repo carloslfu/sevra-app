@@ -59,7 +59,7 @@ git clone https://github.com/carloslfu/sevra-app.git
 cd sevra-app
 rustup toolchain install 1.96.0 --profile minimal
 bash scripts/install.sh
-open "$HOME/Applications/Sevra Native Preview.app"
+open "$HOME/Applications/Sevra.app"
 ```
 
 If you already have a checkout, use it. Quit the running app before updating.

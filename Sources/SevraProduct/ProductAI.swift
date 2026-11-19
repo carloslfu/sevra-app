@@ -43,7 +43,7 @@ public actor ProductAI {
   public enum PressureResponse: String, Sendable {
     case released, deferred, stopping, releasePending
   }
-  public static let name = "Local AI · Native preview"
+  public static let name = "Local AI"
   public static let detail = "Qwen3.6 35B · Splash · DFlash 2"
   public static let revision = "splash-1.6.1-native-candidate"
   public static let preferenceKey = "nativeModelsRoot"

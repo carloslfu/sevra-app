@@ -16,7 +16,7 @@ def main():
     options = parser.parse_args()
     product = ROOT / "output/native"
     profile = '(version 1) (allow default) (deny file-read* (subpath ' + json.dumps(str(ROOT / '.build')) + '))'
-    app = product / "Sevra Native Preview.app"
+    app = product / "Sevra.app"
     executables = [(product / 'bin/sevra', ['check-resources']),
                    (app / 'Contents/MacOS/Sevra', ['--check-resources'])]
     for binary, arguments in executables:

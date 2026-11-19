@@ -205,7 +205,7 @@
   "grammarPin": "integration/llguidance.json",
   "boundedReasoningEvidence": "integration/evidence/2026-10-26-bounded-reasoning.json",
   "nativeProductEvidence": "integration/evidence/2026-10-27-native-product.json",
-  "activeBackendMeaning": "Default baseline build target. The installed native preview uses the Splash pin below.",
+  "activeBackendMeaning": "The app's only inference engine, pinned below.",
   "statusSchemaVersion": 8,
   "previousNativePreviewPin": "integration/splash-1.4.1-preserved.json",
   "qualification": {

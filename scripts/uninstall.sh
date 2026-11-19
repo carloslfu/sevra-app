@@ -1,7 +1,7 @@
 #!/bin/bash
 set -euo pipefail
-NAME='Sevra Native Preview'
-BUNDLE_ID=com.sevra.workbooks.native-preview
+NAME=Sevra
+BUNDLE_ID=com.sevra.workbooks
 [ "$#" -eq 0 ] || { echo 'Usage: uninstall.sh' >&2; exit 2; }
 APP_TARGET=${SEVRA_APP_INSTALL_DIR:-"$HOME/Applications"}
 CLI_TARGET=${SEVRA_CLI_INSTALL_DIR:-"$HOME/.local/bin"}
