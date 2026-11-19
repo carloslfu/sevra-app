@@ -95,7 +95,7 @@ enum NativeProductResources {
       }
     }
     return .object([
-      "backend": .string("splash-native-candidate"), "runtimeDigests": .bool(true),
+      "backend": .string("splash"), "runtimeDigests": .bool(true),
       "tokenizerResources": .bool(true), "grammarLibrary": .bool(true),
       "metalLibrary": validateMetal ? .bool(true) : .null,
       "kernelCount": .number(Double(kernels)), "selectedModel": .string(pack.name),

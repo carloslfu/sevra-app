@@ -3,8 +3,8 @@ type: spec
 meta-type: conclusion
 id: 01m7gjt1zc6br61a29kn3pf5nz
 created: 2026-11-15T21:46:27.180871+00:00
-updated: 2026-11-19T16:00:23+00:00
-summary: Context fixes and Splash 1.6.1 native preview installed. The focused context comparison selects 64K on the 48 GiB test host.
+updated: 2026-11-19T21:20:58Z
+summary: Context fixes and Splash 1.6.1 installed. The focused context comparison selects 64K on the 48 GiB test host.
 title: Inference, context accounting and memory policy
 status: reviewed
 ---
@@ -33,7 +33,7 @@ The engineering direction is: correct accounting on the present engine; upgrade 
 | Context size competes with model caching inside an engine memory budget. | A larger ceiling can slow even short jobs; a smaller ceiling alone may not reduce memory use. | Evaluate context, memory budget and activation/cache policy as a profile. Treat pressure recovery separately from context overflow. |
 | Existing 1 MiB/512-message envelope and other structural limits are independent of context capacity. | Raising a token ceiling alone may not allow the intended input or complete the job. | Audit all relevant bounds, retain meaningful protections and change only demonstrated bottlenecks with independent checks. |
 | Splash 1.4.1/protocol 11 is pinned; 1.6.1/protocol 13 is the current researched candidate. | This is an adapter, lifecycle and packaging upgrade, not just replacing a version string. | Complete the surface map and qualification gates below. |
-| Product wiring uses the native preview, while several pin/status records still describe candidate state. | A successful local preview and a qualified production backend can be confused. | Reconcile source, binary, installed preview and release qualification explicitly. Historical W1 failed exact paired-output parity despite passing timing; D9 found reference repeatability differences. Do not flip status fields or call that cohort qualified. |
+| The app uses Splash, while several pin/status records still describe candidate state. | A successful local preview and a qualified production backend can be confused. | Reconcile source, binary, installed preview and release qualification explicitly. Historical W1 failed exact paired-output parity despite passing timing; D9 found reference repeatability differences. Do not flip status fields or call that cohort qualified. |
 
 Retained controller evidence: a synthetic 280-row answer-only request measured 27,187 tokens with all tools and stopped, but measured 22,558 with the actual scope and reached dispatch. The nearby 320-row scoped request still stopped at 24,717 against the 24,576 maintenance boundary. This tests admission with the real tokenizer/controller and a no-generation fixture, not answer quality. Refresh the regression against the implementation baseline rather than hard-coding obsolete schema token counts.
 
@@ -221,7 +221,7 @@ Use real Warming/Ready/request progress to explain preparation, reading, process
 
 Verify Stop during model setup/warmup, ordinary generation, tool result handling and summarization. It must remain responsive, leave a truthful saved state and not restart work automatically. Verify a subsequent independent request after teardown. Instrument cancellation acknowledgement, helper termination and UI response separately. Preserve or improve existing host bounds: request cancellation shortens its wait to three seconds; helper close attempts termination for one second then kill/reap for up to three more. Tests must verify the total path including queue delay, not claim these component timers guarantee an instantaneous stop. A stuck child keeps the lease held and produces a truthful failure. Check reopened conversation, latest user instruction, accepted/rejected proposals, source edits, source removal and saved calculations. Preserve Undo/Redo and no duplicate mutation effects.
 
-Use the exact current native preview bundle when installation/UI testing is authorized for implementation. Verify executable Mach-O UUID and bundled resources against the packaged output, not names/timestamps. Review actual native progress, interruption and completion states at narrow windows with keyboard operation; do not infer UI acceptance from a headless model probe. VoiceOver and system-setting changes remain separate existing boundaries.
+Use the exact current installed Sevra bundle when installation/UI testing is authorized for implementation. Verify executable Mach-O UUID and bundled resources against the packaged output, not names/timestamps. Review actual native progress, interruption and completion states at narrow windows with keyboard operation; do not infer UI acceptance from a headless model probe. VoiceOver and system-setting changes remain separate existing boundaries.
 
 ### P7. Integrate, record and release only the qualified result
 

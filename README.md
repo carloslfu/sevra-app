@@ -13,9 +13,9 @@ for work you do regularly. Your files and the AI stay on your Mac.
 Free and open source under the [MIT license](LICENSE). The current Mac preview
 is built from source. A notarized installer is not yet available.
 
-![Sevra's native preview with the Willow Workshop sample workbook, a supplier comparison table and a cost chart.](docs/images/native-preview.png)
+![Sevra with the Willow Workshop sample workbook, a supplier comparison table and a cost chart.](docs/images/sevra.png)
 
-*Inside the native preview. Sample data shown.*
+*Inside Sevra. Sample data shown.*
 
 ## Why Sevra
 

@@ -677,7 +677,7 @@ private final class NativeWorker: @unchecked Sendable {
       return (
         parsed.text,
         .object([
-          "phase": .string("context_summary"), "backend": .string("splash-native-candidate"),
+          "phase": .string("context_summary"), "backend": .string("splash"),
           "promptTokens": .number(Double(prompt.tokens.count)),
           "contextTokens": .number(Double(session.capacity)),
           "matchedPromptTokens": .number(Double(matchedPromptTokens)),
@@ -815,7 +815,7 @@ private final class NativeWorker: @unchecked Sendable {
     }
     try cancellation.check()
     let metrics: Value = .object([
-      "backend": .string("splash-native-candidate"),
+      "backend": .string("splash"),
       "runtimeRelease": .string("1.6.1"),
       "activations": .string(configuration.activations.rawValue),
       "requestedContextTokens": .number(Double(budget.contextTokens)),

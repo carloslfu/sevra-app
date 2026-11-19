@@ -3,8 +3,8 @@ type: operational
 meta-type: conclusion
 id: 01m5rbxz8vn3x44zb6n5k97y8q
 created: 2026-10-25T01:48:47.259629+00:00
-updated: 2026-11-19T16:00:23+00:00
-summary: Splash 1.6.1 native preview installed with scoped accounting, continuity fixes and a context default selected by installed memory.
+updated: 2026-11-19T21:20:58Z
+summary: Splash 1.6.1 installed with scoped accounting, continuity fixes and a context default selected by installed memory.
 title: Start here
 ---
 # Sevra app
@@ -23,7 +23,7 @@ for the secondary service. Website pricing/support does not apply to this app.
 
 ## Current preview and delivery order
 
-**Current native preview, November 16:** Splash 1.6.1 with 64K at 48 GiB and above, 32K below, and a 12 GiB engine budget. The matched comparison passed both shorter tasks and retrieved all three facts from the 42K-token audit at 64K. See [[records/operations/inference-context-execution]].
+**Current engine, November 16:** Splash 1.6.1 with 64K at 48 GiB and above, 32K below, and a 12 GiB engine budget. The matched comparison passed both shorter tasks and retrieved all three facts from the 42K-token audit at 64K. See [[records/operations/inference-context-execution]].
 
 **Earlier inference/context checkpoint, November 16:** scoped accounting, full response/recovery reserves, continuity fixes and candidate Splash 1.6.1 are implemented. Local checks, native packaging and bounded isolated UI recovery pass. Engine repeatability and app-generation failures block adoption and larger-profile task qualification; keep 32K/12 GiB and the existing installed preview. Startup-only 64K/128K admission is not a quality or speed result. See [[records/operations/inference-context-execution]] and [[records/operations/agent-handoff]] for the failure receipts, identities and exact-head publication gate.
 

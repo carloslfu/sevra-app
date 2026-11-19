@@ -45,7 +45,7 @@ public actor ProductAI {
   }
   public static let name = "Local AI"
   public static let detail = "Qwen3.6 35B · Splash · DFlash 2"
-  public static let revision = "splash-1.6.1-native-candidate"
+  public static let revision = "splash-1.6.1"
   public static let preferenceKey = "nativeModelsRoot"
   public static var defaultDirectory: URL {
     FileManager.default.homeDirectoryForCurrentUser.appendingPathComponent(
