@@ -2,7 +2,7 @@
 type: spec
 id: 01m61v3tcay3v380asyfhvg260
 created: 2026-10-28T18:07:17.386524+00:00
-updated: 2026-11-01T08:40:00.000000+00:00
+updated: 2026-11-19T03:18:37.640222+00:00
 summary: Schema18 definitions, reviewed CSV/TSV intake and queued native workflows have scoped proof; full journeys and release gates remain open.
 title: Shared application definitions and actions
 status: reviewed
@@ -660,3 +660,8 @@ The model can only prepare unsent inputs. Standalone local composer commands pre
 ## Schema19 inert automation definitions
 
 Automation now joins the shared version/head/dependency/Source/FTS/captured-change family. It pins an exact saved workflow and typed fixed inputs, including nested item evidence, plus a native calendar rule. Empty parameters and calendar-drafts-v1 policy; no enabled or execution fields. Definition save/search/read/history/restore and exact automation-preview are core/CLI only; ordinary save_definition still refuses this kind. Normalized preview values remain separate from original authoring bytes. Final326 full core groups,36 automation and31 calendar installed CLI calls, native package/refusal/signature and inert/fault evidence pass. No activation or operational scheduler. See [[records/specs/automation-definitions]].
+
+## General chat tools, November 18, 2026
+Under [[records/plans/general-chat-tools]] a workbook can hold saved tools: named SQL statements with inputs. They are rows of an ordinary table titled "Saved tools", and they run through the chat `sql` tool's private copy and recorded write path, so a tool can do nothing `sql` cannot.
+
+They are not a definition kind, and the kinds above are unchanged. The `tool` definition kind that plan describes is not built.

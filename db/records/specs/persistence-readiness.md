@@ -2,7 +2,7 @@
 type: spec
 id: 01m61nphrhdhafzcdjn35zka1b
 created: 2026-10-28T16:32:39.697180+00:00
-updated: 2026-10-28T18:14:38.837664+00:00
+updated: 2026-11-19T03:18:37.588178+00:00
 summary: Required complete, causal and replayable local persistence for future syncing; cloud, transport, replica coordination and a new conflict resolver remain out of scope.
 title: Persistence readiness for future syncing
 status: reviewed
@@ -188,3 +188,8 @@ FJ06. Export/reopen preserves the new history and its included dependencies;
 explicitly linked missing assets remain reported. No device grants or runnable
 historical effects become enabled by a portable copy or reconstruction. Verify
 portable presentation state through its declared checkpoint path.
+
+## General chat tools, November 18, 2026
+[[records/plans/general-chat-tools]] keeps the rule against executable SQL in historical payloads. A change made by the chat `sql` or `run` tool is recorded as row operations and table definitions through the existing write paths. The model's statements stay in the tool receipt for inspection and are never replayed.
+
+One Undo for a call is built from those recorded steps: each step kept the call's token in its own, and the Undo takes them back in reverse order.

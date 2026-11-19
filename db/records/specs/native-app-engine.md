@@ -3,7 +3,7 @@ type: spec
 meta-type: conclusion
 id: 01m61cxp8qh580q1vhqdktxhw2
 created: 2026-10-28T13:59:16.503029+00:00
-updated: 2026-11-01T08:40:00.000000+00:00
+updated: 2026-11-19T03:18:37.622834+00:00
 summary: 'Customizable Home and native engine: forms/actions, reusable computation, durable workflows, local automations, authority, portability and phased acceptance. Implementation remains open.'
 title: Customizable native workbook application engine
 status: proposed
@@ -762,3 +762,12 @@ Actual owned inventory-condition candidates now dispatch through exact current p
 ## Conversational inventory rules, October 29
 
 The current schema31 app now saves exact inventory-condition rules from conversation and focuses exact native review with a host saving-only receipt. Seven scripted modes, full agent suite, 52 tools/65 grammars/555 masks at 8161/8192, strict 14-file lint, native packaging and both real-model and actual visible packaged authoring pass. Saving/reconstruction remain inactive with zero grants/runs. All 152 prior artifacts remain unchanged. [[records/specs/condition-dispatch]] retains evidence, prompt/fixture failures, fixes and limits. Text/voice Enable, real-model condition business review/restart, dataset conditions and broader release remain next.
+
+## General chat tools, November 18, 2026
+Under [[records/plans/general-chat-tools]] chat has a `run` tool: one model-written script per call. This replaces, for chat, the rules above against arbitrary SQL writes and a code runner. Mini apps are unchanged.
+
+- **Where it runs.** In the extraction helper, after it enters a sandbox that denies everything. The mini-app XPC workers are not used.
+- **What it reaches.** `sql` on one private copy of the tables for the whole script, and `search` and `read` of the saved workbook. The helper answers no call itself: each pass lists the calls the script made, the host answers them, and the script runs again from the top.
+- **What it changes.** Nothing until it returns. Then its table changes are applied once through the recorded write paths, all or nothing, with one Undo.
+
+The implementation is [ChatRun.swift](../../../Sources/SevraCore/ChatRun.swift) and [ChatScriptRuntime.swift](../../../Sources/SevraExtractionWorker/ChatScriptRuntime.swift), checked without a model by [check_chat_run.py](../../../scripts/check_chat_run.py).

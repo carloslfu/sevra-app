@@ -2,7 +2,7 @@
 type: spec
 id: 01m61vcs2a1prctcr1em7z68cm
 created: 2026-10-28T18:12:10.954425+00:00
-updated: 2026-11-01T08:40:00.000000+00:00
+updated: 2026-11-19T03:18:37.567506+00:00
 summary: Schema12 managed storage, definition lifecycle and bounded stored-scalar query/index paths have scoped proof; complete MJ/Excel continuity and release remain open.
 title: Managed datasets and replayable storage
 status: reviewed
@@ -461,3 +461,13 @@ This is a new core/CLI surface, with unchanged visible UI and model tools. Store
 scalar query/index qualification now supports the E2 catalog slice; complete MJ
 acceptance, Excel sparse/formula continuity, saved query interfaces/actions/forms,
 E3-E6, VoiceOver/hardware/fresh-install and notarized production release remain open.
+
+## General chat tools, November 18, 2026
+The owner's direction in [[records/plans/general-chat-tools]] changes the rules above that forbid model SQL: M05, M08 and MJ07.
+
+- **Model-written SQL now runs,** on a private in-memory copy of the tables it names. It never runs on the workbook file.
+- **M03 still holds.** What the statements did to the copy, rows or a table's shape, is applied through the recorded write paths, so no projection edit becomes unrecorded authoritative state.
+- **System tables stay unreachable.** The copy holds only the tables a statement names, two catalog tables, and the stock ledger as two read-only tables.
+- **A shape change becomes a registered table definition or is refused.** Indexes, views, triggers and temporary tables are refused.
+
+The implementation is [ChatSQL.swift](../../../Sources/SevraCore/ChatSQL.swift), checked without a model by [check_chat_sql.py](../../../scripts/check_chat_sql.py).

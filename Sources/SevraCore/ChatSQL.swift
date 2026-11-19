@@ -327,6 +327,9 @@ extension Workbook {
         "inputs": .array(inputs.map { .string($0.name + ($0.number ? " number" : "")) }),
         "run": .string("sql with tool=\(name)" + (inputs.isEmpty ? "" : " and values")),
         "changes": saved["changes"], "shape": saved["shape"],
+        "notice": .string(
+          "Saved, and not run. This tool is complete: its inputs are the fields a form would have. Do not build a view, an app or a definition for it."
+        ),
       ])
     }
   }

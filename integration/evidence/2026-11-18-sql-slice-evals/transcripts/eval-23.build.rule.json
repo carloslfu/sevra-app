@@ -1,0 +1,673 @@
+{
+ "job": "build.rule_for_workflow",
+ "language": "es",
+ "profile": "general",
+ "attempt": 1,
+ "prompt": "Crea una regla que ejecute el flujo Low-stock report cuando el stock de brass bolts baje de 10. No la actives.",
+ "expected": "A rule is saved, not enabled, that runs the Low-stock report when the stock of brass bolts is below 10. The workbook holds that workflow, which the first rule job lacks.",
+ "failure": null,
+ "result": {
+  "answer": "Saved automation “Brass bolts low stock alert”. Saving does not enable it. Review this exact version to enable or pause it on this Mac. Business changes require separate review.",
+  "citations": [],
+  "conversationAction": null,
+  "state": "complete",
+  "steps": 6
+ },
+ "progress": [
+  "Reading request context",
+  "Checking local model files",
+  "Preparing local AI. The first start can take longer…",
+  "Preparing local AI · 0 of 11 steps",
+  "Preparing local AI · 1 of 11 steps",
+  "Preparing local AI · 2 of 11 steps",
+  "Preparing local AI · 3 of 11 steps",
+  "Preparing local AI · 4 of 11 steps",
+  "Preparing local AI · 5 of 11 steps",
+  "Preparing local AI · 6 of 11 steps",
+  "Preparing local AI · 7 of 11 steps",
+  "Preparing local AI · 8 of 11 steps",
+  "Preparing local AI · 9 of 11 steps",
+  "Preparing local AI · 10 of 11 steps",
+  "Preparing local AI · 11 of 11 steps",
+  "Reading the working context",
+  "Working through the request",
+  "Preparing a response",
+  "Guide…",
+  "Reviewing the saved result",
+  "Reading the working context",
+  "Working through the request",
+  "Preparing a response",
+  "Find Definitions…",
+  "Reviewing the saved result",
+  "Reading the working context",
+  "Working through the request",
+  "Preparing a response",
+  "Find Definitions…",
+  "Reviewing the saved result",
+  "Reading the working context",
+  "Working through the request",
+  "Preparing a response",
+  "Read Definition…",
+  "Reviewing the saved result",
+  "Reading the working context",
+  "Working through the request",
+  "Preparing a response",
+  "Inventory Automation Template…",
+  "Reviewing the saved result",
+  "Reading the working context",
+  "Working through the request",
+  "Preparing a response",
+  "Save Template…",
+  "Reviewing the saved result"
+ ],
+ "messages": {
+  "main": [
+   {
+    "body": "This example has supplier quotes and a delivery. Try ‘Why do we have 18 brass bolts?’ or ‘Compare the supplier costs and show the evidence.’",
+    "created": "2026-11-19T03:27:23Z",
+    "id": "3e5d3e96-f902-4e45-891d-61c489aa4c9b",
+    "role": "assistant",
+    "state": "complete"
+   },
+   {
+    "body": "Crea una regla que ejecute el flujo Low-stock report cuando el stock de brass bolts baje de 10. No la actives.",
+    "created": "2026-11-19T03:27:23Z",
+    "id": "a0c95c7f-df64-4603-88da-20504f723bdc",
+    "role": "user",
+    "state": "complete"
+   },
+   {
+    "body": {
+     "arguments": {
+      "name": "rule"
+     },
+     "assistantText": "",
+     "callID": "call_4fe40450-fa77-461d-9357-51edef2789c9",
+     "receiptID": "731c26ca-db05-4383-90d8-00630b4b4a55",
+     "receiptVersion": 1,
+     "result": {
+      "guide": "A rule watches the stock of one inventory item and runs a saved workflow when the stock crosses a level. It never runs by itself until the user enables it.\n1. A rule needs a saved workflow to run. Find it with search in=definitions, using one or two words of its title. If the workbook has none, say so and ask the user what the rule should do when it fires. Do not invent a workflow.\n2. In the hit, id is the workflow's exact version ID. Use id everywhere below. Never use logical_id or source_id.\n3. read kind=definition with ref set to that id.\n4. run action template.rule with {workflowID: that id, arguments: the workflow's inputs or {}, subject: the item as the stock table names it, operator: \"<\" or \"<=\" or \">\" or \">=\", threshold: the level as a number}. It returns a template receipt and changes nothing.\n5. save with template: {templateReceiptID: that receipt's ID, title: a short title}. Saving does not enable the rule."
+     },
+     "resultHash": "87ad043113b0194e32f287d70a21f8cd3733848769da0976b46929d15b2cd260",
+     "resultIdentity": {},
+     "runID": "a6c91022-112d-484f-b578-6c68a6643c8d",
+     "tool": "guide"
+    },
+    "created": "2026-11-19T03:27:36Z",
+    "id": "19a1f57a-e84a-482b-a21c-1a9ca58f5a1e",
+    "role": "tool",
+    "state": "complete"
+   },
+   {
+    "body": {
+     "arguments": {
+      "query": "Low-stock report workflow"
+     },
+     "assistantText": "",
+     "callID": "call_93884ed5-fb21-472e-9a50-6131843f59f4",
+     "receiptID": "ab54ff63-5f8f-4239-b39a-907830718b31",
+     "receiptVersion": 1,
+     "result": {
+      "historical": false,
+      "hits": [],
+      "nextCursor": null,
+      "order": "exact version ID",
+      "snapshot": "c3d5f686-4f86-4c50-adc2-fcccf5696004",
+      "workbookID": "5b84459b-ce2b-45b5-b8a9-6d8231e197b0"
+     },
+     "resultHash": "2b4ae6d82199baa43b1662a94f3e614603ad794408c06e9878177343e523b896",
+     "resultIdentity": {},
+     "runID": "a6c91022-112d-484f-b578-6c68a6643c8d",
+     "tool": "find_definitions"
+    },
+    "created": "2026-11-19T03:27:38Z",
+    "id": "d536f47c-e1f4-417e-ab7f-5edd6ba68425",
+    "role": "tool",
+    "state": "complete"
+   },
+   {
+    "body": {
+     "arguments": {
+      "query": "Low-stock"
+     },
+     "assistantText": "",
+     "callID": "call_27cdc70d-f33f-4b07-ade8-6a58eb4943c1",
+     "receiptID": "40edb558-739d-4069-8d48-a9791294f455",
+     "receiptVersion": 1,
+     "result": {
+      "historical": false,
+      "hits": [
+       {
+        "description": "Synthetic fixture.",
+        "id": "cb7c7959-2515-4c35-8add-f86812c67564",
+        "is_current": 1,
+        "kind": "workflow",
+        "logical_id": "13bfaa1e-ba5a-4055-ba74-4481b79ae09b",
+        "source_id": "ac22d6c1-39da-4509-a309-5d4f7d170feb",
+        "title": "Low-stock report",
+        "version": 1
+       }
+      ],
+      "nextCursor": null,
+      "order": "exact version ID",
+      "snapshot": "c3d5f686-4f86-4c50-adc2-fcccf5696004",
+      "workbookID": "5b84459b-ce2b-45b5-b8a9-6d8231e197b0"
+     },
+     "resultHash": "d62ef66b0f6aeff259d3700fe726f6f54e73beab79b88a84bddaeafcdc041667",
+     "resultIdentity": {},
+     "runID": "a6c91022-112d-484f-b578-6c68a6643c8d",
+     "tool": "find_definitions"
+    },
+    "created": "2026-11-19T03:27:41Z",
+    "id": "86da2f64-dcb6-4a61-a0e0-049c8c542c04",
+    "role": "tool",
+    "state": "complete"
+   },
+   {
+    "body": {
+     "arguments": {
+      "id": "cb7c7959-2515-4c35-8add-f86812c67564"
+     },
+     "assistantText": "",
+     "callID": "call_5f8a35d1-a87a-4819-9c0a-471ed4b11ba6",
+     "receiptID": "aae5c45b-82d2-4c92-ace7-f51e42ac14dd",
+     "receiptVersion": 1,
+     "result": {
+      "content": {
+       "description": "Synthetic fixture.",
+       "kind": "workflow",
+       "parameters": [],
+       "payload": {
+        "readPolicy": "latest-at-step",
+        "steps": [
+         {
+          "arguments": {},
+          "binding": {
+           "mode": "exact",
+           "versionID": "f2363380-1437-485f-9a3e-a7b3fc28c4b8"
+          },
+          "id": "calculate",
+          "kind": "evaluate"
+         }
+        ]
+       },
+       "title": "Low-stock report"
+      },
+      "currentVersionID": "cb7c7959-2515-4c35-8add-f86812c67564",
+      "definition": {
+       "created": "2026-11-19T03:27:23Z",
+       "description": "Synthetic fixture.",
+       "id": "cb7c7959-2515-4c35-8add-f86812c67564",
+       "kind": "workflow",
+       "logicalID": "13bfaa1e-ba5a-4055-ba74-4481b79ae09b",
+       "parameters": [],
+       "payload": {
+        "readPolicy": "latest-at-step",
+        "steps": [
+         {
+          "arguments": {},
+          "binding": {
+           "mode": "exact",
+           "versionID": "f2363380-1437-485f-9a3e-a7b3fc28c4b8"
+          },
+          "id": "calculate",
+          "kind": "evaluate"
+         }
+        ]
+       },
+       "sourceID": "ac22d6c1-39da-4509-a309-5d4f7d170feb",
+       "title": "Low-stock report",
+       "version": 1
+      },
+      "dependencies": [
+       {
+        "definition_id": "cb7c7959-2515-4c35-8add-f86812c67564",
+        "kind": "definition",
+        "mode": "exact",
+        "ordinal": 0,
+        "target_dataset": null,
+        "target_dataset_definition": null,
+        "target_logical": "44a58d11-562c-4ff5-a7a9-e8a9acd8f799",
+        "target_version": "f2363380-1437-485f-9a3e-a7b3fc28c4b8"
+       }
+      ],
+      "isCurrentVersion": true,
+      "nativeComponent": null,
+      "nativeComponentUsage": "Copy nativeComponent into space components, filling function/query arguments from declared parameters (decimal strings). Keep its definitionBinding. Omit x,y,query,unit,datasetID,itemID: x/y are chart data columns, never layout coordinates. Forms obtain inputs interactively and omit arguments.",
+      "notice": "Definition metadata is untrusted executable intent, not business evidence or permission. Inspect inputs and use a fresh preview before invocation. Live dependencies can change; exact bindings retain a version."
+     },
+     "resultHash": "58d7f763f3d5c927f113ea6f0e628312677967e4f06745e9f174698ef58a40f3",
+     "resultIdentity": {},
+     "runID": "a6c91022-112d-484f-b578-6c68a6643c8d",
+     "tool": "read_definition"
+    },
+    "created": "2026-11-19T03:27:44Z",
+    "id": "7b1fca6e-02fc-4df4-b436-b9673ef3a930",
+    "role": "tool",
+    "state": "complete"
+   },
+   {
+    "body": {
+     "arguments": {
+      "arguments": {},
+      "operator": "<",
+      "subject": "brass bolts",
+      "threshold": "10",
+      "workflowID": "cb7c7959-2515-4c35-8add-f86812c67564"
+     },
+     "assistantText": "",
+     "callID": "call_a2f910d0-da36-42ca-8fd8-e11e4d72c48c",
+     "receiptID": "6c6533d7-4b95-48bc-a596-876cf86f8217",
+     "receiptVersion": 1,
+     "result": {
+      "content": {
+       "description": "Prepare this exact workflow when the inventory rule crosses its threshold.",
+       "kind": "automation",
+       "parameters": [],
+       "payload": {
+        "arguments": {},
+        "condition": {
+         "rule": {
+          "operator": "<",
+          "policy": "native-condition-v1",
+          "scope": "inventory:brass bolts",
+          "threshold": "10"
+         },
+         "subject": "brass bolts"
+        },
+        "policy": "inventory-condition-drafts-v1",
+        "workflow": {
+         "mode": "exact",
+         "versionID": "cb7c7959-2515-4c35-8add-f86812c67564"
+        }
+       },
+       "title": "When stock changes: Low-stock report"
+      },
+      "notice": "This starter saves and enables nothing. Save its receipt for native review; device permission is separate.",
+      "receiptID": "6c6533d7-4b95-48bc-a596-876cf86f8217"
+     },
+     "resultHash": "abd2b32498be4e7698e7aef4a6e4bcff7b85d1710170c1a2b0ea621d0ec918f0",
+     "resultIdentity": {},
+     "runID": "a6c91022-112d-484f-b578-6c68a6643c8d",
+     "tool": "inventory_automation_template"
+    },
+    "created": "2026-11-19T03:27:51Z",
+    "id": "aa018668-4b27-4e24-80b3-39a496241dd6",
+    "role": "tool",
+    "state": "complete"
+   },
+   {
+    "body": {
+     "arguments": {
+      "templateReceiptID": "6c6533d7-4b95-48bc-a596-876cf86f8217",
+      "title": "Brass bolts low stock alert"
+     },
+     "assistantText": "",
+     "callID": "call_00cb3365-c61c-4211-8129-aed8d1dceb99",
+     "receiptID": "d10402f7-9470-4464-8e64-885d4599acb3",
+     "receiptVersion": 1,
+     "result": {
+      "created": "2026-11-19T03:27:55Z",
+      "description": "Prepare this exact workflow when the inventory rule crosses its threshold.",
+      "id": "2cf1ad2e-0a16-4648-a00b-3e0b8e3e24ee",
+      "kind": "automation",
+      "logicalID": "4cef9c47-c857-8a7f-a22f-27fc9c2b7540",
+      "nativeComponent": null,
+      "nativeComponentUsage": "Copy nativeComponent into space components, filling function/query arguments from declared parameters (decimal strings). Keep its definitionBinding. Omit x,y,query,unit,datasetID,itemID: x/y are chart data columns, never layout coordinates. Forms obtain inputs interactively and omit arguments.",
+      "parameters": [],
+      "payload": {
+       "arguments": {},
+       "condition": {
+        "rule": {
+         "operator": "<",
+         "policy": "native-condition-v1",
+         "scope": "inventory:brass bolts",
+         "threshold": "10"
+        },
+        "subject": "brass bolts"
+       },
+       "policy": "inventory-condition-drafts-v1",
+       "workflow": {
+        "mode": "exact",
+        "versionID": "cb7c7959-2515-4c35-8add-f86812c67564"
+       }
+      },
+      "sourceID": "0ca5ca97-3987-432d-8c2b-b9ec2d82dc07",
+      "title": "Brass bolts low stock alert",
+      "version": 1
+     },
+     "resultHash": "7aceaea2bb7bb0e60cfe98d7389b9097c71f6f2729c4ff4e9a54aec5ff06c48b",
+     "resultIdentity": {
+      "id": "2cf1ad2e-0a16-4648-a00b-3e0b8e3e24ee",
+      "kind": "automation",
+      "logicalID": "4cef9c47-c857-8a7f-a22f-27fc9c2b7540"
+     },
+     "runID": "a6c91022-112d-484f-b578-6c68a6643c8d",
+     "tool": "save_template"
+    },
+    "created": "2026-11-19T03:27:55Z",
+    "id": "1f0c5126-2382-4279-97a3-e7e6ac4bd848",
+    "role": "tool",
+    "state": "complete"
+   },
+   {
+    "body": "Saved automation “Brass bolts low stock alert”. Saving does not enable it. Review this exact version to enable or pause it on this Mac. Business changes require separate review.",
+    "created": "2026-11-19T03:27:55Z",
+    "id": "35571668-7969-49e6-924b-0069480220d0",
+    "role": "assistant",
+    "state": "complete"
+   }
+  ]
+ },
+ "runs": [
+  {
+   "conversation_id": "main",
+   "created": "2026-11-19T03:27:23Z",
+   "id": "a6c91022-112d-484f-b578-6c68a6643c8d",
+   "metrics": [
+    {
+     "host": "tool_profile",
+     "profile": "general"
+    },
+    {
+     "acceptedDraftTokens": 119,
+     "activations": "bf16",
+     "backend": "splash-native-candidate",
+     "beforeDispatchSeconds": 6.122861458337866,
+     "contextTokens": 65536,
+     "decodeSeconds": 3.386361,
+     "deduplicatedKVTokens": 0,
+     "diagnosticRequestCacheIsolation": false,
+     "draftedTokens": 357,
+     "engineSHA256": "ce771e5f51081a2fd60df0ee0083f982a278a863ffaeab29fd590f55e9e36e89",
+     "firstAnswerPreviewSeconds": null,
+     "firstTokenSeconds": 2.1918181250803173,
+     "generatedTokens": 171,
+     "grammarSHA256": "5b96c275e9c1a2e618a54a4814a6d9c0de116285e8ffd0814aea01a5c8eecdf1",
+     "helperStartSeconds": 4.301451124949381,
+     "hostPreparationSeconds": 5.825003609061241e-05,
+     "maintenanceRecommended": false,
+     "maintenanceThreshold": 49152,
+     "matchedPromptTokens": 2528,
+     "nextToolResultReserve": 3546,
+     "outputBudget": 1800,
+     "prefillSeconds": 2.187591,
+     "prefixPrimeMatchedTokens": 0,
+     "prefixPrimePrefillSeconds": 1.814582,
+     "prefixPrimeSeconds": 1.8146978749427944,
+     "prefixPrimeTokens": 2559,
+     "promptTokens": 4638,
+     "reasoningBudget": 512,
+     "reasoningBudgetOverrun": 0,
+     "reasoningHistory": "within-request",
+     "reasoningTokens": 143,
+     "recoveryReserve": 256,
+     "replayBoundaryTokens": 4608,
+     "requestSeconds": 5.57816175010521,
+     "requestedContextTokens": 65536,
+     "requestedMemoryBytes": 12884901888,
+     "requestedOutputBudget": 1800,
+     "runtimeRelease": "1.6.1",
+     "scopePrefixTokens": 3934,
+     "speculativeMethod": "DFlash2",
+     "stablePrefixTokens": 2559,
+     "templateIdentity": "aee46acfcba8e4e7aec7512126b926aa311bf7414d0d96ad3b13a86d5bdfe9d3",
+     "toolScope": "all"
+    },
+    {
+     "acceptedDraftTokens": 45,
+     "activations": "bf16",
+     "backend": "splash-native-candidate",
+     "beforeDispatchSeconds": 0.00015874998643994331,
+     "contextTokens": 65536,
+     "decodeSeconds": 1.14613,
+     "deduplicatedKVTokens": 192,
+     "diagnosticRequestCacheIsolation": false,
+     "draftedTokens": 98,
+     "engineSHA256": "ce771e5f51081a2fd60df0ee0083f982a278a863ffaeab29fd590f55e9e36e89",
+     "firstAnswerPreviewSeconds": null,
+     "firstTokenSeconds": 1.0229537499835715,
+     "generatedTokens": 60,
+     "grammarSHA256": "5b96c275e9c1a2e618a54a4814a6d9c0de116285e8ffd0814aea01a5c8eecdf1",
+     "helperStartSeconds": 3.7497375160455704e-07,
+     "hostPreparationSeconds": 7.295829709619284e-05,
+     "maintenanceRecommended": false,
+     "maintenanceThreshold": 49152,
+     "matchedPromptTokens": 4608,
+     "nextToolResultReserve": 3546,
+     "outputBudget": 1800,
+     "prefillSeconds": 1.018628,
+     "prefixPrimeMatchedTokens": 0,
+     "prefixPrimePrefillSeconds": 0,
+     "prefixPrimeSeconds": 0,
+     "prefixPrimeTokens": 0,
+     "promptTokens": 5058,
+     "reasoningBudget": 512,
+     "reasoningBudgetOverrun": 0,
+     "reasoningHistory": "within-request",
+     "reasoningTokens": 20,
+     "recoveryReserve": 256,
+     "replayBoundaryTokens": 5024,
+     "requestSeconds": 2.169076458318159,
+     "requestedContextTokens": 65536,
+     "requestedMemoryBytes": 12884901888,
+     "requestedOutputBudget": 1800,
+     "runtimeRelease": "1.6.1",
+     "scopePrefixTokens": 3934,
+     "speculativeMethod": "DFlash2",
+     "stablePrefixTokens": 2559,
+     "templateIdentity": "aee46acfcba8e4e7aec7512126b926aa311bf7414d0d96ad3b13a86d5bdfe9d3",
+     "toolScope": "all"
+    },
+    {
+     "acceptedDraftTokens": 55,
+     "activations": "bf16",
+     "backend": "splash-native-candidate",
+     "beforeDispatchSeconds": 0.00017333333380520344,
+     "contextTokens": 65536,
+     "decodeSeconds": 1.762363,
+     "deduplicatedKVTokens": 64,
+     "diagnosticRequestCacheIsolation": false,
+     "draftedTokens": 154,
+     "engineSHA256": "ce771e5f51081a2fd60df0ee0083f982a278a863ffaeab29fd590f55e9e36e89",
+     "firstAnswerPreviewSeconds": null,
+     "firstTokenSeconds": 0.8959775833645836,
+     "generatedTokens": 78,
+     "grammarSHA256": "5b96c275e9c1a2e618a54a4814a6d9c0de116285e8ffd0814aea01a5c8eecdf1",
+     "helperStartSeconds": 4.166504368185997e-07,
+     "hostPreparationSeconds": 9.329174645245075e-05,
+     "maintenanceRecommended": false,
+     "maintenanceThreshold": 49152,
+     "matchedPromptTokens": 5024,
+     "nextToolResultReserve": 3546,
+     "outputBudget": 1800,
+     "prefillSeconds": 0.891624,
+     "prefixPrimeMatchedTokens": 0,
+     "prefixPrimePrefillSeconds": 0,
+     "prefixPrimeSeconds": 0,
+     "prefixPrimeTokens": 0,
+     "promptTokens": 5225,
+     "reasoningBudget": 512,
+     "reasoningBudgetOverrun": 0,
+     "reasoningHistory": "within-request",
+     "reasoningTokens": 40,
+     "recoveryReserve": 256,
+     "replayBoundaryTokens": 5216,
+     "requestSeconds": 2.658334333333187,
+     "requestedContextTokens": 65536,
+     "requestedMemoryBytes": 12884901888,
+     "requestedOutputBudget": 1800,
+     "runtimeRelease": "1.6.1",
+     "scopePrefixTokens": 3934,
+     "speculativeMethod": "DFlash2",
+     "stablePrefixTokens": 2559,
+     "templateIdentity": "aee46acfcba8e4e7aec7512126b926aa311bf7414d0d96ad3b13a86d5bdfe9d3",
+     "toolScope": "all"
+    },
+    {
+     "acceptedDraftTokens": 106,
+     "activations": "bf16",
+     "backend": "splash-native-candidate",
+     "beforeDispatchSeconds": 0.007483958383090794,
+     "contextTokens": 65536,
+     "decodeSeconds": 2.490719,
+     "deduplicatedKVTokens": 64,
+     "diagnosticRequestCacheIsolation": false,
+     "draftedTokens": 168,
+     "engineSHA256": "ce771e5f51081a2fd60df0ee0083f982a278a863ffaeab29fd590f55e9e36e89",
+     "firstAnswerPreviewSeconds": null,
+     "firstTokenSeconds": 1.096757166669704,
+     "generatedTokens": 131,
+     "grammarSHA256": "5b96c275e9c1a2e618a54a4814a6d9c0de116285e8ffd0814aea01a5c8eecdf1",
+     "helperStartSeconds": 3.7509016692638397e-07,
+     "hostPreparationSeconds": 0.00011237501166760921,
+     "maintenanceRecommended": false,
+     "maintenanceThreshold": 49152,
+     "matchedPromptTokens": 5216,
+     "nextToolResultReserve": 3546,
+     "outputBudget": 1800,
+     "prefillSeconds": 1.092208,
+     "prefixPrimeMatchedTokens": 0,
+     "prefixPrimePrefillSeconds": 0,
+     "prefixPrimeSeconds": 0,
+     "prefixPrimeTokens": 0,
+     "promptTokens": 5541,
+     "reasoningBudget": 512,
+     "reasoningBudgetOverrun": 0,
+     "reasoningHistory": "within-request",
+     "reasoningTokens": 61,
+     "recoveryReserve": 256,
+     "replayBoundaryTokens": 5536,
+     "requestSeconds": 3.5874717499827966,
+     "requestedContextTokens": 65536,
+     "requestedMemoryBytes": 12884901888,
+     "requestedOutputBudget": 1800,
+     "runtimeRelease": "1.6.1",
+     "scopePrefixTokens": 3934,
+     "speculativeMethod": "DFlash2",
+     "stablePrefixTokens": 2559,
+     "templateIdentity": "aee46acfcba8e4e7aec7512126b926aa311bf7414d0d96ad3b13a86d5bdfe9d3",
+     "toolScope": "all"
+    },
+    {
+     "acceptedDraftTokens": 192,
+     "activations": "bf16",
+     "backend": "splash-native-candidate",
+     "beforeDispatchSeconds": 0.0002207083161920309,
+     "contextTokens": 65536,
+     "decodeSeconds": 5.161829,
+     "deduplicatedKVTokens": 128,
+     "diagnosticRequestCacheIsolation": false,
+     "draftedTokens": 385,
+     "engineSHA256": "ce771e5f51081a2fd60df0ee0083f982a278a863ffaeab29fd590f55e9e36e89",
+     "firstAnswerPreviewSeconds": null,
+     "firstTokenSeconds": 1.4291092082858086,
+     "generatedTokens": 248,
+     "grammarSHA256": "5b96c275e9c1a2e618a54a4814a6d9c0de116285e8ffd0814aea01a5c8eecdf1",
+     "helperStartSeconds": 4.5832712203264236e-07,
+     "hostPreparationSeconds": 0.00013529171701520681,
+     "maintenanceRecommended": false,
+     "maintenanceThreshold": 49152,
+     "matchedPromptTokens": 5536,
+     "nextToolResultReserve": 3546,
+     "outputBudget": 1800,
+     "prefillSeconds": 1.424587,
+     "prefixPrimeMatchedTokens": 0,
+     "prefixPrimePrefillSeconds": 0,
+     "prefixPrimeSeconds": 0,
+     "prefixPrimeTokens": 0,
+     "promptTokens": 6286,
+     "reasoningBudget": 512,
+     "reasoningBudgetOverrun": 0,
+     "reasoningHistory": "within-request",
+     "reasoningTokens": 149,
+     "recoveryReserve": 256,
+     "replayBoundaryTokens": 6272,
+     "requestSeconds": 6.590933333267458,
+     "requestedContextTokens": 65536,
+     "requestedMemoryBytes": 12884901888,
+     "requestedOutputBudget": 1800,
+     "runtimeRelease": "1.6.1",
+     "scopePrefixTokens": 3934,
+     "speculativeMethod": "DFlash2",
+     "stablePrefixTokens": 2559,
+     "templateIdentity": "aee46acfcba8e4e7aec7512126b926aa311bf7414d0d96ad3b13a86d5bdfe9d3",
+     "toolScope": "all"
+    },
+    {
+     "acceptedDraftTokens": 115,
+     "activations": "bf16",
+     "backend": "splash-native-candidate",
+     "beforeDispatchSeconds": 0.0002648750087246299,
+     "contextTokens": 65536,
+     "decodeSeconds": 2.980319,
+     "deduplicatedKVTokens": 160,
+     "diagnosticRequestCacheIsolation": false,
+     "draftedTokens": 189,
+     "engineSHA256": "ce771e5f51081a2fd60df0ee0083f982a278a863ffaeab29fd590f55e9e36e89",
+     "firstAnswerPreviewSeconds": null,
+     "firstTokenSeconds": 1.2365531666437164,
+     "generatedTokens": 143,
+     "grammarSHA256": "5b96c275e9c1a2e618a54a4814a6d9c0de116285e8ffd0814aea01a5c8eecdf1",
+     "helperStartSeconds": 4.166504368185997e-07,
+     "hostPreparationSeconds": 0.00017283332999795675,
+     "maintenanceRecommended": false,
+     "maintenanceThreshold": 49152,
+     "matchedPromptTokens": 6272,
+     "nextToolResultReserve": 3546,
+     "outputBudget": 1800,
+     "prefillSeconds": 1.231449,
+     "prefixPrimeMatchedTokens": 0,
+     "prefixPrimePrefillSeconds": 0,
+     "prefixPrimeSeconds": 0,
+     "prefixPrimeTokens": 0,
+     "promptTokens": 6734,
+     "reasoningBudget": 512,
+     "reasoningBudgetOverrun": 0,
+     "reasoningHistory": "within-request",
+     "reasoningTokens": 65,
+     "recoveryReserve": 256,
+     "replayBoundaryTokens": 6720,
+     "requestSeconds": 4.2168595000403,
+     "requestedContextTokens": 65536,
+     "requestedMemoryBytes": 12884901888,
+     "requestedOutputBudget": 1800,
+     "runtimeRelease": "1.6.1",
+     "scopePrefixTokens": 3934,
+     "speculativeMethod": "DFlash2",
+     "stablePrefixTokens": 2559,
+     "templateIdentity": "aee46acfcba8e4e7aec7512126b926aa311bf7414d0d96ad3b13a86d5bdfe9d3",
+     "toolScope": "all"
+    }
+   ],
+   "model": "Splash 1.6.1; d8af1054aab0f97de21d043e01aa98af3754f10e; Qwen3.6-35B-A3B-4bit + DFlash2; native Swift candidate; context 65536; memory 12884901888; activations bf16; KV int8; state fp32; ANE on; reasoning budget 512; within-request reasoning retained",
+   "request_message_id": "a0c95c7f-df64-4603-88da-20504f723bdc",
+   "status": "complete",
+   "steps": 6,
+   "updated": "2026-11-19T03:27:55Z"
+  }
+ ],
+ "saved": {
+  "newItems": [
+   {
+    "category": "source",
+    "kind": "application_definition",
+    "status": "accepted",
+    "title": "Define Brass bolts low stock alert",
+    "id": "0ca5ca97-3987-432d-8c2b-b9ec2d82dc07"
+   }
+  ],
+  "newDefinitions": [
+   {
+    "description": "Prepare this exact workflow when the inventory rule crosses its threshold.",
+    "id": "2cf1ad2e-0a16-4648-a00b-3e0b8e3e24ee",
+    "is_current": 1,
+    "kind": "automation",
+    "logical_id": "4cef9c47-c857-8a7f-a22f-27fc9c2b7540",
+    "source_id": "0ca5ca97-3987-432d-8c2b-b9ec2d82dc07",
+    "title": "Brass bolts low stock alert",
+    "version": 1
+   }
+  ]
+ }
+}
