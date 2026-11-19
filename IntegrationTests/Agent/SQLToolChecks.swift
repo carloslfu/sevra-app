@@ -27,13 +27,25 @@ func checkSQLTool() async throws {
   try expectEqual(message.tool, "history_read")
   try expectEqual(message.arguments, .object(["id": .string("m1")]))
   try expectEqual(
-    GeneralTools.route("run", .object(["action": .string("table.schema")])).tool,
-    "workspace_action")
-  try expectEqual(
     GeneralTools.route(
-      "save",
-      .object(["kind": .string("document"), "sources": .array([.string("s1")])])
-    ).arguments, .object(["inputs": .array([.string("s1")])]))
+      "run", .object(["action": .object(["name": .string("table.schema")])])
+    ).tool, "workspace_action")
+  let thread = GeneralTools.route(
+    "run",
+    .object([
+      "action": .object([
+        "name": .string("thread.start"), "arguments": .object(["title": .string("Dates")]),
+      ])
+    ]))
+  try expectEqual(thread.tool, "start_thread")
+  try expectEqual(thread.arguments, .object(["title": .string("Dates")]))
+  let document = GeneralTools.route(
+    "save", .object(["document": .object(["title": .string("Note")])]))
+  try expectEqual(document.tool, "draft")
+  try expectEqual(document.arguments, .object(["title": .string("Note")]))
+  let ownTool = GeneralTools.route("save", .object(["tool": .object(["name": .string("low")])]))
+  try expectEqual(ownTool.tool, "save")
+  try expectEqual(ownTool.arguments["kind"], .string("tool"))
   try expectEqual(GeneralTools.route("ask", .object([:])).tool, "request_input")
   try expectEqual(ToolProfile.general.instructions(current: "today"), ToolProfile.generalInstructions)
   try expectEqual(ToolProfile.current.scopeInstructions(current: "today"), "today")

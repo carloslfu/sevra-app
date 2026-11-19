@@ -41,6 +41,13 @@ package enum GeneralTools {
     "template.rule": "inventory_automation_template",
   ]
 
+  /// Named actions whose inputs the grammar enforces.
+  static let exact: Set<String> = [
+    "thread.start", "thread.start_and_continue", "thread.rename", "thread.summary", "view.open",
+    "view.pin", "view.edit", "stock.move", "workflow.start", "definition.evaluate",
+    "action.preview", "action.prepare", "template.form", "template.workflow", "template.rule",
+  ]
+
   /// The operation a general call stands for. A call this table cannot place is returned as
   /// it came, and the tool that receives it says what is wrong.
   package static func route(_ tool: String, _ a: Value) -> (tool: String, arguments: Value) {
@@ -68,8 +75,11 @@ package enum GeneralTools {
       if !["references", "lineage", "archive"].contains(kind), let ref { fields["id"] = ref }
       return (target, rest(without: "kind"))
     case "run":
-      guard let action = a["action"].string else { return (tool, a) }
-      let arguments = a.object["arguments"] ?? .object([:])
+      // An action is {name, arguments}. The command line may also name it directly.
+      let named = a["action"]
+      guard let action = named["name"].string ?? named.string else { return (tool, a) }
+      let arguments =
+        (named.string == nil ? named.object["arguments"] : a.object["arguments"]) ?? .object([:])
       if let target = actions[action] {
         // A continued thread either answers or changes. The change scopes all allow the same
         // general tools, so one stands for them.
@@ -82,11 +92,14 @@ package enum GeneralTools {
       }
       return ("workspace_action", .object(["action": .string(action), "arguments": arguments]))
     case "save":
-      guard let kind = a["kind"].string, let target = saves[kind] else { return (tool, a) }
-      // `sources` names the items a saved thing comes from. The operations call it inputs.
-      if let sources = fields.removeValue(forKey: "sources") { fields["inputs"] = sources }
-      fields["kind"] = fields.removeValue(forKey: "recordKind")
-      return (target, .object(fields))
+      // One kind per call, each with the shape of the operation that saves it.
+      let kinds = fields.keys.filter { $0 == "tool" || saves[$0] != nil }
+      guard kinds.count == 1, let kind = kinds.first, case .object(var thing) = a[kind] else {
+        return (tool, a)
+      }
+      if let target = saves[kind] { return (target, .object(thing)) }
+      thing["kind"] = .string("tool")
+      return ("save", .object(thing))
     default: return (tool, a)
     }
   }
@@ -128,8 +141,8 @@ package enum GeneralTools {
       "history_search": "search in=conversation", "find_definitions": "search in=definitions",
     ]
     for (kind, target) in reads where kind != "item" { phrases[target] = "read kind=" + kind }
-    for (kind, target) in saves { phrases[target] = "save kind=" + kind }
-    for (action, target) in actions { phrases[target] = "run action=" + action }
+    for (kind, target) in saves { phrases[target] = "save with " + kind }
+    for (action, target) in actions { phrases[target] = "run action " + action }
     return phrases.filter { $0.key.contains("_") }.sorted {
       ($0.key.count, $0.key) > ($1.key.count, $1.key)
     }.map { ($0.key, $0.value) }
@@ -196,50 +209,74 @@ package enum GeneralTools {
             "description": .string("For kind=result: the field to page into."),
           ]),
         ], required: []))
+    func parameters(_ tool: String) -> Value {
+      NativeTools.definitions.first { $0.name == tool }!.parameters
+    }
+    // One shape per action: the workspace actions take the inputs read kind=actions lists,
+    // and each action with an operation of its own takes that operation's inputs.
+    // The grammar takes sixteen shapes. These fifteen actions get their own, and the rest
+    // share the open one, where the action itself says what it is missing.
+    let exact = named.filter(Self.exact.contains)
+    let open = (operations + named.filter { !Self.exact.contains($0) }).sorted()
+    let shapes: [Value] =
+      (open.isEmpty
+        ? []
+        : [
+          object(
+            [
+              "name": choice(open, "A workspace action, or an action with few inputs."),
+              "arguments": .object(["type": .string("object")]),
+            ], required: ["name", "arguments"])
+        ])
+      + exact.map { name in
+        object(
+          ["name": choice([name], ""), "arguments": parameters(actions[name]!)],
+          required: ["name", "arguments"])
+      }
+    var runProperties: [String: Value] = [
+      "code": NativeTools.runDefinition.parameters["properties"]["code"]
+    ]
+    if !shapes.isEmpty {
+      runProperties["action"] = .object([
+        "type": .string("object"), "anyOf": .array(shapes),
+        "description": .string("One named action with its arguments, instead of code."),
+      ])
+    }
     let run = WorkbookToolDefinition(
       name: "run",
       description: NativeTools.runDefinition.description
-        + " Or send action with arguments to perform one named action instead of code: charts, files, imports, apps, workflows, threads, views and undo. read kind=actions lists them with their inputs. Thread actions: thread.start {title, message}, thread.start_and_continue {task, work: answer or change, title}, thread.rename {title}, thread.return {}. View actions: view.open {target}, view.pin {target, pinned}.",
-      parameters: object(
-        [
-          "code": NativeTools.runDefinition.parameters["properties"]["code"],
-          "action": choice((operations + named).sorted(), "One named action, instead of code."),
-          "arguments": .object([
-            "type": .string("object"), "description": .string("The action's inputs."),
-          ]),
-        ], required: []))
-    let kinds = (["tool"] + saves.keys.sorted()).filter { apps || $0 != "app" }
+        + " Or send action, with its name and arguments, to perform one named action instead of code: charts, files, imports, apps, workflows, threads, views and undo. read kind=actions lists the workspace actions with their inputs.",
+      parameters: object(runProperties, required: []))
+    var kinds: [String: Value] = [
+      "tool": .object(
+        NativeTools.saveDefinition.parameters.object.merging([
+          "properties": .object(
+            NativeTools.saveDefinition.parameters["properties"].object.filter { $0.key != "kind" }),
+          "required": .array(["name", "description", "inputs", "statements"].map(Value.string)),
+          "description": .string(
+            "SQL statements to run again: a report, a check, or a form that adds or changes rows."),
+        ]) { _, new in new })
+    ]
+    let about = [
+      "document": "A note, summary, report or document the user asks you to write.",
+      "view": "A page of existing tables and charts.",
+      "app": "A small app with its own controls, after read kind=app_guide.",
+      "record": "One drafted fact for the user to review.",
+      "definition": "A form, workflow, function or rule, after read kind=definition_guide.",
+      "template": "A template that a template action returned.",
+      "result": "An evaluated result to keep.",
+    ]
+    for (kind, target) in saves where apps || kind != "app" {
+      var shape = parameters(target).object
+      shape["description"] = .string(about[kind]!)
+      kinds[kind] = .object(shape)
+    }
     let save = WorkbookToolDefinition(
       name: "save",
       description:
-        "Save a named thing in the workbook. kind=tool: SQL statements to run again, such as a report, a check or a form that adds rows, with name, description, inputs and statements that use each input as :name. document: a note, summary or report, with title, text and sources. view: a page of existing tables and charts, with title and definition. app: a small app with its own controls, with package and tests, after read kind=app_guide. record: one drafted fact, with title, text, recordKind, meaning and sources. definition: a form, workflow, function or rule, with content, after read kind=definition_guide. template: a template a template action returned, with templateReceiptID. result: an evaluated result, with evaluationReceiptID, title and meaning.",
-      parameters: object(
-        [
-          "kind": choice(kinds, "What to save."),
-          "name": schema("string", "tool: lower case with underscores, such as low_stock."),
-          "description": schema("string", "tool: one sentence on what it does."),
-          "inputs": NativeTools.saveDefinition.parameters["properties"]["inputs"],
-          "statements": NativeTools.saveDefinition.parameters["properties"]["statements"],
-          "title": schema("string", "The visible title."),
-          "text": schema("string", "document or record: the full text."),
-          "sources": ids,
-          "parts": property("draft", "parts"),
-          "definition": property("save_space", "definition"),
-          "package": property("save_native_app", "package"),
-          "tests": property("save_native_app", "tests"),
-          "fixtures": property("save_native_app", "fixtures"),
-          "id": schema("string", "app: the saved app to replace."),
-          "expectedVersion": schema("integer", "app: the version being replaced."),
-          "recordKind": schema("string", "record: its kind."),
-          "meaning": schema("string", "record or result: actual, plan or another meaning."),
-          "data": property("propose_record", "data"),
-          "content": property("save_definition", "content"),
-          "expectedDefinitionID": schema("string", "definition or template: the one replaced."),
-          "templateReceiptID": schema("string", "template: the receipt of its template action."),
-          "evaluationReceiptID": schema("string", "result: the receipt of its evaluation."),
-          "scenario": schema("string", "result: its scenario."),
-        ].filter { apps || !["package", "tests", "fixtures", "expectedVersion"].contains($0.key) },
-        required: ["kind"]))
+        "Save one named thing in the workbook. Send exactly one of these, with its own fields: "
+        + kinds.keys.sorted().joined(separator: ", ") + ".",
+      parameters: object(kinds, required: []))
     let question = ask.map {
       WorkbookToolDefinition(
         name: "ask",
@@ -247,7 +284,13 @@ package enum GeneralTools {
           "Ask the user for what is missing, as one question or a few typed fields. Nothing is changed.",
         parameters: $0.parameters)
     }
-    return [search, read, NativeTools.sqlDefinition, run, save] + (question.map { [$0] } ?? [])
-      + [finish]
+    // The model is not offered undo on sql itself. It is an action, so a statement and an
+    // undo cannot be sent together.
+    let sql = WorkbookToolDefinition(
+      name: "sql", description: NativeTools.sqlDefinition.description,
+      parameters: object(
+        NativeTools.sqlDefinition.parameters["properties"].object.filter { $0.key != "undo" },
+        required: []))
+    return [search, read, sql, run, save] + (question.map { [$0] } ?? []) + [finish]
   }
 }

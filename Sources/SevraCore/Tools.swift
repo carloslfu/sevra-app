@@ -390,6 +390,9 @@ public struct WorkbookTools {
           token: "sql-" + (receiptID ?? token), requestSourceID: requestSourceID,
           cancellation: cancellation)
       }
+      try require(
+        a["values"].object.isEmpty, "arguments",
+        "values belong to a saved tool. For a draft, set draft to true beside statements.")
       let statements = a["statements"].array.compactMap(\.string)
       try require(
         statements.count == a["statements"].array.count, "arguments",

@@ -167,7 +167,7 @@ extension Workbook {
       } else if !saved.isEmpty || !shaped.isEmpty {
         fields["undo"] = .string(token)
         fields["notice"] = .string(
-          "Saved. If the user asks to undo this, send sql with undo set to this result's undo value.")
+          "Saved. If the user asks to undo this, the undo action takes this result's undo value as its token.")
       }
       return .object(fields)
     }
