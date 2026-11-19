@@ -200,8 +200,6 @@ package enum GeneralTools {
         [
           "query": schema("string", "A few words."),
           "in": choice(["workbook", "conversation", "definitions"], "Default workbook."),
-          "kind": schema("string", "Optional kind filter."),
-          "status": schema("string", "Optional status filter."),
           "cursor": schema("string", "Next page, from an earlier result."),
         ], required: ["query"]))
     // Item IDs come only from what a search or an earlier read returned, so the grammar

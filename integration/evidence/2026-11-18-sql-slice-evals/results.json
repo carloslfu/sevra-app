@@ -2188,6 +2188,151 @@
      "answer": "Created a thread."
     }
    ]
+  },
+  {
+   "name": "eval-17",
+   "change": "After the model was shown shorter shapes than the grammar enforces, and a save said that it saved.",
+   "language": "en",
+   "jobs": [
+    {
+     "job": "read.stock",
+     "language": "en",
+     "passed": true,
+     "decisions": 2,
+     "wallSeconds": 15.86,
+     "firstPromptTokens": 4598,
+     "tools": [
+      "sql"
+     ],
+     "failure": null,
+     "answer": "We have 18 brass bolts.\n\n[brass bolts: -2](sevra://item/41a055e5-05aa-4fd4-a298-902f5494d0d8) [Workshop inventory](sevra://item/7790a933-b708-43a8-be40-3c1cd37d370f)"
+    },
+    {
+     "job": "change.add_rows_from_document",
+     "language": "en",
+     "passed": false,
+     "decisions": 5,
+     "wallSeconds": 27.55,
+     "firstPromptTokens": 4600,
+     "tools": [
+      "search",
+      "read",
+      "read",
+      "read"
+     ],
+     "failure": "Supplier comparison does not hold exactly [[\"Oak Supply\", 10, \"2.40\"], [\"Cedar Tools\", 10, \"2.75\"], [\"Birch Metals\", 10, \"2.55\"], [\"Elm Fasteners\", 10, \"2.30\"]]: [{\"quantity\": \"10\", \"supplier\": \"Oak Supply\", \"total\": \"24\", \"unit_cost\": \"2.40\"}, {\"quantity\": \"10\", \"supplier\": \"Cedar Tools\", \"total\": \"27.5\", \"unit_cost\": \"2.75\"}]",
+     "answer": "I need to read the document \"Quote Q-311\" first to get the supplier details."
+    },
+    {
+     "job": "steps.totals_by_category",
+     "language": "en",
+     "passed": true,
+     "decisions": 5,
+     "wallSeconds": 31.24,
+     "firstPromptTokens": 4613,
+     "tools": [
+      "search",
+      "read",
+      "read",
+      "sql"
+     ],
+     "failure": null,
+     "answer": "The table \"Invoice 7781 totals\" has been created with the following category totals:\n- Fasteners: 31.50 (Brass bolts 24.00 + Hex nuts 7.50)\n- Tools: 50.25 (Torque wrench 38.00 + Hex key set 12.25)\n- Packaging: 9.00 (Shipping boxes)\n\n[Invoice 7781](sevra://item/e9c53af2-1e48-4e8f-b8eb-739b6e9fd5db?locator=text;%20offset%3D0)"
+    },
+    {
+     "job": "draft.change",
+     "language": "en",
+     "passed": true,
+     "decisions": 2,
+     "wallSeconds": 19.82,
+     "firstPromptTokens": 4629,
+     "tools": [
+      "sql"
+     ],
+     "failure": null,
+     "answer": "I've prepared a draft to update Cedar Tools' unit cost from 2.75 to 2.60 in the Supplier comparison table. The change is saved as a proposal and has not been applied yet. Please review it, and let me know if you'd like to apply it."
+    },
+    {
+     "job": "build.view",
+     "language": "en",
+     "passed": true,
+     "decisions": 3,
+     "wallSeconds": 24.99,
+     "firstPromptTokens": 4606,
+     "tools": [
+      "sql",
+      "save_space"
+     ],
+     "failure": null,
+     "answer": "Saved space “Purchasing”."
+    },
+    {
+     "job": "build.form",
+     "language": "en",
+     "passed": true,
+     "decisions": 2,
+     "wallSeconds": 19.16,
+     "firstPromptTokens": 4614,
+     "tools": [
+      "save"
+     ],
+     "failure": null,
+     "answer": "The form \"New reorder level\" has been created with fields Part (text) and Level (number). It will add a new row to the reorder_levels table when used."
+    },
+    {
+     "job": "build.rule",
+     "language": "en",
+     "passed": false,
+     "decisions": 6,
+     "wallSeconds": 78.04,
+     "firstPromptTokens": 4598,
+     "tools": [
+      "workspace_actions",
+      "workspace_actions",
+      "search",
+      "inventory_automation_template (failed: The application definition was not found.)",
+      "search",
+      "search"
+     ],
+     "failure": "no saved rule (automation definition) was found",
+     "answer": "I found no matches for these searches: “rule alert stock”, “workflow”, “workflow alert”. The most recent search reported no incomplete sources. One or more queries were limited to business evidence; earlier conversation may still contain relevant information. These searches do not establish the requested facts."
+    },
+    {
+     "job": "conversation.greeting",
+     "language": "en",
+     "passed": true,
+     "decisions": 1,
+     "wallSeconds": 12.51,
+     "firstPromptTokens": 4581,
+     "tools": [],
+     "failure": null,
+     "answer": "Hello! How can I help you today?"
+    },
+    {
+     "job": "conversation.new_thread",
+     "language": "en",
+     "passed": true,
+     "decisions": 1,
+     "wallSeconds": 12.01,
+     "firstPromptTokens": 4585,
+     "tools": [
+      "start_thread"
+     ],
+     "failure": null,
+     "answer": "Created a thread."
+    },
+    {
+     "job": "conversation.clarify",
+     "language": "en",
+     "passed": true,
+     "decisions": 1,
+     "wallSeconds": 14.54,
+     "firstPromptTokens": 4592,
+     "tools": [],
+     "failure": null,
+     "answer": "To add the new supplier to the Supplier comparison table, I need the following details:\n1. Supplier name\n2. Quantity\n3. Unit cost\n\nPlease provide these values."
+    }
+   ]
   }
  ],
  "latestAgainstBaseline": {
