@@ -34,7 +34,7 @@ public struct WorkbookTools {
     "review_queue", "references", "space_history", "find_definitions", "read_definition",
     "definition_registry", "receiving_template", "form_template", "workflow_template",
     "inventory_automation_template",
-    "evaluate_definition", "native_app_sdk", "read_native_app", "workspace_actions", "guide",
+    "evaluate_definition", "native_app_sdk", "read_native_app", "workspace_actions",
     "preview_action", "workflow_activity", "read_workflow",
   ]
   public init(
@@ -164,7 +164,7 @@ public struct WorkbookTools {
     }
     try require(
       !readOnly || Self.readOnlyTools.contains(tool)
-        || ["workspace_action", "sql", "run"].contains(tool),
+        || ["workspace_action", "sql", "run", "guide"].contains(tool),
       "read_only_request",
       "The current request explicitly forbids changes. Read evidence and answer; do not create a draft, proposal, space, copy or import."
     )

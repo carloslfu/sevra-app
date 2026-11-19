@@ -134,7 +134,7 @@ package enum GeneralTools {
   /// Whether a routed call only reads. A script and a query refuse changes themselves.
   package static func reads(_ tool: String, _ a: Value) -> Bool {
     WorkbookTools.readOnlyTools.contains(tool)
-      || ["sql", "run", "finish", "request_input"].contains(tool)
+      || ["sql", "run", "finish", "request_input", "guide"].contains(tool)
       || (tool == "workspace_action"
         && ChatOperations.operations.first { $0.name == a["action"].text }?.readOnly == true)
   }

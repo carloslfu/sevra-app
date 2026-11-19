@@ -3861,5 +3861,196 @@
    "build.rule"
   ],
   "note": "The latest single English run of each job since the profile was cut down."
+ },
+ "sevenTools": {
+  "english": {
+   "run": "eval-18",
+   "passed": 22,
+   "of": 24,
+   "failing": [
+    "build.app",
+    "build.rule"
+   ],
+   "note": "build.app passes inside an app bundle in eval-20-app. build.rule has no workflow to run; build.rule_for_workflow passes in eval-22."
+  },
+  "spanish": {
+   "run": "eval-23",
+   "passed": 23,
+   "of": 25,
+   "failing": [
+    "build.app",
+    "build.rule"
+   ],
+   "note": "build.app inside an app bundle reached the step limit in eval-23-app."
+  },
+  "againstToday": {
+   "jobsPassingInBoth": 11,
+   "todayDecisions": 40,
+   "todaySeconds": 394,
+   "sevenDecisions": 26,
+   "sevenSeconds": 219
+  }
+ },
+ "gate": {
+  "date": "2026-11-18",
+  "commit": "832b187",
+  "timedTurns": {
+   "sevenTools": {
+    "coldFirstTurn": {
+     "prompt": "hello",
+     "medianWallSeconds": 13.6,
+     "wallSeconds": [
+      13.92,
+      13.15,
+      13.6
+     ],
+     "steps": [
+      1,
+      1,
+      1
+     ]
+    },
+    "warmGreeting": {
+     "prompt": "hey",
+     "medianWallSeconds": 4.66,
+     "wallSeconds": [
+      4.66,
+      4.8,
+      4.53
+     ],
+     "steps": [
+      1,
+      1,
+      1
+     ]
+    },
+    "warmStockQuestion": {
+     "prompt": "How many brass bolts do we have?",
+     "medianWallSeconds": 8.93,
+     "wallSeconds": [
+      8.94,
+      8.93,
+      8.79
+     ],
+     "steps": [
+      2,
+      2,
+      2
+     ]
+    }
+   },
+   "todayOneRunEach": {
+    "coldFirstTurn": 17.99,
+    "warmGreeting": 4.2,
+    "warmStockQuestion": 10.77
+   }
+  },
+  "appJobInsideAnAppBundle": {
+   "firstRuns": {
+    "en": "passed (eval-20-app)",
+    "es": "step limit (eval-23-app)"
+   },
+   "reruns": [
+    {
+     "job": "build.app",
+     "language": "en",
+     "passed": false,
+     "decisions": 7,
+     "wallSeconds": 144.72,
+     "failure": "repeated_action: The model repeated an unsuccessful action. Completed changes and receipts are saved; inspect them before continuing."
+    },
+    {
+     "job": "build.app",
+     "language": "es",
+     "passed": true,
+     "decisions": 15,
+     "wallSeconds": 225.09,
+     "failure": null
+    },
+    {
+     "job": "build.app",
+     "language": "en",
+     "passed": true,
+     "decisions": 13,
+     "wallSeconds": 266.97,
+     "failure": null
+    },
+    {
+     "job": "build.app",
+     "language": "es",
+     "passed": false,
+     "decisions": 13,
+     "wallSeconds": 195.43,
+     "failure": "step_limit: This request reached its step limit. Completed changes are saved. Ask to continue, or narrow the question."
+    }
+   ]
+  },
+  "rerunsOfTouchedJobs": [
+   {
+    "job": "change.add_rows_from_document",
+    "language": "en",
+    "passed": true,
+    "decisions": 4,
+    "wallSeconds": 29.95,
+    "failure": null
+   },
+   {
+    "job": "change.add_rows_from_document",
+    "language": "es",
+    "passed": true,
+    "decisions": 4,
+    "wallSeconds": 29.4,
+    "failure": null
+   },
+   {
+    "job": "draft.change",
+    "language": "en",
+    "passed": true,
+    "decisions": 2,
+    "wallSeconds": 19.71,
+    "failure": null
+   },
+   {
+    "job": "draft.change",
+    "language": "es",
+    "passed": true,
+    "decisions": 2,
+    "wallSeconds": 21.49,
+    "failure": null
+   },
+   {
+    "job": "build.view",
+    "language": "en",
+    "passed": true,
+    "decisions": 3,
+    "wallSeconds": 24.02,
+    "failure": null
+   },
+   {
+    "job": "build.view",
+    "language": "es",
+    "passed": true,
+    "decisions": 4,
+    "wallSeconds": 25.42,
+    "failure": null
+   },
+   {
+    "job": "build.form",
+    "language": "en",
+    "passed": true,
+    "decisions": 4,
+    "wallSeconds": 26.0,
+    "failure": null
+   },
+   {
+    "job": "build.form",
+    "language": "es",
+    "passed": true,
+    "decisions": 2,
+    "wallSeconds": 18.53,
+    "failure": null
+   }
+  ],
+  "note": "The app job passed 2 of 3 runs in English and 1 of 3 in Spanish. Every other job that failed during the build passed its rerun in both languages."
  }
 }
