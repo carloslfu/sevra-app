@@ -36,7 +36,8 @@ import SevraVoice
           "payload": .object([
             "name": .string("reorder_check"), "language": .string("javascript"),
             "source": .string(
-              "const rows = await sql('SELECT count(*) AS n FROM tables'); return rows[0].n;"),
+              "const rows = await sql('SELECT count(*) AS n FROM stock WHERE quantity < :level', {level: inputs.level}); return rows[0].n;"
+            ),
           ]),
         ]))
     }

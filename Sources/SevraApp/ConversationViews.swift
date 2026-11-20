@@ -42,6 +42,26 @@ struct ConversationMessageRow: View, Equatable {
     }
   }
   var body: some View {
+    // The Undo row sits outside the spaced stack, since most replies leave it empty.
+    VStack(alignment: .leading, spacing: 0) {
+      messageStack
+      if message.role == "assistant" && message.state == "complete" {
+        ConversationReversalView(state: state, messageID: message.id)
+      }
+    }.environment(
+      \.openURL,
+      OpenURLAction { url in
+        state.openConversationLink(url, returningTo: .message(message.id))
+        return .handled
+      }
+    ).accessibilityElement(children: .contain)
+      .accessibilityLabel(speaker + " message" + (message.state == "complete" ? "" : ", " + status))
+      .accessibilityIdentifier("message-" + message.id)
+      .contextMenu {
+        ConversationMessageActions(state: state, message: message, content: content.presentation)
+      }
+  }
+  private var messageStack: some View {
     VStack(alignment: .leading, spacing: 6) {
       HStack {
         Text(speaker).readingFont(.caption, weight: .semibold).foregroundStyle(.secondary)
@@ -190,27 +210,13 @@ struct ConversationMessageRow: View, Equatable {
           }
         }.disabled(!controlsEnabled)
       }
-      if message.role == "assistant" && message.state == "complete" {
-        ConversationReversalView(state: state, messageID: message.id)
-      }
       if resumable {
         HStack {
           Text("Answer saved").foregroundStyle(.secondary)
           Button("Retry continuation") { state.retryInput(message.id) }
         }.readingFont(.caption).disabled(!controlsEnabled)
       }
-    }.environment(
-      \.openURL,
-      OpenURLAction { url in
-        state.openConversationLink(url, returningTo: .message(message.id))
-        return .handled
-      }
-    ).accessibilityElement(children: .contain)
-      .accessibilityLabel(speaker + " message" + (message.state == "complete" ? "" : ", " + status))
-      .accessibilityIdentifier("message-" + message.id)
-      .contextMenu {
-        ConversationMessageActions(state: state, message: message, content: content.presentation)
-      }
+    }
   }
 }
 
@@ -224,7 +230,7 @@ private struct ConversationReversalView: View {
   @State private var failure: String?
 
   var body: some View {
-    Group {
+    VStack(alignment: .leading, spacing: 6) {
       if let sql {
         HStack {
           Text(sql.state == "undone" ? "Change undone" : "Change saved")
@@ -252,6 +258,9 @@ private struct ConversationReversalView: View {
         if let failure { Text(failure).font(.caption).foregroundStyle(.secondary) }
       }
     }
+    // A stack, not a Group: an empty Group never starts its task, so the row never loaded.
+    // It brings its own spacing, so replies without a change keep their layout.
+    .padding(.top, sql == nil && receipt == nil ? 0 : 6)
     .task(id: [state.conversation, state.datasetSnapshot, String(state.spaces.count)]) {
       await refresh()
     }
@@ -300,14 +309,17 @@ private struct ConversationReversalView: View {
   private func undo(_ token: String) async {
     guard let (book, operation) = state.beginOperation("Undoing change") else { return }
     busy = true
+    var undone = false
     defer {
       busy = false
-      state.finishOperation(operation, in: book)
+      state.finishOperation(operation, in: book, successStatus: undone ? "Change undone." : nil)
     }
     do {
-      _ = try await state.performChatAction(
-        "table.undo_sql", arguments: .object(["token": .string(token)]), book: book, readOnly: false,
-        cancellation: operation.cancellation)
+      let cancellation = operation.cancellation
+      _ = try await Task.detached {
+        try book.chatSQLUndo(token, actor: .human("Sevra chat undo"), cancellation: cancellation)
+      }.value
+      undone = true
       failure = nil
       await refresh()
     } catch {
@@ -320,9 +332,11 @@ private struct ConversationReversalView: View {
     guard let (book, operation) = state.beginOperation(redo ? "Redoing change" : "Undoing change")
     else { return }
     busy = true
+    var done = false
     defer {
       busy = false
-      state.finishOperation(operation, in: book)
+      state.finishOperation(
+        operation, in: book, successStatus: done ? (redo ? "Change redone." : "Change undone.") : nil)
     }
     do {
       _ = try await state.performChatAction(
@@ -331,6 +345,7 @@ private struct ConversationReversalView: View {
           "id": .string(receipt.appID), "expectedVersion": .number(Double(receipt.version)),
           "transaction": .string(token),
         ]), book: book, readOnly: false, cancellation: operation.cancellation)
+      done = true
       failure = nil
       await refresh()
     } catch {

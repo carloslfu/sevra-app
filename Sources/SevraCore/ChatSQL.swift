@@ -348,7 +348,16 @@ extension Workbook {
   }
 
   /// One Undo for everything a sql call saved: rows, new tables and table shapes.
-  public func chatSQLUndo(_ token: String, cancellation: Cancellation = .init()) throws -> Value {
+  /// The person's Undo passes their actor; a model's undo keeps the rule Source it needs.
+  public func chatSQLUndo(
+    _ token: String, actor: ChangeActor? = nil, cancellation: Cancellation = .init()
+  ) throws -> Value {
+    try ChangeAttribution.$actor.withValue(actor ?? ChangeAttribution.actor) {
+      try chatSQLUndoAttributed(token, cancellation: cancellation)
+    }
+  }
+
+  private func chatSQLUndoAttributed(_ token: String, cancellation: Cancellation) throws -> Value {
     try synchronized(cancellation: cancellation) {
       let state = try chatSQLState(token)
       try require(state != nil, "sql_undo", "No saved change has that undo value.")

@@ -296,5 +296,23 @@ func checkSQLTool() async throws {
   try expectEqual(
     try await toolResult(exporting)["error"].text.contains("path the user wrote"), true)
   try expectEqual(FileManager.default.fileExists(atPath: "/tmp/sevra-check-export.csv"), false)
-  print("PASS sql tool: general declarations, answers from query results, AI row and shape changes under a rule Source, one undo from the answer, saved tool, draft, forbidden change, repeated query, a script's changes and refusal, an export to an unnamed path")
+  // A new table and its first rows, saved by one call, offer the same one Undo.
+  let creating = ScriptedCalls(
+    [
+      sql(
+        "CREATE TABLE bolt_levels(part TEXT, level REAL)",
+        "INSERT INTO bolt_levels VALUES('Brass bolts', 10)"),
+      finish("Added a reorder level of 10 for brass bolts.", basis: "completed_action"),
+    ])
+  _ = try await WorkbookAgent.run(
+    "Add a reorder level of 10 for brass bolts.", workbook: book, model: creating)
+  let created = try expectValue(
+    try book.messages().last { $0.role == "assistant" && $0.state == "complete" })
+  let createdReceipt = try expectValue(
+    try book.conversationSQLReceipt(created.id, conversation: "main"))
+  try expectEqual(try book.chatSQLState(createdReceipt), "saved")
+  // The person's Undo, as the chat row sends it.
+  _ = try book.chatSQLUndo(createdReceipt, actor: .human("Sevra chat undo"))
+  try expectEqual(try book.chatSQLState(createdReceipt), "undone")
+  print("PASS sql tool: general declarations, answers from query results, AI row and shape changes under a rule Source, one undo from the answer, saved tool, draft, forbidden change, repeated query, a script's changes and refusal, an export to an unnamed path, a new table's one undo")
 }
