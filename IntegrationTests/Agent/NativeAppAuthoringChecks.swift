@@ -652,6 +652,7 @@ func checkNativeAppAuthoring() async throws {
   try expectEqual(recovered.state, "complete")
   try expectEqual(try missingBook.spaces().filter { $0.definition.app != nil }.count, 1)
   try expectEqual(await missingModel.authoringModes, [false, true, true])
+  try await checkActionCatalog(root)
   let rejectedBook = try Workbook.create(
     at: root.appendingPathComponent("Review refused.sevra"), title: "Review refused")
   _ = try await WorkbookAgent.run(
@@ -1048,4 +1049,31 @@ func runNativeAppAuthoringProbe(modelsRoot: String, library: String, engine: Str
   try require(
     results.allSatisfy { $0["passed"] == .bool(true) }, "probe",
     "Some actual local-model cases failed; inspect retained receipts.")
+}
+
+/// An app's check records the actions it declares, and chat lists them without the app running.
+private func checkActionCatalog(_ root: URL) async throws {
+  let counter = NativeAppPackage(
+    name: "Counter",
+    source: """
+      Sevra.action('count',{title:'Count up',inputs:{step:{type:'decimal',title:'Step'}}},async v=>Number(v.step)+1);
+      Sevra.mount(Sevra.h(Sevra.Text,{text:'Ready'}));
+      """)
+  let tests = try steps(
+    #"[{"kind":"run_action","action":"count","inputs":{"step":"2"},"expect":3},{"kind":"expect_text","value":"Ready"}]"#
+  )
+  let book = try Workbook.create(at: root.appendingPathComponent("Catalog.sevra"), title: "Catalog")
+  _ = try await WorkbookAgent.run(
+    "Create a counter app.", workbook: book,
+    model: AppAuthoringModel([
+      ("native_app_sdk", .object([:])),
+      ("save_native_app", .object(["package": try encoded(counter), "tests": .array(tests)])),
+    ]))
+  let app = try expectValue(try book.spaces().first { $0.definition.app != nil })
+  let actions = try expectValue(app.definition.actions).array
+  try expectEqual(actions.map { $0["id"] }, [.string("count")])
+  try expectEqual(actions[0]["title"], .string("Count up"))
+  try expectEqual(
+    try book.chatWorkbookListing(),
+    "Apps, with their actions: Counter [" + app.id + "]: count(step decimal)")
 }

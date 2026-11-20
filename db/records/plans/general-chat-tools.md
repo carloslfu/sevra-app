@@ -431,7 +431,7 @@ Built on November 18, 2026 under the `general` profile. Evidence: [the evals](..
 - **Shapes are strict where the model needs them.** The first run with one loose shape per tool passed 19 of 24: the model left out a view's definition, a form's inputs and a draft's flag. `save` now takes exactly one kind, each with the fields of the operation that saves it. `run` takes an action as a name and arguments, with fifteen named actions shaped exactly and the workspace actions sharing an open shape, because the grammar takes sixteen alternatives.
 - **The model is shown less than the grammar enforces.** Showing every strict shape took a first prompt from about 4,400 to 7,200 tokens. The model is shown the common shapes in full and the rest as a list of field names, and the grammar supplies the structure as the call is written. A first prompt is about 4,600 tokens.
 - **A step that may only read refuses a call that would change something.** A read-only request and an inspection step still offer `sql` and `run`, which refuse changes themselves.
-- **A file is exported only to a path the person wrote in the request.** A save panel for the other case is not built, so there the model asks for the path.
+- **A file is exported only to a path the person wrote in the request, or through the save panel.** When the request names no path, the model leaves it out and the app asks the person where to save. Cancelling saves nothing. The command line has no panel and refuses.
 - **The command line's `tool` command accepts the seven names.**
 
 **What `sql` is** ([ChatSQL.swift](../../../Sources/SevraCore/ChatSQL.swift)):
@@ -468,12 +468,17 @@ Each changed row version adds about 8 KB to the workbook file, which is what the
 - **Actions run afterwards.** Actions a script queues run in order after its changes are saved. One that needs the app is refused before anything is saved.
 - **Limits:** 24,000 bytes of code, 48 calls, 30 s for the run and 1 s for each pass, 12,000 bytes returned, 8 queued actions.
 
-**Saved tools, built differently from the design under Saving.** A workbook tool is a name, a description, inputs and SQL statements that use each input as `:name`.
+**Saved tools are the `tool` definition kind, built on November 19, 2026 under phase 5.** The first version, rows of a "Saved tools" table, is gone.
 
-- `save` with a tool rehearses the statements and writes the tool as a row of an ordinary table titled "Saved tools", made on first use. A person can read and edit it there like any table.
-- `sql` with `tool` and `values` runs one. So does the command line's `tool WORKBOOK NAME`. The statements run through the same copy, refusals and Undo as any `sql` call, so a tool can do nothing `sql` cannot.
-- The request's context lists the saved tools with their inputs.
-- **This is not the `tool` definition kind of phase 5,** and it changes no format. What it lacks against the design: a per-Mac grant and an enable step for a tool that arrives in a copied workbook, a place on the definitions screen, JavaScript bodies, and binding from forms and automations.
+- **The kind.** A tool is a saved definition with a name, a description, typed inputs (text, decimal, boolean or date, up to 16) and a body: SQL statements that use each input as `:name`, or a script. Saving checks the body first, by rehearsing the SQL or checking the script's syntax. Saving under the same name adds a version. Removing one saves a retired version. `tool.undo` restores the previous version, or retires a first one. This is the format change: schema 32, and earlier development workbooks do not open.
+- **Running one.** `sql` or `run` with `tool` and `values` runs it, and a script calls `tool(name, values)`. The host checks the values against the inputs. SQL runs through the same copy, refusals and Undo as any `sql` call, a script through the same sandbox as `run`, so a tool can do nothing they cannot. The command line's `tool WORKBOOK NAME` runs one too.
+- **The per-Mac grant (P5).** A tool runs on a Mac only once it is enabled there. Saving one in chat enables it on that Mac. A tool that arrives in a copied workbook is listed as not enabled and refuses to run until the person enables it. The grant is a marker file outside the workbook, so copying a workbook never carries it.
+- **The Tools screen.** The workbook menu's Tools lists each tool with its inputs and what it runs, with enable, turn off and remove. The plan put tools on the definitions screen. The app has no definitions screen in the workbook menu, so they have their own. Making and changing a tool stays in chat. The command line has `tools`, `tool-enable`, `tool-disable` and `tool-remove`.
+- **What the request's context lists.** Tables with their columns, saved tools with their inputs and whether they are enabled here, and in at most 1,600 bytes the views, the apps with their actions, and the saved definitions with their IDs. It rides in the saved context, so it survives context maintenance and a move to a new thread.
+- **App action catalogs.** An app's isolated check records the actions it declares, with their titles and inputs, and they are saved with the app. Chat lists them without running the app. An action runs once the app is enabled.
+- **The sample workbook** has a saved action, "Record a stock movement". A movement made through it gets the same direction review as `stock.move`, and the balance read through `sql` agrees with the core's.
+- **Rules can alert.** `template.rule` takes alert text in place of a workflow. Saving it binds the rule to a shared "Stock alert" workflow, saved with the first alert rule, that drafts the alert as a document for the person to read in Reviews. The alert cites the record that sets the item's stock.
+- **The starters are guides.** `read kind=rule_guide` and `read kind=receiving_guide`, each with a filled example. The definitions guide names both. They are not in the instructions.
 
 **Checks, none needing the model:** [check_chat_sql.py](../../../scripts/check_chat_sql.py) and [check_chat_run.py](../../../scripts/check_chat_run.py) through the command line, and `sevra-agent-checks --sql-tool` with a scripted model under the AI actor. All three run in [check.sh](../../../scripts/check.sh).
 
@@ -490,8 +495,8 @@ Each changed row version adds about 8 KB to the workbook file, which is what the
 - **`NOT NULL`, `UNIQUE` and keys in `CREATE TABLE`.** `UNIQUE` makes an index, which the copy refuses. A column is made required or unique with the table's schema action.
 - **Rebuilding a table** by creating a new one, copying, dropping the old one and renaming. It would lose the old table's history.
 - **A script's writes under one hold of the workbook lock.** The lock is held for each `sql` call and for the final save. A row someone else changed in between is refused by the write path, and the script's changes are taken back.
-- **The `tool` definition kind, the format change, the per-Mac grant for tools, and guides with a strict shape after reading.** See Saved tools above. The grant is a safety question for the owner: a tool that arrives in a copied workbook runs when the person asks for it by name, and its changes can be undone.
-- **A save panel for exports.**
+- **Guides with a strict shape after reading.** The grammar is the same for every turn, so the header stays read ahead. Each save kind already has a strict shape.
+- **A tool schema loaded into the grammar when a definition is read, and calls by a definition's own name.** The same reason: the shown tools and the grammar never change within a chat. A workbook tool is called by name through `run` or `sql` with `tool`, and the host checks its values. Other definitions run through the actions that already check them: `definition.evaluate`, `action.prepare` and `workflow.start`.
 
 ### Phase 0. Record the direction and get the go-ahead
 
@@ -611,6 +616,15 @@ Exit:
 - A stock movement made through the saved action behaves as `propose_movement` does today, including its direction review, and the balance read through `sql` agrees with the core's balance. The README's supplier comparison is reproduced with `sql` over the comparison table.
 - One Undo removes a saved view, document, record and tool, or restores the earlier version.
 - Real model: the build jobs succeed.
+
+**Built on November 19, 2026,** at the owner's word to build the whole plan, [[sources/notes/2026/11/general-tools-whole-plan]]. What was built and left out is under [The build so far](#the-build-so-far). Against the exit, with checks that need no model:
+
+- The app authoring checks pass through `save` (`sevra-agent-checks`, 61 groups).
+- A tool is saved, listed, read, run by name, run from a script, refused in a copied workbook until enabled, then enabled and run, and removed with its history kept (`check_chat_sql.py`). It is listed in the request's context on every turn, so context maintenance does not drop it.
+- An app's actions are recorded by its check and listed with their inputs without the app running (`check_native_app_authoring.py`). This check found the listing dropping every input, because the inputs are stored as named fields; fixed.
+- The saved movement action drafts the movement with its direction review, the balance read through `sql` agrees with the core's before and after acceptance, and the supplier comparison is reproduced with `sql` (`--saved-action-checks`).
+- One Undo takes back a saved tool or restores its earlier version (`tool.undo`). Views, documents and records keep their own Undo.
+- An alert rule binds the shared alert workflow once, a second alert rule reuses it, and running it drafts the alert citing the stock record (`--automation-authoring-checks`).
 
 ### Phase 6. Fold the rest, then remove the old tools
 
@@ -741,7 +755,7 @@ Rules recorded before this direction, and what becomes of each:
 | "no model-authored SQL" | [[records/specs/distribution]] | Replaced for chat. |
 | No "arbitrary SQL writes", and an "arbitrary code runner would delay the first useful job" | [[records/specs/native-app-engine]] | Replaced. The programmable engine already runs model-written JavaScript. |
 | Launch with the persistent cache off | [[records/plans/inference-context-upgrade]], [[records/specs/splash-integration]] | Replaced in phase H3. The cache directory is owned by the host, filled from the app's prepared header before each start, and cleared when the engine stops. |
-| Exports write to any absolute path in the tool call | [ChatOperations.swift](../../../Sources/SevraCore/ChatOperations.swift), [ChatActions.swift](../../../Sources/SevraApp/ChatActions.swift) | Under the general tools, only a path the person typed in the request. The save panel is not built. |
+| Exports write to any absolute path in the tool call | [ChatOperations.swift](../../../Sources/SevraCore/ChatOperations.swift), [ChatActions.swift](../../../Sources/SevraApp/ChatActions.swift) | Under the general tools, only a path the person typed in the request. Otherwise the app opens the save panel, and the command line refuses. |
 | Two on-demand tool groups | [[records/plans/native-chat-prompt-routing]] | Replaced by this plan. Its measurements stay valid. |
 
 Each specification is updated in the phase that makes its new rule true: managed datasets, persistence readiness and distribution in phase 3, the native app engine in phase 4, application definitions in phase 5, and Splash integration in phase H3. The first five were updated on November 18, 2026, each with a section named for this plan. Splash integration waits for phase H3.

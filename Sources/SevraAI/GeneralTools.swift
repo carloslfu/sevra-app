@@ -17,7 +17,7 @@ package enum GeneralTools {
     Call one tool at a time. Finish as soon as the request is satisfied.
     sql reads and changes tables. The request lists every table under Tables for sql with its column names and types; use those exact names. GENERATED marks a formula column, which cannot be written. Use sql for every table read, count, comparison, total and calculation, and report its results. Do not calculate in your head. Arithmetic on numbers from the request also goes through sql, such as SELECT round(10 * 2.60, 2). Use round(x, 2) for money and percentages. INSERT, UPDATE and DELETE save at once. A call saves all of its changes or none, and its result carries an undo value: when the user asks to undo a change, use run with the action table.undo_sql and arguments {token: that value}. Take each value from the request or from a document the request names. CREATE TABLE makes a table and ALTER TABLE adds, renames or removes a column: use plain lower-case names, which the host shows as titles, and INSERT a new table's rows in the same call. When the user asks to see a change as a draft first, send the UPDATE with draft=true: it saves a proposal for them and changes nothing.
     run runs JavaScript when the work needs several dependent steps, a loop, or logic one SQL statement cannot express. Prefer one sql call when one statement can do it. Its table changes are saved together when the script returns, and its result carries an undo value like sql.
-    save keeps one named thing in the workbook. Send exactly one of tool, document, view or app, with its own fields. tool: named SQL statements, when the user asks for a tool, a saved report or check, or a form that adds or changes rows. Give it a lower-case name, a one-sentence description, its inputs, and statements that use each input as :name. Every :name in a statement must be listed in inputs. The request lists saved tools under Saved tools; run one with sql tool=name and values. Saving a tool does not run it. document: a note, summary, report or document the user asks you to write, with its title, text and the inputs it rests on. view: a new view of existing tables and charts. app: a small app with its own controls.
+    save keeps one named thing in the workbook. Send exactly one of tool, document, view or app, with its own fields. tool: named SQL statements, when the user asks for a tool, a saved report or check, or a form that adds or changes rows. Give it a lower-case name, a one-sentence description, its inputs, and statements that use each input as :name. Every :name in a statement must be listed in inputs. For work SQL cannot do, send source instead of statements: a script that reads inputs.name. The request lists saved tools under Saved tools; run one with sql tool=name and values, or a script tool with run tool=name and values. A tool not enabled on this Mac came with the workbook, and only the user can enable it. Saving a tool does not run it. document: a note, summary, report or document the user asks you to write, with its title, text and the inputs it rests on. view: a new view of existing tables and charts. app: a small app with its own controls.
     search finds documents, records and saved things. Use a few words, because every word must match. in=conversation searches earlier messages. read opens one thing by its ID, and with a kind reads other things: an earlier message, a page of a long result, a saved app, the list of views. Read an original before citing it. After three empty searches, stop and report what was not found.
     run with action performs one named action in place of code, as its name and arguments. Start or rename a thread only when the user asks for a thread now: thread.start with the title, thread.start_and_continue, thread.rename, thread.return. Charts, files, imports, apps, workflows and opening a view are actions too: read kind=actions lists them with their inputs. Never confirm a host confirmation yourself.
     ask publishes a question with typed fields when the user must supply several values. For one missing value, ask in the answer with finish, basis=general.
@@ -40,6 +40,7 @@ package enum GeneralTools {
     "archive": "archive_members", "reviews": "review_queue", "workflows": "workflow_activity",
     "actions": "workspace_actions", "app_guide": "native_app_sdk",
     "definition_guide": "definition_registry", "rule_guide": "guide",
+    "receiving_guide": "guide",
   ]
   /// `save` kinds and the operation behind each. A tool is saved by the core's own `save`.
   package static let saves: [String: String] = [
@@ -288,7 +289,9 @@ package enum GeneralTools {
           required: ["name", "arguments"])
       }
     var runProperties: [String: Value] = [
-      "code": NativeTools.runDefinition.parameters["properties"]["code"]
+      "code": NativeTools.runDefinition.parameters["properties"]["code"],
+      "tool": NativeTools.runDefinition.parameters["properties"]["tool"],
+      "values": NativeTools.runDefinition.parameters["properties"]["values"],
     ]
     // What the model is shown is the same in every chat scope and thread, so ordinary and
     // read-only turns share one cached header. The grammar offers only what the scope allows.
@@ -323,9 +326,9 @@ package enum GeneralTools {
         NativeTools.saveDefinition.parameters.object.merging([
           "properties": .object(
             NativeTools.saveDefinition.parameters["properties"].object.filter { $0.key != "kind" }),
-          "required": .array(["name", "description", "inputs", "statements"].map(Value.string)),
+          "required": .array(["name", "description", "inputs"].map(Value.string)),
           "description": .string(
-            "SQL statements to run again: a report, a check, or a form that adds or changes rows."),
+            "SQL statements or a script to run again: a report, a check, or a form that adds or changes rows."),
         ]) { _, new in new })
     ]
     let about = [

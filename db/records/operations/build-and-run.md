@@ -195,6 +195,25 @@ and an explicit null clears one. `add` refuses kinds Sevra writes itself with
 another process refuses with `workbook_busy` after 30 seconds. The other refusals are
 in [[records/specs/distribution]] D05.
 
+### Workbook tools
+
+A workbook keeps the tools chat saves, as definitions of kind `tool`. A tool runs on a Mac
+only once it is enabled there. One saved in chat is enabled on that Mac; one that came with a
+copied workbook waits.
+
+~~~sh
+sevra tools Workbook.sevra
+sevra tool-enable Workbook.sevra low_stock
+sevra tool Workbook.sevra low_stock '{"level":"10"}'
+sevra tool-disable Workbook.sevra low_stock
+sevra tool-remove Workbook.sevra low_stock
+~~~
+
+`tools` lists each tool with its inputs, its language and whether it is enabled here.
+`tool-remove` saves a retired version, so the history stays in the workbook. The grants live
+outside the workbook, under Application Support `Sevra/ToolGrants`; `SEVRA_TOOL_GRANTS`
+names another folder, which the checks use so they never touch the person's grants.
+
 ## Local AI
 
 The CLI uses the same model setup as the app Settings described above. Setup needs
@@ -347,7 +366,7 @@ When the app's tool declarations change, rebuild sevra-agent-checks, then explic
 regenerate the normalized declaration fixture before rebuilding reference masks:
 
 ~~~sh
-SEVRA_SCHEMA_FIXTURE_OUTPUT=IntegrationTests/Agent/workbook-tools.json .build/debug/sevra-agent-checks
+SEVRA_SCHEMA_FIXTURE_OUTPUT=$PWD/IntegrationTests/Agent/workbook-tools.json .build/debug/sevra-agent-checks --export-tools
 .build/splash-reference/bin/python scripts/generate_splash_tool_fixtures.py /path/to/verified/model --write
 swift build --product sevra-agent-checks
 python3 scripts/check_splash_grammar.py

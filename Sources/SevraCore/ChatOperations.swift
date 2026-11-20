@@ -216,6 +216,10 @@ public enum ChatOperations {
     .init("table.undo", "Undo a saved table edit by its change ID.", ["id"]),
     .init("table.undo_sql", "Undo everything one sql call saved, by its undo value.", ["token"]),
     .init(
+      "tool.undo",
+      "Undo saving a tool, by the definitionID its save returned: restores the earlier version, or removes a new tool.",
+      ["id"]),
+    .init(
       "table.change_rows",
       "Atomically insert/update/delete up to 64 rows in an inspected table. operations:[{op:insert,values:{...}}|{op:update,id:exactRowVersion,values:{changedFields}}|{op:delete,id:exactRowVersion}]. Existing formulas recalculate. Only do explicitly requested changes; use proposals when the user requests review first.",
       ["id", "expectedDefinitionID", "operations"]),
@@ -475,6 +479,7 @@ extension WorkbookTools {
           cancellation: cancellation))
     case "table.undo": return try encoded(workbook.undoTableChange(string("id")))
     case "table.undo_sql": return try workbook.chatSQLUndo(string("token"), cancellation: cancellation)
+    case "tool.undo": return try workbook.undoToolSave(string("id"))
     case "table.change_rows", "table.undo_rows":
       return try workbook.chatTableTransaction(
         string("id"), expectedDefinitionID: string("expectedDefinitionID"),

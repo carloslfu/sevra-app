@@ -115,6 +115,9 @@ extension WorkbookTools {
         try fields([], required: [])
         return .object([
           "actions": ActionRegistry.actions(), "definitionFormats": Self.definitionFormats,
+          "guides": .string(
+            "To record a delivery as draft stock movements, read kind=receiving_guide. For a rule that watches stock, read kind=rule_guide."
+          ),
         ])
       case "receiving_template":
         try fields([], required: [])
@@ -124,8 +127,8 @@ extension WorkbookTools {
         ])
       case "inventory_automation_template":
         try fields(
-          ["workflowID", "arguments", "subject", "operator", "threshold"],
-          required: ["workflowID", "arguments", "subject", "operator", "threshold"])
+          ["alert", "workflowID", "arguments", "subject", "operator", "threshold"],
+          required: ["subject", "operator", "threshold"])
         return try workbook.synchronized {
           try workbook.db.readTransaction {
             .object([
@@ -184,7 +187,7 @@ extension WorkbookTools {
           ? ["expectedDefinitionID", "inputs", "templateReceiptID", "title"]
           : ["expectedDefinitionID", "content", "inputs"],
         required: [tool == "save_template" ? "templateReceiptID" : "content"])
-      let content: Value
+      var content: Value
       if tool == "save_template" {
         let template = try string("templateReceiptID")
         try require(
@@ -209,12 +212,12 @@ extension WorkbookTools {
       try require(
         [
           "function", "query", "action", "form", "workflow", "interpretation", "extraction",
-          "intake", "automation",
+          "intake", "automation", "tool",
         ]
         .contains(
           content["kind"].text),
         "definition_kind",
-        "Use content {kind,title,description,parameters,payload}. kind is function, query, action, form, interpretation, extraction, intake, workflow or automation. Inspect definition_registry for its payload."
+        "Use content {kind,title,description,parameters,payload}. kind is function, query, action, form, interpretation, extraction, intake, workflow, automation or tool. Inspect definition_registry for its payload."
       )
       let token = try operationToken(tool, a)
       if a.object["inputs"] != nil {
@@ -239,6 +242,14 @@ extension WorkbookTools {
         existing = target.logicalID
       } else {
         existing = nil
+      }
+      if tool == "save_template", content["kind"] == .string("automation"),
+        content["payload"]["alert"].string != nil
+      {
+        // An alert rule runs the shared alert workflow, saved with the first such rule.
+        content = try workbook.stockAlertAutomation(
+          content, token: token, requestRunID: runID, requestSourceID: requestSourceID,
+          cancellation: cancellation)
       }
       let saved = try workbook.saveApplicationDefinition(
         logicalID: existing ?? Self.definitionIdentity(token), content: content,
@@ -315,7 +326,7 @@ extension WorkbookTools {
   )
   static let definitionFormats: Value = .object([
     "content": .string(
-      "{kind:function|query|action|form|workflow|interpretation|extraction|intake|automation,title,description,parameters,payload}"
+      "{kind:function|query|action|form|workflow|interpretation|extraction|intake|automation|tool,title,description,parameters,payload}"
     ),
     "parameters": .string(
       "Up to 32 {id,label,type,required,unit?,default?,choices?,min?,max?,fields?,maxEntries?}. required is Boolean true/false, never 1/0. Types: text,decimal,boolean,date,item,choice,entries. Decimals/bounds are strings. Item is an exact local version. Entries: fields plus maxEntries 1..50, one level only. Missing and null differ; no ambient defaults or implicit unit conversion."
@@ -346,6 +357,9 @@ extension WorkbookTools {
     ),
     "workflow": .string(
       "Use workflow_template(id,stepID?) -> save_template(receiptID,title?) for one saved behavior. Custom payload {readPolicy:latest-at-step,steps:[{id,kind:evaluate|interpret|extract|intake|action,binding:{mode:exact,versionID},arguments}|{id,kind:review,review:priorDraftStepID}]}. 1..16 sequential steps; every action/intake needs one later review. All dependencies exact. evaluate targets function/query; interpret targets interpretation; extract targets extraction; intake targets intake; action targets action or action-backed form. Mappings: {parameter:id}, {literal:value,unit?}, prior scalar function {step:id,unit?}, interpretation/query {step:id,field:outputID,unit?}, or extraction {step:id,field:item} to pin its exact retained text. A mapped query must select exactly one complete row from one ungrouped table; missing/duplicate/empty matches pause before checkpoint. No joins/aggregates/coercion for mapped queries. Types/units match exactly. Repair the catalog and explicitly retry the unfinished step; completed outputs remain fixed. start_workflow queues only; explicit continuation runs steps. No ambient paths/conditions/code."
+    ),
+    "tool": .string(
+      "Save a tool with save tool:{name,description,inputs,statements|source}, not as a definition. payload {name,language:sql|javascript,statements:[1..8]|source}; parameters are its inputs, each text, decimal, boolean or date."
     ),
     "automation": .string(
       "Prefer inventory_automation_template(workflowID,arguments,subject,operator,threshold) -> save_template(receiptID,title?). All rule values explicit, decimal threshold string, exact current workflow. Custom payload {policy:inventory-condition-drafts-v1,workflow:{mode:exact,versionID},arguments,condition:{subject,rule:{policy:native-condition-v1,scope:inventory:SUBJECT,operator:<|<=|>|>=|=|<>,threshold:decimalString}}}; parameters:[]. Saving only retains intent. Native review provides exact device Enable/Pause, baseline and resume/from-now decisions. No model tool enables or resumes automatic execution."

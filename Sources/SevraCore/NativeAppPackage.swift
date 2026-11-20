@@ -352,7 +352,7 @@ extension Workbook {
   /// Installs code without evaluating it. Tables and space are captured in one existing transaction.
   @discardableResult public func installNativeApp(
     _ package: NativeAppPackage, spaceID: String = identifier(), expectedVersion: Int? = nil,
-    token: String = identifier(), cancellation: Cancellation = .init()
+    actions: Value? = nil, token: String = identifier(), cancellation: Cancellation = .init()
   ) throws -> Space {
     try require(
       package.excelBehavior == nil, "excel_scope",
@@ -366,7 +366,7 @@ extension Workbook {
       )
       _ = try nativeAppImageTitles(package)
       return try installNativeAppContents(
-        package, spaceID: spaceID, expectedVersion: expectedVersion,
+        package, spaceID: spaceID, expectedVersion: expectedVersion, actions: actions,
         token: token, cancellation: cancellation)
     }
   }
@@ -374,25 +374,34 @@ extension Workbook {
   /// Shared trusted storage for ordinary installs and disposable checks. Real Excel publication has its own original-comparison transaction.
   @discardableResult package func installNativeAppContents(
     _ package: NativeAppPackage, spaceID: String = identifier(), expectedVersion: Int? = nil,
-    token: String = identifier(), cancellation: Cancellation = .init()
+    actions: Value? = nil, token: String = identifier(), cancellation: Cancellation = .init()
   ) throws -> Space {
     try package.validate()
+    if let actions {
+      try require(
+        actions.array.count <= 64 && (try actions.json().utf8.count) <= 32_000, "app_check",
+        "An app declares at most 64 actions.")
+    }
     let result = try mutation(
       "install_native_app", token: token,
       request: .object([
         "package": try encoded(package), "spaceID": .string(spaceID),
         "expectedVersion": expectedVersion.map { .number(Double($0)) } ?? .null,
+        "actions": actions ?? .null,
       ]), cancellation: cancellation,
       actor: ChangeAttribution.actor ?? .programmatic("Sevra.nativeApp.install")
     ) {
-      try insertNativeApp(package, spaceID: spaceID, expectedVersion: expectedVersion)
+      try insertNativeApp(
+        package, spaceID: spaceID, expectedVersion: expectedVersion, actions: actions)
       return try encoded(space(spaceID))
     }
     return try JSONDecoder().decode(Space.self, from: Data(result.json().utf8))
   }
 
   /// Shared publication inside an existing captured transaction.
-  func insertNativeApp(_ package: NativeAppPackage, spaceID: String, expectedVersion: Int?) throws {
+  func insertNativeApp(
+    _ package: NativeAppPackage, spaceID: String, expectedVersion: Int?, actions: Value? = nil
+  ) throws {
     try package.validate()
     let current = try spaceIfPresent(spaceID)
     try checkSpaceBase(current, expectedVersion: expectedVersion)
@@ -427,6 +436,7 @@ extension Workbook {
     }
     var definition = SpaceDefinition(components: [])
     definition.app = installed
+    definition.actions = actions
     try publishSpace(id: spaceID, title: package.name, definition: definition, current: current)
   }
 

@@ -32,6 +32,8 @@ import prompt_header
 ROOT = Path(__file__).resolve().parent.parent
 CLI = Path(os.environ.get('SEVRA_CLI', ROOT / 'output/native/bin/sevra'))
 MODEL_DIRECTORY = os.environ.get('SEVRA_MODEL_DIRECTORY')
+# Saved tools grant themselves on this Mac. Keep the jobs' grants out of the person's own.
+os.environ.setdefault('SEVRA_TOOL_GRANTS', tempfile.mkdtemp(prefix='sevra-tool-grants-'))
 SUPPLIERS = 'Supplier comparison'
 LANGUAGES = ('en',)
 # The routine model run. Everything else is run by name when its area changes.
@@ -503,9 +505,9 @@ def form_check(run):
     forms = [d for d in run['saved'].get('newDefinitions', []) if d.get('kind') == 'form']
     apps = [s for s in run['saved'].get('newSpaces', [])]
     # Under the general tools a form is a saved tool whose inputs are its fields.
-    tools = [t for t in (run['book'].values('Saved tools') or [])
-             if {'part', 'level'} <= {i.split()[0] for i in t.get('inputs', '').split(',') if i.strip()}
-             and 'reorder_levels' in t.get('statements', '').lower()]
+    tools = [t for t in run['book'].run('tools')
+             if {'part', 'level'} <= {i.split()[0] for i in t.get('inputs', [])}
+             and 'reorder_levels' in json.dumps(run['book'].run('definition-read', t['definitionID'])).lower()]
     if not forms and not apps and not tools:
         problems.append('no form definition, app or saved tool with the fields Part and Level was saved')
     if not rows_are(run['book'].values('Reorder levels'), LEVELS):
@@ -525,7 +527,7 @@ def rule_check(run):
 
 
 def tool_check(run):
-    """Written against the planned `tool WORKBOOK NAME` interface. Not run before phase 5."""
+    """The saved tool runs by name through the command line."""
     problems = complete(run)
     try:
         result = json.dumps(run['book'].run('tool', 'low_stock'))

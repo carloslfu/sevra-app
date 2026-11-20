@@ -15,13 +15,20 @@ public struct WorkbookTools {
   public let excelConversion: ExcelConversionBuild?
   static let guides: [String: String] = [
     "rule": """
-      A rule watches the stock of one inventory item and runs a saved workflow when the stock crosses a level. It never runs by itself until the user enables it.
-      1. A rule needs a saved workflow to run. Find it with search in=definitions, using one or two words of its title. If the workbook has none, say so and ask the user what the rule should do when it fires. Do not invent a workflow.
-      2. In the hit, id is the workflow's exact version ID. Use id everywhere below. Never use logical_id or source_id.
-      3. read kind=definition with ref set to that id.
-      4. run action template.rule with {workflowID: that id, arguments: the workflow's inputs or {}, subject: the item as the stock table names it, operator: "<" or "<=" or ">" or ">=", threshold: the level as a number}. It returns a template receipt and changes nothing.
-      5. save with template: {templateReceiptID: that receipt's ID, title: a short title}. Saving does not enable the rule.
-      """
+      A rule watches the stock of one inventory item. When the stock crosses a level, it drafts an alert for the user to read in Reviews, or runs a saved workflow. It never runs until the user enables it.
+      1. subject is the item as the stock table names it. If unsure, read it with sql: SELECT subject FROM stock.
+      2. For an alert, run action template.rule with {alert: one sentence the user will read, subject: the item, operator: "<" or "<=" or ">" or ">=", threshold: the level as a number}. Example: {alert: "Brass bolts are below 10. Reorder them.", subject: "brass bolts", operator: "<", threshold: 10}.
+      3. Only when the user names a saved workflow to run instead: find it with search in=definitions, using one or two words of its title. In the hit, id is the workflow's exact version ID; never use logical_id or source_id. read kind=definition with ref set to that id. Then run action template.rule with {workflowID: that id, arguments: the workflow's inputs or {}, subject, operator, threshold}, without alert.
+      4. template.rule returns a template receipt and changes nothing. save with template: {templateReceiptID: that receipt's ID, title: a short title}. Saving does not enable the rule; tell the user to enable it.
+      """,
+    "receiving": """
+      Receiving records a delivery as draft stock movements, one per line. The stock changes only after the user accepts them in Reviews.
+      1. The workbook needs the Receive delivery action. Find it with search in=definitions for "Receive delivery". If there is none, run action template.receiving, then save with template: {templateReceiptID: that receipt's ID}. The saved action's id is its exact version ID.
+      2. The evidence is the document or record that lists the delivery, such as a packing slip. Find its id with search.
+      3. run action action.prepare with {id: the action's id, arguments: {delivery: the delivery's number or name, effective: the date it arrived as YYYY-MM-DD, evidence: that id, lines: one {line, subject, quantity} per item}}. subject is the item as the stock table names it; quantity is the count as text.
+      Example: a slip for delivery D-104 that arrived on 2026-11-18 with 40 brass bolts and 25 hex nuts gives {delivery: "D-104", effective: "2026-11-18", evidence: the slip's id, lines: [{line: "1", subject: "brass bolts", quantity: "40"}, {line: "2", subject: "hex nuts", quantity: "25"}]}.
+      4. Tell the user the movements wait for review.
+      """,
   ]
   public static let conversationTools: [String: String] = [
     "start_thread": "start_thread", "start_thread_and_continue": "start_thread_and_continue",
@@ -291,12 +298,16 @@ public struct WorkbookTools {
       try require(
         statements.count == a["statements"].array.count, "arguments",
         "statements is a list of SQL strings.")
+      try require(
+        (a["source"].string == nil) != statements.isEmpty, "arguments",
+        "A tool holds SQL statements or a JavaScript source, one of the two.")
       return try workbook.chatSaveTool(
         name: string("name"), description: a["description"].text,
         inputs: a["inputs"].array.map {
-          ($0["name"].text, ["number", "decimal"].contains($0["type"].text))
+          let type = $0["type"].text
+          return ($0["name"].text, type == "number" ? "decimal" : type.isEmpty ? "text" : type)
         },
-        statements: statements, token: "save-" + (receiptID ?? token),
+        statements: statements, source: a["source"].string, token: "save-" + (receiptID ?? token),
         requestSourceID: requestSourceID, cancellation: cancellation)
     case "guide":
       // Short how-to texts the general tools read on demand.
@@ -315,27 +326,17 @@ public struct WorkbookTools {
           receiptID: receiptID, nativeAppCheck: nativeAppCheck, inspectionOnly: inspectionOnly)
       }
       let unchanging = readOnly || inspectionOnly
-      return try workbook.chatRun(
-        code: string("code"), readOnly: unchanging, token: "run-" + (receiptID ?? token),
-        requestSourceID: requestSourceID,
-        host: { method, arguments in
-          switch method {
-          case "search", "read":
-            return try executeAttributed(
-              method, arguments, receiptID: nil, nativeAppCheck: nil, inspectionOnly: true)
-          case "check_action":
-            let operation = try ChatOperations.validate(
-              arguments["action"].text, arguments: arguments["arguments"], readOnly: unchanging)
-            try require(
-              !operation.host, "run",
-              arguments["action"].text
-                + " needs the app. Call it alone with run action, not inside code. Nothing was changed.")
-            return .null
-          default:
-            return try executeChatOperation(
-              arguments["action"].text, arguments: arguments["arguments"])
-          }
-        }, cancellation: cancellation)
+      if let name = a["tool"].string {
+        // A saved tool by name: a script runs here, SQL statements through sql.
+        try require(
+          a.object["code"] == nil, "arguments", "Send either code or a saved tool with its values.")
+        return try runSavedTool(
+          name, values: a["values"].object, readOnly: unchanging, token: receiptID ?? token)
+      }
+      try require(
+        a.object["values"] == nil, "arguments", "values belong to a saved tool, with tool beside them.")
+      return try runScript(
+        string("code"), inputs: [:], readOnly: unchanging, token: receiptID ?? token)
     case "sql":
       // The general chat tools' table tool. It refuses changes itself when none are allowed.
       if let undo = a["undo"].string {
@@ -621,10 +622,53 @@ public struct WorkbookTools {
           token: token, requestSourceID: requestSourceID))
     default:
       // A name that is not a built-in tool may be one of the workbook's own saved tools.
-      return try workbook.chatRunTool(
-        name: tool, values: a.object, readOnly: readOnly || inspectionOnly,
-        token: "tool-" + (receiptID ?? token), requestSourceID: requestSourceID,
-        cancellation: cancellation)
+      return try runSavedTool(
+        tool, values: a.object, readOnly: readOnly || inspectionOnly, token: receiptID ?? token)
     }
+  }
+
+  /// One script in the sandbox. Its sql works on one private copy, search and read see the
+  /// saved workbook, and the actions it queues run after its changes are saved.
+  private func runScript(
+    _ code: String, inputs: [String: Value], readOnly unchanging: Bool, token: String
+  ) throws -> Value {
+    try workbook.chatRun(
+      code: code, readOnly: unchanging, token: "run-" + token,
+      requestSourceID: requestSourceID, inputs: inputs,
+      host: { method, arguments in
+        switch method {
+        case "search", "read":
+          return try executeAttributed(
+            method, arguments, receiptID: nil, nativeAppCheck: nil, inspectionOnly: true)
+        case "check_action":
+          let operation = try ChatOperations.validate(
+            arguments["action"].text, arguments: arguments["arguments"], readOnly: unchanging)
+          try require(
+            !operation.host, "run",
+            arguments["action"].text
+              + " needs the app. Call it alone with run action, not inside code. Nothing was changed.")
+          return .null
+        default:
+          return try executeChatOperation(
+            arguments["action"].text, arguments: arguments["arguments"])
+        }
+      }, cancellation: cancellation)
+  }
+
+  /// A workbook tool by name, enabled on this Mac: its script, or its statements through sql.
+  private func runSavedTool(
+    _ name: String, values: [String: Value], readOnly unchanging: Bool, token: String
+  ) throws -> Value {
+    let tool = try workbook.synchronized { try workbook.runnableTool(name) }
+    guard tool.language == "javascript" else {
+      return try workbook.chatRunTool(
+        name: name, values: values, readOnly: unchanging, token: "tool-" + token,
+        requestSourceID: requestSourceID, cancellation: cancellation)
+    }
+    var result = try runScript(
+      tool.source, inputs: workbook.toolInputs(tool, values), readOnly: unchanging, token: token
+    ).object
+    result["tool"] = .string(tool.signature)
+    return .object(result)
   }
 }

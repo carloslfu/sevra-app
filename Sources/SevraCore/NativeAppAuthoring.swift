@@ -333,8 +333,17 @@ public enum NativeAppAuthoring {
           package, build: build, check: checkResult!, token: token, cancellation: tools.cancellation
         )
       }
+      // The declared actions as the check found them, listed without the app running.
+      let check = checkResult!
+      let actions: Value = .array(
+        check["actions"].array.map { id in
+          .object([
+            "id": id, "title": check["actionTitles"][id.text],
+            "inputs": check["actionInputs"][id.text],
+          ])
+        })
       return try tools.workbook.installNativeApp(
-        package, spaceID: id ?? token, expectedVersion: version, token: token,
+        package, spaceID: id ?? token, expectedVersion: version, actions: actions, token: token,
         cancellation: tools.cancellation)
     }
     return .object([

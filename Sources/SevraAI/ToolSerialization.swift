@@ -15,7 +15,7 @@ extension NativeTools {
         ]),
         "draft": schema(
           "boolean", "True saves UPDATEs as a proposal for the user to review. Nothing changes."),
-        "tool": schema("string", "Run this saved tool instead of statements."),
+        "tool": schema("string", "Run this saved SQL tool instead of statements."),
         "undo": schema(
           "string", "Sent alone: undo everything an earlier sql call saved, by its undo value."),
         "values": .object([
@@ -25,18 +25,22 @@ extension NativeTools {
   package static let runDefinition = WorkbookToolDefinition(
     name: "run",
     description:
-      "Run JavaScript for work one SQL statement cannot do: several dependent steps, a loop, or logic over rows. Write the body of an async function and return the result. Inside it: await sql(statement, {name: value}) returns a SELECT's rows as objects with numbers as numbers, or {changedRows} for a change, and :name in the statement takes the value; await search(words); await read(id); today is the date as YYYY-MM-DD. Table changes are saved together when the script returns, with one Undo. A script that throws changes nothing.",
+      "Run JavaScript for work one SQL statement cannot do: several dependent steps, a loop, or logic over rows. Write the body of an async function and return the result. Inside it: await sql(statement, {name: value}) returns a SELECT's rows as objects with numbers as numbers, or {changedRows} for a change, and :name in the statement takes the value; await tool(name, {input: value}) runs a saved SQL tool the same way; await search(words); await read(id); today is the date as YYYY-MM-DD. Table changes are saved together when the script returns, with one Undo. A script that throws changes nothing. Or send tool and values to run a saved tool.",
     parameters: object(
       [
         "code": schema(
           "string",
           "The function body, such as: const rows = await sql('SELECT part, stock FROM parts'); return rows.filter(r => r.stock < 5).length;"
-        )
-      ], required: ["code"]))
+        ),
+        "tool": schema("string", "Run this saved tool instead of code."),
+        "values": .object([
+          "type": .string("object"), "description": .string("The saved tool's inputs by name."),
+        ]),
+      ], required: []))
   package static let saveDefinition = WorkbookToolDefinition(
     name: "save",
     description:
-      "Save a workbook tool: named SQL statements the user wants to keep and run again, such as a report, a check or a form that adds rows. Write each input in the statements as :name. Run it later with sql tool=name.",
+      "Save a workbook tool the user wants to keep and run again, such as a report, a check or a form that adds rows: SQL statements that use each input as :name, or source, a script that reads inputs.name. Run it later with sql or run, tool=name and values.",
     parameters: object(
       [
         "kind": .object(["type": .string("string"), "enum": .array([.string("tool")])]),
@@ -49,7 +53,8 @@ extension NativeTools {
             "properties": .object([
               "name": .object(["type": .string("string")]),
               "type": .object([
-                "type": .string("string"), "enum": .array([.string("text"), .string("number")]),
+                "type": .string("string"),
+                "enum": .array(["text", "number", "boolean", "date"].map(Value.string)),
               ]),
             ]),
             "required": .array([.string("name"), .string("type")]),
@@ -59,7 +64,10 @@ extension NativeTools {
           "type": .string("array"), "minItems": .number(1), "maxItems": .number(8),
           "items": .object(["type": .string("string")]),
         ]),
-      ], required: ["kind", "name", "description", "statements"]))
+        "source": schema(
+          "string",
+          "Instead of statements: the body of an async function, as for run, that reads inputs.name and returns its result."),
+      ], required: ["kind", "name", "description"]))
 
   package static func referenceDefinitions(
     itemReferenceIDs: [String] = [], conversationActions: [String]? = nil,

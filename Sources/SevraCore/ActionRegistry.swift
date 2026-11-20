@@ -164,6 +164,43 @@ public enum ActionRegistry {
       ]),
     ])
   }
+  /// A saved action that records one stock movement through the movement primitive. A stock
+  /// change is a workbook's own saved action, not a built-in chat tool; the direction review
+  /// still runs in front of the primitive.
+  public static func movementDefinition() -> Value {
+    .object([
+      "kind": .string("action"), "title": .string("Record a stock movement"),
+      "description": .string(
+        "Draft one inventory movement: a signed count of items for a subject, with its evidence. Review before acceptance."
+      ),
+      "parameters": .array(movementParameters),
+      "payload": .object([
+        "primitive": .object(["id": .string(movementID), "version": .number(1)]),
+        "arguments": .object(
+          Dictionary(
+            uniqueKeysWithValues: movementParameters.map {
+              ($0["id"].text, .object(["parameter": $0["id"]]))
+            })),
+      ]),
+    ])
+  }
+  /// The action behind a rule's alert: one draft document, read by the person in Reviews.
+  public static func alertDefinition() -> Value {
+    .object([
+      "kind": .string("action"), "title": .string("Draft a stock alert"),
+      "description": .string(
+        "Draft one alert document, with its evidence, for the person to read in Reviews."),
+      "parameters": .array(documentParameters),
+      "payload": .object([
+        "primitive": .object(["id": .string(documentID), "version": .number(1)]),
+        "arguments": .object(
+          Dictionary(
+            uniqueKeysWithValues: documentParameters.map {
+              ($0["id"].text, .object(["parameter": $0["id"]]))
+            })),
+      ]),
+    ])
+  }
   public static func receivingDefinition() -> Value {
     .object([
       "kind": .string("action"), "title": .string("Receive delivery"),

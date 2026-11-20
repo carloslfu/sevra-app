@@ -803,6 +803,28 @@ import SevraProduct
     case "export-csv":
       try book.exportCSV(arg(2), to: url(3), cancellation: cancellation)
       return .bool(true)
+    case "tools":
+      // The workbook's saved tools, and whether this Mac has granted each.
+      return .array(
+        try book.savedTools().map {
+          .object([
+            "name": .string($0.name), "definitionID": .string($0.definitionID),
+            "version": .number(Double(try book.applicationDefinition($0.definitionID).version)),
+            "language": .string($0.language), "enabled": .bool($0.enabled),
+            "inputs": .array($0.inputs.map { .string($0.name + " " + $0.type) }),
+          ])
+        })
+    case "tool-enable", "tool-disable", "tool-remove":
+      // The person's own steps for a tool: a tool from a copied workbook runs once enabled here.
+      guard let tool = try book.savedTools().first(where: { $0.name == (try arg(2)) }) else {
+        throw SevraError("tool", "No saved tool is named \(try arg(2)).")
+      }
+      switch command {
+      case "tool-enable": try book.enableTool(tool.definitionID)
+      case "tool-disable": try book.disableTool(tool.definitionID)
+      default: _ = try book.retireTool(tool.name)
+      }
+      return .object(["tool": .string(tool.name), "done": .string(String(command.dropFirst(5)))])
     case "tool":
       // The seven general tools are accepted by name, and so is the operation behind each.
       let call = try GeneralTools.route(
@@ -849,11 +871,13 @@ import SevraProduct
     "tool-receipt": 4...4, "checkpoints": 2...3, "checkpoint": 4...4, "chapter": 4...4,
     "thread": 4...4, "tangent": 4...4, "start-thread": 3...4, "rename-thread": 4...4,
     "share-summary": 4...4, "reindex": 2...2, "export": 3...3, "export-csv": 4...4,
-    "tool": 3...4, "ask": 3...4,
+    "tool": 3...4, "ask": 3...4, "tools": 2...2, "tool-enable": 3...3, "tool-disable": 3...3,
+    "tool-remove": 3...3,
   ]
   static let help = """
     Sevra 0.1.0 development CLI. Every result is JSON; errors exit nonzero.
     header make DIRECTORY [MODEL_DIRECTORY] | header status [DIRECTORY]
+    tools WORKBOOK | tool-enable WORKBOOK NAME | tool-disable WORKBOOK NAME | tool-remove WORKBOOK NAME
     create PATH.sevra [TITLE] | demo PATH.sevra | inspect WORKBOOK | verify WORKBOOK
     transcribe WORKBOOK ITEM_ID | extract WORKBOOK VERSION_ID
     archive-members WORKBOOK ITEM_ID | include-members WORKBOOK ITEM_ID JSON_PATHS

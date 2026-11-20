@@ -85,6 +85,7 @@ enum ChatScriptRuntime {
         return new Promise(()=>{});
       };
       const sql=(statement,values)=>__host('sql',{statement:String(statement),values:values??null});
+      const tool=(name,values)=>__host('tool',{name:String(name),values:JSON.parse(JSON.stringify(values??{}))});
       const search=query=>__host('search',{query:String(query)});
       const read=id=>__host('read',{id:String(id)});
       const action=(name,args)=>{__requests.push({action:String(name),arguments:JSON.parse(JSON.stringify(args??{}))});return {queued:__requests.length};};

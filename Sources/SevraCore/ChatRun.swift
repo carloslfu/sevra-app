@@ -74,8 +74,28 @@ extension Workbook {
           result["rows"].array.map { row in
             .object(Dictionary(zip(names, row.array)) { first, _ in first })
           })
+      case "tool":
+        // A saved SQL tool runs on the script's own copy, like its sql calls.
+        let tool = try synchronized(cancellation: cancellation) {
+          try runnableTool(arguments["name"].text)
+        }
+        try require(
+          tool.language == "sql", "run",
+          "A script can call a saved SQL tool. Run a script tool alone, with run and tool.")
+        let results = try synchronized(cancellation: cancellation) {
+          try session.run(tool.statements, inputs: toolInputs(tool, arguments["values"].object))
+        }
+        statements += tool.statements.map(Value.string)
+        guard let result = results.last, result.object["columns"] != nil else {
+          return results.last ?? .null
+        }
+        let names = result["columns"].array.map(\.text)
+        return .array(
+          result["rows"].array.map { row in
+            .object(Dictionary(zip(names, row.array)) { first, _ in first })
+          })
       case "search", "read": return try host(call["method"].text, arguments)
-      default: throw SevraError("run", "A script can call sql, search, read and action.")
+      default: throw SevraError("run", "A script can call sql, tool, search, read and action.")
       }
     }
     while true {

@@ -114,6 +114,7 @@ enum CatalogRegistry {
         "automations", "Automations", "AutomationSchedulesView.swift",
         ["Default", "Empty", "Detail", "Armed", "Paused", "Stale"]
       ),
+      ("tools", "Saved tools", "ToolsView.swift", ["Default", "Empty"]),
       (
         "settings", "Model and reading settings", "SpeechAndSettings.swift",
         ["Default", "Installing", "Installed", "Loading", "Failure", "Cancelled", "Software updates"]

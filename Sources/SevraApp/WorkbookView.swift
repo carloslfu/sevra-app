@@ -154,6 +154,7 @@ struct WorkbookView: View {
               Button("Drafts to review") { state.navigate(.reviews) }
               Button("Workflow runs") { state.navigate(.activity) }
               Button("Automations") { state.navigate(.automations) }
+              Button("Tools") { state.navigate(.tools) }
               Divider()
               Button("Make a shareable copy…", action: state.exportPanel).disabled(state.busy)
             }
@@ -317,6 +318,7 @@ struct WorkbookView: View {
     case .automations: return "Automations"
     case .automation: return "Automation"
     case .workflow: return "Workflow"
+    case .tools: return "Tools"
     }
   }
   private var workspaceActions: some View {
@@ -722,6 +724,7 @@ struct WorkbookView: View {
       case .automations: AutomationSchedulesView(workspace: state)
       case .automation(let id): AutomationFocusedView(definitionID: id, workspace: state)
       case .workflow(let id): WorkflowRunView(runID: id, workspace: state).id(id)
+      case .tools: ToolsView(workspace: state)
       }
     }
   }

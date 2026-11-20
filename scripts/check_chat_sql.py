@@ -8,10 +8,12 @@ chat request does, and reads the workbook back. It needs no model and no engine.
 SEVRA_CLI selects another CLI.
 """
 from pathlib import Path
-import os, sys, tempfile
+import os, shutil, sys, tempfile
 
 ROOT = Path(__file__).resolve().parent.parent
 os.environ.setdefault('SEVRA_CLI', str(ROOT / '.build/debug/sevra'))
+# Saved tools grant themselves on this Mac. Keep the checks' grants out of the person's own.
+os.environ.setdefault('SEVRA_TOOL_GRANTS', tempfile.mkdtemp(prefix='sevra-tool-grants-'))
 sys.path.insert(0, str(ROOT / 'scripts'))
 from check_chat_jobs import Book, CLIError, SUPPLIERS, levels, parts  # noqa: E402
 
@@ -178,23 +180,30 @@ with tempfile.TemporaryDirectory() as folder:
     expect('drop archives the table', shape.table('Minimum levels') is None)
     expect('drop left the other tables', len(shape.values('Parts')) == 6 and len(shape.values('Reorder plan')) == 3)
 
-    # Saved tools: named statements with inputs, kept as rows of an ordinary table.
-    def save(target, name, statements, inputs=(), description='A check fixture.'):
-        return target.run('tool', 'save', {'kind': 'tool', 'name': name, 'description': description,
-                                           'inputs': [{'name': n, 'type': t} for n, t in inputs],
-                                           'statements': list(statements)})
+    # Saved tools: definitions of kind tool, granted on the Mac that saved them.
+    def save(target, name, statements=(), inputs=(), description='A check fixture.', source=None):
+        thing = {'kind': 'tool', 'name': name, 'description': description,
+                 'inputs': [{'name': n, 'type': t} for n, t in inputs]}
+        if source is None:
+            thing['statements'] = list(statements)
+        else:
+            thing['source'] = source
+        return target.run('tool', 'save', thing)
+
+    def tools(target):
+        return {t['name']: t for t in target.run('tools')}
 
     def unsaved(name, code, *args, **kwargs):
-        before = shape.values('Saved tools')
+        before = tools(shape)
         try:
             expect(name, False, 'not refused: ' + str(save(shape, *args, **kwargs)))
         except CLIError as error:
             expect(name + ' code', error.code == code, error)
-        expect(name + ' saved nothing', shape.values('Saved tools') == before)
+        expect(name + ' saved nothing', tools(shape) == before)
 
     saved = save(shape, 'low_stock', ["SELECT part FROM parts WHERE stock < reorder_level ORDER BY part"])
-    expect('save a tool', saved.get('saved') == 'low_stock' and [r['name'] for r in shape.values('Saved tools')]
-           == ['low_stock'], saved)
+    expect('save a tool', saved.get('saved') == 'low_stock' and list(tools(shape)) == ['low_stock']
+           and tools(shape)['low_stock']['enabled'] and shape.table('Saved tools') is None, saved)
     listed = shape.run('tool', 'low_stock')
     expect('run a tool by name', [r[0] for r in rows(listed)] == ['Hex key set', 'Hex nuts'], listed)
     expect('run a tool through sql', rows(sql(shape, tool='low_stock')) == rows(listed))
@@ -205,9 +214,34 @@ with tempfile.TemporaryDirectory() as folder:
            ("Wood screws; 'bulk'", '50') in [(r['item'], r['level']) for r in shape.values('Reorder plan')], added)
     sql(shape, undo=added['undo'])
     expect('a tool run undoes', len(shape.values('Reorder plan')) == 3)
-    save(shape, 'low_stock', ["SELECT part, stock FROM parts WHERE stock < reorder_level ORDER BY part"])
-    expect('saving again replaces', [r['name'] for r in shape.values('Saved tools')].count('low_stock') == 1
-           and len(shape.values('Saved tools')) == 2 and rows(shape.run('tool', 'low_stock'))[0] == ['Hex key set', '0'])
+    resaved = save(shape, 'low_stock', ["SELECT part, stock FROM parts WHERE stock < reorder_level ORDER BY part"])
+    expect('saving again makes a new version', tools(shape)['low_stock']['version'] == 2 and len(tools(shape)) == 2
+           and rows(shape.run('tool', 'low_stock'))[0] == ['Hex key set', '0'], resaved)
+    shape.run('tool', 'run', {'action': {'name': 'tool.undo', 'arguments': {'id': resaved['definitionID']}}})
+    expect('Undo restores the earlier version', tools(shape)['low_stock']['version'] == 3
+           and rows(shape.run('tool', 'low_stock')) == rows(listed) and tools(shape)['low_stock']['enabled'])
+    # A script tool, and a script calling a SQL tool on its own copy.
+    script = save(shape, 'count_below', inputs=[('limit', 'number')], source=(
+        "const r = await sql('SELECT count(*) AS n FROM parts WHERE stock < :limit', {limit: inputs.limit});"
+        " const low = await tool('low_stock', {}); return {below: r[0].n, low: low.length};"))
+    ran = shape.run('tool', 'run', {'tool': 'count_below', 'values': {'limit': 5}})
+    expect('a script tool runs with its inputs', script.get('language') == 'javascript'
+           and ran.get('value') == {'below': 2, 'low': 2}, ran)
+    unsaved('script with a syntax error', 'run', 'broken_script', source='return (;')
+    # A copied workbook: its tools wait for this Mac's grant.
+    copy = Path(shape.path).with_name('Copied.sevra')
+    shutil.copytree(shape.path, copy)
+    copied = Book.__new__(Book)
+    copied.path = str(copy)
+    expect('a copied tool is listed, not enabled', not tools(copied)['low_stock']['enabled'])
+    try:
+        expect('a copied tool does not run', False, str(copied.run('tool', 'low_stock')))
+    except CLIError as error:
+        expect('a copied tool is refused', error.code == 'tool_disabled', error)
+    copied.run('tool-enable', 'low_stock')
+    expect('an enabled copied tool runs', rows(copied.run('tool', 'low_stock')) == rows(listed))
+    copied.run('tool-remove', 'low_stock')
+    expect('a removed tool is gone', 'low_stock' not in tools(copied) and 'low_stock' in tools(shape))
     unsaved('tool name', 'tool_name', 'Low Stock', ["SELECT 1"])
     unsaved('tool statement refused', 'sql', 'reach_out', ["ATTACH DATABASE '/tmp/sevra-check-should-not-exist.db' AS o"])
     unsaved('tool with an unknown column', 'sql', 'broken', ["SELECT missing FROM parts"])

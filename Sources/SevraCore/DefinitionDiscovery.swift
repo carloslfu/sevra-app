@@ -11,7 +11,7 @@ extension Workbook {
         && (kind == nil
           || [
             "function", "query", "action", "form", "workflow", "interpretation", "extraction",
-            "intake", "automation",
+            "intake", "automation", "tool",
           ]
           .contains(kind!)),
       "definition_limit",

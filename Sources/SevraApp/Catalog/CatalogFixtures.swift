@@ -15,6 +15,31 @@ import SevraVoice
             root.appendingPathComponent("Workshop \($0+1).sevra").path
           }, forKey: "recentWorkbooks")
     }
+    if id == "main.tools" && variant == "Default" {
+      // One tool saved here, so enabled here.
+      _ = try b.chatSaveTool(
+        name: "table_names", description: "The names of this workbook's tables.", inputs: [],
+        statements: ["SELECT name FROM tables ORDER BY name"], source: nil,
+        token: "catalog-tool", requestSourceID: nil)
+      // One as a copied workbook brings it: saved, with no grant on this Mac.
+      _ = try b.saveApplicationDefinition(
+        logicalID: identifier(),
+        content: .object([
+          "kind": .string("tool"), "title": .string("reorder_check"),
+          "description": .string("Counts the parts below a reorder level."),
+          "parameters": .array([
+            .object([
+              "id": .string("level"), "label": .string("level"), "type": .string("decimal"),
+              "required": .bool(true),
+            ])
+          ]),
+          "payload": .object([
+            "name": .string("reorder_check"), "language": .string("javascript"),
+            "source": .string(
+              "const rows = await sql('SELECT count(*) AS n FROM tables'); return rows[0].n;"),
+          ]),
+        ]))
+    }
     if id == "main.definitions" {
       _ = try b.saveSpace(
         id: "example", title: "Calculations and forms",
@@ -207,7 +232,7 @@ import SevraVoice
       for _ in 0..<repeats {
         _ = try await WorkbookAgent.run(
           "Compare the supplier quotes", workbook: b,
-          model: CatalogInference([("request_input", args)]), conversationInput: true)
+          model: CatalogInference([("ask", args)]), conversationInput: true)
       }
       input = try b.pendingConversationInput(conversation: "main")
       if let input {
@@ -284,8 +309,10 @@ import SevraVoice
       model: CatalogInference(
         [
           (
-            "workspace_action",
-            .object(["action": .string("visual.evaluate"), "arguments": payload])
+            "run",
+            .object([
+              "action": .object(["name": .string("visual.evaluate"), "arguments": payload])
+            ])
           )
         ], attachVisual: true), conversationInput: true)
   }

@@ -199,6 +199,8 @@ extension Workbook {
     for parameter in descriptor.parameters { try validateDefaults(parameter) }
     if descriptor.kind == "automation" {
       _ = try validateAutomationDefinition(descriptor)
+    } else if descriptor.kind == "tool" {
+      _ = try DefinitionTool(descriptor)
     } else if descriptor.kind == "intake" {
       try validateIntakeDefinition(descriptor)
     } else if descriptor.kind == "extraction" {

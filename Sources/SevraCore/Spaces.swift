@@ -78,6 +78,10 @@ public struct SpaceDefinition: Codable, Equatable, Sendable {
   public var components: [Component]
   public var pinnedAt: String?
   public var app: NativeAppPackage?
+  /// The actions this app version declared when its isolated check ran it, as
+  /// `[{id, title, inputs}]`. They are listed without the app running; running one still needs
+  /// the app enabled on this Mac.
+  public var actions: Value?
   public init(components: [Component], pinnedAt: String? = nil) {
     self.components = components
     self.pinnedAt = pinnedAt

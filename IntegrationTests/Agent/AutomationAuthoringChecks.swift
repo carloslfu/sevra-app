@@ -9,6 +9,7 @@ private actor InventoryAutomationAuthor: WorkbookInference {
   let workflow: ApplicationDefinition
   let mode: String
   var calls = 0
+  static let alert = "Parts are below 10. Reorder them."
   init(_ book: Workbook, workflow: ApplicationDefinition, mode: String) {
     self.book = book
     self.workflow = workflow
@@ -35,6 +36,12 @@ private actor InventoryAutomationAuthor: WorkbookInference {
         "subject": .string("parts"), "operator": .string("<"),
         "threshold": mode == "number" ? .number(10) : .string("10.00"),
       ])
+      if mode == "alert" {
+        arguments = .object([
+          "alert": .string(Self.alert), "subject": .string("parts"), "operator": .string("<"),
+          "threshold": .number(10),
+        ])
+      }
       if mode == "authority" {
         var fields = arguments.object
         fields["consumerID"] = .string("forged-owner")
@@ -78,9 +85,14 @@ func checkInventoryAutomationAuthoring() async throws {
     "sevra-inventory-author-" + identifier())
   try FileManager.default.createDirectory(at: directory, withIntermediateDirectories: false)
   defer { try? FileManager.default.removeItem(at: directory) }
-  for mode in ["template", "custom", "readOnly", "number", "authority", "foreign", "stale"] {
+  for mode in ["template", "custom", "readOnly", "number", "authority", "foreign", "stale", "alert"]
+  {
     let book = try Workbook.create(
       at: directory.appendingPathComponent(mode + ".sevra"), title: "Synthetic rule authoring")
+    let stock = try book.addItem(
+      category: "source", kind: "observation", title: "Count", text: "Twenty parts on hand.")
+    try book.setOpeningBalance(
+      subject: "parts", quantity: "20", effective: "2026-01-01", sourceID: stock.id)
     let function = try book.saveApplicationDefinition(
       logicalID: identifier(),
       content: .object([
@@ -113,6 +125,10 @@ func checkInventoryAutomationAuthoring() async throws {
     let result = try await WorkbookAgent.run(prompt, workbook: book, model: model)
     let hits = try book.searchApplicationDefinitions("", kind: "automation")["hits"].array
     // The rule action takes its level as a number, so a number saves like decimal text.
+    if mode == "alert" {
+      try await checkAlertRule(book, workflow: workflow, stock: stock, prompt: prompt, result: result)
+      continue
+    }
     if ["template", "custom", "number"].contains(mode) {
       try expectEqual(hits.count, 1)
       try expectEqual(await model.calls, 3)
@@ -145,6 +161,40 @@ func checkInventoryAutomationAuthoring() async throws {
   }
   try expectEqual(InferenceToolScope.inspection.allows("inventory_automation_template"), true)
   print(
-    "PASS inventory-rule authoring: exact template/custom save, host handoff, request lineage, read-only/authority/foreign/stale refusal and inert reconstruction; no execution permission"
+    "PASS inventory-rule authoring: exact template/custom save, host handoff, request lineage, read-only/authority/foreign/stale refusal and inert reconstruction; no execution permission; an alert rule binds the shared alert workflow once, and that workflow drafts the alert"
   )
+}
+
+/// An alert rule runs the shared alert workflow. A second alert rule reuses it, and running it
+/// with a rule's arguments drafts the alert for review, citing the stock's own record.
+private func checkAlertRule(
+  _ book: Workbook, workflow: ApplicationDefinition, stock: Item, prompt: String,
+  result: AgentResult
+) async throws {
+  let alertWorkflow = try book.applicationDefinition(Workbook.stockAlertWorkflowID)
+  let first = try book.searchApplicationDefinitions("", kind: "automation")["hits"].array
+  try expectEqual(first.count, 1)
+  try expectEqual(result.focus?.kind, "automation")
+  try expectEqual(result.answer.contains("Saving does not enable it."), true)
+  let saved = try book.applicationDefinition(first[0]["id"].text)
+  try expectEqual(saved.payload["workflow"]["versionID"], .string(alertWorkflow.id))
+  try expectEqual(saved.payload["arguments"]["body"], .string(InventoryAutomationAuthor.alert))
+  try expectEqual(saved.payload["arguments"]["evidence"], .string(stock.id))
+  try expectEqual(saved.payload["condition"]["rule"]["threshold"], .string("10"))
+  try expectEqual(try book.automationState(saved.id), .null)
+  let again = InventoryAutomationAuthor(book, workflow: workflow, mode: "alert")
+  _ = try await WorkbookAgent.run(prompt, workbook: book, model: again)
+  try expectEqual(
+    try book.searchApplicationDefinitions("", kind: "automation")["hits"].array.count, 2)
+  try expectEqual(try book.applicationDefinition(Workbook.stockAlertWorkflowID).id, alertWorkflow.id)
+  try expectEqual(try book.workflowActivity()["runs"].array.isEmpty, true)
+  let run = try book.startWorkflow(
+    alertWorkflow.id, arguments: saved.payload["arguments"], token: "alert-fires")
+  let session = try book.authorizeWorkflowExecution(run["id"].text)
+  _ = try book.advanceWorkflow(session, owner: "alert")
+  let drafts = try book.items().filter { $0.kind == "document" && $0.status == "draft" }
+  try expectEqual(drafts.map(\.text), [InventoryAutomationAuthor.alert])
+  try expectEqual(
+    try book.lineage(drafts[0].id).contains { $0["parent"] == .string(stock.id) }, true)
+  try expectEqual(try book.verify()["ok"], .bool(true))
 }

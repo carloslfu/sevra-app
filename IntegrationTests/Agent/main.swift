@@ -256,6 +256,14 @@ func expectValue<T>(_ value: T?) throws -> T {
   guard let value else { throw SplashError("Expected complete tool candidate") }
   return value
 }
+// Saved tools grant themselves on this Mac. The checks keep those grants out of the person's own.
+if ProcessInfo.processInfo.environment["SEVRA_TOOL_GRANTS"] == nil {
+  setenv(
+    "SEVRA_TOOL_GRANTS",
+    FileManager.default.temporaryDirectory.appendingPathComponent(
+      "sevra-tool-grants-" + UUID().uuidString
+    ).path, 1)
+}
 do {
   if CommandLine.arguments.count == 7 && CommandLine.arguments[1] == "--visual-journeys" {
     try await runVisualJourneyProbe(
@@ -414,9 +422,14 @@ do {
     try await checkPromptHeader()
     exit(0)
   }
+  if CommandLine.arguments.dropFirst() == ["--saved-action-checks"] {
+    try await checkSavedMovementAction()
+    exit(0)
+  }
   try await checkConversationLatency()
   try await checkConversationHistoryAppendOnly()
   try await checkPromptHeader()
+  try await checkSavedMovementAction()
   try checkInferenceLease()
   try checkNativeFailures()
   try checkContextBudget()

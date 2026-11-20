@@ -309,8 +309,9 @@ enum CatalogFlows {
     let ws = state!
     return try await WorkbookAgent.run(
       "Perform the synthetic " + name, workbook: b,
+      // Chat offers the seven general tools; a named action is run with its arguments.
       model: CatalogInference([
-        ("workspace_action", .object(["action": .string(name), "arguments": arguments]))
+        ("run", .object(["action": .object(["name": .string(name), "arguments": arguments])]))
       ]),
       workspaceAction: { name, args, readOnly, cancel in
         try await ws.performChatAction(

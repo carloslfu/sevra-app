@@ -86,6 +86,8 @@ import SwiftUI
     let epoch = generation
     do {
       try FileManager.default.createDirectory(at: root, withIntermediateDirectories: true)
+      // Tool grants of catalog workbooks stay in the catalog's own folder.
+      setenv("SEVRA_TOOL_GRANTS", AppHost.root.appendingPathComponent("tool-grants").path, 1)
       let b = try Workbook.create(
         at: root.appendingPathComponent("Example.sevra"), title: "Willow Workshop · Synthetic")
       book = b
@@ -664,6 +666,8 @@ import SwiftUI
       ws.route =
         (id == "main.workflow-detail" && workflowRunID != nil)
         ? .workflow(workflowRunID!) : .activity
+    } else if id == "main.tools" {
+      ws.route = .tools
     } else if id == "main.automations" {
       ws.route =
         variant == "Detail" || variant == "Armed"

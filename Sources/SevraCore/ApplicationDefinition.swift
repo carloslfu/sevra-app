@@ -29,7 +29,7 @@ public struct ApplicationDefinition: Codable, Identifiable, Sendable {
       let kind = row["kind"]?.string,
       [
         "function", "query", "action", "form", "workflow", "interpretation", "extraction", "intake",
-        "automation",
+        "automation", "tool",
       ]
       .contains(
         kind),
@@ -248,7 +248,7 @@ struct DefinitionDescriptor {
     guard let kind = o["kind"]?.string,
       [
         "function", "query", "action", "form", "workflow", "interpretation", "extraction", "intake",
-        "automation",
+        "automation", "tool",
       ]
       .contains(
         kind),
@@ -260,7 +260,7 @@ struct DefinitionDescriptor {
     else {
       throw SevraError(
         "definition",
-        "Declare a function, query, action, form, workflow, interpretation, extraction, intake or automation, title, description, parameters and payload."
+        "Declare a function, query, action, form, workflow, interpretation, extraction, intake, automation or tool, title, description, parameters and payload."
       )
     }
     self.value = value

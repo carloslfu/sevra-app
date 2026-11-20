@@ -92,8 +92,10 @@ public enum WorkbookAgent {
       // rides in the saved context, so a later turn renders the same prompt.
       var context = context
       if excelConversion == nil {
-        for listing in [try workbook.chatSQLTables(), try workbook.chatSavedTools()]
-        where !listing.isEmpty {
+        for listing in [
+          try workbook.chatSQLTables(), try workbook.chatSavedTools(),
+          try workbook.chatWorkbookListing(),
+        ] where !listing.isEmpty {
           context += (context.isEmpty ? "" : "\n") + listing
         }
       }
