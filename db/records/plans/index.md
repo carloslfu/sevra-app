@@ -9,7 +9,7 @@ updated: 2026-11-19T21:20:58Z
 
 - [[records/plans/inference-context-upgrade]] — Context fixes and Splash 1.6.1 installed. The focused context comparison selects 64K on the 48 GiB test host.
 - [[records/plans/excel-business-applications]] — Close realistic Excel business application reconstruction, reliable autonomous generation, and integrated chat/native qualification gaps.
-- [[records/plans/general-chat-tools]] — Plan for seven general chat tools (model SQL on a scratch copy, sandboxed code, workbook tools) and a prompt header calculated at build time and restored at engine start. In implementation.
+- [[records/plans/general-chat-tools]] — Seven general chat tools (SQL on a scratch copy, sandboxed code, workbook tools) and a prompt header made at build time. Built; an interface look and the update test wait on window access.
 - [[records/plans/single-excel-import]] — Single Excel import and native workflow reconstruction
 - [[records/plans/macos-installer-and-updates]] — Plans a standalone Sevra DMG, Sparkle updates through GitHub Releases, the Developer ID transition, and release verification and recovery.
 - [[records/plans/native-chat-prompt-routing]] — Superseded by the general chat tools plan. Keeps the description of the current request path and the measured inventory of the 59 chat tools.

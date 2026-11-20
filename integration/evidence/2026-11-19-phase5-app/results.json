@@ -1,0 +1,140 @@
+{
+ "date": "2026-11-20T03:33:40Z",
+ "commit": "0a11f402a172c559bfbc0195ddd0478fc5cfa783",
+ "workingTreeChanges": [],
+ "cliSHA256": "e20702016e067e02c5b763ba79dc2d2668b6a074d5f382898b8d2b72e875b21a",
+ "cliVersion": {
+  "engine": "splash-1.6.1",
+  "version": "0.1.0-dev"
+ },
+ "method": "scripts/check_chat_jobs.py: one `ask` per job, in English, through the native preview CLI on its own temporary synthetic workbook, run once. Each CLI request loads the model and unloads it on exit, so wallSeconds includes a model start; modelSeconds is the engine time of the decisions alone. The CLI has no window, so it cannot ask a structured question or open a view. Class totals use each job's first run.",
+ "models": [
+  "Splash 1.6.1; d8af1054aab0f97de21d043e01aa98af3754f10e; Qwen3.6-35B-A3B-4bit + DFlash2; native Swift candidate; context 65536; memory 12884901888; activations bf16; KV int8; state fp32; ANE on; reasoning budget 512; within-request reasoning retained"
+ ],
+ "languages": [
+  "en"
+ ],
+ "summary": {
+  "build": {
+   "en": {
+    "passed": 1,
+    "failed": 0,
+    "steps": 5,
+    "modelCalls": 6,
+    "wallSeconds": 78.35
+   }
+  }
+ },
+ "totals": {
+  "jobs": 1,
+  "passed": 1,
+  "passedFirstRun": 1,
+  "steps": 5,
+  "modelCalls": 6,
+  "wallSeconds": 78.35
+ },
+ "promptHeader": {
+  "inputs": "4b5222b710918804916aa7ed748e5b013f4eb5db69930ec75ba0d8a8f5571967",
+  "tokens": 2707,
+  "cacheName": "4da513908357e6bbd2f558a8ab1bad99"
+ },
+ "timedTurns": null,
+ "jobs": [
+  {
+   "attempt": 1,
+   "helperStopped": false,
+   "passed": true,
+   "failure": null,
+   "state": "complete",
+   "model": "Splash 1.6.1; d8af1054aab0f97de21d043e01aa98af3754f10e; Qwen3.6-35B-A3B-4bit + DFlash2; native Swift candidate; context 65536; memory 12884901888; activations bf16; KV int8; state fp32; ANE on; reasoning budget 512; within-request reasoning retained",
+   "steps": 5,
+   "modelCalls": 6,
+   "wallSeconds": 78.35,
+   "modelSeconds": 72.63,
+   "promptTokens": [
+    4870,
+    8593,
+    10134,
+    11624,
+    6950,
+    13203
+   ],
+   "tools": [
+    "native_app_sdk",
+    "save_native_app (failed: Property enabled on button () must be true or false. Use !!value or an explicit comparison, such as value.trim().length > 0, in a boolean predicate. Do not retu)",
+    "save_native_app (failed: Test step 1: The table Parts has no rows to select. The check starts every table empty. Send fixtures beside package and tests, with the rows this test selects,)",
+    "save_native_app"
+   ],
+   "answer": "Saved native app “Stock counter” after 1 synthetic check. Review table access and enable this version to use it.",
+   "citations": [],
+   "conversationAction": null,
+   "saved": {
+    "newTables": [
+     {
+      "title": "Parts",
+      "columns": [
+       {
+        "id": "part",
+        "title": "Part",
+        "type": "text"
+       },
+       {
+        "id": "category",
+        "title": "Category",
+        "type": "text"
+       },
+       {
+        "id": "stock",
+        "title": "Stock",
+        "type": "decimal"
+       },
+       {
+        "id": "reorder_level",
+        "title": "Reorder Level",
+        "type": "decimal"
+       }
+      ],
+      "rows": []
+     }
+    ],
+    "newSpaces": [
+     {
+      "title": "Stock counter",
+      "version": 1,
+      "components": []
+     }
+    ],
+    "newItems": [
+     {
+      "category": "source",
+      "kind": "observation",
+      "status": "accepted",
+      "title": "Stock counter: Parts",
+      "id": "1a2ee98f-7125-4644-a330-1d47be6fd2ca"
+     },
+     {
+      "category": "source",
+      "kind": "decision",
+      "status": "accepted",
+      "title": "Create table definition: Parts",
+      "id": "1d65b967-1b22-4788-8528-ae94349ab9b3"
+     },
+     {
+      "category": "source",
+      "kind": "rule",
+      "status": "accepted",
+      "title": "Native app authoring policy",
+      "id": "9c9e99e9-b04d-471e-ae63-60db6fabf405"
+     }
+    ]
+   },
+   "job": "build.app",
+   "group": "build",
+   "language": "en",
+   "expected": "An app named Stock counter is saved, bound to the Parts table. It stays disabled until the person enables it.",
+   "passedFirstRun": true,
+   "attempts": 1,
+   "retries": []
+  }
+ ]
+}

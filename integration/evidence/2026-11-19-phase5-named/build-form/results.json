@@ -1,0 +1,98 @@
+{
+ "date": "2026-11-20T03:35:54Z",
+ "commit": "0a11f402a172c559bfbc0195ddd0478fc5cfa783",
+ "workingTreeChanges": [
+  " M db/records/plans/general-chat-tools.md"
+ ],
+ "cliSHA256": "e20702016e067e02c5b763ba79dc2d2668b6a074d5f382898b8d2b72e875b21a",
+ "cliVersion": {
+  "engine": "splash-1.6.1",
+  "version": "0.1.0-dev"
+ },
+ "method": "scripts/check_chat_jobs.py: one `ask` per job, in English, through the native preview CLI on its own temporary synthetic workbook, run once. Each CLI request loads the model and unloads it on exit, so wallSeconds includes a model start; modelSeconds is the engine time of the decisions alone. The CLI has no window, so it cannot ask a structured question or open a view. Class totals use each job's first run.",
+ "models": [
+  "Splash 1.6.1; d8af1054aab0f97de21d043e01aa98af3754f10e; Qwen3.6-35B-A3B-4bit + DFlash2; native Swift candidate; context 65536; memory 12884901888; activations bf16; KV int8; state fp32; ANE on; reasoning budget 512; within-request reasoning retained"
+ ],
+ "languages": [
+  "en"
+ ],
+ "summary": {
+  "build": {
+   "en": {
+    "passed": 1,
+    "failed": 0,
+    "steps": 2,
+    "modelCalls": 2,
+    "wallSeconds": 13.93
+   }
+  }
+ },
+ "totals": {
+  "jobs": 1,
+  "passed": 1,
+  "passedFirstRun": 1,
+  "steps": 2,
+  "modelCalls": 2,
+  "wallSeconds": 13.93
+ },
+ "promptHeader": {
+  "inputs": "4b5222b710918804916aa7ed748e5b013f4eb5db69930ec75ba0d8a8f5571967",
+  "tokens": 2707,
+  "cacheName": "4da513908357e6bbd2f558a8ab1bad99"
+ },
+ "timedTurns": null,
+ "jobs": [
+  {
+   "attempt": 1,
+   "helperStopped": false,
+   "passed": true,
+   "failure": null,
+   "state": "complete",
+   "model": "Splash 1.6.1; d8af1054aab0f97de21d043e01aa98af3754f10e; Qwen3.6-35B-A3B-4bit + DFlash2; native Swift candidate; context 65536; memory 12884901888; activations bf16; KV int8; state fp32; ANE on; reasoning budget 512; within-request reasoning retained",
+   "steps": 2,
+   "modelCalls": 2,
+   "wallSeconds": 13.93,
+   "modelSeconds": 8.79,
+   "promptTokens": [
+    4869,
+    5266
+   ],
+   "tools": [
+    "save"
+   ],
+   "answer": "The form \"New reorder level\" has been saved as `new_reorder_level`. It accepts a Part (text) and Level (number) and will insert a new row into the `reorder_levels` table when run.",
+   "citations": [],
+   "conversationAction": null,
+   "saved": {
+    "newItems": [
+     {
+      "category": "source",
+      "kind": "application_definition",
+      "status": "accepted",
+      "title": "Define new_reorder_level",
+      "id": "92e43155-ae19-4ac9-924a-6fd380f195c3"
+     }
+    ],
+    "newDefinitions": [
+     {
+      "description": "Adds a new reorder level entry to the reorder_levels table.",
+      "id": "64853e95-4fa2-4329-ac91-f49a5efb20a0",
+      "is_current": 1,
+      "kind": "tool",
+      "logical_id": "aa1bdda8-57c3-5c9a-9f9e-75556ae453ad",
+      "source_id": "92e43155-ae19-4ac9-924a-6fd380f195c3",
+      "title": "new_reorder_level",
+      "version": 1
+     }
+    ]
+   },
+   "job": "build.form",
+   "group": "build",
+   "language": "en",
+   "expected": "A form (or an app that is one) named New reorder level is saved for the Reorder levels table, and the table itself is unchanged. Submitting the form is not exercised by this harness.",
+   "passedFirstRun": true,
+   "attempts": 1,
+   "retries": []
+  }
+ ]
+}
