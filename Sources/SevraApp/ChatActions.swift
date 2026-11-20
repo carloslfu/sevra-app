@@ -6,6 +6,21 @@ import SevraMedia
 import SevraVisualUI
 
 extension WorkspaceState {
+  /// A file leaves the workbook only to a path the person wrote in the request, which the agent
+  /// checks, or to one they choose in this panel. Closing it exports nothing.
+  private func chooseDestination(_ suggested: String) -> URL? {
+    let panel = AppHost.savePanel()
+    panel.title = "Export"
+    panel.nameFieldStringValue = suggested
+    panel.canCreateDirectories = true
+    return panel.runModal() == .OK ? panel.url : nil
+  }
+  private var exportCancelled: Value {
+    .object([
+      "status": .string("cancelled"),
+      "note": .string("The person closed the save panel. Nothing was exported."),
+    ])
+  }
   func performChatAction(
     _ name: String, arguments a: Value, book: Workbook, readOnly: Bool,
     cancellation: Cancellation, confirmed: Bool = false
@@ -225,6 +240,15 @@ extension WorkspaceState {
         "visual", "Resolve the open draft before opening the captured source.")
       return .object(["status": .string("opened"), "sourceID": .string(source)])
     case "visual.export":
+      guard !a["path"].text.isEmpty else {
+        // No path the person wrote: they choose one here, and the format follows its extension.
+        guard let chosen = chooseDestination("Chart.png") else { return exportCancelled }
+        var choice = a.object
+        choice["path"] = .string(chosen.path)
+        return try await performChatAction(
+          name, arguments: .object(choice), book: book, readOnly: readOnly,
+          cancellation: cancellation, confirmed: confirmed)
+      }
       let destination = URL(fileURLWithPath: (a["path"].text as NSString).expandingTildeInPath)
       try require(
         (a["path"].text.hasPrefix("/") || a["path"].text.hasPrefix("~/"))
@@ -244,6 +268,21 @@ extension WorkspaceState {
       }.value
       return .object(["status": .string("saved"), "path": .string(file.path)])
     case "file.export_workbook", "file.export_table", "file.export_app", "file.export_original":
+      if a["path"].text.isEmpty {
+        let suggested: String
+        switch name {
+        case "file.export_workbook": suggested = book.title + ".sevraz"
+        case "file.export_table": suggested = ((try? book.dataset(a["id"].text).title) ?? "Table") + ".csv"
+        case "file.export_app": suggested = ((try? book.space(a["id"].text).title) ?? "App") + ".sevraapp"
+        default: suggested = "Original"
+        }
+        guard let chosen = chooseDestination(suggested) else { return exportCancelled }
+        var choice = a.object
+        choice["path"] = .string(chosen.path)
+        return try await performChatAction(
+          name, arguments: .object(choice), book: book, readOnly: readOnly,
+          cancellation: cancellation, confirmed: confirmed)
+      }
       let path = (a["path"].text as NSString).expandingTildeInPath
       try require(
         path.hasPrefix("/") && !path.contains("\0"), "export_path",

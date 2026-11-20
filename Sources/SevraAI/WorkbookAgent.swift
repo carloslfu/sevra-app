@@ -612,7 +612,7 @@ public enum WorkbookAgent {
           let path = a["arguments"]["path"].string, !requestFacts.contains(path)
         {
           refused =
-            "An export goes only to a path the user wrote in this request. Nothing was exported. Ask the user for the full path."
+            "An export goes only to a path the user wrote in this request. Nothing was exported. Leave out path, and the app asks the user where to save it."
         }
         if let refused {
           failures += 1

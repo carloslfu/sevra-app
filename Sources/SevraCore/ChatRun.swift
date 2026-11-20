@@ -15,8 +15,20 @@ extension Workbook {
   public static let chatRunCallLimit = 48
   public static let chatRunSeconds: TimeInterval = 30
 
+  /// Checks a saved tool's JavaScript body for syntax in the sandboxed helper, without running it.
+  public func checkChatScript(_ code: String, cancellation: Cancellation = .init()) throws {
+    try require(
+      !code.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty && code.utf8.count <= 24_000,
+      "run", "Send JavaScript under 24,000 bytes.")
+    let worker = ExtractionWorker(timeout: 4, maximumMemoryBytes: 256 * 1024 * 1024)
+    _ = try worker.chatScript(
+      .object(["source": .string(code), "answers": .array([]), "checkOnly": .bool(true)]),
+      cancellation: cancellation)
+  }
+
   public func chatRun(
     code: String, readOnly: Bool, token: String, requestSourceID: String?,
+    inputs: [String: Value] = [:],
     host: (_ method: String, _ arguments: Value) throws -> Value,
     cancellation: Cancellation = .init()
   ) throws -> Value {
@@ -75,7 +87,7 @@ extension Workbook {
         .object([
           "source": .string(code), "answers": .array(answers),
           "now": .number((now.timeIntervalSince1970 * 1000).rounded()),
-          "today": .string(day.string(from: now)),
+          "today": .string(day.string(from: now)), "inputs": .object(inputs),
         ]), cancellation: cancellation)
       let calls = reply["calls"].array
       try require(

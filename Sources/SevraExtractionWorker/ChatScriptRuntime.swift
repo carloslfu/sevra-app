@@ -62,6 +62,8 @@ enum ChatScriptRuntime {
           + String(diagnostic.dropFirst().split(separator: "\n").first ?? "").prefix(400)
           + ". Line numbers start one line above your code. Write the body of an async function: statements that end with return.")
     }
+    // A saved tool's body is checked when it is saved, without running it.
+    if request["checkOnly"] == .bool(true) { return .object(["syntax": .string("ok")]) }
     let now = request["now"].int ?? 0
     let script = """
       const __answers=\(try Value.array(request["answers"].array).json()),__calls=[],__requests=[],__log=[];
@@ -87,6 +89,7 @@ enum ChatScriptRuntime {
       const read=id=>__host('read',{id:String(id)});
       const action=(name,args)=>{__requests.push({action:String(name),arguments:JSON.parse(JSON.stringify(args??{}))});return {queued:__requests.length};};
       const today=__today;
+      const inputs=Object.freeze(\(try Value.object(request["inputs"].object).json()));
       let __state={done:false};
       (async()=>{
       \(source)

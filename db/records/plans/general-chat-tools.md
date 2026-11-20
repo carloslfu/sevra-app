@@ -394,7 +394,7 @@ Owner direction: [[sources/notes/2026/11/fast-loop-direction]] on November 18, 2
 2. **What the slice has from the start.** Changes go through the recorded write path, so history and Undo hold. Statements that reach outside the scratch database are refused. Row and time budgets apply.
 3. **Then the rest of phases 2 and 3,** starting with what the evals show is needed. A part of the design that no check or eval shows a need for is left out, and listed in its phase with the reason. Changing a table's shape through `sql` still waits for the `db/DB.md` change.
 4. **Phases 4 to 7 in order,** each built the same way: the smallest working form, an eval, then the rest.
-5. **Header.** Paused by the owner on November 18, 2026 until the tools are done ([[sources/notes/2026/11/general-tools-answers]]). The size is measured again on the final header before he decides. Only the first question of phase H1 ran: does a header resume from copied cache files at all. The rest of H1 and phases H2 to H4 wait until the general tools pass their evals. H3 still needs the owner's answers to P6, P8 and P9, and H4 his answer to P7. When phase 7 fixes the final header, it is made again with the same command and the header tests run again on it.
+5. **Header.** Paused by the owner on November 18, 2026 until the tools were done ([[sources/notes/2026/11/general-tools-answers]]), then built on November 19 at his word ([[sources/notes/2026/11/general-tools-whole-plan]]). Phases H1 to H3 are done and H4 is done but for the update test. When a later change fixes a new header, packaging makes it again with the same command.
 
 ### The build so far
 
@@ -774,8 +774,7 @@ Each specification is updated in the phase that makes its new rule true: managed
 - **A look at the chat interface.** Access to operate the app's window was declined in the building session. Nobody has seen the "Change saved" row with "Undo this change", or how `sql` and `run` activity reads in the conversation. The UI Catalog has no entry for the row.
 - **Saved tools from a copied workbook (P5).** A tool that arrives in a copied workbook runs when the person asks for it by name. Its changes can be undone. An enable step is not built.
 - **A save panel for exports.** Today the model asks for the path when the request has none.
-- Confirm or change P6, P7, P8 and P9.
-- **The header.** Measured again on the general tools' header, as he asked: 2,559 tokens where today's is 6,020. It resumes from copied cache files, 2,528 of its tokens. It is 93.9 MB on disk where today's is 131.5 MB, because one part of it is 66.7 MB whatever the header's length. Reading it at an engine start takes 2.1 s, which is what a prepared header would save. Decide whether that is worth the larger download. Evidence: [the measurement](../../../integration/evidence/2026-11-18-header-cache-probe/results-general-tools.json).
+- **The header is built** at the owner's word of November 19, 2026, with P6 to P9 as written. It adds 88 MB to the DMG. A release names only the chips where its header tests passed, so far an Apple M5 Pro.
 - Decide whether submitting a form from chat keeps its confirmation now that SQL writes directly. The plan keeps it.
 - Confirm that the stock tables are listed only when the ledger holds a basis, or have them listed always.
 - Decide whether a separate plan should turn the inventory ledger into ordinary tables.

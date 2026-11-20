@@ -102,7 +102,7 @@ extension NativeAppCheck {
         + String(String.UnicodeScalarView(try step["inputs"].json().unicodeScalars.prefix(1000)))
       if step["error"] == .null, step["reject"] == .null {
         return "\nFailed successful action: " + call
-          + ". Decide this from the original rules and starting state. If the input should be refused, add \"reject\":true to this exact run_action step and remove any assertion that it saved a new row. Keep a separate successful call with valid inputs. If the input should succeed, keep the success assertion and fix the handler or invalid setup. Do not change a business rule to pass a test."
+          + ". Decide this from the original rules and starting state. The check's tables hold only the fixture rows, so a record this action looks up must be in fixtures. If the input should be refused, add \"reject\":true to this exact run_action step and remove any assertion that it saved a new row. Keep a separate successful call with valid inputs. If the input should succeed, keep the success assertion and fix the handler or invalid setup. Do not change a business rule to pass a test."
       }
       if step["reject"] == .bool(true) || step["error"].string != nil {
         return "\nFailed refusal test: " + call

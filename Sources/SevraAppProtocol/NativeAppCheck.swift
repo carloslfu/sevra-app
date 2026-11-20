@@ -771,7 +771,13 @@ public enum NativeAppCheck {
               access, request: .object(args), columnLabels: node.props["columnLabels"]
             )["rows"].array
             guard let offset = value.int, rows.indices.contains(offset) else {
-              throw SevraError("app_check", "Select a valid zero-based row.")
+              // The check's tables start empty, so a test that selects a row must add it first.
+              throw SevraError(
+                "app_check",
+                rows.isEmpty
+                  ? "The table " + step["target"].text
+                    + " has no rows to select. The check starts every table empty: add the rows this test selects to fixtures."
+                  : "Select a valid zero-based row, from 0 to \(rows.count - 1).")
             }
             value = rows[offset]
             tableRowWasSelected = true

@@ -39,8 +39,9 @@ public enum ChatOperations {
       "visual.image_view", "Open, fit, zoom or retry a captured image in the workbook window.",
       ["messageID", "index", "mode"], ["zoom"], readOnly: true, host: true),
     .init(
-      "visual.export", "Export a captured chart from an exact chat message as PNG, PDF or CSV.",
-      ["messageID", "index", "path"], host: true),
+      "visual.export",
+      "Export a captured chart from an exact chat message as PNG, PDF or CSV, to a path the user wrote, or without a path to let them choose in a save panel.",
+      ["messageID", "index"], ["path"], host: true),
     .init(
       "visual.inspect", "Inspect a saved visual and current work record versions.",
       ["id", "componentID"], ["cursor", "offset", "panel"], readOnly: true),
@@ -277,19 +278,20 @@ public enum ChatOperations {
       ], ["keys", "headerRow", "sheet"]),
     .init(
       "file.export_workbook",
-      "Export a portable workbook to the user's supplied absolute .sevraz path, with no save dialog or overwrite.",
-      ["path"], host: true),
+      "Export a portable workbook to the user's supplied absolute .sevraz path, or without a path to let them choose in a save panel. Never overwrites.",
+      [], ["path"], host: true),
     .init(
       "file.export_original",
-      "Save a byte-verified copy of an included original to the user's supplied absolute path, preserving workbook evidence.",
-      ["id", "path"], host: true),
+      "Save a byte-verified copy of an included original to the user's supplied absolute path, or without a path to let them choose in a save panel.",
+      ["id"], ["path"], host: true),
     .init(
-      "file.export_table", "Export a table as CSV to a supplied absolute path.", ["id", "path"],
-      host: true),
+      "file.export_table",
+      "Export a table as CSV to the user's supplied absolute path, or without a path to let them choose in a save panel.",
+      ["id"], ["path"], host: true),
     .init(
       "file.export_app",
-      "Export a mini-app template to a supplied absolute .sevraapp path. Records are excluded.",
-      ["id", "path"], host: true),
+      "Export a mini-app template to the user's supplied absolute .sevraapp path, or without a path to let them choose in a save panel. Records are excluded.",
+      ["id"], ["path"], host: true),
     .init(
       "excel.inspect", "Inspect a saved Excel import and its current plan, tables and state.",
       ["id"], readOnly: true),
