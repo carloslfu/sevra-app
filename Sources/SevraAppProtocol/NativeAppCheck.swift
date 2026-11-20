@@ -772,11 +772,20 @@ public enum NativeAppCheck {
             )["rows"].array
             guard let offset = value.int, rows.indices.contains(offset) else {
               // The check's tables start empty, so a test that selects a row must add it first.
+              // The message shows the field with a row of this table, since naming it was not
+              // enough for the local model.
+              let alias = node.props["table"].text
+              let sample = Value.object(
+                Dictionary(
+                  uniqueKeysWithValues: (package.datasets[alias]?.columns ?? []).prefix(3).map {
+                    ($0.id, Value.string($0.type == "decimal" ? "1" : "Sample"))
+                  }))
               throw SevraError(
                 "app_check",
                 rows.isEmpty
                   ? "The table " + step["target"].text
-                    + " has no rows to select. The check starts every table empty: add the rows this test selects to fixtures."
+                    + " has no rows to select. The check starts every table empty. Send fixtures beside package and tests, with the rows this test selects, such as fixtures: "
+                    + ((try? Value.object([alias: .array([sample])]).json()) ?? "{}") + "."
                   : "Select a valid zero-based row, from 0 to \(rows.count - 1).")
             }
             value = rows[offset]

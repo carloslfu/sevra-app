@@ -617,6 +617,23 @@ func checkNativeAppAuthoring() async throws {
       try expectEqual(error.localizedDescription.contains("Await it first"), true)
     }
   }
+  // A test that selects a row of an empty table is told the fixtures field with a row of it.
+  do {
+    _ = try await NativeAppCheck.run(
+      package: .init(
+        name: "Empty selection",
+        source: """
+          const {h,mount,Table,signal}=Sevra;const picked=signal('');
+          mount(h(Table,{table:'rows',label:'Rows',columns:['name'],selection:picked}));
+          """,
+        datasets: ["rows": .init(title: "Rows", columns: [.init(id: "name", title: "Name")])]),
+      steps: try steps(
+        #"[{"kind":"select","target":"Rows","value":0},{"kind":"expect_text","value":"Sample"}]"#))
+    throw SevraError("test", "A selection in an empty table passed")
+  } catch {
+    try expectEqual(
+      error.localizedDescription.contains(#"fixtures: {"rows":[{"name":"Sample"}]}"#), true)
+  }
   let cancelled = Cancellation()
   cancelled.cancel()
   do {

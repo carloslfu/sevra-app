@@ -278,6 +278,29 @@ import SevraVoice
         }
       }
     }
+    if id == "chat.undo-redo" && variant != "Empty" {
+      // A change made through sql, so the answer carries "Change saved" with its Undo.
+      _ = try await WorkbookAgent.run(
+        "Add a reorder level of 10 for brass bolts.", workbook: b,
+        model: CatalogInference([
+          (
+            "sql",
+            .object([
+              "statements": .array([
+                .string("CREATE TABLE reorder_levels(part TEXT, level REAL)"),
+                .string("INSERT INTO reorder_levels VALUES('Brass bolts', 10)"),
+              ])
+            ])
+          ),
+          (
+            "finish",
+            .object([
+              "answer": .string("Added a reorder level of 10 for brass bolts."),
+              "basis": .string("general"), "citations": .array([]),
+            ])
+          ),
+        ]), conversationInput: true)
+    }
     if id == "chat.approval" {
       let draft = try b.addItem(
         category: "record", kind: "note", title: "Purchasing decision",
