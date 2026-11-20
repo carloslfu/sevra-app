@@ -3,7 +3,7 @@ type: operational
 meta-type: operational
 id: 01m659x4nd2q89tkpzzsssd7yr
 created: 2026-10-30T02:23:30.477380+00:00
-updated: 2026-11-20T19:30:00+00:00
+updated: 2026-11-20T19:55:00+00:00
 summary: Native UI Catalog implemented and locally verified, with durable agent maintenance instructions and preserved product/model qualification limits.
 title: Minimum-feature continuation handoff
 ---
@@ -20,9 +20,9 @@ Where it stands:
 - **The model is offered seven tools, and only these in chat:** `search`, `read`, `sql`, `run`, `save`, `ask`, `finish`. Each call is routed to the operation that does its work, so the agent's checks, receipts and confirmations are keyed on operation names. Reviews and Excel conversion keep tool lists of their own. The plan's section "The build so far" says what each tool is, what was measured and what was left out.
 - **Results with the real model:** the light set passes 11 of 11 in under four minutes, last on November 19 with the seven tools as the only chat tools ([the run](../../../integration/evidence/2026-11-19-seven-tools-only-light/results.json)). Over the whole job list, 22 of 24 pass from the command line and the app job passes inside an app bundle, where today's tools pass 12 of 23. After phase 5 the light set passed 11 of 11 again, and `build.rule`, `build.saved_tool`, `build.form` and `build.app` passed by name ([the runs](../../../integration/evidence/2026-11-19-phase5-light/README.md)). The app job is still the least reliable.
 - **Phase 5 is built:** saved tools are definitions of kind `tool` (schema 32) with a per-Mac grant and a Tools screen, apps keep their declared actions, the sample workbook has a saved movement action, rules can alert, and the rule and receiving starters are guides.
-- **The interface look is done; the update test waits on the owner.** On November 20 the look fixed the chat Undo row (it never appeared, and its Undo failed) and three export faults: the model now uses `file.export_table`, code blocks in answers keep their lines, and a cancelled save panel answers that nothing was exported. The owner declined window access to the QA app, so H4's in-app update from build 4 to build 5 is not run ([evidence](../../../integration/evidence/2026-11-20-interface-look/README.md)).
+- **The interface look and the update test are done.** On November 20 the look fixed the chat Undo row (it never appeared, and its Undo failed) and three export faults: the model now uses `file.export_table`, code blocks in answers keep their lines, and a cancelled save panel answers that nothing was exported ([evidence](../../../integration/evidence/2026-11-20-interface-look/README.md)). H4's in-app update from QA build 4 to build 5 passed, and the updated copy resumed build 5's header in its first chat ([evidence](../../../integration/evidence/2026-11-20-update-test/README.md)).
 - **There is no tool profile.** `SEVRA_TOOL_PROFILE` and the app's `SevraToolProfile` setting are gone, with the old chat instructions, `compare_rows`, `propose_table` and `propose_table_edit`. A test Mac that still has `SevraToolProfile` saved ignores it. Scripted checks write an operation as the chat call that asks for it with `chatCall` in [AnswerGroundingChecks.swift](../../../IntegrationTests/Agent/AnswerGroundingChecks.swift).
-- **Pushed through `4478745`** at the owner's word on November 20. Later commits are local on `main`.
+- **Pushed** at the owner's word on November 20, 2026.
 
 How to test it, and how not to:
 
@@ -40,15 +40,10 @@ What to know before going further:
 - **The grammar takes sixteen alternatives and flat top-level inputs.** That is why `save` has one input per kind and `run` has fifteen exact action shapes.
 - **A rule alerts or runs a workflow.** With alert text it binds to the workbook's shared "Stock alert" workflow, saved with the first alert rule, which drafts the alert for review. It can only watch an item whose stock the workbook keeps, because the alert cites that stock's record.
 - **Numbers.** `sql` rounds every number that leaves it to 15 significant digits. The owner chose that.
-- **Header, paused by the owner until the tools are done.** A header does resume from copied cache files. The general tools' header is 2,559 tokens and 93.9 MB on disk, and a prepared header would save 2.1 seconds per engine start. Today's is 6,020 tokens and 131.5 MB.
-- **Not looked at on screen.** Access to operate the app's window was declined in this session. The new "Change saved" row with "Undo this change" compiles and its data path is checked, but nobody has seen it, and the UI Catalog has no entry for it.
+- **The header is built into the app.** Packaging makes it with the model and the app only restores it. It is 2,770 tokens since the export instruction of November 20, and an update between builds carries the new one, as the H4 update test showed.
+- **Looked at on screen.** The Tools screen, the "Change saved" row with "Undo this change", code blocks in answers and the export save panel were looked at in the UI Catalog and the installed app on November 20, and the faults found were fixed.
 
-Waiting on the owner:
-
-- The original rule job: a built-in alert for a rule, or a changed job.
-- Whether a saved tool that arrives in a copied workbook needs an enable step.
-- The header decision, with the size measured again.
-- A look at the chat interface, or screen access for an agent to do it.
+Waiting on the owner: nothing for this plan. The earlier items (the rule job, the enable step for a copied tool, the header decision and the interface look) are settled.
 ## Follow-up turns resume the previous turn's cache, November 18
 
 [[records/plans/conversation-follow-up-cache]] makes the saved conversation append-only, one

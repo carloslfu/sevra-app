@@ -2,12 +2,12 @@
 type: index
 scope: type-folder
 folder: records/plans
-updated: 2026-11-20T19:30:00Z
+updated: 2026-11-20T19:55:00Z
 ---
 
 # records/plans
 
-- [[records/plans/general-chat-tools]] — Seven general chat tools (SQL on a scratch copy, sandboxed code, workbook tools) and a prompt header made at build time. Built and looked at; the update test waits on window access.
+- [[records/plans/general-chat-tools]] — Seven general chat tools (SQL on a scratch copy, sandboxed code, workbook tools) and a prompt header made at build time. Built, looked at, and updated in the app between two headers.
 - [[records/plans/inference-context-upgrade]] — Context fixes and Splash 1.6.1 installed. The focused context comparison selects 64K on the 48 GiB test host.
 - [[records/plans/excel-business-applications]] — Close realistic Excel business application reconstruction, reliable autonomous generation, and integrated chat/native qualification gaps.
 - [[records/plans/single-excel-import]] — Single Excel import and native workflow reconstruction

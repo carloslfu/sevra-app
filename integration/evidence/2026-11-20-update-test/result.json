@@ -1,0 +1,28 @@
+{
+  "build": "5",
+  "headerManifestMatchesReceipt": true,
+  "uuidMatchesDiskImage": true,
+  "uuid": "69B3D919-4BD3-3729-A24F-44BC715F422D",
+  "resources": {
+    "app": {
+      "header": "present",
+      "headerInputs": "4b5222b710918804916aa7ed748e5b013f4eb5db69930ec75ba0d8a8f5571967",
+      "kernelCount": 2111
+    },
+    "cli": {
+      "header": "present",
+      "headerInputs": "4b5222b710918804916aa7ed748e5b013f4eb5db69930ec75ba0d8a8f5571967",
+      "kernelCount": 2111
+    },
+    "cliLink": {
+      "header": "present",
+      "headerInputs": "4b5222b710918804916aa7ed748e5b013f4eb5db69930ec75ba0d8a8f5571967",
+      "kernelCount": 2111
+    }
+  },
+  "firstChat": {
+    "headerResumed": true,
+    "matchedPromptTokens": 2688,
+    "prefixPrimeTokens": 0
+  }
+}
