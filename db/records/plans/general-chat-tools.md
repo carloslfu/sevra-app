@@ -2,15 +2,15 @@
 type: operational
 id: 01m7qrcqqzh4qqr92a8frch1ze
 created: 2026-11-18T16:38:43.199010+00:00
-updated: 2026-11-19T16:00:23+00:00
-summary: Seven general chat tools (SQL on a scratch copy, sandboxed code, workbook tools) and a prompt header made at build time. Built; an interface look and the update test wait on window access.
+updated: 2026-11-20T17:40:00+00:00
+summary: Seven general chat tools (SQL on a scratch copy, sandboxed code, workbook tools) and a prompt header made at build time. Built and looked at; the update test waits on window access.
 title: General chat tools and a pre-read prompt header
 ---
 # General chat tools and a pre-read prompt header
 
 Owner direction: [[sources/notes/2026/11/general-tools-direction]], continuing [[sources/notes/2026/11/chat-tool-routing-direction]]. Evidence: [[records/research/chat-tool-selection]]. This plan replaces [[records/plans/native-chat-prompt-routing]].
 
-Status: built, including the prepared header (H1 to H4) and phase 5, at the owner's word to build the whole plan, [[sources/notes/2026/11/general-tools-whole-plan]]. Two checks wait on window access the owner has not given: a look at the interface, and H4's in-app update test. The model is offered `search`, `read`, `sql`, `run`, `save`, `ask` and `finish`, and nothing else in chat: on November 19, 2026 the owner made them the only chat tools and had the old way removed, [[sources/notes/2026/11/general-tools-only]]. See [The build so far](#the-build-so-far) for what was built, measured and left out, and [Open items for the owner](#open-items-for-the-owner) for what waits on him. Implementation started on November 18, 2026. The same day the owner chose a faster test loop: [[sources/notes/2026/11/fast-loop-direction]], and asked for the tools in the app and the whole plan done: [[sources/notes/2026/11/general-tools-in-the-app]]. [The test loop and the order](#the-test-loop-and-the-order) governs where a phase section says otherwise.
+Status: built, including the prepared header (H1 to H4) and phase 5, at the owner's word to build the whole plan, [[sources/notes/2026/11/general-tools-whole-plan]]. The interface look was done on November 20, 2026 and fixed two faults in the chat Undo row. H4's in-app update test waits on window access to the QA app, which the owner declined that day. The model is offered `search`, `read`, `sql`, `run`, `save`, `ask` and `finish`, and nothing else in chat: on November 19, 2026 the owner made them the only chat tools and had the old way removed, [[sources/notes/2026/11/general-tools-only]]. See [The build so far](#the-build-so-far) for what was built, measured and left out, and [Open items for the owner](#open-items-for-the-owner) for what waits on him. Implementation started on November 18, 2026. The same day the owner chose a faster test loop: [[sources/notes/2026/11/fast-loop-direction]], and asked for the tools in the app and the whole plan done: [[sources/notes/2026/11/general-tools-in-the-app]]. [The test loop and the order](#the-test-loop-and-the-order) governs where a phase section says otherwise.
 
 The owner confirmed the plan's three summary points and five proposals as written on November 18, 2026: [[sources/notes/2026/11/general-tools-confirmation]]. He then changed how the header is delivered: [[sources/notes/2026/11/prebuilt-header-direction]]. He authorized implementation on November 18, 2026: [[sources/notes/2026/11/general-tools-implementation]]. That note also lists what the authorization does not cover.
 
@@ -742,6 +742,8 @@ Exit: on the test Mac, the test that starts from the DMG alone passes; every hea
 
 **November 19, 2026.** QA build 0.9.0-qa.4 carries the header in a 150.7 MB DMG, against 62.7 MB before, and its `release.json` records the manifest and the chip, Apple M5 Pro. `check_release_package.py --full-runtime --models` installed it from the DMG into an empty folder with the build tree denied: the app, its CLI and a CLI link report the header present, and the first chat resumed it to 2,560 tokens with nothing primed. The installer plan carries the four changes. The release header matches the development one by design, since a header is matched by the engine's release and commit and a release re-signs the engine's file. The in-app update test is not run: it needs the app's Check for Updates menu, and the owner has not given access to the app's windows.
 
+**November 20, 2026.** Build 4 was installed from its disk image into an empty folder, and its app, CLI and CLI link found header `793529b6` (2,572 tokens). QA build 0.9.0-qa.5 was built clean from `46f6b58` with header `4b5222b7` (2,707 tokens), and a signed loopback feed for it was served. The owner declined window access to the QA app, so Check for Updates was not run and the update test is still open ([evidence](../../../integration/evidence/2026-11-20-interface-look/README.md)).
+
 ## What this replaces
 
 Rules recorded before this direction, and what becomes of each:
@@ -784,7 +786,11 @@ Each specification is updated in the phase that makes its new rule true: managed
 
 ## Open items for the owner
 
-- **Window access for two checks.** He declined access to the app's windows again on November 19, 2026. Without it nobody has looked at the Tools screen, the "Change saved" row with "Undo this change", or the export save panel in the running app, and H4's in-app update between two builds whose headers differ is not run. The UI Catalog has states for the Tools screen and the row, and their fixtures build and run.
+- **The interface look, November 20, 2026.** The Tools screen and the export save panel work. The "Change saved" row never appeared and its Undo failed; both are fixed at `46f6b58` ([evidence](../../../integration/evidence/2026-11-20-interface-look/README.md)). Three faults are open:
+  - asked to export a table, the model wrote the CSV into its answer and never used `file.export_table`;
+  - a fenced block in an answer loses its line breaks, because chat text is parsed as inline markdown;
+  - after the save panel is cancelled, the answer shows an earlier refused call instead of saying nothing was exported.
+- **The update test needs window access to the QA app.** The owner declined it on November 20, 2026. Builds 4 and 5 and a signed feed are ready, so the test is Check for Updates, the relaunch, About and one chat that resumes header `4b5222b7`.
 - **The header is built** at the owner's word of November 19, 2026, with P6 to P9 as written. It adds 88 MB to the DMG. A release names only the chips where its header tests passed, so far an Apple M5 Pro.
 - **The app job** passes, but it is the least reliable job and is not in the light set.
 - Decide whether submitting a form from chat keeps its confirmation now that SQL writes directly. The plan keeps it.
