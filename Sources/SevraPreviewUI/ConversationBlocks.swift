@@ -67,6 +67,8 @@ public struct PreviewTableContent: Equatable, Sendable {
 public enum ConversationBlock: Equatable {
   case text(String)
   case table(PreviewTableContent)
+  /// A code block's lines as written, without its fences. Inline parsing would join them.
+  case code(String)
 
   static func parse(_ source: String) -> [ConversationBlock] {
     guard MarkdownNesting.isReadable(source) else { return [.text(source)] }
@@ -96,6 +98,21 @@ public enum ConversationBlock: Equatable {
     var blocks: [ConversationBlock] = []
     var end = 0
     for child in document.children {
+      if let code = child as? Markdown.CodeBlock, let range = code.range,
+        lineStarts.indices.contains(range.lowerBound.line - 1),
+        let stop = offset(range.upperBound), lineStarts[range.lowerBound.line - 1] >= end,
+        stop >= lineStarts[range.lowerBound.line - 1]
+      {
+        let start = lineStarts[range.lowerBound.line - 1]
+        if start > end {
+          blocks.append(.text(String(decoding: bytes[end..<start], as: UTF8.self)))
+        }
+        var body = code.code
+        while body.last?.isNewline == true { body.removeLast() }
+        blocks.append(.code(body))
+        end = stop
+        continue
+      }
       guard let table = child as? Markdown.Table, let range = table.range,
         let stop = offset(range.upperBound)
       else { continue }

@@ -129,3 +129,39 @@ private func checkDuplicatedEnvelopeSelectors() throws {
     }
   }
 }
+
+/// An export refused for a misnamed field, then sent right, answers with what really happened:
+/// a cancelled save panel says nothing was exported, and a refusal for another table stays.
+func checkMisnamedHostActionRecovery() throws {
+  let note = "The save panel was closed, so nothing was exported."
+  for mode in ["cancelled", "saved", "other-table"] {
+    var confirmations = ActionConfirmations()
+    confirmations.recordFailure(
+      tool: "workspace_action",
+      arguments: .object([
+        "action": .string("file.export_table"),
+        "arguments": .object(["tableID": .string("table-1")]),
+      ]),
+      result: .object(["error": .string("Missing fields: id. Unexpected fields: tableID.")]),
+      receiptID: "misnamed")
+    confirmations.record(
+      tool: "workspace_action",
+      arguments: .object([
+        "action": .string("file.export_table"),
+        "arguments": .object(["id": .string(mode == "other-table" ? "table-2" : "table-1")]),
+      ]),
+      result: mode == "saved"
+        ? .object(["status": .string("saved"), "path": .string("/tmp/Table.csv")])
+        : .object(["status": .string("cancelled"), "note": .string(note)]),
+      receiptID: "sent")
+    let rendered = confirmations.rendered
+    switch mode {
+    case "cancelled": try expectEqual(rendered, note)
+    // A saved export is the model's to describe from its receipt.
+    case "saved": try expectEqual(rendered, nil)
+    default:
+      try expectEqual(rendered?.contains("Unexpected fields: tableID."), true)
+      try expectEqual(rendered?.contains(note), true)
+    }
+  }
+}

@@ -59,6 +59,22 @@ func checkConversationPresentation() throws {
   if case .table(let cells) = parsed.blocks[1] { try expect(cells.rows == [["1", "2"]]) } else {
     try expect(false)
   }
+  // A fenced block keeps its lines. Inline parsing would join them into one code span.
+  let csv = "Here is the CSV:\n\n```csv\nsupplier,cost\nOak Supply,24.00\n```\n\nSave it as a file."
+  let fenced = ConversationMessageContent(csv)
+  try expect(fenced.blocks.count == 3)
+  if case .code(let code) = fenced.blocks[1] {
+    try expect(code == "supplier,cost\nOak Supply,24.00")
+  } else {
+    try expect(false)
+  }
+  if case .text(let after) = fenced.blocks[2] {
+    try expect(String(after.characters) == "Save it as a file.")
+  } else {
+    try expect(false)
+  }
+  // Inline code stays inside its sentence.
+  try expect(ConversationMessageContent("Run `sql` once.").blocks.count == 1)
   let cache = ConversationContentCache()
   func message(_ id: String, _ body: String) throws -> Message {
     let saved: Value = .object([
@@ -89,6 +105,6 @@ func checkConversationPresentation() throws {
   try expect(many.links.count == 2_000)
   try expect(many.links.last?.url.absoluteString == "sevra://item/source-1999")
   print(
-    "PASS conversation links preserve formatted labels, exact version/locator/origin and safe native routes"
+    "PASS conversation links preserve formatted labels, exact version/locator/origin and safe native routes; code blocks keep their lines"
   )
 }

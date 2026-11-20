@@ -201,6 +201,17 @@ extension Workbook {
       + (listed < named.count ? "; \(named.count - listed) more in SELECT * FROM tables" : "")
   }
 
+  /// A current table by its id or by its name under Tables for sql.
+  public func chatTableID(_ reference: String) throws -> String {
+    if let table = try? dataset(reference), !table.archived { return table.id }
+    let named = SQLScratch.named(try datasets(), ledger: try hasStockLedger())
+    guard let match = named.first(where: { $0.name == reference }) else {
+      throw SevraError(
+        "unknown_table", "No table is named \(reference). Use a name under Tables for sql.")
+    }
+    return match.dataset.id
+  }
+
   func hasStockLedger() throws -> Bool {
     try synchronized { try db.scalar("SELECT count(*) FROM bases").int ?? 0 > 0 }
   }

@@ -49,3 +49,28 @@ an empty folder; the app, its CLI and a CLI link found its header. Build 5 (`0.9
 `46f6b58`, header `4b5222b7`, 2,707 tokens, 152,015,708 bytes) was built clean and a signed
 loopback feed for it was served. The owner declined window access to the QA app, so Check for
 Updates was not run. The test is not done.
+
+## The three export faults, fixed the same day
+
+- **The model now uses the export action.** Asking for an export without naming the action found
+  two more causes. In one try the model called `read kind=actions` with the table's id as `ref`;
+  that `ref` became a domain filter and the list came back empty, so it never saw
+  `file.export_table`. A `ref` that names no domain now lists every action. In another, it ran
+  `table.undo_sql`, the one concrete action example in the instructions. The instructions now
+  give the export the same shape: run with the action `file.export_table` and arguments
+  `{id: the table's name under Tables for sql}`, with no path unless the user wrote one.
+  `file.export_table` takes that name as well as the table's id. In the installed app, "Export
+  the Supplier comparison table as a CSV file." made one call, `file.export_table` with id
+  `supplier_comparison`, and the save panel offered "Supplier comparison.csv".
+- **A cancelled save panel answers truthfully.** A call refused before its handler, here one
+  that put the id under `tableID`, is settled when the same action reaches its handler for a
+  value it carried. A host action the person cancels adds its note to the answer. In the app,
+  cancelling the panel answered "The save panel was closed, so nothing was exported."
+- **Code blocks keep their lines.** A fenced block in an answer is its own block, drawn in the
+  answer's font in its monospaced form, and a long line scrolls sideways. The catalog's
+  `chat.messages` story has one; it was looked at in light at 900 points and in dark at 740
+  points with 1.5 reading size.
+
+The header grew from 2,707 to 2,770 tokens with the export sentence.
+
+The light set after the fixes passed 11 of 11 in 31 decisions, one run: [results](../2026-11-20-export-light/results.json).

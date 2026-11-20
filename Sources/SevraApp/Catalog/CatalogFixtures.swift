@@ -263,6 +263,13 @@ import SevraVoice
       let message = try b.addMessage(
         "**Supplier comparison**\n\n| Supplier | Cost |\n| --- | ---: |\n| Oak Supply | 24.00 |\n| Cedar Tools | 27.50 |\n\nTax remains unknown. [Inspect the observations](sevra://item/\(source!.id)).",
         role: "assistant")
+      if id == "chat.messages" {
+        // A code block keeps its lines, and its longest line scrolls sideways.
+        _ = try b.addMessage("Show the quotes as CSV.", role: "user")
+        _ = try b.addMessage(
+          "Here are the quotes as CSV:\n\n```csv\nsupplier,cost,note\nOak Supply,24.00,\nCedar Tools,27.50,delivery and tax are not yet known for this supplier\n```\n\nAsk to export the table when you need a file.",
+          role: "assistant")
+      }
       if id == "chat.threads" {
         let thread = try b.startThread(parentMessage: message, title: "Delivery costs")
         _ = try b.addMessage("Check delivery before ordering.", role: "user", conversation: thread)

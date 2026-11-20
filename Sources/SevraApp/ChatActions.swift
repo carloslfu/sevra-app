@@ -18,7 +18,7 @@ extension WorkspaceState {
   private var exportCancelled: Value {
     .object([
       "status": .string("cancelled"),
-      "note": .string("The person closed the save panel. Nothing was exported."),
+      "note": .string("The save panel was closed, so nothing was exported."),
     ])
   }
   func performChatAction(
@@ -268,6 +268,14 @@ extension WorkspaceState {
       }.value
       return .object(["status": .string("saved"), "path": .string(file.path)])
     case "file.export_workbook", "file.export_table", "file.export_app", "file.export_original":
+      if name == "file.export_table", (try? book.dataset(a["id"].text)) == nil {
+        // The model may name the table as sql does.
+        var named = a.object
+        named["id"] = .string(try book.chatTableID(a["id"].text))
+        return try await performChatAction(
+          name, arguments: .object(named), book: book, readOnly: readOnly,
+          cancellation: cancellation, confirmed: confirmed)
+      }
       if a["path"].text.isEmpty {
         let suggested: String
         switch name {

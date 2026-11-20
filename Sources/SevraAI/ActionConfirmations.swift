@@ -72,6 +72,16 @@ package struct ActionConfirmations {
       {
         return true
       }
+      // A call refused before its handler, such as one that named the id under another
+      // field, is settled once the same action reaches its handler for a value it carried.
+      if entry["tool"].text == "workspace_action", entry["validationOnly"] == .bool(true),
+        saved["tool"] == entry["tool"], saved["kind"].text != "failure",
+        let action = saved["action"].string, action == entry["action"].string,
+        let target = saved["inputID"].string, !target.isEmpty,
+        entry["argumentValues"].array.contains(.string(target))
+      {
+        return true
+      }
       // Once the same operation reaches its business handler, an earlier malformed
       // envelope is no longer the current failure. Preserve the handler's refusal
       // and both receipts, without claiming that the action succeeded.
@@ -368,6 +378,12 @@ package struct ActionConfirmations {
               arguments["action"].text, arguments: arguments["arguments"], readOnly: false)) == nil
         ),
         "appName": .string(tool == "save_native_app" ? arguments["package"]["name"].text : ""),
+        "action": tool == "workspace_action" ? arguments["action"] : .null,
+        "argumentValues": .array(
+          tool == "workspace_action"
+            ? arguments["arguments"].object.keys.sorted().prefix(16).compactMap {
+              arguments["arguments"][$0].string.map(Value.string)
+            } : []),
       ]))
   }
 
@@ -384,6 +400,13 @@ package struct ActionConfirmations {
       }
       if result["status"] == .string("confirmation_required") {
         kind = "chat_approval"
+      } else if result["status"] == .string("cancelled"), result["note"].string != nil,
+        ChatOperations.operations.first(where: { $0.name == arguments["action"].text })?.host
+          == true
+      {
+        // The person closed what the host asked them, such as a save panel. The host's note
+        // says what did not happen, so the answer cannot claim it did.
+        kind = "cancelled"
       } else {
         guard
           ChatOperations.operations.first(where: { $0.name == arguments["action"].text })?.readOnly
@@ -394,7 +417,7 @@ package struct ActionConfirmations {
         kind = "workspace_completion"
       }
       id = receiptID
-      title = result["preview"].text
+      title = kind == "cancelled" ? result["note"].text : result["preview"].text
     case "save_definition", "save_template":
       guard let value = result["id"].string, let name = result["title"].string else { return }
       kind = "definition"
@@ -460,6 +483,8 @@ package struct ActionConfirmations {
           ? result["updatedRows"] : .null,
         "excludedEnvelopeInputs": Self.excludedEnvelopeInputs(result),
         "inputDigests": Self.inputDigests(arguments["arguments"]["inputs"]),
+        "action": tool == "workspace_action" ? arguments["action"] : .null,
+        "inputID": tool == "workspace_action" ? arguments["arguments"]["id"] : .null,
       ]))
   }
 
@@ -501,6 +526,7 @@ package struct ActionConfirmations {
           ? "Pinned the shortcut for “" + title + "”."
           : "Removed the shortcut for “" + title + "”."
       case "opened": return "Opened “" + title + "”."
+      case "cancelled": return title
       default: return nil
       }
     }

@@ -314,5 +314,15 @@ func checkSQLTool() async throws {
   // The person's Undo, as the chat row sends it.
   _ = try book.chatSQLUndo(createdReceipt, actor: .human("Sevra chat undo"))
   try expectEqual(try book.chatSQLState(createdReceipt), "undone")
-  print("PASS sql tool: general declarations, answers from query results, AI row and shape changes under a rule Source, one undo from the answer, saved tool, draft, forbidden change, repeated query, a script's changes and refusal, an export to an unnamed path, a new table's one undo")
+  // Listing actions for a ref that is no domain, such as a table's id, lists them all.
+  try expectEqual(
+    try ChatOperations.catalog(tableID).array.count, try ChatOperations.catalog().array.count)
+  try expectEqual(
+    try ChatOperations.catalog("file").array.allSatisfy { $0["action"].text.hasPrefix("file.") },
+    true)
+  // An export may name its table as sql does.
+  try expectEqual(try book.chatTableID("supplier_comparison"), tableID)
+  try expectEqual(try book.chatTableID(tableID), tableID)
+  try expectThrows(try book.chatTableID("no_such_table"))
+  print("PASS sql tool: general declarations, answers from query results, AI row and shape changes under a rule Source, one undo from the answer, saved tool, draft, forbidden change, repeated query, a script's changes and refusal, an export to an unnamed path, a new table's one undo, a table named for export")
 }

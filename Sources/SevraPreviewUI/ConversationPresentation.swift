@@ -56,6 +56,7 @@ public struct ConversationMessageContent: Sendable {
   public enum Block: Sendable {
     case text(AttributedString)
     case table(PreviewTableContent)
+    case code(String)
   }
   public let presentation: ConversationPresentation
   public let blocks: [Block]
@@ -68,6 +69,7 @@ public struct ConversationMessageContent: Sendable {
         guard !text.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty else { return nil }
         return .text(ConversationPresentation(text.trimmingCharacters(in: .newlines)).text)
       case .table(let table): return .table(table)
+      case .code(let code): return .code(code)
       }
     }
   }

@@ -290,7 +290,7 @@ public enum ChatOperations {
       ["id"], ["path"], host: true),
     .init(
       "file.export_table",
-      "Export a table as CSV to the user's supplied absolute path, or without a path to let them choose in a save panel.",
+      "Export a table as CSV, named by its id or its name under Tables for sql, to the user's supplied absolute path, or without a path to let them choose in a save panel.",
       ["id"], ["path"], host: true),
     .init(
       "file.export_app",
@@ -319,11 +319,13 @@ public enum ChatOperations {
       ["id"], host: true),
   ]
   public static func catalog(_ domain: String? = nil, allowed: Set<String>? = nil) throws -> Value {
-    .array(
-      operations.filter { operation in
-        (allowed?.contains(operation.name) ?? true)
-          && (domain == nil || domain!.isEmpty || operation.name.hasPrefix(domain! + "."))
-      }.map { operation in
+    let all = operations.filter { allowed?.contains($0.name) ?? true }
+    let matching = all.filter { operation in
+      domain == nil || domain!.isEmpty || operation.name.hasPrefix(domain! + ".")
+    }
+    // A ref that names no domain, such as a table's id, lists every action rather than none.
+    return .array(
+      (matching.isEmpty ? all : matching).map { operation in
         .object([
           "action": .string(operation.name), "description": .string(operation.summary),
           "required": .array(operation.required.map(Value.string)),

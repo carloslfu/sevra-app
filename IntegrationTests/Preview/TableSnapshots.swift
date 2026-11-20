@@ -73,6 +73,8 @@ import SwiftUI
             }
           case .table(let table):
             ReadOnlyTableView(content: table, label: "Comparison table", inline: true)
+          case .code(let code):
+            Text(code).font(.system(.callout, design: .monospaced))
           }
         }
       }

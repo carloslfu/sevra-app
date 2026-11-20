@@ -2,7 +2,7 @@
 type: operational
 id: 01m7qrcqqzh4qqr92a8frch1ze
 created: 2026-11-18T16:38:43.199010+00:00
-updated: 2026-11-20T17:40:00+00:00
+updated: 2026-11-20T19:30:00+00:00
 summary: Seven general chat tools (SQL on a scratch copy, sandboxed code, workbook tools) and a prompt header made at build time. Built and looked at; the update test waits on window access.
 title: General chat tools and a pre-read prompt header
 ---
@@ -408,7 +408,7 @@ Built on November 18, 2026 under the `general` profile. Evidence: [the evals](..
   - **The rule job as written.** A rule needed a saved workflow to run, and the sample workbook has none, so the model asked what the rule should run. Rules can now alert (phase 5), and the job passes in 3 decisions. `build.rule_for_workflow` keeps the workflow case.
   - **The app job.** It needs the app checker, which the CLI finds only as the main executable of an app, so it runs from a copy of the packaged app with the CLI as its main executable. It passed 2 of 3 runs on November 18. On November 19 it failed once by resending the same app after the check said to add fixtures; the check now shows that field with a row of the app's table, and the next run passed in 5 decisions. It is still the least reliable job, and it is not in the light set.
 
-**The light set, the routine model run from November 19, 2026:** 11 of 11 pass, in 26 decisions and 3 minutes 51 seconds. It includes the first job in which the model wrote and ran a script, in 2 decisions. After phase 5, with a 2,707-token header, it passed 11 of 11 again in 26 decisions and 2 minutes 41 seconds, and `build.rule`, `build.saved_tool` and `build.app` passed by name in 3, 2 and 5 decisions: [the runs](../../../integration/evidence/2026-11-19-phase5-light/README.md).
+**The light set, the routine model run from November 19, 2026:** 11 of 11 pass, in 26 decisions and 3 minutes 51 seconds. It includes the first job in which the model wrote and ran a script, in 2 decisions. After phase 5, with a 2,707-token header, it passed 11 of 11 again in 26 decisions and 2 minutes 41 seconds, and `build.rule`, `build.saved_tool` and `build.app` passed by name in 3, 2 and 5 decisions: [the runs](../../../integration/evidence/2026-11-19-phase5-light/README.md). On November 20, with the export instruction and a 2,770-token header, it passed 11 of 11 in 31 decisions: four jobs took one or two more, from a refused first `finish`, extra reads and a script that fixed its own mistake, and none read the action list or exported ([the run](../../../integration/evidence/2026-11-20-export-light/results.json)).
 
 **Measured once on the final build:**
 
@@ -786,10 +786,7 @@ Each specification is updated in the phase that makes its new rule true: managed
 
 ## Open items for the owner
 
-- **The interface look, November 20, 2026.** The Tools screen and the export save panel work. The "Change saved" row never appeared and its Undo failed; both are fixed at `46f6b58` ([evidence](../../../integration/evidence/2026-11-20-interface-look/README.md)). Three faults are open:
-  - asked to export a table, the model wrote the CSV into its answer and never used `file.export_table`;
-  - a fenced block in an answer loses its line breaks, because chat text is parsed as inline markdown;
-  - after the save panel is cancelled, the answer shows an earlier refused call instead of saying nothing was exported.
+- **The interface look, November 20, 2026.** The Tools screen and the export save panel work. The "Change saved" row never appeared and its Undo failed; both are fixed at `46f6b58`. The look found three export faults, fixed the same day: the model wrote the CSV into its answer instead of using `file.export_table`, a fenced block in an answer lost its line breaks, and after a cancelled save panel the answer showed an earlier refused call. In the installed app an export request now opens the save panel in one call, and a cancel answers that nothing was exported ([evidence](../../../integration/evidence/2026-11-20-interface-look/README.md)).
 - **The update test needs window access to the QA app.** The owner declined it on November 20, 2026. Builds 4 and 5 and a signed feed are ready, so the test is Check for Updates, the relaunch, About and one chat that resumes header `4b5222b7`.
 - **The header is built** at the owner's word of November 19, 2026, with P6 to P9 as written. It adds 88 MB to the DMG. A release names only the chips where its header tests passed, so far an Apple M5 Pro.
 - **The app job** passes, but it is the least reliable job and is not in the light set.

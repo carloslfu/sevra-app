@@ -3,7 +3,7 @@ type: operational
 meta-type: operational
 id: 01m659x4nd2q89tkpzzsssd7yr
 created: 2026-10-30T02:23:30.477380+00:00
-updated: 2026-11-20T17:40:00+00:00
+updated: 2026-11-20T19:30:00+00:00
 summary: Native UI Catalog implemented and locally verified, with durable agent maintenance instructions and preserved product/model qualification limits.
 title: Minimum-feature continuation handoff
 ---
@@ -20,7 +20,7 @@ Where it stands:
 - **The model is offered seven tools, and only these in chat:** `search`, `read`, `sql`, `run`, `save`, `ask`, `finish`. Each call is routed to the operation that does its work, so the agent's checks, receipts and confirmations are keyed on operation names. Reviews and Excel conversion keep tool lists of their own. The plan's section "The build so far" says what each tool is, what was measured and what was left out.
 - **Results with the real model:** the light set passes 11 of 11 in under four minutes, last on November 19 with the seven tools as the only chat tools ([the run](../../../integration/evidence/2026-11-19-seven-tools-only-light/results.json)). Over the whole job list, 22 of 24 pass from the command line and the app job passes inside an app bundle, where today's tools pass 12 of 23. After phase 5 the light set passed 11 of 11 again, and `build.rule`, `build.saved_tool`, `build.form` and `build.app` passed by name ([the runs](../../../integration/evidence/2026-11-19-phase5-light/README.md)). The app job is still the least reliable.
 - **Phase 5 is built:** saved tools are definitions of kind `tool` (schema 32) with a per-Mac grant and a Tools screen, apps keep their declared actions, the sample workbook has a saved movement action, rules can alert, and the rule and receiving starters are guides.
-- **The interface look is done; the update test waits on the owner.** On November 20 the look fixed the chat Undo row (it never appeared, and its Undo failed) and found three export faults the plan's open items list. The owner declined window access to the QA app, so H4's in-app update from build 4 to build 5 is not run ([evidence](../../../integration/evidence/2026-11-20-interface-look/README.md)).
+- **The interface look is done; the update test waits on the owner.** On November 20 the look fixed the chat Undo row (it never appeared, and its Undo failed) and three export faults: the model now uses `file.export_table`, code blocks in answers keep their lines, and a cancelled save panel answers that nothing was exported. The owner declined window access to the QA app, so H4's in-app update from build 4 to build 5 is not run ([evidence](../../../integration/evidence/2026-11-20-interface-look/README.md)).
 - **There is no tool profile.** `SEVRA_TOOL_PROFILE` and the app's `SevraToolProfile` setting are gone, with the old chat instructions, `compare_rows`, `propose_table` and `propose_table_edit`. A test Mac that still has `SevraToolProfile` saved ignores it. Scripted checks write an operation as the chat call that asks for it with `chatCall` in [AnswerGroundingChecks.swift](../../../IntegrationTests/Agent/AnswerGroundingChecks.swift).
 - **Pushed through `4478745`** at the owner's word on November 20. Later commits are local on `main`.
 

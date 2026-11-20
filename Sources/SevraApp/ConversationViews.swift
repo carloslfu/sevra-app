@@ -102,6 +102,8 @@ struct ConversationMessageRow: View, Equatable {
               ReadOnlyTableView(
                 content: table, label: "Comparison table", inline: true,
                 open: { state.openConversationLink($0, returningTo: .message(message.id)) })
+            case .code(let code):
+              ConversationCodeBlock(code: code)
             }
           }
         }
@@ -217,6 +219,22 @@ struct ConversationMessageRow: View, Equatable {
         }.readingFont(.caption).disabled(!controlsEnabled)
       }
     }
+  }
+}
+
+/// A code block keeps its lines; a long line scrolls sideways instead of wrapping.
+struct ConversationCodeBlock: View {
+  let code: String
+  var body: some View {
+    ScrollView(.horizontal) {
+      // The answer's own font, monospaced, so code matches the text around it.
+      Text(code).monospaced().textSelection(.enabled)
+        .fixedSize().padding(.horizontal, 10).padding(.vertical, 8)
+    }
+    .frame(maxWidth: .infinity, alignment: .leading)
+    .background(.quaternary.opacity(0.5), in: RoundedRectangle(cornerRadius: 6))
+    .accessibilityElement(children: .combine)
+    .accessibilityLabel("Code: " + code)
   }
 }
 
