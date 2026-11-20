@@ -69,3 +69,8 @@ fi
 echo "Installed $APP"
 echo "CLI: $LINK"
 echo "Workbooks and model files were not changed."
+HEADER=$("$APP/Contents/CLI/sevra" header status | python3 -c 'import json, sys; print(json.load(sys.stdin)["result"]["state"])')
+if [ "$HEADER" != present ]; then
+  echo "This build has no prepared prompt header, so chat is unavailable."
+  echo "Download the model in Sevra's Model Settings or with sevra model-setup, then run bash scripts/install.sh again."
+fi

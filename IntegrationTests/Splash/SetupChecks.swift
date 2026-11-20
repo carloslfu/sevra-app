@@ -280,7 +280,10 @@ func checkNativeSetup() {
     try Data(repeating: 65, count: good.count).write(to: weights)
     var st = stat()
     try expect(lstat(weights.path, &st) == 0)
-    let recordURL = f.cache.appendingPathComponent(f.pack.name + "/model.json")
+    // The times that let a launch skip hashing live beside the assembly, not in model.json.
+    let assembled = f.cache.appendingPathComponent(f.pack.name).resolvingSymlinksInPath()
+    let recordURL = assembled.deletingLastPathComponent().appendingPathComponent(
+      assembled.lastPathComponent + ".json")
     var record = try JSONSerialization.jsonObject(with: Data(contentsOf: recordURL)) as! [String: Any]
     var files = record["files"] as! [String: [String: Any]]
     for (key, var entry) in files where entry["path"] as? String == weights.path {
@@ -316,6 +319,43 @@ func checkNativeSetup() {
       at: repaired.appendingPathComponent("model.json"),
       to: selection.appendingPathComponent("model.json"))
     try rejects { _ = try install() }
+    try expect(ModelHTTPFixture.requests.isEmpty)
+  }
+  test("a pinned model's record and key are the same from any folder and after new file times") {
+    let f = try ModelFixture()
+    defer { f.remove() }
+    reset("normal")
+    let first = try SplashModelSetup.install(
+      pack: f.pack, modelsRoot: f.cache, reusingTarget: f.target, reusingDraft: f.draft,
+      configuration: configuration(), capacity: { _ in 1_000_000_000 })
+    let record = try Data(contentsOf: first.appendingPathComponent("model.json"))
+    let text = String(decoding: record, as: UTF8.self)
+    try expect(!text.contains(f.root.path) && !text.contains("mtime_ns") && !text.contains("path"))
+    func key(_ assembly: URL) -> Substring { assembly.lastPathComponent.prefix(64) }
+    // Another folder on another Mac: the same record and key, its own links.
+    let moved = f.root.appendingPathComponent("elsewhere")
+    try FileManager.default.createDirectory(at: moved, withIntermediateDirectories: true)
+    for folder in [f.target, f.draft] {
+      try FileManager.default.copyItem(
+        at: folder, to: moved.appendingPathComponent(folder.lastPathComponent))
+    }
+    let second = try SplashModelSetup.install(
+      pack: f.pack, modelsRoot: f.cache, reusingTarget: moved.appendingPathComponent("target"),
+      reusingDraft: moved.appendingPathComponent("draft"), configuration: configuration(),
+      capacity: { _ in 1_000_000_000 })
+    try expect(second != first && key(second) == key(first))
+    try expect(try Data(contentsOf: second.appendingPathComponent("model.json")) == record)
+    try expect(
+      try FileManager.default.destinationOfSymbolicLink(
+        atPath: second.appendingPathComponent("target/weights.safetensors").path)
+        == moved.appendingPathComponent("target/weights.safetensors").path)
+    // New times on a weight file: hashed again, and nothing the engine reads changes.
+    let weights = moved.appendingPathComponent("target/weights.safetensors")
+    try FileManager.default.setAttributes(
+      [.modificationDate: Date(timeIntervalSince1970: 1_000_000_000)], ofItemAtPath: weights.path)
+    let third = try SplashModelPreparation.installed(pack: f.pack, modelsRoot: f.cache)
+    try expect(third == second)
+    try expect(try Data(contentsOf: third.appendingPathComponent("model.json")) == record)
     try expect(ModelHTTPFixture.requests.isEmpty)
   }
   test("verifying an installed reused model does not download duplicate weights") {

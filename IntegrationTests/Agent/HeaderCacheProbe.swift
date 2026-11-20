@@ -143,25 +143,23 @@ private func stopCleanly(_ helper: SplashNativeProcess) throws -> Double {
   return seconds
 }
 
-/// Opt-in, actual model. Phase H1, steps 1 and 2, of the general chat tools plan: does a
-/// restore point the engine wrote for the ordinary chat header survive being copied out of
-/// its cache directory and back into a new one?
-///
-/// Starts the engine helper directly with the app's launch arguments, the persistent cache
-/// on, a new cache directory and an explicit disk quota. Prints one JSON document. It holds
-/// no absolute path, so it can be kept as evidence.
-func runHeaderCacheProbe(modelsRoot: String, engine: String, work: String) async throws {
-  let files = FileManager.default
-  let root = URL(fileURLWithPath: work)
-  try require(!files.fileExists(atPath: root.path), "fixture", "Use a new work directory")
-  let ownerOnly: [FileAttributeKey: Any] = [.posixPermissions: 0o700]
-  try files.createDirectory(at: root, withIntermediateDirectories: true, attributes: ownerOnly)
-  defer { try? files.removeItem(at: root) }
-  let cacheRoot = root.appendingPathComponent("cache")
-  let aside = root.appendingPathComponent("aside")
-  let dataFiles = ["kv.records", "kv.slots", "state.records", "state.slots"]
-  let quotaBytes: UInt64 = 8 << 30
+/// What both header probes start from: the pinned engine, the installed model and the header
+/// the app's own prompt code puts first in an ordinary chat turn.
+private struct HeaderProbeSetup {
+  let engineURL: URL
+  let assembly: URL
+  let pin: Value
+  let frontend: SplashTextFrontend
+  let prepared: NativePreparedRequest
+  let first: (messages: [InferenceMessage], scope: InferenceToolScope, citations: [String])
+  let header: [UInt32]
+  /// Splash 1.6.1 keeps a restore point on the last complete 32-token page (observeResume).
+  var lastCompletePage: Int { (header.count - 1) / 32 * 32 }
+}
 
+private func prepareHeaderProbe(modelsRoot: String, engine: String, root: URL) async throws
+  -> HeaderProbeSetup
+{
   // The pinned engine, as the app verifies it before a start.
   let pin = try Value.parse(String(contentsOfFile: "integration/splash.json", encoding: .utf8))
   let engineURL = URL(fileURLWithPath: engine)
@@ -188,13 +186,40 @@ func runHeaderCacheProbe(modelsRoot: String, engine: String, work: String) async
   let prepared = try NativePreparedRequest(
     messages: first.messages, frontend: frontend, configuredReasoning: .bounded512,
     toolScope: first.scope, citationIDs: first.citations)
-  let prompt = prepared.prompt
-  let header = Array(prompt.tokens.prefix(prepared.stablePrefixCount))
+  let header = Array(prepared.prompt.tokens.prefix(prepared.stablePrefixCount))
   try require(
-    header.count >= 2048 && prompt.tokens.count > header.count, "probe",
+    header.count >= 2048 && prepared.prompt.tokens.count > header.count, "probe",
     "The first chat decision has no header the app would prime.")
-  // Splash 1.6.1 keeps a restore point on the last complete 32-token page (observeResume).
-  let lastCompletePage = (header.count - 1) / 32 * 32
+  return .init(
+    engineURL: engineURL, assembly: assembly, pin: pin, frontend: frontend, prepared: prepared,
+    first: first, header: header)
+}
+
+/// Opt-in, actual model. Phase H1, steps 1 and 2, of the general chat tools plan: does a
+/// restore point the engine wrote for the ordinary chat header survive being copied out of
+/// its cache directory and back into a new one?
+///
+/// Starts the engine helper directly with the app's launch arguments, the persistent cache
+/// on, a new cache directory and an explicit disk quota. Prints one JSON document. It holds
+/// no absolute path, so it can be kept as evidence.
+func runHeaderCacheProbe(modelsRoot: String, engine: String, work: String) async throws {
+  let files = FileManager.default
+  let root = URL(fileURLWithPath: work)
+  try require(!files.fileExists(atPath: root.path), "fixture", "Use a new work directory")
+  let ownerOnly: [FileAttributeKey: Any] = [.posixPermissions: 0o700]
+  try files.createDirectory(at: root, withIntermediateDirectories: true, attributes: ownerOnly)
+  defer { try? files.removeItem(at: root) }
+  let cacheRoot = root.appendingPathComponent("cache")
+  let aside = root.appendingPathComponent("aside")
+  let dataFiles = ["kv.records", "kv.slots", "state.records", "state.slots"]
+  let quotaBytes: UInt64 = 8 << 30
+
+  let setup = try await prepareHeaderProbe(modelsRoot: modelsRoot, engine: engine, root: root)
+  let engineURL = setup.engineURL, assembly = setup.assembly, pin = setup.pin
+  let prepared = setup.prepared, first = setup.first
+  let prompt = prepared.prompt
+  let header = setup.header
+  let lastCompletePage = setup.lastCompletePage
 
   // The product's launch values (NativeProductResources and NativeWorkbookModel), with the
   // quota, the persistent cache and its directory as the only differences.
@@ -389,6 +414,214 @@ func runHeaderCacheProbe(modelsRoot: String, engine: String, work: String) async
       "lastCompletePage": .number(Double(lastCompletePage)),
       "matchedPromptTokensFirstRequest": .number(Double(matched)),
       "headerResumed": .bool(matched >= lastCompletePage),
+    ])
+  } catch {
+    document["error"] = .string(scrub("\(error)"))
+    print(try Value.object(document).json())
+    throw error
+  }
+  print(try Value.object(document).json())
+}
+
+/// Opt-in, actual model. Phase H1, steps 4 to 6, of the general chat tools plan: a header made
+/// under a small quota and restored under the app's, a header made at the 64K context and
+/// restored at 32K, and a conversation that fills the context after a restore. Prints one JSON
+/// document with no absolute path.
+func runHeaderCacheLimitsProbe(modelsRoot: String, engine: String, work: String) async throws {
+  let files = FileManager.default
+  let root = URL(fileURLWithPath: work)
+  try require(!files.fileExists(atPath: root.path), "fixture", "Use a new work directory")
+  let ownerOnly: [FileAttributeKey: Any] = [.posixPermissions: 0o700]
+  try files.createDirectory(at: root, withIntermediateDirectories: true, attributes: ownerOnly)
+  defer { try? files.removeItem(at: root) }
+  let dataFiles = ["kv.records", "kv.slots", "state.records", "state.slots"]
+  let smallQuota: UInt64 = 1 << 30
+  let appQuota: UInt64 = 8 << 30
+  let setup = try await prepareHeaderProbe(modelsRoot: modelsRoot, engine: engine, root: root)
+  let header = setup.header, prompt = setup.prepared.prompt
+  let memoryBytes: UInt64 = 12 * 1024 * 1024 * 1024
+
+  func arguments(context: Int, quota: UInt64, cache: URL) -> [String] {
+    [
+      "serve-native", setup.assembly.path, String(context), String(memoryBytes), String(quota),
+      "--persistent-cache", "on", "--cache-dir", cache.path,
+      "--idle-sleep", "allow", "--verify-rows", "all",
+      "--kv-format", "int8", "--state-format", "fp32", "--ane", "on", "--activations", "bf16",
+    ]
+  }
+  func scrub(_ text: String) -> String {
+    var text = text
+    for (path, name) in [
+      (root.path, "<work>"), (setup.assembly.path, "<model>"), (NSHomeDirectory(), "~"),
+    ] { text = text.replacingOccurrences(of: path, with: name) }
+    let local = ["/Users/", "/private/", "/var/", "/tmp/", "/Volumes/", NSUserName()]
+    return local.contains { text.contains($0) } ? "<withheld: names a local path>" : text
+  }
+  // Tokens the engine reads as any other: a fixed pseudo-random run inside the vocabulary.
+  func filler(_ count: Int, seed: UInt64) -> [UInt32] {
+    var state = seed
+    return (0..<count).map { _ in
+      state = state &* 6364136223846793005 &+ 1442695040888963407
+      return UInt32(1000 + (state >> 33) % 100_000)
+    }
+  }
+
+  let support = files.homeDirectoryForCurrentUser.appendingPathComponent(
+    "Library/Application Support/Sevra")
+  try files.createDirectory(at: support, withIntermediateDirectories: true)
+  let lock = Darwin.open(
+    support.appendingPathComponent("inference.lock").path,
+    O_CREAT | O_RDWR | O_NOFOLLOW | O_CLOEXEC, 0o600)
+  try require(lock >= 0, "model_lock", "Cannot open local inference lock.")
+  defer { Darwin.close(lock) }
+  try require(
+    flock(lock, LOCK_EX | LOCK_NB) == 0, "model_busy",
+    "Another Sevra process has the model loaded.")
+
+  var helper: SplashNativeProcess?
+  defer { helper?.close() }
+  var statusID = UInt64.max
+  func disk(_ helper: SplashNativeProcess) throws -> Value {
+    let status = try Value.parse(String(decoding: helper.status(id: statusID), as: UTF8.self))
+    statusID -= 1
+    var disk = status["disk"].object
+    disk["volume_available_bytes"] = nil
+    return .object(disk)
+  }
+  var requestID: UInt64 = 0
+  func send(_ helper: SplashNativeProcess, _ tokens: [UInt32]) throws -> Value {
+    requestID += 1
+    var request = SplashWire.Request(
+      id: requestID, prompt: tokens,
+      absoluteDeadline: UInt64((Date().timeIntervalSince1970 + 300) * 1e6),
+      remainingDeadline: 300_000_000)
+    request.maxOutput = 1
+    var matched = 0
+    let result = try helper.generate(
+      request, event: { if case .start(_, _, let reused) = $0 { matched = Int(reused) } })
+    return .object([
+      "promptTokens": .number(Double(tokens.count)),
+      "matchedPromptTokens": .number(Double(matched)),
+      "prefillSeconds": .number(Double(result.done.prefillMicros) / 1e6),
+    ])
+  }
+  func start(_ arguments: [String]) throws -> (SplashNativeProcess, [String: Value]) {
+    var run: [String: Value] = ["admission": try admitEngineStart()]
+    let began = ProcessInfo.processInfo.systemUptime
+    let started = try SplashNativeProcess(
+      executable: setup.engineURL, arguments: arguments, timeout: 360)
+    helper = started
+    run["startSeconds"] = .number(ProcessInfo.processInfo.systemUptime - began)
+    run["servedContextTokens"] = .number(Double(started.ready?.context ?? 0))
+    run["diskAtReady"] = try disk(started)
+    return (started, run)
+  }
+  func stop(_ started: SplashNativeProcess, _ run: inout [String: Value]) throws {
+    run["cacheLog"] = .array(
+      started.diagnosticTail.split(whereSeparator: \.isNewline)
+        .filter { $0.lowercased().contains("cache") }.map { .string(scrub(String($0))) })
+    run["stopSeconds"] = .number(try stopCleanly(started))
+    helper = nil
+  }
+  func namespaces(_ cache: URL) throws -> [String] {
+    try files.contentsOfDirectory(atPath: cache.path).filter { name in
+      name.count == 32 && name.allSatisfy { $0.isHexDigit }
+    }
+  }
+  func restore(_ aside: URL, into cache: URL, name: String) throws {
+    let folder = cache.appendingPathComponent(name)
+    try files.createDirectory(at: folder, withIntermediateDirectories: true, attributes: ownerOnly)
+    for file in dataFiles {
+      _ = try copyBytes(from: aside.appendingPathComponent(file), to: folder.appendingPathComponent(file))
+    }
+  }
+  func resumed(_ request: Value) -> Bool {
+    (request["matchedPromptTokens"].int ?? 0) >= setup.lastCompletePage
+  }
+
+  var document: [String: Value] = [
+    "probe": .string("header-cache-limits-probe"),
+    "engine": .object([
+      "release": setup.pin["release"], "commit": setup.pin["commit"],
+      "arguments": .array(
+        arguments(context: 65536, quota: appQuota, cache: root).map { .string(scrub($0)) }),
+    ]),
+    "header": .object([
+      "tokens": .number(Double(header.count)),
+      "lastCompletePage": .number(Double(setup.lastCompletePage)),
+      "firstPromptTokens": .number(Double(prompt.tokens.count)),
+    ]),
+    "smallQuotaBytes": .number(Double(smallQuota)), "appQuotaBytes": .number(Double(appQuota)),
+  ]
+  do {
+    // Step 4, first half: the header made at 64K under a small quota.
+    fputs("header-cache-limits-probe: making the header under a small quota\n", stderr)
+    let made = root.appendingPathComponent("made")
+    try files.createDirectory(at: made, withIntermediateDirectories: false, attributes: ownerOnly)
+    var (helperMade, makeRun) = try start(arguments(context: 65536, quota: smallQuota, cache: made))
+    makeRun["request"] = try send(helperMade, header)
+    try stop(helperMade, &makeRun)
+    document["make"] = .object(makeRun)
+    let madeNames = try namespaces(made)
+    try require(madeNames.count == 1, "probe", "The engine left no single cache folder.")
+    let name = madeNames[0]
+    let aside = root.appendingPathComponent("aside")
+    try files.createDirectory(at: aside, withIntermediateDirectories: false, attributes: ownerOnly)
+    for file in dataFiles {
+      _ = try copyBytes(
+        from: made.appendingPathComponent(name).appendingPathComponent(file),
+        to: aside.appendingPathComponent(file))
+    }
+    document["madeFiles"] = .array(try listing(aside))
+
+    // Step 4, second half, and step 6: restored under the app's quota at 64K, then a
+    // conversation that fills the context, then a new conversation.
+    fputs("header-cache-limits-probe: restoring under the app quota and filling the context\n", stderr)
+    let full = root.appendingPathComponent("full")
+    try restore(aside, into: full, name: name)
+    var (helperFull, fullRun) = try start(arguments(context: 65536, quota: appQuota, cache: full))
+    let firstRequest = try send(helperFull, prompt.tokens)
+    fullRun["firstRequest"] = firstRequest
+    var conversation = prompt.tokens
+    var turns: [Value] = []
+    for turn in 0..<8 {
+      conversation += filler(7000, seed: UInt64(turn + 1))
+      turns.append(try send(helperFull, conversation))
+    }
+    fullRun["turns"] = .array(turns)
+    fullRun["diskAfterConversation"] = try disk(helperFull)
+    let newConversation = try send(helperFull, header + filler(3000, seed: 99))
+    fullRun["newConversation"] = newConversation
+    try stop(helperFull, &fullRun)
+    fullRun["filesAfterStop"] = .array(try listing(full.appendingPathComponent(name)))
+    fullRun["namesAfterStop"] = .array(try namespaces(full).map(Value.string))
+    document["full"] = .object(fullRun)
+
+    // Step 5: the 64K header restored at the 32K context.
+    fputs("header-cache-limits-probe: restoring the 64K header at 32K\n", stderr)
+    let small = root.appendingPathComponent("small")
+    try restore(aside, into: small, name: name)
+    var (helperSmall, smallRun) = try start(arguments(context: 32768, quota: appQuota, cache: small))
+    let smallRequest = try send(helperSmall, prompt.tokens)
+    smallRun["request"] = smallRequest
+    try stop(helperSmall, &smallRun)
+    smallRun["namesAfterStop"] = .array(try namespaces(small).map(Value.string))
+    document["context32K"] = .object(smallRun)
+
+    let fullDisk = fullRun["diskAfterConversation"] ?? .null
+    document["answer"] = .object([
+      "cacheName64K": .string(name),
+      "smallQuotaHeaderTakenBack": fullRun["diskAtReady"]?["taken_back"] ?? .null,
+      "smallQuotaHeaderResumed": .bool(resumed(firstRequest)),
+      "conversationTokens": .number(Double(conversation.count)),
+      "conversationWrittenBytes": fullDisk["written_bytes"],
+      "conversationUsedBytes": fullDisk["used_bytes"],
+      "conversationWriteBehind": fullDisk["write_behind"],
+      "newConversationResumedHeader": .bool(resumed(newConversation)),
+      "context32KServed": smallRun["servedContextTokens"] ?? .null,
+      "context32KCacheNames": smallRun["namesAfterStop"] ?? .null,
+      "context32KTakenBack": smallRun["diskAtReady"]?["taken_back"] ?? .null,
+      "context32KResumed": .bool(resumed(smallRequest)),
     ])
   } catch {
     document["error"] = .string(scrub("\(error)"))

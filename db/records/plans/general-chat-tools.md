@@ -49,7 +49,7 @@ Proposed by the agent, and confirmed by the owner as written in the same note, e
 - **P4. Replaced.** The owner first confirmed a version that made the header during setup on each Mac. He then replaced it with decision 5 as it now reads: [[sources/notes/2026/11/prebuilt-header-direction]].
 - **P5. Code that arrives from elsewhere needs enabling.** A tool that came inside a copied workbook does not run on this Mac until the person enables it there, as apps already work. The permission step for apps is unchanged.
 
-Proposed by the agent after the header direction changed, and not yet confirmed by the owner:
+Proposed by the agent after the header direction changed. The owner's "Build it all. Complete the whole plan, end to end." of November 19, 2026 is read as confirming them as written: [[sources/notes/2026/11/general-tools-whole-plan]].
 
 - **P6. The app has no code that computes a header, and a source build pays for that with extra steps.** Not in setup, not in a repair action and not after an update. So after the model download, and again after any change to the prompt, a tool schema, the engine or the model, a developer runs the install command or the header command. Until then the app says so and chat is unavailable. Phase H3 depends on this.
 - **P7. A release claims only the Macs it was tested on.** The shipped header is used on every Mac the app runs on. A release's published requirements list only the Apple chips where the header tests passed. Phase H4 depends on this.
@@ -659,7 +659,11 @@ Exit: every item is recorded as evidence, and the measured size goes to the owne
 - **What it saves.** Reading today's header took 2.59 seconds. Copying the files took 0.12 seconds. The engine started in 4.4 seconds with the cache on, the same as with it off.
 - **What it does not cover.** The 4,969 tokens after the header in a first prompt were read again, in 2.75 seconds.
 - **Not measured:** what the files add to a compressed disk image, and whether the state file stays near 66.7 MB for a shorter header. If it does, a header cannot ship in much less than that.
-- Steps 3 to 6 are not done. They wait with the rest of the header work.
+- **Steps 3 to 6 done on November 19, 2026,** on the general tools' header of 2,572 tokens. Evidence: [the limits probe](../../../integration/evidence/2026-11-19-header-cache-limits/results.json), run with `sevra-agent-checks --header-cache-limits-probe`.
+  - **Cost (step 3).** Copying the files took 0.09 s, and an engine start took 3.9 to 4.4 s with the cache on, as with it off.
+  - **Quota (step 4).** A header made under a 1 GiB quota is taken back under 8 GiB and resumed to its last complete page.
+  - **Memory tiers (step 5).** The cache name is the same at 32K and 64K, and a 64K header is taken back and resumed at 32K. One header serves both tiers, so the name carries no context setting.
+  - **A full conversation (step 6).** Eight turns to 61,264 tokens wrote 867.7 MB while they ran and left 1.76 GB of files at the stop. A new conversation afterwards still resumed the header. The app's quota is 8 GiB.
 
 
 ### Phase H2. One cache name on every Mac
@@ -673,6 +677,8 @@ Depends on H1.
 This changes the model record, so an installed model is prepared again at the next engine start. No file is downloaded again.
 
 Exit: preparing the same model pack from two different folders gives a byte-identical `model.json` and the same assembly key; the engine reports the same model layout digest for both; a header made under one folder is taken back under the other; changing a weight file's times changes neither.
+
+**Done on November 19, 2026.** [ModelPreparation.swift](../../../Sources/SevraSplash/ModelPreparation.swift) writes `model.json` with each file's destination, size and digest and nothing of this Mac. The paths and times sit in `<assembly>.json` beside the assembly folder, which the engine never reads, and the folder name adds a digest of the paths to the key, so the same record linked to other folders is another folder with the same key. A model prepared before this is found through its old record and prepared again at the next start, with nothing downloaded. The setup check `a pinned model's record and key are the same from any folder and after new file times` covers the record, the key and new times; the header test `anotherFolder` prepared the real model from hard links in other folders and resumed the same header.
 
 ### Phase H3. The header command, packaging, and an app that only restores
 
@@ -691,6 +697,18 @@ Depends on H1, H2, phase 1 for its baseline, and the owner's answers to P6, P8 a
 
 Exit: those header tests pass on a packaged development build; a build with no header refuses chat with the message and computes nothing; a release package at stage `early-access` or `stable` fails without a header.
 
+**Built on November 19, 2026.**
+
+- **The command.** `sevra header make DIRECTORY [MODEL_DIRECTORY]` and `sevra header status [DIRECTORY]` ([PromptHeader.swift](../../../Sources/SevraNativeAI/PromptHeader.swift)). Make starts the engine with the app's launch values and the persistent cache on, sends the header, waits for the engine's own exit, restores the files into a new directory, starts again and requires the point taken back and the header resumed before it writes the four files and `manifest.json`. It refuses while another engine runs or with under 16 GB of reclaimable memory, and holds the app's inference lock. The real header took about 15 seconds.
+- **Inputs without the model.** The prompt layout is worked out apart from rendering, so the header's inputs, its instruction text, shared tool declarations and thinking switch, are known without the tokenizer. The no-model check `checkPromptHeader` requires real first decisions in the app, a read-only request and the command line to have exactly these inputs.
+- **Where it lives.** Every executable inside an app uses the outermost app's `Contents/Resources/PromptHeader`. Anything else uses `SEVRA_PROMPT_HEADER`. The engine's cache directory is `~/Library/Caches/Sevra/PromptCache`, emptied at every start and stop.
+- **Packaging.** [prompt_header.py](../../../scripts/prompt_header.py) finds or makes the header and copies it in before the app is signed: in the development package after the runtime manifests, in a release after the command line helper app is signed. Without the model a development package has none and says so; early access and stable fail. `install.sh` says when a build has no header and what to run.
+- **The app only restores.** Before every engine start it checks free space (about 13 GB), restores the files, starts with an 8 GiB quota, and requires the points taken back with none left behind. A short start is repeated once and then reported as a damaged installation; an engine that fell back to temporary files is reported as a lack of free disk space (P9). Every request that starts with the header must resume it; a miss is cancelled before it generates and sent once more after a restart. The header is never primed: it is marked as resumable at each start. Specialized phases read their own prompt starts as before (P8).
+- **Errors.** A missing or mismatched header says the copy has no prepared prompt and to install Sevra again, or in a source build to run the installer once the model is downloaded (P6). Nothing is computed.
+- **Checks.** `check-resources` reports the header as present, absent or mismatched. `prompt_header.py self-test` covers packaging without the model and the release refusal. The real-model scripts make the header first and pass it on.
+- **Header tests, one run on the packaged development build: all eight pass.** Evidence: [the tests](../../../integration/evidence/2026-11-19-header-tests/results.json). The header's share of a cold first decision is 1.57 s restored against 2.79 s computed, and the cold turn 12.4 s against 13.8 s. The engine is not repeatable token for token across processes, two computed runs included, so same answers means the same decisions and factual answer.
+- **Left out: priming the per-workbook block in the background when a conversation opens.** The first message reads it, as before. A background prime would hold the engine's one lane while the person types, and no measurement shows a need.
+
 ### Phase H4. A release carries a tested header
 
 Depends on H3 and the owner's answer to P7. The packaging it changes exists and is rehearsed. A public release still waits on Developer ID signing and notarization, which [[records/plans/macos-installer-and-updates]] owns.
@@ -706,6 +724,8 @@ Depends on H3 and the owner's answer to P7. The packaging it changes exists and 
 5. Testing on another Apple chip needs a Mac the project does not have. Until one is tested, the published requirements name only the chip that was (P7).
 
 Exit: on the test Mac, the test that starts from the DMG alone passes; every header test passes in the packaged release app; the update test passes; the installer plan carries the four changes.
+
+**November 19, 2026.** QA build 0.9.0-qa.4 carries the header in a 150.7 MB DMG, against 62.7 MB before, and its `release.json` records the manifest and the chip, Apple M5 Pro. `check_release_package.py --full-runtime --models` installed it from the DMG into an empty folder with the build tree denied: the app, its CLI and a CLI link report the header present, and the first chat resumed it to 2,560 tokens with nothing primed. The installer plan carries the four changes. The release header matches the development one by design, since a header is matched by the engine's release and commit and a release re-signs the engine's file.
 
 ## What this replaces
 

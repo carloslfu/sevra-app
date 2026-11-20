@@ -81,6 +81,17 @@ In Settings, choose **Download model**, or **Verify model files** when files are
 already present. To reuse compatible Qwen3.6 35B A3B 4-bit weights with DFlash 2,
 expand **Model files and storage > Use existing model files…**.
 
+Once the model is downloaded, quit Sevra and run the installer once more:
+
+```sh
+bash scripts/install.sh
+```
+
+This reads the start that every chat shares once, with the model, and seals it in
+the app, so chat does not read it again each time the model starts. Chat stays
+unavailable until then, and the app says so. Run the installer again after you
+update the source.
+
 Models stay outside your workbooks. Import, search, tables, calculations and
 saved results also work without setting up AI.
 

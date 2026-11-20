@@ -30,6 +30,19 @@ package actor NativeWorkbookModel: WorkbookInference {
     package let observeMask: (@Sendable ([UInt32], [UInt32], UInt32, [UInt32]) -> Void)?
     /// Qualification intervention only. Product callers retain shared caching.
     package let diagnosticRequestCacheIsolation: Bool
+    /// The product restores the prepared header from `location` before every engine start
+    /// and never computes it. `compute` is the check harness's comparison setting only: the
+    /// engine reads the header again in each process, as before the prepared header.
+    package enum Header: Sendable { case restore(URL?), compute }
+    package let header: Header
+    /// The engine's disk cache while it runs. Emptied at every start and stop.
+    package let cacheDirectory: URL
+    /// Check-harness seam: the first header check of a session reports a missed resume.
+    package let diagnosticMissedResume: Bool
+    package static var defaultCacheDirectory: URL {
+      FileManager.default.homeDirectoryForCurrentUser.appendingPathComponent(
+        "Library/Caches/Sevra/PromptCache")
+    }
     package init(
       engine: URL, engineFiles: [String: String], grammarLibrary: URL,
       grammarSHA256: String, modelsRoot: URL, memoryBytes: UInt64,
@@ -38,8 +51,14 @@ package actor NativeWorkbookModel: WorkbookInference {
       observeRequest: (@Sendable (Value) -> Void)? = nil,
       observeMask: (@Sendable ([UInt32], [UInt32], UInt32, [UInt32]) -> Void)? = nil,
       diagnosticRequestCacheIsolation: Bool = false, activations: Activations = .bf16,
-      observeAdmission: (@Sendable (Value) -> Void)? = nil
+      observeAdmission: (@Sendable (Value) -> Void)? = nil,
+      header: Header = .restore(PromptHeader.location()),
+      cacheDirectory: URL = Configuration.defaultCacheDirectory,
+      diagnosticMissedResume: Bool = false
     ) {
+      self.header = header
+      self.cacheDirectory = cacheDirectory
+      self.diagnosticMissedResume = diagnosticMissedResume
       self.engine = engine
       self.engineFiles = engineFiles
       self.grammarLibrary = grammarLibrary
@@ -383,6 +402,12 @@ private final class NativeWorker: @unchecked Sendable {
       replayPrefixes.removeAll { matched < $0.count && prompt.starts(with: $0) }
     }
     var requestID: UInt64 = 0
+    /// The prepared header this build restores, its tokens and how often a start had to be
+    /// repeated because the engine did not resume it. Empty with the comparison setting.
+    var headerTokens: [UInt32] = []
+    var header: (folder: URL, manifest: PromptHeader.Manifest)?
+    var headerRestarts = 0
+    var missedResumeSeam = false
     init(
       directory: URL, configuration: NativeWorkbookModel.Configuration,
       cancellation: Cancellation, progress: @escaping @Sendable (String) -> Void
@@ -432,6 +457,28 @@ private final class NativeWorker: @unchecked Sendable {
         frontend: frontend, library: configuration.grammarLibrary,
         librarySHA256: configuration.grammarSHA256)
       try cancellation.check()
+      missedResumeSeam = configuration.diagnosticMissedResume
+      if case .restore(let location) = configuration.header {
+        // Without a matching header the engine is not started: nothing computes one.
+        let identity = try PromptHeader.Identity(
+          engineSHA256: configuration.engineFiles["splash"] ?? "",
+          activations: configuration.activations.rawValue, reasoning: configuration.reasoning)
+        switch PromptHeader.state(at: location, identity: identity) {
+        case .absent: throw PromptHeader.missing()
+        case .mismatched(let reason): throw PromptHeader.missing(reason)
+        case .present(let folder, let manifest):
+          try require(
+            manifest.assemblyKey == PromptHeader.assemblyKey(assembly), "model_header",
+            PromptHeader.missing("the installed model").message)
+          let tokens = try PromptHeader.tokens(frontend: frontend, reasoning: configuration.reasoning)
+          try require(
+            tokens.count == manifest.tokens
+              && PromptHeader.tokenDigest(tokens) == manifest.tokenSHA256, "model_header",
+            PromptHeader.missing("the model's tokenizer").message)
+          headerTokens = tokens
+          header = (folder, manifest)
+        }
+      }
     }
     func start(
       cancellation: Cancellation, progress: @escaping @Sendable (String) -> Void
@@ -441,16 +488,61 @@ private final class NativeWorker: @unchecked Sendable {
         helper?.close() != false, "native_shutdown", "The previous native helper has not stopped.")
       checkpointPrefixes.removeAll()
       progress("Preparing local AI. The first start can take longer…")
+      guard let (folder, manifest) = header else {
+        return try launch(
+          [
+            "serve-native", assembly.path, String(configuration.contextBudget.contextTokens),
+            String(configuration.memoryBytes), "--persistent-cache", "off",
+          ] + PromptHeader.engineOptions(activations: configuration.activations.rawValue),
+          cancellation: cancellation, progress: progress)
+      }
+      let cache = configuration.cacheDirectory
+      try require(
+        PromptHeader.freeBytes(cache.deletingLastPathComponent())
+          >= PromptHeader.requiredFreeBytes(manifest), "model_disk",
+        PromptHeader.noDisk(manifest).message)
+      // A start whose engine did not take every restore point back is repeated once from the
+      // app's own files. A second is a damaged installation, never a reason to compute.
+      for attempt in 0..<2 {
+        try PromptHeader.restore(folder, manifest, into: cache)
+        let started = try launch(
+          PromptHeader.arguments(
+            assembly: assembly, contextTokens: configuration.contextBudget.contextTokens,
+            memoryBytes: configuration.memoryBytes, cache: cache,
+            activations: configuration.activations.rawValue),
+          cancellation: cancellation, progress: progress)
+        let status = try Value.parse(
+          String(decoding: started.status(id: UInt64.max - 1), as: UTF8.self))
+        switch PromptHeader.check(status: status, manifest) {
+        case .whole:
+          checkpointPrefixes = [headerTokens]
+          return started
+        case .notPersistent:
+          stop()
+          throw PromptHeader.noDisk(manifest)
+        case .short:
+          stop()
+          headerRestarts += 1
+          if attempt == 1 { throw PromptHeader.damaged() }
+        }
+      }
+      throw PromptHeader.damaged()
+    }
+    /// Stops the helper, then removes what the engine wrote, so no conversation stays on disk.
+    @discardableResult func stop() -> Bool {
+      guard helper?.close() != false else { return false }
+      helper = nil
+      if header != nil { try? FileManager.default.removeItem(at: configuration.cacheDirectory) }
+      return true
+    }
+    private func launch(
+      _ arguments: [String], cancellation: Cancellation,
+      progress: @escaping @Sendable (String) -> Void
+    ) throws -> SplashNativeProcess {
       do {
         let started = try SplashNativeProcess(
           executable: configuration.engine,
-          arguments: [
-            "serve-native", assembly.path, String(configuration.contextBudget.contextTokens),
-            String(configuration.memoryBytes),
-            "--persistent-cache", "off", "--idle-sleep", "allow", "--verify-rows", "all",
-            "--kv-format", "int8", "--state-format", "fp32", "--ane", "on",
-            "--activations", configuration.activations.rawValue,
-          ],
+          arguments: arguments,
           timeout: 360, cancelled: { cancellation.isCancelled || cancellation.isExpired },
           warming: { completed, total in
             progress("Preparing local AI · \(completed) of \(total) steps")
@@ -493,7 +585,7 @@ private final class NativeWorker: @unchecked Sendable {
         throw nativeFailure(error, helperStopped: helper?.isOpen == false, diagnostic: "")
       }
     }
-    deinit { helper?.close() }
+    deinit { stop() }
     private static func verify(_ url: URL, _ digest: String, _ cancellation: Cancellation) throws {
       try require(
         url.isFileURL && digest.count == 64, "model_setup", "Missing native runtime identity.")
@@ -709,7 +801,7 @@ private final class NativeWorker: @unchecked Sendable {
       outputTokens: prepared.outputBudget, capacity: session.capacity,
       toolResultTokens: prepared.toolResultTokens)
     let preparedAt = ProcessInfo.processInfo.systemUptime
-    let helper = try session.start(cancellation: cancellation, progress: progress)
+    var helper = try session.start(cancellation: cancellation, progress: progress)
     let helperReadyAt = ProcessInfo.processInfo.systemUptime
     let allowance = try budget.allowance(
       promptTokens: prepared.prompt.tokens.count,
@@ -720,10 +812,17 @@ private final class NativeWorker: @unchecked Sendable {
     let policy = prepared.policy
     let reasoning = prepared.reasoning
     let outputBudget = prepared.outputBudget
-    let constraint = try session.factory.create(grammar: policy.grammar)
-    let output = try SplashOutputStream(
+    // Every ordinary chat prompt starts with the prepared header, so its start event must
+    // report the header resumed to its last complete page. A request that resumed less is
+    // cancelled before it generates and sent once more after a restart from the app's files.
+    let checksHeader =
+      !session.headerTokens.isEmpty && prompt.tokens.starts(with: session.headerTokens)
+    let headerPage = PromptHeader.lastCompletePage(session.headerTokens.count)
+    var headerResumed: Bool?
+    var constraint = try session.factory.create(grammar: policy.grammar)
+    var output = try SplashOutputStream(
       frontend: session.frontend, tools: policy.outputTools, thinking: reasoning.enabled)
-    let seed = try session.primePrefix(
+    var seed = try session.primePrefix(
       prompt, common: prepared.stablePrefixCount, scope: prepared.scopePrefixCount,
       helper: helper, cancellation: cancellation)
     session.requestID += 1
@@ -757,9 +856,13 @@ private final class NativeWorker: @unchecked Sendable {
     var matchedPromptTokens = 0
     var lastPreview = ""
     var lastPreviewAt = ProcessInfo.processInfo.systemUptime
-    let generated = try helper.generate(
+    var missed = false
+    var resent = false
+    var generated: SplashNativeProcess.Result
+    while true {
+    generated = try helper.generate(
       request,
-      cancelled: { cancellation.isCancelled || cancellation.isExpired },
+      cancelled: { cancellation.isCancelled || cancellation.isExpired || missed },
       mask: { committed, simulation, words in
         let values = try constraint.masks(
           committed: committed, simulation: simulation, words: words)
@@ -786,9 +889,38 @@ private final class NativeWorker: @unchecked Sendable {
             progress(phase)
           }
         }
-        if case .start(_, _, let matched) = event { matchedPromptTokens = Int(matched) }
+        if case .start(_, _, let matched) = event {
+          matchedPromptTokens = Int(matched)
+          if checksHeader {
+            let seam = session.missedResumeSeam
+            session.missedResumeSeam = false
+            missed = seam || matchedPromptTokens < headerPage
+          }
+        }
       })
     try cancellation.check()
+    guard missed else { break }
+    // The restart restores the files from the app. Restoring a clean directory resets the
+    // engine's own count of failed starts, so the host counts.
+    missed = false
+    try require(!resent, "model_header", PromptHeader.damaged().message)
+    resent = true
+    session.headerRestarts += 1
+    session.stop()
+    helper = try session.start(cancellation: cancellation, progress: progress)
+    constraint = try session.factory.create(grammar: policy.grammar)
+    output = try SplashOutputStream(
+      frontend: session.frontend, tools: policy.outputTools, thinking: reasoning.enabled)
+    seed = try session.primePrefix(
+      prompt, common: prepared.stablePrefixCount, scope: prepared.scopePrefixCount,
+      helper: helper, cancellation: cancellation)
+    session.requestID += 1
+    request.id = session.requestID
+    previewAt = nil
+    generationPhase = nil
+    lastPreview = ""
+    }
+    if checksHeader { headerResumed = matchedPromptTokens >= headerPage }
     try require(
       generated.done.reason == .stop && !generated.done.bounded,
       "truncated",
@@ -861,6 +993,10 @@ private final class NativeWorker: @unchecked Sendable {
       "acceptedDraftTokens": .number(Double(generated.done.accepted)),
       "speculativeMethod": .string("DFlash2"),
       "diagnosticRequestCacheIsolation": .bool(configuration.diagnosticRequestCacheIsolation),
+      "headerTokens": .number(Double(session.headerTokens.count)),
+      "headerInputs": session.header.map { .string($0.manifest.inputs) } ?? .null,
+      "headerResumed": headerResumed.map(Value.bool) ?? .null,
+      "headerRestarts": .number(Double(session.headerRestarts)),
     ])
     // Opt-in qualification observation is absent from product configurations.
     if let observe = configuration.observeRequest {

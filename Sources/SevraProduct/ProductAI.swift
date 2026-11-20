@@ -68,6 +68,22 @@ public actor ProductAI {
     return .object(fields)
   }
 
+  /// `sevra header make` and `sevra header status`.
+  public static func makeHeader(
+    output: URL, modelsRoot: URL = ProductAI.defaultDirectory,
+    progress: @escaping @Sendable (String) -> Void
+  ) async throws -> Value {
+    try await Task.detached(priority: .userInitiated) {
+      try NativeProductResources.makeHeader(
+        output: output, modelsRoot: modelsRoot, progress: progress)
+    }.value
+  }
+  public static func headerStatus(at location: URL?) throws -> Value {
+    guard let location else { return try NativeProductResources.headerState().report }
+    return PromptHeader.state(at: location, identity: try NativeProductResources.headerIdentity())
+      .report
+  }
+
   /// Presence is a quick UI hint. Setup and every new native session perform
   /// verification; this never claims that file existence proves usable weights.
   public func installed(at directory: URL = ProductAI.defaultDirectory) async -> Bool {

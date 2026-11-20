@@ -95,14 +95,20 @@ public enum SplashModelPreparation {
     try pack.validate()
     let selection = modelsRoot.appendingPathComponent(pack.name).resolvingSymlinksInPath()
     let record = try readRecord(selection.appendingPathComponent("model.json"))
+    // An assembly made before the record left this Mac's paths out kept them in model.json.
+    // Reading them there prepares it again in the new form without downloading anything.
+    let located = (try? readLocations(locationsURL(selection)))?.files.mapValues(\.path)
+      ?? ((try? JSONDecoder().decode(
+        EarlierRecord.self, from: readRecordBytes(selection.appendingPathComponent("model.json"))))?
+        .files.mapValues(\.path) ?? [:])
     guard record.version == 1, record.family == pack.family,
       record.target_format == "mlx-affine", record.vision_format == "none",
       record.sources["target"]?.repo == pack.target.repository,
       record.sources["target"]?.revision == pack.target.revision,
       record.sources["draft"]?.repo == pack.draft.repository,
       record.sources["draft"]?.revision == pack.draft.revision,
-      let target = record.files["config.json"]?.path,
-      let draft = record.files["draft/config.json"]?.path
+      let target = located["config.json"],
+      let draft = located["draft/config.json"]
     else {
       throw SplashError(
         "The installed model does not match the selected target and draft", repairable: true)
@@ -131,6 +137,14 @@ public enum SplashModelPreparation {
     let repo: String
     let revision: String?
   }
+  /// One assembled file as model.json records it: what it is, never where it is on this Mac.
+  private struct Entry: Codable, Equatable {
+    let bytes: Int64
+    let digest: String
+  }
+  /// The assembly's model.json. For a pinned pack it is the same on every Mac, so its digest,
+  /// the assembly key, and the engine's cache name are too. The engine reads `version`,
+  /// `model`, `target_format` and `vision_format` and hashes the rest.
   private struct Record: Codable {
     let version: Int
     let model: String
@@ -138,7 +152,29 @@ public enum SplashModelPreparation {
     let target_format: String
     let vision_format: String
     let sources: [String: Identity]
+    let files: [String: Entry]
+  }
+  /// This Mac's side of an assembly, beside its folder and never read by the engine: where each
+  /// linked file is and the times that let a launch skip hashing an unchanged file.
+  private struct Locations: Codable {
+    let version: Int
     let files: [String: Fingerprint]
+  }
+  private struct EarlierRecord: Decodable {
+    struct File: Decodable { let path: String }
+    let files: [String: File]
+  }
+  private static func locationsURL(_ assembly: URL) -> URL {
+    assembly.deletingLastPathComponent().appendingPathComponent(
+      assembly.lastPathComponent + ".json")
+  }
+  private static func readLocations(_ url: URL) throws -> Locations {
+    guard let value = try? JSONDecoder().decode(Locations.self, from: readRecordBytes(url)),
+      value.version == 1
+    else {
+      throw SplashError("Cannot read the model's file locations", repairable: true)
+    }
+    return value
   }
 
   public static func prepare(
@@ -156,7 +192,7 @@ public enum SplashModelPreparation {
       root.appendingPathComponent(".sevra-prepare.lock"), cancelled: cancelled)
     defer { lock.unlock() }
     let selection = root.appendingPathComponent(pack.name)
-    let previous = try? readRecord(selection.appendingPathComponent("model.json"))
+    let previous = try? readLocations(locationsURL(selection.resolvingSymlinksInPath()))
     var cached: [String: Fingerprint] = [:]
     for entry in previous?.files.values ?? [:].values { cached[entry.path] = entry }
     var files: [String: Fingerprint] = [:]
@@ -198,12 +234,16 @@ public enum SplashModelPreparation {
         "draft": Identity(
           repo: pinnedSources ? pack.draft.repository : draft.path,
           revision: pinnedSources ? pack.draft.revision : nil),
-      ], files: files)
+      ], files: files.mapValues { Entry(bytes: $0.bytes, digest: $0.digest) })
     let encoded = try canonicalRecord(record)
     let key = digest(encoded)
     let resolved = root.appendingPathComponent(".resolved", isDirectory: true)
     try fm.createDirectory(at: resolved, withIntermediateDirectories: true)
-    let destination = resolved.appendingPathComponent(key, isDirectory: true)
+    // The same record linked to files in another folder is another assembly with the same key.
+    let place = digest(
+      Data(files.keys.sorted().map { $0 + "\u{0}" + files[$0]!.path + "\n" }.joined().utf8))
+    let destination = resolved.appendingPathComponent(
+      key + "-" + place.prefix(16), isDirectory: true)
     if fm.fileExists(atPath: destination.path) {
       // Refuse a damaged existing assembly. Never replace one an engine may hold.
       try verifyAssembly(destination, encoded: encoded, files: files)
@@ -225,6 +265,12 @@ public enum SplashModelPreparation {
       try verifyAssembly(stage, encoded: encoded, files: files)
       if cancelled() { throw SplashError("Model preparation cancelled") }
       try fm.moveItem(at: stage, to: destination)
+    }
+    let locations = locationsURL(destination)
+    if (try? readLocations(locations))?.files != files {
+      let encoder = JSONEncoder()
+      encoder.outputFormatting = [.sortedKeys, .prettyPrinted]
+      try encoder.encode(Locations(version: 1, files: files)).write(to: locations, options: .atomic)
     }
     if cancelled() { throw SplashError("Model preparation cancelled") }
     // Publish the selection atomically. Refuse to overwrite a real folder or file.
@@ -373,12 +419,7 @@ public enum SplashModelPreparation {
   private static func canonicalRecord(_ record: Record) throws -> Data {
     // Python's json.dumps(sort_keys=True, ensure_ascii=False, indent=2) + newline.
     // JSONEncoder omits nil optionals, whereas upstream requires null revisions.
-    let entries: [String: Any] = record.files.mapValues {
-      [
-        "path": $0.path, "bytes": $0.bytes, "mtime_ns": $0.mtime_ns,
-        "ctime_ns": $0.ctime_ns, "digest": $0.digest,
-      ]
-    }
+    let entries: [String: Any] = record.files.mapValues { ["bytes": $0.bytes, "digest": $0.digest] }
     let sources: [String: Any] = record.sources.mapValues {
       ["repo": $0.repo, "revision": $0.revision as Any? ?? NSNull()]
     }

@@ -13,6 +13,7 @@ import signal
 import subprocess
 import tempfile
 import time
+import prompt_header
 
 
 def require(condition, message):
@@ -56,6 +57,7 @@ def main():
     args = parser.parse_args()
     cli = args.cli.resolve()
     models = args.models.resolve()
+    prompt_header.ensure(cli, models)
     lease_path = Path.home() / "Library/Application Support/Sevra/inference.lock"
     lease_path.parent.mkdir(parents=True, exist_ok=True)
     lease = os.open(lease_path, os.O_RDWR | os.O_CREAT | os.O_NOFOLLOW | os.O_CLOEXEC, 0o600)

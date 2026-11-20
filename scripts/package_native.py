@@ -8,6 +8,7 @@ import shutil
 import subprocess
 import sys
 from package_app_worker import package as package_app_worker
+import prompt_header
 
 ROOT = Path(__file__).resolve().parents[1]
 
@@ -150,6 +151,9 @@ def main():
     manifest = stage(binary, scratch, app, cli)
     for folder in [app / "Contents/Resources", cli]:
         write_manifest(folder, manifest)
+    # The header goes in before the app is signed, so it is sealed with the app. A package
+    # made without the model has none and says so.
+    header = prompt_header.place(cli / "sevra", app, required=False)
     # Upstream engine and native grammar are already linker-signed. Preserve
     # their bytes and sign the containing app without --deep rewriting helpers.
     subprocess.run(["codesign", "--force", "--sign", "-", str(app)], check=True)
@@ -158,7 +162,8 @@ def main():
         assert sha(app / "Contents/Helpers/Splash" / name) == expected
     assert sha(app / "Contents/Frameworks/libllguidance.dylib") == manifest["grammarSHA256"]
     print(json.dumps({"app": str(app.relative_to(ROOT)), "cli": str((cli / "sevra").relative_to(ROOT)),
-                      "candidate": True, "unchangedEngine": True}))
+                      "candidate": True, "unchangedEngine": True,
+                      "promptHeader": header and {k: header[k] for k in ("inputs", "tokens", "cacheName")}}))
 
 
 if __name__ == "__main__":

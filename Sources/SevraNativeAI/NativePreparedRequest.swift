@@ -20,6 +20,7 @@ package struct NativePreparedRequest {
   package let outputBudget: Int
   package let templateIdentity: String
   package let toolResultTokens: Int
+  package let headerInputs: Data?
   package static func toolResultReserve(
     frontend: SplashTextFrontend, toolScope: InferenceToolScope, nativeAppAuthoring: Bool
   ) throws -> Int {
@@ -41,11 +42,26 @@ package struct NativePreparedRequest {
       ], contextLimit: SplashWire.maxTokens
     ).tokens.count
   }
-  package init(
-    messages: [InferenceMessage], frontend: SplashTextFrontend,
-    configuredReasoning: NativeReasoning, toolScope: InferenceToolScope,
-    citationIDs: [String], interpretation: Value? = nil
-  ) throws {
+  /// Everything a request renders, worked out without the model's tokenizer.
+  private struct Layout {
+    var messages: [InferenceMessage]
+    var policy: SplashToolPolicy
+    var reasoning: NativeReasoning
+    var excelReview: Bool
+    var excelReasoning: Bool
+    var templateMessages: [[String: any Sendable]]
+    var tools: [[String: any Sendable]]
+    var hasStablePrefix: Bool
+    var hasScopePrefix: Bool
+    /// What the template renders ahead of the first end of turn when the request shares the
+    /// ordinary chat header: the instruction text, the shared tool declarations and the
+    /// thinking switch, as canonical JSON. Nil for a request without that header.
+    var headerInputs: Data?
+  }
+  private static func layout(
+    messages: [InferenceMessage], configuredReasoning: NativeReasoning,
+    toolScope: InferenceToolScope, citationIDs: [String], interpretation: Value?
+  ) throws -> Layout {
     // Host text written for the operations names them. The model is told the chat tool.
     let messages =
       interpretation == nil && !toolScope.specialized
@@ -155,6 +171,45 @@ package struct NativePreparedRequest {
       }
       hasStablePrefix = true
     }
+    var headerInputs: Data?
+    if hasStablePrefix {
+      let object: [String: Any] = [
+        "instructions": templateMessages[0]["content"] as? String ?? "", "tools": tools,
+        "thinking": reasoning.enabled,
+      ]
+      headerInputs = try JSONSerialization.data(
+        withJSONObject: object, options: [.sortedKeys, .withoutEscapingSlashes])
+    }
+    return Layout(
+      messages: messages, policy: policy, reasoning: reasoning, excelReview: excelReview,
+      excelReasoning: excelReasoning, templateMessages: templateMessages, tools: tools,
+      hasStablePrefix: hasStablePrefix, hasScopePrefix: hasScopePrefix,
+      headerInputs: headerInputs)
+  }
+  /// The header inputs of a request, for checks that have no tokenizer.
+  package static func headerInputs(
+    messages: [InferenceMessage], configuredReasoning: NativeReasoning,
+    toolScope: InferenceToolScope
+  ) throws -> Data? {
+    try layout(
+      messages: messages, configuredReasoning: configuredReasoning, toolScope: toolScope,
+      citationIDs: [], interpretation: nil
+    ).headerInputs
+  }
+  package init(
+    messages: [InferenceMessage], frontend: SplashTextFrontend,
+    configuredReasoning: NativeReasoning, toolScope: InferenceToolScope,
+    citationIDs: [String], interpretation: Value? = nil
+  ) throws {
+    let layout = try Self.layout(
+      messages: messages, configuredReasoning: configuredReasoning, toolScope: toolScope,
+      citationIDs: citationIDs, interpretation: interpretation)
+    let messages = layout.messages, policy = layout.policy, reasoning = layout.reasoning
+    let excelReview = layout.excelReview, excelReasoning = layout.excelReasoning
+    let templateMessages = layout.templateMessages, tools = layout.tools
+    let hasStablePrefix = layout.hasStablePrefix, hasScopePrefix = layout.hasScopePrefix
+    self.headerInputs = layout.headerInputs
+
     let prompt = try frontend.prepare(
       messages: templateMessages, tools: tools,
       thinking: reasoning.enabled, contextLimit: SplashWire.maxTokens, reuseSystemPrefix: hasStablePrefix)

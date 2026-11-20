@@ -42,6 +42,22 @@ import SevraProduct
     if command == "check-resources" {
       return try await ProductAI.checkResources(validateMetal: !args.contains("--paths-only"))
     }
+    if command == "header" {
+      // header make DIRECTORY [MODEL_DIRECTORY] | header status [DIRECTORY]
+      let action = args.count > 1 ? args[1] : ""
+      if action == "make", args.count == 3 || args.count == 4 {
+        return try await ProductAI.makeHeader(
+          output: URL(fileURLWithPath: args[2]).standardizedFileURL,
+          modelsRoot: args.count == 4
+            ? URL(fileURLWithPath: args[3]).standardizedFileURL : ProductAI.defaultDirectory,
+          progress: { fputs($0 + "\n", stderr) })
+      }
+      if action == "status", args.count <= 3 {
+        return try ProductAI.headerStatus(
+          at: args.count == 3 ? URL(fileURLWithPath: args[2]).standardizedFileURL : nil)
+      }
+      throw SevraError("usage", "header make DIRECTORY [MODEL_DIRECTORY] | header status [DIRECTORY]")
+    }
     if command == "help" || command == "--help" { return .string(help) }
     if command == "version" || command == "--version" {
       return .object(["version": .string("0.1.0-dev"), "engine": .string(ProductAI.revision)])
@@ -837,6 +853,7 @@ import SevraProduct
   ]
   static let help = """
     Sevra 0.1.0 development CLI. Every result is JSON; errors exit nonzero.
+    header make DIRECTORY [MODEL_DIRECTORY] | header status [DIRECTORY]
     create PATH.sevra [TITLE] | demo PATH.sevra | inspect WORKBOOK | verify WORKBOOK
     transcribe WORKBOOK ITEM_ID | extract WORKBOOK VERSION_ID
     archive-members WORKBOOK ITEM_ID | include-members WORKBOOK ITEM_ID JSON_PATHS

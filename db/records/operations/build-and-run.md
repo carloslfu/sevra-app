@@ -66,6 +66,29 @@ This moves its app to Trash and removes only its own CLI link. Workbooks,
 preferences and model files remain. The environment overrides documented below
 also support isolated installations. `python3 scripts/check_install.py` checks
 that route using disposable targets.
+
+### The prepared prompt header
+
+Chat needs a prepared prompt header: the start every ordinary chat turn shares, read once
+into the engine's disk cache and sealed in the app ([[records/plans/general-chat-tools]],
+phase H3). The app restores it before every engine start and never computes it, so a build
+without one has no chat. The first source build cannot have one, because the model is not on
+the Mac yet. `install.sh` says so. After the model download, run the installer again:
+
+~~~sh
+bash scripts/install.sh
+~~~
+
+Packaging then finds the model, runs `sevra header make .build/prompt-header`, which loads the
+model once for about 15 seconds, and copies the 94 MB header into the app before signing it.
+A matching header in `.build/prompt-header` is reused without the model. Run the installer
+again after any change to the instructions, a tool declaration, the engine or the model; the
+app says when its header no longer matches. `sevra header status [DIRECTORY]` reports a header
+as present, absent or mismatched without the model. A command line tool outside an app, such
+as `output/native/bin/sevra`, has no header of its own: real-model check scripts make it first
+and pass `SEVRA_PROMPT_HEADER=.build/prompt-header`. While it runs, the engine keeps its cache in
+`~/Library/Caches/Sevra/PromptCache`, which is emptied at every start and stop.
+
 ## Welcome and compact navigation
 
 The welcome screen centers its primary actions and shows five recent workbooks.

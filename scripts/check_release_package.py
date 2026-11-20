@@ -15,7 +15,31 @@ def output(*args):
     return subprocess.check_output(args, text=True).strip()
 
 
-def check(record, install_dir, full_runtime):
+def first_chat(cli, profile, install_dir, models, header):
+    """With the build tree denied and the app's cache folder empty, the copy installed from the
+    disk image answers its first chat from the header it carries, resumed and not computed."""
+    if subprocess.run(["pgrep", "-x", "splash"], capture_output=True).returncode == 0:
+        raise ValueError("Another engine is running; the first-chat check loads the model")
+    cache = Path.home() / "Library/Caches/Sevra/PromptCache"
+    if cache.exists():
+        subprocess.run(["rm", "-rf", str(cache)], check=True)
+    workbook = install_dir / "First chat.sevra"
+    def cli_run(*args, timeout=60):
+        data = json.loads(subprocess.check_output(
+            ["sandbox-exec", "-p", profile, str(cli), *args], cwd=install_dir, text=True, timeout=timeout))
+        return data["result"]
+    cli_run("demo", str(workbook))
+    cli_run("ask", str(workbook), "Hi", str(models), timeout=600)
+    metrics = [m for run in cli_run("runs", str(workbook)) for m in json.loads(run["metrics"] or "[]")
+               if isinstance(m, dict) and "promptTokens" in m]
+    first = metrics[-1] if metrics else {}
+    if first.get("headerInputs") != header["inputs"] or first.get("headerResumed") is not True:
+        raise ValueError("The installed copy did not resume its own header in its first chat")
+    return {"headerResumed": True, "matchedPromptTokens": first.get("matchedPromptTokens"),
+            "prefixPrimeTokens": first.get("prefixPrimeTokens")}
+
+
+def check(record, install_dir, full_runtime, models=None):
     receipt = json.loads(record.read_text())
     dmg = record.parent / receipt["asset"]
     if digest(dmg) != receipt["sha256"] or dmg.stat().st_size != receipt["size"]:
@@ -52,6 +76,18 @@ def check(record, install_dir, full_runtime):
     if "@rpath/Sparkle.framework/" not in output("otool", "-L", str(binary)):
         raise ValueError("The installed app is missing its Sparkle runtime link")
 
+    # The prompt header sealed in the app is the one the receipt names. Early access and stable
+    # releases carry one; a QA build may not.
+    header = receipt.get("promptHeader")
+    folder = app / "Contents/Resources/PromptHeader"
+    installed = sorted(folder.glob("*/manifest.json")) if folder.exists() else []
+    if header:
+        expected = {k: v for k, v in header.items() if k != "madeOn"}
+        if [m.parent.name for m in installed] != [header["inputs"]] or json.loads(installed[0].read_text()) != expected:
+            raise ValueError("The installed prompt header differs from the release receipt")
+    elif receipt["stage"] != "qa" or installed:
+        raise ValueError("The release has no prompt header in its receipt")
+
     profile = "(version 1) (allow default) (deny file-read* (subpath " + json.dumps(str(ROOT / ".build")) + "))"
     results = {}
     with tempfile.TemporaryDirectory(prefix="sevra-cli-link-") as temporary:
@@ -72,7 +108,11 @@ def check(record, install_dir, full_runtime):
                 raise ValueError(f"The installed {name} could not verify its runtime files")
             if full_runtime and not value.get("kernelCount", 0):
                 raise ValueError(f"The installed {name} could not load its Metal kernels")
+            if header and (value.get("promptHeader") or {}).get("state") != "present":
+                raise ValueError(f"The installed {name} does not find its prompt header")
             results[name] = value
+        if header and models:
+            results["fromDiskImageAlone"] = first_chat(app / CLI_EXECUTABLE, profile, install_dir, models, header)
     print(json.dumps({"bundle": str(app), "build": receipt["build"], "sha256": receipt["sha256"],
                       "uuid": uuid[1], "buildTreeDenied": True, "resources": results}, indent=2))
 
@@ -82,8 +122,11 @@ def main():
     parser.add_argument("receipt", type=Path)
     parser.add_argument("install_dir", type=Path)
     parser.add_argument("--full-runtime", action="store_true", help="Also validate Metal on a supported Mac")
+    parser.add_argument("--models", type=Path,
+                        help="With the model installed here, also answer a first chat from the installed copy")
     options = parser.parse_args()
-    check(options.receipt.resolve(), options.install_dir.resolve(), options.full_runtime)
+    check(options.receipt.resolve(), options.install_dir.resolve(), options.full_runtime,
+          options.models and options.models.resolve())
 
 
 if __name__ == "__main__":

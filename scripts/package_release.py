@@ -10,6 +10,7 @@ import subprocess
 import tempfile
 
 from package_native import ROOT, copy, stage, write_manifest
+import prompt_header
 from sparkle_release import KEY_ACCOUNT, PRODUCTION_FEED, QA_KEY_ACCOUNT, digest, is_loopback_url, prepare, public_key
 
 MINIMUM_OS = "26.4"
@@ -19,6 +20,11 @@ CLI_EXECUTABLE = CLI_BUNDLE / "Contents/MacOS/sevra"
 
 def run(*args):
     subprocess.run(args, check=True)
+
+
+def chip():
+    """The Apple chip this release's header was made and tested on (P7)."""
+    return output("sysctl", "-n", "machdep.cpu.brand_string")
 
 
 def output(*args):
@@ -158,6 +164,9 @@ def package(options):
                 "grammarSHA256": digest(grammar),
             })
         sign(app / CLI_BUNDLE, identity)
+        # After the command line helper app is staged, so it gets no second copy, and before
+        # the app is signed, so the header is sealed with it. Early access and stable need one.
+        header = prompt_header.place(app / CLI_EXECUTABLE, app, required=not qa)
         for service in (contents / "XPCServices").glob("*.xpc"):
             sign(service, identity, ROOT / "Resources/AppWorker.entitlements")
         sign(app, identity, ROOT / "Resources/Distribution.entitlements" if stable else None)
@@ -188,6 +197,7 @@ def package(options):
             "teamID": options.team_id, "notarySubmission": notary_id,
             "created": datetime.now(timezone.utc).isoformat(),
             "asset": dmg.name, "size": dmg.stat().st_size, "sha256": digest(dmg),
+            "promptHeader": header and {**header, "madeOn": chip()},
         }
         (result / "release.json").write_text(json.dumps(release, indent=2) + "\n")
         result.rename(destination)

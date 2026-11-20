@@ -380,6 +380,12 @@ do {
       prompts: Array(CommandLine.arguments.dropFirst(6)))
     exit(0)
   }
+  if CommandLine.arguments.count == 5 && CommandLine.arguments[1] == "--header-cache-limits-probe" {
+    try await runHeaderCacheLimitsProbe(
+      modelsRoot: CommandLine.arguments[2], engine: CommandLine.arguments[3],
+      work: CommandLine.arguments[4])
+    exit(0)
+  }
   if CommandLine.arguments.count == 5 && CommandLine.arguments[1] == "--header-cache-probe" {
     try await runHeaderCacheProbe(
       modelsRoot: CommandLine.arguments[2], engine: CommandLine.arguments[3],
@@ -397,8 +403,20 @@ do {
       desktopContext: CommandLine.arguments[1] == "--conversation-desktop-trace")
     exit(0)
   }
+  if CommandLine.arguments.count == 7 && CommandLine.arguments[1] == "--header-tests" {
+    try await runHeaderTests(
+      modelsRoot: CommandLine.arguments[2], library: CommandLine.arguments[3],
+      engine: CommandLine.arguments[4], headers: CommandLine.arguments[5],
+      work: CommandLine.arguments[6])
+    exit(0)
+  }
+  if CommandLine.arguments.dropFirst() == ["--prompt-header-checks"] {
+    try await checkPromptHeader()
+    exit(0)
+  }
   try await checkConversationLatency()
   try await checkConversationHistoryAppendOnly()
+  try await checkPromptHeader()
   try checkInferenceLease()
   try checkNativeFailures()
   try checkContextBudget()

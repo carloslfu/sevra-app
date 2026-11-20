@@ -65,7 +65,7 @@ Sparkle's validator accepts a changed Apple code-signing identity when the old a
 ## Customer instructions to validate
 
 1. **Install.** Check the Mac requirements, download the DMG, open it and drag **Sevra** to **Applications**. Eject the image and open the installed copy from Finder. A standard account that cannot write to the shared Applications folder can use its own `~/Applications` if that path passes the install and update checks.
-2. **Start a workbook.** Import a file or open a workbook immediately. To use local AI, go to **Settings → Download model** or **Use existing model files…**. The initial model download needs internet access and the published free disk space. Leave the model in its separate location across updates.
+2. **Start a workbook.** Import a file or open a workbook immediately. To use local AI, go to **Settings → Download model** or **Use existing model files…**. The initial model download needs internet access and the published free disk space. Leave the model in its separate location across updates. The app carries the prepared prompt header for the model, so chat works once the model is set up; it needs about 13 GB free on the startup disk while it runs.
 3. **Update.** Choose **Sevra → Check for Updates…**, review the release notes and install when ready to close the app. Let Sevra finish any active work, then reopen and check **About Sevra**. Automatic checks are optional.
 4. **Replace manually when needed.** Quit Sevra, download the current signed DMG from the website, and replace the matching installed app in the same Applications folder. Keep workbooks and the model directory in place. If coming from an old source preview under a different name, install the public app alongside it and open a compatible workbook from Finder.
 
@@ -77,6 +77,7 @@ Sparkle's validator accepts a changed Apple code-signing identity when the old a
 | Supported hardware | Check the oldest advertised macOS and the newest supported version available for testing, plus each advertised memory tier. Test setup/refusal for unsupported OS, M-series generation and insufficient free space. Report exact chips, memory and OS tested. |
 | Real upgrades | QA ad-hoc to newer ad-hoc, ad-hoc to Developer ID if offering early access, and a signed-to-signed rehearsal. Test manual check, scheduled-check preference, quit/relaunch, build number increment, preserved workbook edits, recents, approvals, optional CLI symlink, extraction, dictation and model reuse. Test repeat check after update and at least one skipped build once available. |
 | Validation and recovery | Bad DMG signature, modified feed, missing or truncated asset, equal/lower build, wrong channel, incompatible OS and dropped connection all leave the previous install usable. Exercise cancellation, a read-only launch path, insufficient space or denied replacement, and rerun a valid update afterward. Check that a workbook write completes or is safely deferred before relaunch. |
+| Prompt header | `release.json` records the header's manifest and the chip it was made on. `check_release_package.py` checks the installed header against the receipt, that the app, its CLI and a CLI link find it, and, with `--models`, that a copy installed from the DMG alone answers its first chat from it, resumed and not computed. The published requirements list only the chips where the header tests passed ([[records/plans/general-chat-tools]], P7). An update brings its own header. |
 | Live delivery | The website and README download the same signed/stapled asset. Public XML matches the signed file. GitHub asset bytes match the release receipt. An applicable installed copy sees the right version and stable builds see only eligible stable updates. A manual replace opens the same data. |
 
 ## Recovery and ownership
@@ -87,6 +88,13 @@ Sparkle's validator accepts a changed Apple code-signing identity when the old a
 - **Owners.** The app release maintainer owns builds, keys, notarization, GitHub assets and release receipts. The website maintainer owns the permanent feed endpoint, deploy and download CTA. The release reviewer confirms the live install/update paths and data preservation. A single person can hold all three roles.
 
 ## Release order
+
+Since November 19, 2026 a release carries a prepared prompt header ([[records/plans/general-chat-tools]], phase H4):
+
+- **The release Mac needs the model,** or a header made on a Mac that has it is placed in `.build/prompt-header` before packaging. Packaging accepts it only when its manifest matches the build.
+- **The download and every update grow by the header.** The QA DMG went from 62.7 MB to 150.7 MB.
+- **The receipt, the verification matrix and the customer instructions** carry the header, as above.
+- **No early-access or stable build made after phase H3 is published without a header.** Packaging refuses to make one, and the receipt check refuses one that lacks it.
 
 1. Build and rehearse the full installer and updater before Apple approval.
 2. If early access is useful, ship the verified ad-hoc preview to a small cohort with the updater already enabled for the bridge.

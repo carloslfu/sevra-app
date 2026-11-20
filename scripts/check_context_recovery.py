@@ -14,6 +14,7 @@ import selectors
 import signal
 import subprocess
 import time
+import prompt_header
 
 from check_native_recovery import await_helpers_exit, command_for, emit, helpers_for, require
 
@@ -32,6 +33,7 @@ def main():
     args = parser.parse_args()
     cli = args.cli.resolve()
     models = args.models.resolve()
+    prompt_header.ensure(cli, models)
     args.output.mkdir(parents=False, exist_ok=False)
     book = args.output.resolve() / "Recovery.sevra"
     prompt = (args.fixture / "request.txt").read_text()

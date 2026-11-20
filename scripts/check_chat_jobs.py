@@ -27,6 +27,7 @@ from decimal import Decimal, InvalidOperation
 from pathlib import Path
 import argparse, fnmatch, hashlib, json, os, re, signal, sqlite3, statistics, subprocess, sys
 import tempfile, time
+import prompt_header
 
 ROOT = Path(__file__).resolve().parent.parent
 CLI = Path(os.environ.get('SEVRA_CLI', ROOT / 'output/native/bin/sevra'))
@@ -836,7 +837,8 @@ def trace(book):
                     'toolScope', 'phase', 'promptTokens', 'matchedPromptTokens', 'stablePrefixTokens',
                     'scopePrefixTokens', 'generatedTokens',
                     'reasoningTokens', 'requestSeconds', 'prefillSeconds', 'decodeSeconds',
-                    'prefixPrimeSeconds', 'helperStartSeconds') if metric.get(k) is not None})
+                    'prefixPrimeSeconds', 'helperStartSeconds', 'headerResumed', 'headerRestarts')
+                    if metric.get(k) is not None})
     run_ids = {r['id'] for r in runs}
     tools, messages = [], {}
     for conversation in book.threads():
@@ -1046,6 +1048,9 @@ def main():
     if options.self_test:
         return 1 if self_test(selected, languages) else 0
     assert options.output and not Path(options.output).exists(), 'Give --output a new directory'
+    # The CLI here is outside an app, so it has no header of its own. Make it first, never
+    # measure a run that reads it, and point every tool this runs at it.
+    header = prompt_header.ensure(CLI)
     output = Path(options.output)
     output.mkdir(parents=True)
     with tempfile.TemporaryDirectory(prefix='sevra-chat-jobs-') as temporary:
@@ -1100,6 +1105,7 @@ def main():
                        'passedFirstRun': sum(bool(l['passedFirstRun']) for l in ran),
                        'steps': sum(l['steps'] or 0 for l in ran), 'modelCalls': sum(l['modelCalls'] for l in ran),
                        'wallSeconds': round(sum(l['wallSeconds'] for l in ran), 2)},
+            'promptHeader': {k: header[k] for k in ('inputs', 'tokens', 'cacheName')},
             'timedTurns': timed, 'jobs': lines}
         (output / 'results.json').write_text(redact(json.dumps(results, indent=1, ensure_ascii=False)) + '\n')
         print(json.dumps({'summary': results['summary'], 'totals': results['totals'],

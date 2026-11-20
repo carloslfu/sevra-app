@@ -6,6 +6,7 @@ import SevraAI
 import SevraCore
 import SevraNativeAI
 import SevraSplash
+import SevraSplashText
 
 enum NativeProductResources {
   private struct Manifest: Decodable {
@@ -50,6 +51,69 @@ enum NativeProductResources {
       memoryBytes: 12 * 1024 * 1024 * 1024,
       contextBudget: .init(profile: context), reasoning: .bounded512,
       modelLayout: .installed, contextMaintenanceEnabled: true)
+  }
+  /// What a prepared header has to match in this build, known without the model.
+  static func headerIdentity() throws -> PromptHeader.Identity {
+    let (manifest, _, _) = try layout()
+    return try .init(
+      engineSHA256: manifest.engineFiles["splash"] ?? "",
+      activations: NativeWorkbookModel.Activations.bf16.rawValue, reasoning: .bounded512)
+  }
+  /// Present and matching, absent or mismatched. A development build may have none.
+  static func headerState() throws -> PromptHeader.State {
+    PromptHeader.state(at: PromptHeader.location(), identity: try headerIdentity())
+  }
+  /// `sevra header make`: finds the header for this build in `output`, or makes it there with
+  /// the installed model and this build's engine and launch values.
+  static func makeHeader(output: URL, modelsRoot: URL, progress: (String) -> Void) throws -> Value {
+    let identity = try headerIdentity()
+    let configuration = try Self.configuration(modelsRoot: modelsRoot)
+    let pack = try SplashModelPack.selected()
+    guard
+      FileManager.default.fileExists(
+        atPath: modelsRoot.appendingPathComponent(pack.name + "/model.json").path)
+    else {
+      if case .present(let folder, let manifest) = PromptHeader.state(at: output, identity: identity) {
+        return report(folder, manifest, made: false)
+      }
+      throw SevraError(
+        "model_missing",
+        "The local model is not installed, so no prompt header can be made. Download it in Sevra's Model Settings or with sevra model-setup, then run this again."
+      )
+    }
+    let assembly = try SplashModelPreparation.installed(pack: pack, modelsRoot: modelsRoot)
+    if case .present(let folder, let manifest) = PromptHeader.state(at: output, identity: identity),
+      manifest.assemblyKey == PromptHeader.assemblyKey(assembly)
+    {
+      return report(folder, manifest, made: false)
+    }
+    // The app's own lock: no Sevra process loads a model while this one holds it.
+    let support = FileManager.default.homeDirectoryForCurrentUser.appendingPathComponent(
+      "Library/Application Support/Sevra")
+    try FileManager.default.createDirectory(at: support, withIntermediateDirectories: true)
+    let lock = Darwin.open(
+      support.appendingPathComponent("inference.lock").path,
+      O_CREAT | O_RDWR | O_NOFOLLOW | O_CLOEXEC, 0o600)
+    try require(lock >= 0, "model_lock", "Cannot open the local inference lock.")
+    defer { Darwin.close(lock) }
+    try require(
+      flock(lock, LOCK_EX | LOCK_NB) == 0, "model_busy",
+      "Another Sevra process has the model loaded. Quit it or unload the model, then try again.")
+    let frontend = try SplashTextFrontend(modelFolder: assembly.appendingPathComponent("tokenizer"))
+    let (folder, manifest) = try PromptHeader.make(
+      identity: identity, output: output, engine: configuration.engine, assembly: assembly,
+      frontend: frontend, reasoning: configuration.reasoning,
+      activations: configuration.activations.rawValue,
+      contextTokens: configuration.contextBudget.contextTokens,
+      memoryBytes: configuration.memoryBytes, progress: progress)
+    return report(folder, manifest, made: true)
+  }
+  private static func report(_ folder: URL, _ manifest: PromptHeader.Manifest, made: Bool) -> Value {
+    .object([
+      "folder": .string(folder.path), "made": .bool(made), "inputs": .string(manifest.inputs),
+      "tokens": .number(Double(manifest.tokens)), "bytes": .number(Double(manifest.dataBytes)),
+      "cacheName": .string(manifest.cacheName),
+    ])
   }
   static func check(validateMetal: Bool) throws -> Value {
     let (manifest, engine, grammar) = try layout()
@@ -99,6 +163,7 @@ enum NativeProductResources {
       "tokenizerResources": .bool(true), "grammarLibrary": .bool(true),
       "metalLibrary": validateMetal ? .bool(true) : .null,
       "kernelCount": .number(Double(kernels)), "selectedModel": .string(pack.name),
+      "promptHeader": try headerState().report,
     ])
   }
   private static func verify(_ file: URL, _ digest: String) throws {

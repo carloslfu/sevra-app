@@ -8,6 +8,7 @@ from pathlib import Path
 import sqlite3
 import subprocess
 import uuid
+import prompt_header
 
 ROOT = Path(__file__).resolve().parents[1]
 
@@ -20,6 +21,7 @@ def main():
     parser.add_argument('--output', type=Path, required=True)
     args = parser.parse_args()
     cli, worker = args.cli.resolve(strict=True), args.worker.resolve(strict=True)
+    prompt_header.ensure(cli, args.model_root)
     root = args.output.resolve()
     root.mkdir(parents=True, exist_ok=False)
     result = {'ok': False, 'recordedUTC': datetime.datetime.now(datetime.timezone.utc).isoformat(),
