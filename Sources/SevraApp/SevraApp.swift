@@ -154,12 +154,13 @@ private struct WorkbookFileCommands: Commands {
   /// Brings an open workbook forward, or opens a window for it. Either way the start page closes,
   /// and a workbook that is gone is reported before any window opens.
   func show(_ url: URL) {
-    if let owner = WorkbookWindowRegistry.owner(of: url.path) {
+    let path = WorkbookWindowRegistry.canonical(url.path)
+    if let owner = WorkbookWindowRegistry.owner(of: path) {
       WorkbookWindowRegistry.bringForward(owner)
       NSApp.activate(ignoringOtherApps: true)
       return
     }
-    guard FileManager.default.fileExists(atPath: url.path) else {
+    guard FileManager.default.fileExists(atPath: path) else {
       RecentWorkbooks.forget(url.path)
       Self.report(
         "Can’t find “\(url.deletingPathExtension().lastPathComponent)”",
@@ -167,7 +168,7 @@ private struct WorkbookFileCommands: Commands {
       )
       return
     }
-    openWindow(value: url.path)
+    openWindow(value: path)
   }
   /// On the window in front when there is one, so it reads as that window's answer.
   static func report(_ title: String, _ message: String) {
@@ -200,9 +201,12 @@ private struct WorkbookFileCommands: Commands {
 /// The workbooks listed on the start page, newest first.
 enum RecentWorkbooks {
   static let key = "recentWorkbooks"
+  /// Another spelling of the same workbook replaces its older entry rather than adding a second.
   static func add(_ path: String) {
+    let path = WorkbookWindowRegistry.canonical(path)
     let previous = UserDefaults.standard.stringArray(forKey: key) ?? []
-    UserDefaults.standard.set(Array(([path] + previous.filter { $0 != path }).prefix(10)), forKey: key)
+    let others = previous.filter { WorkbookWindowRegistry.canonical($0) != path }
+    UserDefaults.standard.set(Array(([path] + others).prefix(10)), forKey: key)
   }
   static func forget(_ path: String) {
     let previous = UserDefaults.standard.stringArray(forKey: key) ?? []
@@ -331,7 +335,15 @@ struct WorkspaceWindow: View {
   @State private var startingFiles: (destination: String, files: [URL])?
   var body: some View {
     Group {
-      if state.workbook != nil { WorkbookView(state: state) } else { welcome }
+      if state.workbook != nil {
+        WorkbookView(state: state)
+      } else if let path {
+        // Opening can wait for another process to let go of the workbook. Showing the start page
+        // meanwhile looked like a second one, and closing it left no window at all.
+        OpeningWorkbookView(name: Self.name(path)) { ownWindow?.performClose(nil) }
+      } else {
+        welcome
+      }
     }
     .frame(minWidth: 820, minHeight: 600)
     .background(
@@ -352,7 +364,8 @@ struct WorkspaceWindow: View {
             closeGuard = DocumentCloseGuard(
               asyncFlush: { [weak state] in await state?.saveBeforeClosing() ?? true },
               closed: { [weak state] window in
-                let heldWorkbook = state?.workbook != nil
+                // A window still opening its workbook counts too: closing it cancels the open.
+                let heldWorkbook = state?.workbook != nil || claimed != nil
                 state?.close()
                 WorkbookWindowRegistry.release(window)
                 retired = true
@@ -370,25 +383,34 @@ struct WorkspaceWindow: View {
           state.formDrafts.revealFailure = state.documentDrafts.revealFailure
         }
         window?.representedURL = state.workbook?.url
-        window?.title = state.workbook?.title ?? "Sevra"
+        window?.title = state.workbook?.title ?? path.map(Self.name) ?? "Sevra"
       }
     )
     .onAppear { inbox.files = files }
     .task(id: claimed) {
-      if let path = claimed {
-        do {
-          try await state.open(URL(fileURLWithPath: path))
-          guard !Task.isCancelled else { return }
-          WorkbookWindowRegistry.closeStarts(except: ownWindow)
-          RecentWorkbooks.add(path)
-          if let intake = startingFiles, intake.destination == path {
-            startingFiles = nil
-            state.importFiles(intake.files)
-          }
-        } catch {
-          guard !Task.isCancelled else { return }
-          openFailed(path, error)
+      guard let path = claimed, let window = ownWindow else { return }
+      // The window still holds the workbook only if it was not closed while the workbook opened.
+      let stillOpen = { @MainActor in
+        !Task.isCancelled && WorkbookWindowRegistry.owner(of: path) === window
+      }
+      do {
+        try await state.open(URL(fileURLWithPath: path))
+        guard stillOpen() else {
+          state.close()
+          return
         }
+        WorkbookWindowRegistry.closeStarts(except: window)
+        RecentWorkbooks.add(path)
+        if let intake = startingFiles, intake.destination == path {
+          startingFiles = nil
+          state.importFiles(intake.files)
+        }
+      } catch {
+        guard stillOpen() else {
+          state.close()
+          return
+        }
+        openFailed(path, error, in: window)
       }
     }
     .onReceive(NotificationCenter.default.publisher(for: .sevraStopping)) { _ in
@@ -403,7 +425,7 @@ struct WorkspaceWindow: View {
         if path == nil, state.workbook == nil,
           let first = urls.firstIndex(where: { $0.pathExtension != "sevraz" })
         {
-          path = urls.remove(at: first).path
+          path = WorkbookWindowRegistry.canonical(urls.remove(at: first).path)
         }
         urls.forEach(files.open)
       }
@@ -442,24 +464,30 @@ struct WorkspaceWindow: View {
       startFromFiles: startFromFiles, open: { files.open() }, create: { files.create() },
       demo: { files.demo() }, openRecent: { files.show(URL(fileURLWithPath: $0)) })
   }
+  static func name(_ path: String) -> String {
+    URL(fileURLWithPath: path).deletingPathExtension().lastPathComponent
+  }
   /// A window that cannot open its workbook gives it up. With other windows open it closes and the
   /// error shows on the one in front; otherwise it becomes the start page and shows the error there.
-  private func openFailed(_ failed: String, _ error: Error) {
-    let title = "Can’t open “\(URL(fileURLWithPath: failed).deletingPathExtension().lastPathComponent)”"
-    guard let window = ownWindow else {
-      welcomeError = error.localizedDescription
-      return
-    }
+  private func openFailed(_ failed: String, _ error: Error, in window: NSWindow) {
     WorkbookWindowRegistry.release(window)
     if WorkbookWindowRegistry.hasWindows(besides: window) {
       retired = true
       window.close()
-      WorkbookFiles.report(title, error.localizedDescription)
-    } else {
-      claimed = nil
-      path = nil
-      welcomeError = error.localizedDescription
+      // After the close, so the window now in front shows it.
+      DispatchQueue.main.async {
+        WorkbookFiles.report("Can’t open “\(Self.name(failed))”", error.localizedDescription)
+      }
+      return
     }
+    // Nothing the failed open had already taken stays held by a window that is now the start page.
+    state.close()
+    claimed = nil
+    path = nil
+    // Recorded here rather than left to the next window update, which might not come before a
+    // workbook opens elsewhere and would then leave this page behind it.
+    WorkbookWindowRegistry.showsStart(window, true)
+    welcomeError = error.localizedDescription
   }
   /// Closing the last workbook leaves the start page, never an app with no window. Quitting does not.
   private func reopenStartIfLast() {

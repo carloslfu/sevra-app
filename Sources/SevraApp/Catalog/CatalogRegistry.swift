@@ -78,6 +78,7 @@ enum CatalogRegistry {
     }
     for (id, title, source, variants) in [
       ("welcome", "Welcome", "WelcomeView.swift", ["Default", "Empty", "Dense"]),
+      ("opening", "Opening a workbook", "WelcomeView.swift", ["Default", "Long labels"]),
       (
         "shell", "Workbook shell", "WorkbookView.swift",
         ["Default", "Focused", "Busy", "Failure", "Long labels"]

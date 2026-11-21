@@ -492,6 +492,29 @@ nonisolated(unsafe) private var checksCompleted = false
       Windows.release(reopened)
       try expect(Windows.shouldOpenStart(now: 102), "A shown start page did not end the request")
     }
+    check("Another spelling of an open workbook's path finds its window") {
+      typealias Windows = WorkbookWindowRegistry
+      let folder = root.appendingPathComponent("Spelling.sevra")
+      try FileManager.default.createDirectory(at: folder, withIntermediateDirectories: true)
+      let owner = window()
+      let late = window()
+      owner.orderFront(nil)
+      defer { Windows.release(owner) }
+      try expect(Windows.claim(folder.path, by: owner), "Window did not get its workbook")
+      let parent = folder.deletingLastPathComponent().path
+      // The temporary folder sits behind the /var symlink, so each spelling also crosses it.
+      for spelling in [
+        parent + "/SPELLING.sevra", parent + "/./Spelling.sevra/", parent + "/../"
+          + folder.deletingLastPathComponent().lastPathComponent + "/Spelling.sevra",
+      ] {
+        try expect(Windows.owner(of: spelling) === owner, "Another spelling looked unopened: " + spelling)
+      }
+      try expect(
+        !Windows.claim(parent + "/SPELLING.sevra", by: late), "A second window took the same workbook")
+      try expect(
+        Windows.canonical("/missing/./a/../b.sevra") == "/missing/b.sevra",
+        "A path that does not exist was not tidied")
+    }
     await checkAsync("Asynchronous close waits for durable state and preserves a failed window") {
       let window = window()
       let original = PreviousDelegate()

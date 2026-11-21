@@ -95,7 +95,7 @@ struct AutomationSchedulesView: View {
                     Task {
                       do {
                         let url = try await Task.detached { try registry.resolvedURL(grant) }.value
-                        openWindow(value: url.path)
+                        WorkbookFiles(openWindow: openWindow).show(url)
                       } catch { failure = error.localizedDescription }
                     }
                   }

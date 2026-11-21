@@ -461,6 +461,11 @@ struct CatalogProductionView: View {
         openRecent: { _ in
           state.error = "Synthetic recent file is missing. Create an example instead."
         }, defaults: session.defaults)
+    } else if id == "main.opening" {
+      OpeningWorkbookView(
+        name: session.variant == "Long labels"
+          ? "Quarterly supplier comparison for the north and south warehouses, revised" : "Willow Workshop"
+      ) { state.error = "Cancel closes the window in the app." }
     } else if id == "main.settings" {
       ModelSettingsView(
         initialState: session.variant,

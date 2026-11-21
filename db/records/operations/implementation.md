@@ -3,7 +3,7 @@ type: operational
 meta-type: conclusion
 id: 01m5rbxzcsjnewm0pwmb9a06cj
 created: 2026-10-25T01:48:47.385772+00:00
-updated: 2026-11-21T18:20:00+00:00
+updated: 2026-11-21T19:20:00+00:00
 summary: Automatic local-model Excel conversion qualified across 10 generated apps and 89 independent originals, including five held-out states; no manual generated-code repairs.
 title: Implementation and acceptance
 ---
@@ -29,6 +29,17 @@ What changed:
 **Installed.** The installed app's executable UUID `62E8BFF0-E05A-34D3-9983-25A139FB0042` matches the package, and its prompt header is present.
 
 **Limits.** Open, New and the example run through system panels that the agent cannot operate, so they were not driven; their last step is the same `show`. A damaged workbook's error still ends with the low-level reason. The start page view did not change, so the UI Catalog needed no new entry.
+
+**Audit fixes, the same day.** The owner then [[sources/notes/2026/11/start-window-audit|asked]] for an in-depth code check of every path and chose four of its seven findings:
+
+1. **A window still opening its workbook showed the start page.** Opening can wait up to 30 seconds for another process, and closing that apparent duplicate let the open finish in the background, close the real start page and leave no window. The window now shows "Opening “Name”…" with Cancel, and takes the workbook's name as its title. Closing it cancels the open: when the open finishes, the workbook is let go and no other window changes. If it was the last window, the start page comes back.
+2. **A failed window that becomes the start page** is now recorded as one directly, rather than by the next window update, and lets go of anything the failed open took.
+3. **Paths take one spelling,** resolved with `realpath` (symlinks, `/private`, `..`, letter case), so the same workbook by another path finds its window, and the recent list keeps one entry for it.
+4. **The automation "Open workbook" button** uses the same `show` step.
+
+The UI Catalog has an "Opening a workbook" entry with Default and Long labels variants; it was compiled, not rendered. The other three findings were not chosen: native tabs can make a second start page, an error can show while Sevra is in the background, and the error titles differ.
+
+**Checks.** `sevra-document-checks` passes 31 of 31, with a new check for other spellings of an open workbook's path. In an isolated copy, a script held a throwaway workbook's lock: the opening state showed, Cancel closed it and left the start page, and after the lock was released no window changed and the app held no file in that workbook. With no window open, a folder that is not a workbook became the start page with its error, and opening Alpha as `/tmp/.../ALPHA.sevra` closed it. Opening it again by its `/private/tmp` path made no window. The package reused the cached prompt header `8702d438`, so no model ran.
 
 ## Hardcoded replies removed, November 17
 

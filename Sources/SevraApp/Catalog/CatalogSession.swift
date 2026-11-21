@@ -55,7 +55,8 @@ import SwiftUI
     if story.id == "main.settings" { return 420 }
     if story.id.hasPrefix("home.component.")
       || [
-        "main.welcome", "main.column-editor", "main.navigation", "home.layout", "main.intake",
+        "main.welcome", "main.opening", "main.column-editor", "main.navigation", "home.layout",
+        "main.intake",
         "main.voice",
       ].contains(story.id)
     {

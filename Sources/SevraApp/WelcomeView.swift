@@ -1,6 +1,26 @@
 import SevraTableUI
 import SwiftUI
 
+/// A window opening its workbook. Opening can wait for another process to let the workbook go, so
+/// it says which workbook and can be cancelled, which closes the window.
+struct OpeningWorkbookView: View {
+  let name: String
+  let cancel: () -> Void
+  var body: some View {
+    VStack(spacing: 16) {
+      ProgressView().controlSize(.large).accessibilityHidden(true)
+      Text("Opening “\(name)”…").readingFont(.title3).multilineTextAlignment(.center)
+        .lineLimit(2).truncationMode(.middle).frame(maxWidth: 420)
+      Button("Cancel", action: cancel).keyboardShortcut(.cancelAction)
+    }
+    .padding(32)
+    .frame(maxWidth: .infinity, maxHeight: .infinity)
+    .background(Color(nsColor: .windowBackgroundColor))
+    .accessibilityElement(children: .contain)
+    .accessibilityLabel("Opening \(name)")
+  }
+}
+
 struct WelcomeView: View {
   let startFromFiles: () -> Void
   let open: () -> Void

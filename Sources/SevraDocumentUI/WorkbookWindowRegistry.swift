@@ -9,8 +9,18 @@ import AppKit
   /// Set while the app quits, so the windows closing then bring nothing back.
   public static var quitting = false
 
+  /// One spelling per workbook, so one reached through a symlink, `/private`, `..` or other letter
+  /// case is still the same open workbook. A path that does not exist is only tidied.
+  nonisolated public static func canonical(_ path: String) -> String {
+    guard let resolved = realpath(path, nil) else {
+      return URL(fileURLWithPath: path).standardizedFileURL.path
+    }
+    defer { free(resolved) }
+    return String(cString: resolved)
+  }
+
   public static func owner(of path: String) -> NSWindow? {
-    owners.object(forKey: path as NSString)
+    owners.object(forKey: canonical(path) as NSString)
   }
 
   /// One window per workbook. False when another window has it, which then comes forward.
@@ -20,7 +30,7 @@ import AppKit
       return false
     }
     starts.remove(window)
-    owners.setObject(window, forKey: path as NSString)
+    owners.setObject(window, forKey: canonical(path) as NSString)
     return true
   }
 
