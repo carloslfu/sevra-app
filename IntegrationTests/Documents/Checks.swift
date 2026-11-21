@@ -450,6 +450,48 @@ nonisolated(unsafe) private var checksCompleted = false
         !window.isVisible && original.requests == 2 && original.closes == 1,
         "Original close notification was not forwarded")
     }
+    check("A workbook in front closes the start page, and the last close asks for it once") {
+      typealias Windows = WorkbookWindowRegistry
+      let start = window()
+      let alpha = window()
+      let late = window()
+      for opened in [start, alpha, late] { opened.orderFront(nil) }
+      defer { for opened in [start, alpha, late] { Windows.release(opened) } }
+      Windows.showsStart(start, true)
+      try expect(Windows.claim("/books/alpha.sevra", by: alpha), "First window lost its workbook")
+      try expect(start.isVisible, "Claiming alone closed the start page")
+      // Opening a workbook that is already open only brings its window forward.
+      try expect(
+        !Windows.claim("/books/alpha.sevra", by: late), "A second window took an open workbook")
+      try expect(
+        !start.isVisible && Windows.start == nil && alpha.isVisible,
+        "Bringing an open workbook forward left the start page behind it")
+      // Start from files turns the start page itself into the workbook, which must stay open.
+      let becoming = window()
+      let other = window()
+      becoming.orderFront(nil)
+      other.orderFront(nil)
+      defer { Windows.release(becoming) }
+      Windows.showsStart(becoming, true)
+      Windows.showsStart(other, true)
+      try expect(Windows.claim("/books/beta.sevra", by: becoming), "Start page lost its new workbook")
+      Windows.closeStarts(except: becoming)
+      try expect(
+        becoming.isVisible && !other.isVisible, "Opening closed the wrong start page")
+      try expect(!Windows.shouldOpenStart(now: 100), "Asked for a start page with workbooks open")
+      Windows.release(alpha)
+      Windows.release(becoming)
+      Windows.quitting = true
+      try expect(!Windows.shouldOpenStart(now: 100), "Asked for a start page while quitting")
+      Windows.quitting = false
+      try expect(Windows.shouldOpenStart(now: 100), "Last close did not ask for a start page")
+      try expect(
+        !Windows.shouldOpenStart(now: 101), "Two closes together asked for two start pages")
+      let reopened = window()
+      Windows.showsStart(reopened, true)
+      Windows.release(reopened)
+      try expect(Windows.shouldOpenStart(now: 102), "A shown start page did not end the request")
+    }
     await checkAsync("Asynchronous close waits for durable state and preserves a failed window") {
       let window = window()
       let original = PreviousDelegate()

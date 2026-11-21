@@ -2,11 +2,12 @@
 type: index
 scope: type-folder
 folder: sources/notes
-updated: 2026-11-20T01:57:31.472082Z
+updated: 2026-11-21T17:59:30.000622Z
 ---
 
 # sources/notes
 
+- [[sources/notes/2026/11/start-window-closes]] — Carlos asks for the start window to close whenever a workbook opens, and leaves the last-close behavior to the best UX.
 - [[sources/notes/2026/11/general-tools-whole-plan]] — Carlos asks for the whole general chat tools plan built end to end, the prepared header included.
 - [[sources/notes/2026/11/slim-ci]] — Carlos has the app CI slimmed: one shared check list, a quick mode for every push and the full set for releases.
 - [[sources/notes/2026/11/general-tools-only]] — Carlos makes the seven tools the only chat tools and asks to remove the old way, with no backward compatibility.

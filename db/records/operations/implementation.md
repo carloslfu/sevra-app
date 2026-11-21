@@ -3,11 +3,32 @@ type: operational
 meta-type: conclusion
 id: 01m5rbxzcsjnewm0pwmb9a06cj
 created: 2026-10-25T01:48:47.385772+00:00
-updated: 2026-11-18T02:29:06.681847+00:00
+updated: 2026-11-21T18:20:00+00:00
 summary: Automatic local-model Excel conversion qualified across 10 generated apps and 89 independent originals, including five held-out states; no manual generated-code repairs.
 title: Implementation and acceptance
 ---
 # Implementation and acceptance
+
+## Start window closes behind a workbook, November 21
+
+The owner [[sources/notes/2026/11/start-window-closes|asked]] for the start window to close whenever a workbook opens. On the installed build his workbook opened and the start window stayed behind it. In an isolated copy of that build, a recent workbook, a file from Finder and a cold launch with a file each closed it. Two paths did not, and one was missing:
+
+- **A workbook that could not open** made a second window that showed the start page with the error, and that window stayed behind the next workbook. A missing workbook said only that `manifest.json` could not be found.
+- **A workbook already open** came forward without closing the start window. SwiftUI brings the existing window forward, and the close ran only when a workbook finished opening.
+- **Nothing brought the start window back** after the last workbook closed.
+
+What changed:
+
+- [WorkbookWindowRegistry](../../../Sources/SevraDocumentUI/WorkbookWindowRegistry.swift) records which windows hold a workbook and which show the start page. It replaces the app's own owner table and the notification that closed start pages.
+- Every way into a workbook goes through `WorkbookFiles.show`. An open workbook comes forward and the start page closes. A workbook no longer on disk is reported before any window opens and leaves the recent list.
+- A window that fails to open its workbook gives it up. With another window open it closes and the error names the workbook. Otherwise it becomes the start page and shows the error there.
+- Closing the last workbook window opens the start page, once, also when several close together. Quitting and closing the start page itself do not.
+
+**Checks.** `sevra-document-checks` passes 30 of 30. Its new check covers the registry: an open workbook coming forward closes the start page, Start from files keeps its own window, and the last close asks for one start page and none while quitting. In an isolated copy of the new build with throwaway workbooks, Missing showed "Can’t find “Missing”" with no new window and left the list. A folder that is not a workbook showed "Can’t open “Broken”" and left one start window. Opening Alpha closed the start page, and opening it again from Finder made no window. Close All with two workbooks left one start window. Closing the start page left none, and Quit with a workbook open ended in about a second.
+
+**Installed.** The installed app's executable UUID `62E8BFF0-E05A-34D3-9983-25A139FB0042` matches the package, and its prompt header is present.
+
+**Limits.** Open, New and the example run through system panels that the agent cannot operate, so they were not driven; their last step is the same `show`. A damaged workbook's error still ends with the low-level reason. The start page view did not change, so the UI Catalog needed no new entry.
 
 ## Hardcoded replies removed, November 17
 
