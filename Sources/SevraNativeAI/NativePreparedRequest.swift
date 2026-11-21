@@ -101,6 +101,7 @@ package struct NativePreparedRequest {
       policy = try NativeCitationPolicy.make(
         citationIDs, toolScope: toolScope, thinking: reasoning.enabled,
         itemReferenceIDs: ItemReferenceCandidates.ids(in: messages),
+        historyReferenceIDs: ItemReferenceCandidates.historyIDs(in: messages),
         conversationActions: messages.first?.conversationActions,
         documentCopyIDs: DocumentCopyCandidates.ids(in: messages),
         nativeAppAuthoring: messages.first?.nativeAppAuthoring == true,
@@ -138,11 +139,12 @@ package struct NativePreparedRequest {
       // The executable grammar still receives the original, complete authority policy.
       var shared: [[String: any Sendable]] = []
       var additional: [String] = []
+      // Chat shows every scope the same seven tools, so all of them belong to the header.
       let sharesChatTools = toolScope.allows("read") && toolScope.allows("finish")
       for tool in tools {
         let function = tool["function"] as? [String: any Sendable]
         let name = function?["name"] as? String ?? ""
-        if !sharesChatTools || (InferenceToolScope.answer.allows(name)
+        if !toolScope.specialized || !sharesChatTools || (InferenceToolScope.answer.allows(name)
           && !["workspace_actions", "workspace_action"].contains(name)) {
           shared.append(tool)
         } else {

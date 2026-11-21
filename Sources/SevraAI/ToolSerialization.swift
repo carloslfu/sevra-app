@@ -70,7 +70,8 @@ extension NativeTools {
       ], required: ["kind", "name", "description"]))
 
   package static func referenceDefinitions(
-    itemReferenceIDs: [String] = [], conversationActions: [String]? = nil,
+    itemReferenceIDs: [String] = [], historyReferenceIDs: [String]? = nil,
+    conversationActions: [String]? = nil,
     toolScope: InferenceToolScope = .all, documentCopyIDs: [String]? = nil,
     nativeAppAuthoring: Bool = true, reviewContract: Value = .null, conversationInput: Bool = false,
     visualCaptureIDs: [String] = [], display: Bool = false
@@ -97,12 +98,14 @@ extension NativeTools {
         Set(conversationActions).isSubset(of: Set(WorkbookTools.conversationTools.values)),
         "tool_schema", "Invalid conversation capability.")
     }
-    // A scope that only reads offers only the actions that only read.
+    // A scope that only reads offers only the actions that only read. What the model is shown
+    // is the same in every chat scope, so every chat turn starts with the one prepared header.
     return GeneralTools.definitions(
       operations: toolScope.workspaceOperations.map(\.name),
-      threads: conversationActions.map(Set.init), apps: nativeAppAuthoring,
-      ask: toolScope.allows("request_input", conversationInput: conversationInput)
-        ? inputDefinition : nil, readOnly: !toolScope.changes, items: ids, display: display,
+      threads: conversationActions.map(Set.init), apps: display || nativeAppAuthoring,
+      ask: display || toolScope.allows("request_input", conversationInput: conversationInput)
+        ? inputDefinition : nil, readOnly: !toolScope.changes, items: ids,
+      messages: historyReferenceIDs, display: display,
       copies: copies, answersWorkflow: toolScope == .workflowAnswer
     ).map { definition in
       guard definition.name == "finish", !visualCaptureIDs.isEmpty else { return definition }
@@ -168,12 +171,14 @@ extension NativeTools {
   /// The same maintained declarations feed both backend boundaries.
   package static func serializedDefinitions(
     toolScope: InferenceToolScope = .all, itemReferenceIDs: [String] = [],
+    historyReferenceIDs: [String]? = nil,
     conversationActions: [String]? = nil, documentCopyIDs: [String]? = nil,
     nativeAppAuthoring: Bool = true, reviewContract: Value = .null, conversationInput: Bool = false,
     visualCaptureIDs: [String] = [], display: Bool = false
   ) throws -> Data {
     let definitions = try referenceDefinitions(
-      itemReferenceIDs: itemReferenceIDs, conversationActions: conversationActions,
+      itemReferenceIDs: itemReferenceIDs, historyReferenceIDs: historyReferenceIDs,
+      conversationActions: conversationActions,
       toolScope: toolScope, documentCopyIDs: documentCopyIDs,
       nativeAppAuthoring: nativeAppAuthoring,
       reviewContract: reviewContract, conversationInput: conversationInput,
@@ -182,7 +187,7 @@ extension NativeTools {
     .filter {
       toolScope.specialized
         ? toolScope.allows($0.name, conversationInput: conversationInput)
-        : GeneralTools.allowed($0.name, in: toolScope, conversationInput: conversationInput)
+        : display || GeneralTools.allowed($0.name, in: toolScope, conversationInput: conversationInput)
     }
     let values: [[String: Any]] = try definitions.map {
       [

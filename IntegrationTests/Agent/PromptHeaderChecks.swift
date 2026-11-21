@@ -47,6 +47,7 @@ func checkPromptHeader() async throws {
 
   // 1. Real first decisions of ordinary chat in the app, a read-only request and the CLI.
   let expected = try PromptHeader.inputs(reasoning: .bounded512)
+  var ordinary: [InferenceMessage]?
   for (prompt, conversationInput) in [
     ("How many brass bolts do we have?", true),
     ("Without changing anything, list the tables.", true),
@@ -65,6 +66,22 @@ func checkPromptHeader() async throws {
       inputs == expected,
       "A chat turn's header differs from the prepared one: " + prompt
         + " (conversation input \(conversationInput))")
+    if ordinary == nil { ordinary = first.messages }
+  }
+  // A turn can narrow its scope midway, as when exploration runs long, or start building an
+  // app. On November 21, 2026 such a decision showed fewer tools and read 5,000 tokens again.
+  // Every chat scope now shows the same tools, so every decision keeps the prepared header.
+  guard var messages = ordinary else {
+    throw SevraError("prompt_header_check", "No ordinary decision was captured.")
+  }
+  for authoring in [false, true] {
+    messages[0].nativeAppAuthoring = authoring
+    for scope in InferenceToolScope.allCases where !scope.specialized && scope.allows("finish") {
+      try expectHeader(
+        try NativePreparedRequest.headerInputs(
+          messages: messages, configuredReasoning: .bounded512, toolScope: scope) == expected,
+        "The \(scope.rawValue) scope shows a different header (app authoring \(authoring)).")
+    }
   }
   try expectHeader(
     try PromptHeader.inputsDigest(reasoning: .bounded512)

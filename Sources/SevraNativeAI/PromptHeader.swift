@@ -35,8 +35,7 @@ package enum PromptHeader {
   package static var ordinaryMessages: [InferenceMessage] {
     var system = InferenceMessage(
       role: "system", content: GeneralTools.instructions + "\n" + GeneralTools.scopeInstructions)
-    system.cacheablePolicy = GeneralTools.instructions
-    system.scopePolicy = "\n" + GeneralTools.scopeInstructions
+    system.cacheablePolicy = system.content
     system.initialChatDecision = true
     system.conversationInput = true
     return [system, InferenceMessage(role: "user", content: "Hello")]

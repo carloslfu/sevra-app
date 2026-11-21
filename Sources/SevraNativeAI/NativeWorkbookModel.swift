@@ -145,6 +145,19 @@ package actor NativeWorkbookModel: WorkbookInference {
 
   package func releaseResources() async -> Bool { await unload() }
 
+  /// Starts the engine before a request needs it, so Send does not wait for the model to load.
+  /// Nothing is sent to the model. It holds the same lock as a run and leaves the engine on the
+  /// ordinary idle timer. A failure is not reported here: the request that follows meets it.
+  package func prewarm(directory: URL, cancellation: Cancellation) async -> Bool {
+    guard !leased && !active else { return false }
+    do { try beginRun() } catch { return false }
+    active = true
+    let started = await worker.prewarm(directory: directory, cancellation: cancellation)
+    active = false
+    await endRun()
+    return started
+  }
+
   @discardableResult package func unload() async -> Bool {
     guard !active && !leased else { return false }
     active = true
@@ -605,6 +618,20 @@ private final class NativeWorker: @unchecked Sendable {
     }
   }
 
+  /// Creates the session and starts its engine, restoring the prepared header, without a request.
+  func prewarm(directory: URL, cancellation: Cancellation) async -> Bool {
+    (try? await perform(directory: directory, cancellation: cancellation, progress: { _ in }) {
+      (session: Session) -> Void in
+      _ = try session.start(cancellation: cancellation, progress: { _ in })
+      // Nobody waited for this setup, so no request reports it.
+      self.unreportedSessionSetup = 0
+    }) != nil
+  }
+
+  /// Seconds the last new session spent on its model files, tokenizer, grammar and header check.
+  /// The next request reports them once, so a request that found a ready session reports zero.
+  private var unreportedSessionSetup: Double = 0
+
   func hasSession() async -> Bool {
     await withCheckedContinuation { continuation in
       queue.async { continuation.resume(returning: self.session?.helper != nil) }
@@ -663,9 +690,11 @@ private final class NativeWorker: @unchecked Sendable {
               self.session?.helper?.close() != false, "native_shutdown",
               "The previous native helper has not stopped. Retry unloading it.")
             self.session = nil
+            let setupStart = ProcessInfo.processInfo.systemUptime
             self.session = try Session(
               directory: directory, configuration: self.configuration,
               cancellation: cancellation, progress: progress)
+            self.unreportedSessionSetup = ProcessInfo.processInfo.systemUptime - setupStart
           }
           let result = try action(self.session!)
           try cancellation.check()
@@ -801,6 +830,8 @@ private final class NativeWorker: @unchecked Sendable {
       outputTokens: prepared.outputBudget, capacity: session.capacity,
       toolResultTokens: prepared.toolResultTokens)
     let preparedAt = ProcessInfo.processInfo.systemUptime
+    let sessionSetup = unreportedSessionSetup
+    unreportedSessionSetup = 0
     var helper = try session.start(cancellation: cancellation, progress: progress)
     let helperReadyAt = ProcessInfo.processInfo.systemUptime
     let allowance = try budget.allowance(
@@ -957,6 +988,7 @@ private final class NativeWorker: @unchecked Sendable {
       "templateIdentity": .string(prepared.templateIdentity),
       "toolScope": .string(interpretation == nil ? toolScope.rawValue : "workflow_interpretation"),
       "requestSeconds": .number(generated.requestSeconds),
+      "sessionSetupSeconds": .number(sessionSetup),
       "hostPreparationSeconds": .number(preparedAt - hostStart),
       "helperStartSeconds": .number(helperReadyAt - preparedAt),
       "beforeDispatchSeconds": .number(dispatchAt - hostStart),

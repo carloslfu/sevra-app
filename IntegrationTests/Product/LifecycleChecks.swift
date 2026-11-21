@@ -120,6 +120,15 @@ actor PausedModel: WorkbookInference {
       if CommandLine.arguments.count == 4 && CommandLine.arguments[1] == "--native" {
         try await nativePressureChecks(
           modelsRoot: CommandLine.arguments[2], packagedBin: CommandLine.arguments[3])
+      } else if CommandLine.arguments.count == 4 && CommandLine.arguments[1] == "--first-request-prompt" {
+        try await firstRequestPrompt(
+          tokenizer: CommandLine.arguments[2], workbook: CommandLine.arguments[3])
+        exit(0)
+      } else if CommandLine.arguments.count == 5 && CommandLine.arguments[1] == "--first-request" {
+        try await firstRequestTrace(
+          modelsRoot: CommandLine.arguments[2], packagedBin: CommandLine.arguments[3],
+          workbook: CommandLine.arguments[4])
+        exit(0)
       } else {
         try expect(
           CommandLine.arguments.count == 1,
@@ -278,6 +287,7 @@ actor PausedModel: WorkbookInference {
     print(
       "PASS setup release failure prevents subsequent model reuse without writing workbook data")
 
+    try await checkPrewarm(book: try book("prewarm"))
     try await checkWorkflowModelLifecycle()
     try await checkWorkflowExtractionLifecycle()
     try await checkWorkflowIntakeLifecycle()

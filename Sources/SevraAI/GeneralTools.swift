@@ -198,6 +198,55 @@ package enum GeneralTools {
     "type": .string("array"), "items": .object(["type": .string("string")]),
   ])
 
+  /// What the grammar lets `read` name, kind by kind. An ID comes only from this context: a
+  /// document or record from the item choices, an earlier message from the messages this
+  /// conversation shows. A kind with nothing to name is not offered, so the model cannot make
+  /// up an ID for it. `messages` nil leaves earlier messages open, for callers without history.
+  static func readShapes(_ fields: [String: Value], items: [String], messages: [String]?)
+    -> Value
+  {
+    func pick(_ names: [String], _ overrides: [String: Value] = [:]) -> [String: Value] {
+      var picked = fields.filter { names.contains($0.key) }
+      for (name, value) in overrides { picked[name] = value }
+      return picked
+    }
+    func only(_ values: [String]) -> Value {
+      .object(["type": .string("string"), "enum": .array(values.map(Value.string))])
+    }
+    let relations = ["archive", "lineage", "references"]
+    let named = ["app", "definition", "result", "view_history", "workflow"]
+    var shapes: [Value] = []
+    if !items.isEmpty {
+      shapes.append(
+        NativeTools.object(
+          pick(["id", "kind", "offset"], ["id": only(items), "kind": only(["item"])]),
+          required: ["id"]))
+      shapes.append(
+        NativeTools.object(
+          pick(["id", "kind", "offset"], ["id": only(items), "kind": only(relations)]),
+          required: ["id", "kind"]))
+    }
+    if let messages, !messages.isEmpty {
+      shapes.append(
+        NativeTools.object(
+          pick(["kind", "ref"], ["kind": only(["message"]), "ref": only(messages)]),
+          required: ["kind", "ref"]))
+    }
+    let byRef = named + (messages == nil ? ["message"] : [])
+    shapes.append(
+      NativeTools.object(
+        pick(["kind", "ref", "offset", "path"], ["kind": only(byRef.sorted())]),
+        required: ["kind", "ref"]))
+    let listed = reads.keys.filter {
+      !(["item", "message"] + relations + named).contains($0)
+    }.sorted()
+    shapes.append(
+      NativeTools.object(pick(["kind", "ref"], ["kind": only(listed)]), required: ["kind"]))
+    var root = NativeTools.object(fields, required: []).object
+    root["anyOf"] = .array(shapes)
+    return .object(root)
+  }
+
   /// The seven declarations. `operations` are the workspace actions the scope allows,
   /// `threads` the thread actions this conversation allows, `apps` whether an app can be
   /// saved here, `copies` the original passages a document may copy (nil leaves them open),
@@ -205,8 +254,8 @@ package enum GeneralTools {
   /// answer prepared.
   package static func definitions(
     operations: [String], threads: Set<String>?, apps: Bool, ask: WorkbookToolDefinition?,
-    readOnly: Bool = false, items: [String] = [], display: Bool = false,
-    copies: [String]? = nil, answersWorkflow: Bool = false
+    readOnly: Bool = false, items: [String] = [], messages: [String]? = nil,
+    display: Bool = false, copies: [String]? = nil, answersWorkflow: Bool = false
   ) -> [WorkbookToolDefinition] {
     // What the model is shown is shorter than what the grammar enforces. A shape that is not
     // shown lists its fields by name, and the grammar supplies the rest as the call is written.
@@ -238,25 +287,23 @@ package enum GeneralTools {
           "in": choice(["workbook", "conversation", "definitions"], "Default workbook."),
           "cursor": schema("string", "Next page, from an earlier result."),
         ], required: ["query"]))
-    // Item IDs come only from what a search or an earlier read returned, so the grammar
-    // offers exactly those once there are any.
-    var item = schema("string", "A document or record, by the exact ID a search or read gave.").object
-    if !items.isEmpty { item["enum"] = .array(items.map(Value.string)) }
+    let readFields: [String: Value] = [
+      "id": schema("string", "A document or record, by the exact ID a search or read gave."),
+      "kind": choice(reads.keys.sorted(), "Default item."),
+      "ref": schema("string", "The exact ID of a thing that is not a document or record."),
+      "offset": schema("integer", "Where to continue a long document or result."),
+      "path": .object([
+        "type": .string("array"), "items": .object(["type": .string("string")]),
+        "description": .string("For kind=result: the field to page into."),
+      ]),
+    ]
     let read = WorkbookToolDefinition(
       name: "read",
       description:
         "Read one thing. With id alone: a document or record, with offset for later parts. references, lineage, archive: what that item links to, came from, or contains. Other kinds name their thing with ref. message: an earlier message. result: a page of a long saved tool result. app, definition, workflow, view_history: that saved thing. views, reviews, workflows: those lists, with no ref. actions: the actions run can perform, with ref as an optional group such as table, app, visual, file, workflow. app_guide: how to write an app. definition_guide: the kinds of saved definitions. rule_guide: how to save a rule that watches stock.",
-      parameters: object(
-        [
-          "id": .object(item),
-          "kind": choice(reads.keys.sorted(), "Default item."),
-          "ref": schema("string", "The exact ID of a thing that is not a document or record."),
-          "offset": schema("integer", "Where to continue a long document or result."),
-          "path": .object([
-            "type": .string("array"), "items": .object(["type": .string("string")]),
-            "description": .string("For kind=result: the field to page into."),
-          ]),
-        ], required: []))
+      parameters: display
+        ? object(readFields, required: [])
+        : readShapes(readFields, items: items, messages: messages))
     func parameters(_ tool: String) -> Value {
       NativeTools.definitions.first { $0.name == tool }!.parameters
     }

@@ -66,12 +66,10 @@ public final class SplashToolPolicy {
         let schema = try Self.normalize(function["parameters"] as Any, depth: 0, nodes: &nodes)
           as? [String: Any],
         schema["type"] as? String == "object",
-        schema["anyOf"] == nil,
         let properties = schema["properties"] as? [String: Any],
         properties.count <= 128, properties.keys.allSatisfy(Self.validName),
-        (schema["additionalProperties"] as? NSNumber).map({
-          CFGetTypeID($0) == CFBooleanGetTypeID() && !$0.boolValue
-        }) == true
+        Self.closed(schema),
+        Self.rootAlternatives(schema, within: properties)
       else { throw SplashError("Workbook tools require named closed root objects") }
       schemas[name] = schema
       normalized.append([
@@ -178,6 +176,8 @@ public final class SplashToolPolicy {
         var parameters = function["parameters"] as? [String: Any],
         var properties = parameters["properties"] as? [String: Any]
       else { continue }
+      // Alternative shapes only narrow the grammar. The prompt shows their union.
+      parameters.removeValue(forKey: "anyOf")
       for key in referenceFields[name] ?? [] {
         if var field = properties[key] as? [String: Any] {
           field.removeValue(forKey: "enum")
@@ -377,7 +377,52 @@ public final class SplashToolPolicy {
     return node
   }
 
+  private static func closed(_ schema: [String: Any]) -> Bool {
+    (schema["additionalProperties"] as? NSNumber).map({
+      CFGetTypeID($0) == CFBooleanGetTypeID() && !$0.boolValue
+    }) == true
+  }
+
+  /// A root object may narrow its fields with alternative closed objects, such as a read whose
+  /// ID choices depend on its kind. Each names only fields of the root, which keeps the union
+  /// that output parsing and the prompt use, and the grammar emits exactly one alternative.
+  private static func rootAlternatives(_ schema: [String: Any], within properties: [String: Any])
+    -> Bool
+  {
+    guard let alternatives = schema["anyOf"] else { return true }
+    guard let alternatives = alternatives as? [[String: Any]] else { return false }
+    return alternatives.allSatisfy { alternative in
+      guard alternative["type"] as? String == "object", closed(alternative),
+        alternative["anyOf"] == nil,
+        let fields = alternative["properties"] as? [String: Any]
+      else { return false }
+      let required = Set(alternative["required"] as? [String] ?? [])
+      return Set(fields.keys).isSubset(of: Set(properties.keys))
+        && required.isSubset(of: Set(fields.keys))
+    }
+  }
+
   private static func arguments(_ schema: [String: Any]) throws -> String {
+    guard let alternatives = schema["anyOf"] as? [[String: Any]] else {
+      let (sequence, rules) = try fields(schema, rules: "parameter")
+      return "%llguidance {}\nstart:" + sequence + "\n" + rules.joined(separator: "\n") + "\n"
+    }
+    var branches: [String] = []
+    var rules: [String] = []
+    for (index, alternative) in alternatives.enumerated() {
+      let (sequence, own) = try fields(alternative, rules: "shape_\(index)_parameter")
+      branches.append("shape_\(index)")
+      rules.append("shape_\(index):" + (sequence.isEmpty ? "" : sequence))
+      rules += own
+    }
+    return "%llguidance {}\nstart: " + branches.joined(separator: " | ") + "\n"
+      + rules.joined(separator: "\n") + "\n"
+  }
+
+  /// The fields of one closed object in key order, each optional unless required.
+  private static func fields(_ schema: [String: Any], rules names: String) throws
+    -> (sequence: String, rules: [String])
+  {
     let properties = schema["properties"] as! [String: Any]
     let required = Set(schema["required"] as? [String] ?? [])
     var sequence: [String] = []
@@ -386,7 +431,7 @@ public final class SplashToolPolicy {
       guard let value = properties[name] as? [String: Any] else {
         throw SplashError("Tool field schema needs explicit types")
       }
-      let rule = "parameter_\(index)"
+      let rule = "\(names)_\(index)"
       let prefix = "\(try quote("<parameter=")) \(try quote(name)) \(try quote(">\n"))"
       var literals: [Any]?
       if let constant = value["const"] {
@@ -429,8 +474,7 @@ public final class SplashToolPolicy {
       }
       sequence.append(rule + (required.contains(name) ? "" : "?"))
     }
-    return "%llguidance {}\nstart:" + sequence.map { " " + $0 }.joined() + "\n"
-      + rules.joined(separator: "\n") + "\n"
+    return (sequence.map { " " + $0 }.joined(), rules)
   }
 
   private static func validate(_ value: Any, schema: Any, depth: Int, nodes: inout Int) throws {

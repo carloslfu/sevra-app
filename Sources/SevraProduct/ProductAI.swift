@@ -13,6 +13,8 @@ public actor ProductAI {
   private var model: (any WorkbookInference)?
   private var pressureSource: DispatchSourceMemoryPressure?
   private let observesSystemPressure: Bool
+  private var prewarming: Task<Void, Never>?
+  private var prewarmCancellation: Cancellation?
 
   private init() {
     observesSystemPressure = true
@@ -112,10 +114,46 @@ public actor ProductAI {
     }
   }
 
+  /// Starts the local engine while the person reads or types, so the first request does not wait
+  /// for it. Nothing is sent to the model. It does nothing while the model is in use, already
+  /// starting, not set up, or held by another process, and the next request reports any failure.
+  /// The engine then follows the ordinary idle timer and memory-pressure release.
+  public func prewarm(modelDirectory: URL = ProductAI.defaultDirectory) {
+    guard !active, prewarming == nil, !releaseRequested else { return }
+    if model == nil {
+      guard let pack = try? SplashModelPack.selected(),
+        FileManager.default.fileExists(
+          atPath: modelDirectory.appendingPathComponent(pack.name + "/model.json").path),
+        let configuration = try? NativeProductResources.configuration(modelsRoot: modelDirectory)
+      else { return }
+      model = NativeWorkbookModel(configuration: configuration)
+    }
+    guard let model else { return }
+    observeMemoryPressure()
+    let cancellation = Cancellation()
+    prewarmCancellation = cancellation
+    prewarming = Task { [weak self] in
+      _ = await model.prewarm(directory: modelDirectory, cancellation: cancellation)
+      await self?.prewarmEnded()
+    }
+  }
+  private func prewarmEnded() {
+    prewarming = nil
+    prewarmCancellation = nil
+  }
+  /// A request waits for a start already under way, since it needs the engine too. Unloading and
+  /// memory pressure stop it first.
+  private func settlePrewarm(cancelling: Bool) async {
+    guard let task = prewarming else { return }
+    if cancelling { prewarmCancellation?.cancel() }
+    await task.value
+  }
+
   /// Ordinary user unload does not interrupt an active job. Exiting calls this too: the inference
   /// lock ends with the process, so the helper has to stop first or another process could load
   /// the model while this one still holds the memory.
   @discardableResult public func unload() async -> Bool {
+    await settlePrewarm(cancelling: true)
     guard !active else { return false }
     active = true
     let released = await model?.releaseResources() ?? true
@@ -153,6 +191,7 @@ public actor ProductAI {
   private func perform<T>(cancellation: Cancellation, operation: () async throws -> T) async throws
     -> T
   {
+    await settlePrewarm(cancelling: false)
     try require(!active, "busy", "Sevra is already using its local model.")
     active = true
     activeCancellation = cancellation

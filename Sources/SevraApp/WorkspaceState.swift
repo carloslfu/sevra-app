@@ -171,6 +171,8 @@ struct FolderReview {
     didSet {
       if prompt != oldValue && !applyingDictation { speech.stop() }
       if !restoringConversation { conversationSession.updateDraft(prompt) }
+      // Typing restarts an engine the idle timer stopped, before Send needs it.
+      if oldValue.isEmpty && !prompt.isEmpty && !restoringConversation { prewarmLocalAI() }
     }
   }
   private let automationBusyOwner = UUID()
@@ -325,6 +327,17 @@ struct FolderReview {
     spaceScroll = [:]
     beginInteraction()
     refresh()
+    prewarmLocalAI()
+  }
+
+  /// Starts the local engine while the person reads or types, so Send does not wait for the
+  /// model to load. Nothing is sent to it, and the request that follows reports any failure.
+  func prewarmLocalAI() {
+    let path =
+      defaults.string(forKey: ProductAI.preferenceKey).map { URL(fileURLWithPath: $0) }
+      ?? ProductAI.defaultDirectory
+    let ai = self.ai
+    Task { await ai.prewarm(modelDirectory: path) }
   }
   init(
     ai: ProductAI? = nil, defaults: UserDefaults = .standard,

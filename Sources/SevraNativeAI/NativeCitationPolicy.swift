@@ -9,7 +9,8 @@ import SevraSplashGrammar
 package enum NativeCitationPolicy {
   package static func make(
     _ citationIDs: [String], toolScope: InferenceToolScope = .all, thinking: Bool = false,
-    itemReferenceIDs: [String] = [], conversationActions: [String]? = nil,
+    itemReferenceIDs: [String] = [], historyReferenceIDs: [String]? = nil,
+    conversationActions: [String]? = nil,
     documentCopyIDs: [String]? = [], nativeAppAuthoring: Bool = true, reviewContract: Value = .null, conversationInput: Bool = false,
     visualCaptureIDs: [String] = [], countReceiptIDs: [String]? = nil, display: Bool = false
   ) throws
@@ -22,6 +23,7 @@ package enum NativeCitationPolicy {
       "This exploration has too many evidence references. Continue with a narrower question.")
     let serialized = try NativeTools.serializedDefinitions(
       toolScope: toolScope, itemReferenceIDs: itemReferenceIDs,
+      historyReferenceIDs: historyReferenceIDs,
       conversationActions: conversationActions, documentCopyIDs: documentCopyIDs,
       nativeAppAuthoring: nativeAppAuthoring,
       reviewContract: reviewContract, conversationInput: conversationInput,

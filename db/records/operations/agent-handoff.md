@@ -3,7 +3,7 @@ type: operational
 meta-type: operational
 id: 01m659x4nd2q89tkpzzsssd7yr
 created: 2026-10-30T02:23:30.477380+00:00
-updated: 2026-11-20T19:55:00+00:00
+updated: 2026-11-21T18:26:17.330826+00:00
 summary: Native UI Catalog implemented and locally verified, with durable agent maintenance instructions and preserved product/model qualification limits.
 title: Minimum-feature continuation handoff
 ---
@@ -325,3 +325,6 @@ feature work or add build, installation or UI qualification.
 
 ## Native prompt and KV reuse, November 17
 The latest native prompt layout, KV checkpoint behavior, bounded idle lifetime and repeatable five-turn qualification live in [[records/plans/conversation-latency-fix]]. The retained per-call evidence distinguishes cold setup, cache priming, resumed tokens, prefill, decoding and first visible text. Native workbook answers continue to use the model and verified tools.
+
+## First request latency, November 21
+Opening a workbook now starts the local engine before Send, every chat scope shares one prepared header of 5,234 tokens with the scope instructions inside it, and the grammar lets `read` name only messages and items the context shows. A "hi" in a new thread went from 14 s to 3.7 s after Send. Work, causes, measurements and what is left: [[records/plans/first-request-latency]]. The header changed, so a source build needs the install command again.

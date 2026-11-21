@@ -2,7 +2,7 @@
 type: operational
 id: 01m5refyq97sez3da1rywz08wf
 created: 2026-10-25T02:33:33.673437+00:00
-updated: 2026-11-19T21:20:58Z
+updated: 2026-11-21T18:38:01+00:00
 summary: Current-checkout discovery, portable source installation and build paths, local AI setup, independent CLI use, verification and uninstall.
 title: Build and run
 ---
@@ -80,7 +80,7 @@ bash scripts/install.sh
 ~~~
 
 Packaging then finds the model, runs `sevra header make .build/prompt-header`, which loads the
-model once for about 15 seconds, and copies the 94 MB header into the app before signing it.
+model once for about 15 seconds, and copies the 123 MB header into the app before signing it.
 A matching header in `.build/prompt-header` is reused without the model. Run the installer
 again after any change to the instructions, a tool declaration, the engine or the model; the
 app says when its header no longer matches. `sevra header status [DIRECTORY]` reports a header

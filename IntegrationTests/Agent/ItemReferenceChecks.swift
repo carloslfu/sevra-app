@@ -238,8 +238,9 @@ func checkItemReferenceGrammar(frontend: SplashTextFrontend, factory: SplashGram
   try expectThrows(try ContextBudget().allowance(promptTokens: full.tokens.count))
   let definitions = try NativeTools.referenceDefinitions(itemReferenceIDs: many)
   try expectEqual(
-    definitions.first { $0.name == "read" }!.parameters["properties"]["id"]["enum"].array.count, 256
-  )
+    definitions.first { $0.name == "read" }!.parameters["anyOf"].array.first!["properties"]["id"][
+      "enum"
+    ].array.count, 256)
   for thinking in [false, true] {
     let policy = try NativeCitationPolicy.make(
       [], thinking: thinking, itemReferenceIDs: [correctReference])
@@ -271,5 +272,53 @@ func checkItemReferenceGrammar(frontend: SplashTextFrontend, factory: SplashGram
   }
   print(
     "PASS actual item-reference grammar rejects the recorded wrong suffix, with reasoning on/off and stable prompt tokens for 0/1/256 choices"
+  )
+
+  // A read names only what this context shows. On November 21, 2026 a new conversation's
+  // "hi" read an earlier message by a made-up ID, which cost a whole extra decision.
+  let said = "3f4423d0-b6c3-47be-a481-d93d320a4ec3"
+  let invented = "3017abb1-7eed-46fd-a8b9-ec63f24c205d"
+  func read(_ fields: [(String, String)]) -> String {
+    "<tool_call>\n<function=read>\n"
+      + fields.map { "<parameter=\($0.0)>\n\($0.1)\n</parameter>\n" }.joined()
+      + "</function>\n</tool_call>"
+  }
+  func accepts(_ policy: SplashToolPolicy, _ output: String) throws -> Bool {
+    let constraint = try factory.create(grammar: policy.grammar)
+    do {
+      try constraint.finish(committed: frontend.encode(output), requireComplete: true)
+      return true
+    } catch { return false }
+  }
+  let earlier = try NativeCitationPolicy.make([], historyReferenceIDs: [said])
+  let fresh = try NativeCitationPolicy.make([], historyReferenceIDs: [])
+  let known = try NativeCitationPolicy.make(
+    [], itemReferenceIDs: [correctReference], historyReferenceIDs: [])
+  let cases: [(String, SplashToolPolicy, [(String, String)], Bool)] = [
+    ("a message this context shows", earlier, [("kind", "message"), ("ref", said)], true),
+    ("a made-up message", earlier, [("kind", "message"), ("ref", invented)], false),
+    ("any message in a new conversation", fresh, [("kind", "message"), ("ref", said)], false),
+    ("an item before any is known", fresh, [("id", correctReference)], false),
+    ("a known item", known, [("id", correctReference)], true),
+    ("a known item's lineage", known, [("id", correctReference), ("kind", "lineage")], true),
+    ("a made-up item", known, [("id", failedReference)], false),
+    ("a saved result by ref", fresh, [("kind", "result"), ("ref", invented)], true),
+    ("the actions list", fresh, [("kind", "actions")], true),
+    ("a guide", fresh, [("kind", "rule_guide")], true),
+    ("a list with an item ID", fresh, [("id", correctReference), ("kind", "views")], false),
+  ]
+  for (name, policy, fields, expected) in cases {
+    guard try accepts(policy, read(fields)) == expected else {
+      throw SevraError(
+        "read_grammar", "The read grammar " + (expected ? "refused " : "allowed ") + name + ".")
+    }
+  }
+  // The prompt does not change with the choices, so the prepared header still applies.
+  let shown = try NativeCitationPolicy.make([], display: true)
+  try expectEqual(
+    try NativeCitationPolicy.make([], historyReferenceIDs: [said], display: true).toolsJSON,
+    shown.toolsJSON)
+  print(
+    "PASS read names only messages and items this context shows: \(cases.count) grammar cases and an unchanged prompt"
   )
 }
