@@ -691,6 +691,7 @@ import SwiftUI
         ? "" : "Compare the quotes, include delivery, and explain what remains unknown."
     }
     if id == "main.history-search" { ws.showingHistorySearch = true }
+    if id == "chat.chat-list" { ws.showingChats = true }
     if id == "main.voice" && ["Recording", "Denied"].contains(variant) { ws.voice() }
     ws.focus =
       variant == "Focused" || id.hasPrefix("mini.") || id.hasPrefix("visual.")

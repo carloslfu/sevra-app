@@ -106,6 +106,8 @@ struct FolderReview {
   let historySearch = ConversationHistorySearch()
   /// The workbook's chats, most recently active first.
   @Published var chats: [Chat] = []
+  /// The chat list shown in place of the open chat.
+  @Published var showingChats = false
   @Published var chatRename: ChatRename?
   @Published var chatDeletion: Chat?
   @Published var composerFocusRequest = UUID()
@@ -287,6 +289,7 @@ struct FolderReview {
     messages = []
     proposalReviews = [:]
     chats = []
+    showingChats = false
     pendingExtractions = []
     importProgress = nil
     activeIntake = nil
@@ -1733,6 +1736,7 @@ struct FolderReview {
     chatRename = nil
     chatDeletion = nil
     showingHistorySearch = false
+    showingChats = false
     if conversation != id {
       historySearch.reset()
       pendingInputs = []
@@ -1754,6 +1758,12 @@ struct FolderReview {
     restoreConversationPresentation()
     refresh()
     composerFocusRequest = UUID()
+  }
+  /// Shows the chat list, bringing the chat pane back when it was hidden.
+  func showChats() {
+    guard interactionActive else { return }
+    focus = false
+    showingChats = true
   }
   /// The open chat's title.
   var chatTitle: String {
@@ -1936,6 +1946,7 @@ struct FolderReview {
   func endInteraction() {
     interactionActive = false
     returnUnsent()
+    showingChats = false
     chatRename = nil
     chatDeletion = nil
     showingHistorySearch = false

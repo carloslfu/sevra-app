@@ -168,9 +168,14 @@ with attachments, run progress, tool results and citations. Persist each complet
 terminal state of each turn. A cancelled or failed answer must not say completed.
 P07. The default pane is Conversation, showing one chat at a time from a plain
 chat list, as in ChatGPT. New Chat is the header pencil button, the Chat menu item
-and Shift-Command-N. The chat title in the conversation header opens a menu that
-switches chats and offers Rename Chat…, Delete Chat… (with a confirmation) and
-Search This Chat… (Option-Command-F). The list is ordered by last activity. Opening
+and Shift-Command-N. The chat title in the conversation header, Chat > Show Chats and
+Option-Command-L open the chat list in place of the open chat: a search box, then the
+chats grouped Today, Yesterday, Previous 7 days, Previous 30 days and Older, each with
+its title and last-activity time (the time for today and yesterday, the weekday this
+week, then the date). The open chat is marked. Each row offers Rename… (inline) and
+Delete… (with a confirmation). Arrow keys move, Return opens, and Back or Escape
+returns to the open chat. The header's actions menu keeps Rename Chat…, Delete Chat…
+and Search This Chat… (Option-Command-F). The list is ordered by last activity. Opening
 a workbook restores the chat last open on this Mac, or the most recently active one.
 
 A new chat is titled New chat until the person's first message names it: plain text
@@ -393,7 +398,7 @@ inline links. Named assistive actions and native menus complement the text.
 A saved document body over 16,000 bytes renders through TextKit so it cannot freeze
 the window: its links still open on click, but it has no Open X context or assistive
 items.
-The app's Chat menu follows the focused workbook and provides New Chat, the chat
+The app's Chat menu follows the focused workbook and provides Show Chats, New Chat, the chat
 actions and the open chat's twenty most recent visible exchanges; closing that workbook removes its actions.
 Command-L focuses the composer without sending text or starting dictation.
 

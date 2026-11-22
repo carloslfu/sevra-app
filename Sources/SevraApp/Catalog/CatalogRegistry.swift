@@ -205,6 +205,10 @@ enum CatalogRegistry {
           ? ["Default", "Empty", "Busy", "Streaming", "Failure", "Long labels"]
           : ["Default", "Empty", "Busy", "Failure", "Long labels"])
     }
+    add(
+      "chat.chat-list", "Chat list", "Chat", "Sources/SevraApp/ChatListPanel.swift",
+      ["Default", "Empty", "Long labels"],
+      "The chats panel over the chat pane: chats grouped by last activity, the open chat marked.")
     for kind in ["chart.bar", "work.board", "diagram", "overview", "text", "image"] {
       add(
         "chat.visual." + kind, "Captured " + kind, "Chat",

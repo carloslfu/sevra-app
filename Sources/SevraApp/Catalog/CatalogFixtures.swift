@@ -260,6 +260,29 @@ import SevraVoice
         }
       }
     } else if variant != "Empty" || !id.hasPrefix("chat.") {
+      if id == "chat.chat-list" {
+        // Chats last active at different times, so every group of the list shows. Each is
+        // named by its first message; the open chat stays the most recent.
+        let day: TimeInterval = 86_400
+        for (prompt, ago) in [
+          ("Which supplier delivers fastest?", 2 * 3_600.0),
+          ("Draft a reorder rule for brass bolts", day + 3_600),
+          ("Check this week's deliveries against the purchase orders", 3 * day),
+          (
+            variant == "Long labels"
+              ? "Summarize last month's deliveries and flag every supplier that was late more than twice this quarter, with the cost of each delay"
+              : "Summarize last month's deliveries", 12 * day
+          ),
+          ("Set up the supplier price table", 400 * day),
+        ] {
+          let date = ISO8601DateFormatter().string(from: Date().addingTimeInterval(-ago))
+          try FixtureContext.$current.withValue(
+            FixtureContext(seed: UInt32(ago.truncatingRemainder(dividingBy: 100_000)), date: date)
+          ) {
+            _ = try b.addMessage(prompt, role: "user", conversation: try b.createChat())
+          }
+        }
+      }
       if id == "chat.chats" {
         // Earlier chats, each named by its first message. The open chat's messages come last.
         for prompt in [

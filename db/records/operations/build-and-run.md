@@ -97,7 +97,7 @@ settings if needed, or use Show fewer. Open workbook uses the native file picker
 Cancel returns to welcome. Recent rows retain full-path help.
 
 Both panes share aligned headers. The conversation header shows the open chat's
-title, which opens the chat menu, and the New Chat button. At compact widths Review and Spaces may show icons;
+title, which opens the chat list, and the New Chat button. At compact widths Review and Spaces may show icons;
 their names and help remain available. Focus workspace keeps conversation controls
 and input below the work area. Search filters wrap into aligned columns and Clear
 filters resets every active facet. No acceptance or device execution occurs merely
@@ -1212,7 +1212,9 @@ The precise limits and remaining parsing paths are in [[records/specs/search]].
 
 Each workbook has a plain list of chats. Start one with the pencil button in the
 conversation header, Chat > New Chat or Shift-Command-N. Click the chat title in the
-header to switch chats, Rename Chat…, Delete Chat… or Search This Chat…
+header (or Chat > Show Chats, Option-Command-L) for the chat list: search, chats grouped
+by when they were last active with their times, and Rename… and Delete… on each. The
+header's actions menu has Rename Chat…, Delete Chat… and Search This Chat…
 (Option-Command-F). A new chat is titled New chat until your first message names it.
 The list is ordered by last activity, and opening a workbook restores the chat last
 open on this Mac. Each chat holds only its own messages; nothing is carried between

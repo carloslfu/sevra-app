@@ -12,7 +12,8 @@ Owner request: [[sources/notes/2026/11/simple-chats]]. Status: built and checked
 
 ## What the person sees
 
-- The conversation pane's header shows the open chat's title. Its menu lists the workbook's chats, most recently active first, with New Chat at the top.
+- The conversation pane's header shows the open chat's title. Clicking it opens the chat list in place of the open chat. (A first version used a dropdown menu of titles; on November 21 the owner asked for a better history view, and the panel below replaced it.)
+- The chat list: New Chat and Back in its header, a search box, then the chats grouped Today, Yesterday, Previous 7 days, Previous 30 days and Older. Each row shows the title and the last-activity time, marks the open chat, and offers Rename… inline and Delete…. Arrow keys move, Return opens, Escape returns. Chat > Show Chats is Option-Command-L.
 - Beside it: a pencil button for a new chat, and a menu with Rename Chat…, Search This Chat… and Delete Chat…. The menu-bar menu is called Chat and has the same actions, with New Chat on Shift-Command-N.
 - A new chat is called "New chat" until the person's first message names it: plain text from the message, at most 64 words and 120 characters, without a sentence's final period. A title the person chose is kept.
 - New Chat on a chat that is still empty stays there instead of piling up empty chats.

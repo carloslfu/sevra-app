@@ -423,6 +423,7 @@ private struct ConversationCommandContent: View {
     Button("Message Sevra") { state.composerFocusRequest = UUID() }.keyboardShortcut("l")
     Button("Stop", action: state.stop).keyboardShortcut(".").disabled(!state.busy)
     Divider()
+    Button("Show Chats", action: state.showChats).keyboardShortcut("l", modifiers: [.command, .option])
     Button("New Chat", action: state.newChat).keyboardShortcut("n", modifiers: [.command, .shift])
       .disabled(state.changingConversation)
     Button("Rename Chat…") {

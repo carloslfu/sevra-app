@@ -290,7 +290,7 @@ The fixed R2 replay passes all twelve inventory jobs and both Ready primes after
 ## Chats belong to the person
 
 A12. The person creates, switches, renames and deletes chats through New Chat, the
-chat menu in the conversation header, the Chat menu and the CLI chat commands. The
+chat list in the conversation pane, the Chat menu and the CLI chat commands. The
 model has no tool that creates, switches or renames a chat, and a request never
 starts one. Asked to discuss something separately, the model can say how to start a
 new chat (New Chat or Shift-Command-N); it does not pretend to have done it. The

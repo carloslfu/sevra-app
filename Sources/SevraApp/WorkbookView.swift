@@ -362,23 +362,17 @@ struct WorkbookView: View {
   }
   var conversationHeader: some View {
     PaneHeader {
-      Menu {
-        Button("New Chat", action: state.newChat)
-        Divider()
-        ForEach(state.chats) { chat in
-          Toggle(
-            isOn: Binding(
-              get: { chat.id == state.conversation },
-              set: { if $0 { state.changeConversation(chat.id) } })
-          ) { Text(chat.title) }
-        }
-      } label: {
-        Text(state.chatTitle).readingFont(.subheadline, weight: .medium).lineLimit(1)
+      Button(action: state.showChats) {
+        HStack(spacing: 5) {
+          Text(state.chatTitle).readingFont(.subheadline, weight: .medium).lineLimit(1)
+          Image(systemName: "chevron.down").imageScale(.small).foregroundStyle(.secondary)
+            .accessibilityHidden(true)
+        }.contentShape(Rectangle())
       }
-      .menuStyle(.borderlessButton).fixedSize(horizontal: false, vertical: true)
-      .help("Switch chats")
+      .buttonStyle(.borderless).foregroundStyle(.primary)
+      .help("Show all chats")
       .accessibilityLabel("Chat: " + state.chatTitle)
-      .accessibilityHint("Opens your chats")
+      .accessibilityHint("Shows all chats")
       Spacer(minLength: 4)
       HeaderIconButton("New chat", systemImage: "square.and.pencil", action: state.newChat)
       MoreActionsMenu("Chat actions") {
@@ -396,7 +390,14 @@ struct WorkbookView: View {
       .focusable().focused($keyboardPane, equals: .conversation)
       .accessibilityFocused($readingFocus, equals: .conversation)
   }
-  var conversation: some View {
+  @ViewBuilder var conversation: some View {
+    if state.showingChats {
+      ChatListPanel(state: state)
+    } else {
+      openChat
+    }
+  }
+  var openChat: some View {
     VStack(spacing: 0) {
       conversationHeader
       Divider()
