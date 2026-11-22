@@ -316,3 +316,6 @@ Chat header trimmed at the owner's word (sources/notes/2026/11/header-trim-direc
 ## [2026-11-22 15:09] verification | records/plans/general-chat-tools
 On the trimmed header, one run each with the real model: the light set 11 of 11 in 29 decisions and 215 seconds; build.saved_tool and build.rule pass by name. build.app and build.form not run. No-model prompt header, chat, surface, view action, sql, grammar and command-line sql and run checks pass. A stale thread.start assertion in the sql check was removed.
 
+## [2026-11-22 16:30] verification | records/plans/general-chat-tools
+The build of commit 4e309ee was installed from output/native; the installed app, extraction helper and CLI match the package's Mach-O UUIDs and the installed header is present at 3,809 tokens. One Hello through the installed app's own CLI: headerResumed true, no restart, 3,808 of 3,809 header tokens matched in a 4,494-token prompt, prefill 1.4 s, request 3.9 s after a 4.4 s engine start.
+

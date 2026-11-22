@@ -2,7 +2,7 @@
 type: operational
 id: 01m7qrcqqzh4qqr92a8frch1ze
 created: 2026-11-18T16:38:43.199010+00:00
-updated: 2026-11-22T15:09:36+00:00
+updated: 2026-11-22T16:30:18+00:00
 summary: Seven general chat tools (SQL on a scratch copy, sandboxed code, workbook tools) and a prompt header made at build time. Built, looked at, and updated in the app between two headers.
 title: General chat tools and a pre-read prompt header
 ---
@@ -418,6 +418,7 @@ Built on November 18, 2026 under the `general` profile. Evidence: [the evals](..
 - **The scope paragraphs are gone.** The view paragraph became the view's description. The rule and app pointers stand in the `read` and `save` declarations, which say to read each guide before saving. `GeneralTools.scopeInstructions` is removed.
 - **Kept, with the reason.** The eleven named actions of `run` stay listed with their fields, because `read kind=actions` lists the workspace actions only and nothing else names them. `ask` and `finish` are unchanged: the light set does not call `ask`, and the citation text in `finish` is what keeps a first answer from being refused. Showing the nested `ask` shapes as field names would save about 100 tokens and needs a job that calls `ask`.
 - **Result, one run each with the real model.** The light set passed 11 of 11 in 29 decisions and 215 seconds. The same eleven took 29 decisions and 216 seconds on November 21, so turn time did not change, which is what a restored header predicts. `build.view` passed in 4 decisions without reading the guide. By name, because their text moved: `build.saved_tool` passed in 2 decisions and `build.rule` in 4, reading the rule guide first ([the run](../../../integration/evidence/2026-11-22-header-trim-named/results.json)).
+- **Resumed in the installed app.** The build of commit `4e309ee` was installed from `output/native`, and the installed app, extraction helper and command line tool have the package's Mach-O UUIDs. One "Hello" through the installed app's own command line, on its sealed header: `headerResumed` true with no restart, 3,808 of the header's 3,809 tokens matched in a 4,494-token prompt, 1.4 seconds of prefill and 3.9 seconds for the request, after a 4.4-second engine start.
 - **Not run:** `build.app` and `build.form`. The app pointer moved from the instructions to the `save` declaration.
 - **Checked without the model:** the prompt header, chat, surface, view action and `sql` checks, the default scripted groups, the grammar checks, and the command line's `sql` and `run` checks. The `sql` check still asserted that a `thread.start` action reaches the thread tool, which went with threads on November 21. That assertion is removed.
 
