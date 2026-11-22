@@ -430,16 +430,24 @@ struct WorkbookView: View {
                   resumable: state.resumableAnswer == message.id,
                   controlsEnabled: !state.busy && !state.changingConversation
                 ).equatable()
+                let replied = state.hasReply(to: message.id)
                 ForEach(state.requestActivities.filter { $0.requestID == message.id }) { activity in
+                  let live = state.liveActivity?.runID == activity.id ? state.liveActivity : nil
                   AgentActivityView(
-                    workspace: state, activity: activity,
-                    live: state.liveActivity?.runID == activity.id ? state.liveActivity : nil)
+                    workspace: state, activity: activity, live: live,
+                    preview: replied
+                      ? nil
+                      : live?.answerPreview
+                        ?? (state.landingAnswer?.run == activity.id
+                          ? state.landingAnswer?.text : nil))
                 }
                 if let live = state.liveActivity, live.conversation == state.conversation,
                   live.requestID == message.id,
                   !state.requestActivities.contains(where: { $0.id == live.runID })
                 {
-                  AgentActivityView(workspace: state, activity: nil, live: live)
+                  AgentActivityView(
+                    workspace: state, activity: nil, live: live,
+                    preview: replied ? nil : live.answerPreview)
                 }
               }.id(message.id)
                 .accessibilityElement(children: .contain)
@@ -458,7 +466,9 @@ struct WorkbookView: View {
             if let live = state.liveActivity, live.conversation == state.conversation,
               !state.messages.contains(where: { $0.id == live.requestID })
             {
-              AgentActivityView(workspace: state, activity: nil, live: live).id("working")
+              AgentActivityView(
+                workspace: state, activity: nil, live: live, preview: live.answerPreview
+              ).id("working")
             } else if state.busy && state.liveActivity == nil {
               HStack {
                 ProgressView().controlSize(.small)

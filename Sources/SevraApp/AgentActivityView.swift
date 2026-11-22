@@ -9,6 +9,8 @@ struct AgentActivityView: View {
   @ObservedObject var workspace: WorkspaceState
   let activity: RequestActivity?
   let live: LiveRequestActivity?
+  /// The answer being written, or just written and not yet loaded as a saved message.
+  var preview: String?
   @State private var expanded = false
 
   private var title: String {
@@ -53,13 +55,6 @@ struct AgentActivityView: View {
             .disabled(live.stopping).accessibilityLabel("Stop this request")
         }
       }
-      if let preview = live?.answerPreview, !preview.isEmpty {
-        VStack(alignment: .leading, spacing: 6) {
-          Text("Writing · not final").readingFont(.caption).foregroundStyle(.secondary)
-          Text(preview).readingFont(.body).textSelection(.enabled)
-        }.padding(.leading, 15)
-          .accessibilityIdentifier("answer-preview")
-      }
       if expanded {
         VStack(alignment: .leading, spacing: 12) {
           if let activity {
@@ -83,15 +78,12 @@ struct AgentActivityView: View {
               Text(live.status).readingFont(.caption).textSelection(.enabled)
             }.foregroundStyle(.secondary)
           }
-          if let model = activity?.model {
-            DisclosureGroup("Model details") {
-              Text(model).readingFont(.caption).textSelection(.enabled)
-              Text("Tool results describe saved execution. Search coverage may be partial.")
-                .readingFont(.caption).foregroundStyle(.secondary)
-            }.readingFont(.caption)
-          }
         }.padding(.leading, 15)
           .overlay(alignment: .leading) { Rectangle().fill(.quaternary).frame(width: 1) }
+      }
+      if let preview, !preview.isEmpty {
+        // Laid out exactly like the saved reply that replaces it, so nothing moves when it lands.
+        StreamingAnswerView(text: preview).padding(.top, 14)
       }
     }.accessibilityElement(children: .contain)
       .accessibilityIdentifier("agent-activity-" + (activity?.id ?? "preparing"))
@@ -100,6 +92,38 @@ struct AgentActivityView: View {
   static func duration(_ seconds: TimeInterval) -> String {
     let total = Int(seconds)
     return total < 60 ? "\(total)s" : "\(total / 60)m \(total % 60)s"
+  }
+}
+
+/// The answer while it is being written, in the place and shape of the finished Sevra message.
+private struct StreamingAnswerView: View {
+  @AppStorage(ReadingStyle.preference) private var textScale = 1.0
+  let text: String
+  var body: some View {
+    let content = ConversationMessageContent(text)
+    VStack(alignment: .leading, spacing: 6) {
+      HStack {
+        Text("Sevra").readingFont(.caption, weight: .semibold).foregroundStyle(.secondary)
+        Spacer()
+        // Holds the height of the actions button the finished message shows here.
+        Color.clear.frame(
+          width: 28 * ReadingStyle.scale(textScale), height: 28 * ReadingStyle.scale(textScale))
+      }
+      VStack(alignment: .leading, spacing: 10) {
+        ForEach(Array(content.blocks.enumerated()), id: \.offset) { _, block in
+          switch block {
+          case .text(let text):
+            Text(text).textSelection(.enabled).lineSpacing(4)
+          case .table(let table):
+            ReadOnlyTableView(content: table, label: "Comparison table", inline: true, open: { _ in })
+          case .code(let code):
+            ConversationCodeBlock(code: code)
+          }
+        }
+      }
+    }.frame(maxWidth: .infinity, alignment: .leading)
+      .accessibilityElement(children: .contain).accessibilityLabel("Sevra message, writing")
+      .accessibilityIdentifier("answer-preview")
   }
 }
 

@@ -98,6 +98,19 @@ struct FolderReview {
   }
   @Published var requestActivities: [RequestActivity] = []
   @Published var liveActivity: LiveRequestActivity?
+  /// The streamed answer of a run that just ended, kept on screen until the saved reply loads.
+  struct LandingAnswer: Equatable {
+    let request: String
+    let run: String
+    let text: String
+  }
+  @Published var landingAnswer: LandingAnswer?
+  /// Whether the chat on screen already shows a saved message after this request.
+  func hasReply(to request: String) -> Bool {
+    let shown = messages.filter { $0.role != "tool" }
+    guard let index = shown.firstIndex(where: { $0.id == request }) else { return false }
+    return index + 1 < shown.count
+  }
   @Published var proposalReviews: [String: ProposalReviewState] = [:]
   @Published var hasEarlierMessages = false
   @Published var hasLaterMessages = false
@@ -379,6 +392,7 @@ struct FolderReview {
       messageAnchor: messageAnchor)
     let changedView = refreshSession.identity != identity
     if changedView && refreshSession.identity?.conversation != conversation {
+      landingAnswer = nil
       messages = []
       proposalReviews = [:]
       requestActivities = []
@@ -452,6 +466,12 @@ struct FolderReview {
         self.excelImports = snapshot.excelImports
         self.messages = snapshot.messages
         self.contents.retain(snapshot.messages)
+        if let landing = self.landingAnswer,
+          self.hasReply(to: landing.request)
+            || !snapshot.messages.contains(where: { $0.id == landing.request })
+        {
+          self.landingAnswer = nil
+        }
         self.requestActivities = snapshot.requestActivities
         self.proposalReviews = snapshot.proposalReviews
         self.hasEarlierMessages = snapshot.hasEarlierMessages
@@ -624,6 +644,12 @@ struct FolderReview {
       : nil
     busy = false
     status = ""
+    if error == nil, !ticket.cancellation.isCancelled, let live = liveActivity,
+      let request = live.requestID, let run = live.runID,
+      let text = live.answerPreview, !text.isEmpty, !hasReply(to: request)
+    {
+      landingAnswer = .init(request: request, run: run, text: text)
+    }
     liveActivity = nil
     activeIntake = nil
     refresh()
@@ -1959,6 +1985,7 @@ struct FolderReview {
     busy = false
     status = ""
     liveActivity = nil
+    landingAnswer = nil
     requestActivities = []
     activePreview?.cancel()
     activePreview = nil
