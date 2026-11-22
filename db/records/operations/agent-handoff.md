@@ -9,6 +9,9 @@ title: Minimum-feature continuation handoff
 ---
 # Minimum-feature continuation handoff
 
+## Chat timing, November 22
+At the owner's word ([[sources/notes/2026/11/chat-response-time-analysis]]) chat has debug timing, off by default: `defaults write com.sevra.workbooks SevraChatTiming -bool true` for the app or `SEVRA_CHAT_TIMING=1`, then `python3 scripts/chat_timing.py` reads `~/Library/Logs/Sevra/chat-timing.jsonl`. One five-message conversation through the product layer: 96% of reply time was the engine (prefill 28%, hidden reasoning 33%, output 35%), the app around it 1.1%, and the number of model calls per message decided the total (5.1 to 33.5 s for 1 to 6 calls). Each call costs about 1 s before its first token plus 0.38 ms per new token. The interface timers were not exercised, and this build is not installed. Improvements are left for later. Details: [[records/plans/chat-response-time]].
+
 ## Chat header trimmed, November 22
 At the owner's word ([[sources/notes/2026/11/header-trim-direction]]), the prepared chat header is 3,809 tokens, from 5,172, and a first prompt about 4,500. A view is shown to the model as one description with a new `read kind=view_guide` behind it, the instructions say each fact once, and the scope paragraphs are gone. The light set passed 11 of 11 in 29 decisions, with `build.saved_tool` and `build.rule` by name. `build.app` and `build.form` were not run. `sevra-agent-checks --header-parts` counts the header's parts without the model. What was cut and kept: [[records/plans/general-chat-tools]], "The build so far". The header changed, so a source build needs the install command again. Earlier sections that give the header as 2,770 or 5,234 tokens are history.
 

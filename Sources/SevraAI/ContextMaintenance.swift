@@ -300,12 +300,16 @@ package final class ContextMaintenance {
     let messages =
       summary
       ? messages
-      : try ItemReferenceCandidates.annotate(
-        messages, workbook: workbook,
-        history: (conversation, try workbook.runRequestMessage(runID)))
-    return try await model.measureContext(
-      messages: messages, directory: directory, cancellation: cancellation,
-      summary: summary, toolScope: toolScope, citationIDs: citations, progress: progress)
+      : try ChatTiming.span("maintenance.annotate_references") {
+        try ItemReferenceCandidates.annotate(
+          messages, workbook: workbook,
+          history: (conversation, try workbook.runRequestMessage(runID)))
+      }
+    return try await ChatTiming.asyncSpan("maintenance.measure", ["summary": .bool(summary)]) {
+      try await model.measureContext(
+        messages: messages, directory: directory, cancellation: cancellation,
+        summary: summary, toolScope: toolScope, citationIDs: citations, progress: progress)
+    }
   }
   private func boundary(_ message: Message) -> Bool {
     (message.role == "assistant"
@@ -326,13 +330,17 @@ package final class ContextMaintenance {
     var originalMessages = currentMessages
     while true {
       try cancellation.check()
-      let page = try workbook.historySlice(
-        conversation: conversation, after: checkpoint["last_message"].string,
-        through: through, limit: 128, cancellation: cancellation)
+      let page = try ChatTiming.span("maintenance.history_slice") {
+        try workbook.historySlice(
+          conversation: conversation, after: checkpoint["last_message"].string,
+          through: through, limit: 128, cancellation: cancellation)
+      }
+      ChatTiming.set("historyMessages", .number(Double(page.messages.count)))
       // Once the retained group is covered, it remains verbatim as the final tool
       // group. Earlier groups have durable receipt locators instead of broken pairs.
-      let working = try originalMessages ?? messages(
-        checkpoint: checkpoint, history: page.messages, retained: retained)
+      let working = try originalMessages ?? ChatTiming.span("maintenance.build_messages") {
+        try messages(checkpoint: checkpoint, history: page.messages, retained: retained)
+      }
       let full: ContextMeasurement
       if page.hasMore || (try? ContextBudget.validateEnvelope(working)) == nil {
         full = ContextMeasurement(
@@ -340,8 +348,12 @@ package final class ContextMaintenance {
       } else {
         full = try await measure(working, citations: citationIDs)
       }
+      ChatTiming.mark("maintenance.full_measured", ["promptTokens": .number(Double(full.promptTokens))])
       let floor = try await measure(
-        messages(checkpoint: .null, history: [], retained: []), citations: citationIDs)
+        ChatTiming.span("maintenance.build_floor") {
+          try messages(checkpoint: .null, history: [], retained: [])
+        }, citations: citationIDs)
+      ChatTiming.mark("maintenance.floor_measured", ["promptTokens": .number(Double(floor.promptTokens))])
       try require(
         floor.promptTokens <= floor.maximumPrompt, "context_limit",
         "The current request and required workbook state exceed this model's working context. Original input and completed work are saved."
@@ -401,9 +413,11 @@ package final class ContextMaintenance {
         try encoded(snapshot.messages) == encoded(batch), "checkpoint_history",
         "The source messages changed before summarization.")
       let allowed = Set(batch.map(\.id)).union(ContextDigest.references(previous))
-      let summary = try await model.summarize(
-        messages: summaryMessages, allowedMessageIDs: allowed.sorted(),
-        directory: directory, cancellation: cancellation, progress: progress)
+      let summary = try await ChatTiming.asyncSpan("maintenance.summarize") {
+        try await model.summarize(
+          messages: summaryMessages, allowedMessageIDs: allowed.sorted(),
+          directory: directory, cancellation: cancellation, progress: progress)
+      }
       let proposed = try ContextDigest.validate(summary, allowedMessageIDs: allowed)
       // Protect already-retained user-backed facts and constraints from being
       // displaced by routine progress. Keep contradictory newer notes explicit;

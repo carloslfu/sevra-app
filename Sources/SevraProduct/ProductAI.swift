@@ -132,8 +132,10 @@ public actor ProductAI {
     observeMemoryPressure()
     let cancellation = Cancellation()
     prewarmCancellation = cancellation
+    ChatTiming.beginBackground("prewarm")
     prewarming = Task { [weak self] in
-      _ = await model.prewarm(directory: modelDirectory, cancellation: cancellation)
+      let started = await model.prewarm(directory: modelDirectory, cancellation: cancellation)
+      ChatTiming.endBackground("prewarm", outcome: started ? "started" : "not_started")
       await self?.prewarmEnded()
     }
   }
@@ -146,7 +148,7 @@ public actor ProductAI {
   private func settlePrewarm(cancelling: Bool) async {
     guard let task = prewarming else { return }
     if cancelling { prewarmCancellation?.cancel() }
-    await task.value
+    await ChatTiming.asyncSpan("product.wait_for_prewarm") { await task.value }
   }
 
   /// Ordinary user unload does not interrupt an active job. Exiting calls this too: the inference
@@ -262,13 +264,23 @@ public actor ProductAI {
     excelConversion: ExcelConversionBuild? = nil,
     conversationInput: Bool = false, inputAnswerID: String? = nil
   ) async throws -> AgentResult {
-    try await perform(cancellation: cancellation) {
+    // The app starts its turn at Send. A caller without a screen gets one from here.
+    let ownsTiming = ChatTiming.beginTurn(origin: "product", conversation: conversation)
+    ChatTiming.mark("product.run")
+    defer {
+      ChatTiming.mark("product.run_returned")
+      if ownsTiming { ChatTiming.endTurn(outcome: "returned") }
+    }
+    return try await perform(cancellation: cancellation) {
       if model == nil {
-        model = NativeWorkbookModel(
-          configuration:
-            try NativeProductResources.configuration(modelsRoot: modelDirectory))
+        model = try ChatTiming.span("product.model_configuration") {
+          NativeWorkbookModel(
+            configuration:
+              try NativeProductResources.configuration(modelsRoot: modelDirectory))
+        }
       }
       guard let model else { throw SevraError("model", "The local model is unavailable.") }
+      ChatTiming.mark("product.model_lease")
       return try await WorkbookAgent.run(
         prompt, workbook: workbook, conversation: conversation, context: context,
         modelDirectory: modelDirectory, cancellation: cancellation, progress: progress,

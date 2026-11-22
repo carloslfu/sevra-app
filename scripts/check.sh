@@ -22,6 +22,7 @@ dbmd validate --all db --json
 python3 scripts/check_links.py
 python3 scripts/generate_brand.py --check
 python3 scripts/prompt_header.py self-test
+python3 scripts/chat_timing.py --self-test
 npm ci --prefix sdk --ignore-scripts
 python3 scripts/check_native_app_sources.py
 python3 scripts/check_excel_business_qualification.py

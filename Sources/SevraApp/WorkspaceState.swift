@@ -412,12 +412,20 @@ struct FolderReview {
     let activeInputID = replyInputID
     let contents = contents
     refreshSession.request(identity: identity, onlyWhenIdle: polling && !changedView) { control in
+      let started = ChatTiming.now
       let snapshot = try book.workspaceSnapshot(
         conversation: identity.conversation, messageAnchor: readingAnchor,
         activeInputID: activeInputID,
         ifChangedFrom: knownRevision, ifSpaceNavigationMatches: knownSpaceNavigation,
         cancellation: control)
-      if let snapshot { try contents.prepare(snapshot.messages, cancellation: control) }
+      ChatTiming.record(
+        "ui.refresh_read", since: started,
+        ["polling": .bool(polling), "changed": .bool(snapshot != nil)])
+      if let snapshot {
+        try ChatTiming.span(
+          "ui.refresh_prepare", ["messages": .number(Double(snapshot.messages.count))]
+        ) { try contents.prepare(snapshot.messages, cancellation: control) }
+      }
       return snapshot
     } complete: { [weak self] result in
       guard let self, self.interactionActive, self.workbook === book,
@@ -475,6 +483,9 @@ struct FolderReview {
         self.excelImports = snapshot.excelImports
         self.messages = snapshot.messages
         self.contents.retain(snapshot.messages)
+        if let waiting = ChatTiming.awaitingReply, self.hasReply(to: waiting) {
+          ChatTiming.replyInView(waiting)
+        }
         if let landing = self.landingAnswer,
           self.hasReply(to: landing.request)
             || !snapshot.messages.contains(where: { $0.id == landing.request })
@@ -1083,6 +1094,7 @@ struct FolderReview {
     guard interactionActive, let book = workbook, canSend,
       !prompt.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
     else { return }
+    ChatTiming.pressedSend()
     speech.stop()
     let input = prompt.trimmingCharacters(in: .whitespacesAndNewlines)
     do { try ComposerInput.admit(input) } catch {
@@ -1239,7 +1251,10 @@ struct FolderReview {
   ) {
     let selection = selection ?? selectedContext
     if inputAnswerID == nil { unsent = (input, conversation, book) }
+    let timed = ChatTiming.beginTurn(
+      origin: inputAnswerID == nil ? "app" : "app_reply", conversation: conversation)
     guard let (_, ticket) = beginOperation("Preparing local AI") else {
+      if timed { ChatTiming.endTurn(outcome: "not_started") }
       returnUnsent()
       return
     }
@@ -1277,34 +1292,47 @@ struct FolderReview {
         self.refresh()
       }
       do {
-        guard await clarificationDrafts.flush() else {
+        ChatTiming.mark("ui.task_started")
+        let draftsSaved = await ChatTiming.asyncSpan("ui.save_workflow_drafts") {
+          await clarificationDrafts.flush()
+        }
+        guard draftsSaved else {
           throw SevraError(
             "clarification_draft",
             "Your workflow inputs could not be saved. Preserve them before sending another request."
           )
         }
         try ticket.cancellation.check()
-        await automation.yieldForInteractive()
+        await ChatTiming.asyncSpan("ui.yield_automation") { await automation.yieldForInteractive() }
         try ticket.cancellation.check()
         let result = try await ai.run(
           input, workbook: book, conversation: chat, context: context, modelDirectory: path,
           cancellation: ticket.cancellation,
           progress: { value in
+            let sent = ChatTiming.now
             Task { @MainActor in
+              ChatTiming.add("ui.progress_main_delay", seconds: ChatTiming.now - sent)
               self.updateAgentActivity(value, for: ticket, in: book)
             }
           },
           answerPreview: { update in
+            let sent = ChatTiming.now
             Task { @MainActor in
+              ChatTiming.add("ui.preview_main_delay", seconds: ChatTiming.now - sent)
               guard self.owns(ticket, in: book), self.operations.acceptsProgress(ticket),
                 self.liveActivity?.conversation == chat
               else { return }
+              if self.liveActivity?.answerPreview?.isEmpty ?? true {
+                ChatTiming.mark("ui.first_answer_text")
+              }
               self.liveActivity?.preview(update.text, sequence: update.sequence)
             }
           },
           requestStarted: { request, destination in
             admitted.withLock { $0 = true }
+            ChatTiming.mark("ui.request_saved")
             Task { @MainActor in
+              ChatTiming.mark("ui.request_attached")
               self.unsent = nil
               self.attachAgentActivity(request, conversation: destination, for: ticket, in: book)
             }
@@ -1319,6 +1347,7 @@ struct FolderReview {
               action, arguments: arguments, book: book, readOnly: readOnly,
               cancellation: cancellation)
           }, conversationInput: true, inputAnswerID: inputAnswerID)
+        ChatTiming.requestFinished(awaitingReplyTo: liveActivity?.requestID, outcome: result.state)
         unsent = nil
         guard owns(ticket, in: book) else { return }
         refresh()
@@ -1342,6 +1371,8 @@ struct FolderReview {
           }
         }
       } catch {
+        ChatTiming.requestFinished(
+          awaitingReplyTo: nil, outcome: ticket.cancellation.isCancelled ? "cancelled" : "failed")
         if admitted.withLock({ $0 }) { unsent = nil } else { returnUnsent() }
         report(error, for: ticket, in: book)
       }

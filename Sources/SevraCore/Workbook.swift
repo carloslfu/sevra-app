@@ -156,14 +156,28 @@ public final class Workbook: @unchecked Sendable {
     }
   }
   func synchronized<T>(_ body: () throws -> T) rethrows -> T {
-    lock.lock()
+    // Only a wait is timed: with chat timing off, `add` does nothing.
+    if !lock.try() {
+      let waited = ChatTiming.now
+      lock.lock()
+      ChatTiming.add(
+        Thread.isMainThread ? "workbook.lock_wait_main" : "workbook.lock_wait",
+        seconds: ChatTiming.now - waited)
+    }
     defer { lock.unlock() }
     return try body()
   }
   func synchronized<T>(cancellation: Cancellation, _ body: () throws -> T) throws -> T {
+    var waited: Double?
     while !lock.try() {
+      if waited == nil { waited = ChatTiming.now }
       try cancellation.check()
       Thread.sleep(forTimeInterval: 0.005)
+    }
+    if let waited {
+      ChatTiming.add(
+        Thread.isMainThread ? "workbook.lock_wait_main" : "workbook.lock_wait",
+        seconds: ChatTiming.now - waited)
     }
     defer { lock.unlock() }
     try cancellation.check()

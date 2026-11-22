@@ -69,7 +69,7 @@ public enum WorkbookAgent {
     let identity = await model.identity
     do {
       try cancellation.check()
-      try await model.beginRun()
+      try await ChatTiming.asyncSpan("agent.begin_run") { try await model.beginRun() }
     } catch {
       var failure = error
       if cancellation.isCancelled {
@@ -87,10 +87,13 @@ public enum WorkbookAgent {
       // rides in the saved context, so a later turn renders the same prompt.
       var context = context
       if excelConversion == nil {
-        for listing in [
-          try workbook.chatSQLTables(), try workbook.chatSavedTools(),
-          try workbook.chatWorkbookListing(),
-        ] where !listing.isEmpty {
+        let listings = try ChatTiming.span("agent.context_listings") {
+          [
+            try workbook.chatSQLTables(), try workbook.chatSavedTools(),
+            try workbook.chatWorkbookListing(),
+          ]
+        }
+        for listing in listings where !listing.isEmpty {
           context += (context.isEmpty ? "" : "\n") + listing
         }
       }
@@ -105,7 +108,7 @@ public enum WorkbookAgent {
         conversationInput: conversationInput, inputAnswerID: inputAnswerID,
         dateContext: requestDateContext
       )
-      await model.endRun()
+      await ChatTiming.asyncSpan("agent.end_run") { await model.endRun() }
       return result
     } catch {
       await model.endRun()
@@ -187,8 +190,11 @@ public enum WorkbookAgent {
     var locators: [String: String] = [:]
     let request =
       try inputContinuation?.request
-      ?? workbook.startAgentRequest(
-        excelConversion?.displayRequest ?? prompt, conversation: conversation, model: modelIdentity)
+      ?? ChatTiming.span("agent.start_request") {
+        try workbook.startAgentRequest(
+          excelConversion?.displayRequest ?? prompt, conversation: conversation,
+          model: modelIdentity)
+      }
     requestStarted(request, conversation)
     progress("Reading request context")
     let runID = request.runID
@@ -264,10 +270,12 @@ public enum WorkbookAgent {
       let answer = receipt + (outcomes.map { "\n\n" + $0 } ?? "")
       var fields = payload.object
       if outcomes != nil { fields["actionConfirmations"] = actionConfirmations.evidence }
-      _ = try workbook.addMessage(
-        answer, role: "assistant", conversation: conversation, state: state,
-        payload: fields.isEmpty ? .null : .object(fields))
-      try workbook.finishAgentRun(runID, status: state, steps: step, metrics: .array(metrics))
+      try ChatTiming.span("agent.save_answer", ["state": .string(state)]) {
+        _ = try workbook.addMessage(
+          answer, role: "assistant", conversation: conversation, state: state,
+          payload: fields.isEmpty ? .null : .object(fields))
+        try workbook.finishAgentRun(runID, status: state, steps: step, metrics: .array(metrics))
+      }
       return AgentResult(
         answer: answer, citations: citations, steps: step, state: state, focus: focus)
     }
@@ -322,12 +330,14 @@ public enum WorkbookAgent {
       }
       try cancellation.check()
       let requestSource =
-        try workbook.captureUserRequest(
-          excelConversion?.displayRequest ?? submittedText,
-          data: .object([
-            "conversationID": .string(conversation), "messageID": .string(requestMessage),
-            "context": .string(context),
-          ]), token: runID + "-request")
+        try ChatTiming.span("agent.capture_request") {
+          try workbook.captureUserRequest(
+            excelConversion?.displayRequest ?? submittedText,
+            data: .object([
+              "conversationID": .string(conversation), "messageID": .string(requestMessage),
+              "context": .string(context),
+            ]), token: runID + "-request")
+        }
       let tools = WorkbookTools(
         workbook, runID: runID, cancellation: cancellation, requestSourceID: requestSource.id,
         conversation: conversation, readOnly: readOnly, excelConversion: excelConversion)
@@ -369,12 +379,15 @@ public enum WorkbookAgent {
           policy: messages[0], request: messages.last!, model: model, directory: modelDirectory,
           cancellation: cancellation, progress: progress) : nil
       if let maintenance {
-        let prepared = try await maintenance.maintain(
-          through: requestMessage, toolScope: inferenceScopeForNextStep())
+        let prepared = try await ChatTiming.asyncSpan("agent.context_maintenance") {
+          try await maintenance.maintain(
+            through: requestMessage, toolScope: inferenceScopeForNextStep())
+        }
         messages = prepared.messages
         metrics += prepared.metrics
       }
       for step in 1...stepBudget {
+        ChatTiming.mark("agent.step", ["step": .number(Double(step))])
         try cancellation.check()
         if readOnly, discoveryBudget.stalled,
           inspected.contains(where: { $0 != requestSource.id }), !discoveryLimited
@@ -388,9 +401,11 @@ public enum WorkbookAgent {
           messages[0].content += explorationLimit
         }
         try ContextBudget.validateEnvelope(messages)
-        messages = try ItemReferenceCandidates.annotate(
-          messages, workbook: workbook,
-          history: (conversation, try workbook.runRequestMessage(runID)))
+        messages = try ChatTiming.span("agent.annotate_references") {
+          try ItemReferenceCandidates.annotate(
+            messages, workbook: workbook,
+            history: (conversation, try workbook.runRequestMessage(runID)))
+        }
         messages[0].nativeAppAuthoring = nativeAppAuthoring
         let itemChoices = try ItemReferenceCandidates.ids(in: messages)
         let copyChoices = try DocumentCopyCandidates.ids(in: messages)
@@ -415,10 +430,12 @@ public enum WorkbookAgent {
           // Malformed-response recovery can add context after
           // the last completed-group maintenance. Never dispatch that overflow
           // or discard an in-progress group to manufacture a smaller prompt.
-          let prepared = try await model.measureContext(
-            messages: messages, directory: modelDirectory, cancellation: cancellation,
-            summary: false, toolScope: inferenceScope, citationIDs: citationChoices(),
-            progress: progress)
+          let prepared = try await ChatTiming.asyncSpan("agent.measure_context") {
+            try await model.measureContext(
+              messages: messages, directory: modelDirectory, cancellation: cancellation,
+              summary: false, toolScope: inferenceScope, citationIDs: citationChoices(),
+              progress: progress)
+          }
           try require(
             prepared.promptTokens < prepared.threshold, "context_limit",
             "The prepared prompt uses \(prepared.promptTokens) tokens, reaching the \(prepared.threshold)-token maintenance threshold. Current request and incomplete work cannot be discarded. Original input and completed work are saved."
@@ -430,10 +447,18 @@ public enum WorkbookAgent {
         let response: NativeReply
         do {
           previews.clear()
-          response = try await model.respondStreaming(
-            messages: messages, directory: modelDirectory, cancellation: cancellation,
-            progress: progress, toolScope: inferenceScope, citationIDs: citationChoices(),
-            answerPreview: { previews.update($0) })
+          response = try await ChatTiming.asyncSpan(
+            "agent.model_call",
+            ["step": .number(Double(step)), "scope": .string(inferenceScope.rawValue)]
+          ) {
+            try await model.respondStreaming(
+              messages: messages, directory: modelDirectory, cancellation: cancellation,
+              progress: progress, toolScope: inferenceScope, citationIDs: citationChoices(),
+              answerPreview: { previews.update($0) })
+          }
+          ChatTiming.mark(
+            "agent.call",
+            ["step": .number(Double(step)), "tool": .string(response.calls.first?.name ?? "")])
         } catch let error as SevraError where error.code == "truncated" && failures < 2 {
           // Nothing from a response cut off at the output limit was applied, so it can be redone.
           failures += 1
@@ -1004,48 +1029,50 @@ public enum WorkbookAgent {
                   + ", version \(current["version"].int!), \(status). The cited version \($0["cited"]["version"].int!) is historical."
               }.joined(separator: "\n")
           let outcomeText = supplementalActionText.map { "\n\n" + $0 } ?? ""
-          _ = try workbook.finishAgentAnswer(
-            answer + suffix + coverageText + versionText + outcomeText + visualFallback,
-            payload: .object([
-              "receiptVersion": .number(1), "tool": .string("finish"), "arguments": a,
-              "visuals": .array(visuals), "captureReceipts": .array(visualIDs.map(Value.string)),
-              "runID": .string(runID), "callID": .string(call.id),
-              "reversibleOutcome": reversibleOutcome,
-              "assistantText": .string(response.text),
-              "coverageEvidence": .array(coverageEvidence),
-              "citationVersions": .object(
-                versionState.object.merging(
-                  ["versions": .array(versionState["versions"].array + movedInputs)]
-                ) { $1 }),
-              "calculationInputs": attachedInputs.isEmpty
-                ? .null
-                : .object([
-                  "attached": .number(Double(attachedInputs.count)),
-                  "receiptIDs": .array(calculationInputs.receipts.map(Value.string)),
-                ]),
-              "readTables": .array(readTables),
-              "actionConfirmations": actionText == nil && supplementalActionText == nil
-                ? .array([]) : actionConfirmations.evidence,
-              "unresolvedActionFailure": .bool(actionConfirmations.hasUnresolvedFailure),
-              "renderedReferences": .object(inlineReferences.mapValues(Value.string)),
-              "actionPreview": basis == "preview"
-                ? pendingActionPreview.map {
-                  .object(["receiptID": .string($0.receiptID), "plan": $0.plan])
-                } ?? .null : .null,
-              "presentation": .string(
-                previewText != nil
-                  ? "host_preview"
-                  : actionText != nil
-                    ? "host_actions"
-                    : countOnly ? "host_counts" : hostSearchGap ? "host_search" : "answer"),
-              "searchEvidence": hostSearchGap
-                ? .object([
-                  "queries": .array(emptyQueries.map(Value.string)),
-                  "incomplete": .number(Double(searchIncomplete!)),
-                  "includesHistory": .bool(emptySearchesIncludedHistory),
-                ]) : .null,
-            ]), runID: runID, conversation: conversation, steps: step, metrics: .array(metrics),
-            cancellation: cancellation)
+          _ = try ChatTiming.span("agent.save_answer", ["state": .string("answer")]) {
+            try workbook.finishAgentAnswer(
+              answer + suffix + coverageText + versionText + outcomeText + visualFallback,
+              payload: .object([
+                "receiptVersion": .number(1), "tool": .string("finish"), "arguments": a,
+                "visuals": .array(visuals), "captureReceipts": .array(visualIDs.map(Value.string)),
+                "runID": .string(runID), "callID": .string(call.id),
+                "reversibleOutcome": reversibleOutcome,
+                "assistantText": .string(response.text),
+                "coverageEvidence": .array(coverageEvidence),
+                "citationVersions": .object(
+                  versionState.object.merging(
+                    ["versions": .array(versionState["versions"].array + movedInputs)]
+                  ) { $1 }),
+                "calculationInputs": attachedInputs.isEmpty
+                  ? .null
+                  : .object([
+                    "attached": .number(Double(attachedInputs.count)),
+                    "receiptIDs": .array(calculationInputs.receipts.map(Value.string)),
+                  ]),
+                "readTables": .array(readTables),
+                "actionConfirmations": actionText == nil && supplementalActionText == nil
+                  ? .array([]) : actionConfirmations.evidence,
+                "unresolvedActionFailure": .bool(actionConfirmations.hasUnresolvedFailure),
+                "renderedReferences": .object(inlineReferences.mapValues(Value.string)),
+                "actionPreview": basis == "preview"
+                  ? pendingActionPreview.map {
+                    .object(["receiptID": .string($0.receiptID), "plan": $0.plan])
+                  } ?? .null : .null,
+                "presentation": .string(
+                  previewText != nil
+                    ? "host_preview"
+                    : actionText != nil
+                      ? "host_actions"
+                      : countOnly ? "host_counts" : hostSearchGap ? "host_search" : "answer"),
+                "searchEvidence": hostSearchGap
+                  ? .object([
+                    "queries": .array(emptyQueries.map(Value.string)),
+                    "incomplete": .number(Double(searchIncomplete!)),
+                    "includesHistory": .bool(emptySearchesIncludedHistory),
+                  ]) : .null,
+              ]), runID: runID, conversation: conversation, steps: step, metrics: .array(metrics),
+              cancellation: cancellation)
+          }
           return AgentResult(
             answer: answer + suffix + coverageText + versionText + outcomeText + visualFallback,
             citations: citations + carried, steps: step,
@@ -1234,13 +1261,14 @@ public enum WorkbookAgent {
               workspaceOperations.contains(operation.name), "tool_scope",
               "Discover workspace operations available for this request.")
           }
-          var value =
+          var value = try ChatTiming.span("agent.tool_execute", ["tool": .string(tool)]) {
             try tool == "workspace_actions"
-            ? ChatOperations.catalog(a["domain"].string, allowed: workspaceOperations)
-            : tools.execute(
-              tool == "prepare_action" ? "commit_action_preview" : tool,
-              commitArguments ?? a, receiptID: receiptID, nativeAppCheck: nativeAppCheck,
-              inspectionOnly: !inferenceScope.changes)
+              ? ChatOperations.catalog(a["domain"].string, allowed: workspaceOperations)
+              : tools.execute(
+                tool == "prepare_action" ? "commit_action_preview" : tool,
+                commitArguments ?? a, receiptID: receiptID, nativeAppCheck: nativeAppCheck,
+                inspectionOnly: !inferenceScope.changes)
+          }
           if tool == "workspace_action", let action = value["hostAction"].string {
             let args = routedAppCall.map { $0["arguments"] } ?? value["arguments"]
             let operation = try ChatOperations.validate(action, arguments: args, readOnly: readOnly)
@@ -1541,10 +1569,12 @@ public enum WorkbookAgent {
                 "Saved. Do not save it again. Finish now, unless the request asks for something more."
               ),
             ]) { first, _ in first }) : presentedResult
-        let projected = try await model.boundToolResult(
-          shownResult, receiptID: receiptID, directory: modelDirectory,
-          cancellation: cancellation,
-          toolScope: inferenceScope, nativeAppAuthoring: nativeAppAuthoring)
+        let projected = try await ChatTiming.asyncSpan("agent.tool_result_bound") {
+          try await model.boundToolResult(
+            shownResult, receiptID: receiptID, directory: modelDirectory,
+            cancellation: cancellation,
+            toolScope: inferenceScope, nativeAppAuthoring: nativeAppAuthoring)
+        }
         if tool == "workspace_action",
           ["visual.evaluate", "visual.app_capture"].contains(a["action"].text), !callFailed,
           visualCaptures.count < 8,
@@ -1910,10 +1940,13 @@ public enum WorkbookAgent {
         if excelConversion != nil { messages = ExcelBuildContext.refresh(messages) }
         if let maintenance {
           let end = try workbook.toolCall(receiptID, conversation: conversation)["message_id"].text
-          let updated = try await maintenance.maintain(
-            through: end, currentMessages: messages,
-            retained: Array(messages.suffix(2)), citationIDs: citationChoices(),
-            retainedCitationIDs: observedThisStep.sorted(), toolScope: inferenceScopeForNextStep())
+          let updated = try await ChatTiming.asyncSpan("agent.step_maintenance") {
+            try await maintenance.maintain(
+              through: end, currentMessages: messages,
+              retained: Array(messages.suffix(2)), citationIDs: citationChoices(),
+              retainedCitationIDs: observedThisStep.sorted(),
+              toolScope: inferenceScopeForNextStep())
+          }
           messages = updated.messages
           metrics += updated.metrics
           if updated.compacted {

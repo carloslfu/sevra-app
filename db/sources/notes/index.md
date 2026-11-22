@@ -2,11 +2,12 @@
 type: index
 scope: type-folder
 folder: sources/notes
-updated: 2026-11-22T15:03:43.937791Z
+updated: 2026-11-22T17:33:53.838327Z
 ---
 
 # sources/notes
 
+- [[sources/notes/2026/11/chat-response-time-analysis]] — Carlos asks where chat time goes on the first turn and on follow-ups, measured with debug-mode timers, improvements left for later.
 - [[sources/notes/2026/11/header-trim-direction]] — Carlos asks for the chat header at its minimum expression that still does the work, and says to trim it and run the light set once.
 - [[sources/notes/2026/11/chat-history-panel]] — On November 21, 2026 the owner asked what the best way to see chat history is, whether a panel should slide in rather than a menu, and whether the dropdown menu of chat titles was right. He asked for
 - [[sources/notes/2026/11/model-swap-evals]] — Carlos asks for chat evals good enough to swap models and check accuracy, without over-engineering or over-testing.

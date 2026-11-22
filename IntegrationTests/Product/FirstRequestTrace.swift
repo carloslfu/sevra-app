@@ -8,10 +8,14 @@ import SevraSplashText
 
 /// A diagnostic with the real model, not a check: the app's first request, timed. The product's
 /// model configuration is built from a packaged build, the engine starts ahead of the request as
-/// the app starts it when a workbook opens, and then "hi" and a follow-up are sent as composer
-/// input in a new chat of a copy of a workbook. Run with SEVRA_PROMPT_HEADER set to the build's
-/// header folder. Prints each step's time and the saved per-call metrics.
-func firstRequestTrace(modelsRoot: String, packagedBin: String, workbook: String) async throws {
+/// the app starts it when a workbook opens, and then "hi" and a follow-up, or the given prompts,
+/// are sent as composer input in a new chat of a copy of a workbook, with the context the app
+/// sends from Home. SEVRA_TRACE_PAUSE waits that many seconds after opening and between turns,
+/// as a person reads and types. Run with SEVRA_PROMPT_HEADER set to the build's header folder,
+/// and SEVRA_CHAT_TIMING=1 to log every step (scripts/chat_timing.py reads it).
+func firstRequestTrace(
+  modelsRoot: String, packagedBin: String, workbook: String, prompts: [String] = ["hi", "ho"]
+) async throws {
   try SplashModelSetup.checkHardware()
   let resources = URL(fileURLWithPath: packagedBin).standardizedFileURL
   let manifest = try Value.parse(
@@ -36,14 +40,17 @@ func firstRequestTrace(modelsRoot: String, packagedBin: String, workbook: String
   let chat = try book.createChat()
   mark("workbook open, new chat " + chat.prefix(8))
 
-  let warm = await model.prewarm(directory: models, cancellation: Cancellation())
-  mark("engine started ahead of the request: \(warm)")
-  for prompt in ["hi", "ho"] {
+  // As the app does when a workbook opens. A request sent before it finishes waits for it.
+  await service.prewarm(modelDirectory: models)
+  mark("engine start begun ahead of the request")
+  let pause = Double(ProcessInfo.processInfo.environment["SEVRA_TRACE_PAUSE"] ?? "") ?? 0
+  for prompt in prompts {
+    if pause > 0 { try await Task.sleep(nanoseconds: UInt64(pause * 1e9)) }
     let sent = ProcessInfo.processInfo.systemUptime
     mark("send " + prompt)
     let result = try await service.run(
-      prompt, workbook: book, conversation: chat, modelDirectory: models,
-      progress: { mark("  progress " + $0) }, conversationInput: true)
+      prompt, workbook: book, conversation: chat, context: "Space: Home\nActive space ID: home",
+      modelDirectory: models, progress: { mark("  progress " + $0) }, conversationInput: true)
     mark(
       String(
         format: "answer after %.2f s, %d steps: %@", ProcessInfo.processInfo.systemUptime - sent,

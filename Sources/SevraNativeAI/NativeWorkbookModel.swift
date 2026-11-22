@@ -352,11 +352,19 @@ private final class NativeWorker: @unchecked Sendable {
       if let match = measuredRequests.firstIndex(where: { $0.key == key }) {
         let cached = measuredRequests.remove(at: match)
         measuredRequests.append(cached)
+        ChatTiming.mark(
+          "model.prepare_reused",
+          ["promptTokens": .number(Double(cached.request.prompt.tokens.count))])
         return cached.request
       }
+      let started = ChatTiming.now
       let prepared = try NativePreparedRequest(
         messages: messages, frontend: frontend, configuredReasoning: configuration.reasoning,
         toolScope: scope, citationIDs: citations)
+      ChatTiming.record(
+        "model.prepare", since: started,
+        ["promptTokens": .number(Double(prepared.prompt.tokens.count)),
+         "scope": .string(scope.rawValue)])
       if measuredRequests.count == 2 { measuredRequests.removeFirst() }
       measuredRequests.append((key, prepared))
       return prepared
@@ -396,9 +404,14 @@ private final class NativeWorker: @unchecked Sendable {
       // One discarded token closes the wire request; it cannot execute workbook tools.
       seed.maxOutput = 1
       var matched = 0
+      let primeStarted = ChatTiming.now
       let result = try helper.generate(
         seed, cancelled: { cancellation.isCancelled || cancellation.isExpired },
         event: { if case .start(_, _, let reused) = $0 { matched = Int(reused) } })
+      ChatTiming.record(
+        "engine.prime", since: primeStarted,
+        ["tokens": .number(Double(count)), "matched": .number(Double(matched)),
+         "prefillSeconds": .number(Double(result.done.prefillMicros) / 1e6)])
       try cancellation.check()
       if checkpointPrefixes.count == 4 { checkpointPrefixes.removeFirst() }
       checkpointPrefixes.append(prefix)
@@ -434,13 +447,16 @@ private final class NativeWorker: @unchecked Sendable {
         Set(configuration.engineFiles.keys) == ["splash", "splash.metallib", "host-step.metallib"],
         "model_setup", "Native executable and Metal identities are required.")
       let folder = configuration.engine.deletingLastPathComponent()
-      for (name, digest) in configuration.engineFiles {
-        try Self.verify(folder.appendingPathComponent(name), digest, cancellation)
+      try ChatTiming.span("session.verify_engine_files") {
+        for (name, digest) in configuration.engineFiles {
+          try Self.verify(folder.appendingPathComponent(name), digest, cancellation)
+        }
       }
       try require(
         configuration.engine.lastPathComponent == "splash", "model_setup",
         "Invalid native executable.")
       progress("Checking local model files")
+      let modelFilesStarted = ChatTiming.now
       let pack = try SplashModelPack.selected()
       let tokenizer: URL
       switch configuration.modelLayout {
@@ -464,12 +480,20 @@ private final class NativeWorker: @unchecked Sendable {
         }
         tokenizer = assembly.appendingPathComponent("tokenizer")
       }
+      ChatTiming.record("session.model_files", since: modelFilesStarted)
       try cancellation.check()
-      frontend = try SplashTextFrontend(modelFolder: tokenizer)
-      factory = try SplashGrammarFactory(
-        frontend: frontend, library: configuration.grammarLibrary,
-        librarySHA256: configuration.grammarSHA256)
+      let loaded = try ChatTiming.span("session.tokenizer") {
+        try SplashTextFrontend(modelFolder: tokenizer)
+      }
+      frontend = loaded
+      factory = try ChatTiming.span("session.grammar_library") {
+        try SplashGrammarFactory(
+          frontend: loaded, library: configuration.grammarLibrary,
+          librarySHA256: configuration.grammarSHA256)
+      }
       try cancellation.check()
+      let headerCheckStarted = ChatTiming.now
+      defer { ChatTiming.record("session.header_check", since: headerCheckStarted) }
       missedResumeSeam = configuration.diagnosticMissedResume
       if case .restore(let location) = configuration.header {
         // Without a matching header the engine is not started: nothing computes one.
@@ -517,15 +541,20 @@ private final class NativeWorker: @unchecked Sendable {
       // A start whose engine did not take every restore point back is repeated once from the
       // app's own files. A second is a damaged installation, never a reason to compute.
       for attempt in 0..<2 {
-        try PromptHeader.restore(folder, manifest, into: cache)
-        let started = try launch(
-          PromptHeader.arguments(
-            assembly: assembly, contextTokens: configuration.contextBudget.contextTokens,
-            memoryBytes: configuration.memoryBytes, cache: cache,
-            activations: configuration.activations.rawValue),
-          cancellation: cancellation, progress: progress)
-        let status = try Value.parse(
-          String(decoding: started.status(id: UInt64.max - 1), as: UTF8.self))
+        try ChatTiming.span("engine.header_restore") {
+          try PromptHeader.restore(folder, manifest, into: cache)
+        }
+        let started = try ChatTiming.span("engine.launch", ["attempt": .number(Double(attempt))]) {
+          try launch(
+            PromptHeader.arguments(
+              assembly: assembly, contextTokens: configuration.contextBudget.contextTokens,
+              memoryBytes: configuration.memoryBytes, cache: cache,
+              activations: configuration.activations.rawValue),
+            cancellation: cancellation, progress: progress)
+        }
+        let status = try ChatTiming.span("engine.status_check") {
+          try Value.parse(String(decoding: started.status(id: UInt64.max - 1), as: UTF8.self))
+        }
         switch PromptHeader.check(status: status, manifest) {
         case .whole:
           checkpointPrefixes = [headerTokens]
@@ -558,8 +587,15 @@ private final class NativeWorker: @unchecked Sendable {
           arguments: arguments,
           timeout: 360, cancelled: { cancellation.isCancelled || cancellation.isExpired },
           warming: { completed, total in
+            ChatTiming.mark(
+              "engine.warming",
+              ["completed": .number(Double(completed)), "total": .number(Double(total))])
             progress("Preparing local AI · \(completed) of \(total) steps")
-          }, onLaunch: { self.helper = $0 })
+          },
+          onLaunch: {
+            self.helper = $0
+            ChatTiming.mark("engine.process_launched")
+          })
         helper = started
         guard let ready = started.ready,
           ready.vocabulary == SplashTextFrontend.vocabularySize,
@@ -679,8 +715,10 @@ private final class NativeWorker: @unchecked Sendable {
     directory: URL, cancellation: Cancellation,
     progress: @escaping @Sendable (String) -> Void, action: @escaping (Session) throws -> T
   ) async throws -> T {
-    try await withCheckedThrowingContinuation { continuation in
+    let queued = ChatTiming.now
+    return try await withCheckedThrowingContinuation { continuation in
       queue.async {
+        ChatTiming.record("model.queue_wait", since: queued)
         do {
           try cancellation.check()
           let directory = directory.standardizedFileURL.resolvingSymlinksInPath()
@@ -691,9 +729,11 @@ private final class NativeWorker: @unchecked Sendable {
               "The previous native helper has not stopped. Retry unloading it.")
             self.session = nil
             let setupStart = ProcessInfo.processInfo.systemUptime
-            self.session = try Session(
-              directory: directory, configuration: self.configuration,
-              cancellation: cancellation, progress: progress)
+            self.session = try ChatTiming.span("model.session_setup") {
+              try Session(
+                directory: directory, configuration: self.configuration,
+                cancellation: cancellation, progress: progress)
+            }
             self.unreportedSessionSetup = ProcessInfo.processInfo.systemUptime - setupStart
           }
           let result = try action(self.session!)
@@ -832,7 +872,9 @@ private final class NativeWorker: @unchecked Sendable {
     let preparedAt = ProcessInfo.processInfo.systemUptime
     let sessionSetup = unreportedSessionSetup
     unreportedSessionSetup = 0
-    var helper = try session.start(cancellation: cancellation, progress: progress)
+    var helper = try ChatTiming.span("model.engine_ready") {
+      try session.start(cancellation: cancellation, progress: progress)
+    }
     let helperReadyAt = ProcessInfo.processInfo.systemUptime
     let allowance = try budget.allowance(
       promptTokens: prepared.prompt.tokens.count,
@@ -850,7 +892,9 @@ private final class NativeWorker: @unchecked Sendable {
       !session.headerTokens.isEmpty && prompt.tokens.starts(with: session.headerTokens)
     let headerPage = PromptHeader.lastCompletePage(session.headerTokens.count)
     var headerResumed: Bool?
-    var constraint = try session.factory.create(grammar: policy.grammar)
+    var constraint = try ChatTiming.span("model.grammar_compile") {
+      try session.factory.create(grammar: policy.grammar)
+    }
     var output = try SplashOutputStream(
       frontend: session.frontend, tools: policy.outputTools, thinking: reasoning.enabled)
     var seed = try session.primePrefix(
@@ -890,18 +934,40 @@ private final class NativeWorker: @unchecked Sendable {
     var missed = false
     var resent = false
     var generated: SplashNativeProcess.Result
+    // Debug timing only: where the engine request's time goes on the host side.
+    var masks = 0
+    var maskSeconds = 0.0
+    var eventSeconds = 0.0
+    var startEventAt: Double?
+    var firstTokensAt: Double?
+    var answerPhaseAt: Double?
+    var answerPhaseTokens = 0
+    var tokenEvents = 0
+    var streamedTokens = 0
     while true {
     generated = try helper.generate(
       request,
       cancelled: { cancellation.isCancelled || cancellation.isExpired || missed },
       mask: { committed, simulation, words in
+        let maskStarted = ChatTiming.enabled ? ChatTiming.now : 0
         let values = try constraint.masks(
           committed: committed, simulation: simulation, words: words)
         self.configuration.observeMask?(committed, simulation, words, values)
+        if ChatTiming.enabled {
+          masks += 1
+          maskSeconds += ChatTiming.now - maskStarted
+        }
         return values
       },
       event: { event in
+        let eventStarted = ChatTiming.enabled ? ChatTiming.now : 0
+        defer { if ChatTiming.enabled { eventSeconds += ChatTiming.now - eventStarted } }
         if case .tokens(_, _, let tokens) = event {
+          if ChatTiming.enabled {
+            tokenEvents += 1
+            streamedTokens += tokens.count
+            if firstTokensAt == nil { firstTokensAt = eventStarted }
+          }
           _ = try output.append(tokens: tokens)
           if let text = output.answerPreview, text != lastPreview,
             !cancellation.isCancelled && !cancellation.isExpired
@@ -916,11 +982,16 @@ private final class NativeWorker: @unchecked Sendable {
           }
           let phase = output.isReasoning ? "Working through the request" : "Preparing a response"
           if phase != generationPhase {
+            if ChatTiming.enabled, !output.isReasoning, answerPhaseAt == nil {
+              answerPhaseAt = ChatTiming.now
+              answerPhaseTokens = streamedTokens
+            }
             generationPhase = phase
             progress(phase)
           }
         }
         if case .start(_, _, let matched) = event {
+          if ChatTiming.enabled, startEventAt == nil { startEventAt = eventStarted }
           matchedPromptTokens = Int(matched)
           if checksHeader {
             let seam = session.missedResumeSeam
@@ -952,6 +1023,7 @@ private final class NativeWorker: @unchecked Sendable {
     lastPreview = ""
     }
     if checksHeader { headerResumed = matchedPromptTokens >= headerPage }
+    let engineDoneAt = ChatTiming.now
     try require(
       generated.done.reason == .stop && !generated.done.bounded,
       "truncated",
@@ -1030,6 +1102,40 @@ private final class NativeWorker: @unchecked Sendable {
       "headerResumed": headerResumed.map(Value.bool) ?? .null,
       "headerRestarts": .number(Double(session.headerRestarts)),
     ])
+    if ChatTiming.enabled {
+      func after(_ time: Double?) -> Value { time.map { .number($0 - dispatchAt) } ?? .null }
+      ChatTiming.record(
+        "engine.request", from: dispatchAt, to: engineDoneAt,
+        [
+          "promptTokens": .number(Double(prompt.tokens.count)),
+          "matchedTokens": .number(Double(matchedPromptTokens)),
+          "computedTokens": .number(Double(prompt.tokens.count - matchedPromptTokens)),
+          "generatedTokens": .number(Double(generated.tokens.count)),
+          "reasoningTokens": .number(Double(reasoningTokens)),
+          "tokensBeforeAnswerPhase": .number(Double(answerPhaseTokens)),
+          "outputBudget": .number(Double(outputBudget)),
+          "startEventAfter": after(startEventAt),
+          "firstTokenAfter": after(firstTokensAt),
+          "answerPhaseAfter": after(answerPhaseAt),
+          "firstPreviewAfter": after(previewAt),
+          "prefillSeconds": .number(Double(generated.done.prefillMicros) / 1e6),
+          "decodeSeconds": .number(Double(generated.done.decodeMicros) / 1e6),
+          "engineWallSeconds": .number(Double(generated.done.wallMicros) / 1e6),
+          "deduplicatedTokens": .number(Double(generated.done.deduplicated)),
+          "draftedTokens": .number(Double(generated.done.drafted)),
+          "acceptedDraftTokens": .number(Double(generated.done.accepted)),
+          "cycles": .number(Double(generated.done.cycles)),
+          "masks": .number(Double(masks)),
+          "maskSeconds": .number(maskSeconds),
+          "tokenEvents": .number(Double(tokenEvents)),
+          "eventHandlingSeconds": .number(eventSeconds),
+          "headerResent": .bool(resent),
+        ])
+      ChatTiming.record(
+        "model.finish_and_validate", from: engineDoneAt, to: ChatTiming.now,
+        ["calls": .number(Double(calls.count)), "refused": .bool(refusal != nil)])
+      ChatTiming.mark("model.call", ["metrics": metrics])
+    }
     // Opt-in qualification observation is absent from product configurations.
     if let observe = configuration.observeRequest {
       var normalized = request

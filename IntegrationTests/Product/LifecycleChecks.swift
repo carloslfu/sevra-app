@@ -124,10 +124,11 @@ actor PausedModel: WorkbookInference {
         try await firstRequestPrompt(
           tokenizer: CommandLine.arguments[2], workbook: CommandLine.arguments[3])
         exit(0)
-      } else if CommandLine.arguments.count == 5 && CommandLine.arguments[1] == "--first-request" {
+      } else if CommandLine.arguments.count >= 5 && CommandLine.arguments[1] == "--first-request" {
+        let prompts = Array(CommandLine.arguments.dropFirst(5))
         try await firstRequestTrace(
           modelsRoot: CommandLine.arguments[2], packagedBin: CommandLine.arguments[3],
-          workbook: CommandLine.arguments[4])
+          workbook: CommandLine.arguments[4], prompts: prompts.isEmpty ? ["hi", "ho"] : prompts)
         exit(0)
       } else {
         try expect(

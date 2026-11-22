@@ -2,11 +2,12 @@
 type: index
 scope: type-folder
 folder: records/plans
-updated: 2026-11-22T16:30:18Z
+updated: 2026-11-22T17:44:08.956730Z
 ---
 
 # records/plans
 
+- [[records/plans/chat-response-time]] — Debug-mode chat timing and one measured five-message conversation: 96% of reply time is the engine, and the number of model calls per message decides it.
 - [[records/plans/general-chat-tools]] — Seven general chat tools (SQL on a scratch copy, sandboxed code, workbook tools) and a prompt header made at build time. Built, looked at, and updated in the app between two headers.
 - [[records/plans/simple-chats]] — Threads, chapters, bookmarks and the main conversation became one plain list of chats per workbook, in format 33 with no conversion. Built, reviewed twice and checked; light set 11 of 11.
 - [[records/plans/first-request-latency]] — The first answer waited for the engine and read half the prompt again. Prewarm, one header for every chat turn, and reads by real IDs cut "hi" from 14 s to 3.7 s.
