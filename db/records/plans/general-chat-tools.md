@@ -2,7 +2,7 @@
 type: operational
 id: 01m7qrcqqzh4qqr92a8frch1ze
 created: 2026-11-18T16:38:43.199010+00:00
-updated: 2026-11-22T02:16:16+00:00
+updated: 2026-11-22T02:36:26+00:00
 summary: Seven general chat tools (SQL on a scratch copy, sandboxed code, workbook tools) and a prompt header made at build time. Built, looked at, and updated in the app between two headers.
 title: General chat tools and a pre-read prompt header
 ---
@@ -416,6 +416,7 @@ Built on November 18, 2026 under the `general` profile. Evidence: [the evals](..
 - **Stricter answer checks:** numbers in citation links no longer count as figures the answer gives. Before, the label "row 4" let an answer of 3 pass the count job. The comparison job fails an answer that also gives 14.58 percent, the difference measured against the lower total. The clarify job needs the reply to ask for the quantity or the cost.
 - **Checked without the model:** the self-test passes for all 30 jobs, and the 20 saved English answers that passed before still pass the stricter checks.
 - **One run with the real model:** 4 of 5 passed, in 172 seconds ([the run](../../../integration/evidence/2026-11-21-new-jobs/README.md)). `conversation.follow_up` failed. On the second turn the model read "its" as the brass bolts of the stock list rather than Cedar Tools from the first turn. It tried to set their quantity to 20, which the read-only stock list refused, then looped through refused history reads until the repeated-action stop. The earlier turn was in its prompt. This is a model failure on follow-ups, not a harness fault. It is recorded and was not run again.
+- **Fixed the same day, at the owner's word.** Earlier turns reached the model labelled only as historical information, and nothing said the current request may refer back to them. One sentence now says so, in both forms of the saved conversation ([ContextMaintenance.swift](../../../Sources/SevraAI/ContextMaintenance.swift) `historyReferenceNote`). It sits with the history, after the prepared header, so the header is unchanged. The history, prompt header, surface and chat checks pass without the model. One run of `conversation.follow_up` and the light set on the rebuilt CLI: 12 of 12, in 36 decisions and 270 seconds. The follow-up took 7 decisions over its two turns, and the light set's 29 decisions compare with 31 on November 20 ([the run](../../../integration/evidence/2026-11-21-follow-up-fix/README.md)).
 
 **Measured once on the final build:**
 

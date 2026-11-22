@@ -307,3 +307,6 @@ Hosted CI measured once each on 2876aec. Push run 44619873641 (core checks in th
 ## [2026-11-22 02:16] verification | records/plans/general-chat-tools
 Five chat jobs added for comparing models (a 600-row total, an informal change, removing one of two identical rows, a two-turn follow-up, a quote carrying an unrequested change) and two stricter answer checks; numbers in citation links no longer count. Self-test passes for all 30 jobs; 20 saved English answers still pass. One real-model run: 4 of 5, 172 seconds. conversation.follow_up failed: the second turn read its as the brass bolts stock, not Cedar Tools, and hit the repeated-action stop. Not rerun. Light set unchanged.
 
+## [2026-11-22 02:36] implementation | records/plans/general-chat-tools
+Follow-up turns fixed: the saved conversation now says the current request may refer back to it, in both history forms, after the unchanged prepared header. No-model history, header, surface and chat checks pass. One run of conversation.follow_up and the light set on the rebuilt CLI: 12 of 12, 36 decisions, 270 seconds; the follow-up passed in 7 decisions; the light set took 29 decisions against 31 on November 20.
+

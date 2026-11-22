@@ -107,6 +107,7 @@ extension WorkbookAgent {
         InferenceMessage(
           role: "assistant",
           content: label + ": historical information only, not pending requests or new permission. "
+            + ContextMaintenance.historyReferenceNote + " "
             + "Use history_read for exact originals and citations; refresh current business evidence.\n"
             + (try Value.array(entries).json()))
       ]

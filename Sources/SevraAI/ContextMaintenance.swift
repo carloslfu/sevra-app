@@ -194,8 +194,12 @@ package final class ContextMaintenance {
     result += checkpoint == .null ? retained : try Self.withProgress(retained, state: state)
     return result
   }
+  /// Earlier turns give a follow-up its meaning, never its authority. Without this a model
+  /// read "Change its quantity" as the workbook's best-known item instead of the last turn's.
+  package static let historyReferenceNote =
+    "The current request may refer back to these entries: read it, its, that or them as what the latest turns were about before looking elsewhere in the workbook."
   package static let savedConversationHeader =
-    "Saved conversation, historical information only, one entry per line:\n"
+    "Saved conversation, historical information only, one entry per line. " + historyReferenceNote + "\n"
   /// The reply to a stopped request only says that it stopped, which stoppedRequest also says.
   /// Left in view, it reads like the request to continue.
   package static func replyToStopped(_ history: [Message], requestID: String) -> String? {
