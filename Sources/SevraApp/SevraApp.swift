@@ -529,14 +529,32 @@ struct WorkspaceWindow: View {
   }
 }
 
+/// Reports the window this view is in. A new view is often not in its window yet, so it also
+/// reports when it joins one: a window that waited for its next redraw instead could sit on
+/// "Opening…" until something else happened to redraw it.
 struct WindowAccessor: NSViewRepresentable {
   let changed: (NSWindow?) -> Void
-  func makeNSView(context: Context) -> NSView {
-    let view = NSView()
-    DispatchQueue.main.async { changed(view.window) }
+  final class Probe: NSView {
+    var changed: ((NSWindow?) -> Void)?
+    override func viewDidMoveToWindow() {
+      super.viewDidMoveToWindow()
+      // Async, because SwiftUI state must not change while it is attaching views.
+      DispatchQueue.main.async { [weak self] in
+        guard let self else { return }
+        self.changed?(self.window)
+      }
+    }
+  }
+  func makeNSView(context: Context) -> Probe {
+    let view = Probe()
+    view.changed = changed
     return view
   }
-  func updateNSView(_ view: NSView, context: Context) {
-    DispatchQueue.main.async { changed(view.window) }
+  func updateNSView(_ view: Probe, context: Context) {
+    view.changed = changed
+    DispatchQueue.main.async { [weak view] in
+      guard let view else { return }
+      changed(view.window)
+    }
   }
 }
