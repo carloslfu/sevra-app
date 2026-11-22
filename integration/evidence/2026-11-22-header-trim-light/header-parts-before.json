@@ -1,0 +1,107 @@
+{
+  "header" : 5172,
+  "instructionLines" : [
+    {
+      "starts" : "You are Sevra, a local workbook assistant. Do on",
+      "tokens" : 35
+    },
+    {
+      "starts" : "Authority: only the user's current request autho",
+      "tokens" : 81
+    },
+    {
+      "starts" : "Call one tool at a time. Finish as soon as the r",
+      "tokens" : 17
+    },
+    {
+      "starts" : "sql reads and changes tables. The request lists ",
+      "tokens" : 244
+    },
+    {
+      "starts" : "run runs JavaScript when the work needs several ",
+      "tokens" : 55
+    },
+    {
+      "starts" : "save keeps one named thing in the workbook. Send",
+      "tokens" : 220
+    },
+    {
+      "starts" : "search finds documents, records and saved things",
+      "tokens" : 87
+    },
+    {
+      "starts" : "run with action performs one named action in pla",
+      "tokens" : 115
+    },
+    {
+      "starts" : "ask publishes a question with typed fields when ",
+      "tokens" : 32
+    },
+    {
+      "starts" : "finish delivers the answer, with a basis. eviden",
+      "tokens" : 97
+    },
+    {
+      "starts" : "Never write IDs in the answer text. A search tha",
+      "tokens" : 19
+    },
+    {
+      "starts" : "For a view, take each table's id from SELECT nam",
+      "tokens" : 88
+    },
+    {
+      "starts" : "For a rule that watches stock and alerts or acts",
+      "tokens" : 19
+    },
+    {
+      "starts" : "For a small app with its own controls, read kind",
+      "tokens" : 40
+    }
+  ],
+  "instructions" : 1148,
+  "toolFraming" : 197,
+  "tools" : [
+    {
+      "bytes" : 554,
+      "descriptionTokens" : 46,
+      "name" : "search",
+      "tokens" : 143
+    },
+    {
+      "bytes" : 1291,
+      "descriptionTokens" : 144,
+      "name" : "read",
+      "tokens" : 343
+    },
+    {
+      "bytes" : 1034,
+      "descriptionTokens" : 95,
+      "name" : "sql",
+      "tokens" : 267
+    },
+    {
+      "bytes" : 2135,
+      "descriptionTokens" : 189,
+      "name" : "run",
+      "tokens" : 516
+    },
+    {
+      "bytes" : 5817,
+      "descriptionTokens" : 35,
+      "name" : "save",
+      "tokens" : 1762
+    },
+    {
+      "bytes" : 1859,
+      "descriptionTokens" : 21,
+      "name" : "ask",
+      "tokens" : 555
+    },
+    {
+      "bytes" : 976,
+      "descriptionTokens" : 24,
+      "name" : "finish",
+      "tokens" : 237
+    }
+  ]
+}

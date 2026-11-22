@@ -3,11 +3,14 @@ type: operational
 meta-type: operational
 id: 01m659x4nd2q89tkpzzsssd7yr
 created: 2026-10-30T02:23:30.477380+00:00
-updated: 2026-11-22T02:36:26+00:00
+updated: 2026-11-22T15:09:36+00:00
 summary: Native UI Catalog implemented and locally verified, with durable agent maintenance instructions and preserved product/model qualification limits.
 title: Minimum-feature continuation handoff
 ---
 # Minimum-feature continuation handoff
+
+## Chat header trimmed, November 22
+At the owner's word ([[sources/notes/2026/11/header-trim-direction]]), the prepared chat header is 3,809 tokens, from 5,172, and a first prompt about 4,500. A view is shown to the model as one description with a new `read kind=view_guide` behind it, the instructions say each fact once, and the scope paragraphs are gone. The light set passed 11 of 11 in 29 decisions, with `build.saved_tool` and `build.rule` by name. `build.app` and `build.form` were not run. `sevra-agent-checks --header-parts` counts the header's parts without the model. What was cut and kept: [[records/plans/general-chat-tools]], "The build so far". The header changed, so a source build needs the install command again. Earlier sections that give the header as 2,770 or 5,234 tokens are history.
 
 ## Plain chats, November 21
 By owner direction ([[records/plans/simple-chats]]), threads, chapters, bookmarks, tangents, shared summaries, the main conversation, the model's thread tools and request handoffs are gone. Each workbook has a plain list of chats; each chat holds only its own messages and keeps per-chat context maintenance. Format 33, with no conversion of older workbooks. Earlier dated sections that mention threads, "main" or handoffs are history. CLI: `chats`, `chat-new`, `chat-rename`, `chat-delete`, `ask --chat`.

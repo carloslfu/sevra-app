@@ -2,7 +2,7 @@
 type: operational
 id: 01m7qrcqqzh4qqr92a8frch1ze
 created: 2026-11-18T16:38:43.199010+00:00
-updated: 2026-11-22T02:36:26+00:00
+updated: 2026-11-22T15:09:36+00:00
 summary: Seven general chat tools (SQL on a scratch copy, sandboxed code, workbook tools) and a prompt header made at build time. Built, looked at, and updated in the app between two headers.
 title: General chat tools and a pre-read prompt header
 ---
@@ -410,6 +410,17 @@ Built on November 18, 2026 under the `general` profile. Evidence: [the evals](..
 
 **The light set, the routine model run from November 19, 2026:** 11 of 11 pass, in 26 decisions and 3 minutes 51 seconds. It includes the first job in which the model wrote and ran a script, in 2 decisions. After phase 5, with a 2,707-token header, it passed 11 of 11 again in 26 decisions and 2 minutes 41 seconds, and `build.rule`, `build.saved_tool` and `build.app` passed by name in 3, 2 and 5 decisions: [the runs](../../../integration/evidence/2026-11-19-phase5-light/README.md). On November 20, with the export instruction and a 2,770-token header, it passed 11 of 11 in 31 decisions: four jobs took one or two more, from a refused first `finish`, extra reads and a script that fixed its own mistake, and none read the action list or exported ([the run](../../../integration/evidence/2026-11-20-export-light/results.json)).
 
+**The header was trimmed on November 22, 2026,** at the owner's word: [[sources/notes/2026/11/header-trim-direction]]. It is 3,809 tokens, from 5,172. A first prompt on the sample workbook is about 4,500, from about 5,870. The packaged header is 108 MB, from 123 MB. Evidence: [the counts and the run](../../../integration/evidence/2026-11-22-header-trim-light/README.md).
+
+- **Measured first.** `sevra-agent-checks --header-parts` loads only the tokenizer and counts the header's parts. Before the trim: instructions 1,148, `save` 1,762, `ask` 555, `run` 516, `read` 343, `sql` 267, `finish` 237, `search` 143, and 197 of template framing.
+- **The view shape was most of `save`.** A view's schema nests every component three levels deep, each level with its types and fields, which came to about 1,000 tokens. The model is now shown a view as one description: the table and chart case in full, and where their ids come from. The grammar still enforces the whole shape. Every other component is in a new guide, `read kind=view_guide`, written from the component schema's own field notes. `save` is 875 tokens.
+- **Each fact is said once.** The instructions no longer repeat what a tool's declaration says: what `sql`, `run`, `save`, `search` and `read` are, how a saved tool is named and described, and what a document, a view and an app are. The `sql` declaration no longer repeats the instructions' table list and draft rule. The instructions are 701 tokens.
+- **The scope paragraphs are gone.** The view paragraph became the view's description. The rule and app pointers stand in the `read` and `save` declarations, which say to read each guide before saving. `GeneralTools.scopeInstructions` is removed.
+- **Kept, with the reason.** The eleven named actions of `run` stay listed with their fields, because `read kind=actions` lists the workspace actions only and nothing else names them. `ask` and `finish` are unchanged: the light set does not call `ask`, and the citation text in `finish` is what keeps a first answer from being refused. Showing the nested `ask` shapes as field names would save about 100 tokens and needs a job that calls `ask`.
+- **Result, one run each with the real model.** The light set passed 11 of 11 in 29 decisions and 215 seconds. The same eleven took 29 decisions and 216 seconds on November 21, so turn time did not change, which is what a restored header predicts. `build.view` passed in 4 decisions without reading the guide. By name, because their text moved: `build.saved_tool` passed in 2 decisions and `build.rule` in 4, reading the rule guide first ([the run](../../../integration/evidence/2026-11-22-header-trim-named/results.json)).
+- **Not run:** `build.app` and `build.form`. The app pointer moved from the instructions to the `save` declaration.
+- **Checked without the model:** the prompt header, chat, surface, view action and `sql` checks, the default scripted groups, the grammar checks, and the command line's `sql` and `run` checks. The `sql` check still asserted that a `thread.start` action reaches the thread tool, which went with threads on November 21. That assertion is removed.
+
 **Jobs for comparing models, November 21, 2026:** at the owner's request, [[sources/notes/2026/11/model-swap-evals]], five jobs cover what the earlier ones missed, and two answer checks are stricter. The harness holds 30 jobs, and the light set is unchanged.
 
 - **The new jobs:** `read.large_table` asks for a total over 600 rows, where the first 100 give a wrong one. `change.informal` is an instruction with no table or column named. `change.remove_duplicates` must remove one of two identical rows, not both. `conversation.follow_up` is two turns in one chat, where "its" refers back to the first. `safety.quote_instruction` adds a quote that carries a note asking for a change nobody requested.
@@ -486,7 +497,7 @@ Each changed row version adds about 8 KB to the workbook file, which is what the
 - **App action catalogs.** An app's isolated check records the actions it declares, with their titles and inputs, and they are saved with the app. Chat lists them without running the app. An action runs once the app is enabled.
 - **The sample workbook** has a saved action, "Record a stock movement". A movement made through it gets the same direction review as `stock.move`, and the balance read through `sql` agrees with the core's.
 - **Rules can alert.** `template.rule` takes alert text in place of a workflow. Saving it binds the rule to a shared "Stock alert" workflow, saved with the first alert rule, that drafts the alert as a document for the person to read in Reviews. The alert cites the record that sets the item's stock.
-- **The starters are guides.** `read kind=rule_guide` and `read kind=receiving_guide`, each with a filled example. The definitions guide names both. They are not in the instructions.
+- **The starters are guides.** `read kind=rule_guide` and `read kind=receiving_guide`, each with a filled example. The definitions guide names both. They are not in the instructions. Since November 22, 2026 `read kind=view_guide` is a guide too, for view components beyond a table and a chart.
 
 **Checks, none needing the model:** [check_chat_sql.py](../../../scripts/check_chat_sql.py) and [check_chat_run.py](../../../scripts/check_chat_run.py) through the command line, and `sevra-agent-checks --sql-tool` with a scripted model under the AI actor. All three run in [check.sh](../../../scripts/check.sh).
 

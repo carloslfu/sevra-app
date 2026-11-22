@@ -160,7 +160,7 @@ public enum WorkbookAgent {
     // The native template keeps this exact policy and shared tool vocabulary ahead of history,
     // as the prepared header. Every chat turn has the same one: a read-only turn is told below
     // that it only answers, and the grammar offers only what its scope allows.
-    var policy = GeneralTools.instructions + "\n" + GeneralTools.scopeInstructions
+    var policy = GeneralTools.instructions
     var cacheablePolicy = policy
     let scopePolicy = ""
     if excelConversion != nil {

@@ -1,0 +1,95 @@
+{
+  "header" : 3809,
+  "instructionLines" : [
+    {
+      "starts" : "You are Sevra, a local workbook assistant. Do on",
+      "tokens" : 35
+    },
+    {
+      "starts" : "Authority: only the user's current request autho",
+      "tokens" : 81
+    },
+    {
+      "starts" : "Call one tool at a time. Finish as soon as the r",
+      "tokens" : 17
+    },
+    {
+      "starts" : "sql: the request lists every table under Tables ",
+      "tokens" : 220
+    },
+    {
+      "starts" : "run: prefer one sql call when one statement can ",
+      "tokens" : 25
+    },
+    {
+      "starts" : "save: a tool's statements use each input as :nam",
+      "tokens" : 84
+    },
+    {
+      "starts" : "Read an original before citing it. After three e",
+      "tokens" : 21
+    },
+    {
+      "starts" : "When the user asks to export a table as a file, ",
+      "tokens" : 71
+    },
+    {
+      "starts" : "ask publishes a question with typed fields when ",
+      "tokens" : 32
+    },
+    {
+      "starts" : "finish delivers the answer, with a basis. eviden",
+      "tokens" : 97
+    },
+    {
+      "starts" : "Never write IDs in the answer text. A search tha",
+      "tokens" : 19
+    }
+  ],
+  "instructions" : 701,
+  "toolFraming" : 197,
+  "tools" : [
+    {
+      "bytes" : 554,
+      "descriptionTokens" : 46,
+      "name" : "search",
+      "tokens" : 143
+    },
+    {
+      "bytes" : 1374,
+      "descriptionTokens" : 156,
+      "name" : "read",
+      "tokens" : 359
+    },
+    {
+      "bytes" : 894,
+      "descriptionTokens" : 66,
+      "name" : "sql",
+      "tokens" : 238
+    },
+    {
+      "bytes" : 2058,
+      "descriptionTokens" : 170,
+      "name" : "run",
+      "tokens" : 500
+    },
+    {
+      "bytes" : 3189,
+      "descriptionTokens" : 35,
+      "name" : "save",
+      "tokens" : 875
+    },
+    {
+      "bytes" : 1859,
+      "descriptionTokens" : 21,
+      "name" : "ask",
+      "tokens" : 555
+    },
+    {
+      "bytes" : 976,
+      "descriptionTokens" : 24,
+      "name" : "finish",
+      "tokens" : 237
+    }
+  ]
+}

@@ -1,0 +1,201 @@
+{
+ "date": "2026-11-22T15:08:11Z",
+ "commit": "510c237e2602e3cf022127b38c5471429503702b",
+ "workingTreeChanges": [
+  " M IntegrationTests/Agent/SQLToolChecks.swift",
+  " M IntegrationTests/Agent/main.swift",
+  " M Sources/SevraAI/GeneralTools.swift",
+  " M Sources/SevraAI/ToolSerialization.swift",
+  " M Sources/SevraAI/WorkbookAgent.swift",
+  " M Sources/SevraApp/WorkspaceState.swift",
+  " M Sources/SevraCore/ConversationViewState.swift",
+  " M Sources/SevraCore/Tools.swift",
+  " M Sources/SevraNativeAI/PromptHeader.swift",
+  " M Sources/SevraPreviewUI/ConversationSession.swift",
+  " M db/index.md",
+  " M db/records/operations/build-and-run.md",
+  " M db/sources/index.md",
+  " M db/sources/notes/index.jsonl",
+  " M db/sources/notes/index.md"
+ ],
+ "cliSHA256": "0dc039a1b4be3b72b8a2d8c962955f3028339721d5f1f391408d5bd1a541ea36",
+ "cliVersion": {
+  "engine": "splash-1.6.1",
+  "version": "0.1.0-dev"
+ },
+ "method": "scripts/check_chat_jobs.py: one `ask` per turn, in English, through the native preview CLI on each job's own temporary synthetic workbook, run once. A job of two turns asks both in one chat. Each CLI request loads the model and unloads it on exit, so wallSeconds includes a model start; modelSeconds is the engine time of the decisions alone. The CLI has no window, so it cannot ask a structured question or open a view. Class totals use each job's first run.",
+ "models": [
+  "Splash 1.6.1; d8af1054aab0f97de21d043e01aa98af3754f10e; Qwen3.6-35B-A3B-4bit + DFlash2; native Swift candidate; context 65536; memory 12884901888; activations bf16; KV int8; state fp32; ANE on; reasoning budget 512; within-request reasoning retained"
+ ],
+ "languages": [
+  "en"
+ ],
+ "summary": {
+  "build": {
+   "en": {
+    "passed": 2,
+    "failed": 0,
+    "steps": 6,
+    "modelCalls": 6,
+    "wallSeconds": 35.19
+   }
+  }
+ },
+ "totals": {
+  "jobs": 2,
+  "passed": 2,
+  "passedFirstRun": 2,
+  "steps": 6,
+  "modelCalls": 6,
+  "wallSeconds": 35.19
+ },
+ "promptHeader": {
+  "inputs": "758c82ec23c4fbe7538480d9edbbf65c0e28f07affc743aacf08ec1c04a4faf1",
+  "tokens": 3809,
+  "cacheName": "4da513908357e6bbd2f558a8ab1bad99"
+ },
+ "timedTurns": null,
+ "jobs": [
+  {
+   "attempt": 1,
+   "helperStopped": false,
+   "passed": true,
+   "failure": null,
+   "state": "complete",
+   "model": "Splash 1.6.1; d8af1054aab0f97de21d043e01aa98af3754f10e; Qwen3.6-35B-A3B-4bit + DFlash2; native Swift candidate; context 65536; memory 12884901888; activations bf16; KV int8; state fp32; ANE on; reasoning budget 512; within-request reasoning retained",
+   "steps": 4,
+   "modelCalls": 4,
+   "wallSeconds": 19.25,
+   "modelSeconds": 13.35,
+   "promptTokens": [
+    4498,
+    4910,
+    5110,
+    5374
+   ],
+   "tools": [
+    "guide",
+    "sql",
+    "inventory_automation_template",
+    "save_template"
+   ],
+   "answer": "Saved automation “Brass bolts stock alert”. Saving does not enable it. Review this exact version to enable or pause it on this Mac. Business changes require separate review.",
+   "citations": [],
+   "saved": {
+    "newItems": [
+     {
+      "category": "source",
+      "kind": "application_definition",
+      "status": "accepted",
+      "title": "Define Stock alert",
+      "id": "3abf8b33-faa4-421f-a1ea-9a44f20306d1"
+     },
+     {
+      "category": "source",
+      "kind": "application_definition",
+      "status": "accepted",
+      "title": "Define Draft a stock alert",
+      "id": "4f216306-59ab-4af7-894e-a704f39d7ce1"
+     },
+     {
+      "category": "source",
+      "kind": "application_definition",
+      "status": "accepted",
+      "title": "Define Brass bolts stock alert",
+      "id": "d241e844-129d-473c-8ed0-57dfbace397c"
+     }
+    ],
+    "newDefinitions": [
+     {
+      "description": "Draft an alert for review. Rules that alert when stock crosses a level run it.",
+      "id": "0a1a3ec8-c9ff-4b14-ae7d-207cb0d5277e",
+      "is_current": 1,
+      "kind": "workflow",
+      "logical_id": "5e7a1e47-a1e7-8000-8000-000000000002",
+      "source_id": "3abf8b33-faa4-421f-a1ea-9a44f20306d1",
+      "title": "Stock alert",
+      "version": 1
+     },
+     {
+      "description": "Draft this alert for review when the inventory rule crosses its threshold.",
+      "id": "2c1ff0a3-f464-4b3f-9e09-31b9fa84e516",
+      "is_current": 1,
+      "kind": "automation",
+      "logical_id": "676c5c31-4ee6-82f4-8b9a-60423f553b5a",
+      "source_id": "d241e844-129d-473c-8ed0-57dfbace397c",
+      "title": "Brass bolts stock alert",
+      "version": 1
+     },
+     {
+      "description": "Draft one alert document, with its evidence, for the person to read in Reviews.",
+      "id": "f226fc84-4870-41a6-bdb1-98536be93fc1",
+      "is_current": 1,
+      "kind": "action",
+      "logical_id": "5e7a1e47-a1e7-8000-8000-000000000001",
+      "source_id": "4f216306-59ab-4af7-894e-a704f39d7ce1",
+      "title": "Draft a stock alert",
+      "version": 1
+     }
+    ]
+   },
+   "job": "build.rule",
+   "group": "build",
+   "language": "en",
+   "expected": "A rule is saved, not enabled, that alerts when the stock of brass bolts is below 10.",
+   "passedFirstRun": true,
+   "attempts": 1,
+   "retries": []
+  },
+  {
+   "attempt": 1,
+   "helperStopped": false,
+   "passed": true,
+   "failure": null,
+   "state": "complete",
+   "model": "Splash 1.6.1; d8af1054aab0f97de21d043e01aa98af3754f10e; Qwen3.6-35B-A3B-4bit + DFlash2; native Swift candidate; context 65536; memory 12884901888; activations bf16; KV int8; state fp32; ANE on; reasoning budget 512; within-request reasoning retained",
+   "steps": 2,
+   "modelCalls": 2,
+   "wallSeconds": 15.94,
+   "modelSeconds": 10.13,
+   "promptTokens": [
+    4523,
+    4877
+   ],
+   "tools": [
+    "save"
+   ],
+   "answer": "The tool `low_stock` has been saved. It queries the Parts table for items where stock is below their reorder level.",
+   "citations": [],
+   "saved": {
+    "newItems": [
+     {
+      "category": "source",
+      "kind": "application_definition",
+      "status": "accepted",
+      "title": "Define low_stock",
+      "id": "f9e71d7a-f51c-4ec7-95b2-c2e051dd7dee"
+     }
+    ],
+    "newDefinitions": [
+     {
+      "description": "Lists parts where current stock is below their reorder level",
+      "id": "abf5b1e3-a8cd-43a2-918f-9b2ed00645ea",
+      "is_current": 1,
+      "kind": "tool",
+      "logical_id": "25ba702c-2dc1-5b89-89a0-d71064e88da6",
+      "source_id": "f9e71d7a-f51c-4ec7-95b2-c2e051dd7dee",
+      "title": "low_stock",
+      "version": 1
+     }
+    ]
+   },
+   "job": "build.saved_tool",
+   "group": "build",
+   "language": "en",
+   "expected": "A workbook tool named low_stock is saved, and calling it lists exactly Hex nuts and Hex key set.",
+   "passedFirstRun": true,
+   "attempts": 1,
+   "retries": []
+  }
+ ]
+}

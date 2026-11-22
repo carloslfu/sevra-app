@@ -2,7 +2,7 @@
 type: operational
 id: 01m5refyq97sez3da1rywz08wf
 created: 2026-10-25T02:33:33.673437+00:00
-updated: 2026-11-21T18:38:01+00:00
+updated: 2026-11-22T15:09:36+00:00
 summary: Current-checkout discovery, portable source installation and build paths, local AI setup, independent CLI use, verification and uninstall.
 title: Build and run
 ---
@@ -80,7 +80,7 @@ bash scripts/install.sh
 ~~~
 
 Packaging then finds the model, runs `sevra header make .build/prompt-header`, which loads the
-model once for about 15 seconds, and copies the 123 MB header into the app before signing it.
+model once for about 15 seconds, and copies the 108 MB header into the app before signing it.
 A matching header in `.build/prompt-header` is reused without the model. Run the installer
 again after any change to the instructions, a tool declaration, the engine or the model; the
 app says when its header no longer matches. `sevra header status [DIRECTORY]` reports a header
@@ -88,6 +88,18 @@ as present, absent or mismatched without the model. A command line tool outside 
 as `output/native/bin/sevra`, has no header of its own: real-model check scripts make it first
 and pass `SEVRA_PROMPT_HEADER=.build/prompt-header`. While it runs, the engine keeps its cache in
 `~/Library/Caches/Sevra/PromptCache`, which is emptied at every start and stop.
+
+To see what the header holds, in tokens, without the model:
+
+~~~sh
+swift build --product sevra-agent-checks
+.build/debug/sevra-agent-checks --header-parts MODELS_FOLDER [INPUTS.json]
+~~~
+
+It loads only the tokenizer and prints the whole header, each line of the instructions and each
+tool declaration as the chat template renders it. The optional second path receives the
+header's text as the app serializes it. Measure with it before and after changing the
+instructions or a declaration.
 
 ## Welcome and compact navigation
 

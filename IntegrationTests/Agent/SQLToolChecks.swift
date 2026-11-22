@@ -30,15 +30,6 @@ func checkSQLTool() async throws {
     GeneralTools.route(
       "run", .object(["action": .object(["name": .string("table.schema")])])
     ).tool, "workspace_action")
-  let thread = GeneralTools.route(
-    "run",
-    .object([
-      "action": .object([
-        "name": .string("thread.start"), "arguments": .object(["title": .string("Dates")]),
-      ])
-    ]))
-  try expectEqual(thread.tool, "start_thread")
-  try expectEqual(thread.arguments, .object(["title": .string("Dates")]))
   let document = GeneralTools.route(
     "save", .object(["document": .object(["title": .string("Note")])]))
   try expectEqual(document.tool, "draft")

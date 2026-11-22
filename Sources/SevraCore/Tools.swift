@@ -28,6 +28,19 @@ public struct WorkbookTools {
       Example: a slip for delivery D-104 that arrived on 2026-11-18 with 40 brass bolts and 25 hex nuts gives {delivery: "D-104", effective: "2026-11-18", evidence: the slip's id, lines: [{line: "1", subject: "brass bolts", quantity: "40"}, {line: "2", subject: "hex nuts", quantity: "25"}]}.
       4. Tell the user the movements wait for review.
       """,
+    "view": """
+      A view is a saved page of up to 16 components. save with view: {title, definition: {version: 1, components}}. Every component has a short id of its own, a type and a visible title, and the fields its type uses. Saving a view does not open it.
+      table: datasetID, a table's id from SELECT name, id FROM tables.
+      chart: datasetID, x and y. x and y are column ids of that table from SELECT table_name, name, id FROM columns: x the categories, y a number. The chart adds up y for each x itself. chartStyle is bar or line, and bar when left out.
+      metric: datasetID, y and aggregation, one of SUM, AVERAGE, MIN, MAX or COUNT. Add unit only when the request or the evidence states one.
+      document, asset: itemID, the exact ID of that document or file.
+      text: text, its content. search: query, its words.
+      app: spaceID, the saved app's exact ID. To show one declared view of the app, add viewID and its viewVersion.
+      comparison: children, two or three components side by side.
+      form, calculation, query: read kind=definition with ref set to the saved definition's ID, copy the nativeComponent it returns and fill its arguments. Keep its definitionBinding.
+      Example: {title: "Purchasing", definition: {version: 1, components: [{id: "table1", type: "table", title: "Quotes", datasetID: the table's id}, {id: "chart1", type: "chart", title: "Total by supplier", datasetID: the table's id, x: "supplier", y: "total"}]}}.
+      To change a saved view, read kind=views for its id and version, then run action view.edit.
+      """,
   ]
   public static let readOnlyTools: Set<String> = [
     "history_search", "history_read", "tool_result", "search", "count_records", "archive_members",

@@ -34,7 +34,7 @@ package enum PromptHeader {
   /// `PromptHeaderChecks` compares it with real turns of every chat scope.
   package static var ordinaryMessages: [InferenceMessage] {
     var system = InferenceMessage(
-      role: "system", content: GeneralTools.instructions + "\n" + GeneralTools.scopeInstructions)
+      role: "system", content: GeneralTools.instructions)
     system.cacheablePolicy = system.content
     system.initialChatDecision = true
     system.conversationInput = true

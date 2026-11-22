@@ -310,3 +310,9 @@ Five chat jobs added for comparing models (a 600-row total, an informal change, 
 ## [2026-11-22 02:36] implementation | records/plans/general-chat-tools
 Follow-up turns fixed: the saved conversation now says the current request may refer back to it, in both history forms, after the unchanged prepared header. No-model history, header, surface and chat checks pass. One run of conversation.follow_up and the light set on the rebuilt CLI: 12 of 12, 36 decisions, 270 seconds; the follow-up passed in 7 decisions; the light set took 29 decisions against 31 on November 20.
 
+## [2026-11-22 15:09] implementation | records/plans/general-chat-tools
+Chat header trimmed at the owner's word (sources/notes/2026/11/header-trim-direction): 3,809 tokens from 5,172. A view is shown as one description with a new read kind=view_guide, the instructions say each fact once, and the scope paragraphs are removed. sevra-agent-checks --header-parts counts the header's parts with the tokenizer alone.
+
+## [2026-11-22 15:09] verification | records/plans/general-chat-tools
+On the trimmed header, one run each with the real model: the light set 11 of 11 in 29 decisions and 215 seconds; build.saved_tool and build.rule pass by name. build.app and build.form not run. No-model prompt header, chat, surface, view action, sql, grammar and command-line sql and run checks pass. A stale thread.start assertion in the sql check was removed.
+

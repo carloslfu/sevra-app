@@ -418,6 +418,12 @@ do {
       work: CommandLine.arguments[6])
     exit(0)
   }
+  if [3, 4].contains(CommandLine.arguments.count), CommandLine.arguments[1] == "--header-parts" {
+    try runHeaderPartsProbe(
+      modelsRoot: CommandLine.arguments[2],
+      inputs: CommandLine.arguments.count == 4 ? CommandLine.arguments[3] : nil)
+    exit(0)
+  }
   if CommandLine.arguments.dropFirst() == ["--prompt-header-checks"] {
     try await checkPromptHeader()
     exit(0)
