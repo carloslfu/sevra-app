@@ -1076,7 +1076,7 @@ struct FolderReview {
   var canSend: Bool {
     conversationSession.ready && !changingConversation && !conversationSession.loading
       && (WorkspaceControlCommand.allowsSubmission(prompt, busy: busy)
-        || (queues(prompt) && !queue.isFull
+        || (queues(prompt)
           && !prompt.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty))
   }
   func send() {

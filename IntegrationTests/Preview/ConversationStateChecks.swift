@@ -180,17 +180,27 @@ private func draftCheck(_ value: Bool, _ code: String, _ message: String) throws
   )
 }
 
-/// Waiting messages: the ten-message limit, the person's order, pause, put-back, saving with the
+/// Waiting messages: no count limit but a size limit, the person's order, pause, put-back, saving with the
 /// chat and reopening paused, and chats saved before the queue existed.
 @MainActor func checkConversationQueue() async throws {
   var queue = ConversationQueue()
-  for n in 1...ConversationQueue.limit {
+  for n in 1...10 {
     try queue.add("Message \(n)", id: "m\(n)", queued: "t")
   }
+  // More than ten is fine; only the total size is limited, and a refusal leaves the queue as it was.
+  var long = queue
+  for n in 11...60 { try long.add("Message \(n)", id: "m\(n)", queued: "t") }
+  let big = String(repeating: "x", count: AgentRequest.maximumPromptBytes)
+  var added = 0
   do {
-    try queue.add("Eleventh", id: "m11", queued: "t")
-    throw SevraError("queue_check", "An eleventh message was queued")
+    while true {
+      try long.add(big, id: "big\(added)", queued: "t")
+      added += 1
+    }
   } catch let error as SevraError where error.code == "queue_full" {}
+  try draftCheck(
+    long.messages.count == 60 + added && added > 100 && long.bytes <= ConversationQueue.maximumBytes,
+    "queue_check", "The size limit refused at \(long.messages.count) messages, \(long.bytes) bytes")
   queue.move("m3", by: -1)
   queue.move("m1", by: -5)
   queue.move("m10", before: "m1")
@@ -228,6 +238,7 @@ private func draftCheck(_ value: Bool, _ code: String, _ message: String) throws
   var saved = ConversationQueue()
   try saved.add("Then chart it", context: "Row 4", id: "a", queued: "t")
   try saved.add("Then summarize", id: "b", queued: "t")
+  for n in 1...20 { try saved.add("Then step \(n)", id: "s\(n)", queued: "t") }
   session.updateDraft("Still typing")
   session.updateQueue(saved)
   try draftCheck(await session.flush(), "queue_check", "Queue did not save")
@@ -250,5 +261,5 @@ private func draftCheck(_ value: Bool, _ code: String, _ message: String) throws
   try draftCheck(
     decoded.draft == "Old draft" && decoded.queue.isEmpty, "queue_check",
     "A chat without a saved queue did not decode")
-  print("PASS waiting messages: limit, order, edit, pause, put-back, save, reopen paused, old chats")
+  print("PASS waiting messages: no count limit, size limit, order, edit, pause, put-back, save, reopen paused, old chats")
 }

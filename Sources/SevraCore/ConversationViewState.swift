@@ -33,33 +33,47 @@ public struct QueuedConversationMessage: Codable, Equatable, Identifiable, Senda
 
 /// Messages waiting for the running reply to finish, in the order they will be sent. The person
 /// owns the order and the text. A stopped or failed reply, or a question waiting for an answer,
-/// pauses the queue; only the person resumes it.
+/// pauses the queue; only the person resumes it. There is no count limit: the queue is bounded
+/// only by its total size, so it always fits in the chat's saved state.
 public struct ConversationQueue: Codable, Equatable, Sendable {
-  public static let limit = 10
   public static let maximumContextBytes = 32_000
+  /// Total text and selections of all waiting messages, well inside the saved state's limit.
+  public static let maximumBytes = 2_000_000
   public private(set) var messages: [QueuedConversationMessage] = []
   public var paused = false
   public init() {}
 
   public var isEmpty: Bool { messages.isEmpty }
-  public var isFull: Bool { messages.count >= Self.limit }
+  /// Bytes the waiting messages hold: text, selections and a fixed allowance per message for
+  /// its identifier, time and encoding, so many short messages are counted too.
+  public var bytes: Int { messages.reduce(0) { $0 + Self.size(of: $1) } }
+  static let perMessageBytes = 256
+  static func size(of message: QueuedConversationMessage) -> Int {
+    perMessageBytes + message.text.utf8.count + message.context.utf8.count
+  }
 
   public mutating func add(_ text: String, context: String = "", id: String, queued: String)
     throws
   {
-    try require(
-      !isFull, "queue_full",
-      "Ten messages are already waiting. Send, edit or remove one before adding another.")
     let text = try Self.admitted(text)
     try require(
       context.utf8.count <= Self.maximumContextBytes, "queue_context",
       "The selection is too large to keep with a waiting message. Remove the selection or wait for the reply."
     )
+    try require(
+      bytes + Self.perMessageBytes + text.utf8.count + context.utf8.count <= Self.maximumBytes,
+      "queue_full",
+      "The waiting messages are too large to keep together. Send, shorten or remove some before adding another."
+    )
     messages.append(.init(id: id, text: text, context: context, queued: queued))
   }
   public mutating func edit(_ id: String, text: String) throws {
     guard let index = messages.firstIndex(where: { $0.id == id }) else { return }
-    messages[index].text = try Self.admitted(text)
+    let text = try Self.admitted(text)
+    try require(
+      bytes - messages[index].text.utf8.count + text.utf8.count <= Self.maximumBytes, "queue_full",
+      "The waiting messages are too large to keep together. Shorten this message or remove another.")
+    messages[index].text = text
   }
   public mutating func remove(_ id: String) {
     messages.removeAll { $0.id == id }
@@ -85,9 +99,11 @@ public struct ConversationQueue: Codable, Equatable, Sendable {
     return messages.removeFirst()
   }
   /// A message that could not be sent returns to the top, and the queue pauses. Refused when
-  /// the person filled the queue meanwhile.
+  /// the person filled the queue to its size limit meanwhile.
   public mutating func putBack(_ message: QueuedConversationMessage) -> Bool {
-    guard !isFull, !messages.contains(where: { $0.id == message.id }) else { return false }
+    guard bytes + Self.size(of: message) <= Self.maximumBytes,
+      !messages.contains(where: { $0.id == message.id })
+    else { return false }
     messages.insert(message, at: 0)
     paused = true
     return true
@@ -107,7 +123,7 @@ public struct ConversationQueue: Codable, Equatable, Sendable {
   }
   func validated() throws {
     try require(
-      messages.count <= Self.limit
+      bytes <= Self.maximumBytes
         && Set(messages.map(\.id)).count == messages.count
         && messages.allSatisfy {
           !$0.text.isEmpty && $0.text.utf8.count <= AgentRequest.maximumPromptBytes
@@ -150,6 +166,10 @@ extension Workbook {
     }
   }
 
+  /// The largest saved state of one chat: its draft, kept alternatives and waiting messages,
+  /// JSON-encoded. Text with many quotes or line breaks can encode at up to twice its size.
+  static let maximumConversationStateBytes = 6_000_000
+
   private func readConversationViewState(_ conversation: String) throws -> ConversationViewState {
     try requireLiveChat(conversation)
     let size =
@@ -158,12 +178,12 @@ extension Workbook {
         [.string("conversation-view:" + conversation)]
       ).int ?? 0
     try require(
-      size <= 1_200_000, "draft_limit", "The saved conversation state is too large.")
+      size <= Self.maximumConversationStateBytes, "draft_limit", "The saved conversation state is too large.")
     let raw = try db.scalar(
       "SELECT value FROM meta WHERE key=?", [.string("conversation-view:" + conversation)])
     guard let text = raw.string else { return ConversationViewState() }
     try require(
-      text.utf8.count <= 1_200_000, "draft_limit",
+      text.utf8.count <= Self.maximumConversationStateBytes, "draft_limit",
       "The saved conversation state is too large.")
     let state = try JSONDecoder().decode(ConversationViewState.self, from: Data(text.utf8))
     try validateConversationView(state, conversation: conversation)
@@ -202,8 +222,8 @@ extension Workbook {
       try validateConversationView(state, conversation: conversation)
       let text = String(decoding: try JSONEncoder().encode(state), as: UTF8.self)
       try require(
-        text.utf8.count <= 1_200_000, "draft_limit",
-        "The saved conversation drafts exceed the 1.2 MB storage limit. Shorten the draft or remove an unneeded saved alternative."
+        text.utf8.count <= Self.maximumConversationStateBytes, "draft_limit",
+        "The saved conversation drafts exceed the 6 MB storage limit. Shorten the draft or remove an unneeded saved alternative."
       )
       try db.execute(
         "INSERT INTO meta(key,value) VALUES(?,?) ON CONFLICT(key) DO UPDATE SET value=excluded.value",

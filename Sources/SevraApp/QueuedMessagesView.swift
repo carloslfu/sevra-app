@@ -21,7 +21,7 @@ struct QueuedMessagesView: View {
         Text(
           queue.paused
             ? "\(queue.messages.count) not sent. Resume when ready."
-            : "\(queue.messages.count) of \(ConversationQueue.limit). Each sends after the reply before it."
+            : "\(queue.messages.count) \(queue.messages.count == 1 ? "message" : "messages"). Each sends after the reply before it."
         )
         .readingFont(.caption).foregroundStyle(.secondary).lineLimit(1)
         Spacer(minLength: 4)

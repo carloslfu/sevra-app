@@ -664,10 +664,6 @@ struct WorkbookView: View {
           .disabled(state.changingConversation || !state.conversationSession.ready)
         Spacer()
         VoiceStatus(speech: state.speech)
-        if state.busy, state.queue.isFull {
-          Text("Queue is full (\(ConversationQueue.limit))").readingFont(.caption)
-            .foregroundStyle(.secondary)
-        }
         Button(action: state.send) { Image(systemName: "arrow.up") }.buttonStyle(.borderedProminent)
           .disabled(!state.canSend).keyboardShortcut(.return, modifiers: .command)
           .help(state.busy ? "Add to the queue. It sends after the current reply." : "Send")

@@ -467,7 +467,7 @@ import SwiftUI
         "Add the Northwind quote from the PDF",
       ]
       var queue = ConversationQueue()
-      for n in 0..<(variant == "Full" ? ConversationQueue.limit : 3) {
+      for n in 0..<(variant == "Many" ? 14 : 3) {
         try queue.add(
           texts[n % texts.count] + (n < texts.count ? "" : " (\(n + 1))"),
           context: n == 2 ? "Supplier quotes, rows 1 to 4" : "", id: "queued-\(n)",

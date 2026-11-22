@@ -207,8 +207,8 @@ enum CatalogRegistry {
     }
     add(
       "chat.queue", "Waiting messages", "Chat", "Sources/SevraApp/QueuedMessagesView.swift",
-      ["Default", "Paused", "Full"],
-      "Messages written during a reply, in the person's order: edit, reorder, remove, resume; ten at most.")
+      ["Default", "Paused", "Many"],
+      "Messages written during a reply, in the person's order: edit, reorder, remove, resume; no count limit, so a long queue scrolls.")
     add(
       "chat.chat-list", "Chat list", "Chat", "Sources/SevraApp/ChatListPanel.swift",
       ["Default", "Empty", "Long labels"],
