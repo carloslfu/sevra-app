@@ -1408,7 +1408,11 @@ struct FolderReview {
   private func advanceQueueIfDue() {
     guard queueAdvanceDue, !busy else { return }
     queueAdvanceDue = false
-    if error != nil || !pendingInputs.isEmpty || chatApproval != nil {
+    // A reply that ended waiting on the person (a proposal to review, a question) also pauses.
+    let lastReply = messages.last(where: { $0.role == "assistant" })?.state
+    if error != nil || !pendingInputs.isEmpty || chatApproval != nil
+      || ["needs_review", "needs_input", "failed"].contains(lastReply ?? "")
+    {
       pauseQueue()
       return
     }

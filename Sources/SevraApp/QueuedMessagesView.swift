@@ -31,11 +31,18 @@ struct QueuedMessagesView: View {
         Button("Clear", action: state.clearQueue).buttonStyle(.link).readingFont(.caption)
           .accessibilityLabel("Remove all waiting messages")
       }
-      ScrollView {
-        VStack(spacing: 2) {
-          ForEach(Array(queue.messages.enumerated()), id: \.element.id) { index, message in
-            row(message, index: index, count: queue.messages.count)
+      ScrollViewReader { proxy in
+        ScrollView {
+          VStack(spacing: 2) {
+            ForEach(Array(queue.messages.enumerated()), id: \.element.id) { index, message in
+              row(message, index: index, count: queue.messages.count)
+            }
           }
+        }
+        // The editor is taller than the row, so bring all of it, with Save and Cancel, into view.
+        .onChange(of: editing) { _, id in
+          guard let id else { return }
+          DispatchQueue.main.async { withAnimation { proxy.scrollTo(id, anchor: .bottom) } }
         }
       }
       .scrollBounceBehavior(.basedOnSize)
