@@ -2,6 +2,35 @@ import Foundation
 @testable import SevraCore
 
 func checkChats(at root: URL) {
+  check("A new workbook gets a name and a place without a save panel, and can be renamed") {
+    try expect(WorkbookLibrary.name(fromMessage: "hi") == "Untitled")
+    try expect(WorkbookLibrary.name(fromMessage: "thanks a lot") == "Thanks a lot")
+    try expect(
+      WorkbookLibrary.name(fromMessage: "compare the **Oak** and Cedar quotes.")
+        == "Compare the Oak and Cedar quotes")
+    let long = WorkbookLibrary.name(fromMessage: String(repeating: "supplier ", count: 30))
+    try expect(long.count <= 57 && long.hasSuffix("…"))
+    try expect(WorkbookLibrary.name(from: "  a/b:c\n.d  ") == "a b c .d")
+    try expect(WorkbookLibrary.name(from: "...") == "Untitled")
+    try expect(
+      WorkbookLibrary.name(fromFiles: [URL(fileURLWithPath: "/x/Q3 quotes.csv")]) == "Q3 quotes")
+    let folder = root.appendingPathComponent("Library")
+    try FileManager.default.createDirectory(at: folder, withIntermediateDirectories: true)
+    let first = WorkbookLibrary.available("Quotes", in: folder)
+    try expect(first.lastPathComponent == "Quotes.sevra")
+    let book: Workbook? = try Workbook.create(at: first, title: "Quotes")
+    let second = WorkbookLibrary.available("Quotes", in: folder)
+    try expect(second.lastPathComponent == "Quotes 2.sevra")
+    _ = try Workbook.create(at: second, title: "Quotes 2")
+    // A name in use is refused and nothing moves; a free one moves the file and its title.
+    try refuses("exists") { try WorkbookLibrary.rename(first, to: "Quotes 2") }
+    try expect(FileManager.default.fileExists(atPath: first.path))
+    _ = book
+    let renamed = try WorkbookLibrary.rename(first, to: "Oak / Cedar")
+    try expect(renamed.lastPathComponent == "Oak Cedar.sevra")
+    try expect(!FileManager.default.fileExists(atPath: first.path))
+    try expect(try Workbook(renamed).title == "Oak Cedar")
+  }
   check("A workbook keeps a plain list of chats: new, titled, renamed and deleted") {
     let b = try Workbook.create(at: root.appendingPathComponent("Chats.sevra"), title: "Chats")
     let first = try b.chats()

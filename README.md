@@ -97,8 +97,9 @@ saved results also work without setting up AI.
 
 ### Your first workbook
 
-1. Choose **Start from files**, select the [sample CSV and PDF](examples), and
-   save a workbook. The files are included and indexed.
+1. Choose **Add files** on the start window and select the
+   [sample CSV and PDF](examples). Sevra makes the workbook in `~/Sevra Workbooks`.
+   The files are included and indexed.
 2. Open the quotation and ask for a cited summary. Compare goods plus shipping,
    checking the source and inputs. Keep missing tax information marked as unknown.
 3. Keep a working table or chart, edit an input and check the recalculated result.

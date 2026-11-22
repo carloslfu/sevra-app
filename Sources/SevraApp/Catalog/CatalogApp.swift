@@ -454,13 +454,17 @@ struct CatalogProductionView: View {
   @ViewBuilder var body: some View {
     let id = session.story.id
     if id == "main.welcome" {
-      WelcomeView(
-        startFromFiles: { state.importPanel() },
+      StartView(
+        start: { _, files in
+          if files.isEmpty { state.route = .space("home") } else { state.importFiles(files) }
+        },
+        addFiles: { _ in state.importPanel() },
         open: { state.error = "Catalog open is restricted to synthetic fixtures." },
-        create: { state.route = .space("home") }, demo: { state.route = .table(session.table!.id) },
-        openRecent: { _ in
+        demo: { state.route = .table(session.table!.id) },
+        openWorkbook: { _ in
           state.error = "Synthetic recent file is missing. Create an example instead."
-        }, defaults: session.defaults)
+        }, folder: URL(fileURLWithPath: NSHomeDirectory()).appendingPathComponent("Sevra Workbooks"),
+        defaults: session.defaults)
     } else if id == "main.opening" {
       OpeningWorkbookView(
         name: session.variant == "Long labels"

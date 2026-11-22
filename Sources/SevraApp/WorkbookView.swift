@@ -2,6 +2,7 @@ import AVKit
 import AppKit
 import SevraAppUI
 import SevraCore
+import SevraDocumentUI
 import SevraMedia
 import SevraPreviewUI
 import SevraTableUI
@@ -51,9 +52,13 @@ struct WorkbookView: View {
         }.help(state.focus ? "Show conversation" : "Focus workspace")
           .accessibilityLabel(state.focus ? "Show conversation" : "Focus workspace")
         ObserverMark().fill(.primary).frame(width: 28, height: 28).accessibilityHidden(true)
-        Text(state.workbook?.title ?? "Sevra").readingFont(.headline).accessibilityAddTraits(
-          .isHeader
-        ).lineLimit(1)
+        if state.renameWorkbook != nil, let book = state.workbook {
+          WorkbookTitleMenu(state: state, book: book)
+        } else {
+          Text(state.workbook?.title ?? "Sevra").readingFont(.headline).accessibilityAddTraits(
+            .isHeader
+          ).lineLimit(1)
+        }
         Spacer()
         if state.busy {
           ProgressView().controlSize(.small)
@@ -219,10 +224,16 @@ struct WorkbookView: View {
       }
       .focusedSceneValue(\.conversationWorkspace, state)
       .sheet(item: $state.chatRename) { rename in
-        ChatRenameSheet(rename: rename) { title in
+        RenameSheet(heading: "Rename chat", title: rename.title) { title in
           try await state.renameChat(rename.chat, title: title, token: rename.id.uuidString)
           state.chatRename = nil
           composerFocused = true
+        }
+      }
+      .sheet(item: $state.workbookRename) { rename in
+        RenameSheet(heading: "Rename workbook", title: rename.title) { title in
+          try await state.renameWorkbook?(title)
+          state.workbookRename = nil
         }
       }
       .alert(
@@ -713,8 +724,15 @@ struct ChatRename: Identifiable {
   let title: String
 }
 
-private struct ChatRenameSheet: View {
-  let rename: ChatRename
+/// A rename of the open workbook, made from its name in the header or the File menu.
+struct WorkbookRename: Identifiable {
+  let id = UUID()
+  let title: String
+}
+
+private struct RenameSheet: View {
+  let heading: String
+  let title: String
   let save: (String) async throws -> Void
   @Environment(\.dismiss) private var dismiss
   @State private var name = ""
@@ -724,7 +742,7 @@ private struct ChatRenameSheet: View {
   private var trimmed: String { name.trimmingCharacters(in: .whitespacesAndNewlines) }
   var body: some View {
     VStack(alignment: .leading, spacing: 16) {
-      Text("Rename chat").readingFont(.title2, weight: .medium).accessibilityAddTraits(.isHeader)
+      Text(heading).readingFont(.title2, weight: .medium).accessibilityAddTraits(.isHeader)
       TextField("Title", text: $name).textFieldStyle(.roundedBorder).focused($focused)
         .onSubmit(submit)
       if let failure { Text(failure).foregroundStyle(.red).readingFont(.callout) }
@@ -732,20 +750,54 @@ private struct ChatRenameSheet: View {
         Spacer()
         Button("Cancel") { dismiss() }.keyboardShortcut(.cancelAction)
         Button("Save", action: submit).keyboardShortcut(.defaultAction)
-          .disabled(trimmed.isEmpty || trimmed == rename.title)
+          .disabled(trimmed.isEmpty || trimmed == title)
       }
     }.padding(24).readingFont(.body).frame(minWidth: 320, idealWidth: 420)
       .disabled(saving).interactiveDismissDisabled(saving).announceStatus(failure).onAppear {
-        name = rename.title
+        name = title
         focused = true
       }
   }
   private func submit() {
-    guard !saving, !trimmed.isEmpty, trimmed != rename.title else { return }
+    guard !saving, !trimmed.isEmpty, trimmed != title else { return }
     saving = true
     Task {
       defer { saving = false }
       do { try await save(trimmed) } catch { failure = error.localizedDescription }
     }
+  }
+}
+
+/// The workbook's name in the header. It opens the things done to a workbook as a whole: rename
+/// it, find its file, start another or go to a recent one.
+private struct WorkbookTitleMenu: View {
+  @ObservedObject var state: WorkspaceState
+  let book: Workbook
+  @ObservedObject private var recents = RecentWorkbookList.shared
+  @Environment(\.openWindow) private var openWindow
+  var body: some View {
+    let files = WorkbookFiles(openWindow: openWindow)
+    let others = recents.paths.filter {
+      WorkbookWindowRegistry.canonical($0) != WorkbookWindowRegistry.canonical(book.url.path)
+    }
+    Menu {
+      Button("Rename…") { state.workbookRename = .init(title: book.title) }.disabled(state.busy)
+      Button("Show in Finder") { NSWorkspace.shared.activateFileViewerSelecting([book.url]) }
+      Divider()
+      Button("New Workbook") { files.startPage() }
+      Button("Open Workbook…") { files.open() }
+      if !others.isEmpty {
+        Section("Recent") { RecentWorkbookButtons(paths: Array(others.prefix(8)), files: files) }
+      }
+    } label: {
+      HStack(spacing: 5) {
+        Text(book.title).readingFont(.headline).lineLimit(1)
+        Image(systemName: "chevron.down").imageScale(.small).foregroundStyle(.secondary)
+          .accessibilityHidden(true)
+      }
+    }
+    .menuStyle(.borderlessButton).menuIndicator(.hidden).fixedSize()
+    .help("Rename, find or switch workbooks")
+    .accessibilityLabel("Workbook: " + book.title)
   }
 }

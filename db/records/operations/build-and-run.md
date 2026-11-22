@@ -103,10 +103,13 @@ instructions or a declaration.
 
 ## Welcome and compact navigation
 
-The welcome screen centers its primary actions and shows five recent workbooks.
-Show all expands the existing recent list; scroll to reach later entries and
-settings if needed, or use Show fewer. Open workbook uses the native file picker;
-Cancel returns to welcome. Recent rows retain full-path help.
+The start window is ready to type into. A message, Add files or files dropped on
+the window make a workbook in `~/Sevra Workbooks`, named after the files or the
+start of the message, with no save panel. It lists four recent workbooks; Show all
+expands the list. Open workbook uses the native file picker; Cancel returns to the
+start window. Recent rows retain full-path help. The workbook's name in the header
+opens Rename, Show in Finder, New Workbook, Open Workbook and recent workbooks.
+File > New Workbook in Folder still asks for a place.
 
 Both panes share aligned headers. The conversation header shows the open chat's
 title, which opens the chat list, and the New Chat button. At compact widths Review and Spaces may show icons;
@@ -124,7 +127,8 @@ The repository includes two small synthetic files under `examples/`:
 `supplier-quotes.csv` and `Brio-quotation.pdf`. No real customer data is involved.
 The quotation is searchable PDF text, not a scanned-image extraction claim.
 
-1. Choose Start from files, select both files, and save a new workbook. The
+1. On the start window choose Add files and select both files. The workbook is
+   made in `~/Sevra Workbooks` and named after the first file. The
    files are included and indexed as references without an extra decision dialog.
    Open the CSV from its Included message or Home, then choose File actions >
    Use saved file… > Create table from saved values. Wait for indexing/conversion

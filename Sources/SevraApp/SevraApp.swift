@@ -107,11 +107,42 @@ import UniformTypeIdentifiers
 /// New and Open belong to the app, so they work with no window open or another window in front.
 private struct WorkbookFileCommands: Commands {
   @Environment(\.openWindow) private var openWindow
+  @FocusedValue(\.conversationWorkspace) private var workspace
+  @ObservedObject private var recents = RecentWorkbookList.shared
   private var files: WorkbookFiles { WorkbookFiles(openWindow: openWindow) }
   var body: some Commands {
     CommandGroup(replacing: .newItem) {
-      Button("New Workbook…") { files.create() }.keyboardShortcut("n")
+      Button("New Workbook") { files.startPage() }.keyboardShortcut("n")
+      Button("New Workbook in Folder…") { files.create() }
+        .keyboardShortcut("n", modifiers: [.command, .shift])
       Button("Open Workbook…") { files.open() }.keyboardShortcut("o")
+      Menu("Open Recent") {
+        RecentWorkbookButtons(paths: recents.paths, files: files)
+      }.disabled(recents.paths.isEmpty)
+      Divider()
+      Button("Rename Workbook…") {
+        if let workspace, let book = workspace.workbook {
+          workspace.workbookRename = .init(title: book.title)
+        }
+      }.disabled(workspace?.workbook == nil || workspace?.renameWorkbook == nil)
+      Button("Show Workbook in Finder") {
+        if let url = workspace?.workbook?.url {
+          NSWorkspace.shared.activateFileViewerSelecting([url])
+        }
+      }.disabled(workspace?.workbook == nil)
+    }
+  }
+}
+
+/// One menu item per recent workbook, named as its file is.
+struct RecentWorkbookButtons: View {
+  let paths: [String]
+  let files: WorkbookFiles
+  var body: some View {
+    ForEach(paths, id: \.self) { path in
+      Button(URL(fileURLWithPath: path).deletingPathExtension().lastPathComponent) {
+        files.show(URL(fileURLWithPath: path))
+      }
     }
   }
 }
@@ -127,6 +158,23 @@ private struct WorkbookFileCommands: Commands {
       .compactMap { $0 }
     panel.canCreateDirectories = true
     return panel
+  }
+  /// A new workbook starts as the start page, which makes the workbook on the first message or
+  /// file. One start page is enough, so an open one comes forward.
+  func startPage() {
+    if let start = WorkbookWindowRegistry.start {
+      if start.isMiniaturized { start.deminiaturize(nil) }
+      start.makeKeyAndOrderFront(nil)
+    } else {
+      openWindow(id: WorkspaceWindow.scene)
+    }
+  }
+  /// A free place in the workbooks folder, or nil after saying why there is none.
+  static func newURL(_ name: String) -> URL? {
+    do { return try WorkbookLibrary.newURL(name) } catch {
+      report("Cannot create a workbook", error.localizedDescription)
+      return nil
+    }
   }
   func create() {
     let panel = Self.workbookSavePanel(title: "Create a workbook", name: "Untitled")
@@ -146,9 +194,8 @@ private struct WorkbookFileCommands: Commands {
       show(url)
       return
     }
-    let panel = Self.workbookSavePanel(
-      title: "Open portable workbook", name: url.deletingPathExtension().lastPathComponent)
-    guard panel.runModal() == .OK, let target = panel.url else { return }
+    // A portable workbook unpacks into the workbooks folder under its own name.
+    guard let target = Self.newURL(url.deletingPathExtension().lastPathComponent) else { return }
     build(target) { _ = try Workbook.openArchive(url, at: target) }
   }
   /// Brings an open workbook forward, or opens a window for it. Either way the start page closes,
@@ -182,8 +229,7 @@ private struct WorkbookFileCommands: Commands {
     }
   }
   func demo() {
-    let panel = Self.workbookSavePanel(title: "Save example workbook", name: "Willow Workshop")
-    guard panel.runModal() == .OK, let url = panel.url else { return }
+    guard let url = Self.newURL("Willow Workshop") else { return }
     build(url) { try Demo.create(at: url) }
   }
   private func build(_ url: URL, _ work: @escaping @Sendable () throws -> Void) {
@@ -198,8 +244,19 @@ private struct WorkbookFileCommands: Commands {
   }
 }
 
-/// The workbooks listed on the start page, newest first.
-enum RecentWorkbooks {
+/// The recent workbooks as the menus show them, kept current as workbooks open and close.
+@MainActor final class RecentWorkbookList: ObservableObject {
+  static let shared = RecentWorkbookList()
+  @Published private(set) var paths = UserDefaults.standard.stringArray(
+    forKey: RecentWorkbooks.key) ?? []
+  func reload() {
+    let saved = UserDefaults.standard.stringArray(forKey: RecentWorkbooks.key) ?? []
+    if saved != paths { paths = saved }
+  }
+}
+
+/// The workbooks listed on the start page and in the menus, newest first.
+@MainActor enum RecentWorkbooks {
   static let key = "recentWorkbooks"
   /// Another spelling of the same workbook replaces its older entry rather than adding a second.
   static func add(_ path: String) {
@@ -207,11 +264,15 @@ enum RecentWorkbooks {
     let previous = UserDefaults.standard.stringArray(forKey: key) ?? []
     let others = previous.filter { WorkbookWindowRegistry.canonical($0) != path }
     UserDefaults.standard.set(Array(([path] + others).prefix(10)), forKey: key)
+    RecentWorkbookList.shared.reload()
   }
   static func forget(_ path: String) {
     let previous = UserDefaults.standard.stringArray(forKey: key) ?? []
-    guard previous.contains(path) else { return }
-    UserDefaults.standard.set(previous.filter { $0 != path }, forKey: key)
+    let canonical = WorkbookWindowRegistry.canonical(path)
+    let kept = previous.filter { $0 != path && $0 != canonical }
+    guard kept.count != previous.count else { return }
+    UserDefaults.standard.set(kept, forKey: key)
+    RecentWorkbookList.shared.reload()
   }
 }
 
@@ -314,8 +375,9 @@ extension Notification.Name {
     sevraActivity = Notification.Name("sevraActivity"),
     sevraExport = Notification.Name("sevraExport")
 }
-/// A workbook, or the start page when `path` is nil. The start page closes once a workbook is in
-/// front, and comes back when the last workbook window closes.
+/// A workbook, or the start page when `path` is nil. The start page is ready to type into and
+/// becomes a workbook on the first message or file. It closes once another workbook is in front,
+/// and comes back when the last workbook window closes.
 struct WorkspaceWindow: View {
   static let scene = "workbook"
   @Binding var path: String?
@@ -333,6 +395,10 @@ struct WorkspaceWindow: View {
   @State private var claimed: String?
   @State private var closeGuard: DocumentCloseGuard?
   @State private var startingFiles: (destination: String, files: [URL])?
+  /// What was typed on the start page, for the workbook it made. Sent when it started the workbook
+  /// alone, and left in the composer when files started it.
+  @State private var startingMessage: (destination: String, text: String, send: Bool)?
+  @State private var starting = false
   var body: some View {
     Group {
       if state.workbook != nil {
@@ -386,7 +452,10 @@ struct WorkspaceWindow: View {
         window?.title = state.workbook?.title ?? path.map(Self.name) ?? "Sevra"
       }
     )
-    .onAppear { inbox.files = files }
+    .onAppear {
+      inbox.files = files
+      state.renameWorkbook = { name in try await rename(to: name) }
+    }
     .task(id: claimed) {
       guard let path = claimed, let window = ownWindow else { return }
       // The window still holds the workbook only if it was not closed while the workbook opened.
@@ -404,6 +473,11 @@ struct WorkspaceWindow: View {
         if let intake = startingFiles, intake.destination == path {
           startingFiles = nil
           state.importFiles(intake.files)
+        }
+        if let message = startingMessage, message.destination == path {
+          startingMessage = nil
+          state.prompt = message.text
+          if message.send { state.send() }
         }
       } catch {
         guard stillOpen() else {
@@ -460,9 +534,9 @@ struct WorkspaceWindow: View {
   var isKey: Bool { ownWindow != nil && NSApp.keyWindow === ownWindow }
   private var files: WorkbookFiles { WorkbookFiles(openWindow: openWindow) }
   var welcome: some View {
-    WelcomeView(
-      startFromFiles: startFromFiles, open: { files.open() }, create: { files.create() },
-      demo: { files.demo() }, openRecent: { files.show(URL(fileURLWithPath: $0)) })
+    StartView(
+      start: start, addFiles: pickFiles, open: { files.open() }, demo: { files.demo() },
+      openWorkbook: { files.open($0) }, starting: starting)
   }
   static func name(_ path: String) -> String {
     URL(fileURLWithPath: path).deletingPathExtension().lastPathComponent
@@ -496,7 +570,7 @@ struct WorkspaceWindow: View {
       if WorkbookWindowRegistry.shouldOpenStart() { openWindow(id: Self.scene) }
     }
   }
-  func startFromFiles() {
+  func pickFiles(_ message: String) {
     guard let owner = ownWindow, owner.isVisible else { return }
     let input = AppHost.openPanel()
     input.title = "Start a workbook from your files"
@@ -507,24 +581,59 @@ struct WorkspaceWindow: View {
     guard input.runModal() == .OK, ownWindow === owner, owner.isVisible,
       !input.urls.isEmpty
     else { return }
-    saveWorkbook(from: input.urls, owner: owner)
+    start(message, input.urls)
   }
-  private func saveWorkbook(from files: [URL], owner: NSWindow) {
-    guard ownWindow === owner, owner.isVisible else { return }
-    let destination = WorkbookFiles.workbookSavePanel(
-      title: "Save your new workbook", name: files[0].deletingPathExtension().lastPathComponent)
-    guard destination.runModal() == .OK, ownWindow === owner, owner.isVisible,
-      let url = destination.url
-    else { return }
-    let title = url.deletingPathExtension().lastPathComponent
+  /// Makes the workbook in the workbooks folder, named after its first files or message, and
+  /// turns this window into it.
+  private func start(_ message: String, _ sources: [URL]) {
+    guard !starting, path == nil, let owner = ownWindow, owner.isVisible else { return }
+    starting = true
+    let name =
+      sources.isEmpty
+      ? WorkbookLibrary.name(fromMessage: message) : WorkbookLibrary.name(fromFiles: sources)
     Task {
+      defer { starting = false }
       do {
-        _ = try await Task.detached(priority: .userInitiated) {
-          try Workbook.create(at: url, title: title)
+        let url = try await Task.detached(priority: .userInitiated) {
+          let url = try WorkbookLibrary.newURL(name)
+          _ = try Workbook.create(at: url, title: url.deletingPathExtension().lastPathComponent)
+          return url
         }.value
-        startingFiles = (url.path, files)
+        guard ownWindow === owner, path == nil else { return }
+        if !sources.isEmpty { startingFiles = (url.path, sources) }
+        if !message.isEmpty { startingMessage = (url.path, message, sources.isEmpty) }
         path = url.path
       } catch { welcomeError = error.localizedDescription }
+    }
+  }
+  /// Renames the workbook's file and title together. The workbook closes for the move and opens
+  /// again in this window under its new name.
+  private func rename(to requested: String) async throws {
+    guard let window = ownWindow, let book = state.workbook else { return }
+    try require(
+      !state.busy, "busy", "Wait for the current work to finish, then rename the workbook.")
+    let source = book.url
+    // Refused here, while the workbook is still open and the rename sheet can say why.
+    _ = try WorkbookLibrary.renameTarget(source, to: requested)
+    let saved = await state.saveBeforeClosing()
+    try require(saved, "save", "Save or preserve the open drafts before renaming the workbook.")
+    let defaults = UserDefaults.standard
+    let chat = defaults.string(forKey: "lastConversation:" + source.path)
+    state.workbookRename = nil
+    state.close()
+    WorkbookWindowRegistry.release(window)
+    // Cleared so the window claims and opens the workbook again, under either name.
+    claimed = nil
+    do {
+      let target = try await Task.detached(priority: .userInitiated) {
+        try WorkbookLibrary.rename(source, to: requested)
+      }.value
+      RecentWorkbooks.forget(source.path)
+      defaults.removeObject(forKey: "lastConversation:" + source.path)
+      if let chat { defaults.set(chat, forKey: "lastConversation:" + target.path) }
+      path = target.path
+    } catch {
+      WorkbookFiles.report("Can’t rename “\(Self.name(source.path))”", error.localizedDescription)
     }
   }
 }

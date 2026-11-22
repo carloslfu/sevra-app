@@ -122,6 +122,10 @@ struct FolderReview {
   /// The chat list shown in place of the open chat.
   @Published var showingChats = false
   @Published var chatRename: ChatRename?
+  @Published var workbookRename: WorkbookRename?
+  /// Set by the window that holds the workbook, which is what moves its file. Nil elsewhere, and
+  /// the workbook then shows its name without the menu.
+  var renameWorkbook: ((String) async throws -> Void)?
   @Published var chatDeletion: Chat?
   @Published var composerFocusRequest = UUID()
   @Published var pendingExtractions: [Value] = []
