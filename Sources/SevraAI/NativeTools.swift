@@ -510,7 +510,9 @@ package enum NativeTools {
           [
             "title": schema("string", "Record title."), "text": schema("string", "Interpretation."),
             "kind": schema("string", "Domain kind, such as forecast or analysis."),
-            "meaning": schema("string", "actual, estimate, plan, commitment, assumption or rule."),
+            "meaning": .object([
+              "type": .string("string"), "enum": .array(Item.meanings.map(Value.string)),
+            ]),
             "inputs": evidenceList, "data": .object(["type": .string("object")]),
           ], required: ["title", "text", "kind", "meaning", "inputs"])),
       .init(

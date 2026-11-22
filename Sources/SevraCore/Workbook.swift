@@ -363,6 +363,11 @@ public final class Workbook: @unchecked Sendable {
       "proposal_tool",
       "Sevra writes this kind itself. Use sql for table rows, propose_movement for stock or publish_result for a result, or name a domain kind such as forecast or analysis."
     )
+    // The table's own check would refuse it too, but in words a model cannot act on.
+    try require(
+      Item.meanings.contains(meaning), "record_meaning",
+      Item.meaningRefusal + " " + Item.meanings.joined(separator: ", ") + ". \""
+        + String(meaning.prefix(80)) + "\" is not one. Nothing was saved.")
     if meaning == "actual", let supersedes {
       let previous = try item(supersedes)
       try require(

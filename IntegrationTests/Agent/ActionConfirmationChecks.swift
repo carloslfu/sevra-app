@@ -163,6 +163,7 @@ private func checkRefusedRepeats() throws {
 
 func checkActionConfirmations() async throws {
   try checkRefusedRepeats()
+  try await checkRecordMeaningRefusal()
   try checkNestedActionRecovery()
   try checkMisplacedActionRecovery()
   try checkMisnamedHostActionRecovery()
@@ -467,5 +468,72 @@ private actor FailedDefinitionConfirmationModel: WorkbookInference {
     }
     return .init(
       text: "", calls: [try .init(id: identifier(), operation: name, arguments, scope: toolScope)])
+  }
+}
+
+/// Proposes a record with a meaning the items table refuses, then either a corrected
+/// retry under another title or an answer.
+private actor MeaningModel: WorkbookInference {
+  let identity = "synthetic record meaning refusal"
+  let lastMetrics: Value = .null
+  let retry: Bool
+  var step = 0
+  var refusal = ""
+  init(retry: Bool) { self.retry = retry }
+  func beginRun() {}
+  func endRun() {}
+  func respond(
+    messages: [InferenceMessage], directory: URL, cancellation: Cancellation,
+    progress: @escaping @Sendable (String) -> Void, toolScope: InferenceToolScope,
+    citationIDs: [String]
+  ) throws -> NativeReply {
+    step += 1
+    if step == 2 { refusal = messages.last?.content ?? "" }
+    let tool: String
+    let args: Value
+    if step == 1 || (step == 2 && retry) {
+      tool = "propose_record"
+      args = .object([
+        "title": .string(step == 1 ? "User Presence Record" : "User Retention Request"),
+        "text": .string("The user asked to be kept."), "kind": .string("user_status"),
+        "meaning": .string(step == 1 ? "Record of user request to be kept." : "commitment"),
+        "inputs": .array([]),
+      ])
+    } else {
+      tool = "finish"
+      args = .object([
+        "answer": .string("I could not save that record."), "basis": .string("general"),
+        "citations": .array([]),
+      ])
+    }
+    return .init(text: "", calls: [try .init(id: identifier(), operation: tool, args, scope: toolScope)])
+  }
+}
+
+/// A meaning outside the set is refused in words the model can act on and saves nothing.
+/// A corrected retry, even under another title, leaves no stale failure in its receipt.
+func checkRecordMeaningRefusal() async throws {
+  let root = FileManager.default.temporaryDirectory.appendingPathComponent(
+    "meaning-" + identifier())
+  defer { try? FileManager.default.removeItem(at: root) }
+  for retry in [true, false] {
+    let book = try Workbook.create(
+      at: root.appendingPathComponent("\(retry).sevra"), title: "Meaning")
+    let model = MeaningModel(retry: retry)
+    let result = try await WorkbookAgent.run("Keep me.", workbook: book, model: model)
+    let refusal = await model.refusal
+    try expectEqual(refusal.contains(Item.meaningRefusal), true)
+    try expectEqual(refusal.contains("CHECK constraint"), false)
+    let records = try book.items().filter { $0.category == "record" }
+    let last = try expectValue(book.messages().last { $0.role == "assistant" })
+    if retry {
+      try expectEqual(records.map(\.title), ["User Retention Request"])
+      try expectEqual(result.state, "needs_review")
+      try expectEqual(last.body.contains("Couldn’t"), false)
+    } else {
+      try expectEqual(records.isEmpty, true)
+      try expectEqual(result.state == "needs_review", false)
+      try expectEqual(last.body.contains("Couldn’t finish preparing the proposal"), true)
+    }
   }
 }

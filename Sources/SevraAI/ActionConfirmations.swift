@@ -450,6 +450,23 @@ package struct ActionConfirmations {
       kind = "opened"
       id = result["spaceID"].string ?? "review-queue"
       title = result["title"].text
+    case "propose_record":
+      // A meaning outside the set saved nothing, and the model's retry usually rewords the
+      // title too. A proposal saved after it is that retry, so it settles the refusal.
+      if result["status"].text == "draft",
+        let refused = entries.last(where: {
+          $0["kind"].text == "failure" && $0["tool"].text == tool
+            && $0["error"].text.hasPrefix(Item.meaningRefusal)
+        })
+      {
+        entries.append(
+          .object([
+            "receiptID": .string(receiptID), "tool": .string(tool), "kind": .string("settled"),
+            "targetID": .string(receiptID), "title": .string(""), "attempt": refused["attempt"],
+          ]))
+        return
+      }
+      fallthrough
     default:
       // Nothing here to confirm, but a retry that worked settles the failure before it.
       guard

@@ -253,6 +253,10 @@ public struct Item: Codable, Identifiable, Equatable, Sendable {
     "row", "movement", "table-change", "table-creation", "table-intake-update", "decision",
     "calculation",
   ])
+  /// What an item claims to be, the same set the items table checks.
+  public static let meanings = ["actual", "estimate", "plan", "commitment", "assumption", "rule"]
+  /// Starts the refusal of a meaning outside `meanings`, so a corrected retry can settle it.
+  public static let meaningRefusal = "Use one meaning of"
   public var isBusinessEvidence: Bool { !Self.technicalKinds.contains(kind) }
 
   public let id: String

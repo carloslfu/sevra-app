@@ -136,7 +136,6 @@ extension Workbook {
     if workflow?.content["payload"] != wanted["payload"] {
       workflow = try save(Self.stockAlertWorkflowID, .object(wanted), base: workflow, "alert-workflow")
     }
-    let meanings = ["actual", "estimate", "plan", "commitment", "assumption", "rule"]
     var bound = content.object
     bound["payload"] = .object([
       "policy": payload["policy"],
@@ -144,7 +143,7 @@ extension Workbook {
       "arguments": .object([
         "title": .string("Stock alert: " + subject), "body": payload["alert"],
         "evidence": .string(evidence.id),
-        "meaning": .string(meanings.contains(evidence.meaning) ? evidence.meaning : "estimate"),
+        "meaning": .string(Item.meanings.contains(evidence.meaning) ? evidence.meaning : "estimate"),
         "scenario": .string(evidence.scenario),
       ]),
       "condition": payload["condition"],
