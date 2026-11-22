@@ -319,3 +319,6 @@ On the trimmed header, one run each with the real model: the light set 11 of 11 
 ## [2026-11-22 16:30] verification | records/plans/general-chat-tools
 The build of commit 4e309ee was installed from output/native; the installed app, extraction helper and CLI match the package's Mach-O UUIDs and the installed header is present at 3,809 tokens. One Hello through the installed app's own CLI: headerResumed true, no restart, 3,808 of 3,809 header tokens matched in a 4,494-token prompt, prefill 1.4 s, request 3.9 s after a 4.4 s engine start.
 
+## [2026-11-22 16:57] verification | records/operations/agent-handoff
+Chat message queue (d8dd727) checked in the installed build of 4e309ee (Mach-O UUID matches output/native) on a disposable demo workbook with the real model. Two messages queued during a reply, one dragged above the other, and both sent in the new order after the reply. Stop paused the queue with its messages kept; Resume sent the next one; Clear emptied it. Each row is one combined accessibility element, so its remove and actions buttons cannot be pressed separately through accessibility; the named row actions remain. Edit and the row remove button were not exercised.
+
