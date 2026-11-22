@@ -25,17 +25,19 @@ with tempfile.TemporaryDirectory(prefix='sevra-receipt-cli-') as directory:
         return value.get('result') if success else value['error']
     book = root / 'Restored.sevra'
     run('open-archive', archive, book)
-    messages = run('history', book)['messages']
+    # The fixture also holds an empty second chat; the receipts are in the one with messages.
+    chat = next(c['id'] for c in run('chats', book) if c['messageCount'])
+    messages = run('history', book, chat)['messages']
     receipt = json.loads(next(message['body'] for message in messages if message['role'] == 'tool'))
     call = receipt['receiptID']
-    assert run('tool-receipt', book, 'main', call)['state'] == 'completed'
-    assert run('unresolved-calls', book) == []
-    page = run('tool-result', book, 'main', call)
+    assert run('tool-receipt', book, chat, call)['state'] == 'completed'
+    assert run('unresolved-calls', book, chat) == []
+    page = run('tool-result', book, chat, call)
     assert page['complete'] is False and page['hash'] == receipt['resultHash']
-    assert run('tool-result', book, 'main', call, '["data","299","decimal"]')['value'] == '0.10'
+    assert run('tool-result', book, chat, call, '["data","299","decimal"]')['value'] == '0.10'
     text = 'café\0👩🏽‍💻\n' * 12_000
     for offset in [0, 1000, len(text) - 20]:
-        page = run('tool-result', book, 'main', call, '["text"]', offset)
+        page = run('tool-result', book, chat, call, '["text"]', offset)
         segment = page['textSegment']
         end = offset + len(segment)
         assert segment and segment == text[offset:end]
@@ -44,12 +46,12 @@ with tempfile.TemporaryDirectory(prefix='sevra-receipt-cli-') as directory:
         assert len(json.dumps(segment, ensure_ascii=False).encode('utf-8')) <= 8000
         assert len(json.dumps(page, ensure_ascii=False).encode('utf-8')) <= 16000
         if page['nextOffset'] is not None:
-            following = run('tool-result', book, 'main', call, '["text"]', end)
+            following = run('tool-result', book, chat, call, '["text"]', end)
             assert following['textSegment'] == text[end:end + len(following['textSegment'])]
-    raw = run('tool-result', book, 'main', call, '--raw-json')
+    raw = run('tool-result', book, chat, call, '--raw-json')
     assert raw['offsetUnit'] == 'Unicode scalar' and raw['textSegment'].startswith('{')
-    run('tool-result', book, 'main', call, '"wrong path type"', success=False)
-    run('tool-result', book, 'main', call, '[]', -1, success=False)
+    run('tool-result', book, chat, call, '"wrong path type"', success=False)
+    run('tool-result', book, chat, call, '[]', -1, success=False)
     run('tool-receipt', book, 'different-conversation', call, success=False)
     assert run('verify', book)['ok']
     print(json.dumps({'packagedReceiptCLI': True, 'exactDecimalAndUnicode': True,

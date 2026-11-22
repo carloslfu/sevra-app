@@ -129,7 +129,7 @@ func checkConversationLatency() async throws {
   let user = try book.historyMessage(userID)
   try require(WorkbookAgent.historyPresentation(user).text == link, "test", "User original changed")
   let saved = try book.addMessage(assistant.body, role: "assistant")
-  _ = try WorkbookAgent.conversationHistory(book, conversation: "main")
+  _ = try WorkbookAgent.conversationHistory(book, conversation: book.startChat)
   try require(
     try book.historyMessage(saved).body == assistant.body, "test", "Saved original changed")
 

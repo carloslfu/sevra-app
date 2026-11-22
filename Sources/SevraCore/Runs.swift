@@ -36,6 +36,8 @@ extension Workbook {
     let request = AgentRequest(runID: identifier(), messageID: identifier())
     _ = try mutation("agent_request", request: .string(request.runID)) {
       let now = timestamp()
+      try requireLiveChat(conversation)
+      try nameNewChat(conversation, from: prompt)
       try db.execute(
         "INSERT INTO messages VALUES(?,?,?,?,?,?)",
         [

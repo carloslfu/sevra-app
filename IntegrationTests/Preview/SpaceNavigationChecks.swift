@@ -17,7 +17,7 @@ import SevraPreviewUI
           Component(type: "text", title: "Note", text: "Original")
         ])))
   }
-  let before = try book.workspaceSnapshot(conversation: "main")!
+  let before = try book.workspaceSnapshot(conversation: book.startChat)!
   let originalSpaces = try encoded(book.spaces())
   let first = try book.updateSpaceNavigation([.pin(ids[0], true), .visit(ids[1])])
   let other = try Workbook(book.url)
@@ -26,12 +26,12 @@ import SevraPreviewUI
     merged.pinned == [ids[0], ids[1]], "navigation", "A visit or second window erased a pin.")
   try require(merged.recent == [ids[2], ids[1]], "navigation", "Visits lost ordering.")
   let refreshed = try book.workspaceSnapshot(
-    conversation: "main", ifChangedFrom: before.revision, ifSpaceNavigationMatches: first)
+    conversation: book.startChat, ifChangedFrom: before.revision, ifSpaceNavigationMatches: first)
   try require(
     refreshed?.spaceNavigation == merged, "navigation", "Presentation-only changes were missed.")
   try require(
     try book.workspaceSnapshot(
-      conversation: "main", ifChangedFrom: before.revision,
+      conversation: book.startChat, ifChangedFrom: before.revision,
       ifSpaceNavigationMatches: merged) == nil,
     "navigation", "Unchanged presentation did not coalesce.")
   do {
@@ -41,7 +41,7 @@ import SevraPreviewUI
     try require(failure.code == "space_navigation", "navigation", "Unexpected failure.")
   }
   try require(
-    try book.workspaceSnapshot(conversation: "main")!.spaceNavigation == merged,
+    try book.workspaceSnapshot(conversation: book.startChat)!.spaceNavigation == merged,
     "navigation", "Invalid batch partly changed preferences.")
 
   let session = SpaceNavigationSession()
@@ -81,7 +81,7 @@ import SevraPreviewUI
   let reopened = try Workbook.openArchive(
     archive, at: root.appendingPathComponent("Restored.sevra"))
   try require(
-    try reopened.workspaceSnapshot(conversation: "main")!.spaceNavigation == current,
+    try reopened.workspaceSnapshot(conversation: reopened.startChat)!.spaceNavigation == current,
     "navigation", "Navigation preferences did not survive portable reopen.")
   try require(
     try book.revision() == before.revision && encoded(book.spaces()) == originalSpaces,

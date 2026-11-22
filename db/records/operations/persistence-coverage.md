@@ -173,14 +173,14 @@ inspection reads small saved metadata instead of loading complete payloads.
 | Inventory/decisions | Opening basis/source/effective time; occurrence/subject/kind effects; actor, exact accepted/withdrawn/restored outcomes. | `Events`, `DraftWithdrawal`, `Tables`, `TableIntakeUndo`. Explicit native human review; programmatic default; model tools stay draft-limited. |
 | Application definitions | Immutable definitions, selected heads, retained exact/live dependency bindings and authoring Sources. FTS is disposable. | `ApplicationDefinitions`, `DefinitionFunctions/Queries/Evaluation/Discovery`; exact-base save/restore, read-only evaluation, typed dependency checks, atomic failure and inert replay. Schema14 action/form execution reuses Events/ActionExecution. Workflow/automation state remains open. |
 | Receipts | Complete request/result, ID/kind/time/revision, atomic with changed values. | `Workbook.mutation`. Matching retries add no change; changed arguments or explicit decision actor refuse. |
-| Conversation | Bodies/payloads, exact message IDs/order, tangent parents/names, chapters/bookmarks. | `Spaces`, `ConversationNavigation/Actions`, `Runs`, `RequestHandoff`. Physical message row IDs preserve current transcript order. |
-| Tools/runs/context | Exact arguments/output/hash/prepared state, model/status/metrics/times; checkpoint summaries/ranges/inputs/parents. | `ToolReceipts`, `Runs`, `RequestHandoff`, `ConversationContext`. Replay never executes prepared calls or resumes/regenerates runs/summaries. |
+| Conversation | Chats (title, created, deleted), bodies/payloads, exact message IDs/order. A new workbook's first chat is its first change. | `Chats`, `Spaces`, `ConversationNavigation/Actions`, `Runs`. Physical message row IDs preserve current transcript order. Deleted chats keep their messages. |
+| Tools/runs/context | Exact arguments/output/hash/prepared state, model/status/metrics/times; checkpoint summaries/ranges/inputs/parents. | `ToolReceipts`, `Runs`, `ConversationContext`. Replay never executes prepared calls or resumes/regenerates runs/summaries. |
 | Spaces/documents | Versioned definitions, pinned snapshots and exact composition evidence. | `Spaces`, `ComponentData`, `Documents`, `DocumentComposition`. Current and historical versions captured. |
 | References | Immutable annotation sets/predecessors/targets/locators/inputs; heads/index/coverage materializations. | `ReferenceWrites/Index`, `FileReferenceWrites`, `Search.index`. Captured exactly, with existing deterministic rebuild/validation. Broader projection-elision optimization is unimplemented. |
 | Intake | Selected source/use, reports/outcomes/dataset IDs, failure/cancel details/times. Attempt tokens are worker claims. | `ContextualIntake`, `Intake`, `TableIntakePublication`; progress meta also captured. Attempt field becomes null in portable changes. |
 | Presentation | Current portable checkpoint of draft alternatives/reading positions, space pins/recents, incomplete form drafts/bindings/receipts and workflow clarification inputs/alternatives. No business revision or semantic admission. | `ConversationViewState`, `SpaceNavigationState`, `FormDrafts` via `presentationMutation`. Values copied separately; no keystroke journal. |
 | Search | Chunks are retained evidence. Four FTS indexes/shadows are disposable. | `Search.rebuildSearch`; reconstruction rebuilds all FTS from saved messages/chunks/definitions, without FTS shadows in changes. |
-| Device execution/access | Locks/staging, extraction attempt table, intake attempts, bookmarks/linked paths, model installs, recent-workbook/last-conversation UserDefaults. | `Workbook/Database`, `Extractor`, `Assets/URLCapture`, native/product setup. No copied grants or claims become portable authority. Pending outcome rows stay inert history. |
+| Device execution/access | Locks/staging, extraction attempt table, intake attempts, bookmarks/linked paths, model installs, recent-workbook/last-open-chat UserDefaults. | `Workbook/Database`, `Extractor`, `Assets/URLCapture`, native/product setup. No copied grants or claims become portable authority. Pending outcome rows stay inert history. |
 | Export/copies | Coherent DB snapshot plus all included historical dependencies. | `Archive.export/openArchive`, `AssetCopies`, CSV export, reconstruction. Outward file/CSV exports are outputs, not new canonical mutations. |
 
 The initial SQL audit found 129 write/transaction matches. Live canonical writes
@@ -215,7 +215,7 @@ or workflow runner. E19 must reuse this chain, not create another ledger.
 
 The representative core fixture covers inventory acceptance/Undo/redo/withdrawal,
 table edits/reviewed intake updates, assets, replaced extraction/historical locators,
-body/file bindings, source-bound reports, messages/payloads, tangent/chapter/bookmark
+body/file bindings, source-bound reports, messages/payloads, chat
 history, checkpoints, spaces, contextual intake and portable drafts/pins. Targeted
 fixtures cover duplicate/changed apply, publication-failure rollback, corrupt/missing/
 out-of-order/unknown history, unlogged state, actor/model/policy, exact typed values,

@@ -10,7 +10,6 @@ package enum NativeCitationPolicy {
   package static func make(
     _ citationIDs: [String], toolScope: InferenceToolScope = .all, thinking: Bool = false,
     itemReferenceIDs: [String] = [], historyReferenceIDs: [String]? = nil,
-    conversationActions: [String]? = nil,
     documentCopyIDs: [String]? = [], nativeAppAuthoring: Bool = true, reviewContract: Value = .null, conversationInput: Bool = false,
     visualCaptureIDs: [String] = [], countReceiptIDs: [String]? = nil, display: Bool = false
   ) throws
@@ -24,7 +23,7 @@ package enum NativeCitationPolicy {
     let serialized = try NativeTools.serializedDefinitions(
       toolScope: toolScope, itemReferenceIDs: itemReferenceIDs,
       historyReferenceIDs: historyReferenceIDs,
-      conversationActions: conversationActions, documentCopyIDs: documentCopyIDs,
+      documentCopyIDs: documentCopyIDs,
       nativeAppAuthoring: nativeAppAuthoring,
       reviewContract: reviewContract, conversationInput: conversationInput,
       visualCaptureIDs: visualCaptureIDs, display: display)

@@ -79,7 +79,7 @@ func checkConversationContext(at root: URL) {
     let book = try Workbook.create(
       at: root.appendingPathComponent("History.sevra"), title: "History")
     let first = try book.addMessage("Café\0one", role: "user")
-    let tangent = try book.tangent(title: "Other", parentMessage: first)
+    let tangent = try book.createChat()
     _ = try book.addMessage("Private tangent code", role: "user", conversation: tangent)
     let metadata: Value = .object([
       "callID": .string("call-1"), "arguments": .object(["quantity": .string("0.10")]),
@@ -104,7 +104,7 @@ func checkConversationContext(at root: URL) {
       at: root.appendingPathComponent("HistorySearch.sevra"), title: "History search")
     var ids: [String] = []
     for n in 0..<8 { ids.append(try book.addMessage("Supplier café note \(n)", role: "user")) }
-    let tangent = try book.tangent(title: "Tangent", parentMessage: ids[0])
+    let tangent = try book.createChat()
     _ = try book.addMessage("supplier secret", role: "user", conversation: tangent)
     let page = try book.searchHistory("cafe", limit: 3)
     try expect(page["hits"].array.map { $0["id"].text } == Array(ids.suffix(3).reversed()))
@@ -224,13 +224,13 @@ func checkConversationContext(at root: URL) {
     let book = try Workbook.create(
       at: root.appendingPathComponent("RunRequests.sevra"), title: "Runs")
     let message = try book.addMessage("Find a source", role: "user")
-    let tangent = try book.tangent(title: "Other", parentMessage: message)
+    let tangent = try book.createChat()
     try refuses("run_request") {
       _ = try book.startAgentRun(conversation: tangent, model: "fixture", requestMessageID: message)
     }
     try expect(try book.agentRuns().isEmpty)
     let run = try book.startAgentRun(
-      conversation: "main", model: "fixture", requestMessageID: message)
+      conversation: book.startChat, model: "fixture", requestMessageID: message)
     try book.finishAgentRun(run, status: "cancelled", steps: 0, metrics: .array([]))
     try expect(try Workbook(book.url).agentRuns().first?["request_message_id"].text == message)
   }
@@ -239,7 +239,7 @@ func checkConversationContext(at root: URL) {
       at: root.appendingPathComponent("MidRun.sevra"), title: "Mid-run")
     let request = try book.addMessage("Compare both costs and then explain", role: "user")
     let run = try book.startAgentRun(
-      conversation: "main", model: "fixture", requestMessageID: request)
+      conversation: book.startChat, model: "fixture", requestMessageID: request)
     var forged = try encoded(book.historySlice()).object
     var messages = forged["messages"]!.array
     var message = messages[0].object

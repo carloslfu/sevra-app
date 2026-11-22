@@ -9,11 +9,11 @@ func checkRequestActivity() throws {
   let book = try Workbook.create(
     at: root.appendingPathComponent("Activity.sevra"), title: "Activity")
   let request = try book.startAgentRequest(
-    "Find supplier evidence", conversation: "main", model: "Synthetic model")
+    "Find supplier evidence", conversation: book.startChat, model: "Synthetic model")
   let call = try book.prepareToolCall(
     runID: request.runID, callID: "search", tool: "search",
     arguments: .object(["query": .string("Brio")]))
-  var activity = try book.requestActivities(messageIDs: [request.messageID], conversation: "main")
+  var activity = try book.requestActivities(messageIDs: [request.messageID], conversation: book.startChat)
   try require(
     activity.count == 1 && activity[0].steps[0].state == "prepared", "activity_check",
     "Prepared work disappeared")
@@ -34,7 +34,7 @@ func checkRequestActivity() throws {
     large, result: .object(["text": .string(String(repeating: "x", count: 30_000))]))
   try book.finishAgentRun(request.runID, status: "cancelled", steps: 3, metrics: .array([]))
   let reopened = try Workbook(book.url)
-  activity = try reopened.requestActivities(messageIDs: [request.messageID], conversation: "main")
+  activity = try reopened.requestActivities(messageIDs: [request.messageID], conversation: reopened.startChat)
   try require(
     activity[0].state == "cancelled" && activity[0].steps.count == 3, "activity_check",
     "Reopen lost cancellation or saved steps")
@@ -75,16 +75,16 @@ func checkRequestActivity() throws {
   try require(
     restored == String(repeating: "x", count: 30_000), "activity_check",
     "Exploration did not recover the complete saved result")
-  let branch = try book.tangent(title: "Other", parentMessage: request.messageID)
+  let branch = try book.createChat()
   let foreign = try reopened.requestActivities(
     messageIDs: [request.messageID], conversation: branch)
-  try require(foreign.isEmpty, "activity_check", "Activity leaked across conversations")
-  let snapshot = try reopened.workspaceSnapshot(conversation: "main")!
+  try require(foreign.isEmpty, "activity_check", "Activity leaked across chats")
+  let snapshot = try reopened.workspaceSnapshot(conversation: reopened.startChat)!
   try require(
     snapshot.requestActivities.first?.id == request.runID, "activity_check",
     "Workspace omitted activity")
   let next = try book.startAgentRequest(
-    "Inspect original", conversation: "main", model: "Synthetic model")
+    "Inspect original", conversation: book.startChat, model: "Synthetic model")
   let original = try book.prepareToolCall(
     runID: next.runID, callID: "original", tool: "read",
     arguments: .object(["id": .string("synthetic-original")]))
@@ -99,7 +99,7 @@ func checkRequestActivity() throws {
       runID: next.runID, callID: "pending-\(index)", tool: "read",
       arguments: .object(["id": .string("pending")]))
   }
-  let bounded = try book.requestActivities(messageIDs: [next.messageID], conversation: "main")[0]
+  let bounded = try book.requestActivities(messageIDs: [next.messageID], conversation: book.startChat)[0]
   try require(
     bounded.steps.count == 64 && bounded.hasMoreSteps, "activity_check",
     "Activity did not bound long journals")
@@ -111,11 +111,11 @@ func checkRequestActivity() throws {
   try book.finishAgentRun(next.runID, status: "interrupted", steps: 1, metrics: .array([]))
   do {
     _ = try reopened.requestActivities(
-      messageIDs: Array(repeating: request.messageID, count: 201), conversation: "main")
+      messageIDs: Array(repeating: request.messageID, count: 201), conversation: reopened.startChat)
     throw SevraError("activity_check", "Unbounded activity query accepted")
   } catch let failure as SevraError where failure.code == "activity_limit" {}
-  var live = LiveRequestActivity(conversation: "main")
-  live.attach(request, conversation: "main")
+  var live = LiveRequestActivity(conversation: reopened.startChat)
+  live.attach(request, conversation: reopened.startChat)
   live.update("Reasoning · 25 tokens generated")
   try require(
     live.runID == request.runID && live.status.contains("25") && live.title == "Reasoning",
@@ -132,7 +132,7 @@ func checkRequestActivity() throws {
   try require(live.answerPreview == nil, "activity_check", "Late answer undid Stop")
   try require(
     live.stopping && live.status == "Stopping…", "activity_check", "Late progress undid Stop")
-  var continuation = LiveRequestActivity(conversation: "main")
+  var continuation = LiveRequestActivity(conversation: book.startChat)
   continuation.attach(next, conversation: branch)
   try require(
     continuation.conversation == branch && continuation.runID == next.runID, "activity_check",

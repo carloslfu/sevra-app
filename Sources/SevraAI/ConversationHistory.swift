@@ -29,7 +29,7 @@ extension WorkbookAgent {
     -> Value?
   {
     guard message.role == "user", let status = try workbook.requestRunStatus(message.id),
-      ["cancelled", "failed", "interrupted", "continued"].contains(status)
+      ["cancelled", "failed", "interrupted"].contains(status)
     else { return nil }
     return .object([
       "runStatus": .string(status), "referenceOnly": .bool(true),
@@ -95,7 +95,6 @@ extension WorkbookAgent {
       }
       return projected
     }
-    let parent = try project(workbook.parentContext(conversation: conversation))
     let current = try project(
       workbook.messages(conversation: conversation, limit: 100, beforeMessage: beforeMessage))
     // Match the candidate's explicit historical envelope without enabling
@@ -130,7 +129,6 @@ extension WorkbookAgent {
               }
             ).json()))
       ]
-    return try envelope("Explicit parent-conversation excerpt", parent)
-      + envelope("Saved conversation", Array(current.suffix(8))) + notices
+    return try envelope("Saved conversation", Array(current.suffix(8))) + notices
   }
 }

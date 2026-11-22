@@ -13,8 +13,8 @@ func runInterfaceGuidanceProbe(modelsRoot: String, library: String, engine: Stri
   try FileManager.default.createDirectory(at: root, withIntermediateDirectories: false)
   let cases: [(String, String, Int)] = [
     (
-      "thread-difference",
-      "How would starting a thread differ from staying in our main conversation? Explain only; do not create one.",
+      "chat-difference",
+      "How would starting a new chat differ from staying in this one? Explain only; do not create one.",
       1
     ),
     (
@@ -24,17 +24,12 @@ func runInterfaceGuidanceProbe(modelsRoot: String, library: String, engine: Stri
     ),
     (
       "shared-data",
-      "If I open a side thread and change inventory there, is the main workbook unaffected? Explain without changing anything.",
+      "If I start a new chat and change inventory there, does this chat see the change? Explain without changing anything.",
       1
     ),
     (
-      "start-thread-help",
-      "How do I start a separate discussion with you? Explain only; do not start it yet.",
-      1
-    ),
-    (
-      "spanish-voice-help",
-      "¿Cómo puedo seguir este tema en otro hilo usando mi voz? Solo explícame, no lo abras todavía.",
+      "new-chat-help",
+      "How do I start a new chat with you? Explain only; do not start it yet.",
       1
     ),
     (
@@ -49,7 +44,7 @@ func runInterfaceGuidanceProbe(modelsRoot: String, library: String, engine: Stri
     ),
     (
       "technical-tools",
-      "I'm integrating a harness. Explain the difference between the start_thread and start_thread_and_continue tools. Do not call them.",
+      "I'm integrating a harness. Explain the difference between the sql and run tools. Do not call them.",
       1
     ),
     (
@@ -128,8 +123,7 @@ func runInterfaceGuidanceProbe(modelsRoot: String, library: String, engine: Stri
       record["receipts"] = .array(receipts)
       try require(result.steps <= maximum, "guidance", "Exceeded the preregistered step limit.")
       try require(
-        result.conversationAction == nil && book.conversations().count == 1, "guidance",
-        "Unexpected conversation action.")
+        try book.chats().count == 1, "guidance", "A new chat was started.")
       let wordCount = result.answer.split(whereSeparator: { $0.isWhitespace }).count
       record["wordCount"] = .number(Double(wordCount))
       let internalNames = NativeTools.definitions.map(\.name).filter { $0.contains("_") }
@@ -148,8 +142,7 @@ func runInterfaceGuidanceProbe(modelsRoot: String, library: String, engine: Stri
       }
       if name == "technical-tools" {
         try require(
-          result.answer.contains("start_thread")
-            && result.answer.contains("start_thread_and_continue"), "guidance",
+          result.answer.contains("sql") && result.answer.contains("run"), "guidance",
           "Explicit technical explanation omitted the requested tool distinction.")
       }
       let request = try book.items(kind: "request").first!

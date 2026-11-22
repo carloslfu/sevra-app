@@ -79,7 +79,7 @@ enum ChangeFormat {
   static let tables: Set<String> = [
     "meta", "assets", "items", "heads", "lineage", "chunks", "extraction", "effects", "bases",
     "datasets", "dataset_rows", "table_changes", "column_versions", "operations", "agent_runs",
-    "conversations", "messages", "chapters", "bookmarks", "spaces", "space_versions",
+    "conversations", "messages", "spaces", "space_versions",
     "context_checkpoints", "checkpoint_inputs", "run_requests", "message_payloads", "tool_calls",
     "reference_sets", "reference_heads", "reference_bindings", "reference_coverage",
     "reference_index",

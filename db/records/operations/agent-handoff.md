@@ -9,6 +9,9 @@ title: Minimum-feature continuation handoff
 ---
 # Minimum-feature continuation handoff
 
+## Plain chats, November 21
+By owner direction ([[records/plans/simple-chats]]), threads, chapters, bookmarks, tangents, shared summaries, the main conversation, the model's thread tools and request handoffs are gone. Each workbook has a plain list of chats; each chat holds only its own messages and keeps per-chat context maintenance. Format 33, with no conversion of older workbooks. Earlier dated sections that mention threads, "main" or handoffs are history. CLI: `chats`, `chat-new`, `chat-rename`, `chat-delete`, `ask --chat`.
+
 ## One inference engine, November 19
 By owner direction, the Slotstream/MLX build is removed: its module, package dependency, `scripts/build.sh`, `scripts/check_model.py` and baseline-only check modes. Native Splash is the only engine and `bash scripts/build_native.sh` is the only build. The install, uninstall and install-check scripts no longer take `--native`. Earlier dated sections that mention a preserved baseline app or baseline packaging are history. This removal does not qualify the native engine; its open gates are unchanged.
 

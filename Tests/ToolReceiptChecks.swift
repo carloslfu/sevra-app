@@ -7,7 +7,7 @@ func checkToolReceipts(at root: URL) {
       at: root.appendingPathComponent("Receipts.sevra"), title: "Receipts")
     let request = try book.addMessage("Read this table", role: "user")
     let run = try book.startAgentRun(
-      conversation: "main", model: "fixture", requestMessageID: request)
+      conversation: book.startChat, model: "fixture", requestMessageID: request)
     let text = String(repeating: "café\0👩🏽‍💻\n", count: 12_000)
     let large: Value = .object([
       "id": .string("exact"), "text": .string(text),
@@ -66,7 +66,7 @@ func checkToolReceipts(at root: URL) {
     let cancel = Cancellation()
     cancel.cancel()
     try refuses("cancelled") { _ = try book.toolResultPage(id, cancellation: cancel) }
-    let tangent = try book.tangent(title: "Other", parentMessage: request)
+    let tangent = try book.createChat()
     try refuses("tool_scope") { _ = try book.toolResultPage(id, conversation: tangent) }
     let saved = try book.historyMessage(book.toolCall(id)["message_id"].text)
     try expect(saved.body.utf8.count <= 128_000 && saved.body.contains(id))
@@ -103,7 +103,7 @@ func checkToolReceipts(at root: URL) {
       at: root.appendingPathComponent("ForgedKinds.sevra"), title: "Forged")
     let request = try book.addMessage("Tidy the formatting", role: "user")
     let run = try book.startAgentRun(
-      conversation: "main", model: "fixture", requestMessageID: request)
+      conversation: book.startChat, model: "fixture", requestMessageID: request)
     let source = try book.addItem(category: "source", kind: "request", title: "Request")
     let tools = WorkbookTools(book, runID: run, requestSourceID: source.id)
     let table = try book.createDataset(
@@ -167,7 +167,7 @@ func checkToolReceipts(at root: URL) {
     let book = try Workbook.create(at: path, title: "Interrupted")
     let request = try book.addMessage("Draft a forecast", role: "user")
     let run = try book.startAgentRun(
-      conversation: "main", model: "fixture", requestMessageID: request)
+      conversation: book.startChat, model: "fixture", requestMessageID: request)
     let source = try book.addItem(category: "source", kind: "request", title: "Forecast")
     let tools = WorkbookTools(book, runID: run, requestSourceID: source.id)
     let arguments: Value = .object([
@@ -196,7 +196,7 @@ func checkToolReceipts(at root: URL) {
     let book = try Workbook.create(at: root.appendingPathComponent("RawResult.sevra"), title: "Raw")
     let message = try book.addMessage("Explore", role: "user")
     let run = try book.startAgentRun(
-      conversation: "main", model: "fixture", requestMessageID: message)
+      conversation: book.startChat, model: "fixture", requestMessageID: message)
     let id = try book.prepareToolCall(
       runID: run, callID: "unusual", tool: "fixture", arguments: .object([:]))
     let value: Value = .object([String(repeating: "k", count: 18_000): .string("0.10")])
@@ -219,7 +219,7 @@ func checkToolReceipts(at root: URL) {
       at: root.appendingPathComponent("HistoryTools.sevra"), title: "History")
     let old = try book.addMessage("Purchase code MAPLE-27. Do not assume a currency.", role: "user")
     for index in 0..<105 { _ = try book.addMessage("Closed note \(index)", role: "assistant") }
-    let other = try book.tangent(title: "Separate", parentMessage: old)
+    let other = try book.createChat()
     let secret = try book.addMessage("MAPLE private tangent", role: "user", conversation: other)
     let tools = WorkbookTools(book)
     let result = try tools.execute("history_search", .object(["query": .string("MAPLE")]))

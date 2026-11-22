@@ -135,7 +135,7 @@ extension Workbook {
   /// may have been omitted from the model's earlier bounded projection.
   public func documentCopy(
     receiptID: String, path: [String], startScalar: Int, scalarCount: Int,
-    runID: String, conversation: String = "main", cancellation: Cancellation = .init()
+    runID: String, conversation: String, cancellation: Cancellation = .init()
   ) throws -> DocumentCopy {
     try synchronized(cancellation: cancellation) {
       try db.readTransaction {
@@ -209,7 +209,7 @@ extension Workbook {
   /// quote text nor arbitrary metadata can replace its original receipt bytes.
   public func saveComposedDraft(
     title: String, parts: [DocumentPart], inputs: [String] = [], runID: String,
-    conversation: String = "main", token: String = identifier(), expectedRevision: Int? = nil,
+    conversation: String, token: String = identifier(), expectedRevision: Int? = nil,
     cancellation: Cancellation = .init()
   ) throws -> Item {
     try cancellation.check()

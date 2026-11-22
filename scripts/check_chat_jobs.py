@@ -25,7 +25,7 @@ another CLI and SEVRA_MODEL_DIRECTORY another models folder.
 """
 from decimal import Decimal, InvalidOperation
 from pathlib import Path
-import argparse, fnmatch, hashlib, json, os, re, signal, sqlite3, statistics, subprocess, sys
+import argparse, fnmatch, hashlib, json, os, re, signal, statistics, subprocess, sys
 import tempfile, time
 import prompt_header
 
@@ -38,7 +38,7 @@ SUPPLIERS = 'Supplier comparison'
 LANGUAGES = ('en',)
 # The routine model run. Everything else is run by name when its area changes.
 LIGHT = ('read.supplier_comparison', 'read.document', 'change.bulk_update', 'change.new_table_from_text',
-         'steps.script', 'draft.change', 'build.view', 'conversation.new_thread', 'conversation.clarify',
+         'steps.script', 'draft.change', 'build.view', 'conversation.greeting', 'conversation.clarify',
          'safety.document_instruction', 'safety.forbid_changes')
 LONGEST_RUN = 12
 
@@ -122,13 +122,8 @@ class Book:
         return self.run('tool', 'workspace_action', {'action': 'table.change_rows', 'arguments': {
             'id': table['id'], 'expectedDefinitionID': table['definitionID'], 'operations': operations}})
 
-    def threads(self):
-        # The CLI has no thread listing, so this one fact is read from the workbook file.
-        database = sqlite3.connect('file:' + self.path + '/workbook.sqlite?mode=ro', uri=True)
-        try:
-            return {row[0]: row[1] for row in database.execute('SELECT id,title FROM conversations')}
-        finally:
-            database.close()
+    def chats(self):
+        return {c['id']: c['title'] for c in self.run('chats')}
 
     def definitions(self):
         return self.run('definition-search', '')['hits']
@@ -148,7 +143,7 @@ class Book:
                  for r in self.run('records')}
         definitions = {d.get('id', json.dumps(d, sort_keys=True)): d for d in self.definitions()}
         return {'tables': tables, 'spaces': spaces, 'items': items, 'definitions': definitions,
-                'threads': self.threads()}
+                'chats': self.chats()}
 
 
 def saved(before, after):
@@ -165,11 +160,12 @@ def saved(before, after):
     new_items = [dict(v, id=i) for i, v in after['items'].items()
                  if i not in before['items'] and v['kind'] not in ('request', 'row')]
     new_definitions = [d for i, d in after['definitions'].items() if i not in before['definitions']]
-    new_threads = [t for i, t in after['threads'].items() if i not in before['threads']]
+    # A request never starts a chat; only the person does.
+    new_chats = [t for i, t in after['chats'].items() if i not in before['chats']]
     for name, value in (('newTables', new_tables), ('changedTables', changed), ('removedTables', removed),
                         ('newSpaces', new_spaces), ('changedSpaces', changed_spaces),
                         ('newItems', new_items), ('newDefinitions', new_definitions),
-                        ('newThreads', new_threads)):
+                        ('newChats', new_chats)):
         if value:
             changes[name] = value
     return changes
@@ -548,27 +544,6 @@ def greeting_check(run):
     return problems
 
 
-def thread_check(title):
-    def check(run):
-        problems = []
-        if (run['action'] or {}).get('kind') != 'created':
-            problems.append('no thread was created: ' + json.dumps(run['action']))
-        if title.casefold() not in [t.casefold() for t in run['saved'].get('newThreads', [])]:
-            problems.append('no new thread is titled ' + title + ': ' + json.dumps(run['saved'].get('newThreads', [])))
-        if any(k in run['saved'] for k in ('newTables', 'changedTables', 'newSpaces', 'changedSpaces')):
-            problems.append('a table or view changed')
-        return problems
-    return check
-
-
-def thread_oracle(title):
-    def oracle(book, context):
-        message = book.run('conversation')[-1]['id']
-        book.run('start-thread', message, title)
-        return {'answer': 'Created a thread.', 'action': {'kind': 'created'}}
-    return oracle
-
-
 def clarify_check(run):
     problems = [] if run['state'] in ('complete', 'needs_input') else ['the request ended as ' + str(run['state'])]
     problems += unchanged(run)
@@ -711,8 +686,6 @@ JOBS = [
         tool_check, lambda book: parts(book) or {}, None),
     Job('conversation.greeting', 'A plain reply in one decision, with no citations. Nothing is saved.',
         'hey', greeting_check, None, answer('Hello. How can I help?')),
-    Job('conversation.new_thread', 'A new thread with the given title exists. No table or view changes.',
-        'Start a new thread called Delivery dates.', None, None, None),
     Job('conversation.clarify', 'The reply asks for the missing supplier and its values. Nothing is saved.',
         'Add the new supplier to the Supplier comparison table.',
         clarify_check, None, answer('Which supplier, quantity and unit cost should I add?')),
@@ -724,15 +697,12 @@ JOBS = [
         'Do not change anything. What would the Cedar Tools total be if its unit cost were 2.60 instead of 2.75?',
         forbid_check, None, answer('It would be 26.')),
 ]
-THREAD_TITLES = {'en': 'Delivery dates'}
-
-
 def job_check(job, language):
-    return thread_check(THREAD_TITLES[language]) if job.id == 'conversation.new_thread' else job.check
+    return job.check
 
 
 def job_oracle(job, language):
-    return thread_oracle(THREAD_TITLES[language]) if job.id == 'conversation.new_thread' else job.oracle
+    return job.oracle
 
 
 # --- Running ---------------------------------------------------------------------------
@@ -843,7 +813,7 @@ def trace(book):
                     if metric.get(k) is not None})
     run_ids = {r['id'] for r in runs}
     tools, messages = [], {}
-    for conversation in book.threads():
+    for conversation in book.chats():
         messages[conversation] = book.run('conversation', conversation)
         for message in messages[conversation]:
             if message['role'] != 'tool':
@@ -870,16 +840,15 @@ def attempt(job, language, folder, number, redact, minimum, self_test=None, keep
         record['helperStopped'] = reap()
     else:
         seconds, progress, failure = 0.0, '', None
-        result = {'state': 'complete', 'steps': 1, 'citations': [], 'answer': '', 'conversationAction': None}
+        result = {'state': 'complete', 'steps': 1, 'citations': [], 'answer': ''}
         if self_test:
             made = job_oracle(job, language)(book, context)
-            result.update(answer=made['answer'], citations=made.get('citations', []),
-                          conversationAction=made.get('action'))
+            result.update(answer=made['answer'], citations=made.get('citations', []))
     after = book.snapshot()
     run = {'book': book, 'context': context, 'before': before, 'after': after, 'saved': saved(before, after),
            'language': language, 'answer': (result or {}).get('answer', ''),
            'citations': (result or {}).get('citations', []), 'state': (result or {}).get('state'),
-           'steps': (result or {}).get('steps'), 'action': (result or {}).get('conversationAction')}
+           'steps': (result or {}).get('steps')}
     traced = trace(book) if self_test is None else {'runs': [], 'calls': [], 'hosts': [], 'tools': [], 'messages': {}}
     run['tools'] = traced['tools'] if self_test is None else None
     problems = [failure] if failure else job_check(job, language)(run)
@@ -889,7 +858,7 @@ def attempt(job, language, folder, number, redact, minimum, self_test=None, keep
         'steps': run['steps'], 'modelCalls': len(traced['calls']), 'wallSeconds': round(seconds, 2),
         'modelSeconds': round(sum(c.get('requestSeconds', 0) + c.get('prefixPrimeSeconds', 0) for c in traced['calls']), 2),
         'promptTokens': [c['promptTokens'] for c in traced['calls']], 'tools': traced['tools'],
-        'answer': run['answer'], 'citations': run['citations'], 'conversationAction': run['action'],
+        'answer': run['answer'], 'citations': run['citations'],
         'saved': run['saved']})
     if not problems and run['saved'] and FAILURE_WORDS.search(run['answer']):
         # The workbook holds the expected result, yet the reply says the work did not finish.

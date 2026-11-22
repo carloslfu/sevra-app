@@ -8,7 +8,7 @@ private func compositionFixture(at root: URL) throws -> (
   let book = try Workbook.create(
     at: root.appendingPathComponent("Composition-" + identifier() + ".sevra"), title: "Composition")
   let request = try book.startAgentRequest(
-    "Create a receiving report with the exact inspection labels.", conversation: "main",
+    "Create a receiving report with the exact inspection labels.", conversation: book.startChat,
     model: "fixture")
   let text = "X-CHECK-14 | 0.10 kg\r\nCafe\u{301} 👩🏽‍💻\0HOLD: clearance 0.25 mm"
   let source = try book.addItem(
@@ -173,7 +173,7 @@ func checkDocumentComposition(at root: URL) {
         receiptID: other, path: ["item", "text"], startScalar: 0, scalarCount: 1, runID: f.run)
     }
     let parent = try f.book.addMessage("Separate discussion", role: "user")
-    let tangent = try f.book.tangent(title: "Separate", parentMessage: parent)
+    let tangent = try f.book.createChat()
     try refuses("tool_scope") {
       _ = try f.book.documentCopy(
         receiptID: f.receipt, path: ["item", "text"], startScalar: 0, scalarCount: 1,

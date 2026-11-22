@@ -12,10 +12,7 @@ extension Workbook {
       request: .object(["conversation": .string(conversation), "intake": .string(token)]),
       cancellation: cancellation
     ) {
-      try require(
-        try db.scalar("SELECT count(*) FROM conversations WHERE id=?", [.string(conversation)]).int
-          == 1,
-        "history_scope", "Open the conversation for this attachment.")
+      try requireLiveChat(conversation)
       return .string(token)
     }
     let job = try captureIntake(
@@ -34,6 +31,7 @@ extension Workbook {
         FROM operations intent JOIN operations imp
           ON imp.id=json_extract(intent.request,'$.intake')||'-file' AND imp.kind='import'
         LEFT JOIN operations event ON event.id=json_extract(intent.request,'$.intake')||'-use-conversation-event'
+        JOIN conversations chat ON chat.id=json_extract(intent.request,'$.conversation') AND chat.deleted=0
         WHERE intent.kind='conversation_attachment_intent' AND event.id IS NULL
         ORDER BY intent.rowid LIMIT 64
         """,

@@ -341,10 +341,10 @@ func checkWorkflowInterpretations(at root: URL) {
     let (book, session, original, _) = try paused("ConversationAnswer")
     let prompt = "I counted 5 received bolts. Prepare my answer for review."
     let active = try book.startAgentRequest(
-      prompt, conversation: "main", model: "synthetic-answer-preparation")
+      prompt, conversation: book.startChat, model: "synthetic-answer-preparation")
     let source = try book.addItem(
       category: "source", kind: "request", title: "Current submission", text: prompt,
-      data: .object(["messageID": .string(active.messageID), "conversationID": .string("main")]),
+      data: .object(["messageID": .string(active.messageID), "conversationID": .string(book.startChat)]),
       meaning: "plan", status: "accepted")
     let tools = WorkbookTools(book, runID: active.runID, requestSourceID: source.id)
     let read = try book.prepareToolCall(
@@ -398,10 +398,10 @@ func checkWorkflowInterpretations(at root: URL) {
       _ = try tools.execute("prepare_workflow_answer", arguments)
     }
     let foreign = try book.startAgentRequest(
-      prompt, conversation: "main", model: "synthetic-foreign")
+      prompt, conversation: book.startChat, model: "synthetic-foreign")
     let foreignSource = try book.addItem(
       category: "source", kind: "request", title: "Other submission", text: prompt,
-      data: .object(["messageID": .string(foreign.messageID), "conversationID": .string("main")]),
+      data: .object(["messageID": .string(foreign.messageID), "conversationID": .string(book.startChat)]),
       meaning: "plan", status: "accepted")
     try refuses("workflow_answer") {
       _ = try WorkbookTools(book, runID: foreign.runID, requestSourceID: foreignSource.id).execute(
@@ -457,16 +457,16 @@ func checkWorkflowInterpretations(at root: URL) {
       "Preview my answer and save it", "Save my answer then continue",
     ] {
       try expect(WorkflowAnswerCommand.parse(phrase) == nil)
-      let shown = try book.previewWorkflowAnswerForConversation(draft, conversation: "main")
+      let shown = try book.previewWorkflowAnswerForConversation(draft, conversation: book.startChat)
       let message = try book.addMessage(phrase, role: "user")
       try refuses("workflow_answer_confirmation") {
         _ = try book.confirmWorkflowAnswer(shown, messageID: message)
       }
     }
-    var shown = try book.previewWorkflowAnswerForConversation(draft, conversation: "main")
+    var shown = try book.previewWorkflowAnswerForConversation(draft, conversation: book.startChat)
     try expect(try book.messages().last!.body.contains("Count: 5 items"))
     let intervening = try book.addMessage("What does that mean?", role: "user")
-    let tangent = try book.startThread(parentMessage: intervening, title: "Other context")
+    let tangent = try book.createChat()
     var message = try book.addMessage("Save my answer", role: "user", conversation: tangent)
     try refuses("workflow_answer_confirmation") {
       _ = try book.confirmWorkflowAnswer(shown, messageID: message)
@@ -475,7 +475,7 @@ func checkWorkflowInterpretations(at root: URL) {
     try refuses("workflow_answer_confirmation") {
       _ = try book.confirmWorkflowAnswer(shown, messageID: message)
     }
-    shown = try book.previewWorkflowAnswerForConversation(draft, conversation: "main")
+    shown = try book.previewWorkflowAnswerForConversation(draft, conversation: book.startChat)
     message = try book.addMessage("Save my answer", role: "user")
     let reopened = try Workbook(book.url)
     try refuses("workflow_answer_confirmation") {
@@ -487,7 +487,7 @@ func checkWorkflowInterpretations(at root: URL) {
     }
     shown.cancellation.cancel()
     try refuses("cancelled") { _ = try book.confirmWorkflowAnswer(shown, messageID: message) }
-    shown = try book.previewWorkflowAnswerForConversation(draft, conversation: "main")
+    shown = try book.previewWorkflowAnswerForConversation(draft, conversation: book.startChat)
     let prior = draft
     draft.entry.values = .object(["quantity": .string("6")])
     draft = try book.saveWorkflowClarificationDraft(session.runID, draft: draft, expected: prior)
@@ -495,14 +495,14 @@ func checkWorkflowInterpretations(at root: URL) {
     try refuses("stale_workflow_clarification") {
       _ = try book.confirmWorkflowAnswer(shown, messageID: message)
     }
-    shown = try book.previewWorkflowAnswerForConversation(draft, conversation: "main")
+    shown = try book.previewWorkflowAnswerForConversation(draft, conversation: book.startChat)
     message = try book.addMessage("Save my answer", role: "user")
     let late = try book.addMessage("Actually, wait", role: "user")
     try refuses("workflow_answer_confirmation") {
       _ = try book.confirmWorkflowAnswer(shown, messageID: message)
     }
     try expect(!late.isEmpty)
-    shown = try book.previewWorkflowAnswerForConversation(draft, conversation: "main")
+    shown = try book.previewWorkflowAnswerForConversation(draft, conversation: book.startChat)
     message = try book.addMessage("Save my answer", role: "user")
     let before = try book.revision()
     let history = try book.committedHistory()
@@ -520,7 +520,7 @@ func checkWorkflowInterpretations(at root: URL) {
       try refuses("cancelled") { _ = try book.confirmWorkflowAnswer(shown, messageID: message) }
     }
     try expect(try book.revision() == before && book.workflowRun(session.runID) == original)
-    shown = try book.previewWorkflowAnswerForConversation(draft, conversation: "main")
+    shown = try book.previewWorkflowAnswerForConversation(draft, conversation: book.startChat)
     message = try book.addMessage("Confirm my answer!", role: "user")
     let receipt = try book.confirmWorkflowAnswer(shown, messageID: message)
     let supplied = try book.item(receipt["sourceID"].text)

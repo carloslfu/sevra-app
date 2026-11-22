@@ -567,8 +567,8 @@ extension Workbook {
     -> Value?
   {
     try synchronized {
-      let token = try WorkbookTools(self, runID: runID).operationToken(
-        "workspace_action", arguments)
+      let token = try WorkbookTools.operationToken(
+        runID: runID, "workspace_action", arguments)
       let prior = try db.execute(
         "SELECT state,result FROM tool_calls WHERE run_id=? AND operation_token=? AND id<>? ORDER BY rowid DESC LIMIT 1",
         [.string(runID), .string(token), .string(receiptID)]

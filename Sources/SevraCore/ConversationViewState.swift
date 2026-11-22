@@ -39,7 +39,7 @@ extension Workbook {
   }
 
   private func readConversationViewState(_ conversation: String) throws -> ConversationViewState {
-    try requireConversation(conversation)
+    try requireLiveChat(conversation)
     let size =
       try db.scalar(
         "SELECT length(CAST(value AS BLOB)) FROM meta WHERE key=?",
@@ -98,11 +98,6 @@ extension Workbook {
     }
   }
 
-  private func requireConversation(_ id: String) throws {
-    try require(
-      try db.scalar("SELECT count(*) FROM conversations WHERE id=?", [.string(id)]).int == 1,
-      "conversation", "Conversation not found.")
-  }
   private func validateConversationView(_ state: ConversationViewState, conversation: String) throws
   {
     try require(

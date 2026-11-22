@@ -89,7 +89,7 @@ func checkSpaceEditing(at temp: URL) {
     try expect(try replay.space("home").definition == book.space("home").definition)
     try expect(try replay.space(app.id).definition.app == book.space(app.id).definition.app)
     try expect(try book.spaceHistory("home").map(\.version) == [4, 3, 2, 1])
-    let snapshot = try book.workspaceSnapshot(conversation: "main")!
+    let snapshot = try book.workspaceSnapshot(conversation: book.startChat)!
     try expect(
       snapshot.pendingWorkflows.isEmpty && snapshot.chatApproval == nil
         && snapshot.homeDocuments.isEmpty)
@@ -99,7 +99,7 @@ func checkSpaceEditing(at temp: URL) {
       category: "record", kind: "document", title: "Delivery notes", text: "Synthetic draft",
       inputs: [evidence.id])
     try expect(
-      try book.workspaceSnapshot(conversation: "main")!.homeDocuments.map(\.id) == [document.id])
+      try book.workspaceSnapshot(conversation: book.startChat)!.homeDocuments.map(\.id) == [document.id])
     let function = try book.saveApplicationDefinition(
       logicalID: identifier(),
       content: .object([
@@ -112,7 +112,7 @@ func checkSpaceEditing(at temp: URL) {
     for _ in 0..<6 {
       _ = try book.startWorkflow(workflow.id, arguments: .object([:]), token: identifier())
     }
-    let pending = try book.workspaceSnapshot(conversation: "main")!.pendingWorkflows
+    let pending = try book.workspaceSnapshot(conversation: book.startChat)!.pendingWorkflows
     try expect(
       pending.count == 4
         && pending.allSatisfy { $0["title"].text == workflow.title && $0["state"].text == "queued" }
@@ -122,9 +122,9 @@ func checkSpaceEditing(at temp: URL) {
       action: "app.enable",
       arguments: .object([
         "id": .string(app.id), "expectedVersion": .number(1),
-      ]), title: "Enable Orders", conversation: "main")
+      ]), title: "Enable Orders", conversation: book.startChat)
     try expect(
-      try book.workspaceSnapshot(conversation: "main")!.chatApproval?.title == "Enable Orders")
+      try book.workspaceSnapshot(conversation: book.startChat)!.chatApproval?.title == "Enable Orders")
     let empty = SpaceDefinition(components: [
       .init(id: "home-attention", type: "text", title: "Note")
     ])
@@ -298,7 +298,7 @@ func checkSpaceEditing(at temp: URL) {
   check("agent layout tools preserve read-only authority and exact saved identities") {
     let book = try fixture()
     let run = try book.startAgentRequest(
-      "Hide pinned spaces on Home", conversation: "main", model: "local-test-model"
+      "Hide pinned spaces on Home", conversation: book.startChat, model: "local-test-model"
     ).runID
     let tools = WorkbookTools(book, runID: run)
     let arguments: Value = .object([

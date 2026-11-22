@@ -117,7 +117,7 @@ func checkSQLTool() async throws {
   // The answer carries the call that saved the change, and the conversation can undo it.
   let saidSo = try expectValue(
     try book.messages().last { $0.role == "assistant" && $0.state == "complete" })
-  let receipt = try expectValue(try book.conversationSQLReceipt(saidSo.id, conversation: "main"))
+  let receipt = try expectValue(try book.conversationSQLReceipt(saidSo.id, conversation: book.startChat))
   try expectEqual(receipt, saved["undo"].string)
   try expectEqual(try book.chatSQLState(receipt), "saved")
   _ = try WorkbookTools(book).execute(
@@ -262,7 +262,7 @@ func checkSQLTool() async throws {
   let raised = try expectValue(
     try book.messages().last { $0.role == "assistant" && $0.state == "complete" })
   let scriptReceipt = try expectValue(
-    try book.conversationSQLReceipt(raised.id, conversation: "main"))
+    try book.conversationSQLReceipt(raised.id, conversation: book.startChat))
   try expectEqual(try book.chatSQLState(scriptReceipt), "saved")
   _ = try book.chatSQLUndo(scriptReceipt)
   try expectEqual(try values(), updated)
@@ -309,7 +309,7 @@ func checkSQLTool() async throws {
   let created = try expectValue(
     try book.messages().last { $0.role == "assistant" && $0.state == "complete" })
   let createdReceipt = try expectValue(
-    try book.conversationSQLReceipt(created.id, conversation: "main"))
+    try book.conversationSQLReceipt(created.id, conversation: book.startChat))
   try expectEqual(try book.chatSQLState(createdReceipt), "saved")
   // The person's Undo, as the chat row sends it.
   _ = try book.chatSQLUndo(createdReceipt, actor: .human("Sevra chat undo"))

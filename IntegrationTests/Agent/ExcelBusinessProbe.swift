@@ -191,10 +191,10 @@ import SevraNativeAI
         arguments: .object([
           "id": .string(space.id), "expectedVersion": .number(Double(space.version)),
         ]),
-        title: "Enable " + space.title, conversation: "main")
+        title: "Enable " + space.title, conversation: book.startChat)
       let confirmation = try book.addMessage("Confirm", role: "user")
       try expectEqual(
-        try book.claimChatApproval(conversation: "main", messageID: confirmation).id, approval)
+        try book.claimChatApproval(conversation: book.startChat, messageID: confirmation).id, approval)
       _ = try await active.businessCommand("enable")
       result["catalog"] = try await active.businessCommand("inspect")
       var undoExpected: Value?

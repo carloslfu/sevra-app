@@ -336,7 +336,7 @@ func checkEvidenceAdmission() async throws {
       "tool": .string("finish"), "validation": .string("Refused."),
       "arguments": .object(["answer": .string("Stock is 9999 units.")]),
     ]).json(), role: "tool")
-  let request = try book.startAgentRequest("What is on file?", conversation: "main", model: "m")
+  let request = try book.startAgentRequest("What is on file?", conversation: book.startChat, model: "m")
   let tools = WorkbookTools(book, runID: request.runID)
 
   // A file that yielded no text can be found, but nothing about it can be cited.
@@ -474,20 +474,12 @@ func checkRefusedToolCalls() async throws {
   let resumed = try await WorkbookAgent.run("Continue.", workbook: book, model: continued)
   try expectEqual(resumed.steps, 2)
   try expectEqual(await continued.refusals.isEmpty, true)
-  // A thread change raises it too, and a request that really asks for a thread gets one next try.
+  // A response cut off three times in a row ends the run.
   do {
     _ = try await WorkbookAgent.run(
       "Say hello.", workbook: book, model: ScriptedCalls([cutOff, cutOff, cutOff]))
     throw SevraError("fixture", "Repeated cut-off responses completed.")
   } catch let error as SevraError where error.code == "truncated" {}
-  let waiting = try expectValue(book.messages().last { $0.role == "user" })
-  let branch = call("start_thread", .object(["title": .string("Side")]))
-  let branching = ScriptedCalls([branch, branch])
-  let moved = try await WorkbookAgent.run("Start a thread.", workbook: book, model: branching)
-  try expectEqual(moved.conversationAction != nil, true)
-  try expectEqual(moved.answer.contains("Couldn’t"), false)
-  let reminded = await branching.prompts.last?.last?.content ?? ""
-  try expectEqual(reminded.contains(waiting.id), true)
   print("PASS refused or cut-off responses reach the model for correction, three times at most")
 }
 

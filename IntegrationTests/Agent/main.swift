@@ -437,10 +437,7 @@ do {
   try checkReasoningBudget()
   try await checkReasoningHistory()
   try await checkAgentLifecycle()
-  try await checkConversationActions()
   try await checkSpaceActions()
-  try await checkRequestHandoffs()
-  try await checkHandoffEvidence()
   try await checkInterfaceGuidance()
   try await checkRequestEnvelopes()
   try await checkRequestAdmission()
@@ -463,7 +460,6 @@ do {
   try await checkDocumentCopies()
   try await checkCurrencyRejection()
   try await checkHistoryTools()
-  try await checkParentHistory()
   try await checkScopedSearch()
   try await checkItemReferences()
   try await checkReferenceTraversal()
@@ -514,10 +510,6 @@ do {
     try await runMovementDirectionProbe(
       modelsRoot: CommandLine.arguments[2], library: CommandLine.arguments[3],
       engine: CommandLine.arguments[4], output: CommandLine.arguments[5])
-  } else if CommandLine.arguments.count == 6 && CommandLine.arguments[1] == "--request-handoff" {
-    try await runRequestHandoffProbe(
-      modelsRoot: CommandLine.arguments[2], library: CommandLine.arguments[3],
-      engine: CommandLine.arguments[4], output: CommandLine.arguments[5])
   } else if CommandLine.arguments.count == 6
     && ["--interpretation-authoring", "--preparation-authoring"].contains(CommandLine.arguments[1])
   {
@@ -527,11 +519,6 @@ do {
       preparation: CommandLine.arguments[1] == "--preparation-authoring")
   } else if CommandLine.arguments.count == 6 && CommandLine.arguments[1] == "--interface-guidance" {
     try await runInterfaceGuidanceProbe(
-      modelsRoot: CommandLine.arguments[2], library: CommandLine.arguments[3],
-      engine: CommandLine.arguments[4], output: CommandLine.arguments[5])
-  } else if CommandLine.arguments.count == 6 && CommandLine.arguments[1] == "--conversation-actions"
-  {
-    try await runConversationActionProbe(
       modelsRoot: CommandLine.arguments[2], library: CommandLine.arguments[3],
       engine: CommandLine.arguments[4], output: CommandLine.arguments[5])
   } else if CommandLine.arguments.count == 6 && CommandLine.arguments[1] == "--coverage" {
@@ -607,14 +594,13 @@ do {
     try checkReasoningGrammar(frontend: frontend, factory: factory)
     try checkItemReferenceGrammar(frontend: frontend, factory: factory)
     try checkDocumentCopyGrammar(frontend: frontend, factory: factory)
-    try checkConversationActionGrammar(frontend: frontend, factory: factory)
     try checkConversationReplayBoundary(frontend: frontend)
     try checkActionDirectionGrammar(frontend: frontend, factory: factory)
     try checkNativeReviewGrammar(frontend: frontend, factory: factory)
     try checkInterpretationGrammar(frontend: frontend, factory: factory)
   } else if CommandLine.arguments.count != 1 {
     throw SplashError(
-      "Usage: sevra-agent-checks --reference-traversal MODEL_FOLDER PINNED_NATIVE_LIBRARY ENGINE NEW_OUTPUT_DIRECTORY or --document-composition/--movement-direction/--request-handoff/--interface-guidance/--conversation-actions MODELS_ROOT PINNED_NATIVE_LIBRARY ENGINE NEW_OUTPUT_DIRECTORY or --active-context/--active-context-maintained MODELS_ROOT PINNED_NATIVE_LIBRARY ENGINE NEW_OUTPUT_DIRECTORY or --continuity-workflow MODELS_ROOT PINNED_NATIVE_LIBRARY ENGINE NEW_OUTPUT_DIRECTORY or [MODEL_FOLDER PINNED_NATIVE_LIBRARY] or --autonomous/--inventory/--occupied/--history/--continuity/--context-recovery/--reasoning-comparison/--reasoning-boundary/--inspection-recovery/--coverage MODEL_FOLDER PINNED_NATIVE_LIBRARY ENGINE MODELS_ROOT. The continuity workflow uses native-installed models, 32K and bounded512; reference traversal uses local-pack models at those same budgets. SEVRA_NATIVE_CONTEXT_TOKENS selects 8192/32768/65536/131072/262144 and SEVRA_NATIVE_REASONING selects 0/512 in other development checks. Reasoning comparison fixes 32K and accepts SEVRA_REASONING_SAVE_FIXTURES or SEVRA_REASONING_FIXTURES; SEVRA_REASONING_BOUNDED_ONLY=1 runs only the bounded arm."
+      "Usage: sevra-agent-checks --reference-traversal MODEL_FOLDER PINNED_NATIVE_LIBRARY ENGINE NEW_OUTPUT_DIRECTORY or --document-composition/--movement-direction/--interface-guidance MODELS_ROOT PINNED_NATIVE_LIBRARY ENGINE NEW_OUTPUT_DIRECTORY or --active-context/--active-context-maintained MODELS_ROOT PINNED_NATIVE_LIBRARY ENGINE NEW_OUTPUT_DIRECTORY or --continuity-workflow MODELS_ROOT PINNED_NATIVE_LIBRARY ENGINE NEW_OUTPUT_DIRECTORY or [MODEL_FOLDER PINNED_NATIVE_LIBRARY] or --autonomous/--inventory/--occupied/--history/--continuity/--context-recovery/--reasoning-comparison/--reasoning-boundary/--inspection-recovery/--coverage MODEL_FOLDER PINNED_NATIVE_LIBRARY ENGINE MODELS_ROOT. The continuity workflow uses native-installed models, 32K and bounded512; reference traversal uses local-pack models at those same budgets. SEVRA_NATIVE_CONTEXT_TOKENS selects 8192/32768/65536/131072/262144 and SEVRA_NATIVE_REASONING selects 0/512 in other development checks. Reasoning comparison fixes 32K and accepts SEVRA_REASONING_SAVE_FIXTURES or SEVRA_REASONING_FIXTURES; SEVRA_REASONING_BOUNDED_ONLY=1 runs only the bounded arm."
     )
   }
 } catch {

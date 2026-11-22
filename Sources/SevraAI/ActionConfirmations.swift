@@ -111,8 +111,7 @@ package struct ActionConfirmations {
       }
     }
   }
-  /// What a call acted on, so a later success can settle the failure before it. A thread tool
-  /// acts on the current conversation whatever its arguments say.
+  /// What a call acted on, so a later success can settle the failure before it.
   private static func attempt(_ tool: String, _ arguments: Value) -> String {
     if tool == "workspace_action" {
       let inputs = arguments["arguments"]
@@ -133,7 +132,6 @@ package struct ActionConfirmations {
         + inputs["action"].text + ":" + inputs["target"].text + ":"
         + inputs["inputs"]["name"].text
     }
-    if WorkbookTools.conversationTools[tool] != nil { return "" }
     if tool == "save_native_app" {
       return arguments["id"].string ?? arguments["package"]["name"].text
     }
@@ -337,10 +335,6 @@ package struct ActionConfirmations {
       task = "preparing the proposal"
     case "include_archive_members": task = "including the archive files"
     case "prepare_workflow_answer": task = "preparing the answer"
-    case "conversation_action":
-      task = "changing the thread"
-    case _ where WorkbookTools.conversationTools[tool] != nil:
-      task = "changing the thread"
     default:
       guard !WorkbookTools.readOnlyTools.contains(tool) else { return }
       task = "that action"
@@ -507,8 +501,6 @@ package struct ActionConfirmations {
         return "Saved reusable behavior “" + title
           + "”. Business acceptance is separate."
       case "failure":
-        // What refuses a thread change speaks to the model, not to the person.
-        if title == "changing the thread" { return "Couldn’t finish changing the thread." }
         let reason = entry["error"].text.components(separatedBy: Self.repeatRefused)[0]
         return "Couldn’t finish " + title + ". " + reason
       case "draft": return "Saved draft [" + title + "](sevra://item/" + id + ")."

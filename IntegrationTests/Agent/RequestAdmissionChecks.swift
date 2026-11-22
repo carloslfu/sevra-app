@@ -41,7 +41,7 @@ func checkRequestAdmission() async throws {
   let oldPrompt = "Make a draft titled Abandoned instruction sentinel."
   let oldMessage = try book.addMessage(oldPrompt, role: "user")
   let oldRun = try book.startAgentRun(
-    conversation: "main", model: "abandoned", requestMessageID: oldMessage)
+    conversation: book.startChat, model: "abandoned", requestMessageID: oldMessage)
   let basis = try book.addItem(
     category: "source", kind: "request", title: "Original request", text: oldPrompt, meaning: "plan"
   )
@@ -71,7 +71,7 @@ func checkRequestAdmission() async throws {
   let busyBook = try Workbook.create(at: root.appendingPathComponent("Busy.sevra"), title: "Busy")
   let liveMessage = try busyBook.addMessage("Existing live request", role: "user")
   let liveRun = try busyBook.startAgentRun(
-    conversation: "main", model: "live", requestMessageID: liveMessage)
+    conversation: busyBook.startChat, model: "live", requestMessageID: liveMessage)
   let busyModel = AdmissionModel(rejectsLease: true)
   do {
     _ = try await WorkbookAgent.run(
@@ -86,7 +86,7 @@ func checkRequestAdmission() async throws {
   try expectEqual(try busyBook.requestRunStatus(liveMessage), "running")
   try expectEqual(await busyModel.ends, 0)
   try expectEqual(await busyModel.captured.isEmpty, true)
-  let rejectedHistory = try WorkbookAgent.conversationHistory(busyBook, conversation: "main")
+  let rejectedHistory = try WorkbookAgent.conversationHistory(busyBook, conversation: busyBook.startChat)
     .map(\.content).joined(separator: "\n")
   try expectEqual(rejectedHistory.contains("Rejected request sentinel"), false)
 
@@ -125,14 +125,14 @@ func checkRequestAdmission() async throws {
   try expectEqual(try encoded(busyBook.messages()), encoded(messagesBeforeFailure))
   try expectEqual(try busyBook.agentRuns(), runsBeforeFailure)
   let admitted = try busyBook.startAgentRequest(
-    "Current boundary", conversation: "main", model: "fixture")
+    "Current boundary", conversation: busyBook.startChat, model: "fixture")
   try expectEqual(try busyBook.revision(), revision + 1)
   try expectEqual(try busyBook.requestRunStatus(admitted.messageID), "running")
   try expectEqual(try busyBook.requestRunStatus(liveMessage), "interrupted")
   _ = try busyBook.addMessage("Later request is not earlier context", role: "user")
   let bounded = try busyBook.messages(beforeMessage: admitted.messageID)
   try expectEqual(try encoded(bounded), encoded(messagesBeforeFailure))
-  let tangent = try busyBook.tangent(title: "Other conversation", parentMessage: liveMessage)
+  let tangent = try busyBook.createChat()
   try expectThrows(try busyBook.messages(conversation: tangent, beforeMessage: admitted.messageID))
   try expectThrows(try busyBook.messages(beforeMessage: "missing"))
   try expectEqual(try book.verify()["ok"], .bool(true))

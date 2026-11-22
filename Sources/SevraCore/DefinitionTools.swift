@@ -460,7 +460,7 @@ extension Workbook {
   ) throws {
     guard let requestSourceID,
       let row = try db.execute(
-        "SELECT a.status,a.conversation_id,r.message_id,m.body,p.payload FROM agent_runs a JOIN run_requests r ON r.run_id=a.id JOIN messages m ON m.id=r.message_id LEFT JOIN message_payloads p ON p.message_id=m.id WHERE a.id=?",
+        "SELECT a.status,a.conversation_id,r.message_id,m.body FROM agent_runs a JOIN run_requests r ON r.run_id=a.id JOIN messages m ON m.id=r.message_id WHERE a.id=?",
         [.string(runID)]
       ).first
     else {
@@ -468,16 +468,13 @@ extension Workbook {
         "action_run", "Application changes require the active captured user request.")
     }
     let source = try item(requestSourceID)
-    let continued = try row["payload"]?.string.map(Value.parse)
     try require(
       row["status"]?.text == "running"
         && (conversation == nil || row["conversation_id"]?.text == conversation)
         && source.id == requestSourceID && source.category == "source" && source.kind == "request"
         && source.text == row["body"]?.text
-        && ((source.data["messageID"] == row["message_id"]!
-          && source.data["conversationID"] == row["conversation_id"]!)
-          || (continued?["kind"].text == "continued_request"
-            && continued?["sourceID"].text == source.id)),
+        && source.data["messageID"] == row["message_id"]!
+        && source.data["conversationID"] == row["conversation_id"]!,
       "action_run", "The saved action does not belong to the current active user request.")
   }
 

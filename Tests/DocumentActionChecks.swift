@@ -197,10 +197,10 @@ func checkDocumentActions(at root: URL) {
   check("registered document actions cannot bypass the unqualified chat submission boundary") {
     let (book, evidence, action) = try fixture("ChatBoundary")
     let prompt = "Preview this report action."
-    let request = try book.startAgentRequest(prompt, conversation: "main", model: "Synthetic")
+    let request = try book.startAgentRequest(prompt, conversation: book.startChat, model: "Synthetic")
     let source = try book.addItem(
       category: "source", kind: "request", title: "Request", text: prompt,
-      data: .object(["conversationID": .string("main"), "messageID": .string(request.messageID)]))
+      data: .object(["conversationID": .string(book.startChat), "messageID": .string(request.messageID)]))
     let tools = WorkbookTools(book, runID: request.runID, requestSourceID: source.id)
     let args: Value = .object(["id": .string(action.id), "arguments": arguments(evidence)])
     let receipt = try book.prepareToolCall(

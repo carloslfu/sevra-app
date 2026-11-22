@@ -208,8 +208,8 @@ tool result is available, resolve the proposal's current version through the
 workbook's head and include its actual acceptance status, meaning and dataset ID.
 Do not infer acceptance from assistant prose. Preserve the original receipt and
 history. An accepted forecast remains an estimate, and historical acceptance does
-not authorize a new action. Keep the existing bounded tangent parent excerpt and
-last eight local user/assistant messages.
+not authorize a new action. Keep the last eight local user/assistant messages of
+the open chat.
 
 After three consecutive successful searches with no hits, stop with an app-owned
 receipt containing the searched queries and actual incomplete-source count. Do not

@@ -164,7 +164,7 @@ actor PausedModel: WorkbookInference {
     await criticalModel.waitForResponse()
     let starts = observed.snapshot()
     try expect(
-      starts.count == 1 && starts[0].1 == "main",
+      starts.count == 1 && starts[0].1 == criticalBook.startChat,
       "Request admission callback was missing or duplicated")
     try expect(
       try criticalBook.agentRuns().first?["id"].text == starts[0].0,

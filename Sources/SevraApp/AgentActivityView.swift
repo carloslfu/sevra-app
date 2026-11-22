@@ -19,7 +19,6 @@ struct AgentActivityView: View {
     case "needs_review": return "Needs your review"
     case "cancelled": return "Stopped"
     case "failed": return "Stopped with an error"
-    case "continued": return "Continued in a thread"
     case "interrupted": return "Interrupted"
     default: return "Unfinished run"
     }

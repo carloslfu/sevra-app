@@ -294,10 +294,10 @@ private func clarificationFault(_ book: Workbook, _ sql: String) throws {
   await preparedSession.open()
   let message = "I counted 5 received bolts. Prepare my answer."
   let agent = try book.startAgentRequest(
-    message, conversation: "main", model: "Synthetic preparation")
+    message, conversation: book.startChat, model: "Synthetic preparation")
   let requestSource = try book.addItem(
     category: "source", kind: "request", title: "Synthetic current message", text: message,
-    data: .object(["messageID": .string(agent.messageID), "conversationID": .string("main")]),
+    data: .object(["messageID": .string(agent.messageID), "conversationID": .string(book.startChat)]),
     meaning: "plan", status: "accepted")
   let tools = WorkbookTools(book, runID: agent.runID, requestSourceID: requestSource.id)
   let read = try book.prepareToolCall(
@@ -336,7 +336,7 @@ private func clarificationFault(_ book: Workbook, _ sql: String) throws {
   var withEvidence = values("5.00").object
   withEvidence["original"] = .string(evidence.id)
   confirmationSession.update(values: .object(withEvidence), reason: "I counted five units.")
-  try await confirmationSession.prepareForConversation("main")
+  try await confirmationSession.prepareForConversation(book.startChat)
   try expectClarification(
     confirmationSession.conversationPreview != nil
       && confirmationSession.preview?["values"]["quantity"] == .string("5"),
@@ -351,22 +351,22 @@ private func clarificationFault(_ book: Workbook, _ sql: String) throws {
     "Leaving context retained confirmation authority")
   var confirmationMessage = try book.addMessage("Save my answer", role: "user")
   do {
-    try await confirmationSession.confirmForConversation("main", messageID: confirmationMessage)
+    try await confirmationSession.confirmForConversation(book.startChat, messageID: confirmationMessage)
     throw SevraError("test", "Historical preview granted live confirmation")
   } catch let error as SevraError {
     try expectClarification(error.code != "test", "Historical preview submitted")
   }
-  try await confirmationSession.prepareForConversation("main")
+  try await confirmationSession.prepareForConversation(book.startChat)
   confirmationSession.update(values: values("6"), reason: "I recounted six units.")
   try expectClarification(
     confirmationSession.conversationPreview == nil, "Editing retained earlier authority")
-  try await confirmationSession.prepareForConversation("main")
+  try await confirmationSession.prepareForConversation(book.startChat)
   let reopenConfirmation = WorkflowClarificationSession(workbook: book, runID: confirmedRun)
   await reopenConfirmation.open()
   try expectClarification(
     reopenConfirmation.conversationPreview == nil, "Reopening restored confirmation authority")
   confirmationMessage = try book.addMessage("Save my answer", role: "user")
-  try await confirmationSession.confirmForConversation("main", messageID: confirmationMessage)
+  try await confirmationSession.confirmForConversation(book.startChat, messageID: confirmationMessage)
   try expectClarification(
     confirmationSession.state?.entry.receipt != nil
       && confirmationSession.conversationPreview == nil,

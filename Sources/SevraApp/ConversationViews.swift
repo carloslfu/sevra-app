@@ -80,7 +80,7 @@ struct ConversationMessageRow: View, Equatable {
         Spacer()
         MoreActionsMenu(
           (speaker == "You" ? "Your" : speaker) + " message actions",
-          help: "Open links, save this exchange or start a thread"
+          help: "Copy this message or open its links"
         ) {
           ConversationMessageActions(
             state: state, message: message, content: content.presentation)
@@ -391,21 +391,6 @@ struct ConversationMessageActions: View {
         }
       }
     }
-    Button("Save this exchange") {
-      do {
-        try state.workbook?.chapter(
-          title: String(message.body.prefix(60)), message: message.id, bookmark: true)
-        state.refresh()
-      } catch { state.error = error.localizedDescription }
-    }
-    Button("Start a thread") {
-      state.startThread(from: message.id)
-    }
-    if state.conversation != "main", message.state == "complete",
-      ["user", "assistant"].contains(message.role)
-    {
-      Button("Share summary with conversation…") { state.requestSummary(message: message) }
-    }
   }
 }
 
@@ -422,11 +407,11 @@ extension FocusedValues {
 struct ConversationCommands: Commands {
   @FocusedValue(\.conversationWorkspace) private var workspace
   var body: some Commands {
-    CommandMenu("Conversation") {
+    CommandMenu("Chat") {
       if let workspace {
         ConversationCommandContent(state: workspace)
       } else {
-        Button("Open a workbook to use conversation actions") {}.disabled(true)
+        Button("Open a workbook to use chats") {}.disabled(true)
       }
     }
   }
@@ -437,15 +422,17 @@ private struct ConversationCommandContent: View {
   var body: some View {
     Button("Message Sevra") { state.composerFocusRequest = UUID() }.keyboardShortcut("l")
     Button("Stop", action: state.stop).keyboardShortcut(".").disabled(!state.busy)
-    Button("Search This Conversation…") { state.showingHistorySearch = true }
+    Divider()
+    Button("New Chat", action: state.newChat).keyboardShortcut("n", modifiers: [.command, .shift])
+      .disabled(state.changingConversation)
+    Button("Rename Chat…") {
+      state.chatRename = .init(chat: state.conversation, title: state.chatTitle)
+    }.disabled(state.changingConversation)
+    Button("Search This Chat…") { state.showingHistorySearch = true }
       .keyboardShortcut("f", modifiers: [.command, .option])
-    Button("Start a Thread") {
-      if let message = state.messages.last { state.startThread(from: message.id) }
-    }.disabled(state.messages.isEmpty || state.changingConversation)
-    Button("Rename Thread…", action: state.requestRenameThread).disabled(
-      state.conversation == "main")
-    Button("Back to Conversation") { state.changeConversation("main") }
-      .disabled(state.conversation == "main")
+    Button("Delete Chat…") {
+      state.chatDeletion = state.chats.first { $0.id == state.conversation }
+    }.disabled(!state.canDeleteChat)
     Divider()
     Section("Recent exchanges") {
       ForEach(Array(state.messages.filter { $0.role != "tool" }.suffix(20).reversed())) { message in

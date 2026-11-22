@@ -6,7 +6,7 @@ func checkContinuationEvidence(at root: URL) {
     let book = try Workbook.create(at: root.appendingPathComponent("Spaces.sevra"), title: "Spaces")
     let request = try book.addMessage("Save one review", role: "user")
     let run = try book.startAgentRun(
-      conversation: "main", model: "fixture", requestMessageID: request)
+      conversation: book.startChat, model: "fixture", requestMessageID: request)
     func save(_ title: String, component: String) throws -> Value {
       let definition = SpaceDefinition(components: [
         .init(id: component, type: "text", title: title, text: "In progress")
@@ -28,9 +28,9 @@ func checkContinuationEvidence(at root: URL) {
     // A later request cannot save it again either, and it hears what the stopped one finished.
     try book.finishAgentRun(run, status: "cancelled", steps: 3, metrics: .array([]))
     let next = try book.startAgentRun(
-      conversation: "main", model: "fixture",
+      conversation: book.startChat, model: "fixture",
       requestMessageID: try book.addMessage("Please continue", role: "user"))
-    let stopped = try book.continuationState(conversation: "main", runID: next, messageIDs: [])[
+    let stopped = try book.continuationState(conversation: book.startChat, runID: next, messageIDs: [])[
       "stoppedRequest"]
     try expect(stopped["messageID"].text == request && stopped["status"].text == "cancelled")
     try expect(stopped["saved"].array.map { $0["title"].text } == ["Receiving review", "Another view"])
@@ -46,10 +46,10 @@ func checkContinuationEvidence(at root: URL) {
     }
     try book.finishAgentRun(next, status: "complete", steps: 1, metrics: .array([]))
     let after = try book.startAgentRun(
-      conversation: "main", model: "fixture",
+      conversation: book.startChat, model: "fixture",
       requestMessageID: try book.addMessage("Something else", role: "user"))
     try expect(
-      try book.continuationState(conversation: "main", runID: after, messageIDs: [])[
+      try book.continuationState(conversation: book.startChat, runID: after, messageIDs: [])[
         "stoppedRequest"] == .null)
   }
   check("one request saves one draft per title, and a later request may reuse the title") {
@@ -57,7 +57,7 @@ func checkContinuationEvidence(at root: URL) {
     let source = try book.addItem(category: "source", kind: "note", title: "Report", text: "Held")
     func start(_ words: String) throws -> String {
       try book.startAgentRun(
-        conversation: "main", model: "fixture",
+        conversation: book.startChat, model: "fixture",
         requestMessageID: try book.addMessage(words, role: "user"))
     }
     func save(_ run: String, _ title: String, _ text: String) throws -> Value {
@@ -83,7 +83,7 @@ func checkContinuationEvidence(at root: URL) {
     func stop(_ title: String) throws -> String {
       let request = try book.addMessage("Draft the summary", role: "user")
       let run = try book.startAgentRun(
-        conversation: "main", model: "fixture", requestMessageID: request)
+        conversation: book.startChat, model: "fixture", requestMessageID: request)
       _ = try save(run, title, "First")
       try book.finishAgentRun(run, status: "failed", steps: 12, metrics: .array([]))
       return request
@@ -109,7 +109,7 @@ func checkContinuationEvidence(at root: URL) {
     func start(_ words: String) throws -> (run: String, message: String) {
       let message = try book.addMessage(words, role: "user")
       return (
-        try book.startAgentRun(conversation: "main", model: "fixture", requestMessageID: message),
+        try book.startAgentRun(conversation: book.startChat, model: "fixture", requestMessageID: message),
         message
       )
     }
@@ -120,7 +120,7 @@ func checkContinuationEvidence(at root: URL) {
       _ = try book.completeToolCall(id, result: result)
     }
     func stopped(_ run: String) throws -> Value {
-      try book.continuationState(conversation: "main", runID: run, messageIDs: [])["stoppedRequest"]
+      try book.continuationState(conversation: book.startChat, runID: run, messageIDs: [])["stoppedRequest"]
     }
     func space(_ title: String) throws -> Value {
       .object([
@@ -188,7 +188,7 @@ func checkContinuationEvidence(at root: URL) {
       at: root.appendingPathComponent("Continuing.sevra"), title: "Continue")
     let request = try book.addMessage("Read both and save one review", role: "user")
     let run = try book.startAgentRun(
-      conversation: "main", model: "fixture", requestMessageID: request)
+      conversation: book.startChat, model: "fixture", requestMessageID: request)
     func call(_ name: String, _ args: Value) throws -> Value {
       let id = try book.prepareToolCall(
         runID: run, callID: identifier(), tool: name, arguments: args)
@@ -216,7 +216,7 @@ func checkContinuationEvidence(at root: URL) {
     _ = try book.saveSpace(
       id: space, title: "Renamed by user", definition: definition, expectedVersion: 1)
     let revision = try book.revision()
-    let state = try book.continuationState(conversation: "main", runID: run, messageIDs: [])
+    let state = try book.continuationState(conversation: book.startChat, runID: run, messageIDs: [])
     let entries = state["readEvidence"]["entries"].array
     try expect(entries.map { $0["versionID"].text } == originals.map(\.id))
     for (entry, original) in zip(entries, originals) {
@@ -241,7 +241,7 @@ func checkContinuationEvidence(at root: URL) {
     try book.export(to: archive)
     let copy = try Workbook.openArchive(
       archive, at: root.appendingPathComponent("ContinuingCopy.sevra"))
-    let recovered = try copy.continuationState(conversation: "main", runID: run, messageIDs: [])
+    let recovered = try copy.continuationState(conversation: copy.startChat, runID: run, messageIDs: [])
     try expect(
       recovered["readEvidence"] == state["readEvidence"]
         && recovered["savedSpaces"] == state["savedSpaces"])
@@ -251,7 +251,8 @@ func checkContinuationEvidence(at root: URL) {
   ) {
     let book = try Workbook.create(
       at: root.appendingPathComponent("EvidenceScopes.sevra"), title: "Scopes")
-    func run(_ text: String, conversation: String = "main") throws -> String {
+    func run(_ text: String, conversation: String? = nil) throws -> String {
+      let conversation = conversation ?? book.startChat
       let request = try book.addMessage(text, role: "user", conversation: conversation)
       return try book.startAgentRun(
         conversation: conversation, model: "fixture", requestMessageID: request)
@@ -295,13 +296,13 @@ func checkContinuationEvidence(at root: URL) {
     _ = try book.prepareToolCall(
       runID: current, callID: "pending", tool: "read", arguments: .object(["id": .string(old.id)]))
     let state = try book.continuationState(
-      conversation: "main", runID: current, messageIDs: [oldMessage])
+      conversation: book.startChat, runID: current, messageIDs: [oldMessage])
     let entries = state["readEvidence"]["entries"].array
     try expect(entries.map { $0["versionID"].text } == Array(ids.suffix(8)))
     try expect(state["readEvidence"]["omittedVersions"].int == 2)
     try expect(try Value.array(entries).json().utf8.count <= 8192)
     try expect(!entries.contains { $0["versionID"].text == old.id })
-    let branch = try book.tangent(title: "Other", parentMessage: oldMessage)
+    let branch = try book.createChat()
     let other = try run("Other request", conversation: branch)
     try expect(
       try book.continuationState(conversation: branch, runID: other, messageIDs: [])[
@@ -318,7 +319,7 @@ func checkContinuationEvidence(at root: URL) {
       category: "source", kind: "document", title: "Cedar", text: "0.31 mm")
     let request = try book.addMessage("Inspect", role: "user")
     let run = try book.startAgentRun(
-      conversation: "main", model: "fixture", requestMessageID: request)
+      conversation: book.startChat, model: "fixture", requestMessageID: request)
     let receipt = try book.prepareToolCall(
       runID: run, callID: "wrong-value", tool: "read",
       arguments: .object(["id": .string(source.id)]))
@@ -328,7 +329,7 @@ func checkContinuationEvidence(at root: URL) {
         "item": .object(["id": .string(source.id), "text": .string("0.35 mm")])
       ]))
     try refuses("integrity") {
-      _ = try book.continuationState(conversation: "main", runID: run, messageIDs: [])
+      _ = try book.continuationState(conversation: book.startChat, runID: run, messageIDs: [])
     }
     try expect(try book.item(source.id).text == "0.31 mm")
   }

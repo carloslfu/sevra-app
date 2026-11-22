@@ -86,6 +86,12 @@ import SevraProduct
         "Expected a path, not an option. Write ./" + path + " for a file with that name.")
       return URL(fileURLWithPath: path).standardizedFileURL
     }
+    func directory(_ path: String) throws -> URL {
+      try require(
+        !path.isEmpty && !path.hasPrefix("-"), "usage",
+        "Expected a path, not an option. Write ./" + path + " for a folder with that name.")
+      return URL(fileURLWithPath: path).standardizedFileURL
+    }
     func offset(_ i: Int) throws -> Int {
       guard args.count > i else { return 0 }
       guard let value = Int(args[i]), value >= 0 else {
@@ -135,6 +141,12 @@ import SevraProduct
     }
     if command == "demo" { return try Demo.create(at: url(1)) }
     let book = try Workbook(url(1), cancellation: cancellation)
+    /// A chat named at position i, or the most recently active one.
+    func chat(_ i: Int) throws -> String {
+      if args.count > i { return args[i] }
+      return try latestChat()
+    }
+    func latestChat() throws -> String { try book.chats().first?.id ?? book.createChat() }
     if command == "business-origins" {
       try require(
         (3...18).contains(args.count), "usage", "business-origins WORKBOOK ITEM_ID [ITEM_ID...]")
@@ -312,7 +324,9 @@ import SevraProduct
       return .bool(true)
     case "search":
       return try encoded(book.search(arg(2), offset: offset(3)))
-    case "read": return try WorkbookTools(book).execute("read", .object(["id": .string(arg(2))]))
+    case "read":
+      return try WorkbookTools(book, conversation: latestChat()).execute(
+        "read", .object(["id": .string(arg(2))]))
     case "records": return try encoded(book.items(kind: args.count > 2 ? args[2] : nil))
     case "edit-document":
       let version = try arg(2)
@@ -745,12 +759,18 @@ import SevraProduct
       try Value.requireDepth(arg(3))
       let definition = try JSONDecoder().decode(SpaceDefinition.self, from: Data(arg(3).utf8))
       return .string(try book.saveSpace(title: arg(2), definition: definition))
+    case "chats": return try encoded(book.chats())
+    case "chat-new": return .string(try book.createChat())
+    case "chat-rename":
+      try book.renameChat(arg(2), title: arg(3))
+      return .bool(true)
+    case "chat-delete": return .string(try book.deleteChat(arg(2)))
     case "conversation":
-      return try encoded(book.messages(conversation: args.count > 2 ? args[2] : "main"))
+      return try encoded(book.messages(conversation: chat(2)))
     case "history":
       return try encoded(
         book.historySlice(
-          conversation: args.count > 2 ? args[2] : "main",
+          conversation: chat(2),
           after: args.count > 3 ? args[3] : nil,
           cancellation: cancellation))
     case "history-search":
@@ -764,7 +784,7 @@ import SevraProduct
       ])
     case "unresolved-calls":
       return .array(
-        try book.unresolvedToolCalls(conversation: args.count > 2 ? args[2] : "main", limit: 20))
+        try book.unresolvedToolCalls(conversation: chat(2), limit: 20))
     case "tool-receipt":
       return try book.toolCall(arg(3), conversation: arg(2))
     case "tool-result":
@@ -780,20 +800,9 @@ import SevraProduct
         offset: positional.count > 5 ? Int(positional[5]) ?? -1 : 0,
         rawJSON: args.contains("--raw-json"), cancellation: cancellation)
     case "checkpoints":
-      return .array(try book.contextCheckpoints(conversation: args.count > 2 ? args[2] : "main"))
+      return .array(try book.contextCheckpoints(conversation: chat(2)))
     case "checkpoint":
       return try book.contextCheckpoint(arg(3), conversation: arg(2))
-    case "chapter":
-      try book.chapter(title: arg(2), message: arg(3))
-      return .bool(true)
-    case "thread", "tangent": return .string(try book.tangent(title: arg(2), parentMessage: arg(3)))
-    case "start-thread":
-      return .string(
-        try book.startThread(parentMessage: arg(2), title: args.count > 3 ? args[3] : nil))
-    case "rename-thread":
-      try book.renameThread(arg(2), title: arg(3))
-      return .bool(true)
-    case "share-summary": return .string(try book.shareSummary(message: arg(2), text: arg(3)))
     case "reindex":
       try book.rebuildSearch(cancellation: cancellation)
       return .bool(true)
@@ -829,17 +838,33 @@ import SevraProduct
       // The seven general tools are accepted by name, and so is the operation behind each.
       let call = try GeneralTools.route(
         arg(2), args.count > 3 ? Value.parseExact(args[3]) : .object([:]))
-      return try WorkbookTools(book).execute(call.tool, call.arguments)
+      return try WorkbookTools(book, conversation: latestChat()).execute(call.tool, call.arguments)
     case "ask":
+      // ask WORKBOOK PROMPT [MODEL_DIRECTORY] [--chat CHAT_ID]: the latest chat unless one is named.
+      var positional = Array(args.prefix(2))
+      var named: String?
+      var index = 2
+      while index < args.count {
+        if args[index] == "--chat" {
+          try require(named == nil && index + 1 < args.count, "usage", help)
+          named = args[index + 1]
+          index += 2
+        } else {
+          positional.append(args[index])
+          index += 1
+        }
+      }
+      try require((3...4).contains(positional.count), "usage", help)
+      let conversation = try named ?? latestChat()
       let result = try await ProductAI.shared.run(
-        arg(2), workbook: book,
-        modelDirectory: args.count > 3 ? url(3) : ProductAI.defaultDirectory,
+        positional[2], workbook: book, conversation: conversation,
+        modelDirectory: positional.count > 3 ? try directory(positional[3]) : ProductAI.defaultDirectory,
         cancellation: cancellation,
         progress: { fputs($0 + "\n", stderr) })
       return .object([
         "answer": .string(result.answer), "citations": .array(result.citations.map(Value.string)),
         "steps": .number(Double(result.steps)), "state": .string(result.state),
-        "conversationAction": try result.conversationAction.map(encoded) ?? .null,
+        "chat": .string(conversation),
       ])
     default: throw SevraError("usage", help)
     }
@@ -868,10 +893,9 @@ import SevraProduct
     "lineage": 3...3, "spaces": 2...2, "space-history": 3...4, "space-edit": 5...6,
     "space-restore": 5...6, "space": 4...4, "conversation": 2...3, "history": 2...4,
     "history-search": 4...5, "history-read": 4...4, "unresolved-calls": 2...3,
-    "tool-receipt": 4...4, "checkpoints": 2...3, "checkpoint": 4...4, "chapter": 4...4,
-    "thread": 4...4, "tangent": 4...4, "start-thread": 3...4, "rename-thread": 4...4,
-    "share-summary": 4...4, "reindex": 2...2, "export": 3...3, "export-csv": 4...4,
-    "tool": 3...4, "ask": 3...4, "tools": 2...2, "tool-enable": 3...3, "tool-disable": 3...3,
+    "tool-receipt": 4...4, "checkpoints": 2...3, "checkpoint": 4...4, "chats": 2...2,
+    "chat-new": 2...2, "chat-rename": 4...4, "chat-delete": 3...3, "reindex": 2...2,
+    "export": 3...3, "export-csv": 4...4, "tool": 3...4, "ask": 3...6, "tools": 2...2, "tool-enable": 3...3, "tool-disable": 3...3,
     "tool-remove": 3...3,
   ]
   static let help = """
@@ -923,14 +947,13 @@ import SevraProduct
     column-history WORKBOOK TABLE_ID | table-formulas WORKBOOK TABLE_ID
     intake-status WORKBOOK | resume-intake WORKBOOK SOURCE_ID
     runs WORKBOOK
-    conversation WORKBOOK [CONVERSATION_ID] | chapter WORKBOOK TITLE MESSAGE_ID
-    history WORKBOOK [CONVERSATION_ID [AFTER_MESSAGE_ID]]
-    history-search WORKBOOK CONVERSATION_ID QUERY [CURSOR] | history-read WORKBOOK CONVERSATION_ID MESSAGE_ID
-    unresolved-calls WORKBOOK [CONVERSATION_ID] | tool-receipt WORKBOOK CONVERSATION_ID RECEIPT_ID
-    tool-result WORKBOOK CONVERSATION_ID RECEIPT_ID [PATH_JSON [OFFSET]] [--raw-json]
-    checkpoints WORKBOOK [CONVERSATION_ID] | checkpoint WORKBOOK CONVERSATION_ID CHECKPOINT_ID
-    thread WORKBOOK TITLE MESSAGE_ID | share-summary WORKBOOK MESSAGE_ID TEXT | reindex WORKBOOK
-    start-thread WORKBOOK MESSAGE_ID [TITLE] | rename-thread WORKBOOK THREAD_ID TITLE
+    chats WORKBOOK | chat-new WORKBOOK | chat-rename WORKBOOK CHAT_ID TITLE | chat-delete WORKBOOK CHAT_ID
+    A command without CHAT_ID uses the most recently active chat.
+    conversation WORKBOOK [CHAT_ID] | history WORKBOOK [CHAT_ID [AFTER_MESSAGE_ID]]
+    history-search WORKBOOK CHAT_ID QUERY [CURSOR] | history-read WORKBOOK CHAT_ID MESSAGE_ID
+    unresolved-calls WORKBOOK [CHAT_ID] | tool-receipt WORKBOOK CHAT_ID RECEIPT_ID
+    tool-result WORKBOOK CHAT_ID RECEIPT_ID [PATH_JSON [OFFSET]] [--raw-json]
+    checkpoints WORKBOOK [CHAT_ID] | checkpoint WORKBOOK CHAT_ID CHECKPOINT_ID | reindex WORKBOOK
     export WORKBOOK PATH.sevraz | open-archive PATH.sevraz DEST.sevra
     commits WORKBOOK [LIMIT] | reconstruct WORKBOOK NEW_WORKBOOK
     business-batches WORKBOOK [AFTER_BATCH_ID|-] [LIMIT] [SCOPE_KIND SCOPE_KEY]
@@ -991,6 +1014,6 @@ import SevraProduct
     table-optimize WORKBOOK QUERY_JSON | table-clear-indexes WORKBOOK DATASET_ID
     export-csv WORKBOOK TABLE_ID PATH.csv | tool WORKBOOK TOOL [ARGS_JSON]
     model-status [MODEL_DIRECTORY] | model-setup [MODEL_DIRECTORY] [--reuse EXISTING_FAST_DIRECTORY]
-    ask WORKBOOK QUESTION [MODEL_DIRECTORY]
+    ask WORKBOOK QUESTION [MODEL_DIRECTORY] [--chat CHAT_ID]
     """
 }

@@ -177,13 +177,14 @@ import SevraVoice
     }
     if id == "main.lifecycle" || id == "composition.interrupted" {
       _ = try b.saveConversationViewState(
-        "main", draft: "Include delivery before choosing a supplier", reading: .init(),
+        b.chats()[0].id, draft: "Include delivery before choosing a supplier", reading: .init(),
         expectedDraft: "")
     }
   }
 
   func seedChat(_ b: Workbook) async throws {
     let id = story.id
+    let chat = try b.chats()[0].id
     let wantsInput =
       id.hasPrefix("chat.field.")
       || [
@@ -232,10 +233,10 @@ import SevraVoice
       let repeats = id.contains("multiple") || id.contains("interrupted") ? 2 : 1
       for _ in 0..<repeats {
         _ = try await WorkbookAgent.run(
-          "Compare the supplier quotes", workbook: b,
+          "Compare the supplier quotes", workbook: b, conversation: b.chats()[0].id,
           model: CatalogInference([("ask", args)]), conversationInput: true)
       }
-      input = try b.pendingConversationInput(conversation: "main")
+      input = try b.pendingConversationInput(conversation: b.chats()[0].id)
       if let input {
         if ["Draft", "Conflict"].contains(variant) || id.contains("draft-conflict") {
           _ = try b.saveConversationInputDraft(
@@ -259,37 +260,45 @@ import SevraVoice
         }
       }
     } else if variant != "Empty" || !id.hasPrefix("chat.") {
-      _ = try b.addMessage("Compare the supplier quotes.", role: "user")
-      let message = try b.addMessage(
+      if id == "chat.chats" {
+        // Earlier chats, each named by its first message. The open chat's messages come last.
+        for prompt in [
+          "Which supplier delivers fastest?", "Draft a reorder rule for brass bolts",
+          "Summarize last month's deliveries and flag every supplier that was late more than twice this quarter",
+        ] {
+          _ = try b.addMessage(prompt, role: "user", conversation: try b.createChat())
+        }
+      }
+      _ = try b.addMessage("Compare the supplier quotes.", role: "user", conversation: chat)
+      _ = try b.addMessage(
         "**Supplier comparison**\n\n| Supplier | Cost |\n| --- | ---: |\n| Oak Supply | 24.00 |\n| Cedar Tools | 27.50 |\n\nTax remains unknown. [Inspect the observations](sevra://item/\(source!.id)).",
-        role: "assistant")
+        role: "assistant", conversation: chat)
+      if id == "chat.chats" && variant == "Long labels" {
+        try b.renameChat(
+          chat,
+          title:
+            "Compare every supplier quote for brass bolts, hex nuts and fittings, including delivery, tax and minimum order terms"
+        )
+      }
       if id == "chat.messages" {
         // A code block keeps its lines, and its longest line scrolls sideways.
-        _ = try b.addMessage("Show the quotes as CSV.", role: "user")
+        _ = try b.addMessage("Show the quotes as CSV.", role: "user", conversation: chat)
         _ = try b.addMessage(
           "Here are the quotes as CSV:\n\n```csv\nsupplier,cost,note\nOak Supply,24.00,\nCedar Tools,27.50,delivery and tax are not yet known for this supplier\n```\n\nAsk to export the table when you need a file.",
-          role: "assistant")
-      }
-      if id == "chat.threads" {
-        let thread = try b.startThread(parentMessage: message, title: "Delivery costs")
-        _ = try b.addMessage("Check delivery before ordering.", role: "user", conversation: thread)
-      }
-      if id == "chat.history" {
-        try b.chapter(title: "Supplier comparison", message: message)
-        try b.chapter(title: "Delivery still unknown", message: message, bookmark: true)
+          role: "assistant", conversation: chat)
       }
       if id == "chat.history" || variant == "Dense" {
         for i in 0..<55 {
           _ = try b.addMessage(
             "Observation \(i+1): quoted cost \(i+24). Tax is still unknown.",
-            role: i % 2 == 0 ? "user" : "assistant")
+            role: i % 2 == 0 ? "user" : "assistant", conversation: chat)
         }
       }
     }
     if id == "chat.undo-redo" && variant != "Empty" {
       // A change made through sql, so the answer carries "Change saved" with its Undo.
       _ = try await WorkbookAgent.run(
-        "Add a reorder level of 10 for brass bolts.", workbook: b,
+        "Add a reorder level of 10 for brass bolts.", workbook: b, conversation: b.chats()[0].id,
         model: CatalogInference([
           (
             "sql",
@@ -316,7 +325,7 @@ import SevraVoice
       _ = try b.prepareChatApproval(
         action: "record.review",
         arguments: .object(["id": .string(draft.id), "decision": .string("accept")]),
-        title: "Accept purchasing decision?", conversation: "main")
+        title: "Accept purchasing decision?", conversation: b.chats()[0].id)
     }
     if id.hasPrefix("chat.visual.") || id == "chat.visuals" || id == "composition.surfaces"
       || id == "composition.overview"
@@ -336,7 +345,7 @@ import SevraVoice
     case .image: payload = .object(["sourceID": .string(image!.id)])
     }
     return try await WorkbookAgent.run(
-      "Show this synthetic view", workbook: b,
+      "Show this synthetic view", workbook: b, conversation: b.chats()[0].id,
       model: CatalogInference(
         [
           (

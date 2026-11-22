@@ -48,8 +48,8 @@ with tempfile.TemporaryDirectory(prefix='sevra-persistence-') as directory:
     commits = run('commits', book, 20)
     assert len(commits) >= 12 and all(item['actor']['kind'] == 'programmatic' for item in commits)
     assert len({item['writerID'] for item in commits}) >= 12
-    run('history', book, 'main') # original conversation command must remain separate
-    rejected = run('commits', book, 'main', success=False)
+    run('history', book)  # the conversation command stays separate from commits
+    rejected = run('commits', book, 'latest', success=False)
     assert rejected['error']['code'] == 'limit'
     assert write(0)['id'] == written[0]['id']
     assert run('commits', book, 20) == commits

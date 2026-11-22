@@ -427,7 +427,7 @@ extension WorkspaceState {
       .trimmingCharacters(in: CharacterSet(charactersIn: ".!"))
     guard ["confirm", "confirm change", "cancel approval"].contains(command) else { return false }
     guard let approval = chatApproval else {
-      error = "No change in this conversation is waiting for your confirmation."
+      error = "No change in this chat is waiting for your confirmation."
       return true
     }
     applyChatApproval(approval, book: book, cancel: command == "cancel approval", humanText: input)

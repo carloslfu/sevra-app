@@ -228,14 +228,14 @@ Use `WorkbookView`'s conversation/composer and `ConversationMessageRow`, not a p
 | --- | --- |
 | Message content | User/assistant/system roles as supported, short/long Markdown, links/citations, inline read-only tables, selectable text, structured activity and source excerpts |
 | Composer | Empty/multiline/draft restored, selected context and captured request context, busy/Stop, unavailable model, attachment/paste/drop states, voice status, keyboard submit/focus |
-| Activity | Preparing/running phases, elapsed time, expandable steps, prepared without final receipt, complete, needs_input, needs_review, cancelled, failed, continued, interrupted |
+| Activity | Preparing/running phases, elapsed time, expandable steps, prepared without final receipt, complete, needs_input, needs_review, cancelled, failed, interrupted |
 | Choices | One/multiple choices, long labels, enter custom answer, choice values exactly matching typed schema, enabled/disabled/busy |
 | Fields | Text, boolean with unanswered distinct from false, decimal, date, record picker; required/optional, valid/invalid, duplicate labels with stable record IDs, missing candidate |
 | Input lifecycle | Draft edit/save/clear, restoration, concurrent draft conflict/load saved fields, submit exactly once, ordinary request versus explicit `Answer:`, selected question target, multiple pending questions, decline, cancel |
 | Continuation | Saved answer awaiting retry, continuation failure/retry, request scope after answer, navigation during submission, duplicate/outdated answer refusal, closed question shown as history |
 | Approvals and changes | Exact confirm/cancel, typed confirmation path, outdated approval, no authority from a visual alone, success receipt, Undo/Redo and superseded/conflicting reversal |
 | Visuals | All supported captured visual families, image captions/expand/source, expanded chart/diagram/overview, exact values and sources, Add live view to Home, Open current view, unavailable/current version changed |
-| History | Earlier/later pages, search/no results, chapters/bookmarks/threads, rename, saved summary, return from source, restored scroll/draft, new activity while reading older messages |
+| History | Earlier/later pages, search/no results, the chat list, new chat, rename, delete, return from source, restored scroll/draft, new activity while reading older messages |
 
 A useful acceptance flow is: request comparison → choose basis or fill typed fields → see cited captured chart → pin live view → edit a record through chat → Home changes while the old chart stays fixed → inspect source → Undo. The second is app input validation → correction → exact approval when required → saved receipt → reopen. The third is two pending questions with independent drafts and an interrupted continuation.
 

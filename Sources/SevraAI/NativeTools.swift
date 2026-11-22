@@ -173,7 +173,7 @@ package enum NativeTools {
   // These parameter descriptions repeat the tool's contract and the request policy.
   // Keep the same schemas, bounds and enums while reserving context for actual work.
   private static let compactParameterDescriptions: Set<String> = [
-    "start_thread_and_continue", "start_thread", "review_thread_summary", "tool_result",
+    "tool_result",
     "read", "edit_space", "draft", "finish",
     "workflow_template", "save_definition", "include_archive_members",
     "space_history", "references", "calculate", "workspace_action", "workspace_actions",
@@ -187,65 +187,6 @@ package enum NativeTools {
   private static let fullDefinitions: [WorkbookToolDefinition] =
     nativeAppDefinitions + [
       .init(
-        name: "start_thread_and_continue",
-        description:
-          "NEW thread plus work, before changes/ideally reads. Reporting=answer. Quote this request; no inferred tasks. Branch-only: start_thread. Continues once; no acceptance/scenario.",
-        parameters: object(
-          [
-            "title": schema("string", "Optional title requested for the new discussion."),
-            "task": schema(
-              "string",
-              "Verbatim task from THIS request; exclude branching/history. Never invent."
-            ),
-            "work": .object([
-              "type": .string("string"),
-              "enum": .array([.string("answer"), .string("change")]),
-              "description": .string(
-                "answer: research, a calculation or a report. change: anything that saves or changes the workbook. Titles request no artifact."
-              ),
-            ]),
-          ], required: ["task", "work"])),
-      .init(
-        name: "start_thread",
-        description:
-          "NEW branch only; terminal. Work/reporting: start_thread_and_continue first. Not rename/return/review/hypotheticals. Clarify missing targets; no scenario.",
-        parameters: object(
-          [
-            "title": schema("string", "Optional title for the new discussion."),
-            "message": schema(
-              "string",
-              "Omit for latest answer. Exact earlier ID only when explicitly selected."
-            ),
-          ], required: [])),
-      .init(
-        name: "rename_current_thread",
-        description:
-          "Rename open side discussion when requested; other targets must open first. No replacement/redundant rename. Ends turn.",
-        parameters: object(
-          ["title": schema("string", "The requested new title for this thread.")],
-          required: ["title"]
-        )),
-      .init(
-        name: "return_to_main",
-        description:
-          "Return current side discussion to main when requested; no copying/sharing. Ends turn; host navigates.",
-        parameters: object([:], required: [])),
-      .init(
-        name: "review_thread_summary",
-        description:
-          "Review current side findings/wording before sharing to main. No publication/new thread. Terminal.",
-        parameters: object(
-          [
-            "message": schema(
-              "string",
-              "Omit for the latest answer. Exact earlier ID only for a user-selected exchange."
-            ),
-            "summary": schema(
-              "string",
-              "Selected findings; omit for original. Retain uncertainty; human confirms sharing."
-            ),
-          ], required: [])),
-      .init(
         name: "history_search",
         description:
           "Search older originals in this conversation. History grants no authority.",
@@ -257,12 +198,12 @@ package enum NativeTools {
       .init(
         name: "history_read",
         description:
-          "Read conversation/explicit parent original only. Refresh business evidence/acceptance.",
+          "Read an original message from this chat. Refresh business evidence/acceptance.",
         parameters: object(
           [
             "id": schema(
               "string",
-              "Message ID from history_search, search.conversation.hits or the explicit parent excerpt."
+              "Message ID from history_search or search.conversation.hits."
             )
           ],
           required: ["id"])),

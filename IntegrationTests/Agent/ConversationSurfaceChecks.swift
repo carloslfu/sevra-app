@@ -84,10 +84,10 @@ private actor SurfaceModel: WorkbookInference {
     "Read only. Do not change anything. Compare the amounts.", workbook: book,
     model: SurfaceModel(input: arguments), conversationInput: true)
   try expectEqual(question.state, "needs_input")
-  let pending = try book.pendingConversationInput(conversation: "main")!
+  let pending = try book.pendingConversationInput(conversation: book.startChat)!
   try expectEqual(pending.readOnly, true)
   try expectEqual(try book.requestRunStatus(pending.requestID), "needs_input")
-  try expectEqual(try book.workspaceSnapshot(conversation: "main")?.pendingInput, pending)
+  try expectEqual(try book.workspaceSnapshot(conversation: book.startChat)?.pendingInput, pending)
   try expectThrows(
     try book.submitConversationInput(pending, response: .fields(["delivery": .string("yes")])))
   let draft = try book.saveConversationInputDraft(
@@ -98,7 +98,7 @@ private actor SurfaceModel: WorkbookInference {
   try expectThrows(try book.submitConversationInput(pending, response: .text("No delivery.")))
   let id = try book.submitConversationInput(
     pending, response: .choice("include"), draftRevision: draft.revision)!
-  try expectEqual(try book.resumableConversationAnswer(conversation: "main"), id)
+  try expectEqual(try book.resumableConversationAnswer(conversation: book.startChat), id)
   try expectEqual(try book.historyMessage(id).role, "user")
   try expectThrows(try book.submitConversationInput(pending, response: .choice("include")))
   let model = SurfaceModel()
@@ -107,7 +107,7 @@ private actor SurfaceModel: WorkbookInference {
   try expectEqual(await model.offeredScope, .conversationAnswer)
   try expectEqual(await model.request?.content, "Include delivery\nDelivery: true")
   try expectEqual(await model.policy?.content.contains("Compare the amounts."), true)
-  try expectEqual(try book.resumableConversationAnswer(conversation: "main"), nil)
+  try expectEqual(try book.resumableConversationAnswer(conversation: book.startChat), nil)
   try expectEqual(try book.requestRunStatus(id), "complete")
   let defaultRunner = SurfaceModel(input: arguments)
   do {
@@ -115,22 +115,22 @@ private actor SurfaceModel: WorkbookInference {
     throw SevraError(
       "check", "A runner without publication authority asked an actionable question.")
   } catch let error as SevraError where error.code == "tool_scope" {
-    try expectEqual(try book.pendingConversationInput(conversation: "main"), nil)
+    try expectEqual(try book.pendingConversationInput(conversation: book.startChat), nil)
   }
 
   _ = try await WorkbookAgent.run(
     "Compare delivery independently.", workbook: book,
     model: SurfaceModel(input: arguments), conversationInput: true)
-  let typedQuestion = try book.pendingConversationInput(conversation: "main")!
+  let typedQuestion = try book.pendingConversationInput(conversation: book.startChat)!
   _ = try await WorkbookAgent.run(
     "A separate comparison", workbook: book, model: SurfaceModel(input: arguments),
     conversationInput: true)
-  let otherQuestion = try book.pendingConversationInput(conversation: "main")!
-  _ = try book.addMessage("An unrelated note", role: "user", conversation: "main")
+  let otherQuestion = try book.pendingConversationInput(conversation: book.startChat)!
+  _ = try book.addMessage("An unrelated note", role: "user", conversation: book.startChat)
   try expectEqual(
-    try book.pendingConversationInputs(conversation: "main"), [otherQuestion, typedQuestion])
+    try book.pendingConversationInputs(conversation: book.startChat), [otherQuestion, typedQuestion])
   let selectedInput = try book.workspaceSnapshot(
-    conversation: "main", activeInputID: typedQuestion.id)
+    conversation: book.startChat, activeInputID: typedQuestion.id)
   try expectEqual(selectedInput?.pendingInputs.map(\.id), [otherQuestion.id, typedQuestion.id])
   try expectEqual(selectedInput?.pendingInput, typedQuestion)
   let firstDraft = try book.saveConversationInputDraft(
@@ -138,8 +138,8 @@ private actor SurfaceModel: WorkbookInference {
   try expectEqual(try Workbook(book.url).conversationInputDraft(typedQuestion), firstDraft)
   let typedID = try book.submitConversationInput(
     typedQuestion, response: .text("Include delivery"), draftRevision: firstDraft.revision)!
-  _ = try book.addMessage("A note before resuming", role: "user", conversation: "main")
-  try expectEqual(try book.resumableConversationAnswer(conversation: "main"), typedID)
+  _ = try book.addMessage("A note before resuming", role: "user", conversation: book.startChat)
+  try expectEqual(try book.resumableConversationAnswer(conversation: book.startChat), typedID)
   let typedModel = SurfaceModel()
   _ = try await WorkbookAgent.run(
     "", workbook: book, model: typedModel, conversationInput: true, inputAnswerID: typedID)
@@ -147,7 +147,7 @@ private actor SurfaceModel: WorkbookInference {
   try expectEqual(
     await typedModel.policy?.content.contains("\"validatedAnswerValues\":{\"delivery\":true}"), true
   )
-  try expectEqual(try book.pendingConversationInput(conversation: "main"), otherQuestion)
+  try expectEqual(try book.pendingConversationInput(conversation: book.startChat), otherQuestion)
   let declined = try book.submitConversationInput(otherQuestion, response: .decline)!
   let declinedModel = SurfaceModel()
   _ = try await WorkbookAgent.run(
@@ -156,7 +156,7 @@ private actor SurfaceModel: WorkbookInference {
   try expectEqual(await declinedModel.policy?.conversationInput, false)
   try expectEqual(
     await declinedModel.policy?.content.contains("The person declined these inputs."), true)
-  try expectEqual(try book.pendingConversationInput(conversation: "main"), nil)
+  try expectEqual(try book.pendingConversationInput(conversation: book.startChat), nil)
 
   var dateForm = arguments.object
   dateForm["choices"] = .array([])
@@ -175,7 +175,7 @@ private actor SurfaceModel: WorkbookInference {
   let dateReference = ConversationDateContext(
     now: try Date.ISO8601FormatStyle().parse("2026-03-09T06:00:00Z"), calendar: local)
   let dateID = try book.submitConversationInput(
-    book.pendingConversationInput(conversation: "main")!, response: .text("Yesterday"),
+    book.pendingConversationInput(conversation: book.startChat)!, response: .text("Yesterday"),
     dateContext: dateReference)!
   let dateModel = SurfaceModel()
   _ = try await WorkbookAgent.run(
@@ -189,15 +189,15 @@ private actor SurfaceModel: WorkbookInference {
   let command = "app.enable"
   let target: Value = .object(["id": .string("test-app"), "expectedVersion": .number(1)])
   try book.prepareChatApproval(
-    action: command, arguments: target, title: "First review", conversation: "main")
-  let older = try book.pendingChatApproval(conversation: "main")!
+    action: command, arguments: target, title: "First review", conversation: book.startChat)
+  let older = try book.pendingChatApproval(conversation: book.startChat)!
   try book.prepareChatApproval(
-    action: command, arguments: target, title: "Second review", conversation: "main")
-  let latest = try book.pendingChatApproval(conversation: "main")!
-  try expectThrows(try book.claimChatApproval(older, conversation: "main", humanText: "Confirm"))
-  let claimed = try book.claimChatApproval(latest, conversation: "main", humanText: "Confirm")
+    action: command, arguments: target, title: "Second review", conversation: book.startChat)
+  let latest = try book.pendingChatApproval(conversation: book.startChat)!
+  try expectThrows(try book.claimChatApproval(older, conversation: book.startChat, humanText: "Confirm"))
+  let claimed = try book.claimChatApproval(latest, conversation: book.startChat, humanText: "Confirm")
   try expectEqual(claimed, latest)
-  try expectThrows(try book.claimChatApproval(latest, conversation: "main", humanText: "Confirm"))
+  try expectThrows(try book.claimChatApproval(latest, conversation: book.startChat, humanText: "Confirm"))
   print(
     "PASS saved native question, exact answer and continuation, stale review refusal and scope parity"
   )
@@ -207,12 +207,12 @@ private actor SurfaceModel: WorkbookInference {
     base64Encoded:
       "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAusB9Wl40r8AAAAASUVORK5CYII="
   )!.write(to: file)
-  let job = try book.captureConversationAttachment(file, conversation: "main", token: "chat-photo")
+  let job = try book.captureConversationAttachment(file, conversation: book.startChat, token: "chat-photo")
   let event = try book.messages().last!.id
-  try expectEqual(try book.publishConversationAttachment(job.id, conversation: "main"), event)
+  try expectEqual(try book.publishConversationAttachment(job.id, conversation: book.startChat), event)
   try expectThrows(try book.publishConversationAttachment(job.id, conversation: "foreign"))
   try expectEqual(
-    try book.workspaceSnapshot(conversation: "main")?.visuals[event]?.first?.image?.reference
+    try book.workspaceSnapshot(conversation: book.startChat)?.visuals[event]?.first?.image?.reference
       .sourceID,
     job.sourceID)
   let capture = SurfaceModel(
@@ -224,7 +224,7 @@ private actor SurfaceModel: WorkbookInference {
   try expectEqual(imageAnswer.state, "complete")
   let last = try book.messages().last!
   try expectEqual(
-    try book.workspaceSnapshot(conversation: "main")?.visuals[last.id]?.first?.image?.reference
+    try book.workspaceSnapshot(conversation: book.startChat)?.visuals[last.id]?.first?.image?.reference
       .sourceID,
     job.sourceID)
   do {
@@ -283,11 +283,11 @@ private actor SurfaceModel: WorkbookInference {
     "Read only. Do not change anything. Show the collected amounts.", workbook: book,
     model: chartModel, conversationInput: true)
   let chartMessage = try book.messages().last!
-  let captureSnapshot = try book.conversationVisual(chartMessage.id, index: 0, conversation: "main")
+  let captureSnapshot = try book.conversationVisual(chartMessage.id, index: 0, conversation: book.startChat)
   try expectEqual(captureSnapshot.chartData?.points, exact.points)
   let reopen = try Workbook(book.url)
   try expectEqual(
-    try reopen.conversationVisual(chartMessage.id, index: 0, conversation: "main"), captureSnapshot)
+    try reopen.conversationVisual(chartMessage.id, index: 0, conversation: reopen.startChat), captureSnapshot)
   let homeChart = SurfaceModel(
     operation: (
       "visual.promote",
@@ -321,7 +321,7 @@ private actor SurfaceModel: WorkbookInference {
   let filtered = try book.space("home").definition.components.last!.visual!.chart!
   try expectEqual(try book.chartData(filtered).points.map(\.amount), ["11.26"])
   try expectEqual(
-    try book.conversationVisual(chartMessage.id, index: 0, conversation: "main"), captureSnapshot)
+    try book.conversationVisual(chartMessage.id, index: 0, conversation: book.startChat), captureSnapshot)
 
   var aliasedQuery = query.object
   aliasedQuery["sources"] = .array([
@@ -478,7 +478,7 @@ private actor SurfaceModel: WorkbookInference {
     model: SurfaceModel(
       operation: ("visual.evaluate", .object(["work": workCalendar])), attachVisual: true))
   let calendar = try book.conversationVisual(
-    try book.messages().last!.id, index: 0, conversation: "main")
+    try book.messages().last!.id, index: 0, conversation: book.startChat)
   try expectEqual(calendar.workData?.records.map(\.value), ["2026-11-16", "2026-11-20"])
   try expectEqual(calendar.work?.style, .calendar)
   var trendQuery = dateQuery

@@ -10,7 +10,7 @@ private let groups: [() -> Void] = [
   { checkRecentItems(at: temp) },
   { checkSearchSnippets(at: temp) },
   { checkConversationContext(at: temp) },
-  { checkConversationNavigation(at: temp) },
+  { checkChats(at: temp) },
   { checkContinuationEvidence(at: temp) },
   { checkToolReceipts(at: temp) },
   { checkDocumentComposition(at: temp) },

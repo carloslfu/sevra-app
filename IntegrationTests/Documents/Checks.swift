@@ -329,7 +329,7 @@ nonisolated(unsafe) private var checksCompleted = false
     check("Copied passage presentation preserves exact version and rejects changed body bytes") {
       let (book, source) = try fixture()
       let run = try book.startAgentRequest(
-        "Quote the original", conversation: "main", model: "fixture"
+        "Quote the original", conversation: book.startChat, model: "fixture"
       )
       .runID
       let args: Value = .object(["id": .string(source.id)])

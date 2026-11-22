@@ -2,11 +2,12 @@
 type: index
 scope: type-folder
 folder: sources/notes
-updated: 2026-11-21T18:55:22.407610Z
+updated: 2026-11-21T19:50:31.620236Z
 ---
 
 # sources/notes
 
+- [[sources/notes/2026/11/simple-chats]] — The owner replaced threads, chapters, bookmarks and the main conversation with a plain ChatGPT-style chat list, with no conversion of old workbooks.
 - [[sources/notes/2026/11/start-window-audit]] — Carlos asks for an in-depth code audit of the start window paths and chooses fixes 1 to 4 of its seven findings.
 - [[sources/notes/2026/11/first-request-latency]] — Carlos asks where a first request's time goes and whether the built KV cache is used, then for every fix at its root and a new measurement.
 - [[sources/notes/2026/11/start-window-closes]] — Carlos asks for the start window to close whenever a workbook opens, and leaves the last-close behavior to the best UX.

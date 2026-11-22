@@ -70,7 +70,6 @@ func runContextAccountingProbe(modelsRoot: String, library: String, output: Stri
   let scopes: [InferenceToolScope] = [
     .all, .answer, .finish, .inspection, .excelPlan,
     .excelBuild, .excelCalculation, .excelInterface, .nativeAppReview, .nativeActionReview,
-    .change,
   ]
   var rows: [Value] = []
   for scope in scopes {

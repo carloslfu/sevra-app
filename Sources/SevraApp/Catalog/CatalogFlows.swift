@@ -173,7 +173,7 @@ enum CatalogFlows {
         ? .reviews : .item(fileItems[step == 0 ? "pdf" : step == 1 ? "image" : "references"]!)
     case "composition.excel": try await advanceExcel(b, ws)
     case "composition.interrupted":
-      let pending = try b.pendingConversationInputs(conversation: "main")
+      let pending = try b.pendingConversationInputs(conversation: b.chats()[0].id)
       if step == 0 {
         for (i, q) in pending.enumerated() {
           _ = try b.saveConversationInputDraft(
@@ -242,7 +242,7 @@ enum CatalogFlows {
           _ = try await host.converse("inspect")
           events.append("App semantic inspection succeeded")
         }
-      } else if step == 0, let q = try b.pendingConversationInput(conversation: "main") {
+      } else if step == 0, let q = try b.pendingConversationInput(conversation: b.chats()[0].id) {
         let value: Value =
           q.input!.fields[0].type == .boolean
           ? .bool(false)
@@ -253,13 +253,13 @@ enum CatalogFlows {
               : q.input!.fields[0].type == .record
                 ? .string(q.input!.fields[0].records!.rowIDs[0]) : .string("Include delivery")
         _ = try b.submitConversationInput(q, response: .fields(["answer": value]))
-      } else if step == 0, let approval = try b.pendingChatApproval(conversation: "main") {
+      } else if step == 0, let approval = try b.pendingChatApproval(conversation: b.chats()[0].id) {
         let claimed = try b.claimChatApproval(
-          approval, conversation: "main", cancel: false, humanText: "Confirm change")
+          approval, conversation: b.chats()[0].id, cancel: false, humanText: "Confirm change")
         let result = try await ws.performChatAction(
           claimed.action, arguments: claimed.arguments, book: b, readOnly: false,
           cancellation: .init(), confirmed: true)
-        try b.finishChatApproval(claimed, conversation: "main", result: result)
+        try b.finishChatApproval(claimed, conversation: b.chats()[0].id, result: result)
       } else if step == 0, story.id == "home.layout" || story.id == "home.limits" {
         _ = try b.editSpace(
           "home", expectedVersion: b.space("home").version,
@@ -279,13 +279,13 @@ enum CatalogFlows {
     state?.route = .space(current.id)
   }
   func promoteLatestCapture(_ b: Workbook) throws {
-    let captures = try b.workspaceSnapshot(conversation: "main")!.visuals
+    let captures = try b.workspaceSnapshot(conversation: b.chats()[0].id)!.visuals
     guard
-      let message = try b.conversationWindow(conversation: "main").messages.reversed().first(
+      let message = try b.conversationWindow(conversation: b.chats()[0].id).messages.reversed().first(
         where: { captures[$0.id]?.isEmpty == false })
     else { throw SevraError("catalog_flow", "Capture the view first") }
     _ = try b.promoteConversationVisual(
-      message.id, index: 0, conversation: "main", expectedVersion: b.space("home").version)
+      message.id, index: 0, conversation: b.chats()[0].id, expectedVersion: b.space("home").version)
   }
   func changeFirstRow(_ b: Workbook) throws {
     let t = table!
@@ -297,7 +297,7 @@ enum CatalogFlows {
   func compareCapturedAndCurrent(_ b: Workbook) throws {
     let chart = visual!.chart!
     let live = try b.chartData(chart)
-    let captures = try b.workspaceSnapshot(conversation: "main")!.visuals.values.flatMap { $0 }
+    let captures = try b.workspaceSnapshot(conversation: b.chats()[0].id)!.visuals.values.flatMap { $0 }
       .compactMap(\.chartData)
     try require(
       captures.contains { $0 != live }, "catalog_semantics",
@@ -308,7 +308,7 @@ enum CatalogFlows {
     let b = book!
     let ws = state!
     return try await WorkbookAgent.run(
-      "Perform the synthetic " + name, workbook: b,
+      "Perform the synthetic " + name, workbook: b, conversation: b.chats()[0].id,
       // Chat offers the seven general tools; a named action is run with its arguments.
       model: CatalogInference([
         ("run", .object(["action": .object(["name": .string(name), "arguments": arguments])]))

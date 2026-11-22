@@ -132,7 +132,6 @@ actor ReferenceModel: WorkbookInference {
     let policy = try NativeCitationPolicy.make(
       citationIDs, toolScope: toolScope, thinking: true,
       itemReferenceIDs: ItemReferenceCandidates.ids(in: messages),
-      conversationActions: messages.first?.conversationActions,
       documentCopyIDs: DocumentCopyCandidates.ids(in: messages),
       nativeAppAuthoring: messages.first?.nativeAppAuthoring == true,
       reviewContract: messages.first?.reviewContract ?? .null)

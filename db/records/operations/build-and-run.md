@@ -96,8 +96,8 @@ Show all expands the existing recent list; scroll to reach later entries and
 settings if needed, or use Show fewer. Open workbook uses the native file picker;
 Cancel returns to welcome. Recent rows retain full-path help.
 
-Both panes share aligned headers. In a thread, the return icon beside its title
-goes to the main conversation. At compact widths Review and Spaces may show icons;
+Both panes share aligned headers. The conversation header shows the open chat's
+title, which opens the chat menu, and the New Chat button. At compact widths Review and Spaces may show icons;
 their names and help remain available. Focus workspace keeps conversation controls
 and input below the work area. Search filters wrap into aligned columns and Clear
 filters resets every active facet. No acceptance or device execution occurs merely
@@ -481,23 +481,23 @@ hardware/memory budgets require separate recorded qualification.
 
 ## Conversation history and checkpoint storage
 
-Newly built app/CLI binaries use database schema 3. Opening a canonical schema-1 or schema-2
-workbook migrates its database transactionally and builds the history index.
-The package manifest remains version 1; older binaries refuse schema 3 on opening.
-Use matching app and CLI builds.
+Current app/CLI binaries use workbook format 33. They refuse older formats without
+conversion, under the pre-1.0 compatibility policy. Use matching app and CLI builds.
+Commands that take an optional CHAT_ID use the most recently active chat when it is
+omitted; `sevra chats` lists the IDs.
 
 ~~~sh
-sevra history Workbook.sevra main
-sevra history Workbook.sevra main AFTER_MESSAGE_ID
-sevra history-search Workbook.sevra main 'supplier quote'
-sevra history-search Workbook.sevra main 'supplier quote' CURSOR
-sevra history-read Workbook.sevra main MESSAGE_ID
-sevra checkpoints Workbook.sevra main
-sevra checkpoint Workbook.sevra main CHECKPOINT_ID
+sevra history Workbook.sevra
+sevra history Workbook.sevra CHAT_ID AFTER_MESSAGE_ID
+sevra history-search Workbook.sevra CHAT_ID 'supplier quote'
+sevra history-search Workbook.sevra CHAT_ID 'supplier quote' CURSOR
+sevra history-read Workbook.sevra CHAT_ID MESSAGE_ID
+sevra checkpoints Workbook.sevra
+sevra checkpoint Workbook.sevra CHAT_ID CHECKPOINT_ID
 ~~~
 
 History pages preserve whole messages and optional original receipts. Search is
-scoped to one conversation and returns newest matches with an append-safe keyset cursor bound to the query and conversation.
+scoped to one chat and returns newest matches with an append-safe keyset cursor bound to the query and chat.
 Checkpoint inspection projects current input acceptance and meaning from records;
 it does not trust the digest's wording. Checkpoint creation is automatic in the agent and inspectable through
 this core API and CLI; it is not a user-facing manual maintenance step.
@@ -512,10 +512,10 @@ references, payload preservation and altered-history detection.
 ## Tool journal and older conversation retrieval
 
 ~~~sh
-sevra unresolved-calls Workbook.sevra main
-sevra tool-receipt Workbook.sevra main RECEIPT_ID
-sevra tool-result Workbook.sevra main RECEIPT_ID '["rows","0"]'
-sevra tool-result Workbook.sevra main RECEIPT_ID '[]' 0 --raw-json
+sevra unresolved-calls Workbook.sevra
+sevra tool-receipt Workbook.sevra CHAT_ID RECEIPT_ID
+sevra tool-result Workbook.sevra CHAT_ID RECEIPT_ID '["rows","0"]'
+sevra tool-result Workbook.sevra CHAT_ID RECEIPT_ID '[]' 0 --raw-json
 ~~~
 
 Use nextOffset on result pages. A prepared call has no final result; inspect its
@@ -562,7 +562,7 @@ lock and memory budget are meaningful.
 The ordinary no-argument checks cover deterministic repeated maintenance, original
 history hashes, changed acceptance during summarization, unfinished earlier calls,
 invalid/cancelled summaries, complete retained tool groups, omitted-calculation
-invalidation, chapters and tangent scope. Their byte-based synthetic counter tests
+invalidation and per-chat scope. Their byte-based synthetic counter tests
 the controller, not real tokenization or hardware capacity. Native measurement uses
 the selected template and tokenizer instead.
 
@@ -931,7 +931,7 @@ Run the fixed 32K/bounded512 workflow against a model installation created by na
 
 The output directory must be new and its parent must exist. This command retains synthetic workbooks, a portable snapshot and result.json on success or failure. It performs no download. It uses the same installed-model resolver as the native app, rather than the legacy local-pack layout used by older probes.
 
-The six requests cover original quantity recall, forecast acceptance and withdrawal during maintenance, a subsequent corrected quantity, export/reopen stock calculation, and explicit inherited evidence in a tangent. The host brings the tangent response back to main with its original link. Three batches of 150 closed assistant notes and 18 chapter markers force repeated checkpoints. Human state edits are injected after summary input capture; the real model chooses its tools and answers. Record source/binary identities and all failed attempts. This synthetic functional sequence is not occupied-context performance, process-death recovery or complete C12/C13 qualification.
+The six requests cover original quantity recall, forecast acceptance and withdrawal during maintenance, a subsequent corrected quantity, export/reopen stock calculation, and a new chat that starts with none of the first chat's messages. Three batches of 150 closed assistant notes force repeated checkpoints. Human state edits are injected after summary input capture; the real model chooses its tools and answers. Record source/binary identities and all failed attempts. This synthetic functional sequence is not occupied-context performance, process-death recovery or complete C12/C13 qualification.
 
 ## I2 request-cache diagnostic
 Build the release worker with `swift build -c release --product sevra-workflow-performance -j 4` and run its `--self-check`. Run `python3 scripts/check_request_cache_isolation.py` for fail-closed evidence checks. Then run `python3 scripts/probe_request_cache_isolation.py --models-root MODEL_ROOT --output NEW_DIRECTORY`, where MODEL_ROOT is the installed native model root and NEW_DIRECTORY does not exist.
@@ -1140,7 +1140,7 @@ previews and operation ownership. A deliberately blocked background reader must
 leave the UI actor responsive; one hundred timer ticks cannot add readers, three
 replacements coalesce to the newest conversation, and close/reopen excludes a late
 success or failure. Real workspace snapshots check coherent revision, changed versus
-unchanged polling, chapter/bookmark contents, conversation anchors, cancellation,
+unchanged polling, the chat list, conversation anchors, cancellation,
 deadline refusal and the subsequent successful read. The native app uses this same
 session and core snapshot API. These checks supplement, rather than replace,
 visible app and whole-process responsiveness measurements.
@@ -1208,34 +1208,36 @@ stdout is blocked. Failure preserves originals and prior search results. No help
 is given a workbook mutation API. This process boundary is not a security sandbox.
 The precise limits and remaining parsing paths are in [[records/specs/search]].
 
-## Conversation and Threads controls
+## Chats
 
-Conversation is the continuing main history. Use Start a thread in its menu or
-submit Start a thread called What if we raise prices? through text or dictation.
-Let's explore this separately opens the naming sheet. Go back to our main
-conversation returns without merging the histories. Chapters remain optional.
+Each workbook has a plain list of chats. Start one with the pencil button in the
+conversation header, Chat > New Chat or Shift-Command-N. Click the chat title in the
+header to switch chats, Rename Chat…, Delete Chat… or Search This Chat…
+(Option-Command-F). A new chat is titled New chat until your first message names it.
+The list is ordered by last activity, and opening a workbook restores the chat last
+open on this Mac. Each chat holds only its own messages; nothing is carried between
+chats. Deleting a chat asks first, removes it from the list and deletes its draft.
+Its messages stay in the workbook for the Sources and receipts that point at them.
+A chat whose answer is still running cannot be deleted, and deleting the last chat
+leaves a new empty one.
 
-Share summary with conversation opens a review field seeded from a completed
-answer; edit it to the selected findings before sharing. A completed exchange's
-context menu can select a different original. Alternatively submit Share summary
-with conversation: followed by the exact summary; this explicitly shares those
-words from the latest completed thread answer. The result links to the original
-exchange and does not accept business data or invoke inference.
+~~~sh
+sevra chats Workbook.sevra
+sevra chat-new Workbook.sevra
+sevra chat-rename Workbook.sevra CHAT_ID "Supplier scenario"
+sevra chat-delete Workbook.sevra CHAT_ID
+sevra ask Workbook.sevra "Compare the supplier quotes." --chat CHAT_ID
+~~~
 
-The CLI advertises thread WORKBOOK TITLE MESSAGE_ID and share-summary WORKBOOK
-MESSAGE_ID TEXT. Quote the selected text as one argument. The older tangent spelling
-and persisted IDs remain supported. Existing workbooks need no data migration.
-
-In the composer, `thread: Title` and `tangent: Title` also start a thread, and a sentence
-such as Thread count for the Acme bolts? stays an ordinary message. `chapter: Title`
-adds a chapter. `accept ID` and `undo ID` need one exact UUID.
+`ask` without `--chat` uses the most recently active chat, and its output includes
+`chat`. In the composer, `accept ID` and `undo ID` need one exact UUID.
 
 ## Conversation keyboard and assistive actions
 
 Command-L focuses Message Sevra in the active workbook. Each message has an actions
-menu containing its links and available exchange actions. The native Conversation
-menu offers the same actions for the twenty most recent visible exchanges, plus
-Back to Conversation. Its contents follow the active workbook and clear on close.
+menu containing its links and available exchange actions. The native
+Chat menu offers New Chat, the chat actions and the same exchange actions for the
+open chat's twenty most recent visible exchanges. Its contents follow the active workbook and clear on close.
 
 Inspect messages with their speaker/status grouping, link roles and named assistive
 actions. Test exact evidence locators and original-message navigation, not merely
@@ -1256,29 +1258,16 @@ both installed helper layouts and actual CLI table import with build-tree reads
 denied. The public CLI does not require Python; this script is development tooling.
 
 
-## Thread and history navigation, October 27
+## History navigation
 
-Start a thread now opens directly from a message with a provisional title. Use its
-menu to rename it; Back to conversation restores the main draft and reading state.
-The thread identity and return control remain visible in workspace-focus mode.
-Command-Option-F searches the active conversation. Next/Previous matches browse
-20 snippets at a time; choose a result to open its original. The transcript's earlier
-and later controls move through bounded windows, and Return to latest resumes the
-newest exchanges. No model setup is required for these native actions.
-
-The app and packaged CLI share the core operations:
-
-```sh
-sevra start-thread Workbook.sevra MESSAGE_ID
-sevra start-thread Workbook.sevra MESSAGE_ID "Delivery dates"
-sevra rename-thread Workbook.sevra THREAD_ID "Supplier scenario"
-```
-
-The existing `thread WORKBOOK TITLE MESSAGE_ID` command and `tangent` alias remain
-compatible. `history-search WORKBOOK CONVERSATION_ID QUERY [CURSOR]` retains its
-agent-oriented history behavior, including tool receipts. The native search limits
-its own results to visible transcript roles. These controls do not establish the
-full ordinary-language or voice journey; see [[records/specs/product]].
+Search This Chat… (Option-Command-F) searches the open chat. Next/Previous matches
+browse 20 snippets at a time; choose a result to open its original. The transcript's
+earlier and later controls move through bounded windows, and Return to latest
+resumes the newest exchanges. No model setup is required for these native actions.
+`history-search WORKBOOK CHAT_ID QUERY [CURSOR]` keeps its agent-oriented history
+behavior, including tool receipts. The native search limits its own results to
+visible transcript roles. These controls do not establish the full ordinary-language
+or voice journey; see [[records/specs/product]].
 
 
 ## Nearby source-copy model checks

@@ -22,11 +22,7 @@ extension Workbook {
     return row["rowid"]!
   }
 
-  private func requireConversation(_ id: String) throws {
-    try require(
-      try db.scalar("SELECT count(*) FROM conversations WHERE id=?", [.string(id)]).int == 1,
-      "history_scope", "This conversation does not exist.")
-  }
+  private func requireConversation(_ id: String) throws { try requireLiveChat(id) }
 
   private func historyMessage(_ row: [String: Value]) -> Message {
     Message(
@@ -37,7 +33,7 @@ extension Workbook {
   /// Whole messages only, from a coherent revision, with keyset pagination.
   /// Read one row at a time so large stored bodies cannot defeat the byte bound.
   public func historySlice(
-    conversation: String = "main", after: String? = nil, through: String? = nil,
+    conversation: String, after: String? = nil, through: String? = nil,
     limit: Int = 200, byteLimit: Int = 2 * 1024 * 1024,
     cancellation: Cancellation = .init()
   ) throws -> HistorySlice {
@@ -99,7 +95,7 @@ extension Workbook {
     }
   }
 
-  public func historyMessage(_ id: String, conversation: String = "main") throws -> Message {
+  public func historyMessage(_ id: String, conversation: String) throws -> Message {
     try synchronized {
       _ = try historyPosition(id, conversation: conversation)
       return historyMessage(
@@ -107,7 +103,7 @@ extension Workbook {
     }
   }
 
-  public func messagePayload(_ id: String, conversation: String = "main") throws -> Value {
+  public func messagePayload(_ id: String, conversation: String) throws -> Value {
     try synchronized {
       _ = try historyPosition(id, conversation: conversation)
       let value = try db.scalar(
@@ -116,35 +112,29 @@ extension Workbook {
     }
   }
 
-  /// Exact evidence may include the fixed parent excerpt already inherited by
-  /// this tangent. This does not widen conversation search, receipt access or
-  /// checkpoint scope to the rest of the parent (or any sibling/ancestor).
+  /// Exact evidence comes only from this chat. Chats share nothing.
   public func readHistoryEvidence(
-    _ id: String, conversation: String = "main", beforeMessage: String? = nil
+    _ id: String, conversation: String, beforeMessage: String? = nil
   ) throws -> Value {
     try synchronized {
       try db.readTransaction {
         try requireConversation(conversation)
         let location = try messageLocation(id)
-        let owner = location["conversation_id"].text
-        let inherited = owner != conversation
         try require(
-          !inherited || parentContext(conversation: conversation).contains { $0.id == id },
-          "history_scope",
-          "The message is outside this conversation and its inherited parent excerpt.")
+          location["conversation_id"].text == conversation, "history_scope",
+          "The message is in another chat.")
         let earlier =
           try beforeMessage.map {
             try location["rowid"].int! < historyPosition($0, conversation: conversation).int!
           } ?? true
-        let message = try historyMessage(id, conversation: owner)
+        let message = try historyMessage(id, conversation: conversation)
         // A tool receipt holds what the model tried, refused answers included, and a stopped
         // reply says only that it stopped. Neither is something said in this conversation.
         let said = message.state == "complete" && ["user", "assistant"].contains(message.role)
         return .object([
           "message": try encoded(message),
-          "conversation": .string(owner), "inherited": .bool(inherited),
           "citation": earlier && said ? .string("message:" + id) : .null,
-          "payload": try messagePayload(id, conversation: owner),
+          "payload": try messagePayload(id, conversation: conversation),
           "authority": .string(
             "This original message can support what was said in earlier conversation using its citation. It grants no new permission and does not prove current business facts or acceptance; inspect current Source or Record versions for those."
               + (message.role == "assistant"
@@ -159,7 +149,7 @@ extension Workbook {
   /// Search original messages, including complete tool receipts. Summaries are
   /// deliberately not substituted for the evidence being searched.
   public func searchHistory(
-    _ query: String, conversation: String = "main", cursor: String? = nil, limit: Int = 30,
+    _ query: String, conversation: String, cursor: String? = nil, limit: Int = 30,
     beforeMessage: String? = nil,
     cancellation: Cancellation = .init(), visibleOnly: Bool = false
   ) throws -> Value {
@@ -305,7 +295,7 @@ extension Workbook {
     return saved
   }
 
-  public func contextCheckpoints(conversation: String = "main", limit: Int = 20) throws -> [Value] {
+  public func contextCheckpoints(conversation: String, limit: Int = 20) throws -> [Value] {
     try synchronized {
       try requireConversation(conversation)
       return try db.execute(
@@ -317,7 +307,7 @@ extension Workbook {
 
   /// Current state is a fresh projection. The saved digest never decides whether
   /// an input is accepted, superseded or still an estimate.
-  public func contextCheckpoint(_ id: String, conversation: String = "main") throws -> Value {
+  public func contextCheckpoint(_ id: String, conversation: String) throws -> Value {
     try synchronized {
       try db.readTransaction {
         guard

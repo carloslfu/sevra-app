@@ -196,7 +196,7 @@ enum CatalogRegistry {
     }
     for kind in [
       "messages", "composer", "activity", "choices", "multiple-pending", "draft-conflict",
-      "continuation", "approval", "undo-redo", "visuals", "history", "threads", "context",
+      "continuation", "approval", "undo-redo", "visuals", "history", "chats", "context",
     ] {
       add(
         "chat." + kind, kind.replacingOccurrences(of: "-", with: " ").capitalized, "Chat",

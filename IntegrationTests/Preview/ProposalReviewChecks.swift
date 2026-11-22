@@ -18,7 +18,7 @@ func checkProposalReview() throws {
   }
   for typed in [false, true] {
     let run = try book.startAgentRequest(
-      "Propose the handover", conversation: "main", model: "fixture")
+      "Propose the handover", conversation: book.startChat, model: "fixture")
     let args: Value = .object([
       "subject": .string("fittings"), "quantity": .string("-2"),
       "occurrence": .string(identifier()), "effective": .string("2026-01-02"),
@@ -41,21 +41,21 @@ func checkProposalReview() throws {
       "Ready to review the handover.", role: "assistant", state: "needs_review", payload: payload)
     try book.finishAgentRun(run.runID, status: "needs_review", steps: 1, metrics: .array([]))
     let original = try book.historyMessage(message)
-    var projection = try book.workspaceSnapshot(conversation: "main")!.proposalReviews[message]!
+    var projection = try book.workspaceSnapshot(conversation: book.startChat)!.proposalReviews[message]!
     try expect(projection.proposalID == result["id"].text && projection.status == "draft")
     try expect(projection.currentVersionID == projection.proposalID)
     let accepted = try book.accept(projection.proposalID)
-    projection = try book.workspaceSnapshot(conversation: "main")!.proposalReviews[message]!
+    projection = try book.workspaceSnapshot(conversation: book.startChat)!.proposalReviews[message]!
     try expect(projection.currentVersionID == accepted.id && projection.status == "accepted")
     try expect(try book.balance(subject: "fittings")["quantity"].text == "18")
     let withdrawn = try book.undoItem(accepted.id)
-    projection = try book.workspaceSnapshot(conversation: "main")!.proposalReviews[message]!
+    projection = try book.workspaceSnapshot(conversation: book.startChat)!.proposalReviews[message]!
     try expect(projection.currentVersionID == withdrawn.id && projection.status == "rejected")
     try expect(try book.balance(subject: "fittings")["quantity"].text == "20")
     let revised = try book.movement(
       subject: "fittings", quantity: "-3", occurrence: args["occurrence"].text,
       effective: args["effective"].text, input: observation.id, supersedes: withdrawn.id)
-    projection = try Workbook(root).workspaceSnapshot(conversation: "main")!.proposalReviews[
+    projection = try Workbook(root).workspaceSnapshot(conversation: book.startChat)!.proposalReviews[
       message]!
     try expect(projection.currentVersionID == revised.id && projection.currentVersion == 4)
     try expect(projection.status == "draft" && projection.proposalID != revised.id)
@@ -64,7 +64,7 @@ func checkProposalReview() throws {
 
     // An arbitrary link or a receipt from another conversation cannot establish
     // a current review status. No original message is rewritten for backfill.
-    let branch = try book.startThread(parentMessage: message)
+    let branch = try book.createChat()
     let foreign = try book.addMessage(
       "Ready to review", role: "assistant", conversation: branch, state: "needs_review",
       payload: .object([
@@ -73,13 +73,13 @@ func checkProposalReview() throws {
     try expect(try book.workspaceSnapshot(conversation: branch)!.proposalReviews[foreign] == nil)
     let unknown = try book.addMessage(
       "[An item](sevra://item/\(revised.id))", role: "assistant", state: "needs_review")
-    try expect(try book.workspaceSnapshot(conversation: "main")!.proposalReviews[unknown] == nil)
+    try expect(try book.workspaceSnapshot(conversation: book.startChat)!.proposalReviews[unknown] == nil)
   }
   // A published result is a proposal too, and its review state follows the same way.
   let published = try book.addItem(
     category: "record", kind: "analysis", title: "Expected units", text: "12", meaning: "estimate",
     status: "draft", inputs: [observation.id])
-  let run = try book.startAgentRequest("Publish it", conversation: "main", model: "fixture")
+  let run = try book.startAgentRequest("Publish it", conversation: book.startChat, model: "fixture")
   let receipt = try book.prepareToolCall(
     runID: run.runID, callID: identifier(), tool: "publish_result", arguments: .object([:]))
   _ = try book.completeToolCall(receipt, result: try encoded(published))
@@ -88,7 +88,7 @@ func checkProposalReview() throws {
     payload: .object([
       "kind": .string("proposal"), "itemID": .string(published.id), "receiptID": .string(receipt),
     ]))
-  let review = try book.workspaceSnapshot(conversation: "main")!.proposalReviews[reply]
+  let review = try book.workspaceSnapshot(conversation: book.startChat)!.proposalReviews[reply]
   try expect(review?.proposalID == published.id && review?.status == "draft")
   try expect(try book.verify()["ok"] == .bool(true))
   print(

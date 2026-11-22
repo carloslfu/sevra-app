@@ -7792,3 +7792,6 @@ Start implementation with P0/P1 when directed. The target is the native source p
 
 ## Native prompt and KV reuse, November 17
 The native agent reuses verified prompt prefixes and separates screen metadata from the user request. The installed desktop stock question took 20 seconds, down from 38, and its rephrased follow-up took 13 seconds. Both read the balance once and showed the two original inputs. A 125-second idle test resumed 6,016 KV tokens. See [[records/plans/conversation-latency-fix]] for timings, scope changes and the repaired repeat loop.
+
+## Plain chats, November 21
+Threads, chapters, bookmarks and the main conversation became one list of chats per workbook, under [[records/plans/simple-chats]]. Format 33 (`conversations(id,title,created,deleted)`), a soft delete guarded by a trigger, automatic titles, per-chat compaction, and no model tool for chats. The thread tools, handoffs and the `change` scope were removed; the tool snapshot and grammar fixtures were regenerated (50 internal tools, 78 cases, 739 masks). Checks: 658 core checks, the agent and grammar suite, preview, document, product and automation UI checks, the persistence, history and receipt scripts, the chat-job self-test, and the light model set once (11 of 11, 281 s). Two adversarial reviews; their findings were fixed or recorded in the plan.

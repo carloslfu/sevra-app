@@ -3,7 +3,7 @@ type: spec
 meta-type: conclusion
 id: 01m5rbxz9j15p1fw5fmxw7p9hv
 created: 2026-10-25T01:48:47.282868+00:00
-updated: 2026-11-02T15:40:00.000000+00:00
+updated: 2026-11-21T12:00:00.000000+00:00
 summary: Native two-pane workbook UX, conversation, viewers, contextual intake and customizable application engine with actions, workflows and automations.
 title: Product and interaction specification
 status: reviewed
@@ -78,8 +78,8 @@ explicit where consequential. File intake follows I04 without a mandatory modal.
 Use one ellipsis for icon-only overflow menus, with the automatic disclosure
 indicator hidden, a consistent native target, contextual name and help. Retain
 arrows for meaningful text pickers, disclosures, split-control alternatives and
-actual multi-page navigation. A conversation with no threads is a title, not a
-one-option menu. Keep primary actions visible and group secondary file actions,
+actual multi-page navigation. The chat title in the conversation header opens the
+chat menu. Keep primary actions visible and group secondary file actions,
 including Open a copy, in File actions. Offer Resume only for jobs needing recovery.
 An unreadable PDF shows an explicit unavailable state with guidance, not a blank
 preview. Table definitions show title/type first with per-column options; summaries
@@ -97,7 +97,7 @@ recent-workbook list left-aligned within that centered composition, initially fi
 entries with an explicit all/fewer choice. Retain native buttons, readable enabled
 labels, full-path help and existing open/create/error behavior.
 Conversation and workspace headers share a 56-point row and 20-point horizontal
-insets. Thread return belongs in that row, not a second header. At compact widths,
+insets. The chat title, its menu and New Chat belong in that row, not a second header. At compact widths,
 secondary workspace actions may use named icons with help; preserve the title,
 Back, Home and overflow menu. Search facets wrap in an aligned grid; labels and
 popup leading edges remain consistent, and selected filter count/reset stay clear.
@@ -163,26 +163,31 @@ result into raw JSON for the user. Preserve exact displayed values.
 
 ## Conversation
 
-P06. One persisted main conversation per workbook, ordered messages with attachments,
-run progress, tool results and citations. Persist each completed message and the
+P06. Each workbook holds a list of persisted chats. Each chat has ordered messages
+with attachments, run progress, tool results and citations. Persist each completed message and the
 terminal state of each turn. A cancelled or failed answer must not say completed.
-P07. The default pane is Conversation: one continuing main conversation per
-workbook. Optional separate discussions are Threads, with descriptive titles such
-as What if we raise prices? Start a thread preserves its parent message and scoped
-context without cloning workbook data. Back to conversation returns to the ongoing
-main history. Share summary with conversation lets the user choose/edit findings
-and copies only that summary, linked to its exact original exchange. This does not
-accept records, widen retrieval access or start an AI turn. Text/voice equivalents
-include Let's explore this separately and Go back to our main conversation.
-Only `thread: ` and `tangent: ` start a thread by prefix, `chapter: Title` adds a
-chapter, and `accept` and `undo` need an exact UUID, so a sentence that begins with
-one of those words stays a message.
+P07. The default pane is Conversation, showing one chat at a time from a plain
+chat list, as in ChatGPT. New Chat is the header pencil button, the Chat menu item
+and Shift-Command-N. The chat title in the conversation header opens a menu that
+switches chats and offers Rename Chat…, Delete Chat… (with a confirmation) and
+Search This Chat… (Option-Command-F). The list is ordered by last activity. Opening
+a workbook restores the chat last open on this Mac, or the most recently active one.
 
-Chapters are optional named headings at message boundaries within the same
-history, available when useful rather than introduced as an upfront concept.
-Saved exchanges remain bookmarks. Older package/API identifiers named tangent are
-compatible implementation details; visible copy uses Threads. The decision is in
-[[sources/notes/2026/10/conversation-threads-refinement]].
+A new chat is titled New chat until the person's first message names it: plain text
+from that message, at most 64 words and 120 characters, with a trailing sentence
+period dropped. A title the person chose is kept. Each chat holds only its own
+messages. Nothing is carried between chats: no parent excerpt, inherited context or
+shared summary. Only the person creates, switches, renames or deletes chats; the
+model has no tool for it. `accept` and `undo` need an exact UUID, so a sentence that
+begins with one of those words stays a message.
+
+Deleting a chat removes it from the list and deletes its unsent draft. Its messages
+stay in the workbook file, because Sources and receipts its requests created point
+at them, and nothing can open or write to it again. A chat whose answer is still
+running cannot be deleted. Deleting the last chat leaves a new empty one. Deleting
+the open chat first moves to the most recent other chat. On November 21, 2026
+threads, chapters, bookmarks and the main conversation were replaced by this list;
+the decision is in [[records/plans/simple-chats]].
 P08. Active space, selected item and scenario are visible near the composer.
 Pronouns resolve only when context is unambiguous. Clarify consequential ambiguity;
 do not force users to understand storage or ask on every harmless import.
@@ -338,7 +343,7 @@ J01 Create → import CSV/PDF/image → search text and filenames → open exact
 J02 Ask locally → agent searches/reads → cited answer → chart/table → save space.
 J03 Source claim → draft movement → accept → balance 20−2=18 → retry unchanged →
 correction gives 19; genuine return is distinct; forecast never changes actuals.
-J04 Start a thread → explore scenario → share selected summary or return to conversation → preserve business state.
+J04 Start a new chat → explore scenario → switch back to the earlier chat → preserve business state.
 J05 Link external file → move/miss/change → honest status → relink/include version.
 J06 Edit/paste cells → recompute → undo → inspect versions → close and reopen.
 J07 Export during concurrent CLI writes → open elsewhere → verify hashes/lineage.
@@ -346,7 +351,7 @@ J08 Cancel import/model run → recover → restart → last valid document rema
 J09 Fresh checkout → documented install → launch app/CLI → demo → uninstall safely.
 
 J10 Long multi-step conversation → repeated automatic compaction → recover earlier
-evidence and latest constraints → thread/return → cancel/restart → correct pending
+evidence and latest constraints → new chat/switch back → cancel/restart → correct pending
 status and unchanged accepted effects → portable export/reopen with full history.
 
 ## Workspace operation ownership
@@ -362,11 +367,11 @@ File pickers must still belong to the same active workbook when they return.
 
 ## Background window refresh
 Periodic refresh and explicit catalog refresh run outside the UI actor. Read
-revision, spaces, recent-item metadata, datasets, conversation messages, chapter
-and bookmark menus, and intake state within one SQLite read transaction. Skip
+revision, spaces, recent-item metadata, datasets, conversation messages, the chat
+list and intake state within one SQLite read transaction. Skip
 unchanged poll projections only after a matching view has actually loaded. A new
-workbook clears the old projection immediately; changing conversations clears old
-messages while loading the new conversation.
+workbook clears the old projection immediately; changing chats clears old
+messages while loading the new chat.
 
 Each window permits one active read and at most one pending replacement. Poll
 requests do not accumulate behind an active read; repeated explicit requests
@@ -384,13 +389,12 @@ The actual visible workbook-switch and interaction journeys remain required.
 
 P05a. Each message is a separate accessible group, preserving its speaker, status,
 selectable text and links. Message actions expose the same exact destinations as
-inline links, plus saving an exchange, starting a thread and explicitly sharing
-selected findings. Named assistive actions and native menus complement the text.
+inline links. Named assistive actions and native menus complement the text.
 A saved document body over 16,000 bytes renders through TextKit so it cannot freeze
 the window: its links still open on click, but it has no Open X context or assistive
 items.
-The app's Conversation menu follows the focused workbook and provides its twenty
-most recent visible exchanges; closing that workbook removes its actions.
+The app's Chat menu follows the focused workbook and provides New Chat, the chat
+actions and the open chat's twenty most recent visible exchanges; closing that workbook removes its actions.
 Command-L focuses the composer without sending text or starting dictation.
 
 Parsing must preserve Unicode/formatted link labels, exact item-version identifiers,
@@ -405,19 +409,14 @@ controls; keyboard and spoken VoiceOver qualification remain explicit UI gates.
 ## Coherent conversation and workspace flow
 
 P06a. Preserve a separate unsent composer draft and reading position for each
-Conversation/Thread and restore them on navigation and workbook reopen. Switching,
-following provenance or returning to main cannot move unsent text into another
-conversation. Delayed dictation/refresh callbacks remain bound to their origin.
+chat and restore them on navigation and workbook reopen. Switching chats or
+following provenance cannot move unsent text into another chat. Delayed dictation/refresh callbacks remain bound to their origin.
 Expose older messages through bounded paging and scoped history search, with an
 explicit return to the latest exchange. Preserve the current reading position when
 new messages arrive or older pages load; message retrieval is not action authority.
 
-P07a. Starting a thread is immediate, using a useful editable provisional title
-without a mandatory naming sheet. Preserve its parent/context and show the current
-thread identity plus a visible Back to conversation control. This supersedes the
-initial naming-sheet implementation, not historical thread identifiers or scoped
-retrieval. Chapters remain optional. Share summary keeps an editable selection,
-original author/role and exact origin links, with no automatic business acceptance.
+P07a. New Chat is immediate, with the provisional title New chat and no naming
+sheet. The conversation header always shows the open chat's title and its menu.
 
 P08a. Keep active conversation, relevant workspace/selection and scenario clear in
 both-pane, workspace-focus and narrow-window modes. A temporary evidence preview
@@ -427,14 +426,13 @@ saved snapshot without a sprawling tab strip.
 
 P09a. Native controls and interpreted local voice/text requests use the same scoped
 host actions and truthful terminal results. Direct Stop/Back remain responsive
-without inference. Ordinary requests to branch, return and share must not require
-memorizing command literals. Ask when the requested target or consequential effect
-is ambiguous. A thread changes discussion context only; what-if work must visibly
+without inference. Ask when the requested target or consequential effect
+is ambiguous. A new chat changes discussion context only; what-if work must visibly
 use a scenario or proposal and cannot silently alter accepted actuals.
 
 J11. Exercise one coherent journey: import invoices, compare suppliers, open cited
-evidence, return to the result, explore supplier/pricing options in a thread, return
-to Conversation, review/share selected findings, explicitly review/apply one change,
+evidence, return to the result, explore supplier/pricing options in a new chat, switch
+back to the first chat, explicitly review/apply one change,
 undo, close/reopen and resume the right drafts, reading positions and business state.
 Exercise voice/text and native equivalents, interruption, keyboard access and narrow
 windows. Record exact results and open gaps. Automated or agent-operated checks do
@@ -445,20 +443,20 @@ Request and evidence limits: [[sources/notes/2026/10/ux-consistency-review]].
 
 ## Conversation drafts and reading state
 
-P06b. A composer draft belongs to one conversation in one workbook. Persist it as
+P06b. A composer draft belongs to one chat in one workbook. Persist it as
 presentation state, outside messages, Sources, Records, search and agent input.
 Autosave after 600 ms of inactivity, and await pending saves before switching a
-conversation, following an original-message link, closing the workbook or quitting.
+chat, following an original-message link, closing the workbook or quitting.
 A save failure keeps the text visible and prevents losing the editor. Dictation
-stops before a switch; delayed results also check the window and conversation.
-The last active conversation is a device preference for that workbook. Drafts and
+stops before a switch; delayed results also check the window and chat.
+The last open chat is a device preference for that workbook. Drafts and
 reading positions travel with the workbook, including its current portable export.
 A workbook copy is not a redacted publication; a selective sharing mode remains a
 separate future contract. A hard process kill can lose edits inside the debounce
 interval; successful normal close/quit must not.
 
 Store an exact message identifier and a fractional offset within it, or an explicit
-follow-latest state. Restore that position through thread switches, provenance jumps,
+follow-latest state. Restore that position through chat switches, provenance jumps,
 layout changes and reopen. Refresh around the reader when new messages arrive;
 Return to latest deliberately resumes the newest window without clearing the draft.
 The bounded history browser below complements this persisted reading state.
@@ -474,32 +472,27 @@ it. Native conflict controls exist in this slice; ordinary voice/text equivalent
 remain part of P09a qualification.
 
 
-## Immediate threads and bounded history navigation
+## Chat titles and bounded history navigation
 
-P07b. Start a thread from a visible conversation message immediately. Derive a
-short plain-text title from that message, disambiguate provisional duplicate titles,
-and allow an explicit rename later. Preserve the exact parent identifier and scoped
-context without copying messages or accepting business changes. A repeated operation
-identifier returns the same thread. Rename compares the title originally opened by
-the editor and refuses an intervening rename. Main Conversation cannot be renamed
-through this action. Explicit titles are one line, 1 to 120 characters and at most
-512 UTF-8 bytes. The visible title, Back to conversation and composer remain available
-in workspace-focus mode. Flush the current draft before changing discussion.
+P07b. Rename Chat… sets an explicit title. Explicit titles are one line, 1 to 120
+characters and at most 512 UTF-8 bytes. The visible chat title, its menu and the
+composer remain available in workspace-focus mode. Flush the current draft before
+changing chats.
 
 P06c. Conversation browsing loads at most 100 visible messages and 2 MiB of message
-bodies in one coherent read. Use conversation-local message order, even when sibling
-threads and tool receipts interleave. Earlier/later controls load overlapping bounded
+bodies in one coherent read. Use chat-local message order, even when tool receipts
+interleave. Earlier/later controls load overlapping bounded
 windows while retaining the visible reading anchor. A cited or searched original is
 included in the returned window. Body bounds must never create hidden gaps between
 selected visible messages. Return to latest remains explicit and preserves the draft.
 Tool receipts remain accessible to scoped history tools; the normal transcript and
 its search show human messages, assistant messages and activity entries.
 
-Search this conversation opens from its menu or Command-Option-F. Use the existing
-FTS index, scoped to the active conversation, with 20 snippets per page, next/previous
+Search This Chat… opens from the chat menu or Option-Command-F. Use the existing
+FTS index, scoped to the open chat, with 20 snippets per page, next/previous
 navigation, a bounded cursor trail and an explicit empty-result scope. Show role and
 local date; opening a result returns to its exact original after saving the draft.
-A query or conversation change cancels and refuses stale results. Closing also
+A query or chat change cancels and refuses stale results. Closing also
 refuses late publication. Read-lock acquisition and SQL have a three-second budget.
 Failed page reads preserve the preceding results and retry the requested page.
 This is navigation over original messages, never new evidence or action authority.

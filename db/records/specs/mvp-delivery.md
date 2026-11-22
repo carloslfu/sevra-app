@@ -46,7 +46,7 @@ Start by running this journey and listing observed failures before adding featur
 
 ## Required experience
 
-- Keep the current two panes: one main conversation and composer, plus workbook
+- Keep the current two panes: the open chat and composer, plus workbook
   spaces with Home and saved results. Keep the existing Sevra identity and native
   appearance. Make the next useful action obvious; no layout redesign is required.
 - Text completes the whole journey. Retain existing voice input and honest on-device

@@ -13,7 +13,7 @@ import SevraCore
   private var scheduled: Task<Void, Never>?
   private var preserveOther = false
   private var removeSaved: String?
-  public private(set) var conversation = "main"
+  public private(set) var conversation = ""
   public private(set) var state = ConversationViewState()
   public private(set) var loading = false
   public private(set) var ready = false
@@ -31,11 +31,23 @@ import SevraCore
     Self.sessions.append(.init(value: self))
   }
 
-  public func open(_ workbook: Workbook, conversation: String = "main") async -> Bool {
+  /// Opens the remembered chat, or the most recently active one when it was deleted or this
+  /// file never had it.
+  public func open(_ workbook: Workbook, conversation remembered: String?) async -> Bool {
     guard !loading, await flush() else { return false }
-    if await load(conversation, from: workbook) { return true }
-    // The remembered conversation can be gone from this file. The workbook still opens.
-    return conversation != "main" ? await load("main", from: workbook) : false
+    let chat: String
+    do {
+      chat = try await Task.detached(priority: .userInitiated) {
+        let chats = try workbook.chats()
+        if let remembered, chats.contains(where: { $0.id == remembered }) { return remembered }
+        return try chats.first?.id ?? workbook.createChat()
+      }.value
+    } catch {
+      failure = error.localizedDescription
+      revealFailure?()
+      return false
+    }
+    return await load(chat, from: workbook)
   }
   public func select(_ conversation: String) async -> Bool {
     guard !loading, await flush() else { return false }
@@ -162,6 +174,16 @@ import SevraCore
       if !(await session.flush()) { success = false }
     }
     return success
+  }
+  /// The open chat was deleted elsewhere: what this window had not saved has nowhere to go.
+  public func abandonUnsaved() {
+    scheduled?.cancel()
+    scheduled = nil
+    baseline = state
+    preserveOther = false
+    removeSaved = nil
+    conflict = false
+    failure = nil
   }
   /// After the window saved and closed: the workbook is let go and nothing more is written.
   public func close() {

@@ -108,8 +108,7 @@ source inspection, actual interactions and reused evidence; it does not claim
 every possible UI state or all external paste recipients are qualified.
 
 The screenshot-led alignment follow-up centers welcome content with scroll fallback
-and a five-item expandable recent list. Shared pane headers stay aligned in main
-conversation and threads; compact actions retain names/help. Search filters wrap
+and a five-item expandable recent list. Shared pane headers stay aligned; compact actions retain names/help. Search filters wrap
 with aligned controls, field focus is visible, and wrapped labels align leading.
 Representative large/compact and light/dark native observations are recorded in
 the review. They supplement the earlier passes without claiming every hover,
@@ -138,7 +137,8 @@ The existing review records installed observations and exact verification limits
   state; lineage identifies exact inputs and transformations without double counting.
 - Deterministic calculations, immutable versions and captured changes preserve
   explainable results. Native Home/spaces are composable views over workbook data.
-  One main conversation can have chapters and tangents. Consequential changes use
+  Each workbook has a plain list of chats, each with only its own messages.
+  Consequential changes use
   explicit review; saved definitions and portable copies confer no device authority.
 - Retrieval combines bounded filename/FTS/structured inspection with source reads
   and citations. Coverage and missing evidence remain visible. A model answer is

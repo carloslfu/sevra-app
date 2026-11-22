@@ -251,7 +251,7 @@ public actor ProductAI {
   }
 
   public func run(
-    _ prompt: String, workbook: Workbook, conversation: String = "main", context: String = "",
+    _ prompt: String, workbook: Workbook, conversation: String, context: String = "",
     modelDirectory: URL = ProductAI.defaultDirectory, cancellation: Cancellation = .init(),
     progress: @escaping @Sendable (String) -> Void = { _ in },
     answerPreview: @escaping @Sendable (AnswerPreview) -> Void = { _ in },

@@ -106,7 +106,7 @@ public enum DocumentCopyChoices {
 
 extension Workbook {
   public func documentCopyChoice(
-    _ id: String, runID: String, conversation: String = "main", cancellation: Cancellation = .init()
+    _ id: String, runID: String, conversation: String, cancellation: Cancellation = .init()
   ) throws -> DocumentCopy {
     try require(id.utf8.count <= 128, "document_copy_scope", "Choose a published source passage.")
     let fields = id.split(separator: ":", omittingEmptySubsequences: false).map(String.init)

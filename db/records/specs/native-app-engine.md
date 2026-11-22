@@ -45,10 +45,10 @@ Excel is a product hypothesis. We must earn it through completed jobs, flexibili
 correctness, understandable maintenance and measured effort, rather than token
 speed or the number of generated screens.
 
-E02. Keep the current native shell: main conversation and voice/text input on the
+E02. Keep the current native shell: the open chat and voice/text input on the
 left, spaces on the right, searchable space picker, temporary file previews and
-state-preserving Back. The main conversation evolves; threads explore tangents
-without forking business data. Users can describe both work and changes to their
+state-preserving Back. A workbook keeps a plain list of chats; a new chat never
+forks business data. Users can describe both work and changes to their
 application in ordinary language. Optional native controls, keyboard operation
 and direct editing make precise work possible without waiting for inference.
 Do not turn Home into a second chatbot, an obligatory dashboard setup wizard or

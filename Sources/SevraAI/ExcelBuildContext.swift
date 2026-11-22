@@ -138,7 +138,7 @@ package enum ExcelBuildContext {
         role: message.role, content: repairContent[index] ?? message.content,
         toolCalls: message.toolCalls,
         toolCallId: message.toolCallId, toolName: message.toolName,
-        itemReferences: message.itemReferences, conversationActions: message.conversationActions,
+        itemReferences: message.itemReferences,
         documentCopyIDs: message.documentCopyIDs, historyReferences: message.historyReferences)
       clean.nativeAppAuthoring = message.nativeAppAuthoring
       clean.reviewContract = message.reviewContract

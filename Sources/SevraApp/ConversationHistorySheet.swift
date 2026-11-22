@@ -12,13 +12,13 @@ struct ConversationHistorySheet: View {
   var body: some View {
     VStack(alignment: .leading, spacing: 14) {
       HStack {
-        Text("Search " + state.conversationTitle).readingFont(.title3, weight: .medium)
+        Text("Search " + state.chatTitle).readingFont(.title3, weight: .medium)
           .accessibilityAddTraits(.isHeader).lineLimit(2)
         Spacer()
         Button("Done") { dismiss() }.keyboardShortcut(.cancelAction)
       }
       TextField("Search messages…", text: $query).textFieldStyle(.roundedBorder)
-        .focused($focused).accessibilityLabel("Search conversation messages")
+        .focused($focused).accessibilityLabel("Search this chat's messages")
       if search.loading { ProgressView("Searching messages…").controlSize(.small) }
       if let failure = search.failure {
         Text(failure).foregroundStyle(.red).textSelection(.enabled)
@@ -35,8 +35,8 @@ struct ConversationHistorySheet: View {
           if search.hits.isEmpty && !search.loading && search.failure == nil {
             Text(
               query.isEmpty
-                ? "Find an earlier question, answer or activity in this conversation."
-                : "No messages match this search in this conversation."
+                ? "Find an earlier question, answer or activity in this chat."
+                : "No messages match this search in this chat."
             ).foregroundStyle(.secondary)
           }
           ForEach(search.hits, id: \.text) { hit in

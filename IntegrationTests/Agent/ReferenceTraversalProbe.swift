@@ -38,8 +38,8 @@ func runReferenceTraversalProbe(
       } else {
         fixture = nil
         book = try Workbook.create(at: root.appendingPathComponent(name + ".sevra"), title: name)
-        let parent = try book.addMessage("Shared starting context", role: "user")
-        let sibling = try book.tangent(title: "Private discussion", parentMessage: parent)
+        _ = try book.addMessage("Shared starting context", role: "user")
+        let sibling = try book.createChat()
         let message = try book.addMessage(
           "The private label is SECRET-ORCHID-5831.", role: "user", conversation: sibling)
         let source = try book.addItem(
@@ -130,7 +130,7 @@ func runReferenceTraversalProbe(
       }
       row["seconds"] = .number(Date().timeIntervalSince(started))
       row["responses"] = .array(await model.responses)
-      row["history"] = try encoded(book.historySlice(conversation: "main", limit: 500).messages)
+      row["history"] = try encoded(book.historySlice(conversation: book.startChat, limit: 500).messages)
       observations.append(.object(row))
       try Data(Value.array(observations).json().utf8).write(
         to: root.appendingPathComponent("cases.json"), options: .atomic)

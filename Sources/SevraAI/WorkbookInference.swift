@@ -20,21 +20,19 @@ package enum InferenceToolScope: String, CaseIterable, Sendable {
     nativeActionReview, excelPlan,
     excelBuild, excelCalculation, excelInterface, workflowAnswer,
     answer, conversationAnswer,
-    boundedAnswer, boundedConversationAnswer,
-    /// A continued thread that may change the workbook.
-    change
+    boundedAnswer, boundedConversationAnswer
 
   /// A scope in which the request may change the workbook.
   package var changes: Bool {
     switch self {
-    case .all, .change: return true
+    case .all: return true
     default: return false
     }
   }
 
   package var workspaceOperations: [ChatOperations.Operation] {
     switch self {
-    case .all, .change: return ChatOperations.operations
+    case .all: return ChatOperations.operations
     case .conversationAnswer, .boundedConversationAnswer:
       return ChatOperations.operations.filter {
         $0.readOnly
@@ -53,8 +51,7 @@ package enum InferenceToolScope: String, CaseIterable, Sendable {
     if tool == "request_input" {
       guard conversationInput else { return false }
       switch self {
-      case .all, .finish, .answer, .boundedAnswer, .conversationAnswer, .boundedConversationAnswer,
-        .change:
+      case .all, .finish, .answer, .boundedAnswer, .conversationAnswer, .boundedConversationAnswer:
         return true
       default:
         return false
@@ -103,7 +100,6 @@ package enum InferenceToolScope: String, CaseIterable, Sendable {
       return Self.answer.allows(tool) && !["search", "history_search"].contains(tool)
     case .boundedConversationAnswer:
       return Self.boundedAnswer.allows(tool) || tool == "workspace_action"
-    case .change: return Self.all.allows(tool)
     }
   }
 }
@@ -151,12 +147,10 @@ package struct InferenceMessage: Encodable, Sendable {
   package var historyReferences: [String]?
   /// Exact original passages supplied by a read or host continuation projection.
   package let documentCopyIDs: [String]
-  /// Host capabilities for this live conversation, never parsed from content.
-  package let conversationActions: [String]?
   package init(
     role: String, content: String, toolCalls: [InferenceCall] = [],
     toolCallId: String? = nil, toolName: String? = nil, reasoning: String = "",
-    itemReferences: [String] = [], conversationActions: [String]? = nil,
+    itemReferences: [String] = [],
     documentCopyIDs: [String] = [], historyReferences: [String]? = nil
   ) {
     self.role = role
@@ -168,7 +162,6 @@ package struct InferenceMessage: Encodable, Sendable {
     self.itemReferences = itemReferences
     self.historyReferences = historyReferences
     self.documentCopyIDs = documentCopyIDs
-    self.conversationActions = conversationActions
   }
 }
 

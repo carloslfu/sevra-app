@@ -94,7 +94,7 @@ func runDocumentCompositionProbe(
     }
     row["seconds"] = .number(Date().timeIntervalSince(started))
     row["responses"] = .array(await model.responses)
-    row["history"] = try encoded(book.historySlice(conversation: "main", limit: 500).messages)
+    row["history"] = try encoded(book.historySlice(conversation: book.startChat, limit: 500).messages)
     observations.append(.object(row))
     try Data(Value.array(observations).json().utf8).write(
       to: root.appendingPathComponent("cases.json"), options: .atomic)

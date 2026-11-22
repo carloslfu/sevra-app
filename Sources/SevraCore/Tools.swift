@@ -11,7 +11,6 @@ public struct WorkbookTools {
   public let requestSourceID: String?
   public let conversation: String
   public let readOnly: Bool
-  public let conversationTitle: String?
   public let excelConversion: ExcelConversionBuild?
   static let guides: [String: String] = [
     "rule": """
@@ -30,11 +29,6 @@ public struct WorkbookTools {
       4. Tell the user the movements wait for review.
       """,
   ]
-  public static let conversationTools: [String: String] = [
-    "start_thread": "start_thread", "start_thread_and_continue": "start_thread_and_continue",
-    "rename_current_thread": "rename_thread",
-    "return_to_main": "return_to_main", "review_thread_summary": "review_summary",
-  ]
   public static let readOnlyTools: Set<String> = [
     "history_search", "history_read", "tool_result", "search", "count_records", "archive_members",
     "read", "lineage", "datasets", "rows", "calculate", "balance", "spaces",
@@ -46,8 +40,8 @@ public struct WorkbookTools {
   ]
   public init(
     _ workbook: Workbook, runID: String = identifier(), cancellation: Cancellation = .init(),
-    requestSourceID: String? = nil, conversation: String = "main", readOnly: Bool = false,
-    conversationTitle: String? = nil, excelConversion: ExcelConversionBuild? = nil
+    requestSourceID: String? = nil, conversation: String, readOnly: Bool = false,
+    excelConversion: ExcelConversionBuild? = nil
   ) {
     self.workbook = workbook
     self.runID = runID
@@ -55,10 +49,15 @@ public struct WorkbookTools {
     self.requestSourceID = requestSourceID
     self.conversation = conversation
     self.readOnly = readOnly
-    self.conversationTitle = conversationTitle
     self.excelConversion = excelConversion
   }
   public func operationToken(_ tool: String, _ arguments: Value) throws -> String {
+    try Self.operationToken(runID: runID, tool, arguments)
+  }
+  /// A call's identity within its run, the same for a retry with the same arguments.
+  public static func operationToken(runID: String, _ tool: String, _ arguments: Value) throws
+    -> String
+  {
     runID + "-"
       + SHA256.hash(data: Data((tool + (try arguments.json())).utf8))
       .prefix(12).map { String(format: "%02x", $0) }.joined()
@@ -147,31 +146,6 @@ public struct WorkbookTools {
     case "workspace_actions": return try ChatOperations.catalog(a["domain"].string)
     case "workspace_action":
       return try executeChatOperation(string("action"), arguments: a["arguments"])
-    case "conversation_action", "start_thread", "start_thread_and_continue",
-      "rename_current_thread", "return_to_main",
-      "review_thread_summary":
-      guard let request = try workbook.runRequestMessage(runID), let conversationTitle else {
-        throw SevraError(
-          "conversation", "Conversation actions require a live scoped agent request.")
-      }
-      var arguments = a
-      if let action = Self.conversationTools[tool] {
-        try require(a.object["action"] == nil, "arguments", "The tool name selects its action.")
-        var fields = a.object
-        fields["action"] = .string(action)
-        arguments = .object(fields)
-      }
-      if arguments["action"].text == "start_thread_and_continue" {
-        try require(
-          tool == "start_thread_and_continue", "handoff_scope", "Use the scoped continuation tool.")
-        try workbook.validateRequestHandoff(
-          runID: runID, conversation: conversation, cancellation: cancellation)
-      }
-      return try encoded(
-        workbook.conversationAction(
-          arguments, conversation: conversation,
-          requestMessage: request, expectedTitle: conversationTitle, token: token,
-          cancellation: cancellation))
     case "history_search":
       return try workbook.searchHistory(
         string("query"), conversation: conversation,

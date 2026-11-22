@@ -17,9 +17,7 @@ public struct WorkspaceSnapshot: Sendable {
   public let proposalReviews: [String: ProposalReviewState]
   public let hasEarlierMessages: Bool
   public let hasLaterMessages: Bool
-  public let conversations: [Value]
-  public let chapters: [Value]
-  public let bookmarks: [Value]
+  public let chats: [Chat]
   public let pendingExtractions: [Value]
   public let intakeStatus: [Value]
   public let homeDocuments: [ItemSummary]
@@ -107,8 +105,7 @@ extension Workbook {
               messages: history.messages, conversation: conversation, cancellation: control),
             hasEarlierMessages: history.hasEarlier,
             hasLaterMessages: history.hasLater,
-            conversations: conversations(), chapters: chapters(),
-            bookmarks: chapters(bookmarks: true),
+            chats: readChats(),
             pendingExtractions: pendingExtractions(), intakeStatus: intakeStatus(),
             homeDocuments: homeRecentDocuments(), pendingWorkflows: homeWorkflowAttention(),
             chatApproval: pendingChatApproval(conversation: conversation),

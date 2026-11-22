@@ -58,7 +58,7 @@ func runReasoningComparison(
       "Keep the October forecast as an estimate. Do not accept it without my explicit instruction.",
       role: "user")
     let run = try forecastBook.startAgentRun(
-      conversation: "main", model: "fixture", requestMessageID: user)
+      conversation: forecastBook.startChat, model: "fixture", requestMessageID: user)
     let receipt = try forecastBook.addMessage(
       try Value.object([
         "tool": .string("propose_record"), "arguments": .object([:]), "result": try encoded(draft),

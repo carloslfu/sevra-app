@@ -166,7 +166,7 @@ the search leaves that filter out and its result says so in filterNotice.
 Business continuation pages also stay in that index. Every result says whether
 conversation was searched. Its separate cursor continues through history_search
 with the same query, conversation and active-request ceiling. Current-request and
-later messages, sibling tangents and unselected parent history are excluded.
+later messages and every other chat are excluded.
 Business evidence remains workbook-wide. The two indexes share one read snapshot.
 
 Both searches remain bounded: at most 12 business hits and 8 message candidates

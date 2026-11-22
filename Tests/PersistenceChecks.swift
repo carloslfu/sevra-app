@@ -48,7 +48,7 @@ func checkPersistence(at root: URL) {
         .init(startScalar: 0, scalarCount: 7, target: .init(mode: .pinned, identity: original.id))
       ], expectedSnapshotID: nil)
     let request = try book.startAgentRequest(
-      "Create report", conversation: "main", model: "saved-model")
+      "Create report", conversation: book.startChat, model: "saved-model")
     let call = try book.prepareToolCall(
       runID: request.runID, callID: "read", tool: "read",
       arguments: .object(["id": .string(document.id)]))
@@ -65,9 +65,7 @@ func checkPersistence(at root: URL) {
     _ = try book.saveContextCheckpoint(
       book.historySlice(), summary: "Report saved from evidence", model: "saved-model",
       template: "fixture-v1", evidenceIDs: [document.id], runID: request.runID)
-    try book.chapter(title: "Report", message: request.messageID)
-    try book.chapter(title: "Keep", message: request.messageID, bookmark: true)
-    let tangent = try book.tangent(title: "Follow-up", parentMessage: request.messageID)
+    let tangent = try book.createChat()
     _ = try book.addMessage("Unsent elsewhere", role: "assistant", conversation: tangent)
     let pending = try book.prepareToolCall(
       runID: request.runID, callID: "pending", tool: "propose_record",
@@ -91,7 +89,7 @@ func checkPersistence(at root: URL) {
       expectedVersion: 1)
     _ = try book.updateSpaceNavigation([.pin(space, true), .visit(space)])
     _ = try book.saveConversationViewState(
-      "main", draft: "Keep my draft", reading: .init(message: request.messageID, fraction: 0.25),
+      book.startChat, draft: "Keep my draft", reading: .init(message: request.messageID, fraction: 0.25),
       expectedDraft: "")
     let csv = root.appendingPathComponent("history-intake.csv")
     try Data("sku,qty\n0021,3\n".utf8).write(to: csv)
@@ -121,7 +119,7 @@ func checkPersistence(at root: URL) {
         "text"
       ].text.utf8.elementsEqual(text.utf8))
     try expect(try restored.intakeJob(ready.id).datasetIDs == ready.datasetIDs)
-    try expect(try restored.conversationViewState("main").draft == "Keep my draft")
+    try expect(try restored.conversationViewState(restored.startChat).draft == "Keep my draft")
     try expect(try restored.readSpaceNavigation().pinned == [space])
     try expect(try restored.toolCall(pending)["state"].text == "prepared")
     try expect(try restored.toolCall(ambiguous)["state"].text == "prepared")
@@ -190,7 +188,7 @@ func checkPersistence(at root: URL) {
       _ = try book.accept(guarded.id, actor: .ai("fixture", model: "model-hash", policy: rule.id))
     }
     let run = try book.startAgentRequest(
-      "Draft a forecast", conversation: "main", model: "fixture-local-model")
+      "Draft a forecast", conversation: book.startChat, model: "fixture-local-model")
     _ = try WorkbookTools(book, runID: run.runID, requestSourceID: source.id).execute(
       "propose_record",
       .object([
@@ -335,21 +333,24 @@ func checkPersistence(at root: URL) {
     let file = root.appendingPathComponent("fault.txt")
     try Data("Retain complete original".utf8).write(to: file)
     try refuses { _ = try book.importFile(file, token: "retry-import") }
-    try expect(try book.counts()["sources"].int == 0 && book.revision() == 0)
-    try expect(try book.committedHistory().isEmpty)
+    // A new workbook's one change is its first chat.
+    try expect(try book.counts()["sources"].int == 0 && book.revision() == 1)
+    try expect(try book.committedHistory().count == 1)
     try expect(try book.db.scalar("SELECT count(*) FROM assets").int == 0)
     _ = try faultSQL(book, "DROP TRIGGER fault_commit;")
     let imported = try book.importFile(file, token: "retry-import")
     try expect(try book.assetURL(imported.assetID!, verify: true).lastPathComponent.contains("."))
     try expect(try book.importFile(file, token: "retry-import").id == imported.id)
-    try expect(try book.committedHistory().count == 1)
+    try expect(try book.committedHistory().count == 2)
     let target = try Database(root.appendingPathComponent("Apply.sqlite"), create: true)
     try target.script(Schema.sql)
     try target.execute("PRAGMA trusted_schema=ON")
     try target.execute("INSERT INTO meta VALUES('workbook-id',?)", [.string(book.id)])
-    let entry = try book.db.execute("SELECT payload,hash FROM committed_changes")[0]
+    let entries = try book.db.execute("SELECT payload,hash FROM committed_changes ORDER BY rowid")
+    let (chat, entry) = (entries[0], entries[1])
     // Application uses saved rows, with all storage triggers disabled.
     try expect(sevra_enable_triggers(target.handle, 0) == SQLITE_OK)
+    try target.applyCommitted(chat["payload"]!.text, hash: chat["hash"]!.text)
     try target.applyCommitted(entry["payload"]!.text, hash: entry["hash"]!.text)
     try target.applyCommitted(entry["payload"]!.text, hash: entry["hash"]!.text)
     try expect(try target.scalar("SELECT count(*) FROM assets").int == 1)
@@ -370,6 +371,7 @@ func checkPersistence(at root: URL) {
     try missing.execute("PRAGMA trusted_schema=ON")
     try missing.execute("INSERT INTO meta VALUES('workbook-id',?)", [.string(book.id)])
     try expect(sevra_enable_triggers(missing.handle, 0) == SQLITE_OK)
+    try missing.applyCommitted(chat["payload"]!.text, hash: chat["hash"]!.text)
     let incomplete = CommittedChange(
       version: changed.version, storageVersion: changed.storageVersion, id: changed.id,
       workbookID: changed.workbookID, previousID: changed.previousID,
@@ -380,7 +382,7 @@ func checkPersistence(at root: URL) {
       try missing.applyCommitted(incompletePayload, hash: ChangeFormat.hash(incompletePayload))
     }
     try expect(try missing.scalar("SELECT count(*) FROM items").int == 0)
-    try expect(try missing.scalar("SELECT count(*) FROM committed_changes").int == 0)
+    try expect(try missing.scalar("SELECT count(*) FROM committed_changes").int == 1)
   }
   check(
     "corrupt, missing, unsupported and out-of-band history refuses without publishing a reconstruction"

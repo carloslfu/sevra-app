@@ -3,7 +3,7 @@ type: spec
 meta-type: conclusion
 id: 01m5x2pp178p3a4ay7hbfx7wdg
 created: 2026-10-26T21:43:43.399273+00:00
-updated: 2026-11-19T16:00:23+00:00
+updated: 2026-11-21T12:00:00+00:00
 summary: Automatic compaction, preserved conversation history, authoritative continuation state and measured larger-context qualification.
 title: Continuing conversation and context management
 status: reviewed
@@ -24,12 +24,12 @@ need not become business evidence. Sync implementation remains out of scope.
 
 ## Product contract
 
-C01. A workbook has one continuing main conversation with chapters and scoped
-tangents. Users do not need to count tokens, select a context window, periodically
-start new chats or manually summarize their work. Compaction changes the model's
-working context, not the saved conversation. All original messages, complete
+C01. A workbook holds a list of chats. Each chat is one continuing conversation.
+Users do not need to count tokens, select a context window, start new chats to
+escape a full context or manually summarize their work. Compaction changes the
+model's working context, not the saved chat. All original messages, complete
 executed tool calls/results and terminal outcomes remain inspectable and portable.
-This extends P06–P09; it does not introduce another conversation type.
+This extends P06–P09; automatic compaction runs per chat.
 
 C02. Perform context maintenance automatically before exhaustion. Ordinary
 compaction is quiet. If it causes a noticeable pause, show a brief progress state
@@ -93,7 +93,7 @@ draft or withdrawn state. Actions that already succeeded cannot be repeated mere
 because the summary calls them pending. Historical instructions and retrieved
 source text remain untrusted for present authority.
 
-## Retrieval, optional chapters and Threads
+## Retrieval and chat scope
 
 C10. Provide bounded, searchable conversation history and exact message/tool
 receipt retrieval in addition to the existing document/record search. The agent
@@ -108,11 +108,9 @@ not make the message a business Record or grant permission. Track
 what evidence is present in the current working context; an ID remembered in a
 summary alone does not count as newly inspected evidence. Disclose retrieval gaps.
 
-C11. Checkpoints are scoped to one conversation. Chapter boundaries are useful
-navigation hints, not new authority or a reason to lose cross-chapter constraints.
-A thread inherits only its explicit parent context and saved references; later
-parent changes do not silently rewrite that inherited history. Bringing a result
-back to main preserves origin and scope. Rebuild current business status from the
+C11. Checkpoints, history search and history_read are scoped to one chat. A chat
+never inherits another chat's messages, excerpts or summaries. Rebuild current
+business status from the
 same workbook, while keeping scenario and actual/estimate distinctions. No other
 workbook's private context can enter a checkpoint or retrieval result.
 
@@ -120,7 +118,7 @@ workbook's private context can enter a checkpoint or retrieval result.
 
 C12. Test repeated compactions over a long multi-step job, not just one synthetic
 summary. Check first and latest instructions, exact values/units/IDs, tool-result
-pairing, source version recovery, many chapters, tangents and return to main.
+pairing, source version recovery, and separate chats over the same workbook.
 Change a draft to accepted or withdrawn during maintenance; verify reconstructed
 status and no duplicate inventory effects. Include hostile instructions in old
 history/documents, failed and cancelled requests, restart after checkpoint publish
@@ -160,7 +158,7 @@ T starts at 2,048; a scope that can supply the native SDK, or active authoring, 
 Native profiling and CPU/real-model observations are recorded in [[records/operations/inference-context-execution]]; these do not qualify new product capacities or a general hardware envelope.
 
 After completed tool groups, maintenance compacts only eligible history. Before
-each generation, another measurement catches carried handoff proof or recovery
+each generation, another measurement catches recovery
 text added after maintenance. If that live group reaches the threshold, fail
 explicitly rather than drop it or dispatch beyond the policy. Required policy,
 request and host-state floors cannot silently raise the threshold. Refusals state
@@ -263,7 +261,7 @@ These results do not erase earlier failed continuations or qualify every narrati
 ## Historical context without automatic compaction
 When automatic compaction is off, the recent-context path presents up to eight prior conversational entries as explicitly historical data, rather than replaying earlier requests as active user turns. Preserve original message IDs, authorship, states, bounded text and truncation flags. Text projection is limited to 1,600 characters per entry; full originals remain available through history_read and keep their original bytes.
 
-Parent-conversation excerpts remain separate. Pending-review messages carry current proposal version, acceptance, meaning and dataset identity from the workbook. Unresolved-call notices remain host information, not new user requests or authority to replay an action. The actual current request follows this context. At the start of the run, historical user messages do not become live user-role messages. Existing validation feedback later in the run remains host-controlled.
+Pending-review messages carry current proposal version, acceptance, meaning and dataset identity from the workbook. Unresolved-call notices remain host information, not new user requests or authority to replay an action. The actual current request follows this context. At the start of the run, historical user messages do not become live user-role messages. Existing validation feedback later in the run remains host-controlled.
 
 This projection aligns the authority boundary with native context maintenance without enabling summary generation, changing stored history or granting citation eligibility. Actual-model qualification must include a completed task followed by a different task, historical recall, review-state changes and cancellation/retry.
 
@@ -273,11 +271,6 @@ Requests linked to cancelled, failed or interrupted runs enter automatic context
 Apply the same reference-only projection when preparing summary inputs and presenting existing notes that cite a stopped request. This changes model context, not durable conversation evidence, and does not grant citation eligibility. It does not enable automatic compaction.
 
 Keep lifecycle recovery and following a new request as separate checks. A clean release is insufficient when the next answer addresses a different task. Native bounded512 passed that sequence. It does not establish universal request relevance. The request-admission follow-up now qualifies crash-left running requests and lease refusal before linkage. Admission atomically preserves the message/run relationship; recovery precedes context projection and a current-message boundary excludes later submissions. An actual packaged-native CLI kill, forced lease refusal and Ready follow-up passed. This does not qualify every crash boundary.
-
-## Inherited parent evidence
-A tangent may read an exact original message from the same fixed parent excerpt it already inherits. The host admits only those explicit message IDs through history_read, records their owning conversation and links citations back to that original conversation. History search, checkpoint scope and saved tool-result access remain confined to the tangent. Earlier parent messages outside the excerpt, later parent messages, sibling conversations and transitive ancestors remain inaccessible. Merely seeing an inherited excerpt does not grant a citation; history_read must expose the eligible original first. Current/later request messages still cannot be cited as earlier evidence. Bringing an exchange back to main creates a preserved copy with the original conversation link.
-
-This fixes an inconsistency where the context showed inherited messages but exact retrieval refused them. Deterministic direct/nested-tangent checks reproduce the old refusal and cover allowed reads, denied scope, cutoff rules, citation routing and unchanged business records. Native workflow qualification is recorded in [[records/operations/implementation]].
 
 ## Checkpoint publication durability harness
 The core has a package-only publication observer for an owned-process crash
@@ -325,7 +318,7 @@ Retain both workbooks, original fixture archive, exact request, per-response con
 metrics, summarization boundaries, complete history, runs, failures and unload
 results. The wrapper observes real inference only. Token occupancy comes from the
 native metrics; configured capacity is not occupancy. Cancellation/process death,
-concurrent acceptance changes, tangents, hostile content and sustained memory
+concurrent acceptance changes, separate chats, hostile content and sustained memory
 remain separate C12/C13 cases. Existing passing continuity/checkpoint checks do not
 waive this new single-job coverage requirement.
 
@@ -415,28 +408,18 @@ Automatic compaction remains disabled. Retained inputs, traces, conditions,
 independent audits and reopen hashes are in
 integration/evidence/2026-10-27-active-context-maintained-repair.json.gz.
 
-## Conversation and Threads terminology
+## Chats terminology
 
-The main history is called Conversation. Optional discussions are Threads, created
-with Start a thread and revisited by descriptive title. Back to conversation returns
-to main. Chapters remain optional message-boundary headings. Older tangent IDs,
-fixtures and API names remain compatible and retain their original scoped-context
-semantics; terminology alone does not widen access.
+A workbook holds a list of chats, as in ChatGPT. Each chat is one continuing
+conversation with only its own messages. Nothing is carried between chats. The
+person starts, switches, renames and deletes chats; the model cannot. On November
+21, 2026 threads, chapters, bookmarks, shared summaries and the main conversation
+were removed; see [[records/specs/product]] P07 and [[records/plans/simple-chats]].
 
-A composer message is a command only in an explicit form. `thread: Title`,
-`tangent: Title` and Start a thread called Title open a thread, while Thread count
-for the Acme bolts? is an ordinary message. `chapter: Title` adds a chapter. `accept`
-and `undo` act only on one exact UUID. A message that is one URL and nothing else
-is captured as a source, so a link followed by prose stays a message. A thread title
-stays on one line and keeps its joiners, so emoji sequences and Persian words survive.
-
-Share summary with conversation preserves the exact source conversation/message
-link and user-selected text. The summary is a historical user contribution, not a
-new business acceptance or live request to the model. Existing history envelopes
-continue to distinguish saved information from current instructions. The original
-exchange remains in its thread; sharing does not make sibling or source history
-implicitly searchable from main. The link explicitly opens that original scope.
-See [[records/specs/product]] and [[sources/notes/2026/10/conversation-threads-refinement]].
+A composer message is a command only in an explicit form. `accept` and `undo` act
+only on one exact UUID. A message that is one URL and nothing else is captured as a
+source, so a link followed by prose stays a message. A chat title stays on one line
+and keeps its joiners, so emoji sequences and Persian words survive.
 
 ## Owner-selected 75% trigger, October 27
 The owner decision relayed from the side conversation selects 75% of the actual
@@ -613,9 +596,8 @@ source and nothing was relabeled:
   Finishing with an unread stopped request is now refused once, and that refusal says to read it if
   the current request asks to continue it and to finish again if not. An unrelated request after a
   stop therefore costs one more step, and nothing resumes on its own.
-- A later follow-up took "continue" for a new thread and left the work undone. A thread change with
-  an unread stopped request gets the same single reminder, and a request that really asks for a
-  thread gets one by repeating the call.
+- A later follow-up took "continue" for a new thread and left the work undone. That reminder went
+  away with the thread tools on November 21, 2026; the model can no longer start a chat.
 - Asked to continue after a step limit, a request saved its memo a second time, so reading a
   stopped request now also makes that request's draft titles refused as `draft_duplicate`.
 - A note in its message's exact words is marked verbatim by the host, so nothing has to fetch it

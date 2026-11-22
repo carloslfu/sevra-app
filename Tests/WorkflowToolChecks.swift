@@ -9,10 +9,10 @@ func checkWorkflowTools(at root: URL) {
       at: root.appendingPathComponent("WorkflowTools-" + name + ".sevra"), title: name)
     let prompt = "Save a manual count workflow and queue it."
     let request = try book.startAgentRequest(
-      prompt, conversation: "main", model: "synthetic workflow tools")
+      prompt, conversation: book.startChat, model: "synthetic workflow tools")
     let source = try book.addItem(
       category: "source", kind: "request", title: "Current request", text: prompt,
-      data: .object(["conversationID": .string("main"), "messageID": .string(request.messageID)]))
+      data: .object(["conversationID": .string(book.startChat), "messageID": .string(request.messageID)]))
     let pure = try book.saveApplicationDefinition(
       logicalID: identifier(),
       content: .object([

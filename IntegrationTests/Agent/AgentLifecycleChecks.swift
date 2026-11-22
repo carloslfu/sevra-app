@@ -283,14 +283,14 @@ func checkAgentLifecycle() async throws {
     }
     if cancel { try expectEqual(assistant[0].body.contains("No changes requested"), false) }
     if cancel || fail {
-      let history = try WorkbookAgent.conversationHistory(book, conversation: "main")
+      let history = try WorkbookAgent.conversationHistory(book, conversation: book.startChat)
       try expectEqual(history.count, 1)
       try expectEqual(history.allSatisfy { $0.role == "assistant" }, true)
       try expectEqual(history.last!.content.contains("status " + expected), true)
       try expectEqual(history.last!.content.contains("It is not pending"), true)
       try expectEqual(history.last!.content.contains("Just acknowledge. Make no changes."), false)
       try expectEqual(
-        try book.historyMessage(request.id, conversation: "main").body,
+        try book.historyMessage(request.id, conversation: book.startChat).body,
         "Just acknowledge. Make no changes.")
       try expectEqual(try book.requestRunStatus(request.id), expected)
     }
@@ -310,7 +310,7 @@ func checkAgentLifecycle() async throws {
       "result": try encoded(proposal),
     ]).json(), role: "tool")
   _ = try reviewBook.addMessage("Ready to review", role: "assistant", state: "needs_review")
-  let draftHistory = try WorkbookAgent.conversationHistory(reviewBook, conversation: "main")
+  let draftHistory = try WorkbookAgent.conversationHistory(reviewBook, conversation: reviewBook.startChat)
   try expectEqual(draftHistory.count, 1)
   try expectEqual(draftHistory[0].role, "assistant")
   try expectEqual(draftHistory[0].content.contains("historical information only"), true)
@@ -330,12 +330,12 @@ func checkAgentLifecycle() async throws {
   try expectEqual(historicalRead["currentVersion"]["meaning"].text, "estimate")
   try expectEqual(
     WorkbookAgent.visibleEvidence(tool: "read", result: historicalRead).map(\.0), [proposal.id])
-  let acceptedHistory = try WorkbookAgent.conversationHistory(reviewBook, conversation: "main")
+  let acceptedHistory = try WorkbookAgent.conversationHistory(reviewBook, conversation: reviewBook.startChat)
   try expectEqual(acceptedHistory.last!.content.contains("\"status\":\"accepted\""), true)
   try expectEqual(acceptedHistory.last!.content.contains("\"meaning\":\"estimate\""), true)
   try expectEqual(acceptedHistory.last!.content.contains(accepted.data["datasetID"].text), true)
   _ = try reviewBook.undoItem(accepted.id)
-  let withdrawnHistory = try WorkbookAgent.conversationHistory(reviewBook, conversation: "main")
+  let withdrawnHistory = try WorkbookAgent.conversationHistory(reviewBook, conversation: reviewBook.startChat)
   try expectEqual(withdrawnHistory.last!.content.contains("\"status\":\"rejected\""), true)
   for (incomplete, filtered) in [(false, false), (true, false), (false, true), (true, true)] {
     let missing = try Workbook.create(

@@ -700,7 +700,7 @@ import SwiftUI
     {
       ws.busy = true
       ws.status = "Reading synthetic evidence…"
-      var live = LiveRequestActivity(conversation: "main", started: Date(timeIntervalSinceNow: -12))
+      var live = LiveRequestActivity(conversation: ws.conversation, started: Date(timeIntervalSinceNow: -12))
       live.update(ws.status)
       if variant == "Streaming" {
         live.preview(

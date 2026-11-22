@@ -102,7 +102,6 @@ package struct NativePreparedRequest {
         citationIDs, toolScope: toolScope, thinking: reasoning.enabled,
         itemReferenceIDs: ItemReferenceCandidates.ids(in: messages),
         historyReferenceIDs: ItemReferenceCandidates.historyIDs(in: messages),
-        conversationActions: messages.first?.conversationActions,
         documentCopyIDs: DocumentCopyCandidates.ids(in: messages),
         nativeAppAuthoring: messages.first?.nativeAppAuthoring == true,
         reviewContract: messages.first?.reviewContract ?? .null,
@@ -117,7 +116,7 @@ package struct NativePreparedRequest {
     if interpretation == nil {
       promptPolicy = try NativeCitationPolicy.make(
         [], toolScope: toolScope, thinking: reasoning.enabled,
-        conversationActions: messages.first?.conversationActions, documentCopyIDs: nil,
+        documentCopyIDs: nil,
         nativeAppAuthoring: messages.first?.nativeAppAuthoring == true,
         reviewContract: messages.first?.reviewContract ?? .null,
         conversationInput: messages.first?.conversationInput == true,

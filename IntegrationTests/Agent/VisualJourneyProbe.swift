@@ -56,13 +56,13 @@ import SevraNativeAI
     try await ask(
       "In this chat, ask me whether to include shipping in the example margin. Put the choice in the chat. Wait for my answer before explaining the formula."
     )
-    guard let question = try book.pendingConversationInput(conversation: "main"),
+    guard let question = try book.pendingConversationInput(conversation: book.startChat),
       let answer = try book.submitConversationInput(
         question, response: .text("Yes, include shipping."))
     else { throw SevraError("live_visual", "No actionable question or accepted answer was saved.") }
     try await ask("", answer: answer)
     try require(
-      try book.pendingConversationInput(conversation: "main") == nil,
+      try book.pendingConversationInput(conversation: book.startChat) == nil,
       "live_visual", "The answered question did not close.")
   }
   await attempt("Exact captured sales chart") {
@@ -72,7 +72,7 @@ import SevraNativeAI
     let messages = try book.messages()
     var capture: VisualChartData?
     for message in messages.reversed() where message.role == "assistant" {
-      if let visual = try? book.conversationVisual(message.id, index: 0, conversation: "main"),
+      if let visual = try? book.conversationVisual(message.id, index: 0, conversation: book.startChat),
         let data = visual.chartData
       {
         capture = data

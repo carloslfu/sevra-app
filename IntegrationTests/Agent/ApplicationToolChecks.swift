@@ -261,7 +261,7 @@ func checkApplicationTools() async throws {
     "PASS document action preview identifies meaning and new prose; unreviewed direct preparation stays closed and routes to conversational form submission"
   )
   try expectEqual(InferenceToolScope.actionDirection.allows("prepare_action"), false)
-  try expectEqual(InferenceToolScope.change.allows("prepare_action"), true)
+  try expectEqual(InferenceToolScope.all.allows("prepare_action"), true)
   try expectEqual(InferenceToolScope.answer.allows("prepare_action"), false)
   let unusual = "a" + String(repeating: "\u{301}", count: 30_000) + "incoming"
   let clipped = ActionDirectionReview.excerpt([unusual], maximumBytes: 320)

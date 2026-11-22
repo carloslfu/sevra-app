@@ -2,7 +2,7 @@ import Foundation
 
 enum Schema {
   static let applicationID = 0x5356_5241
-  static let version = 32
+  static let version = 33
   /// One transaction, so a crash leaves no partial schema and a new workbook costs one flush.
   static let sql = """
     PRAGMA application_id=1398166081;
@@ -46,12 +46,12 @@ enum Schema {
     CREATE TABLE column_versions(id TEXT PRIMARY KEY,dataset_id TEXT NOT NULL REFERENCES datasets(id),version INTEGER NOT NULL CHECK(version>0),previous_id TEXT REFERENCES column_versions(id),title TEXT NOT NULL,columns TEXT NOT NULL,archived INTEGER NOT NULL CHECK(archived IN (0,1)),source_id TEXT NOT NULL REFERENCES items(id),created TEXT NOT NULL,UNIQUE(dataset_id,version));
     CREATE TABLE operations(id TEXT PRIMARY KEY,kind TEXT NOT NULL,request TEXT NOT NULL,result TEXT NOT NULL,created TEXT NOT NULL,revision INTEGER NOT NULL);
     CREATE TABLE agent_runs(id TEXT PRIMARY KEY,conversation_id TEXT NOT NULL,status TEXT NOT NULL,model TEXT NOT NULL,steps INTEGER NOT NULL,metrics TEXT NOT NULL,created TEXT NOT NULL,updated TEXT NOT NULL);
-    CREATE TABLE conversations(id TEXT PRIMARY KEY,title TEXT NOT NULL,parent_message TEXT);
-    INSERT INTO conversations VALUES('main','Main conversation',NULL);
+    CREATE TABLE conversations(id TEXT PRIMARY KEY,title TEXT NOT NULL,created TEXT NOT NULL,deleted INTEGER NOT NULL CHECK(deleted IN (0,1)));
     CREATE TABLE messages(id TEXT PRIMARY KEY,conversation_id TEXT NOT NULL REFERENCES conversations(id),role TEXT NOT NULL,body TEXT NOT NULL,state TEXT NOT NULL,created TEXT NOT NULL);
     CREATE INDEX messages_order ON messages(conversation_id,created,id);
-    CREATE TABLE chapters(id TEXT PRIMARY KEY,title TEXT NOT NULL,message_id TEXT NOT NULL REFERENCES messages(id));
-    CREATE TABLE bookmarks(id TEXT PRIMARY KEY,title TEXT NOT NULL,message_id TEXT NOT NULL REFERENCES messages(id));
+    CREATE TRIGGER messages_live_chat BEFORE INSERT ON messages WHEN (SELECT deleted FROM conversations WHERE id=new.conversation_id)=1 BEGIN
+      SELECT RAISE(ABORT,'This chat was deleted.');
+    END;
     CREATE TABLE spaces(id TEXT PRIMARY KEY,title TEXT NOT NULL,definition TEXT NOT NULL,version INTEGER NOT NULL,updated TEXT NOT NULL);
     CREATE TABLE space_versions(id TEXT NOT NULL,version INTEGER NOT NULL,title TEXT NOT NULL,definition TEXT NOT NULL,updated TEXT NOT NULL,PRIMARY KEY(id,version));
     INSERT INTO spaces VALUES('home','Home','{"version":1,"components":[]}',1,'');

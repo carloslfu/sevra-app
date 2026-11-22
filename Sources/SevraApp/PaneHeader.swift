@@ -1,6 +1,6 @@
 import SwiftUI
 
-/// Both panes share one geometry, including when the conversation has threads.
+/// Both panes share one geometry.
 struct PaneHeader<Content: View>: View {
   @ViewBuilder let content: Content
 

@@ -61,7 +61,7 @@ private actor SpaceActionModel: WorkbookInference {
     openSpace: { opened.append($0.id) })
   try expectEqual(opened, [id])
   try expectEqual(await model.calls, 4)
-  try expectEqual(try book.workspaceSnapshot(conversation: "main")!.spaceNavigation.pinned, [id])
+  try expectEqual(try book.workspaceSnapshot(conversation: book.startChat)!.spaceNavigation.pinned, [id])
   try expectEqual(try encoded(book.spaces()), definitions)
   let ordered = try await WorkbookAgent.run(
     "Save a space called Overview, then open Purchasing.", workbook: book,
@@ -83,10 +83,10 @@ private actor SpaceActionModel: WorkbookInference {
   try expectEqual(receipts.last?["status"].text, "complete")
   _ = try await WorkbookAgent.run(
     "Unpin Purchasing.", workbook: book, model: SpaceActionModel([("set_space_pinned", unpin)]))
-  try expectEqual(try book.workspaceSnapshot(conversation: "main")!.spaceNavigation.pinned, [])
+  try expectEqual(try book.workspaceSnapshot(conversation: book.startChat)!.spaceNavigation.pinned, [])
   _ = try await WorkbookAgent.run(
     "Explain only.", workbook: book, model: SpaceActionModel([("set_space_pinned", pin)]))
-  try expectEqual(try book.workspaceSnapshot(conversation: "main")!.spaceNavigation.pinned, [])
+  try expectEqual(try book.workspaceSnapshot(conversation: book.startChat)!.spaceNavigation.pinned, [])
 
   for unavailable in [true, false] {
     let probe = SpaceActionModel([("open_space", target)])
@@ -238,7 +238,7 @@ private actor SpaceActionModel: WorkbookInference {
     "Pin Purchasing.", workbook: book, model: ambiguous)
   try expectEqual(await ambiguous.calls, 1)
   try expectEqual(clarification.answer.contains("More than one space"), true)
-  try expectEqual(try book.workspaceSnapshot(conversation: "main")!.spaceNavigation.pinned, [])
+  try expectEqual(try book.workspaceSnapshot(conversation: book.startChat)!.spaceNavigation.pinned, [])
   try expectEqual(try book.spaceTarget(id).id, id)
   try expectThrows(try book.spaceTarget("Purch"))
   try expectEqual(

@@ -87,7 +87,7 @@ private func historyFixture(_ root: URL, name: String, count: Int = 310) throws 
   let old = try book.addMessage(
     "Purchase code MAPLE-27, quantity 0.10 kg; no currency specified.", role: "user")
   let priorRun = try book.startAgentRun(
-    conversation: "main", model: "fixture", requestMessageID: old)
+    conversation: book.startChat, model: "fixture", requestMessageID: old)
   let forecast = try book.addItem(
     category: "record", kind: "forecast", title: "Forecast", meaning: "estimate",
     inputs: [source.id])
@@ -172,9 +172,9 @@ private func checkBoundedDigest(_ root: URL) async throws {
   }
   let request = try book.addMessage("Continue.", role: "user")
   let run = try book.startAgentRun(
-    conversation: "main", model: "fixture", requestMessageID: request)
+    conversation: book.startChat, model: "fixture", requestMessageID: request)
   let result = try await ContextMaintenance(
-    workbook: book, conversation: "main", runID: run, requestID: request,
+    workbook: book, conversation: book.startChat, runID: run, requestID: request,
     policy: .init(role: "system", content: "Use the current request."),
     request: .init(role: "user", content: "Continue."), model: DurableNotes(), directory: root,
     cancellation: .init(), progress: { _ in }
@@ -203,7 +203,7 @@ func checkCompaction() async throws {
     let user = "Remember the original purchase constraints. Do not change any records."
     let interruptedRequest = try book.addMessage("Save a working draft.", role: "user")
     let interruptedRun = try book.startAgentRun(
-      conversation: "main", model: "interrupted fixture", requestMessageID: interruptedRequest)
+      conversation: book.startChat, model: "interrupted fixture", requestMessageID: interruptedRequest)
     let interruptedArguments: Value = .object([
       "title": .string("Uncertain saved draft"),
       "text": .string("Already committed before interruption"),
@@ -215,12 +215,12 @@ func checkCompaction() async throws {
     try book.finishAgentRun(interruptedRun, status: "interrupted", steps: 0, metrics: .array([]))
     let request = try book.addMessage(user, role: "user")
     let run = try book.startAgentRun(
-      conversation: "main", model: "fixture", requestMessageID: request)
+      conversation: book.startChat, model: "fixture", requestMessageID: request)
     let model = DigestFixture(onSummary: { number in
       if accepted && number == 2 { _ = try book.accept(forecast.id) }
     })
     let controller = try ContextMaintenance(
-      workbook: book, conversation: "main", runID: run, requestID: request,
+      workbook: book, conversation: book.startChat, runID: run, requestID: request,
       policy: .init(role: "system", content: "Use current request and real host state."),
       request: .init(role: "user", content: user), model: model, directory: root,
       cancellation: .init(), progress: { _ in })
@@ -256,10 +256,10 @@ func checkCompaction() async throws {
       portable, at: root.appendingPathComponent("Restored-\(accepted).sevra"))
     let next = try restored.addMessage(user, role: "user")
     let nextRun = try restored.startAgentRun(
-      conversation: "main", model: "fixture", requestMessageID: next)
+      conversation: restored.startChat, model: "fixture", requestMessageID: next)
     let nextModel = DigestFixture()
     let reopen = try ContextMaintenance(
-      workbook: restored, conversation: "main", runID: nextRun, requestID: next,
+      workbook: restored, conversation: restored.startChat, runID: nextRun, requestID: next,
       policy: .init(role: "system", content: "Use current request and real host state."),
       request: .init(role: "user", content: user),
       model: nextModel, directory: root, cancellation: .init(), progress: { _ in })
@@ -271,12 +271,12 @@ func checkCompaction() async throws {
     let (book, _, _) = try historyFixture(root, name: mode)
     let request = try book.addMessage("Continue with no changes.", role: "user")
     let run = try book.startAgentRun(
-      conversation: "main", model: "fixture", requestMessageID: request)
+      conversation: book.startChat, model: "fixture", requestMessageID: request)
     let before = try book.historySlice(limit: 500)
     let cancel = Cancellation()
     let model = DigestFixture(cancelAt: mode == "cancel" ? 2 : nil, invalid: mode == "invalid")
     let controller = try ContextMaintenance(
-      workbook: book, conversation: "main", runID: run, requestID: request,
+      workbook: book, conversation: book.startChat, runID: run, requestID: request,
       policy: .init(role: "system", content: "Use real state."),
       request: .init(role: "user", content: "Continue with no changes."),
       model: model, directory: root, cancellation: cancel, progress: { _ in })
@@ -297,9 +297,9 @@ func checkCompaction() async throws {
     template: "older fixture")
   let legacyRequest = try legacy.addMessage("Recall the original constraints.", role: "user")
   let legacyRun = try legacy.startAgentRun(
-    conversation: "main", model: "fixture", requestMessageID: legacyRequest)
+    conversation: legacy.startChat, model: "fixture", requestMessageID: legacyRequest)
   let legacyController = try ContextMaintenance(
-    workbook: legacy, conversation: "main", runID: legacyRun, requestID: legacyRequest,
+    workbook: legacy, conversation: legacy.startChat, runID: legacyRun, requestID: legacyRequest,
     policy: .init(role: "system", content: "Use real state."),
     request: .init(role: "user", content: "Recall the original constraints."),
     model: DigestFixture(), directory: root, cancellation: .init(), progress: { _ in })
@@ -308,61 +308,52 @@ func checkCompaction() async throws {
   try expectEqual(migrated["legacyDigest"].text, legacyText)
   try expectEqual(try legacy.verify()["ok"], .bool(true))
   let scoped = try Workbook.create(at: root.appendingPathComponent("Scoped.sevra"), title: "Scopes")
-  _ = try scoped.addMessage("Parent purchase code MAPLE-27. Quantity 0.10 kg.", role: "user")
-  let branchPoint = try scoped.addMessage("Parent values recorded.", role: "assistant")
-  let tangent = try scoped.tangent(title: "Scenario", parentMessage: branchPoint)
-  _ = try scoped.addMessage("LATER-PARENT-ONLY-SECRET", role: "user")
-  let sibling = try scoped.tangent(title: "Other", parentMessage: branchPoint)
+  _ = try scoped.addMessage("First chat purchase code MAPLE-27. Quantity 0.10 kg.", role: "user")
+  let elsewhere = try scoped.addMessage("First chat values recorded.", role: "assistant")
+  let chat = try scoped.createChat()
+  _ = try scoped.addMessage("LATER-FIRST-CHAT-SECRET", role: "user")
+  let sibling = try scoped.createChat()
   _ = try scoped.addMessage("SIBLING-ONLY-SECRET", role: "user", conversation: sibling)
   for index in 0..<140 {
-    let message = try scoped.addMessage(
+    _ = try scoped.addMessage(
       "Closed scenario note \(index). "
-        + String(repeating: "No pending action in this branch. ", count: 10), role: "assistant",
-      conversation: tangent)
-    if index % 20 == 0 { try scoped.chapter(title: "Chapter \(index)", message: message) }
+        + String(repeating: "No pending action in this chat. ", count: 10), role: "assistant",
+      conversation: chat)
   }
   let request = try scoped.addMessage(
-    "Recall the inherited parent code. Make no changes.", role: "user", conversation: tangent)
+    "Recall the purchase code. Make no changes.", role: "user", conversation: chat)
   let run = try scoped.startAgentRun(
-    conversation: tangent, model: "fixture", requestMessageID: request)
+    conversation: chat, model: "fixture", requestMessageID: request)
   let controller = try ContextMaintenance(
-    workbook: scoped, conversation: tangent, runID: run, requestID: request,
+    workbook: scoped, conversation: chat, runID: run, requestID: request,
     policy: .init(role: "system", content: "Use real state."),
-    request: .init(role: "user", content: "Recall the inherited parent code. Make no changes."),
+    request: .init(role: "user", content: "Recall the purchase code. Make no changes."),
     model: DigestFixture(), directory: root, cancellation: .init(), progress: { _ in })
   let context = try await controller.maintain(through: request).messages.map(\.content).joined()
-  try expectEqual(context.contains("MAPLE-27") && context.contains("0.10 kg"), true)
+  // Each chat holds only its own messages: nothing from the first chat or a sibling reaches it.
+  try expectEqual(
+    context.contains("MAPLE-27") || context.contains("LATER-FIRST-CHAT-SECRET")
+      || context.contains("SIBLING-ONLY-SECRET"), false)
   // The reply to a stopped request stays out of a follow-up's prompt.
   let halted = try scoped.addMessage(
-    "This request stopped.", role: "assistant", conversation: tangent, state: "cancelled")
-  let followUp = try scoped.addMessage("Continue it.", role: "user", conversation: tangent)
+    "This request stopped.", role: "assistant", conversation: chat, state: "cancelled")
+  let followUp = try scoped.addMessage("Continue it.", role: "user", conversation: chat)
   let followRun = try scoped.startAgentRun(
-    conversation: tangent, model: "fixture", requestMessageID: followUp)
+    conversation: chat, model: "fixture", requestMessageID: followUp)
   let followed = try await ContextMaintenance(
-    workbook: scoped, conversation: tangent, runID: followRun, requestID: followUp,
+    workbook: scoped, conversation: chat, runID: followRun, requestID: followUp,
     policy: .init(role: "system", content: "Use real state."),
     request: .init(role: "user", content: "Continue it."),
     model: DigestFixture(), directory: root, cancellation: .init(), progress: { _ in }
   ).maintain(through: followUp).messages.map(\.content).joined()
   try expectEqual(followed.contains("This request stopped."), false)
   try expectEqual(
-    try scoped.historyMessage(halted, conversation: tangent).body, "This request stopped.")
-  try expectEqual(
-    context.contains("LATER-PARENT-ONLY-SECRET") || context.contains("SIBLING-ONLY-SECRET"), false)
-  try expectEqual(try scoped.contextCheckpoints(conversation: "main").isEmpty, true)
-  try expectEqual(try scoped.contextCheckpoints(conversation: tangent).count >= 2, true)
-  try expectEqual(try scoped.chapters().count, 7)
-  try expectThrows(try scoped.historyMessage(branchPoint, conversation: tangent))
-  let result = try scoped.addMessage(
-    "Scenario review remains incomplete.", role: "assistant", conversation: tangent)
-  let returned = try scoped.bringToMain(message: result)
-  try expectEqual(
-    try scoped.historyMessage(returned).body.contains(
-      "sevra://conversation/" + tangent + "?message=" + result), true)
+    try scoped.historyMessage(halted, conversation: chat).body, "This request stopped.")
+  try expectEqual(try scoped.contextCheckpoints(conversation: scoped.startChat).isEmpty, true)
+  try expectEqual(try scoped.contextCheckpoints(conversation: chat).count >= 2, true)
+  try expectThrows(try scoped.historyMessage(elsewhere, conversation: chat))
   try expectEqual(try scoped.verify()["ok"], .bool(true))
-  print(
-    "PASS compacted chapters and tangent scope preserve only the explicit parent excerpt and return provenance"
-  )
+  print("PASS compaction keeps each chat to its own messages and checkpoints")
 }
 
 private actor RunningJobFixture: WorkbookInference {

@@ -47,7 +47,7 @@ consequential business change was accepted. Interrupted prepared work may have
 partial effects; never replay it automatically or call it successful.
 
 AA05. After completion, collapse remains user-controlled. Show Finished, Needs
-your review, Stopped, Interrupted, Continued in a thread or Stopped with an error
+your review, Stopped, Interrupted or Stopped with an error
 from saved run state. Completed steps remain inspectable after close/reopen and
 in portable copies. A running journal entry without a live owner is Unfinished
 run, with no shimmer. Model identity is optional disclosure, not default clutter.

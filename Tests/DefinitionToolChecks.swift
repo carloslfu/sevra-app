@@ -8,10 +8,10 @@ func checkDefinitionTools(at root: URL) {
       at: root.appendingPathComponent("DefinitionTools-" + name + ".sevra"), title: name)
     let prompt = "Save receiving behavior and prepare delivery R1 into our stock."
     let request = try book.startAgentRequest(
-      prompt, conversation: "main", model: "synthetic definition tools")
+      prompt, conversation: book.startChat, model: "synthetic definition tools")
     let source = try book.addItem(
       category: "source", kind: "request", title: "Current request", text: prompt,
-      data: .object(["conversationID": .string("main"), "messageID": .string(request.messageID)]))
+      data: .object(["conversationID": .string(book.startChat), "messageID": .string(request.messageID)]))
     return (
       book, request, source, WorkbookTools(book, runID: request.runID, requestSourceID: source.id)
     )
@@ -96,18 +96,18 @@ func checkDefinitionTools(at root: URL) {
       arguments: previewArgs)
     try refuses("action_preview_receipt") {
       _ = try book.applicationPreviewForRun(
-        prepared, runID: request.runID, conversation: "main", requestSourceID: source.id)
+        prepared, runID: request.runID, conversation: book.startChat, requestSourceID: source.id)
     }
     let (receipt, preview) = try call(book, tools, "preview_action", previewArgs)
     try expect(
       try book.applicationPreviewForRun(
-        receipt, runID: request.runID, conversation: "main", requestSourceID: source.id)
+        receipt, runID: request.runID, conversation: book.startChat, requestSourceID: source.id)
         == preview["plan"])
     let (wrongTool, _) = try call(
       book, tools, "find_definitions", .object(["query": .string("")]))
     try refuses("action_preview_receipt") {
       _ = try book.applicationPreviewForRun(
-        wrongTool, runID: request.runID, conversation: "main", requestSourceID: source.id)
+        wrongTool, runID: request.runID, conversation: book.startChat, requestSourceID: source.id)
     }
     let submit: Value = .object(["previewReceiptID": .string(receipt)])
     let readOnly = WorkbookTools(
@@ -123,17 +123,17 @@ func checkDefinitionTools(at root: URL) {
     try expect(try tools.execute("commit_action_preview", submit) == result)
     try expect(try book.revision() == revision)
     let other = try book.startAgentRequest(
-      "Another request", conversation: "main", model: "synthetic")
+      "Another request", conversation: book.startChat, model: "synthetic")
     let otherSource = try book.addItem(
       category: "source", kind: "request", title: "Other", text: "Another request",
-      data: .object(["conversationID": .string("main"), "messageID": .string(other.messageID)]))
+      data: .object(["conversationID": .string(book.startChat), "messageID": .string(other.messageID)]))
     try refuses("action_preview_receipt") {
       _ = try book.applicationPreviewForRun(
-        receipt, runID: other.runID, conversation: "main", requestSourceID: otherSource.id)
+        receipt, runID: other.runID, conversation: book.startChat, requestSourceID: otherSource.id)
     }
     try refuses("action_run") {
       _ = try book.applicationPreviewForRun(
-        receipt, runID: request.runID, conversation: "main", requestSourceID: source.id)
+        receipt, runID: request.runID, conversation: book.startChat, requestSourceID: source.id)
     }
     try refuses("action_run") {
       _ = try book.applicationPreviewForRun(
@@ -194,10 +194,10 @@ func checkDefinitionTools(at root: URL) {
     let readonly = WorkbookTools(
       book, runID: request.runID, requestSourceID: source.id, readOnly: true)
     try refuses("read_only_request") { _ = try readonly.execute("save_template", arguments) }
-    let other = try book.startAgentRequest("Other", conversation: "main", model: "synthetic")
+    let other = try book.startAgentRequest("Other", conversation: book.startChat, model: "synthetic")
     let otherSource = try book.addItem(
       category: "source", kind: "request", title: "Other", text: "Other",
-      data: .object(["messageID": .string(other.messageID), "conversationID": .string("main")]))
+      data: .object(["messageID": .string(other.messageID), "conversationID": .string(book.startChat)]))
     let foreign = WorkbookTools(book, runID: other.runID, requestSourceID: otherSource.id)
     try refuses("definition_template") { _ = try foreign.execute("save_template", arguments) }
     _ = try book.verify()
@@ -250,7 +250,7 @@ func checkDefinitionTools(at root: URL) {
     _ = try book.completeToolCall(failedID, result: failedPlan, failed: true)
     try refuses("action_preview_receipt") {
       _ = try book.applicationPreviewForRun(
-        failedID, runID: request.runID, conversation: "main", requestSourceID: source.id)
+        failedID, runID: request.runID, conversation: book.startChat, requestSourceID: source.id)
     }
     let alteredID = try book.prepareToolCall(
       runID: request.runID, callID: "altered", tool: "preview_action", arguments: args)
@@ -261,7 +261,7 @@ func checkDefinitionTools(at root: URL) {
     _ = try book.completeToolCall(alteredID, result: .object(altered))
     try refuses("integrity") {
       _ = try book.applicationPreviewForRun(
-        alteredID, runID: request.runID, conversation: "main", requestSourceID: source.id)
+        alteredID, runID: request.runID, conversation: book.startChat, requestSourceID: source.id)
     }
     let (validID, valid) = try call(book, tools, "preview_action", args)
     var changed = action.content.object
@@ -408,10 +408,10 @@ func checkDefinitionTools(at root: URL) {
     try expect(tamper.terminationStatus == 0)
     try refuses("integrity") { _ = try publish(receipt) }
     let other = try book.startAgentRequest(
-      "Inspect this result", conversation: "main", model: "synthetic")
+      "Inspect this result", conversation: book.startChat, model: "synthetic")
     let otherSource = try book.addItem(
       category: "source", kind: "request", title: "Current request", text: "Inspect this result",
-      data: .object(["conversationID": .string("main"), "messageID": .string(other.messageID)]))
+      data: .object(["conversationID": .string(book.startChat), "messageID": .string(other.messageID)]))
     let foreign = WorkbookTools(book, runID: other.runID, requestSourceID: otherSource.id)
     try refuses("action_run") { _ = try publish(receipt) }
     try refuses("definition_evaluation") {

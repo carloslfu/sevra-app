@@ -33,7 +33,10 @@ public final class Workbook: @unchecked Sendable {
       let database = try Database(url.appendingPathComponent("workbook.sqlite"), create: true)
       try database.script(Schema.sql)
       try database.execute("INSERT INTO meta VALUES('workbook-id',?)", [manifest["id"]])
-      return try Workbook(url)
+      // A workbook always has a chat to open.
+      let book = try Workbook(url)
+      try book.createChat()
+      return book
     } catch {
       try? FileManager.default.removeItem(at: url)
       throw error

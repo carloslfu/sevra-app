@@ -62,7 +62,7 @@ func checkContextThreshold() async throws {
     let request = try book.addMessage(
       "Preserve exact request and do not change stock.", role: "user")
     let run = try book.startAgentRun(
-      conversation: "main", model: "fixture", requestMessageID: request)
+      conversation: book.startChat, model: "fixture", requestMessageID: request)
     let history = try book.historySlice(limit: 500)
     let model = ThresholdFixture(
       floor: mode == "authoring" ? 21000 : mode == "floor" ? 24576 : 24000,
@@ -72,7 +72,7 @@ func checkContextThreshold() async throws {
         ? 21050 : mode == "no-gain" ? 24576 : mode == "still-full" ? 25000 : 24100,
       authoringCost: mode == "authoring" ? 1145 : 0)
     let controller = try ContextMaintenance(
-      workbook: book, conversation: "main", runID: run, requestID: request,
+      workbook: book, conversation: book.startChat, runID: run, requestID: request,
       policy: .init(role: "system", content: "Preserve authoritative state."),
       request: .init(role: "user", content: history.messages.last!.body), model: model,
       directory: root, cancellation: .init(), progress: { _ in })

@@ -125,36 +125,36 @@ func checkChatOperations() throws {
   try expect(Workbook(root).rows(table.id).count == 1)
   let approvalArgs: Value = .object(["id": .string("app"), "expectedVersion": .number(1)])
   let approvalID = try book.prepareChatApproval(
-    action: "app.enable", arguments: approvalArgs, title: "Enable Stock?", conversation: "main")
+    action: "app.enable", arguments: approvalArgs, title: "Enable Stock?", conversation: book.startChat)
   let reopened = try Workbook(root)
-  try expect(reopened.pendingChatApproval(conversation: "main")?.id == approvalID)
+  try expect(reopened.pendingChatApproval(conversation: reopened.startChat)?.id == approvalID)
   let modelMessage = try book.addMessage("Confirm", role: "assistant")
   try refuses("chat_approval") {
-    _ = try book.claimChatApproval(conversation: "main", messageID: modelMessage)
+    _ = try book.claimChatApproval(conversation: book.startChat, messageID: modelMessage)
   }
-  let anotherChat = try book.tangent(title: "Other", parentMessage: modelMessage)
+  let anotherChat = try book.createChat()
   let wrongChat = try book.addMessage("Confirm", role: "user", conversation: anotherChat)
   try refuses("chat_approval") {
-    _ = try book.claimChatApproval(conversation: "main", messageID: wrongChat)
+    _ = try book.claimChatApproval(conversation: book.startChat, messageID: wrongChat)
   }
   let confirmation = try book.addMessage("Confirm", role: "user")
-  let claimed = try book.claimChatApproval(conversation: "main", messageID: confirmation)
+  let claimed = try book.claimChatApproval(conversation: book.startChat, messageID: confirmation)
   try expect(claimed.arguments == approvalArgs)
   try expect(
-    Workbook(root).pendingChatApproval(conversation: "main") == nil,
+    Workbook(root).pendingChatApproval(conversation: book.startChat) == nil,
     "Uncertain claimed actions must not replay after reopening")
   try refuses("chat_approval") {
-    _ = try book.claimChatApproval(conversation: "main", messageID: confirmation)
+    _ = try book.claimChatApproval(conversation: book.startChat, messageID: confirmation)
   }
   try book.finishChatApproval(
-    claimed, conversation: "main", result: .object(["status": .string("enabled")]))
+    claimed, conversation: book.startChat, result: .object(["status": .string("enabled")]))
   _ = try book.prepareChatApproval(
-    action: "app.enable", arguments: approvalArgs, title: "Enable Stock?", conversation: "main")
+    action: "app.enable", arguments: approvalArgs, title: "Enable Stock?", conversation: book.startChat)
   try refuses("chat_approval") {
-    _ = try book.claimChatApproval(conversation: "main", messageID: confirmation)
+    _ = try book.claimChatApproval(conversation: book.startChat, messageID: confirmation)
   }
   let cancel = try book.addMessage("Cancel approval", role: "user")
-  _ = try book.claimChatApproval(conversation: "main", messageID: cancel, cancel: true)
-  try expect(book.pendingChatApproval(conversation: "main") == nil)
+  _ = try book.claimChatApproval(conversation: book.startChat, messageID: cancel, cancel: true)
+  try expect(book.pendingChatApproval(conversation: book.startChat) == nil)
   _ = try book.verify()
 }

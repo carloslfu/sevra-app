@@ -18,8 +18,8 @@ package enum GeneralTools {
     sql reads and changes tables. The request lists every table under Tables for sql with its column names and types; use those exact names. GENERATED marks a formula column, which cannot be written. Use sql for every table read, count, comparison, total and calculation, and report its results. Do not calculate in your head. Arithmetic on numbers from the request also goes through sql, such as SELECT round(10 * 2.60, 2). Use round(x, 2) for money and percentages. INSERT, UPDATE and DELETE save at once. A call saves all of its changes or none, and its result carries an undo value: when the user asks to undo a change, use run with the action table.undo_sql and arguments {token: that value}. Take each value from the request or from a document the request names. CREATE TABLE makes a table and ALTER TABLE adds, renames or removes a column: use plain lower-case names, which the host shows as titles, and INSERT a new table's rows in the same call. When the user asks to see a change as a draft first, send the UPDATE with draft=true: it saves a proposal for them and changes nothing.
     run runs JavaScript when the work needs several dependent steps, a loop, or logic one SQL statement cannot express. Prefer one sql call when one statement can do it. Its table changes are saved together when the script returns, and its result carries an undo value like sql.
     save keeps one named thing in the workbook. Send exactly one of tool, document, view or app, with its own fields. tool: named SQL statements, when the user asks for a tool, a saved report or check, or a form that adds or changes rows. Give it a lower-case name, a one-sentence description, its inputs, and statements that use each input as :name. Every :name in a statement must be listed in inputs. For work SQL cannot do, send source instead of statements: a script that reads inputs.name. The request lists saved tools under Saved tools; run one with sql tool=name and values, or a script tool with run tool=name and values. A tool not enabled on this Mac came with the workbook, and only the user can enable it. Saving a tool does not run it. document: a note, summary, report or document the user asks you to write, with its title, text and the inputs it rests on. view: a new view of existing tables and charts. app: a small app with its own controls.
-    search finds documents, records and saved things. Use a few words, because every word must match. in=conversation searches earlier messages. read opens one thing by its ID, and with a kind reads other things: an earlier message, a page of a long result, a saved app, the list of views. Read an original before citing it. After three empty searches, stop and report what was not found.
-    run with action performs one named action in place of code, as its name and arguments. Start or rename a thread only when the user asks for a thread now: thread.start with the title, thread.start_and_continue, thread.rename, thread.return. Charts, files, imports, apps, workflows and opening a view are actions too: read kind=actions lists them with their inputs. When the user asks to export a table as a file, use run with the action file.export_table and arguments {id: the table's name under Tables for sql}. Leave out path unless the user wrote one: the app asks them where to save it. Never write a file's contents into the answer instead. Never confirm a host confirmation yourself.
+    search finds documents, records and saved things. Use a few words, because every word must match. in=conversation searches earlier messages in this chat. read opens one thing by its ID, and with a kind reads other things: an earlier message, a page of a long result, a saved app, the list of views. Read an original before citing it. After three empty searches, stop and report what was not found.
+    run with action performs one named action in place of code, as its name and arguments. Charts, files, imports, apps, workflows and opening a view are actions: read kind=actions lists them with their inputs. When the user asks to export a table as a file, use run with the action file.export_table and arguments {id: the table's name under Tables for sql}. Leave out path unless the user wrote one: the app asks them where to save it. Never write a file's contents into the answer instead. Never confirm a host confirmation yourself.
     ask publishes a question with typed fields when the user must supply several values. For one missing value, ask in the answer with finish, basis=general.
     finish delivers the answer, with a basis. evidence: facts from the workbook or earlier conversation; cite the exact IDs of what you read, and leave citations empty when the answer rests only on sql or run results, because the host attaches those. current_request: facts and arithmetic from this request alone. completed_action: a change this request made; say briefly what was saved. general: conversation, explanations and questions to the user. unresolved: what could not be found or done.
     Never write IDs in the answer text. A search that finds nothing does not prove absence.
@@ -50,9 +50,7 @@ package enum GeneralTools {
   ]
   /// Named actions of `run` that are operations of their own, beside the workspace actions.
   package static let actions: [String: String] = [
-    "thread.start": "start_thread", "thread.start_and_continue": "start_thread_and_continue",
-    "thread.rename": "rename_current_thread", "thread.return": "return_to_main",
-    "thread.summary": "review_thread_summary", "view.open": "open_space",
+    "view.open": "open_space",
     "view.pin": "set_space_pinned", "view.pin_home": "pin_space", "view.edit": "edit_space",
     "view.restore": "restore_space", "reviews.open": "open_reviews",
     "automation.open": "open_automation", "archive.include": "include_archive_members",
@@ -66,10 +64,9 @@ package enum GeneralTools {
   ]
 
   /// Named actions whose inputs the grammar enforces. Preparing a workflow answer is offered
-  /// only in its own step, so a scope never has more than fifteen of these.
+  /// only in its own step, so a scope never has more than eleven of these.
   static let exact: Set<String> = [
-    "thread.start", "thread.start_and_continue", "thread.rename", "thread.summary", "view.open",
-    "view.pin", "view.edit", "stock.move", "workflow.start", "definition.evaluate",
+    "view.open", "view.pin", "view.edit", "stock.move", "workflow.start", "definition.evaluate",
     "action.preview", "action.prepare", "template.form", "template.workflow", "template.rule",
     "workflow.prepare_answer",
   ]
@@ -110,14 +107,6 @@ package enum GeneralTools {
       let arguments =
         (named.string == nil ? named.object["arguments"] : a.object["arguments"]) ?? .object([:])
       if let target = actions[action] {
-        // A continued thread either answers or changes. Without a kind it answers.
-        if target == "start_thread_and_continue", let work = arguments["work"].string,
-          work != "answer"
-        {
-          var fields = arguments.object
-          fields["work"] = .string("change")
-          return (target, .object(fields))
-        }
         if target == "inventory_automation_template", case .number(let level) = arguments["threshold"]
         {
           // The grammar takes the level as a number. The template keeps exact decimal text.
@@ -248,12 +237,11 @@ package enum GeneralTools {
   }
 
   /// The seven declarations. `operations` are the workspace actions the scope allows,
-  /// `threads` the thread actions this conversation allows, `apps` whether an app can be
-  /// saved here, `copies` the original passages a document may copy (nil leaves them open),
+  /// `apps` whether an app can be saved here, `copies` the original passages a document may copy (nil leaves them open),
   /// and `answersWorkflow` whether a paused workflow read in this request can have its
   /// answer prepared.
   package static func definitions(
-    operations: [String], threads: Set<String>?, apps: Bool, ask: WorkbookToolDefinition?,
+    operations: [String], apps: Bool, ask: WorkbookToolDefinition?,
     readOnly: Bool = false, items: [String] = [], messages: [String]? = nil,
     display: Bool = false, copies: [String]? = nil, answersWorkflow: Bool = false
   ) -> [WorkbookToolDefinition] {
@@ -273,9 +261,7 @@ package enum GeneralTools {
     let finish = NativeTools.definitions.first { $0.name == "finish" }!
     let named = actions.filter { name, target in
       if target == "prepare_workflow_answer" { return answersWorkflow }
-      if readOnly, !WorkbookTools.readOnlyTools.contains(target) { return false }
-      guard let thread = WorkbookTools.conversationTools[target], let threads else { return true }
-      return threads.contains(thread)
+      return !readOnly || WorkbookTools.readOnlyTools.contains(target)
     }.keys.sorted()
     let search = WorkbookToolDefinition(
       name: "search",
@@ -309,7 +295,7 @@ package enum GeneralTools {
     }
     // One shape per action: the workspace actions take the inputs read kind=actions lists,
     // and each action with an operation of its own takes that operation's inputs.
-    // The grammar takes sixteen shapes. These fifteen actions get their own, and the rest
+    // The grammar takes twelve shapes. These eleven actions get their own, and the rest
     // share the open one, where the action itself says what it is missing.
     let exact = named.filter(Self.exact.contains)
     let open = (operations + named.filter { !Self.exact.contains($0) }).sorted()
@@ -340,7 +326,7 @@ package enum GeneralTools {
       "tool": NativeTools.runDefinition.parameters["properties"]["tool"],
       "values": NativeTools.runDefinition.parameters["properties"]["values"],
     ]
-    // What the model is shown is the same in every chat scope and thread, so ordinary and
+    // What the model is shown is the same in every chat scope, so ordinary and
     // read-only turns share one cached header. The grammar offers only what the scope allows.
     if !shapes.isEmpty || display {
       runProperties["action"] =
@@ -366,7 +352,7 @@ package enum GeneralTools {
     let run = WorkbookToolDefinition(
       name: "run",
       description: NativeTools.runDefinition.description
-        + " Or send action, with its name and arguments, to perform one named action instead of code: charts, files, imports, apps, workflows, threads, views and undo. read kind=actions lists the workspace actions with their inputs.",
+        + " Or send action, with its name and arguments, to perform one named action instead of code: charts, files, imports, apps, workflows, views and undo. read kind=actions lists the workspace actions with their inputs.",
       parameters: object(runProperties, required: []))
     var kinds: [String: Value] = [
       "tool": .object(

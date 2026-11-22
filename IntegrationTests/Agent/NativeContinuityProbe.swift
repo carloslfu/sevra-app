@@ -99,7 +99,7 @@ func runContextRecoveryProbe(model: any WorkbookInference, directory: URL, root:
   let user = try book.addMessage(
     "Keep the October forecast as an estimate. Do not accept it without my explicit instruction.",
     role: "user")
-  let prior = try book.startAgentRun(conversation: "main", model: "fixture", requestMessageID: user)
+  let prior = try book.startAgentRun(conversation: book.startChat, model: "fixture", requestMessageID: user)
   let receipt = try book.addMessage(
     try Value.object([
       "tool": .string("propose_record"), "arguments": .object([:]), "result": try encoded(forecast),

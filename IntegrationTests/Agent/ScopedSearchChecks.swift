@@ -59,7 +59,7 @@ func checkScopedSearch() async throws {
   defer { try? FileManager.default.removeItem(at: root) }
   let book = try Workbook.create(at: root.appendingPathComponent("Search.sevra"), title: "Search")
   let branchPoint = try book.addMessage("Parent context.", role: "assistant")
-  let tangent = try book.tangent(title: "Separate scenario", parentMessage: branchPoint)
+  let tangent = try book.createChat()
   let sibling = try book.addMessage(
     "café supplier SIBLING-SECRET", role: "user", conversation: tangent)
   var originals = Set<String>()
@@ -80,7 +80,7 @@ func checkScopedSearch() async throws {
     ]))
   let request = try book.addMessage("café supplier CURRENT-REQUEST", role: "user")
   let run = try book.startAgentRun(
-    conversation: "main", model: "fixture", requestMessageID: request)
+    conversation: book.startChat, model: "fixture", requestMessageID: request)
   let future = try book.addMessage("café supplier LATER-MESSAGE", role: "user")
   let tools = WorkbookTools(book, runID: run)
   let result = try tools.execute("search", .object(["query": .string("cafe supplier")]))

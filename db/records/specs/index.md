@@ -2,15 +2,16 @@
 type: index
 scope: type-folder
 folder: records/specs
-updated: 2026-11-19T16:00:23Z
+updated: 2026-11-21T12:00:00Z
 ---
 
 # records/specs
 
 - [[records/specs/conversation-context]] — Automatic compaction, preserved conversation history, authoritative continuation state and measured larger-context qualification.
+- [[records/specs/intelligence]] — Native Splash direction, Swift adapter, bounded tools, proposal acceptance, on-device voice and declarative spaces.
+- [[records/specs/product]] — Native two-pane workbook UX, conversation, viewers, contextual intake and customizable application engine with actions, workflows and automations.
 - [[records/specs/distribution]] — Independent source build, native bundle, CLI skill, portable format and end-to-end release gates.
 - [[records/specs/identity]] — Approved Observer zebra, exact original Mac icon, native outlined wordmark and restrained light/dark placement.
-- [[records/specs/intelligence]] — Native Splash direction, Swift adapter, bounded tools, proposal acceptance, on-device voice and declarative spaces.
 - [[records/specs/mvp-delivery]] — Owner-directed fast MVP: one complete native file-to-result journey, focused verification, coherent setup and deferred infrastructure.
 - [[records/specs/splash-integration]] — Python-free Swift integration of pinned upstream Splash, explicit behavior mapping, differential verification and measured adoption gates.
 - [[records/specs/storage]] — Versioned SQLite records, separate content-addressed assets, event effects, deterministic calculations and coherent portable snapshots.
@@ -25,7 +26,6 @@ updated: 2026-11-19T16:00:23Z
 - [[records/specs/local-model-native-apps]] — Local-model native app authoring, isolated checks, independent review and exact-version access.
 - [[records/specs/contextual-import]] — One contextual intake for starting and ongoing work, role-aware CSV/data use and truthful Excel continuity gates.
 - [[records/specs/native-automation-owner]] — Native schedule controls and persistent physical-workbook device grants with a conservative active-app owner; scoped synthetic, process-death and installed-package proof, full lifecycle/release open.
-- [[records/specs/product]] — Native two-pane workbook UX, conversation, viewers, contextual intake and customizable application engine with actions, workflows and automations.
 - [[records/specs/document-composition]] — Reviewed exact-copy design, immutable read provenance, atomic composition and staged qualification.
 - [[records/specs/automation-causality]] — Schema29 captures shared business and calendar roots with bounded trusted admissions. Racing writers and process-death proof pass; actual condition selection/current-grant dispatch remains open.
 - [[records/specs/automation-execution]] — Schema21 foreground scheduled draft execution with distinct AI scope, atomic occurrence binding, one active run and pause-safe claims; native device restoration is scoped in native-automation-owner.

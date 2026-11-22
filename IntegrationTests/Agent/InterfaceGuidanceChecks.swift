@@ -32,7 +32,7 @@ private actor InterfaceAnswerModel: WorkbookInference {
 func checkInterfaceGuidance() async throws {
   for prompt in [
     "Explain only; leave this workbook unchanged.",
-    "If I change inventory in a side thread, is main unaffected? Explain without changing anything.",
+    "If I change inventory in another chat, is this one unaffected? Explain without changing anything.",
     "Explain without making changes.",
     "Ask what you need before saving anything.", "Do not save anything.",
   ] { try expectEqual(RequestRestrictions.isExplicitlyReadOnly(prompt), true) }
@@ -43,11 +43,11 @@ func checkInterfaceGuidance() async throws {
     "What does 'ask what you need before saving anything' mean?",
   ] { try expectEqual(RequestRestrictions.isExplicitlyReadOnly(prompt), false) }
   for text in [
-    "Here are the key differences: main keeps the ongoing discussion; threads hold side discussions.",
+    "Here are the key differences: each chat keeps its own discussion; all chats share the workbook.",
     "The difference is one of focus. Both conversations share the workbook data.",
     "A difference between a Source and a Record is whether it is an input or a derivation.",
-    "1. Main conversation.\n2. Side threads. Their difference is conversation scope.",
-    "Key differences:\n\n1. **Structure**: the main conversation is the default root.\n2. **Shared data**: the same workbook.",
+    "1. This chat.\n2. Another chat. Their difference is conversation scope.",
+    "Key differences:\n\n1. **Structure**: each chat starts empty.\n2. **Shared data**: the same workbook.",
     "VAT on this invoice is 19%.",
   ] {
     try expectEqual(CalculationRequirement.hasComparisonClaim(text), false)
@@ -64,16 +64,16 @@ func checkInterfaceGuidance() async throws {
   defer { try? FileManager.default.removeItem(at: root) }
   let book = try Workbook.create(at: root, title: "Interface guidance")
   let answer =
-    "Here are the key differences: a thread has its own discussion history, while all threads share this workbook's data. Starting one does not create an inventory scenario."
+    "Here are the key differences: a chat has its own discussion history, while all chats share this workbook's data. Starting one does not create an inventory scenario."
   let model = InterfaceAnswerModel(answer)
   let result = try await WorkbookAgent.run(
-    "Explain the difference between main and a thread. Do not create one.",
+    "Explain the difference between two chats. Do not create one.",
     workbook: book, model: model)
   try expectEqual(result.answer, answer)
   try expectEqual(result.steps, 1)
   try expectEqual(await model.responses, 1)
   try expectEqual(try book.messages().filter { $0.role == "tool" }.count, 0)
-  try expectEqual(try book.conversations().count, 1)
+  try expectEqual(try book.chats().count, 1)
 
   let unsupported = InterfaceAnswerModel("The price difference is 2.40.")
   do {
@@ -84,16 +84,16 @@ func checkInterfaceGuidance() async throws {
   try expectEqual(rejected.count, 4)
   try expectEqual(rejected.allSatisfy { $0.body.contains("arithmetic with sql") }, true)
 
-  let parent = try book.addMessage("Explore stock separately.", role: "user")
-  let thread = try book.startThread(parentMessage: parent)
+  _ = try book.addMessage("Explore stock separately.", role: "user")
+  let other = try book.createChat()
   let observation = try book.addItem(
     category: "source", kind: "observation", title: "Stock check",
     text: "Opening stock 20; two units handed over.", status: "accepted")
   try book.setOpeningBalance(
     subject: "fittings", quantity: "20", effective: "2026-01-01", sourceID: observation.id)
-  let mainTools = WorkbookTools(book)
-  let threadTools = WorkbookTools(book, conversation: thread)
-  let proposal = try threadTools.execute(
+  let firstTools = WorkbookTools(book)
+  let otherTools = WorkbookTools(book, conversation: other)
+  let proposal = try otherTools.execute(
     "propose_movement",
     .object([
       "subject": .string("fittings"), "quantity": .string("-2"),
@@ -101,14 +101,14 @@ func checkInterfaceGuidance() async throws {
       "effective": .string("2026-01-02"), "input": .string(observation.id),
     ]))
   let balance: Value = .object(["subject": .string("fittings")])
-  try expectEqual(try mainTools.execute("balance", balance)["quantity"].text, "20")
+  try expectEqual(try firstTools.execute("balance", balance)["quantity"].text, "20")
   _ = try book.accept(proposal["id"].text)
-  try expectEqual(try mainTools.execute("balance", balance)["quantity"].text, "18")
-  try expectEqual(try threadTools.execute("balance", balance)["quantity"].text, "18")
+  try expectEqual(try firstTools.execute("balance", balance)["quantity"].text, "18")
+  try expectEqual(try otherTools.execute("balance", balance)["quantity"].text, "18")
   let sourceCount = try book.items().filter { $0.category == "source" }.count
-  let calculation = try threadTools.execute(
+  let calculation = try otherTools.execute(
     "sql", .object(["statements": .array([.string("SELECT CAST(20 - 2 AS TEXT) AS quantity")])]))
-  let analysis = try threadTools.execute(
+  let analysis = try otherTools.execute(
     "propose_record",
     .object([
       "kind": .string("analysis"), "title": .string("Stock interpretation"),
@@ -123,6 +123,6 @@ func checkInterfaceGuidance() async throws {
   try expectEqual(try book.items().filter { $0.category == "source" }.count, sourceCount)
   try expectEqual(try book.verify()["ok"], .bool(true))
   print(
-    "PASS conceptual differences finish directly; numeric comparisons stay checked; threads share accepted workbook data"
+    "PASS conceptual differences finish directly; numeric comparisons stay checked; chats share accepted workbook data"
   )
 }

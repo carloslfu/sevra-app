@@ -184,13 +184,12 @@ func checkHistoryTools() async throws {
   try expectEqual(assistantEvidence["message"]["role"], .string("assistant"))
   try expectEqual(try uncited.readHistoryEvidence(original)["message"]["role"], .string("user"))
   var annotatedMessage = InferenceMessage(
-    role: "system", content: "Review the current application", conversationActions: ["continue"])
+    role: "system", content: "Review the current application")
   annotatedMessage.nativeAppAuthoring = true
   annotatedMessage.reviewContract = .object(["action": .string("ship"), "maximum": .number(4)])
   let annotated = try ItemReferenceCandidates.annotate([annotatedMessage], workbook: uncited)
   try expectEqual(annotated[0].reviewContract, annotatedMessage.reviewContract)
   try expectEqual(annotated[0].nativeAppAuthoring, true)
-  try expectEqual(annotated[0].conversationActions, ["continue"])
   var retained = InferenceMessage(role: "tool", content: "{}", reasoning: "Temporary reasoning")
   retained.nativeAppAuthoring = true
   retained.reviewContract = annotatedMessage.reviewContract
@@ -241,7 +240,7 @@ func checkHistoryTools() async throws {
     try expectEqual(result.steps, unified ? 5 : 3)
     if !large {
       try expectEqual(result.citations.first?.hasPrefix("message:"), true)
-      try expectEqual(result.answer.contains("sevra://conversation/main?message="), true)
+      try expectEqual(result.answer.contains("sevra://conversation/" + book.startChat + "?message="), true)
       try expectThrows(
         try book.addItem(
           category: "record", kind: "analysis", title: "Invalid business lineage",
@@ -264,11 +263,11 @@ func checkHistoryTools() async throws {
   let continued = try Workbook.create(
     at: root.appendingPathComponent("continued.sevra"), title: "Continued")
   let stopped = try continued.rejectAgentRequest(
-    "Read everything.", conversation: "main", model: "test", cancelled: true, reason: "Stopped.")
-  let follow = try continued.startAgentRequest("Continue.", conversation: "main", model: "test")
+    "Read everything.", conversation: continued.startChat, model: "test", cancelled: true, reason: "Stopped.")
+  let follow = try continued.startAgentRequest("Continue.", conversation: continued.startChat, model: "test")
   let unrelated = try Workbook.create(
     at: root.appendingPathComponent("unrelated.sevra"), title: "Unrelated")
-  let first = try unrelated.startAgentRequest("Hello.", conversation: "main", model: "test")
+  let first = try unrelated.startAgentRequest("Hello.", conversation: unrelated.startChat, model: "test")
   func missed(_ book: Workbook, _ runID: String) throws -> String {
     do {
       _ = try WorkbookTools(book, runID: runID).execute(

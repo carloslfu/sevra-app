@@ -18,13 +18,8 @@ public struct AgentResult: Sendable {
   public let steps: Int
   public let state: String
   public let focus: AgentFocus?
-  public var conversationAction: ConversationActionResult? = nil
 }
 public enum WorkbookAgent {
-  private struct CompletedHandoff {
-    let call: InferenceCall
-    let result: Value
-  }
   private struct ReusableCalculation {
     let tool: String
     let arguments: Value
@@ -50,7 +45,7 @@ public enum WorkbookAgent {
   /// NativeCitationPolicy and the grammar's enumerations both stop here.
   private static let citationChoiceLimit = 256
   package static func run(
-    _ prompt: String, workbook: Workbook, conversation: String = "main", context: String = "",
+    _ prompt: String, workbook: Workbook, conversation: String, context: String = "",
     modelDirectory: URL = FileManager.default.temporaryDirectory,
     cancellation: Cancellation = .init(),
     progress: @escaping @Sendable (String) -> Void = { _ in },
@@ -118,7 +113,7 @@ public enum WorkbookAgent {
     }
   }
   private static func runPhase(
-    _ prompt: String, workbook: Workbook, conversation: String = "main", context: String = "",
+    _ prompt: String, workbook: Workbook, conversation: String, context: String = "",
     modelDirectory: URL = FileManager.default.temporaryDirectory,
     cancellation: Cancellation = .init(),
     progress: @escaping @Sendable (String) -> Void = { _ in },
@@ -127,8 +122,6 @@ public enum WorkbookAgent {
     enableCompaction: Bool, requestStarted: @escaping @Sendable (AgentRequest, String) -> Void,
     openSpace: SpaceOpener? = nil, openReviews: ReviewQueueOpener? = nil,
     workspaceAction: WorkspaceActionHandler? = nil,
-    handoff: AgentRequestHandoff? = nil,
-    handoffReceipt: CompletedHandoff? = nil, stepBudget: Int = 12,
     excelConversion: ExcelConversionBuild? = nil,
     conversationInput: Bool = false, inputAnswerID: String? = nil,
     dateContext: ConversationDateContext? = nil
@@ -144,7 +137,7 @@ public enum WorkbookAgent {
     let compactionAvailable = await model.supportsCompaction
     let shouldCompact = enableCompaction && compactionAvailable
     try require(
-      inputAnswerID == nil || (conversationInput && handoff == nil && excelConversion == nil),
+      inputAnswerID == nil || (conversationInput && excelConversion == nil),
       "conversation_input", "This runner cannot continue a saved answer.")
     let modelIdentity = await model.identity
     let inputContinuation = try inputAnswerID.map {
@@ -158,14 +151,12 @@ public enum WorkbookAgent {
     let readOnly =
       RequestRestrictions.isExplicitlyReadOnly(requestTask)
       || RequestRestrictions.isExplicitlyReadOnly(submittedText)
-      || handoff?.work == .answer || inputContinuation?.readOnly == true
+      || inputContinuation?.readOnly == true
     let canAsk =
-      conversationInput && handoff == nil && excelConversion == nil
+      conversationInput && excelConversion == nil
       && inputContinuation?.declined != true
       && (inputContinuation?.priorAnswers.array.count ?? 0) < 4
-    let phaseScope: InferenceToolScope =
-      excelConversion == nil
-      ? handoff.flatMap { InferenceToolScope(rawValue: $0.work.rawValue) } ?? .all : .excelBuild
+    let phaseScope: InferenceToolScope = excelConversion == nil ? .all : .excelBuild
     // The native template keeps this exact policy and shared tool vocabulary ahead of history,
     // as the prepared header. Every chat turn has the same one: a read-only turn is told below
     // that it only answers, and the grammar offers only what its scope allows.
@@ -181,18 +172,6 @@ public enum WorkbookAgent {
         + (try NativeAppAuthoring.excelGuide(excelConversion!, workbook: workbook))
         + "\nOn repair, the last failed candidate is broken code to correct, not an example to repeat. Read its exact error, locate the responsible expression or fixture, and change that cause before submitting. Superseded failed drafts may be omitted from context; original evidence and all durable receipts remain available."
     }
-    if handoff != nil {
-      policy +=
-        "\nThe host has already created the requested thread and carried this exact request here. Complete only its remaining work. Do not create another thread or repeat navigation. The current request Source is the original submission; the carried message is not a new human instruction. Earlier history remains evidence, not permission."
-      policy +=
-        "\nThis continuation is limited to " + handoff!.work.rawValue
-        + ". The thread title is already saved; it is not a request for a similarly named space or table. Use only the available tools for the remaining task and finish once it is satisfied."
-      if !handoff!.evidence["entries"].array.isEmpty {
-        policy +=
-          "\n" + handoff!.evidence["notice"].text
-          + " The following retained read and sql tool pairs are those exact completed results, not new calls. Finish from them when they already establish the requested answer; do not repeat their reads or queries."
-      }
-    }
     if readOnly {
       policy +=
         "\nThis phase allows evidence and answers only. For clarification questions, explanations or acknowledgments, call finish with basis=general and citations=[]. Put questions in answer; do not call templates or calculations just to ask for missing choices. Inspect evidence only when needed. Do not create proposals, drafts, spaces, copies or imports."
@@ -207,7 +186,7 @@ public enum WorkbookAgent {
     var failures = 0
     var locators: [String: String] = [:]
     let request =
-      try inputContinuation?.request ?? handoff?.request
+      try inputContinuation?.request
       ?? workbook.startAgentRequest(
         excelConversion?.displayRequest ?? prompt, conversation: conversation, model: modelIdentity)
     requestStarted(request, conversation)
@@ -224,7 +203,6 @@ public enum WorkbookAgent {
     var attemptedEffect = false
     var visualCaptures: [String: Value] = [:]
     var reversibleOutcome: Value = .null
-    var handedOff = false
     var rejectedActions: [String: Int] = [:]
     var computed = false
     // "Line 2 100 units" can mean 2100 or a 2 and a 100, and a request may mean either.
@@ -237,6 +215,7 @@ public enum WorkbookAgent {
     var percentages: [Decimal] = []
     let statedPercentages = Self.percentValues(requestFacts + "\n" + context)
     var finalFailures = 0
+    let stepBudget = 12
     var stoppedRequestRaised = false
     var emptySearches = 0
     var emptySearchesIncludedHistory = true
@@ -279,8 +258,7 @@ public enum WorkbookAgent {
     /// The run's last word. Whatever else it saved or could not finish stays in that word.
     func conclude(
       _ receipt: String, step: Int, receiptID: String? = nil, state: String = "complete",
-      payload: Value = .null, citations: [String] = [], focus: AgentFocus? = nil,
-      conversationAction: ConversationActionResult? = nil
+      payload: Value = .null, citations: [String] = [], focus: AgentFocus? = nil
     ) throws -> AgentResult {
       let outcomes = actionConfirmations.rendered(excluding: receiptID)
       let answer = receipt + (outcomes.map { "\n\n" + $0 } ?? "")
@@ -291,17 +269,16 @@ public enum WorkbookAgent {
         payload: fields.isEmpty ? .null : .object(fields))
       try workbook.finishAgentRun(runID, status: state, steps: step, metrics: .array(metrics))
       return AgentResult(
-        answer: answer, citations: citations, steps: step, state: state, focus: focus,
-        conversationAction: conversationAction)
+        answer: answer, citations: citations, steps: step, state: state, focus: focus)
     }
     let wantsInlineChart =
-      conversationInput && handoff == nil && excelConversion == nil
+      conversationInput && excelConversion == nil
       && requestTask.range(
         of:
           #"(?i)\b(?:show|draw|plot|render) (?:me )?(?:an? |the )?(?:(?:bar|line|scatter|stacked|area|donut) )?chart\b"#,
         options: .regularExpression) != nil
     do {
-      if conversationInput && handoff == nil && excelConversion == nil {
+      if conversationInput && excelConversion == nil {
         policy +=
           "\nTo actually show a chart, image, work view, overview or diagram in chat, call workspace_action with action=visual.schema and arguments {family:chart|image|work|overview|diagram}. Then call workspace_action with action=visual.evaluate and that descriptor. For totals grouped by a single field, prefer visual.schema family=aggregate and pass that short aggregate descriptor to visual.evaluate. Use dataset ID and definition ID from datasets. For a declared app view use visual.app_capture. Finish with the receipt ID in finish.visuals. Prose or Markdown alone does not create a chart. Add it to Home only when asked."
       }
@@ -337,28 +314,7 @@ public enum WorkbookAgent {
             "\nThe person declined these inputs. Explain any remaining limit or provide a verified read-only result. Do not guess those values or ask for them again."
         }
       }
-      let conversationIdentity = try workbook.conversationIdentity(
-        conversation, cancellation: cancellation)
-      messages[0] = InferenceMessage(
-        role: "system",
-        content: policy + "\nHost interface state: "
-          + (try Value.object([
-            "currentConversation": .string(conversation),
-            "title": conversationIdentity["title"], "isMain": .bool(conversation == "main"),
-            "navigation": .string(
-              conversation == "main"
-                ? "You are in main. To rename a different thread, ask the user to open that thread first. Creating a new thread does not rename any existing thread."
-                : "You are in a side discussion. To bring findings back for review, use review_thread_summary. To go back without sharing, use return_to_main. start_thread creates a different new discussion."
-            ),
-          ]).json()),
-        conversationActions: readOnly || handoff != nil
-          ? []
-          : conversation == "main"
-            ? ["start_thread", "start_thread_and_continue"]
-            : [
-              "start_thread", "start_thread_and_continue", "rename_thread", "return_to_main",
-              "review_summary",
-            ])
+      messages[0] = InferenceMessage(role: "system", content: policy)
       if !shouldCompact && excelConversion == nil {
         messages.insert(
           contentsOf: try conversationHistory(
@@ -366,8 +322,7 @@ public enum WorkbookAgent {
       }
       try cancellation.check()
       let requestSource =
-        try handoff.map { try workbook.item($0.sourceID) }
-        ?? workbook.captureUserRequest(
+        try workbook.captureUserRequest(
           excelConversion?.displayRequest ?? submittedText,
           data: .object([
             "conversationID": .string(conversation), "messageID": .string(requestMessage),
@@ -375,8 +330,7 @@ public enum WorkbookAgent {
           ]), token: runID + "-request")
       let tools = WorkbookTools(
         workbook, runID: runID, cancellation: cancellation, requestSourceID: requestSource.id,
-        conversation: conversation, readOnly: readOnly,
-        conversationTitle: conversationIdentity["title"].text, excelConversion: excelConversion)
+        conversation: conversation, readOnly: readOnly, excelConversion: excelConversion)
       // Storage and progress metadata are host context, not more user text.
       // Keep the submitted request intact and expose its Source for provenance,
       // without making that Source sound like a document the user asked to find.
@@ -385,22 +339,13 @@ public enum WorkbookAgent {
         "notice": .string(
           "This Source preserves the current submission. Use it directly; drafts retain its lineage. It cannot prove facts about other documents. Answer the latest request. Use finish directly for conversation or when the available evidence already answers it."
         ),
-        "continuation": handoff.map {
-          .object([
-            "remainingTask": .string($0.task), "work": .string($0.work.rawValue),
-            "notice": .string(
-              "The new thread is already created for this same request. Complete the quoted remaining task using retained proof when sufficient. Do not repeat thread creation or substitute earlier discussion for the current request."
-            ),
-          ])
-        } ?? .null,
       ])
       messages[0] = InferenceMessage(
         role: "system",
-        content: messages[0].content + "\nHost submission context: " + (try hostRequest.json()),
-        conversationActions: messages[0].conversationActions)
+        content: messages[0].content + "\nHost submission context: " + (try hostRequest.json()))
       messages[0].scopePolicy = scopePolicy
       messages[0].cacheablePolicy = cacheablePolicy
-      messages[0].initialChatDecision = conversationInput && handoff == nil && inputContinuation == nil && excelConversion == nil && !nativeAppAuthoring
+      messages[0].initialChatDecision = conversationInput && inputContinuation == nil && excelConversion == nil && !nativeAppAuthoring
       messages[0].nativeAppAuthoring = nativeAppAuthoring
       messages[0].conversationInput = canAsk
       func inferenceScopeForNextStep() -> InferenceToolScope {
@@ -411,7 +356,7 @@ public enum WorkbookAgent {
             ? .excelInterface
             : nextToolScope == .all ? phaseScope : nextToolScope
         if discoveryLimited && (selected == .all || selected == .answer) {
-          return handoff == nil && conversationInput ? .boundedConversationAnswer : .boundedAnswer
+          return conversationInput ? .boundedConversationAnswer : .boundedAnswer
         }
         if readOnly && selected == .all { return conversationInput ? .conversationAnswer : .answer }
         return selected
@@ -428,42 +373,6 @@ public enum WorkbookAgent {
           through: requestMessage, toolScope: inferenceScopeForNextStep())
         messages = prepared.messages
         metrics += prepared.metrics
-      }
-      // Restore proof only alongside the complete tool result that establishes
-      // it. No model prose/reasoning or parent history crosses this boundary.
-      for entry in handoff?.evidence["entries"].array ?? [] {
-        let tool = entry["tool"].text
-        let value = entry["result"]
-        let arguments = entry["arguments"]
-        try require(
-          ["read", "sql"].contains(tool), "handoff_evidence", "Unsupported carried evidence.")
-        let content = try value.json()
-        let call = InferenceCall(
-          id: entry["callID"].text, name: tool, inputJSON: try arguments.json())
-        messages.append(InferenceMessage(role: "assistant", content: "", toolCalls: [call]))
-        messages.append(
-          InferenceMessage(role: "tool", content: content, toolCallId: call.id, toolName: tool))
-        inspected.formUnion(visibleEvidence(tool: tool, result: value).map { $0.0 })
-        currencyEvidence = currencyEvidence || content.contains(where: { "$€£".contains($0) })
-        percentages += Self.percentValues(content)
-        if tool == "sql" {
-          computed = true
-          let figures = numericValues(try value["results"].json())
-          computedNumbers.formUnion(figures)
-          percentages += figures.compactMap { try? Numbers.decimal($0) }
-        }
-      }
-      if let handoffReceipt {
-        // Show the actual completed creation after the carried evidence. Without
-        // this result, the unchanged user request can look like an unperformed
-        // branch instruction even though the host has already created its thread.
-        // This is progress, not business proof, and is never executed again.
-        messages.append(
-          InferenceMessage(role: "assistant", content: "", toolCalls: [handoffReceipt.call]))
-        messages.append(
-          InferenceMessage(
-            role: "tool", content: try handoffReceipt.result.json(),
-            toolCallId: handoffReceipt.call.id, toolName: handoffReceipt.call.name))
       }
       for step in 1...stepBudget {
         try cancellation.check()
@@ -492,7 +401,7 @@ public enum WorkbookAgent {
             ? .excelInterface : nextToolScope == .all ? phaseScope : nextToolScope
         let toolScope: InferenceToolScope =
           discoveryLimited && (selectedScope == .all || selectedScope == .answer)
-          ? (handoff == nil && conversationInput ? .boundedConversationAnswer : .boundedAnswer)
+          ? (conversationInput ? .boundedConversationAnswer : .boundedAnswer)
           : selectedScope
         let inferenceScope = inferenceScopeForNextStep()
         messages[0].initialChatDecision = messages[0].initialChatDecision && step == 1
@@ -503,7 +412,7 @@ public enum WorkbookAgent {
         messages[0].visualCaptureIDs = visualCaptures.keys.sorted()
         messages[0].countReceiptIDs = countReceipts.keys.sorted()
         if maintenance != nil {
-          // Handoff proof and malformed-response recovery can add context after
+          // Malformed-response recovery can add context after
           // the last completed-group maintenance. Never dispatch that overflow
           // or discard an in-progress group to manufacture a smaller prompt.
           let prepared = try await model.measureContext(
@@ -1194,23 +1103,6 @@ public enum WorkbookAgent {
         var isolatedTestStepsPassed = 0
         do {
           if let appRoutingFailure { throw appRoutingFailure }
-          try require(
-            tool != "start_thread_and_continue" || step < stepBudget,
-            "step_limit", "There is no response budget left to continue in a new thread.")
-          try require(
-            handoff == nil
-              || (tool != "conversation_action" && WorkbookTools.conversationTools[tool] == nil),
-            "handoff_limit",
-            "This request already moved to its new thread. Finish its remaining work here.")
-          // A "continue" taken for a new thread left the stopped request undone.
-          if WorkbookTools.conversationTools[tool] != nil, !stoppedRequestRaised, step < stepBudget,
-            let stopped = try workbook.unreadStoppedRequest(
-              conversation: conversation, runID: runID)
-          {
-            stoppedRequestRaised = true
-            throw SevraError(
-              "stopped_request", Self.stoppedReminder(stopped, otherwise: "make this call again"))
-          }
           try ItemReferenceCandidates.validate(tool: tool, arguments: a, choices: itemChoices)
           try DocumentCopyCandidates.validate(tool: tool, arguments: a, choices: copyChoices)
           if tool == "propose_movement", !readOnly {
@@ -1492,8 +1384,8 @@ public enum WorkbookAgent {
           }
         } catch {
           callFailed = true
-          // Asking for the title a thread already has changes nothing, so nothing failed.
-          nothingFailed = ["unchanged_thread", "stopped_request"].contains(
+          // Reminding the model of a stopped request changes nothing, so nothing failed.
+          nothingFailed = ["stopped_request"].contains(
             (error as? SevraError)?.code)
           if ["propose_movement", "prepare_action"].contains(tool),
             let failure = error as? SevraError,
@@ -1680,43 +1572,6 @@ public enum WorkbookAgent {
           maintenance?.enableNativeAppAuthoring()
         }
         if let navigationFailure { return try conclude(navigationFailure, step: step) }
-        if !callFailed
-          && (tool == "conversation_action" || WorkbookTools.conversationTools[tool] != nil)
-        {
-          let outcome = try JSONDecoder().decode(
-            ConversationActionResult.self, from: Data(result.json().utf8))
-          if tool == "start_thread_and_continue" {
-            let child = try workbook.handoffAgentRequest(
-              runID: runID, receiptID: receiptID,
-              sourceID: requestSource.id, steps: step, metrics: .array(metrics),
-              cancellation: cancellation)
-            handedOff = true
-            progress("Continuing in the new thread…")
-            let result = try await runPhase(
-              prompt, workbook: workbook, conversation: child.conversation,
-              context: context, modelDirectory: modelDirectory, cancellation: cancellation,
-              progress: progress, answerPreview: { previews.update($0.text) }, model: model,
-              enableCompaction: enableCompaction,
-              requestStarted: requestStarted, openSpace: openSpace, openReviews: openReviews,
-              workspaceAction: workspaceAction, handoff: child,
-              handoffReceipt: .init(call: call, result: result),
-              stepBudget: stepBudget - step)
-            return AgentResult(
-              answer: result.answer, citations: result.citations,
-              steps: step + result.steps, state: result.state, focus: result.focus,
-              conversationAction: outcome)
-          }
-          actionConfirmations.record(tool: tool, arguments: a, result: result, receiptID: receiptID)
-          return try conclude(
-            outcome.answer, step: step, receiptID: receiptID,
-            payload: .object([
-              "kind": .string("conversation_action"), "result": result,
-              "runID": .string(runID), "receiptID": .string(receiptID),
-              "notice": .string(
-                "Saved thread changes are complete. Navigation and review apply only in the originating live window; no summary has been shared."
-              ),
-            ]), conversationAction: outcome)
-        }
         if callFailed {
           if !nothingFailed {
             actionConfirmations.recordFailure(
@@ -1956,9 +1811,7 @@ public enum WorkbookAgent {
             ]), citations: proposals.map(\.id),
             focus: AgentFocus(kind: "item", id: proposals[0].id))
         }
-        if tool == "read_workflow", !callFailed, result["clarification"] != .null, !readOnly,
-          handoff == nil
-        {
+        if tool == "read_workflow", !callFailed, result["clarification"] != .null, !readOnly {
           nextToolScope = .workflowAnswer
         }
         if tool == "prepare_workflow_answer", !callFailed {
@@ -2082,7 +1935,6 @@ public enum WorkbookAgent {
         "This request reached its step limit. Completed changes are saved. Ask to continue, or narrow the question."
       )
     } catch {
-      if handedOff { throw error }
       let terminal = cancellation.isCancelled ? "cancelled" : "failed"
       var failure = error
       if cancellation.isCancelled {

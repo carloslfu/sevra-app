@@ -75,7 +75,7 @@ private actor ReviewReadGate {
   try expect(last.items.count == 5 && last.nextCursor == nil)
   try expect(Set((first.items + last.items).map(\.id)) == expected)
   try expect(Set(first.items.map(\.id)).isDisjoint(with: last.items.map(\.id)))
-  let home = try book.workspaceSnapshot(conversation: "main")!.reviewQueue
+  let home = try book.workspaceSnapshot(conversation: book.startChat)!.reviewQueue
   try expect(home.items.count == 5 && home.nextCursor != nil)
   try expect(try book.balance(subject: "fittings")["quantity"].text == "20")
   let declined = try book.withdrawDraft(move.id, token: "withdraw-once")

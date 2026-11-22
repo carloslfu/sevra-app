@@ -237,11 +237,11 @@ func checkAutomationDefinitions(at root: URL) {
     let content = content(workflow, args)
     let saved = try save(book, content)
     let prompt = "Inspect the saved schedule. Do not enable or run it."
-    let request = try book.startAgentRequest(prompt, conversation: "main", model: "synthetic")
+    let request = try book.startAgentRequest(prompt, conversation: book.startChat, model: "synthetic")
     let source = try book.addItem(
       category: "source", kind: "request", title: "Current request", text: prompt,
       data: .object([
-        "conversationID": .string("main"), "messageID": .string(request.messageID),
+        "conversationID": .string(book.startChat), "messageID": .string(request.messageID),
       ]))
     let tools = WorkbookTools(
       book, runID: request.runID, requestSourceID: source.id, readOnly: true)
@@ -260,11 +260,11 @@ func checkAutomationDefinitions(at root: URL) {
     try book.finishAgentRun(request.runID, status: "complete", steps: 1, metrics: .object([:]))
     let savePrompt = "Save a copy of this schedule. Do not enable or run it."
     let saveRequest = try book.startAgentRequest(
-      savePrompt, conversation: "main", model: "synthetic")
+      savePrompt, conversation: book.startChat, model: "synthetic")
     let saveSource = try book.addItem(
       category: "source", kind: "request", title: "Save request", text: savePrompt,
       data: .object([
-        "conversationID": .string("main"), "messageID": .string(saveRequest.messageID),
+        "conversationID": .string(book.startChat), "messageID": .string(saveRequest.messageID),
       ]))
     let author = WorkbookTools(book, runID: saveRequest.runID, requestSourceID: saveSource.id)
     let copy = try author.execute("save_definition", .object(["content": content]))

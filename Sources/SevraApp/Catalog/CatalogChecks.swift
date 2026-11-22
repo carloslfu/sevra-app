@@ -97,7 +97,7 @@ import SevraCore
           ]))
       }
     }
-    if let input = try b.pendingConversationInput(conversation: "main") {
+    if let input = try b.pendingConversationInput(conversation: b.chats()[0].id) {
       let field = input.input!.fields[0]
       let value: Value =
         field.type == .boolean
@@ -115,16 +115,16 @@ import SevraCore
         input, response: .fields(["answer": value]), draftRevision: draft.revision)
       try await refuses { _ = try b.submitConversationInput(input, response: .cancel) }
     }
-    if let approval = try b.pendingChatApproval(conversation: "main") {
+    if let approval = try b.pendingChatApproval(conversation: b.chats()[0].id) {
       let claimed = try b.claimChatApproval(
-        approval, conversation: "main", cancel: false, humanText: "Confirm change")
+        approval, conversation: b.chats()[0].id, cancel: false, humanText: "Confirm change")
       let result = try await state.performChatAction(
         claimed.action, arguments: claimed.arguments, book: b, readOnly: false,
         cancellation: .init(), confirmed: true)
-      try b.finishChatApproval(claimed, conversation: "main", result: result)
+      try b.finishChatApproval(claimed, conversation: b.chats()[0].id, result: result)
       try await refuses {
         _ = try b.claimChatApproval(
-          approval, conversation: "main", cancel: false, humanText: "Confirm change")
+          approval, conversation: b.chats()[0].id, cancel: false, humanText: "Confirm change")
       }
     }
     if session.story.id == "composition.surfaces" {
@@ -132,11 +132,11 @@ import SevraCore
       try require(session.failure == nil, "catalog_check", session.failure ?? "")
     }
     if session.story.id == "main.lifecycle" {
-      let draft = try b.conversationViewState("main").draft
+      let draft = try b.conversationViewState(b.chats()[0].id).draft
       try await state.open(b.url)
       session.book = state.workbook
       try require(
-        try b.conversationViewState("main").draft == draft && !draft.isEmpty, "catalog_check",
+        try b.conversationViewState(b.chats()[0].id).draft == draft && !draft.isEmpty, "catalog_check",
         "Reopen lost draft")
       let other = CatalogSession(story: session.story)
       await other.prepare()
@@ -144,9 +144,9 @@ import SevraCore
         other.ready && other.root != session.root && other.defaults !== session.defaults,
         "catalog_isolation", "Story fixtures were shared")
       _ = try other.book!.saveConversationViewState(
-        "main", draft: "Other window", reading: .init(), expectedDraft: draft)
+        other.book!.chats()[0].id, draft: "Other window", reading: .init(), expectedDraft: draft)
       try require(
-        try b.conversationViewState("main").draft == draft, "catalog_isolation",
+        try b.conversationViewState(b.chats()[0].id).draft == draft, "catalog_isolation",
         "Another fixture changed this draft")
       await other.tearDown()
       try require(

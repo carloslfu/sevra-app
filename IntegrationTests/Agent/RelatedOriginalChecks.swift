@@ -285,9 +285,9 @@ func checkRelatedOriginals() async throws {
   try expectEqual(discovery.stalled, true)
   let request = try book.addItem(
     category: "source", kind: "request", title: "Live request",
-    text: "Compare Atlas and Brio brass bolts", data: .object(["conversationID": .string("main")]))
+    text: "Compare Atlas and Brio brass bolts", data: .object(["conversationID": .string(book.startChat)]))
   let run = try book.startAgentRequest(
-    "Compare Atlas and Brio", conversation: "main", model: "scripted"
+    "Compare Atlas and Brio", conversation: book.startChat, model: "scripted"
   ).runID
   let tools = WorkbookTools(book, runID: run, requestSourceID: request.id)
   let args: Value = .object(["id": .string(atlas.id)])
@@ -307,9 +307,9 @@ func checkRelatedOriginals() async throws {
   }
   let longRequest = try long.addItem(
     category: "source", kind: "request", title: "Live request",
-    text: "Compare Atlas, Brio and Cedar brass bolts", data: .object(["conversationID": .string("main")]))
+    text: "Compare Atlas, Brio and Cedar brass bolts", data: .object(["conversationID": .string(long.startChat)]))
   let longRun = try long.startAgentRequest(
-    "Compare Atlas, Brio and Cedar", conversation: "main", model: "scripted"
+    "Compare Atlas, Brio and Cedar", conversation: long.startChat, model: "scripted"
   ).runID
   let longRead = try WorkbookTools(long, runID: longRun, requestSourceID: longRequest.id).execute(
     "read", .object(["id": .string(longIDs[0])]), receiptID: UUID().uuidString)

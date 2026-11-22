@@ -12,10 +12,10 @@ func checkWorkflowIntakeTools(at root: URL) {
       "Save a reviewed merge mapping for Parts with explicit estimate rows. Do not execute it."
     let request = try book.startAgentRequest(
       prompt,
-      conversation: "main", model: "synthetic intake tools")
+      conversation: book.startChat, model: "synthetic intake tools")
     let source = try book.addItem(
       category: "source", kind: "request", title: "Current request", text: prompt,
-      data: .object(["conversationID": .string("main"), "messageID": .string(request.messageID)]))
+      data: .object(["conversationID": .string(book.startChat), "messageID": .string(request.messageID)]))
     let basis = try book.addItem(category: "source", kind: "observation", title: "Starting values")
     let table = try book.createDataset(
       title: "Parts", columns: [.init(id: "sku", title: "SKU"), .init(id: "qty", title: "Count")],

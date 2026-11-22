@@ -56,10 +56,11 @@ with tempfile.TemporaryDirectory(prefix="sevra-history-cli-") as folder:
     with ThreadPoolExecutor(max_workers=8) as workers:
         list(workers.map(lambda _: run("inspect", workbook), range(8)))
     assert run("inspect", workbook)["revision"] == expected["revision"]
+    chat = run("chats", workbook)[0]["id"]
     ids = []
     after = None
     while True:
-        page = run("history", workbook, "main", *([after] if after else []))
+        page = run("history", workbook, chat, *([after] if after else []))
         assert page["revision"] == expected["revision"]
         assert page["messages"], "History pagination did not progress"
         ids.extend(message["id"] for message in page["messages"])
@@ -67,11 +68,11 @@ with tempfile.TemporaryDirectory(prefix="sevra-history-cli-") as folder:
         if not page["hasMore"]:
             break
     assert ids == expected["ids"]
-    query = run("history-search", workbook, "main", "Supplier archive")
+    query = run("history-search", workbook, chat, "Supplier archive")
     assert len(query["hits"]) == 30 and query["nextCursor"]
-    next_page = run("history-search", workbook, "main", "Supplier archive", query["nextCursor"])
+    next_page = run("history-search", workbook, chat, "Supplier archive", query["nextCursor"])
     assert not ({hit["id"] for hit in query["hits"]} & {hit["id"] for hit in next_page["hits"]})
-    original = run("history-read", workbook, "main", ids[16])
+    original = run("history-read", workbook, chat, ids[16])
     assert original["message"]["body"] == "Supplier archive entry 17"
     assert original["payload"] is None  # Never invent receipts for ordinary messages.
     assert run("checkpoints", workbook) == []  # Storage is not automatic compaction.
@@ -79,7 +80,7 @@ with tempfile.TemporaryDirectory(prefix="sevra-history-cli-") as folder:
     restored = root / "Restored.sevra"
     run("export", workbook, archive)
     run("open-archive", archive, restored)
-    assert run("history-read", restored, "main", ids[16]) == original
+    assert run("history-read", restored, chat, ids[16]) == original
     assert run("history", restored)["digest"] == run("history", workbook)["digest"]
     assert run("verify", restored)["ok"]
     print(json.dumps({"unsupportedFormatRefusedUnchanged": True, "concurrentOpeners": 8, "messagesPaged": len(ids), "searchAndCursor": True,

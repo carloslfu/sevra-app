@@ -113,18 +113,16 @@ func runContinuityWorkflowProbe(
 
   func closedHistory(_ round: Int) throws {
     for index in 0..<150 {
-      let message = try book.addMessage(
+      _ = try book.addMessage(
         "Closed shelf-label inspection \(round)-\(index). "
           + String(repeating: "Labels checked; no inventory movement or pending action. ", count: 3),
         role: "assistant")
-      if index % 25 == 0 {
-        try book.chapter(title: "Inspection \(round)-\(index)", message: message)
-      }
     }
   }
   func ask(
-    _ stage: String, _ prompt: String, workbook: Workbook, conversation: String = "main"
+    _ stage: String, _ prompt: String, workbook: Workbook, conversation: String? = nil
   ) async throws -> AgentResult {
+    let conversation = conversation ?? workbook.startChat
     activeStage = stage
     let started = Date()
     let before = try workbook.contextCheckpoints(conversation: conversation, limit: 100).count
@@ -149,7 +147,8 @@ func runContinuityWorkflowProbe(
     try expectEqual(try workbook.verify()["ok"], .bool(true))
     return result
   }
-  func originalHistory(_ workbook: Workbook, conversation: String = "main") throws -> [Value] {
+  func originalHistory(_ workbook: Workbook, conversation: String? = nil) throws -> [Value] {
+    let conversation = conversation ?? workbook.startChat
     var result: [Value] = []
     var after: String?
     while true {
@@ -176,12 +175,12 @@ func runContinuityWorkflowProbe(
       value["reopenedRuns"] = .array(try restored.agentRuns())
       value["reopenedHistory"] = .array(try originalHistory(restored))
       value["reopenedIntegrity"] = try restored.verify()
-      value["reopenedConversations"] = .array(try restored.conversations())
-      value["tangentHistory"] = .array(
-        try restored.conversations().filter { $0["id"].text != "main" }.map {
+      value["reopenedChats"] = try encoded(restored.chats())
+      value["otherChatHistory"] = .array(
+        try restored.chats().filter { $0.id != restored.startChat }.map {
           .object([
-            "conversation": $0,
-            "messages": .array(try originalHistory(restored, conversation: $0["id"].text)),
+            "chat": try encoded($0),
+            "messages": .array(try originalHistory(restored, conversation: $0.id)),
           ])
         })
     }
@@ -246,7 +245,6 @@ func runContinuityWorkflowProbe(
     for source in baselineSources {
       try expectEqual(try encoded(book.item(source.id)), encoded(source))
     }
-    try expectEqual(try book.chapters().count, 18)
     try expectEqual(await model.edits.count, 2)
     try expectEqual(await model.summaries >= 3, true)
     try expectEqual(try book.contextCheckpoints(limit: 100).count >= 3, true)
@@ -268,32 +266,25 @@ func runContinuityWorkflowProbe(
     try expectEqual(try reopened.item(forecast.logicalID).id, withdrawn.id)
     try expectEqual(try reopened.historyMessage(original).body, originalText)
     try expectEqual(try reopened.historyMessage(latest).body, latestText)
-    try expectEqual(try reopened.chapters().count, 18)
-    let tangent = try reopened.tangent(title: "Packing follow-up", parentMessage: latest)
-    let inherited = try await ask(
-      "tangent",
-      "From the parent information inherited by this tangent, what packing sample quantity should I use now, and what was the original quantity? Preserve both decimal spellings and units, and cite the original message. Make no changes.",
-      workbook: reopened, conversation: tangent)
-    for token in ["0.10", "0.25", "kg"] { try expectEqual(inherited.answer.contains(token), true) }
-    try expectEqual(inherited.citations.contains("message:" + latest), true)
-    try expectEqual(inherited.answer.contains("sevra://conversation/main?message=" + latest), true)
-    let tangentReply = try expectValue(
-      try reopened.messages(conversation: tangent).last {
-        $0.role == "assistant" && $0.state == "complete"
-      })
-    let brought = try reopened.bringToMain(message: tangentReply.id)
-    let broughtMessage = try reopened.historyMessage(brought)
-    try expectEqual(broughtMessage.body.contains(tangentReply.body), true)
+    // A new chat starts from nothing: the first chat's messages are not its history.
+    let chat = try reopened.createChat()
+    let fresh = try await ask(
+      "new chat",
+      "What is the current stock of brass bolts? Cite the opening balance and accepted movements. Make no changes.",
+      workbook: reopened, conversation: chat)
+    try expectEqual(fresh.answer.contains("18"), true)
+    try expectEqual(fresh.citations.contains { $0.hasPrefix("message:") }, false)
     try expectEqual(
-      broughtMessage.body.contains(
-        "sevra://conversation/" + tangent + "?message=" + tangentReply.id), true)
+      try reopened.messages(conversation: chat).allSatisfy {
+        $0.body != originalText && $0.body != latestText
+      }, true)
     try expectEqual(try reopened.balance(subject: "brass bolts"), baselineBalance)
     try expectEqual(try reopened.verify()["ok"], .bool(true))
     let unloaded = await model.releaseResources()
     try expectEqual(unloaded, true)
     try await save(nil, unloaded: unloaded)
     print(
-      "PASS native repeated maintenance, concurrent forecast decisions, corrected quantities, portable stock and inherited tangent evidence"
+      "PASS native repeated maintenance, concurrent forecast decisions, corrected quantities, portable stock and a separate new chat"
     )
   } catch {
     let unloaded = await model.releaseResources()

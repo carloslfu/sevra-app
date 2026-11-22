@@ -362,7 +362,7 @@ extension Workbook {
     for component in definition.components { try validate(component, depth: 1) }
   }
   @discardableResult public func addMessage(
-    _ body: String, role: String, conversation: String = "main", state: String = "complete",
+    _ body: String, role: String, conversation: String, state: String = "complete",
     payload: Value = .null
   ) throws -> String {
     try require(body.utf8.count <= 128_000, "message_limit", "Message is too long.")
@@ -371,6 +371,8 @@ extension Workbook {
       (metadata?.utf8.count ?? 0) <= 128_000, "message_limit", "Message receipt is too long.")
     let id = identifier()
     _ = try mutation("message", request: .string(id)) {
+      try requireLiveChat(conversation)
+      if role == "user" { try nameNewChat(conversation, from: body) }
       try db.execute(
         "INSERT INTO messages VALUES(?,?,?,?,?,?)",
         [
@@ -386,7 +388,7 @@ extension Workbook {
     return id
   }
   public func messages(
-    conversation: String = "main", limit: Int = 100, beforeMessage: String? = nil
+    conversation: String, limit: Int = 100, beforeMessage: String? = nil
   ) throws -> [Message] {
     try synchronized {
       var boundary: Value = .null
@@ -404,35 +406,6 @@ extension Workbook {
           id: $0["id"]!.text, role: $0["role"]!.text, body: $0["body"]!.text,
           state: $0["state"]!.text, created: $0["created"]!.text)
       }
-    }
-  }
-  public func conversations() throws -> [Value] {
-    try synchronized { try db.execute("SELECT * FROM conversations").map(Value.object) }
-  }
-  @discardableResult public func tangent(title: String, parentMessage: String) throws -> String {
-    let id = identifier()
-    _ = try mutation("tangent", request: .string(title)) {
-      try require(
-        try db.scalar("SELECT count(*) FROM messages WHERE id=?", [.string(parentMessage)]).int
-          == 1, "not_found", "The thread needs an existing conversation message.")
-      try db.execute(
-        "INSERT INTO conversations VALUES(?,?,?)",
-        [.string(id), .string(title), .string(parentMessage)])
-      return .string(id)
-    }
-    return id
-  }
-  public func chapter(title: String, message: String, bookmark: Bool = false) throws {
-    _ = try mutation(bookmark ? "bookmark" : "chapter", request: .string(title)) {
-      try db.execute(
-        "INSERT INTO \(bookmark ? "bookmarks" : "chapters") VALUES(?,?,?)",
-        [.string(identifier()), .string(title), .string(message)])
-      return .string(message)
-    }
-  }
-  public func chapters(bookmarks: Bool = false) throws -> [Value] {
-    try synchronized {
-      try db.execute("SELECT * FROM \(bookmarks ? "bookmarks" : "chapters")").map(Value.object)
     }
   }
 }
@@ -462,64 +435,6 @@ extension Workbook {
           id: $0["id"]!.text, role: $0["role"]!.text, body: $0["body"]!.text,
           state: $0["state"]!.text, created: $0["created"]!.text)
       }
-    }
-  }
-  public func parentContext(conversation: String) throws -> [Message] {
-    try synchronized {
-      let parent = try db.scalar(
-        "SELECT parent_message FROM conversations WHERE id=?", [.string(conversation)]
-      ).text
-      guard !parent.isEmpty else { return [] }
-      let location = try messageLocation(parent)
-      return try db.execute(
-        "SELECT * FROM (SELECT rowid,* FROM messages WHERE conversation_id=? AND rowid<=? AND role IN ('user','assistant') ORDER BY rowid DESC LIMIT 6) ORDER BY rowid",
-        [location["conversation_id"], location["rowid"]]
-      ).map {
-        Message(
-          id: $0["id"]!.text, role: $0["role"]!.text, body: $0["body"]!.text,
-          state: $0["state"]!.text, created: $0["created"]!.text)
-      }
-    }
-  }
-  @discardableResult public func bringToMain(message id: String) throws -> String {
-    let message = try synchronized {
-      try db.execute("SELECT * FROM messages WHERE id=?", [.string(id)]).first
-    }
-    guard let message else { throw SevraError("message", "No message to bring back.") }
-    try require(
-      message["conversation_id"]?.text != "main", "conversation",
-      "This exchange is already in the main conversation.")
-    let source = message["conversation_id"]!.text
-    return try addMessage(
-      "From a thread:\n\n" + message["body"]!.text
-        + "\n\n[Open original exchange](sevra://conversation/\(source)?message=\(id))",
-      role: "user", conversation: "main")
-  }
-
-  /// Share only the user's selected text, retaining an exact origin. This does
-  /// not accept business records, expand retrieval scope, or enqueue an AI turn.
-  @discardableResult public func shareSummary(message id: String, text: String) throws -> String {
-    let summary = text.trimmingCharacters(in: .whitespacesAndNewlines)
-    try require(
-      !summary.isEmpty && summary.utf8.count <= 64_000, "summary",
-      "Enter a summary of at most 64,000 bytes.")
-    return try synchronized {
-      guard let message = try db.execute("SELECT * FROM messages WHERE id=?", [.string(id)]).first
-      else { throw SevraError("message", "The original exchange is missing.") }
-      let source = message["conversation_id"]!.text
-      try require(source != "main", "conversation", "This exchange is already in the conversation.")
-      try require(
-        message["state"]?.text == "complete"
-          && ["user", "assistant"].contains(message["role"]?.text ?? ""),
-        "summary", "Choose a completed exchange to share.")
-      return try addMessage(
-        "Shared summary from a thread:\n\n" + summary
-          + "\n\n[Open original exchange](sevra://conversation/\(source)?message=\(id))",
-        role: "user", conversation: "main",
-        payload: .object([
-          "kind": .string("shared_summary"), "conversationID": .string(source),
-          "messageID": .string(id), "referenceOnly": .bool(true),
-        ]))
     }
   }
 }

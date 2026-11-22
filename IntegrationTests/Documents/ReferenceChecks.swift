@@ -157,7 +157,7 @@ private final class CountingPDFView: PDFView {
       category: "source", kind: "document", title: "Original copy",
       text: "[[Choose]] Cafe\u{301}\r\n", status: "accepted")
     let run = try book.startAgentRequest(
-      "Quote the original", conversation: "main", model: "fixture"
+      "Quote the original", conversation: book.startChat, model: "fixture"
     ).runID
     let args: Value = .object(["id": .string(original.id)])
     let receipt = try book.prepareToolCall(

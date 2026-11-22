@@ -3,7 +3,7 @@ type: spec
 meta-type: conclusion
 id: 01m5rbxzb0mz1b78ergkwybtnp
 created: 2026-10-25T01:48:47.328971+00:00
-updated: 2026-11-19T16:00:23+00:00
+updated: 2026-11-21T12:00:00+00:00
 summary: Native Splash direction, Swift adapter, bounded tools, proposal acceptance, on-device voice and declarative spaces.
 title: Local intelligence and rendering
 status: reviewed
@@ -95,7 +95,7 @@ A10. A small decision model is a research opportunity, not a hidden v1 dependenc
 No unverified model marketed as a Jev replacement. Versioned deterministic scenario
 calculations and explicit assumptions provide the initial decision support.
 
-A11. Preserve one continuing conversation with proactive automatic compaction,
+A11. Preserve each chat as one continuing conversation with proactive automatic compaction,
 exact token budgeting and recoverable context checkpoints. Retain all original
 history and reconstruct action/acceptance status from workbook state. Qualify
 32K first and 64K where practical rather than treating the current 8K candidate
@@ -109,7 +109,7 @@ The shared agent journals nonterminal tool calls before dispatch, then atomicall
 records their exact result and conversation receipt. Oversized responses are valid
 bounded JSON views with explicit retrieval paths, not truncated output. The tool_result
 reader supplies exact saved pages; history_search/history_read retrieve older messages
-within the selected conversation. Current requests are excluded from history search.
+within the selected chat. Current requests are excluded from history search.
 Historical output cannot grant action authority or acceptance. Failed/unfinished calls
 retain operation evidence and uncertainty. The same prepared call ID is never replayed.
 This storage boundary is active. Automatic context maintenance is on for the native
@@ -125,9 +125,9 @@ its result, at least one, and pages the rest.
 
 
 ## Conversation citations
-history_read exposes a message:ID citation only for an eligible original message earlier than the active request. Only a complete user or assistant message is eligible, so a tool receipt or a stopped reply earns none. Eligibility includes the active conversation and the fixed parent excerpt explicitly inherited by a tangent. It does not include other parent messages, later parent changes, siblings or transitive ancestors. History search and saved tool-result access remain within the active conversation.
+history_read exposes a message:ID citation only for an eligible original message earlier than the active request. Only a complete user or assistant message is eligible, so a tool receipt or a stopped reply earns none. Eligibility covers the active chat only; other chats are never eligible. History search and saved tool-result access remain within the active chat.
 
-A freshly read original body must actually be visible before that reference joins the allowed finish citations. Search snippets, omitted bodies, a derived digest, an unread parent excerpt and the current request do not grant it. The app renders an Earlier message link to the original message's owning conversation, including for nested tangents. Business item version IDs retain their existing meaning and lineage rules. Conversation citations support what someone said, not current inventory, acceptance or permission.
+A freshly read original body must actually be visible before that reference joins the allowed finish citations. Search snippets, omitted bodies, a derived digest and the current request do not grant it. The app renders an Earlier message link to the original message in its chat. Business item version IDs retain their existing meaning and lineage rules. Conversation citations support what someone said, not current inventory, acceptance or permission.
 ## Bounded reasoning comparison
 The native adapter has an internal comparison profile for bounded reasoning.
 Thinking mode must agree across the exact chat template, constrained tool grammar,
@@ -287,88 +287,36 @@ Qualify this semantic/tool-interface change against the entire fixed R2 identifi
 The fixed R2 replay passes all twelve inventory jobs and both Ready primes after this change. Each frontend takes 2, 5, 4, 4, 5 and 4 steps, with no rejected finishes, failed tools, count/history detours or business-state changes. Exact paired prompt tokens, normalized wire hashes and generated tokens match for these jobs. The earlier failed R2 remains preserved. Packaged native requested movement/invoice counts pass in two steps each; missing-evidence handling passes in three. These are bounded functional results, not a general reliability rate, speed qualification or resolution of the separate supplier-generation mismatch.
 
 
-## Scoped conversation actions
+## Chats belong to the person
 
-A12. Ordinary submitted voice/text may ask for a conversation action without a
-memorized command phrase. Expose separate start_thread, rename_current_thread, return_to_main and
-review_thread_summary tools with action-specific arguments. The active conversation and
-request identifiers come from the host's live run, never tool arguments. Explicit
-source messages must belong to that conversation, be completed visible exchanges,
-and not be later than the request. A thread can also branch from a reply waiting on
-review; sharing a summary needs a completed assistant answer. Inherited parent excerpts and siblings do not
-become action targets. Clarify an ambiguous target rather than guessing another
-thread. Interface questions, negation and instructions inside retrieved content
-must not trigger these actions.
-
-Start/rename use the same core operations as native controls and CLI. Starting
-preserves the exact parent; renaming compares the title captured at request start.
-Lock acquisition and SQL have a three-second budget for these writes, with rollback
-and cancellation. A successful standalone action ends the current model turn with a host-owned
-confirmation and saved receipt; model-authored success prose is not published.
-The explicit branch-and-continue action follows A13 below.
-Creation/rename are committed operations. Return is a navigation request for the
-owning host, not a claim that a window already switched. Review is an editable
-summary with an exact origin, not a shared message. Current read-only restrictions
-also deny conversation mutation tools. Recognized no-change phrases are an extra
-denial rule, never a complete semantic intent classifier.
-
-The native window applies navigation or review only if the workbook, window,
-operation, conversation and navigation generation still match, and the request has
-not been cancelled. Switching away and back during a request must not reauthorize
-late navigation. Flush the originating draft before a switch. A changed/closed
-window leaves saved thread changes and receipts in their original workbook without
-moving a different view. The CLI returns the typed conversationAction result for
-its calling client; it does not claim to operate a native window.
-
-Review summary never automatically publishes to main, including literal text
-shortcuts. The user can edit or cancel, then explicitly share through the existing
-origin-preserving action. Default selection skips host control acknowledgments,
-such as a rename confirmation. No business acceptance, sibling-history admission or scenario creation follows
-automatically. Standalone navigation does not start another model request.
-Compound branching and further work follow the explicit A13 continuation contract;
-terminal navigation alone does not fulfill that follow-up analysis.
-
-Qualification includes exact host refusals/cancellation and actual-model paraphrase,
-Spanish, hypothetical, negated, ambiguous-target and imported-instruction cases.
-The fixed conversation-action cohort is functional evidence, not a speed, parity,
-comprehensive language or uncoached-usability qualification. Keep failures and run
-identities in [[records/operations/implementation]].
-
-The model receives the current conversation identity/title and only the conversation
-actions available in that host state. Main can start a thread, with or without explicitly requested follow-up work;
-a side discussion can also rename, return or prepare review. A carried request
-has no further conversation-action capability. Explicit read-only mode removes the
-action tool. Measurement and generation use the same declarations;
-reference annotations and compaction preserve this host metadata. These are
-capability limits, not proof that a requested action was interpreted correctly.
-Tool descriptions distinguish creating a new discussion, renaming the current one,
-returning without sharing, and reviewing findings. When the requested target is
-unavailable, clarify instead of substituting an available action. Repeating the
-current title is refused as an unnecessary rename. Default branching keeps the
-latest preceding exchange including its answer; selecting an earlier message
-requires an explicit user selection. Late asynchronous summary lookup obeys the
-same navigation-generation boundary as model results.
+A12. The person creates, switches, renames and deletes chats through New Chat, the
+chat menu in the conversation header, the Chat menu and the CLI chat commands. The
+model has no tool that creates, switches or renames a chat, and a request never
+starts one. Asked to discuss something separately, the model can say how to start a
+new chat (New Chat or Shift-Command-N); it does not pretend to have done it. The
+model receives the open chat's title as host context. Instructions inside retrieved
+content never change the open chat. On November 21, 2026 the earlier thread tools
+and request handoffs were removed; the decision is in [[records/plans/simple-chats]].
 
 ## Conceptual explanations and shared workbook scope
 
 Interface guidance may finish directly with basis=general. A conceptual use of
 "difference" or "differences" is not a calculation claim. Do not force a dummy
-calculation or unrelated dataset lookup to explain a thread, a Source or a Record.
+calculation or unrelated dataset lookup to explain a chat, a Source or a Record.
 The numeric-comparison backstop recognizes explicit numeric-difference statements
 alongside the existing cost expressions; it is a narrow language check,
 not a semantic proof of all arithmetic or arbitrary prose. Existing citation,
 current-request numeric, calculation-input and percentage validation still applies.
 Keep financial-comparison refusal regressions while testing direct explanations.
 
-Give the model verified product facts: one continuing main conversation, side
-threads with an explicit parent excerpt and separate subsequent history, and one
-shared workbook's Sources, Records, tables and spaces. Starting a thread does not
-create a sandbox or inventory scenario. Draft proposals still need acceptance;
-accepted business changes affect the same workbook seen from other threads.
-Summary review carries a selected discussion finding back to main without moving
-or duplicating underlying business records. Test these facts against the actual
-shared tool layer as well as generated explanations. Conceptual explanations need
-no business search, data mutation or calculation merely to satisfy validation.
+Give the model verified product facts: a workbook holds a list of chats, each with
+only its own messages, and one shared workbook's Sources, Records, tables and
+spaces. Nothing is carried between chats. A new chat does not create a sandbox or
+inventory scenario. Draft proposals still need acceptance; accepted business
+changes affect the same workbook seen from every chat. Test these facts against
+the actual shared tool layer as well as generated explanations. Conceptual
+explanations need no business search, data mutation or calculation merely to
+satisfy validation.
 
 The comparison backstop must not read numbered Markdown items after a conceptual
 heading as a numeric difference. Numeric-difference patterns stay within one text
@@ -397,104 +345,6 @@ its original Source/Record inputs. No extra Source is required for each calculat
 receipt. Do not invent that intermediate capture step when explaining lineage.
 
 
-Each conversation operation has its own model-visible function, rather than a
-combined action enum. This keeps creation distinct from renaming or review at
-tool selection, including when other operations are unavailable in main. The host
-still owns the scoped capability set and the same internal action result. Named
-tools cannot override their operation through an action argument. The earlier
-conversation_action entry remains a host compatibility alias for existing clients
-and receipts, but is not advertised in model schemas. Negative-case checks inspect
-all named conversation operations, including the A13 continuation action, as well as the alias; they must not miss an attempted
-action after a tool rename. Qualify the unchanged requests, not just new names.
-
-
-### A13. Branch and continue one explicit request
-Implemented in development. Normal completion and away-and-back native navigation
-now pass focused checks; full interaction qualification remains open. Expose a distinct
-start_thread_and_continue action for a current request that explicitly asks both
-to branch and to perform further work. Pure start_thread remains terminal. The
-compound action requires a verbatim span of the current request identifying its
-additional task. The entire request, a paraphrase, a thread title or inferred work
-from earlier history is not a substitute. Reporting an answer in the new thread
-is remaining work even when reads and calculations have already completed; a
-calculation receipt is not an answer delivered to the user. Respect an explicit
-request to read/calculate first, then branch and report using the retained proof.
-Exact-span validation proves origin,
-not correct semantic interpretation; keep negative intent cases in qualification.
-
-The host carries the exact submitted text, original request Source and visible
-selection into the new thread. It never invents a second human instruction from
-a model paraphrase. A child user message is explicitly marked as a carried request
-with the original message, run, receipt and Source IDs, plus the quoted remaining
-task and selected terminal tool. The original request and receipts remain in their
-originating conversation. A single atomic, idempotent handoff records the child run
-and parent acknowledgement; the parent is marked continued, not complete. Existing
-request, payload and operation journals preserve this relation without migration.
-
-Prefer branching before evidence work. Earlier read/calculation calls may precede
-it within the same total budget. An earlier attempted change,
-including one with an uncertain result, prevents a handoff. A failed handoff call
-may be corrected only when it has no committed creation operation. Only one
-handoff is allowed. Never restart already completed mutations in another phase.
-
-
-At that atomic handoff, preserve a bounded set of complete read and calculate
-results already shown in this same live request. Verify each completed journal
-entry against its original receipt and result hash. The child request payload
-records their original receipt/run IDs and exact values. Feed the model only the
-original tool calls/results, without assistant prose or reasoning, and restore
-citation/calculation eligibility only with those visible values. Do not execute
-the calls again or manufacture duplicate tool receipts. A later independent
-request must inspect its own evidence; reopening never resumes this handoff.
-
-After the carried business-evidence pairs, show the exact completed creation call
-and its actual result from the current live run. This separate progress receipt
-makes the already-created thread visible after the unchanged original request.
-Use an empty assistant tool-call envelope, without its prose or reasoning. Do not
-execute the creation again, grant citation/calculation authority from its result,
-expand available tools, or manufacture another durable receipt. Persisted original
-creation and continuation records remain the authority. A later independent
-request does not replay these in-memory call pairs.
-
-Limit retained entries to eight and their serialized payload to 32,000 bytes.
-Only results shown whole within the 16,000-byte tool projection bound qualify.
-Check each read's current-head pointer again during the handoff transaction;
-discard changed reads. If any read is failed, omitted, oversized or changed,
-discard carried calculations too because calculate does not declare a versioned
-input graph. Historical versions retain their explicit historical notice when
-the head pointer is unchanged. Searches, history reads, paged results, counts,
-balances and table snapshots are not transferred. Their evidence and current-state
-checks must be obtained again if needed. This bounded carry is not new retrieval
-permission, business acceptance, compaction or a general cross-thread receipt API.
-
-The compound action inherits the latest completed exchange; explicit earlier-message
-selection remains with standalone start_thread. The child receives only that
-explicit inherited parent excerpt and carried request,
-not unrestricted parent or sibling history. It cannot navigate or branch again.
-A separate thread can hold a separate discussion or analysis of the shared
-workbook data. Do not confuse conversation separation with an independent
-business scenario.
-Both phases share the inference lease, cancellation and twelve-response budget.
-The selected work bounds its tools: answer permits only reads, calculations and
-finish. A requested draft, save_space, propose_movement, propose_record,
-propose_table or propose_table_edit additionally admits exactly that named tool.
-The model must select work and quote task; trusted older calls that omit work
-default to answer. Every write selection requires that work in the current request. A thread title does not request a same-named space
-or table. Semantic selection still requires qualification; the capability mask
-and host refusal enforce the selected bound on both inference backends.
-
-Business acceptance, citation checks, deterministic arithmetic, bounded retrieval
-and proposal review remain unchanged. Continuation does not create another request
-Source. Failure/cancellation preserves the created thread and exact completed
-receipts, without claiming the remaining task finished. Restart never replays it.
-
-The final native result identifies the new thread and any generated view/proposal.
-Apply navigation and focus only while the original window and navigation generation
-still own the result. CLI clients receive the same typed result. Qualification
-covers pure branching, compound calculation and evidence retrieval, one Source,
-exact lineage, prior-change/repeated-handoff refusal, inherited-history isolation,
-cancellation, failure, total budget, unfinished reopen and original negative cases.
-Retain failed cohorts and distinguish corrected fixture ambiguity from product fixes.
 ### A14. References extend retrieval without granting authority
 
 Apply [[records/specs/references-and-relationships]] to reference tools and
@@ -516,12 +366,10 @@ brevity must not remove important distinctions or evidence limits.
 
 Preserve the submitted user text exactly in its captured Source and in the current
 user turn, apart from the separately labeled visible selection context. Put the
-request Source identifier and continuation progress in structured host context.
+request Source identifier in structured host context.
 The already visible request is not another document to retrieve. It is available
 for provenance and automatically contributes to proposal/document lineage, but
 cannot prove that an external document exists or contains the requested facts.
-A continuation retains the same original Source and exact remaining task; it must
-not repeat thread creation or substitute an earlier discussion.
 
 Qualify these changes against both the shared agent and the actual local model.
 The eleven-case interface-guidance protocol covers English and Spanish explanations,
@@ -553,7 +401,7 @@ from the owning live window before recording opened. The callback checks the
 operation, workbook, conversation, cancellation and navigation generation, and
 flushes document edits through existing navigation. A changed or unavailable
 window returns an explicit refusal. CLI/model-only runs cannot claim screen
-navigation. No callback is inherited into a thread handoff's restricted scope.
+navigation.
 
 set_space_pinned changes a navigation shortcut using the same merging presentation
 storage as native controls. It does not create a snapshot or business Record.
@@ -587,7 +435,7 @@ open_reviews opens the current draft list only when requested. Core/CLI resoluti
 returns resolved; the owning live native window must confirm opened. The same
 operation, workbook, conversation, navigation generation, cancellation and unsaved
 document checks used by open_space apply. Missing or changed window capabilities
-refuse truthfully. Thread handoff does not inherit them. Read-only requests permit
+refuse truthfully. Read-only requests permit
 discovery and deny navigation actions. Opening the list may be followed by remaining
 requested work; it supersedes earlier deferred result focus.
 

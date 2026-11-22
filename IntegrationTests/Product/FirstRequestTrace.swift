@@ -9,7 +9,7 @@ import SevraSplashText
 /// A diagnostic with the real model, not a check: the app's first request, timed. The product's
 /// model configuration is built from a packaged build, the engine starts ahead of the request as
 /// the app starts it when a workbook opens, and then "hi" and a follow-up are sent as composer
-/// input in a new thread of a copy of a workbook. Run with SEVRA_PROMPT_HEADER set to the build's
+/// input in a new chat of a copy of a workbook. Run with SEVRA_PROMPT_HEADER set to the build's
 /// header folder. Prints each step's time and the saved per-call metrics.
 func firstRequestTrace(modelsRoot: String, packagedBin: String, workbook: String) async throws {
   try SplashModelSetup.checkHardware()
@@ -32,11 +32,9 @@ func firstRequestTrace(modelsRoot: String, packagedBin: String, workbook: String
   func mark(_ text: String) {
     print(String(format: "%7.3f  %@", ProcessInfo.processInfo.systemUptime - start, text))
   }
-  // A new thread from the last answer in main, as the person did.
-  guard let parent = try book.messages(conversation: "main").last(where: { $0.role == "assistant" })
-  else { throw SevraError("trace", "The workbook has no answer in main to start a thread from.") }
-  let thread = try book.startThread(parentMessage: parent.id)
-  mark("workbook open, thread " + thread.prefix(8))
+  // A new chat, as the person starts one.
+  let chat = try book.createChat()
+  mark("workbook open, new chat " + chat.prefix(8))
 
   let warm = await model.prewarm(directory: models, cancellation: Cancellation())
   mark("engine started ahead of the request: \(warm)")
@@ -44,7 +42,7 @@ func firstRequestTrace(modelsRoot: String, packagedBin: String, workbook: String
     let sent = ProcessInfo.processInfo.systemUptime
     mark("send " + prompt)
     let result = try await service.run(
-      prompt, workbook: book, conversation: thread, modelDirectory: models,
+      prompt, workbook: book, conversation: chat, modelDirectory: models,
       progress: { mark("  progress " + $0) }, conversationInput: true)
     mark(
       String(

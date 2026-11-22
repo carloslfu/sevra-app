@@ -57,7 +57,7 @@ public enum Demo {
       logicalID: identifier(), content: ActionRegistry.movementDefinition())
     _ = try book.addMessage(
       "This example has supplier quotes and a delivery. Try ‘Why do we have 18 brass bolts?’ or ‘Compare the supplier costs and show the evidence.’",
-      role: "assistant")
+      role: "assistant", conversation: try book.chats()[0].id)
     return .object(["path": .string(url.path), "datasetID": .string(table.id)])
   }
 }

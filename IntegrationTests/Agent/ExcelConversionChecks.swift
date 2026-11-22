@@ -1054,7 +1054,7 @@ func checkExcelConversions() async throws {
     if business.name == "Inventory" {
       let request = try book.addMessage("Read this conversion's SDK", role: "user")
       let run = try book.startAgentRun(
-        conversation: "main", model: "fixture", requestMessageID: request)
+        conversation: book.startChat, model: "fixture", requestMessageID: request)
       let scopedRun = WorkbookTools(book, runID: run, excelConversion: fresh)
       let receipt = try book.prepareToolCall(
         runID: run, callID: "guide", tool: "native_app_sdk", arguments: .object([:]))

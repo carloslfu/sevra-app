@@ -71,7 +71,6 @@ extension NativeTools {
 
   package static func referenceDefinitions(
     itemReferenceIDs: [String] = [], historyReferenceIDs: [String]? = nil,
-    conversationActions: [String]? = nil,
     toolScope: InferenceToolScope = .all, documentCopyIDs: [String]? = nil,
     nativeAppAuthoring: Bool = true, reviewContract: Value = .null, conversationInput: Bool = false,
     visualCaptureIDs: [String] = [], display: Bool = false
@@ -93,16 +92,11 @@ extension NativeTools {
     if toolScope.specialized { return excelDefinitions(toolScope) }
     let ids = try ItemReferenceCandidates.normalized(itemReferenceIDs)
     let copies = try documentCopyIDs.map(DocumentCopyCandidates.normalized)
-    if let conversationActions {
-      try require(
-        Set(conversationActions).isSubset(of: Set(WorkbookTools.conversationTools.values)),
-        "tool_schema", "Invalid conversation capability.")
-    }
     // A scope that only reads offers only the actions that only read. What the model is shown
     // is the same in every chat scope, so every chat turn starts with the one prepared header.
     return GeneralTools.definitions(
       operations: toolScope.workspaceOperations.map(\.name),
-      threads: conversationActions.map(Set.init), apps: display || nativeAppAuthoring,
+      apps: display || nativeAppAuthoring,
       ask: display || toolScope.allows("request_input", conversationInput: conversationInput)
         ? inputDefinition : nil, readOnly: !toolScope.changes, items: ids,
       messages: historyReferenceIDs, display: display,
@@ -171,14 +165,12 @@ extension NativeTools {
   /// The same maintained declarations feed both backend boundaries.
   package static func serializedDefinitions(
     toolScope: InferenceToolScope = .all, itemReferenceIDs: [String] = [],
-    historyReferenceIDs: [String]? = nil,
-    conversationActions: [String]? = nil, documentCopyIDs: [String]? = nil,
+    historyReferenceIDs: [String]? = nil, documentCopyIDs: [String]? = nil,
     nativeAppAuthoring: Bool = true, reviewContract: Value = .null, conversationInput: Bool = false,
     visualCaptureIDs: [String] = [], display: Bool = false
   ) throws -> Data {
     let definitions = try referenceDefinitions(
       itemReferenceIDs: itemReferenceIDs, historyReferenceIDs: historyReferenceIDs,
-      conversationActions: conversationActions,
       toolScope: toolScope, documentCopyIDs: documentCopyIDs,
       nativeAppAuthoring: nativeAppAuthoring,
       reviewContract: reviewContract, conversationInput: conversationInput,

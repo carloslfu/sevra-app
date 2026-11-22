@@ -44,7 +44,7 @@ private actor HiddenRequestInference: WorkbookInference {
       args = .object(["id": .string(message)])
     default:
       try expectEqual(step, 5)
-      try expectEqual(messages.last!.content.contains("inherited parent excerpt"), true)
+      try expectEqual(messages.last!.content.contains("another chat"), true)
       tool = "finish"
       args = .object([
         "answer": .string("Use history within its permitted conversation scope."),
@@ -108,8 +108,8 @@ func checkReferenceScope() async throws {
   try FileManager.default.createDirectory(at: root, withIntermediateDirectories: true)
   defer { try? FileManager.default.removeItem(at: root) }
   let book = try Workbook.create(at: root.appendingPathComponent("Hidden.sevra"), title: "Hidden")
-  let parent = try book.addMessage("Parent context", role: "user")
-  let sibling = try book.tangent(title: "Private side discussion", parentMessage: parent)
+  _ = try book.addMessage("Parent context", role: "user")
+  let sibling = try book.createChat()
   let message = try book.addMessage("SIBLING-SECRET-CONTENT", role: "user", conversation: sibling)
   let hidden = try book.addItem(
     category: "source", kind: "request", title: "SIBLING-SECRET-TITLE",

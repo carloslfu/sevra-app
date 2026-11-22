@@ -61,24 +61,23 @@ private final class BlockedWorkspaceRead: @unchecked Sendable {
   try FileManager.default.createDirectory(at: root, withIntermediateDirectories: true)
   let book = try Workbook.create(at: root.appendingPathComponent("First.sevra"), title: "First")
   let message = try book.addMessage("Original message", role: "user")
-  let branch = try book.tangent(title: "Branch", parentMessage: message)
+  let branch = try book.createChat()
   _ = try book.addMessage("Branch message", role: "user", conversation: branch)
   _ = try book.addItem(category: "source", kind: "note", title: "Evidence", text: "Original")
-  try book.chapter(title: "Check", message: message)
-  try book.chapter(title: "Saved", message: message, bookmark: true)
-  let original = try book.workspaceSnapshot(conversation: "main")!
+  let original = try book.workspaceSnapshot(conversation: book.startChat)!
   try requireRefresh(original.revision == (try book.revision()), "Projection revision differs")
   try requireRefresh(
-    original.chapters.count == 1 && original.bookmarks.count == 1,
-    "Conversation navigation was not included in the snapshot")
+    original.chats.map(\.id) == [branch, book.startChat]
+      && original.chats.map(\.title) == ["Branch message", "Original message"],
+    "The snapshot did not list both chats, most recent first")
   try requireRefresh(original.messages.map(\.id) == [message], "Wrong conversation messages")
   try requireRefresh(
     original.items.count == 1 && original.spaces.first?.id == "home", "Incomplete catalog")
   try requireRefresh(
-    try book.workspaceSnapshot(conversation: "main", ifChangedFrom: original.revision) == nil,
+    try book.workspaceSnapshot(conversation: book.startChat, ifChangedFrom: original.revision) == nil,
     "Unchanged polling rebuilt the full projection")
   _ = try book.addMessage("New message", role: "user")
-  let changed = try book.workspaceSnapshot(conversation: "main", ifChangedFrom: original.revision)!
+  let changed = try book.workspaceSnapshot(conversation: book.startChat, ifChangedFrom: original.revision)!
   try requireRefresh(
     changed.messages.count == 2 && changed.revision > original.revision, "Polling lost a change")
   do {
@@ -90,17 +89,17 @@ private final class BlockedWorkspaceRead: @unchecked Sendable {
   for (token, seconds, code) in [(cancelled, 3.0, "cancelled"), (Cancellation(), 0.0, "deadline")] {
     do {
       _ = try book.workspaceSnapshot(
-        conversation: "main", cancellation: token, deadlineSeconds: seconds)
+        conversation: book.startChat, cancellation: token, deadlineSeconds: seconds)
       throw SevraError("workspace_refresh_check", "Cancelled/expired read was accepted")
     } catch let error as SevraError where error.code == code {}
   }
   try requireRefresh(
-    try book.workspaceSnapshot(conversation: "main")?.revision == changed.revision,
+    try book.workspaceSnapshot(conversation: book.startChat)?.revision == changed.revision,
     "Cancelled read damaged the next snapshot")
 
   let window = UUID()
   let first = WorkspaceReadIdentity(
-    workbook: book, window: window, conversation: "main", messageAnchor: nil)
+    workbook: book, window: window, conversation: book.startChat, messageAnchor: nil)
   let other = WorkspaceReadIdentity(
     workbook: book, window: window, conversation: branch, messageAnchor: nil)
   let session = WorkspaceRefreshSession()
@@ -143,7 +142,7 @@ private final class BlockedWorkspaceRead: @unchecked Sendable {
   // request and rejects an old error, while the new read remains eligible.
   let reopened = try Workbook(book.url)
   let replacement = WorkspaceReadIdentity(
-    workbook: reopened, window: UUID(), conversation: "main", messageAnchor: nil)
+    workbook: reopened, window: UUID(), conversation: reopened.startChat, messageAnchor: nil)
   try requireRefresh(replacement != first, "Reopen reused the prior window/read identity")
   let failure = BlockedWorkspaceRead()
   session.request(identity: first) {
@@ -159,7 +158,7 @@ private final class BlockedWorkspaceRead: @unchecked Sendable {
   }
   session.reset()
   session.request(identity: replacement) { control in
-    try reopened.workspaceSnapshot(conversation: "main", cancellation: control)
+    try reopened.workspaceSnapshot(conversation: reopened.startChat, cancellation: control)
   } complete: { result in
     if case .success(let snapshot) = result, snapshot?.messages.count == 2 {
       applied.append("reopened")

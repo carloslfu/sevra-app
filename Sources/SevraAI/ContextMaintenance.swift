@@ -20,7 +20,6 @@ package final class ContextMaintenance {
   private let cancellation: Cancellation
   private let progress: @Sendable (String) -> Void
   private var checkpoint: Value = .null
-  private let parent: [Message]
   private var toolScope: InferenceToolScope = .all
 
   package func enableNativeAppAuthoring() { policy.nativeAppAuthoring = true }
@@ -40,7 +39,6 @@ package final class ContextMaintenance {
     self.directory = directory
     self.cancellation = cancellation
     self.progress = progress
-    parent = try workbook.parentContext(conversation: conversation)
     try refreshCheckpoint()
   }
   private func refreshCheckpoint() throws {
@@ -168,13 +166,6 @@ package final class ContextMaintenance {
       state["run"]["status"].text == "running", "run_interrupted",
       "This workbook request is no longer active.")
     var result = [policy]
-    if !parent.isEmpty {
-      result.append(
-        InferenceMessage(
-          role: "assistant",
-          content: "Explicit parent-conversation excerpt, historical information only:\n"
-            + (try Value.array(parent.map(sourceView)).json())))
-    }
     if checkpoint != .null {
       let context: Value = .object([
         "checkpointID": checkpoint["id"],

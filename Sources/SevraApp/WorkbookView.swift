@@ -218,23 +218,24 @@ struct WorkbookView: View {
         }
       }
       .focusedSceneValue(\.conversationWorkspace, state)
-      .sheet(item: $state.conversationDraft) { draft in
-        ConversationNameSheet(draft: draft) { name in
-          guard let book = state.workbook else { return }
-          let owner = state.interactionIdentity
-          try await Task.detached(priority: .userInitiated) {
-            if let thread = draft.threadID {
-              try book.renameThread(
-                thread, title: name, expectedTitle: draft.title, token: draft.id.uuidString)
-            } else {
-              try book.chapter(title: name, message: draft.message)
-            }
-          }.value
-          guard state.interactionIdentity == owner, state.workbook === book else { return }
-          state.refresh()
-          state.conversationDraft = nil
+      .sheet(item: $state.chatRename) { rename in
+        ChatRenameSheet(rename: rename) { title in
+          try await state.renameChat(rename.chat, title: title, token: rename.id.uuidString)
+          state.chatRename = nil
           composerFocused = true
         }
+      }
+      .alert(
+        "Delete this chat?", isPresented: Binding(
+          get: { state.chatDeletion != nil }, set: { if !$0 { state.chatDeletion = nil } }),
+        presenting: state.chatDeletion
+      ) { chat in
+        Button("Delete", role: .destructive) { state.deleteChat(chat.id) }
+        Button("Cancel", role: .cancel) {}
+      } message: { chat in
+        Text(
+          "“\(chat.title)” leaves your chat list. Records, results and Sources it made stay in the workbook."
+        )
       }
       .sheet(isPresented: $state.showingHistorySearch) {
         ConversationHistorySheet(state: state, search: state.historySearch)
@@ -262,15 +263,6 @@ struct WorkbookView: View {
           NativeAppHistoryView(space: space, state: state)
         } else {
           SpaceLayoutEditor(space: space, state: state)
-        }
-      }
-      .sheet(item: $state.summaryDraft) { draft in
-        ConversationSummarySheet(draft: draft) { summary in
-          guard let book = state.workbook else { return }
-          _ = try book.shareSummary(message: draft.id, text: summary)
-          state.summaryDraft = nil
-          state.changeConversation("main")
-          composerFocused = true
         }
       }
       .onReceive(timer) { _ in state.poll() }
@@ -370,68 +362,37 @@ struct WorkbookView: View {
   }
   var conversationHeader: some View {
     PaneHeader {
-      if state.conversation != "main" {
-        Button {
-          state.changeConversation("main")
-        } label: {
-          Image(systemName: "arrow.uturn.backward")
-        }.help("Back to conversation").accessibilityLabel("Back to conversation")
+      Menu {
+        Button("New Chat", action: state.newChat)
+        Divider()
+        ForEach(state.chats) { chat in
+          Toggle(
+            isOn: Binding(
+              get: { chat.id == state.conversation },
+              set: { if $0 { state.changeConversation(chat.id) } })
+          ) { Text(chat.title) }
+        }
+      } label: {
+        Text(state.chatTitle).readingFont(.subheadline, weight: .medium).lineLimit(1)
       }
-      let threads = state.conversations.filter { $0["id"].text != "main" }
-      if threads.isEmpty {
-        Text(state.conversationTitle).readingFont(.subheadline, weight: .medium).lineLimit(1)
-      } else {
-        Menu {
-          Button("Conversation") { state.changeConversation("main") }
-          Section("Threads") {
-            ForEach(threads, id: \.text) { chat in
-              Button(chat["title"].text) { state.changeConversation(chat["id"].text) }
-            }
-          }
-        } label: {
-          Text(state.conversationTitle).readingFont(.subheadline, weight: .medium).lineLimit(1)
+      .menuStyle(.borderlessButton).fixedSize(horizontal: false, vertical: true)
+      .help("Switch chats")
+      .accessibilityLabel("Chat: " + state.chatTitle)
+      .accessibilityHint("Opens your chats")
+      Spacer(minLength: 4)
+      HeaderIconButton("New chat", systemImage: "square.and.pencil", action: state.newChat)
+      MoreActionsMenu("Chat actions") {
+        Button("Rename Chat…") {
+          state.chatRename = .init(chat: state.conversation, title: state.chatTitle)
         }
-        .help("Switch between the main conversation and its threads")
-        .accessibilityLabel("Switch conversation: " + state.conversationTitle)
-      }
-      Spacer()
-      MoreActionsMenu("Conversation actions") {
-        Button("Start a chapter…") {
-          if let message = state.messages.last {
-            state.conversationDraft = .init(message: message.id)
-          }
-        }.disabled(state.messages.isEmpty)
-        Button("Start a thread") {
-          if let message = state.messages.last {
-            state.startThread(from: message.id)
-          }
-        }.disabled(state.messages.isEmpty)
-        if state.conversation != "main" {
-          Button("Rename thread…", action: state.requestRenameThread)
-          Button("Share summary with conversation…") { state.requestSummary() }
-            .disabled(
-              !state.messages.contains { $0.role == "assistant" && $0.state == "complete" })
-        }
-        Button("Search this conversation…") { state.showingHistorySearch = true }
-        if !state.bookmarks.isEmpty {
-          Menu("Saved exchanges") {
-            ForEach(state.bookmarks, id: \.text) { bookmark in
-              Button(bookmark["title"].text) { state.jumpToMessage(bookmark["message_id"].text) }
-            }
-          }
-        }
-        if !state.chapters.isEmpty {
-          Menu("Chapters") {
-            ForEach(state.chapters, id: \.text) { chapter in
-              Button(chapter["title"].text) { state.jumpToMessage(chapter["message_id"].text) }
-            }
-          }
-        }
+        Button("Search This Chat…") { state.showingHistorySearch = true }
+        Divider()
+        Button("Delete Chat…", role: .destructive) {
+          state.chatDeletion = state.chats.first { $0.id == state.conversation }
+        }.disabled(!state.canDeleteChat)
       }
     }.disabled(state.changingConversation)
-      .accessibilityElement(children: .contain).accessibilityLabel(
-        "Conversation: " + state.conversationTitle
-      )
+      .accessibilityElement(children: .contain).accessibilityLabel("Chat: " + state.chatTitle)
       .focusable().focused($keyboardPane, equals: .conversation)
       .accessibilityFocused($readingFocus, equals: .conversation)
   }
@@ -625,7 +586,7 @@ struct WorkbookView: View {
   var composer: some View {
     VStack(alignment: .leading, spacing: 8) {
       if state.changingConversation {
-        Text("Opening conversation…").readingFont(.caption).foregroundStyle(.secondary)
+        Text("Opening chat…").readingFont(.caption).foregroundStyle(.secondary)
       }
       if let failure = state.conversationSession.failure {
         Text(failure).readingFont(.caption).foregroundStyle(.red).textSelection(.enabled)
@@ -730,94 +691,46 @@ struct WorkbookView: View {
   }
 }
 
-struct ConversationDraft: Identifiable {
+/// A rename of one chat, made from the chat actions menu.
+struct ChatRename: Identifiable {
   let id = UUID()
-  let message: String
-  var threadID: String? = nil
-  var title: String = ""
+  let chat: String
+  let title: String
 }
 
-private struct ConversationNameSheet: View {
-  let draft: ConversationDraft
-  let create: (String) async throws -> Void
+private struct ChatRenameSheet: View {
+  let rename: ChatRename
+  let save: (String) async throws -> Void
   @Environment(\.dismiss) private var dismiss
   @State private var name = ""
   @State private var failure: String?
   @State private var saving = false
   @FocusState private var focused: Bool
-  private var title: String { draft.threadID != nil ? "Rename thread" : "Start a chapter" }
+  private var trimmed: String { name.trimmingCharacters(in: .whitespacesAndNewlines) }
   var body: some View {
-    ScrollView {
-      VStack(alignment: .leading, spacing: 16) {
-        Text(title).readingFont(.title2, weight: .medium).accessibilityAddTraits(.isHeader)
-        Text(
-          draft.threadID != nil
-            ? "Choose a title that helps you recognize this discussion."
-            : "Name this point so you can find it later in the conversation."
-        )
-        .foregroundStyle(.secondary)
-        TextField("Name", text: $name).textFieldStyle(.roundedBorder).focused($focused)
-        if let failure { Text(failure).foregroundStyle(.red).readingFont(.callout) }
-        HStack {
-          Spacer()
-          Button("Cancel") { dismiss() }.keyboardShortcut(.cancelAction)
-          Button(draft.threadID != nil ? "Save title" : "Create chapter") {
-            saving = true
-            Task {
-              defer { saving = false }
-              do { try await create(name.trimmingCharacters(in: .whitespacesAndNewlines)) } catch {
-                failure = error.localizedDescription
-              }
-            }
-          }.keyboardShortcut(.defaultAction)
-            .disabled(name.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
-        }
-      }.padding(24)
-    }.readingFont(.body).frame(
-      minWidth: 320, idealWidth: 440, minHeight: 240, idealHeight: 320, maxHeight: 700
-    )
-    .disabled(saving).interactiveDismissDisabled(saving).announceStatus(failure).onAppear {
-      name = draft.title
-      focused = true
-    }
+    VStack(alignment: .leading, spacing: 16) {
+      Text("Rename chat").readingFont(.title2, weight: .medium).accessibilityAddTraits(.isHeader)
+      TextField("Title", text: $name).textFieldStyle(.roundedBorder).focused($focused)
+        .onSubmit(submit)
+      if let failure { Text(failure).foregroundStyle(.red).readingFont(.callout) }
+      HStack {
+        Spacer()
+        Button("Cancel") { dismiss() }.keyboardShortcut(.cancelAction)
+        Button("Save", action: submit).keyboardShortcut(.defaultAction)
+          .disabled(trimmed.isEmpty || trimmed == rename.title)
+      }
+    }.padding(24).readingFont(.body).frame(minWidth: 320, idealWidth: 420)
+      .disabled(saving).interactiveDismissDisabled(saving).announceStatus(failure).onAppear {
+        name = rename.title
+        focused = true
+      }
   }
-}
-
-struct ConversationSummaryDraft: Identifiable {
-  let id: String
-  let text: String
-}
-
-private struct ConversationSummarySheet: View {
-  let draft: ConversationSummaryDraft
-  let share: (String) throws -> Void
-  @Environment(\.dismiss) private var dismiss
-  @State private var text = ""
-  @State private var failure: String?
-  var body: some View {
-    ScrollView {
-      VStack(alignment: .leading, spacing: 16) {
-        Text("Share summary with conversation").readingFont(.title2, weight: .medium)
-          .accessibilityAddTraits(.isHeader)
-        Text("Edit the findings you want to bring back. The original exchange stays linked.")
-          .foregroundStyle(.secondary)
-        TextEditor(text: $text).readingFont(.body).frame(minHeight: 180)
-          .accessibilityLabel("Summary to share")
-          .overlay(RoundedRectangle(cornerRadius: 6).stroke(.quaternary))
-        if let failure { Text(failure).foregroundStyle(.red) }
-        HStack {
-          Spacer()
-          Button("Cancel") { dismiss() }.keyboardShortcut(.cancelAction)
-          Button("Share summary") {
-            do { try share(text) } catch { failure = error.localizedDescription }
-          }.keyboardShortcut(.defaultAction)
-            .disabled(text.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
-        }
-      }.padding(24)
-    }.readingFont(.body).frame(
-      minWidth: 320, idealWidth: 520, minHeight: 240, idealHeight: 520, maxHeight: 700
-    )
-    .announceStatus(failure)
-    .onAppear { text = draft.text }
+  private func submit() {
+    guard !saving, !trimmed.isEmpty, trimmed != rename.title else { return }
+    saving = true
+    Task {
+      defer { saving = false }
+      do { try await save(trimmed) } catch { failure = error.localizedDescription }
+    }
   }
 }

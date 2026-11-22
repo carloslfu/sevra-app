@@ -242,7 +242,7 @@ func checkApplicationDefinitions(at root: URL) {
     try refuses { _ = try save(b, function(parameters: [parameter(), parameter()])) }
     try refuses { _ = try save(b, function(parameters: [parameter(extra: ["default": .null])])) }
     try refuses { _ = try save(b, function(parameters: [parameter(extra: ["min": .number(0)])])) }
-    try expect(try b.revision() == 0)
+    try expect(try b.revision() == 1)
   }
   check("definition retries, actors, exact stale bases and restore preserve complete history") {
     let b = try book("History")

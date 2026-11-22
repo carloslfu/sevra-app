@@ -8,7 +8,7 @@ func checkDocumentCopyChoices(at root: URL) {
     let book = try Workbook.create(
       at: root.appendingPathComponent(identifier() + ".sevra"), title: "Copy choices")
     let run = try book.startAgentRequest(
-      "Draft from the original", conversation: "main", model: "fixture"
+      "Draft from the original", conversation: book.startChat, model: "fixture"
     ).runID
     let source = try book.addItem(
       category: "source", kind: "document", title: "Original", text: text)
@@ -139,7 +139,7 @@ func checkDocumentCopyChoices(at root: URL) {
         ]))
     }
     try expect(try book.revision() == before)
-    let next = try book.startAgentRequest("Different task", conversation: "main", model: "fixture")
+    let next = try book.startAgentRequest("Different task", conversation: book.startChat, model: "fixture")
       .runID
     try refuses("document_copy_scope") { _ = try book.documentCopyChoice(id, runID: next) }
     try expect(try book.item(source.id).text == "First\nSecond\n")
@@ -186,7 +186,7 @@ func checkDocumentCopyChoices(at root: URL) {
       let result = try WorkbookTools(book, runID: run).execute("read", args, receiptID: receipt)
       _ = try book.completeToolCall(receipt, result: result)
     }
-    let state = try book.continuationState(conversation: "main", runID: run, messageIDs: [])
+    let state = try book.continuationState(conversation: book.startChat, runID: run, messageIDs: [])
     let entries = DocumentCopyChoices.entries(state)
     try expect(try Value.array(entries).json().utf8.count <= 8192)
     for label in labels { try expect(entries.contains { $0["text"].text == label }) }
@@ -202,7 +202,7 @@ func checkDocumentCopyChoices(at root: URL) {
       let result = try WorkbookTools(book, runID: run).execute("read", args, receiptID: receipt)
       _ = try book.completeToolCall(receipt, result: result)
     }
-    let state = try book.continuationState(conversation: "main", runID: run, messageIDs: [])
+    let state = try book.continuationState(conversation: book.startChat, runID: run, messageIDs: [])
     let entries = DocumentCopyChoices.entries(state)
     try expect(entries.count == 1 && entries[0]["text"].text == "First\n")
     _ = try book.documentCopyChoice(entries[0]["id"].text, runID: run)

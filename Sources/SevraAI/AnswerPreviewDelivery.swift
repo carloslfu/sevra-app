@@ -1,6 +1,6 @@
 import Foundation
 
-/// Serialize and bound ephemeral preview delivery across retries and handoffs.
+/// Serialize and bound ephemeral preview delivery across retries.
 /// No preview is written to the workbook or treated as a completed answer.
 final class AnswerPreviewDelivery: @unchecked Sendable {
   private let lock = NSLock()

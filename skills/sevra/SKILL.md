@@ -26,7 +26,14 @@ is a user document, not this repository's db.md knowledge store.
 8. Verify significant changes and reopen exported archives before claiming success.
 
 `commits PATH [LIMIT]` inspects bounded committed-change metadata. Conversation
-history still uses `history PATH [CONVERSATION_ID [AFTER_MESSAGE_ID]]`.
+history uses `history PATH [CHAT_ID [AFTER_MESSAGE_ID]]`. Each workbook has a list
+of chats: `chats PATH` lists them by last activity, `chat-new PATH` starts one,
+`chat-rename PATH CHAT_ID TITLE` renames one and `chat-delete PATH CHAT_ID` deletes
+one (its messages stay in the file; a chat with a running answer refuses with
+`chat_busy`). `ask PATH QUESTION [MODEL_DIRECTORY] [--chat CHAT_ID]` asks in the
+named chat, and its output includes `chat`. Commands with an optional CHAT_ID use
+the most recently active chat when it is omitted. Each chat holds only its own
+messages; nothing is carried between chats.
 `reconstruct PATH NEW_PATH` rebuilds current-format saved history into a new
 workbook, preserving IDs, times, decisions and included historical dependencies.
 It refuses missing/corrupt history or required included bytes. Explicitly linked
@@ -647,16 +654,16 @@ the app's local model already has reference-traversal tools.
 Use `history` to page original conversation messages, `history-search` for scoped
 full-text retrieval and `history-read` for an exact message and its preserved
 receipt. Follow the returned history cursor; append-only messages do not invalidate
-older pages. A changed query or conversation requires a fresh search. `checkpoints` and `checkpoint` inspect derived context and current input
+older pages. A changed query or chat requires a fresh search. `checkpoints` and `checkpoint` inspect derived context and current input
 state. A digest is not evidence of acceptance or permission for a new action.
 Use the workbook's current records and operation state, and cite original versions.
 `search` searches business evidence. The agent-facing `tool PATH search ARGS_JSON`
-also offers older main-conversation candidates in `conversation.hits` on an
+also offers older candidates from the most recently active chat in `conversation.hits` on an
 unfiltered first page. Business filters and continuation pages do not search
 conversation. Read a message candidate with `history-read` before citing it;
 continue its separate cursor with `history-search`, never business `search`.
 An answer citation starting with `message:` refers to an original conversation
-message, not an item ID. Inspect it with `history-read PATH CONVERSATION MESSAGE_ID`
+message, not an item ID. Inspect it with `history-read PATH CHAT_ID MESSAGE_ID`
 after removing that prefix. It supports what was said earlier, not current business
 facts or acceptance. The app opens it at the original message. Do not send it to
 `read` or use it as a business-record input.

@@ -265,6 +265,17 @@ recovery and portable reopen checks remain required. Earlier-development migrati
 tests are not required under [[records/specs/distribution]]; supported-production
 upgrade checks start with the production 1.0 baseline.
 
+S17a. Format 33 (SQLite user_version) stores chats in
+`conversations(id, title, created, deleted)`. There is no seeded main row and no
+chapter or bookmark table. A new workbook records one change, its first chat, so a
+fresh workbook is at revision 1. Deleting a chat sets `deleted=1` and removes its
+draft state; its messages stay because Sources and receipts point at them, and a
+schema trigger refuses new messages for a deleted chat. A chat with a running answer
+refuses deletion with `chat_busy`; the app offers Delete only while nothing is
+working, and its delete closes a run a crash left marked as running. Older formats are refused without conversion,
+under the pre-1.0 compatibility policy in [[records/specs/distribution]]. The
+decision is in [[records/plans/simple-chats]].
+
 ## Current physical context storage
 
 The following paragraphs retain historical implementation/verification facts.
@@ -331,8 +342,7 @@ receipts and large-result memory qualification remain work, not bounded-memory p
 Conversation FTS uses append-safe descending keyset cursors bound to query, scope
 and the optional current-request boundary. Appending journal/messages does not
 invalidate older pages. Agent history search excludes its current request and
-later messages. It searches only the selected conversation; tangents retain their
-existing explicit parent excerpt, without a new cross-conversation search privilege.
+later messages. It searches only the selected chat; no chat can search another.
 
 The history FTS indexes original messages and bounded receipt projections, not every
 field of an oversized journal result. Full results remain addressable by receipt ID
@@ -361,7 +371,7 @@ enter FTS, lineage, Sources, Records, conversation history or model context. Thi
 is an explicit exception to S10's business-operation journaling requirement.
 
 The UI coordinator serializes background writes, waits for later edits before a
-flush completes, and awaits durability at thread/close/quit boundaries. Process
+flush completes, and awaits durability at chat switch/close/quit boundaries. Process
 lock acquisition has a three-second deadline; SQLite busy waits use 100 ms within
 this presentation operation. The OS may still delay a filesystem write or fsync.
 A failed save preserves the draft in memory and refuses destructive navigation.

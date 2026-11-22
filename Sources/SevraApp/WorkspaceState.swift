@@ -104,17 +104,16 @@ struct FolderReview {
   @Published var showingHistorySearch = false
   private var conversationNavigationIdentity = UUID()
   let historySearch = ConversationHistorySearch()
-  @Published var conversations: [Value] = []
-  @Published var conversationDraft: ConversationDraft?
-  @Published var summaryDraft: ConversationSummaryDraft?
+  /// The workbook's chats, most recently active first.
+  @Published var chats: [Chat] = []
+  @Published var chatRename: ChatRename?
+  @Published var chatDeletion: Chat?
   @Published var composerFocusRequest = UUID()
-  @Published var chapters: [Value] = []
-  @Published var bookmarks: [Value] = []
   @Published var pendingExtractions: [Value] = []
   @Published var importProgress: (saved: Int, total: Int)?
   @Published var activeIntake: String?
   @Published var intakePrompt: IntakePrompt?
-  @Published var conversation = "main" {
+  @Published var conversation = "" {
     didSet {
       if conversation != oldValue {
         speech.stop()
@@ -254,11 +253,10 @@ struct FolderReview {
     speech.stop()
     let restored = await conversationSession.open(
       opened,
-      conversation: defaults.string(forKey: "lastConversation:" + opened.url.path)
-        ?? "main")
+      conversation: defaults.string(forKey: "lastConversation:" + opened.url.path))
     try require(
       restored, "conversation_save",
-      conversationSession.failure ?? "Could not restore the conversation draft.")
+      conversationSession.failure ?? "Could not restore the chat draft.")
     _ = await formDrafts.open(opened)
     let clarificationOpened = await clarificationDrafts.open(opened)
     try require(
@@ -288,9 +286,7 @@ struct FolderReview {
     excelPurposeDrafts = [:]
     messages = []
     proposalReviews = [:]
-    conversations = []
-    chapters = []
-    bookmarks = []
+    chats = []
     pendingExtractions = []
     importProgress = nil
     activeIntake = nil
@@ -457,12 +453,15 @@ struct FolderReview {
         self.proposalReviews = snapshot.proposalReviews
         self.hasEarlierMessages = snapshot.hasEarlierMessages
         self.hasLaterMessages = snapshot.hasLaterMessages
-        self.conversations = snapshot.conversations
-        self.chapters = snapshot.chapters
-        self.bookmarks = snapshot.bookmarks
+        self.chats = snapshot.chats
         self.pendingExtractions = snapshot.pendingExtractions
         if !self.busy { self.importProgress = nil }
       case .failure(let failure):
+        // The open chat was deleted from outside this window, such as from the command line.
+        if (failure as? SevraError)?.code == "chat_deleted" {
+          self.leaveDeletedChat()
+          return
+        }
         // A busy workbook can be retried by the next timer tick. An explicit
         // refresh reports its failure while preserving the last complete view.
         if !polling || (failure as? SevraError)?.code != "deadline" {
@@ -507,8 +506,12 @@ struct FolderReview {
   }
   func jumpToMessage(_ id: String) {
     do {
-      let location = try workbook?.messageLocation(id)
-      changeConversation(location?["conversation_id"].text ?? "main", anchor: id)
+      guard let book = workbook else { return }
+      let chat = try book.messageLocation(id)["conversation_id"].text
+      guard try book.chats().contains(where: { $0.id == chat }) else {
+        throw SevraError("chat_deleted", "That message is in a chat that was deleted.")
+      }
+      changeConversation(chat, anchor: id)
     } catch { self.error = error.localizedDescription }
   }
   func back() {
@@ -754,7 +757,7 @@ struct FolderReview {
         if !failures.isEmpty {
           throw SevraError("import_partial", failures.joined(separator: "\n"))
         }
-        if let finished { _ = try book.addMessage(finished, role: "event", conversation: chat) }
+        if let finished { try Self.postEvent(finished, in: chat, book) }
         return excel
       },
       completion: { excel in
@@ -860,7 +863,7 @@ struct FolderReview {
           let result = try book.runIntake(
             choice.id, cancellation: cancel, progress: progress)
           if result.state != current.state {
-            _ = try book.addMessage(result.detail, role: "event", conversation: chat)
+            try Self.postEvent(result.detail, in: chat, book)
           }
           return IntakeAttempt(job: result, failure: nil)
         } catch {
@@ -1024,12 +1027,9 @@ struct FolderReview {
     else { return }
     speech.stop()
     let input = prompt.trimmingCharacters(in: .whitespacesAndNewlines)
-    // A command never reaches the model, and a shared summary may be longer than a message.
-    if ConversationCommand.parse(input) == nil {
-      do { try ComposerInput.admit(input) } catch {
-        self.error = error.localizedDescription
-        return
-      }
+    do { try ComposerInput.admit(input) } catch {
+      self.error = error.localizedDescription
+      return
     }
     if input.lowercased().hasPrefix("answer:") {
       guard let surface = exactReplyInput() else { return }
@@ -1100,10 +1100,6 @@ struct FolderReview {
       }
       return
     }
-    if conversationCommand(input, book: book) {
-      refresh()
-      return
-    }
     if handleChatConfirmation(input, book: book) {
       refresh()
       return
@@ -1124,7 +1120,7 @@ struct FolderReview {
     }
     error =
       pendingInputs.isEmpty
-      ? "There is no question waiting in this conversation."
+      ? "There is no question waiting in this chat."
       : "Choose a question to answer from Pending questions."
     return nil
   }
@@ -1197,7 +1193,7 @@ struct FolderReview {
         else {
           throw SevraError(
             "workspace_changed",
-            "You moved to another view or conversation. No view was opened. Ask again from the view you want to use."
+            "You moved to another view or chat. No view was opened. Ask again from the view you want to use."
           )
         }
         guard self.navigate(destination) else {
@@ -1259,11 +1255,6 @@ struct FolderReview {
           conversation == chat && itemPreviewIdentity == expectedNavigationID
           && conversationNavigationIdentity == conversationOrigin
           && !ticket.cancellation.isCancelled && !changingConversation
-        if present,
-          let action = result.conversationAction, action.originConversation == chat
-        {
-          applyConversationAction(action)
-        }
         if present, let focus = result.focus {
           switch focus.kind {
           case "space": navigate(.space(focus.id))
@@ -1404,31 +1395,6 @@ struct FolderReview {
       return "Inspecting a saved workflow run; opening it does not authorize execution."
     }
   }
-  private func conversationCommand(_ input: String, book: Workbook) -> Bool {
-    guard let command = ConversationCommand.parse(input) else { return false }
-    do {
-      let parent = messages.last { ["user", "assistant"].contains($0.role) }
-      if case .startThread = command, parent == nil {
-        throw SevraError("conversation", "Start the conversation before opening a thread.")
-      }
-      // Keep navigation/sharing instructions in their originating history. Only
-      // the explicitly shared findings are copied into the main conversation.
-      _ = try book.addMessage(input, role: "user", conversation: conversation)
-
-      switch command {
-      case .backToConversation: changeConversation("main")
-      case .startThread(let title):
-        if let parent { startThread(from: parent.id, title: title) }
-      case .shareSummary(let text):
-        requestSummary(text: text)
-      }
-
-    } catch {
-      self.error = error.localizedDescription
-      returnInput(input)
-    }
-    return true
-  }
   func localCommand(_ input: String, book: Workbook) -> Bool {
     let lower = input.lowercased()
     do {
@@ -1496,11 +1462,6 @@ struct FolderReview {
       case .undo(let id):
         review(id, accepting: false)
         return true
-      case .chapter(let title):
-        if let message = messages.last {
-          try book.chapter(title: title, message: message.id)
-          return true
-        }
       case nil: break
       }
     } catch {
@@ -1755,50 +1716,6 @@ struct FolderReview {
     case nil: break
     }
   }
-  func requestSummary(message: Message? = nil, text: String? = nil) {
-    guard conversation != "main", let book = workbook else {
-      error = "Choose a completed thread answer to share."
-      return
-    }
-    if let message {
-      summaryDraft = .init(id: message.id, text: text ?? message.body)
-      return
-    }
-    let owner = interactionIdentity
-    let chat = conversation
-    let navigation = conversationNavigationIdentity
-    Task {
-      do {
-        let selected = try await Task.detached(priority: .userInitiated) {
-          try book.latestShareableAnswer(conversation: chat)
-        }.value
-        guard interactionActive, interactionIdentity == owner, workbook === book,
-          conversation == chat, conversationNavigationIdentity == navigation,
-          !changingConversation
-        else { return }
-        guard let selected else {
-          throw SevraError("summary", "Choose a completed thread answer to share.")
-        }
-        summaryDraft = .init(id: selected.id, text: text ?? selected.body)
-      } catch {
-        if interactionActive && interactionIdentity == owner && conversation == chat
-          && conversationNavigationIdentity == navigation
-        {
-          self.error = error.localizedDescription
-        }
-      }
-    }
-  }
-  private func applyConversationAction(_ action: ConversationActionResult) {
-    switch action.kind {
-    case .created, .returnToMain: changeConversation(action.conversation)
-    case .renamed: refresh()
-    case .reviewSummary:
-      if let id = action.message, let text = action.summary {
-        summaryDraft = .init(id: id, text: text)
-      }
-    }
-  }
   func changeConversation(_ id: String, anchor: String? = nil) {
     guard interactionActive, !changingConversation else { return }
     speech.stop()
@@ -1813,8 +1730,8 @@ struct FolderReview {
   private func selectConversation(_ id: String, anchor: String? = nil, owner: UUID) async {
     guard await conversationSession.select(id), interactionActive, interactionIdentity == owner
     else { return }
-    conversationDraft = nil
-    summaryDraft = nil
+    chatRename = nil
+    chatDeletion = nil
     showingHistorySearch = false
     if conversation != id {
       historySearch.reset()
@@ -1838,33 +1755,94 @@ struct FolderReview {
     refresh()
     composerFocusRequest = UUID()
   }
-  func startThread(from message: String, title: String? = nil) {
+  /// The open chat's title.
+  var chatTitle: String {
+    chats.first { $0.id == conversation }?.title ?? Workbook.newChatTitle
+  }
+  /// A chat cannot be deleted while an answer or an import is still working: either one
+  /// writes its result into the chat it started in.
+  var canDeleteChat: Bool { !busy && !changingConversation }
+  /// An import's closing note. The chat it started in may have been deleted meanwhile; the
+  /// import itself is saved either way.
+  nonisolated static func postEvent(_ text: String, in chat: String, _ book: Workbook) throws {
+    do { _ = try book.addMessage(text, role: "event", conversation: chat) } catch let error
+      as SevraError where error.code == "chat_deleted"
+    {}
+  }
+  /// Opens an empty chat. An open chat that is still empty is reused rather than repeated; the
+  /// workbook says so, not the list on screen, which a fast second press can find out of date.
+  func newChat() {
     guard interactionActive, !changingConversation, let book = workbook else { return }
+    let open = conversation
+    switchChat(owner: interactionIdentity) {
+      try await Task.detached(priority: .userInitiated) {
+        let current = try? book.chat(open)
+        return current?.messageCount == 0 ? open : try book.createChat()
+      }.value
+    }
+  }
+  /// Moves off a chat deleted elsewhere. Its unsent draft cannot be saved into it any more.
+  private func leaveDeletedChat() {
+    guard interactionActive, !changingConversation, let book = workbook else { return }
+    conversationSession.abandonUnsaved()
+    switchChat(owner: interactionIdentity) {
+      try await Task.detached(priority: .userInitiated) {
+        try book.chats().first?.id ?? book.createChat()
+      }.value
+    }
+  }
+  func renameChat(_ id: String, title: String, token: String) async throws {
+    guard let book = workbook else { return }
+    let owner = interactionIdentity
+    try await Task.detached(priority: .userInitiated) {
+      try book.renameChat(id, title: title, token: token)
+    }.value
+    guard interactionIdentity == owner, workbook === book else { return }
+    refresh()
+  }
+  /// Deletes a chat. Deleting the open one first moves to the most recent other chat, or to a
+  /// new one when it was the last, so its draft is saved before the chat goes away.
+  func deleteChat(_ id: String) {
+    guard interactionActive, !changingConversation, let book = workbook else { return }
+    let owner = interactionIdentity
+    let next = chats.first { $0.id != id }?.id
+    switchChat(owner: owner, moving: conversation == id) {
+      let target: String
+      if let next { target = next } else {
+        target = try await Task.detached(priority: .userInitiated) { try book.createChat() }.value
+      }
+      return target
+    } then: {
+      // Nothing is working in this window, so a run still marked as running was cut off.
+      try await Task.detached(priority: .userInitiated) {
+        _ = try book.deleteChat(id, closingUnfinishedRuns: true)
+      }.value
+    }
+  }
+  /// Moves to the chat `destination` names, when `moving`, then runs `then` in the new chat.
+  private func switchChat(
+    owner: UUID, moving: Bool = true, _ destination: @escaping () async throws -> String,
+    then: (() async throws -> Void)? = nil
+  ) {
     speech.stop()
     clarificationDrafts.invalidateConversationPreviews()
     changingConversation = true
-    let owner = interactionIdentity
     Task {
       defer { changingConversation = false }
-      guard await conversationSession.flush(), interactionActive, interactionIdentity == owner
-      else { return }
       do {
-        let id = try await Task.detached(priority: .userInitiated) {
-          try book.startThread(parentMessage: message, title: title)
-        }.value
-        guard interactionActive, interactionIdentity == owner, workbook === book else { return }
-        await selectConversation(id, owner: owner)
+        if moving {
+          guard await conversationSession.flush(), interactionActive, interactionIdentity == owner
+          else { return }
+          let id = try await destination()
+          guard interactionActive, interactionIdentity == owner else { return }
+          await selectConversation(id, owner: owner)
+          guard conversation == id else { return }
+        }
+        try await then?()
+        guard interactionActive, interactionIdentity == owner else { return }
+        refresh()
       } catch { if interactionIdentity == owner { self.error = error.localizedDescription } }
     }
-  }
-  var conversationTitle: String {
-    conversation == "main"
-      ? "Conversation"
-      : conversations.first { $0["id"].text == conversation }?["title"].text ?? "Thread"
-  }
-  func requestRenameThread() {
-    guard conversation != "main" else { return }
-    conversationDraft = .init(message: "", threadID: conversation, title: conversationTitle)
   }
   func pageConversation(earlier: Bool) {
     guard !changingConversation, let boundary = earlier ? messages.first?.id : messages.last?.id
@@ -1958,8 +1936,8 @@ struct FolderReview {
   func endInteraction() {
     interactionActive = false
     returnUnsent()
-    conversationDraft = nil
-    summaryDraft = nil
+    chatRename = nil
+    chatDeletion = nil
     showingHistorySearch = false
     historySearch.reset()
     interactionIdentity = UUID()

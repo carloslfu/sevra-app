@@ -295,7 +295,7 @@ extension Workbook {
       arguments.object.count > 0 || arguments == .object([:]), "tool_call",
       "Tool arguments must be an object.")
     let args = try arguments.json()
-    let operationToken = try WorkbookTools(self, runID: runID).operationToken(tool, arguments)
+    let operationToken = try WorkbookTools.operationToken(runID: runID, tool, arguments)
     try require(
       args.utf8.count <= 32_000 && (try Value.string(assistantText).json()).utf8.count <= 32_000
         && operationToken.utf8.count <= 512,
@@ -372,7 +372,7 @@ extension Workbook {
     return projected
   }
 
-  public func toolCall(_ id: String, conversation: String = "main") throws -> Value {
+  public func toolCall(_ id: String, conversation: String) throws -> Value {
     try synchronized {
       guard
         let row = try db.execute(
@@ -386,8 +386,8 @@ extension Workbook {
       value["arguments"] = try Value.parse(row["arguments"]!.text)
       try require(
         row["operation_token"]?.text
-          == WorkbookTools(self, runID: row["run_id"]!.text).operationToken(
-            row["tool"]!.text, value["arguments"]!),
+          == WorkbookTools.operationToken(
+            runID: row["run_id"]!.text, row["tool"]!.text, value["arguments"]!),
         "integrity", "Saved operation identity does not match its tool call.")
       // prepare_action commits through its own host preview, under that commit's token.
       var token = row["operation_token"]!
@@ -398,8 +398,9 @@ extension Workbook {
         ).first?["id"]
       {
         token = .string(
-          try WorkbookTools(self, runID: row["run_id"]!.text).operationToken(
-            "commit_action_preview", .object(["previewReceiptID": preview])))
+          try WorkbookTools.operationToken(
+            runID: row["run_id"]!.text, "commit_action_preview",
+            .object(["previewReceiptID": preview])))
       }
       // This is the exact committed operation, not an assertion by a summary.
       // Some intake tools perform several resumable operations and have no single token.
@@ -418,7 +419,7 @@ extension Workbook {
       return .object(value)
     }
   }
-  public func unresolvedToolCalls(conversation: String = "main", limit: Int = 8) throws -> [Value] {
+  public func unresolvedToolCalls(conversation: String, limit: Int = 8) throws -> [Value] {
     try synchronized {
       try db.execute(
         "SELECT t.id FROM tool_calls t JOIN agent_runs a ON a.id=t.run_id WHERE a.conversation_id=? AND t.state='prepared' ORDER BY t.rowid DESC LIMIT ?",
@@ -429,7 +430,7 @@ extension Workbook {
     }
   }
   public func toolResultPage(
-    _ id: String, conversation: String = "main", path: [String] = [],
+    _ id: String, conversation: String, path: [String] = [],
     offset: Int = 0, rawJSON: Bool = false, cancellation: Cancellation = .init()
   ) throws -> Value {
     try synchronized {
