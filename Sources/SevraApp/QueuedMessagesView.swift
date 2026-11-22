@@ -122,7 +122,9 @@ struct QueuedMessagesView: View {
     } isTargeted: { targeted in
       if targeted { dropTarget = message.id } else if dropTarget == message.id { dropTarget = nil }
     }
-    .accessibilityElement(children: editing == message.id ? .contain : .combine)
+    // Contain, not combine: a combined row is one element whose press opens the actions
+    // menu, which hides the remove and actions buttons from VoiceOver and automation.
+    .accessibilityElement(children: .contain)
     .accessibilityLabel("Waiting message \(index + 1) of \(count): \(message.text)")
     .accessibilityAction(named: "Edit") { beginEditing(message) }
     .accessibilityAction(named: "Move up") { state.moveQueued(message.id, by: -1) }

@@ -322,3 +322,6 @@ The build of commit 4e309ee was installed from output/native; the installed app,
 ## [2026-11-22 16:57] verification | records/operations/agent-handoff
 Chat message queue (d8dd727) checked in the installed build of 4e309ee (Mach-O UUID matches output/native) on a disposable demo workbook with the real model. Two messages queued during a reply, one dragged above the other, and both sent in the new order after the reply. Stop paused the queue with its messages kept; Resume sent the next one; Clear emptied it. Each row is one combined accessibility element, so its remove and actions buttons cannot be pressed separately through accessibility; the named row actions remain. Edit and the row remove button were not exercised.
 
+## [2026-11-22 16:59] verification | records/operations/agent-handoff
+Waiting-message rows now contain their controls instead of combining them, so each row's remove and actions buttons are separate accessibility elements. Rebuilt and installed (installed Mach-O UUID matches output/native); in the installed app 'Remove waiting message 2' removed only that message and message 1 stayed queued.
+
