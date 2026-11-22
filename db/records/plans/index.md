@@ -2,14 +2,14 @@
 type: index
 scope: type-folder
 folder: records/plans
-updated: 2026-11-21T20:03:59.751371Z
+updated: 2026-11-22T02:16:16Z
 ---
 
 # records/plans
 
+- [[records/plans/general-chat-tools]] — Seven general chat tools (SQL on a scratch copy, sandboxed code, workbook tools) and a prompt header made at build time. Built, looked at, and updated in the app between two headers.
 - [[records/plans/simple-chats]] — Threads, chapters, bookmarks and the main conversation became one plain list of chats per workbook, in format 33 with no conversion. Built, reviewed twice and checked; light set 11 of 11.
 - [[records/plans/first-request-latency]] — The first answer waited for the engine and read half the prompt again. Prewarm, one header for every chat turn, and reads by real IDs cut "hi" from 14 s to 3.7 s.
-- [[records/plans/general-chat-tools]] — Seven general chat tools (SQL on a scratch copy, sandboxed code, workbook tools) and a prompt header made at build time. Built, looked at, and updated in the app between two headers.
 - [[records/plans/inference-context-upgrade]] — Context fixes and Splash 1.6.1 installed. The focused context comparison selects 64K on the 48 GiB test host.
 - [[records/plans/excel-business-applications]] — Close realistic Excel business application reconstruction, reliable autonomous generation, and integrated chat/native qualification gaps.
 - [[records/plans/single-excel-import]] — Single Excel import and native workflow reconstruction

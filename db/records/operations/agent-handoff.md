@@ -3,7 +3,7 @@ type: operational
 meta-type: operational
 id: 01m659x4nd2q89tkpzzsssd7yr
 created: 2026-10-30T02:23:30.477380+00:00
-updated: 2026-11-21T18:26:17.330826+00:00
+updated: 2026-11-22T02:16:16+00:00
 summary: Native UI Catalog implemented and locally verified, with durable agent maintenance instructions and preserved product/model qualification limits.
 title: Minimum-feature continuation handoff
 ---
@@ -33,6 +33,7 @@ How to test it, and how not to:
 - **No-model checks, on every change:** `python3 scripts/check_chat_sql.py`, `python3 scripts/check_chat_run.py` and `sevra-agent-checks --sql-tool`. The first two need `swift build --product sevra` and `--product sevra-extract`. They take seconds.
 - **The light set, when chat behavior changes:** `python3 scripts/check_chat_jobs.py --output NEW_DIRECTORY`. Eleven jobs, one run each, under four minutes. It uses `output/native/bin/sevra`, so rebuild that first: `swift build --scratch-path .build/native-product -c release --product sevra`, copy it over `output/native/bin/sevra` and sign it ad hoc.
 - **A job for its area:** `--jobs build.app` when app building changes, `--jobs build.rule,build.rule_for_workflow` when rules change. The app job needs an app bundle, because the app checker is an XPC service that the CLI finds only as the app's main executable; the installed app's `Contents/CLI/sevra` cannot reach it. Copy `output/native/Sevra.app`, delete its `Contents/MacOS/Sevra`, copy `output/native/bin/sevra` in as `Contents/MacOS/sevra-cli` (the disk ignores case, so `sevra` would replace `Sevra`), set `CFBundleExecutable` to `sevra-cli` and the bundle identifier to a test one, sign the copy ad hoc, and point `SEVRA_CLI` at `sevra-cli`.
+- **Every job, once, to compare two models:** `--jobs '*' --long-run-approved`, with the owner's word, once per model. 30 jobs since November 21, 2026; `conversation.follow_up` fails on the current model, recorded in the general chat tools plan.
 - **Read the transcript of a failed job.** Do not run it again to see if it passes.
 - **Do not edit sources while a release build runs.** A build that started before an edit can package a mix of old and new modules.
 - **One model process at a time.** The harness refuses to start while another engine helper runs or reclaimable memory is short.

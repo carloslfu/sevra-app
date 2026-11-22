@@ -2,7 +2,7 @@
 type: operational
 id: 01m7qrcqqzh4qqr92a8frch1ze
 created: 2026-11-18T16:38:43.199010+00:00
-updated: 2026-11-20T19:55:00+00:00
+updated: 2026-11-22T02:16:16+00:00
 summary: Seven general chat tools (SQL on a scratch copy, sandboxed code, workbook tools) and a prompt header made at build time. Built, looked at, and updated in the app between two headers.
 title: General chat tools and a pre-read prompt header
 ---
@@ -376,6 +376,7 @@ Owner direction: [[sources/notes/2026/11/fast-loop-direction]] on November 18, 2
   - Happy paths: a table question, a question answered from a document, a row change, a new table, a script, a saved view and a greeting.
   - Edge cases: a change the person wants as a draft first, a request missing a value, a document that contains an instruction, and a request that forbids changes.
 - **A job for its area, when that area changes.** The other jobs in the harness run by name: the app job when app building changes, a rule job when rules change.
+- **Every job, once, to compare two models, with the owner's word.** `python3 scripts/check_chat_jobs.py --jobs '*' --long-run-approved --output NEW_DIRECTORY`, once per model. It is for a model change, not for iterating: [[sources/notes/2026/11/model-swap-evals]].
 - **The suite, once on a candidate before a release:** `scripts/check.sh`.
 
 **What is not done:**
@@ -408,6 +409,13 @@ Built on November 18, 2026 under the `general` profile. Evidence: [the evals](..
   - **The app job.** It needs the app checker, which the CLI finds only as the main executable of an app, so it runs from a copy of the packaged app with the CLI as its main executable. It passed 2 of 3 runs on November 18. On November 19 it failed once by resending the same app after the check said to add fixtures; the check now shows that field with a row of the app's table, and the next run passed in 5 decisions. It is still the least reliable job, and it is not in the light set.
 
 **The light set, the routine model run from November 19, 2026:** 11 of 11 pass, in 26 decisions and 3 minutes 51 seconds. It includes the first job in which the model wrote and ran a script, in 2 decisions. After phase 5, with a 2,707-token header, it passed 11 of 11 again in 26 decisions and 2 minutes 41 seconds, and `build.rule`, `build.saved_tool` and `build.app` passed by name in 3, 2 and 5 decisions: [the runs](../../../integration/evidence/2026-11-19-phase5-light/README.md). On November 20, with the export instruction and a 2,770-token header, it passed 11 of 11 in 31 decisions: four jobs took one or two more, from a refused first `finish`, extra reads and a script that fixed its own mistake, and none read the action list or exported ([the run](../../../integration/evidence/2026-11-20-export-light/results.json)).
+
+**Jobs for comparing models, November 21, 2026:** at the owner's request, [[sources/notes/2026/11/model-swap-evals]], five jobs cover what the earlier ones missed, and two answer checks are stricter. The harness holds 30 jobs, and the light set is unchanged.
+
+- **The new jobs:** `read.large_table` asks for a total over 600 rows, where the first 100 give a wrong one. `change.informal` is an instruction with no table or column named. `change.remove_duplicates` must remove one of two identical rows, not both. `conversation.follow_up` is two turns in one chat, where "its" refers back to the first. `safety.quote_instruction` adds a quote that carries a note asking for a change nobody requested.
+- **Stricter answer checks:** numbers in citation links no longer count as figures the answer gives. Before, the label "row 4" let an answer of 3 pass the count job. The comparison job fails an answer that also gives 14.58 percent, the difference measured against the lower total. The clarify job needs the reply to ask for the quantity or the cost.
+- **Checked without the model:** the self-test passes for all 30 jobs, and the 20 saved English answers that passed before still pass the stricter checks.
+- **One run with the real model:** 4 of 5 passed, in 172 seconds ([the run](../../../integration/evidence/2026-11-21-new-jobs/README.md)). `conversation.follow_up` failed. On the second turn the model read "its" as the brass bolts of the stock list rather than Cedar Tools from the first turn. It tried to set their quantity to 20, which the read-only stock list refused, then looped through refused history reads until the repeated-action stop. The earlier turn was in its prompt. This is a model failure on follow-ups, not a harness fault. It is recorded and was not run again.
 
 **Measured once on the final build:**
 

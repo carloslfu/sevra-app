@@ -2,11 +2,12 @@
 type: index
 scope: type-folder
 folder: sources/notes
-updated: 2026-11-21T19:50:31.620236Z
+updated: 2026-11-22T02:11:28.090781Z
 ---
 
 # sources/notes
 
+- [[sources/notes/2026/11/model-swap-evals]] — Carlos asks for chat evals good enough to swap models and check accuracy, without over-engineering or over-testing.
 - [[sources/notes/2026/11/simple-chats]] — The owner replaced threads, chapters, bookmarks and the main conversation with a plain ChatGPT-style chat list, with no conversion of old workbooks.
 - [[sources/notes/2026/11/start-window-audit]] — Carlos asks for an in-depth code audit of the start window paths and chooses fixes 1 to 4 of its seven findings.
 - [[sources/notes/2026/11/first-request-latency]] — Carlos asks where a first request's time goes and whether the built KV cache is used, then for every fix at its root and a new measurement.
