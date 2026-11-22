@@ -80,6 +80,7 @@ private actor ReadGate {
       try await checkVisualMedia()
       try checkReadableTables()
       try await checkConversationState()
+      try await checkConversationQueue()
       try await checkHistorySearch()
       try await checkFormDrafts()
       try await checkWorkflowFormDrafts()

@@ -206,6 +206,10 @@ enum CatalogRegistry {
           : ["Default", "Empty", "Busy", "Failure", "Long labels"])
     }
     add(
+      "chat.queue", "Waiting messages", "Chat", "Sources/SevraApp/QueuedMessagesView.swift",
+      ["Default", "Paused", "Full"],
+      "Messages written during a reply, in the person's order: edit, reorder, remove, resume; ten at most.")
+    add(
       "chat.chat-list", "Chat list", "Chat", "Sources/SevraApp/ChatListPanel.swift",
       ["Default", "Empty", "Long labels"],
       "The chats panel over the chat pane: chats grouped by last activity, the open chat marked.")

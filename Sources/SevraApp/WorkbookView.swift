@@ -207,7 +207,7 @@ struct WorkbookView: View {
         }.readingFont(.callout).padding(12).background(Color.red.opacity(0.07))
       }
     }.background(Color(nsColor: .windowBackgroundColor))
-      .announceStatus(state.error ?? state.terminalStatus)
+      .announceStatus(state.error ?? state.terminalStatus ?? state.announcement)
       .onChange(of: state.readingFocusRequest) { _, request in applyReadingFocus(request) }
       .onReceive(NotificationCenter.default.publisher(for: NSWindow.didBecomeKeyNotification)) {
         event in
@@ -636,6 +636,9 @@ struct WorkbookView: View {
           }
         }
       }
+      if !state.queue.isEmpty {
+        QueuedMessagesView(state: state)
+      }
       if !state.selectedContext.isEmpty {
         HStack(alignment: .top) {
           Text("About: " + (state.selectionLabel ?? String(state.selectedContext.prefix(100))))
@@ -661,9 +664,14 @@ struct WorkbookView: View {
           .disabled(state.changingConversation || !state.conversationSession.ready)
         Spacer()
         VoiceStatus(speech: state.speech)
+        if state.busy, state.queue.isFull {
+          Text("Queue is full (\(ConversationQueue.limit))").readingFont(.caption)
+            .foregroundStyle(.secondary)
+        }
         Button(action: state.send) { Image(systemName: "arrow.up") }.buttonStyle(.borderedProminent)
           .disabled(!state.canSend).keyboardShortcut(.return, modifiers: .command)
-          .accessibilityLabel("Send message")
+          .help(state.busy ? "Add to the queue. It sends after the current reply." : "Send")
+          .accessibilityLabel(state.busy ? "Add message to queue" : "Send message")
       }
     }.padding(12).background(
       Color(nsColor: .textBackgroundColor), in: RoundedRectangle(cornerRadius: 12)

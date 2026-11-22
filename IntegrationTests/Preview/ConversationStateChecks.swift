@@ -179,3 +179,76 @@ private func draftCheck(_ value: Bool, _ code: String, _ message: String) throws
     "PASS scoped drafts, fractional reading state, concurrent flush, reopen, conflict/keep-both/restore, bounded busy retry and rollback"
   )
 }
+
+/// Waiting messages: the ten-message limit, the person's order, pause, put-back, saving with the
+/// chat and reopening paused, and chats saved before the queue existed.
+@MainActor func checkConversationQueue() async throws {
+  var queue = ConversationQueue()
+  for n in 1...ConversationQueue.limit {
+    try queue.add("Message \(n)", id: "m\(n)", queued: "t")
+  }
+  do {
+    try queue.add("Eleventh", id: "m11", queued: "t")
+    throw SevraError("queue_check", "An eleventh message was queued")
+  } catch let error as SevraError where error.code == "queue_full" {}
+  queue.move("m3", by: -1)
+  queue.move("m1", by: -5)
+  queue.move("m10", before: "m1")
+  queue.move("m2", before: nil)
+  try draftCheck(
+    queue.messages.map(\.id).prefix(4) == ["m10", "m1", "m3", "m4"]
+      && queue.messages.last?.id == "m2",
+    "queue_check", "Reordering gave " + queue.messages.map(\.id).joined(separator: ","))
+  try queue.edit("m4", text: "  Edited  ")
+  queue.remove("m5")
+  try draftCheck(
+    queue.messages[3].text == "Edited" && queue.messages.count == 9,
+    "queue_check", "Edit or remove did not apply")
+  do {
+    try queue.edit("m4", text: "   ")
+    throw SevraError("queue_check", "An empty edit was accepted")
+  } catch let error as SevraError where error.code == "queue_empty" {}
+  queue.paused = true
+  try draftCheck(queue.takeNext() == nil, "queue_check", "A paused queue sent a message")
+  queue.paused = false
+  let first = queue.takeNext()
+  try draftCheck(first?.id == "m10" && queue.messages.count == 8, "queue_check", "Wrong next message")
+  try draftCheck(
+    queue.putBack(first!) && queue.paused && queue.messages.first?.id == "m10",
+    "queue_check", "A refused message did not return to the top, paused")
+
+  let root = FileManager.default.temporaryDirectory.appendingPathComponent(
+    "sevra-queue-" + identifier())
+  try FileManager.default.createDirectory(at: root, withIntermediateDirectories: true)
+  defer { try? FileManager.default.removeItem(at: root) }
+  let book = try Workbook.create(at: root.appendingPathComponent("Queue.sevra"), title: "Queue")
+  let chat = book.startChat
+  let session = ConversationSession()
+  try draftCheck(await session.open(book, conversation: chat), "queue_check", "Could not open chat")
+  var saved = ConversationQueue()
+  try saved.add("Then chart it", context: "Row 4", id: "a", queued: "t")
+  try saved.add("Then summarize", id: "b", queued: "t")
+  session.updateDraft("Still typing")
+  session.updateQueue(saved)
+  try draftCheck(await session.flush(), "queue_check", "Queue did not save")
+  let reopened = ConversationSession()
+  try draftCheck(await reopened.open(book, conversation: chat), "queue_check", "Reopen failed")
+  try draftCheck(
+    reopened.state.queue.messages == saved.messages && reopened.state.queue.paused
+      && reopened.state.draft == "Still typing",
+    "queue_check", "Reopened queue was not the same messages, paused, beside the draft")
+
+  // A chat saved before the queue existed still opens, with an empty queue.
+  let other = try book.createChat()
+  _ = try book.saveConversationViewState(
+    other, draft: "Old draft", reading: .init(), expectedDraft: "")
+  let stored = try book.conversationViewState(other)
+  let legacy = try JSONSerialization.jsonObject(with: JSONEncoder().encode(stored)) as! [String: Any]
+  let withoutQueue = legacy.filter { $0.key != "queue" }
+  let decoded = try JSONDecoder().decode(
+    ConversationViewState.self, from: JSONSerialization.data(withJSONObject: withoutQueue))
+  try draftCheck(
+    decoded.draft == "Old draft" && decoded.queue.isEmpty, "queue_check",
+    "A chat without a saved queue did not decode")
+  print("PASS waiting messages: limit, order, edit, pause, put-back, save, reopen paused, old chats")
+}

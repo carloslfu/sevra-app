@@ -146,6 +146,12 @@ struct FolderReview {
   var readingFocusPending = false
   private(set) var readingFocusTarget: WorkbookReadingTarget = .workspace
   @Published var terminalStatus: String?
+  /// Spoken to screen readers only, such as a finished reply that needs no status line.
+  @Published var announcement: String?
+  /// A finished operation sends the next waiting message once a refresh shows its outcome.
+  private var queueAdvanceDue = false
+  /// The waiting message being sent, so a refusal before it reaches the chat can put it back.
+  private var dispatchedQueued: (message: QueuedConversationMessage, chat: String)?
   private var operationTitle = ""
   func requestReadingFocus(_ target: WorkbookReadingTarget) {
     if target == .conversation || target == .composer { focus = false }
@@ -421,7 +427,10 @@ struct FolderReview {
       else { return }
       switch result {
       case .success(let snapshot):
-        guard let snapshot else { return }
+        guard let snapshot else {
+          self.advanceQueueIfDue()
+          return
+        }
         if let current = self.conversationSession.state.reading.message,
           !snapshot.messages.contains(where: { $0.id == current })
         {
@@ -479,6 +488,7 @@ struct FolderReview {
         self.chats = snapshot.chats
         self.pendingExtractions = snapshot.pendingExtractions
         if !self.busy { self.importProgress = nil }
+        self.advanceQueueIfDue()
       case .failure(let failure):
         // The open chat was deleted from outside this window, such as from the command line.
         if (failure as? SevraError)?.code == "chat_deleted" {
@@ -610,6 +620,7 @@ struct FolderReview {
     status = title
     operationTitle = title
     terminalStatus = nil
+    announcement = nil
     error = nil
     return (book, ticket)
   }
@@ -635,13 +646,22 @@ struct FolderReview {
     _ ticket: WorkspaceOperation, in book: Workbook, successStatus: String? = nil
   ) {
     guard owns(ticket, in: book), operations.finish(ticket) else { return }
+    let succeeded = error == nil && !ticket.cancellation.isCancelled
     terminalStatus =
       error == nil
       ? (ticket.cancellation.isCancelled
         ? "Stopped. Saved work is kept."
-        : successStatus ?? "Operation ended: " + operationTitle
-          + ". Read the result or conversation for its outcome.")
+        : successStatus.map { $0.isEmpty ? nil : $0 }
+          ?? ("Operation ended: " + operationTitle
+            + ". Read the result or conversation for its outcome."))
       : nil
+    dispatchedQueued = nil
+    if succeeded, successStatus?.isEmpty == true { announcement = "Reply finished." }
+    if succeeded {
+      queueAdvanceDue = !queue.isEmpty
+    } else {
+      pauseQueue()
+    }
     busy = false
     status = ""
     if error == nil, !ticket.cancellation.isCancelled, let live = liveActivity,
@@ -1046,9 +1066,18 @@ struct FolderReview {
       }
     }
   }
+  /// The waiting messages of the open chat.
+  var queue: ConversationQueue { conversationSession.state.queue }
+  /// While a reply runs, an ordinary message waits in the queue; Stop and other commands that
+  /// are allowed during work still act at once.
+  private func queues(_ input: String) -> Bool {
+    busy && !WorkspaceControlCommand.allowsSubmission(input, busy: true)
+  }
   var canSend: Bool {
     conversationSession.ready && !changingConversation && !conversationSession.loading
-      && WorkspaceControlCommand.allowsSubmission(prompt, busy: busy)
+      && (WorkspaceControlCommand.allowsSubmission(prompt, busy: busy)
+        || (queues(prompt) && !queue.isFull
+          && !prompt.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty))
   }
   func send() {
     guard interactionActive, let book = workbook, canSend,
@@ -1060,44 +1089,54 @@ struct FolderReview {
       self.error = error.localizedDescription
       return
     }
+    if queues(input) {
+      enqueue(input)
+      return
+    }
+    submit(input, selection: selectedContext, book: book, fromComposer: true)
+  }
+  /// One message, typed now or sent from the queue. Only a typed message clears the composer,
+  /// so a queued message never removes what the person is writing.
+  private func submit(_ input: String, selection: String, book: Workbook, fromComposer: Bool) {
+    let clearComposer = { if fromComposer { self.prompt = "" } }
     if input.lowercased().hasPrefix("answer:") {
       guard let surface = exactReplyInput() else { return }
       let reply = input.dropFirst("answer:".count).trimmingCharacters(in: .whitespacesAndNewlines)
       let response: ConversationInputResponse =
         reply.lowercased() == "decline" ? .decline : .text(reply)
-      if submitInput(surface, response: response) { prompt = "" }
+      if submitInput(surface, response: response) { clearComposer() }
       return
     }
     if input.lowercased() == "cancel question" {
       guard let surface = exactReplyInput() else { return }
-      if submitInput(surface, response: .cancel) { prompt = "" }
+      if submitInput(surface, response: .cancel) { clearComposer() }
       return
     }
     if input.lowercased() == "retry continuation", let answerID = resumableAnswer {
-      prompt = ""
+      clearComposer()
       retryInput(answerID)
       return
     }
     if let answerCommand = WorkflowAnswerCommand.parse(input) {
-      prompt = ""
+      clearComposer()
       workflowAnswerCommand(answerCommand, input: input, book: book)
       return
     }
     clarificationDrafts.invalidateConversationPreviews()
     if let command = WorkspaceControlCommand.parse(input), command != .openCopy {
-      prompt = ""
+      clearComposer()
       error = nil
       control(command, input: input, book: book)
       if error != nil { returnInput(input) }
       return
     }
     if documentCommand(input, book: book) {
-      prompt = ""
+      clearComposer()
       refresh()
       return
     }
     guard documentDrafts.flush() else { return }
-    prompt = ""
+    clearComposer()
     error = nil
     messageAnchor = nil
     conversationSession.updateReading(.init())
@@ -1138,7 +1177,7 @@ struct FolderReview {
       refresh()
       return
     }
-    runChat(input, book: book)
+    runChat(input, book: book, selection: selection)
   }
 
   private func exactReplyInput() -> ConversationSurface? {
@@ -1195,7 +1234,10 @@ struct FolderReview {
     runChat("", book: book, inputAnswerID: id)
   }
 
-  private func runChat(_ input: String, book: Workbook, inputAnswerID: String? = nil) {
+  private func runChat(
+    _ input: String, book: Workbook, selection: String? = nil, inputAnswerID: String? = nil
+  ) {
+    let selection = selection ?? selectedContext
     if inputAnswerID == nil { unsent = (input, conversation, book) }
     guard let (_, ticket) = beginOperation("Preparing local AI") else {
       returnUnsent()
@@ -1206,13 +1248,13 @@ struct FolderReview {
     liveActivity = LiveRequestActivity(conversation: conversation)
     let chat = conversation
     let navigationID = itemPreviewIdentity
-    let context = agentContext + (selectedContext.isEmpty ? "" : "\nSelection: " + selectedContext)
+    let context = agentContext + (selection.isEmpty ? "" : "\nSelection: " + selection)
     let conversationOrigin = conversationNavigationIdentity
     let path =
       defaults.string(forKey: ProductAI.preferenceKey).map { URL(fileURLWithPath: $0) }
       ?? ProductAI.defaultDirectory
     Task {
-      defer { finishOperation(ticket, in: book, successStatus: "Response ready.") }
+      defer { finishOperation(ticket, in: book, successStatus: "") }
       var expectedNavigationID = navigationID
       let openRequestedView: @MainActor @Sendable (Route) throws -> Void = { destination in
         guard self.owns(ticket, in: book), self.conversation == chat,
@@ -1305,6 +1347,90 @@ struct FolderReview {
       }
     }
   }
+  // MARK: Waiting messages
+
+  private func enqueue(_ input: String) {
+    var next = queue
+    do {
+      try next.add(input, context: selectedContext, id: identifier(), queued: timestamp())
+    } catch {
+      self.error = error.localizedDescription
+      return
+    }
+    conversationSession.updateQueue(next)
+    prompt = ""
+  }
+  func editQueued(_ id: String, text: String) -> Bool {
+    var next = queue
+    do { try next.edit(id, text: text) } catch {
+      self.error = error.localizedDescription
+      return false
+    }
+    conversationSession.updateQueue(next)
+    return true
+  }
+  func removeQueued(_ id: String) {
+    var next = queue
+    next.remove(id)
+    conversationSession.updateQueue(next)
+  }
+  func moveQueued(_ id: String, by offset: Int) {
+    var next = queue
+    next.move(id, by: offset)
+    conversationSession.updateQueue(next)
+  }
+  func moveQueued(_ id: String, before destination: String?) {
+    var next = queue
+    next.move(id, before: destination)
+    conversationSession.updateQueue(next)
+  }
+  func clearQueue() {
+    var next = queue
+    next.clear()
+    conversationSession.updateQueue(next)
+  }
+  /// The person's Resume: sends the next message now when nothing is running, even if a
+  /// question is waiting, because they chose to continue.
+  func resumeQueue() {
+    var next = queue
+    next.paused = false
+    conversationSession.updateQueue(next)
+    if !busy { sendNextQueued() }
+  }
+  private func pauseQueue() {
+    guard !queue.isEmpty, !queue.paused else { return }
+    var next = queue
+    next.paused = true
+    conversationSession.updateQueue(next)
+  }
+  /// Runs after a refresh, so the outcome of the finished reply is known. A failure, a waiting
+  /// question or a change waiting for approval pauses instead of sending.
+  private func advanceQueueIfDue() {
+    guard queueAdvanceDue, !busy else { return }
+    queueAdvanceDue = false
+    if error != nil || !pendingInputs.isEmpty || chatApproval != nil {
+      pauseQueue()
+      return
+    }
+    sendNextQueued()
+  }
+  private func sendNextQueued() {
+    guard interactionActive, let book = workbook, !busy, !changingConversation,
+      conversationSession.ready
+    else { return }
+    var next = queue
+    guard let message = next.takeNext() else { return }
+    conversationSession.updateQueue(next)
+    dispatchedQueued = (message, conversation)
+    submit(message.text, selection: message.context, book: book, fromComposer: false)
+    if !busy {
+      // Handled at once, such as a local command: continue with the next one.
+      dispatchedQueued = nil
+      queueAdvanceDue = !queue.isEmpty
+      refresh()
+    }
+  }
+
   /// Puts a message that failed before anything was saved back in front of the person.
   private func returnInput(_ input: String) {
     prompt = ComposerInput.restored(input, over: prompt)
@@ -1318,6 +1444,18 @@ struct FolderReview {
       return
     }
     self.unsent = nil
+    // A waiting message that was refused before reaching its chat goes back to the top of the
+    // queue, paused, instead of into what the person is typing.
+    if let queued = dispatchedQueued, queued.chat == unsent.chat, queued.message.text == unsent.input,
+      interactionActive, workbook === unsent.book, conversation == unsent.chat
+    {
+      dispatchedQueued = nil
+      var next = queue
+      if next.putBack(queued.message) {
+        conversationSession.updateQueue(next)
+        return
+      }
+    }
     if interactionActive, workbook === unsent.book, conversation == unsent.chat {
       returnInput(unsent.input)
     } else {

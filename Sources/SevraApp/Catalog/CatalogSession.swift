@@ -460,6 +460,22 @@ import SwiftUI
   }
   func configure(_ b: Workbook, _ ws: WorkspaceState) async throws {
     let id = story.id
+    if id == "chat.queue" {
+      let texts = [
+        "Chart the delivery days by supplier",
+        "Then write a short summary I can send to the team, with the cheapest option first and anything still unknown at the end",
+        "Add the Northwind quote from the PDF",
+      ]
+      var queue = ConversationQueue()
+      for n in 0..<(variant == "Full" ? ConversationQueue.limit : 3) {
+        try queue.add(
+          texts[n % texts.count] + (n < texts.count ? "" : " (\(n + 1))"),
+          context: n == 2 ? "Supplier quotes, rows 1 to 4" : "", id: "queued-\(n)",
+          queued: timestamp())
+      }
+      _ = try b.saveConversationViewState(
+        try b.chats()[0].id, draft: "", reading: .init(), expectedDraft: "", queue: queue)
+    }
     visual = try makeVisual(id)
     component = Component(
       type: visual?.kind == .image ? "image" : "visual", title: story.title, visual: visual)
@@ -696,8 +712,13 @@ import SwiftUI
     ws.focus =
       variant == "Focused" || id.hasPrefix("mini.") || id.hasPrefix("visual.")
       || id == "home.comparison"
+    if id == "chat.queue", variant != "Paused" {
+      var queue = ws.queue
+      queue.paused = false
+      ws.conversationSession.updateQueue(queue)
+    }
     if variant == "Busy" || variant == "Analyzing" || variant == "Building"
-      || variant == "Streaming"
+      || variant == "Streaming" || (id == "chat.queue" && variant != "Paused")
     {
       ws.busy = true
       ws.status = "Reading synthetic evidence…"

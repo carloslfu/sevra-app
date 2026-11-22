@@ -23,8 +23,8 @@ import SevraCore
   public var restoredDraft: ((String) -> Void)?
   public var revealFailure: (() -> Void)?
   public var dirty: Bool {
-    state.draft != baseline.draft || state.reading != baseline.reading || preserveOther
-      || removeSaved != nil
+    state.draft != baseline.draft || state.reading != baseline.reading
+      || state.queue != baseline.queue || preserveOther || removeSaved != nil
   }
   public init() {
     Self.sessions.removeAll { $0.value == nil }
@@ -62,9 +62,11 @@ import SevraCore
       changed?()
     }
     do {
-      let value = try await Task.detached(priority: .userInitiated) {
+      var value = try await Task.detached(priority: .userInitiated) {
         try workbook.conversationViewState(conversation)
       }.value
+      // Waiting messages never send on their own when a chat is opened again.
+      if !value.queue.isEmpty { value.queue.paused = true }
       self.workbook = workbook
       self.conversation = conversation
       state = value
@@ -82,6 +84,12 @@ import SevraCore
   public func updateDraft(_ text: String) {
     guard ready, !loading, text != state.draft else { return }
     state.draft = text
+    schedule()
+  }
+  /// Waiting messages belong to the open chat and are saved with its draft.
+  public func updateQueue(_ queue: ConversationQueue) {
+    guard ready, !loading, queue != state.queue else { return }
+    state.queue = queue
     schedule()
   }
   public func updateReading(_ position: ConversationReadingPosition) {
@@ -116,7 +124,8 @@ import SevraCore
           let saved = try await Task.detached(priority: .userInitiated) {
             try workbook.saveConversationViewState(
               chat, draft: value.draft, reading: value.reading,
-              expectedDraft: expected, preserveOtherDraft: preserve, removeSavedDraft: removing)
+              expectedDraft: expected, preserveOtherDraft: preserve, removeSavedDraft: removing,
+              queue: value.queue)
           }.value
           baseline = saved
           if saved.draft != value.draft {
