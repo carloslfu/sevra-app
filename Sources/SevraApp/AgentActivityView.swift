@@ -97,18 +97,10 @@ struct AgentActivityView: View {
 
 /// The answer while it is being written, in the place and shape of the finished Sevra message.
 private struct StreamingAnswerView: View {
-  @AppStorage(ReadingStyle.preference) private var textScale = 1.0
   let text: String
   var body: some View {
     let content = ConversationMessageContent(text)
     VStack(alignment: .leading, spacing: 6) {
-      HStack {
-        Text("Sevra").readingFont(.caption, weight: .semibold).foregroundStyle(.secondary)
-        Spacer()
-        // Holds the height of the actions button the finished message shows here.
-        Color.clear.frame(
-          width: 28 * ReadingStyle.scale(textScale), height: 28 * ReadingStyle.scale(textScale))
-      }
       VStack(alignment: .leading, spacing: 10) {
         ForEach(Array(content.blocks.enumerated()), id: \.offset) { _, block in
           switch block {

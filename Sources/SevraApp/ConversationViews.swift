@@ -17,6 +17,7 @@ struct ConversationMessageRow: View, Equatable {
   let visuals: [VisualResult]
   let resumable: Bool
   let controlsEnabled: Bool
+  @State private var hovering = false
   static func == (left: Self, right: Self) -> Bool {
     left.message.id == right.message.id && left.message.body == right.message.body
       && left.message.state == right.message.state && left.message.role == right.message.role
@@ -44,7 +45,7 @@ struct ConversationMessageRow: View, Equatable {
   var body: some View {
     // The Undo row sits outside the spaced stack, since most replies leave it empty.
     VStack(alignment: .leading, spacing: 0) {
-      messageStack
+      if message.role == "user" { userBubble } else { messageStack }
       if message.role == "assistant" && message.state == "complete" {
         ConversationReversalView(state: state, messageID: message.id)
       }
@@ -57,33 +58,67 @@ struct ConversationMessageRow: View, Equatable {
     ).accessibilityElement(children: .contain)
       .accessibilityLabel(speaker + " message" + (message.state == "complete" ? "" : ", " + status))
       .accessibilityIdentifier("message-" + message.id)
+      .onHover { hovering = $0 }
       .contextMenu {
         ConversationMessageActions(state: state, message: message, content: content.presentation)
       }
   }
+  /// Shown while the pointer is over the message; still reachable by keyboard and VoiceOver.
+  private var actionsMenu: some View {
+    MoreActionsMenu(
+      (speaker == "You" ? "Your" : speaker) + " message actions",
+      help: "Copy this message or open its links"
+    ) {
+      ConversationMessageActions(state: state, message: message, content: content.presentation)
+    }.opacity(hovering ? 1 : 0)
+  }
+  /// The person's own message: on the right, in a tinted bubble no wider than the text.
+  private var userBubble: some View {
+    HStack(alignment: .center, spacing: 4) {
+      Spacer(minLength: 48)
+      actionsMenu
+      VStack(alignment: .leading, spacing: 10) { bodyBlocks }
+        .padding(.horizontal, 14).padding(.vertical, 9)
+        .background(
+          Color.primary.opacity(0.065),
+          in: RoundedRectangle(cornerRadius: 16, style: .continuous))
+    }.frame(maxWidth: .infinity, alignment: .trailing)
+  }
+  @ViewBuilder private var bodyBlocks: some View {
+    ForEach(Array(content.blocks.enumerated()), id: \.offset) { _, block in
+      switch block {
+      case .text(let text):
+        Text(text).textSelection(.enabled).lineSpacing(4)
+      case .table(let table):
+        ReadOnlyTableView(
+          content: table, label: "Comparison table", inline: true,
+          open: { state.openConversationLink($0, returningTo: .message(message.id)) })
+      case .code(let code):
+        ConversationCodeBlock(code: code)
+      }
+    }
+  }
   private var messageStack: some View {
     VStack(alignment: .leading, spacing: 6) {
-      HStack {
-        Text(speaker).readingFont(.caption, weight: .semibold).foregroundStyle(.secondary)
-        if message.state != "complete" {
-          if let review {
-            Button(status) {
-              state.navigate(.item(review.currentVersionID), returningTo: .message(message.id))
-            }
-            .buttonStyle(.plain).readingFont(.caption)
-            .foregroundStyle(review.status == "draft" ? Color.orange : Color.secondary)
-            .help("Open the current proposal, version \(review.currentVersion)")
-          } else {
-            Text(status).readingFont(.caption).foregroundStyle(.secondary)
+      // Sevra's replies need no name: the side says who is speaking. A state or an
+      // activity note still gets a line.
+      if message.state != "complete" || message.role == "event" {
+        HStack {
+          if message.role == "event" {
+            Text(speaker).readingFont(.caption, weight: .semibold).foregroundStyle(.secondary)
           }
-        }
-        Spacer()
-        MoreActionsMenu(
-          (speaker == "You" ? "Your" : speaker) + " message actions",
-          help: "Copy this message or open its links"
-        ) {
-          ConversationMessageActions(
-            state: state, message: message, content: content.presentation)
+          if message.state != "complete" {
+            if let review {
+              Button(status) {
+                state.navigate(.item(review.currentVersionID), returningTo: .message(message.id))
+              }
+              .buttonStyle(.plain).readingFont(.caption)
+              .foregroundStyle(review.status == "draft" ? Color.orange : Color.secondary)
+              .help("Open the current proposal, version \(review.currentVersion)")
+            } else {
+              Text(status).readingFont(.caption).foregroundStyle(.secondary)
+            }
+          }
         }
       }
       VStack(alignment: .leading, spacing: 10) {
@@ -94,18 +129,7 @@ struct ConversationMessageRow: View, Equatable {
               .font(.caption).foregroundStyle(.secondary)
           }
         } else {
-          ForEach(Array(content.blocks.enumerated()), id: \.offset) { _, block in
-            switch block {
-            case .text(let text):
-              Text(text).textSelection(.enabled).lineSpacing(4)
-            case .table(let table):
-              ReadOnlyTableView(
-                content: table, label: "Comparison table", inline: true,
-                open: { state.openConversationLink($0, returningTo: .message(message.id)) })
-            case .code(let code):
-              ConversationCodeBlock(code: code)
-            }
-          }
+          bodyBlocks
         }
       }
       .accessibilityActions {
@@ -218,6 +242,7 @@ struct ConversationMessageRow: View, Equatable {
           Button("Retry continuation") { state.retryInput(message.id) }
         }.readingFont(.caption).disabled(!controlsEnabled)
       }
+      actionsMenu.padding(.leading, -6).padding(.vertical, -8)
     }
   }
 }
