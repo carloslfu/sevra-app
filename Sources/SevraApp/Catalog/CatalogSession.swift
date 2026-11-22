@@ -717,11 +717,12 @@ import SwiftUI
       queue.paused = false
       ws.conversationSession.updateQueue(queue)
     }
+    let thinking = variant.hasPrefix("Thinking")
     if variant == "Busy" || variant == "Analyzing" || variant == "Building"
-      || variant == "Streaming" || (id == "chat.queue" && variant != "Paused")
+      || variant == "Streaming" || thinking || (id == "chat.queue" && variant != "Paused")
     {
       ws.busy = true
-      ws.status = "Reading synthetic evidence…"
+      ws.status = thinking ? ActivityThought.reasoningPhase : "Reading synthetic evidence…"
       var live = LiveRequestActivity(conversation: ws.conversation, started: Date(timeIntervalSinceNow: -12))
       live.update(ws.status)
       if variant == "Streaming" {
@@ -729,7 +730,23 @@ import SwiftUI
           "I can help compare supplier quotes with source citations, organize inventory…",
           sequence: 1)
       }
+      if thinking {
+        // Synthetic thoughts, as the model would stream them. Not model output.
+        live.show(
+          nil,
+          reasoning:
+            "The search found the supplier observations. Oak Supply and Cedar Tools both quoted the brass bolts, but neither line says whether delivery is included. Reading the original will give the exact figures to cite",
+          thoughts: [
+            ActivityThought(
+              step: 1, callID: "catalog-search", tool: "search",
+              text:
+                "The person asks what the supplier quotes say. I should search the workbook for the quotes before answering.")
+          ], sequence: 1)
+      }
       ws.liveActivity = live
+    }
+    if variant == "Opened" || variant == "Long labels" || variant == "Thinking opened" {
+      ws.activityExpandedByDefault = true
     }
     if variant == "Failure" { ws.error = "Synthetic service failure. Reset or retry this example." }
     if let app, variant != "Disabled", story.id != "mini.state.access" {

@@ -98,6 +98,9 @@ struct FolderReview {
   }
   @Published var requestActivities: [RequestActivity] = []
   @Published var liveActivity: LiveRequestActivity?
+  /// Whether activity rows start open. They start closed; the UI catalog opens them to show
+  /// their contents.
+  var activityExpandedByDefault = false
   /// The streamed answer of a run that just ended, kept on screen until the saved reply loads.
   struct LandingAnswer: Equatable {
     let request: String
@@ -1326,10 +1329,12 @@ struct FolderReview {
               guard self.owns(ticket, in: book), self.operations.acceptsProgress(ticket),
                 self.liveActivity?.conversation == chat
               else { return }
-              if self.liveActivity?.answerPreview?.isEmpty ?? true {
+              if self.liveActivity?.answerPreview?.isEmpty ?? true, update.text?.isEmpty == false {
                 ChatTiming.mark("ui.first_answer_text")
               }
-              self.liveActivity?.preview(update.text, sequence: update.sequence)
+              self.liveActivity?.show(
+                update.text, reasoning: update.reasoning, thoughts: update.thoughts,
+                sequence: update.sequence)
             }
           },
           requestStarted: { request, destination in

@@ -428,6 +428,10 @@ do {
     try await checkPromptHeader()
     exit(0)
   }
+  if CommandLine.arguments.dropFirst() == ["--thought-checks"] {
+    try await checkVisibleThoughts()
+    exit(0)
+  }
   if CommandLine.arguments.dropFirst() == ["--saved-action-checks"] {
     try await checkSavedMovementAction()
     exit(0)
@@ -442,6 +446,7 @@ do {
   try await checkContextThreshold()
   try checkReasoningBudget()
   try await checkReasoningHistory()
+  try await checkVisibleThoughts()
   try await checkAgentLifecycle()
   try await checkSpaceActions()
   try await checkInterfaceGuidance()

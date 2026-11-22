@@ -43,9 +43,12 @@ actor CatalogInference: WorkbookInference {
   let identity = "Catalog scripted inference"
   let lastMetrics = Value.null
   var calls: [(String, Value)]
+  /// Scripted reasoning for each call in turn, shown as the model's thoughts.
+  var thoughts: [String]
   let attachVisual: Bool
-  init(_ calls: [(String, Value)] = [], attachVisual: Bool = false) {
+  init(_ calls: [(String, Value)] = [], thoughts: [String] = [], attachVisual: Bool = false) {
     self.calls = calls
+    self.thoughts = thoughts
     self.attachVisual = attachVisual
   }
   func beginRun() {}
@@ -73,8 +76,8 @@ actor CatalogInference: WorkbookInference {
       arguments = .object(fields)
     }
     return NativeReply(
-      text: "", calls: [.init(id: UUID().uuidString, name: next.0, inputJSON: try arguments.json())]
-    )
+      text: "", calls: [.init(id: UUID().uuidString, name: next.0, inputJSON: try arguments.json())],
+      reasoning: thoughts.isEmpty ? "" : thoughts.removeFirst())
   }
 }
 

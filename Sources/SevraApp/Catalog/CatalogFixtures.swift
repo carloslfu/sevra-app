@@ -292,10 +292,13 @@ import SevraVoice
           _ = try b.addMessage(prompt, role: "user", conversation: try b.createChat())
         }
       }
-      _ = try b.addMessage("Compare the supplier quotes.", role: "user", conversation: chat)
-      _ = try b.addMessage(
-        "**Supplier comparison**\n\n| Supplier | Cost |\n| --- | ---: |\n| Oak Supply | 24.00 |\n| Cedar Tools | 27.50 |\n\nTax remains unknown. [Inspect the observations](sevra://item/\(source!.id)).",
-        role: "assistant", conversation: chat)
+      // An opened activity starts the chat, so all of it is in view.
+      if !(id == "chat.activity" && ["Opened", "Long labels"].contains(variant)) {
+        _ = try b.addMessage("Compare the supplier quotes.", role: "user", conversation: chat)
+        _ = try b.addMessage(
+          "**Supplier comparison**\n\n| Supplier | Cost |\n| --- | ---: |\n| Oak Supply | 24.00 |\n| Cedar Tools | 27.50 |\n\nTax remains unknown. [Inspect the observations](sevra://item/\(source!.id)).",
+          role: "assistant", conversation: chat)
+      }
       if id == "chat.chats" && variant == "Long labels" {
         try b.renameChat(
           chat,
@@ -317,6 +320,40 @@ import SevraVoice
             role: i % 2 == 0 ? "user" : "assistant", conversation: chat)
         }
       }
+    }
+    if id == "chat.activity" && ["Default", "Opened", "Long labels"].contains(variant) {
+      // Thoughts before each step, and an answer Sevra sent back before the one it accepted.
+      let long = variant == "Long labels"
+      _ = try await WorkbookAgent.run(
+        "What do the supplier quotes say?", workbook: b, conversation: chat,
+        model: CatalogInference(
+          [
+            ("search", .object(["query": .string("supplier quotes")])),
+            ("read", .object(["kind": .string("item"), "id": .string(source!.id)])),
+            (
+              "finish",
+              .object([
+                "answer": .string("Oak Supply quoted $24.00 and Cedar Tools quoted $27.50."),
+                "basis": .string("evidence"), "citations": .array([.string(source!.id)]),
+              ])
+            ),
+            (
+              "finish",
+              .object([
+                "answer": .string(
+                  "Oak Supply quoted 24.00 and Cedar Tools quoted 27.50. Tax is still unknown."),
+                "basis": .string("evidence"), "citations": .array([.string(source!.id)]),
+              ])
+            ),
+          ],
+          thoughts: [
+            "The person asks what the supplier quotes say. Nothing in this chat has the figures yet, so I should search the workbook for the quotes before answering.",
+            "The search found the supplier observations. Reading that original gives the exact quoted costs, so the answer can cite it.",
+            long
+              ? "The observations list two suppliers. Oak Supply quoted 24.00 for the brass bolts and Cedar Tools quoted 27.50 for the same order. Neither line says whether tax or delivery is included, and the person did not ask me to compare them, only what the quotes say.\n\nI should give both figures as they are written, cite the observations so the person can check them, and say that tax is still unknown rather than guessing it. A short answer is enough here."
+              : "Oak Supply quoted 24.00 and Cedar Tools 27.50. I will give both and cite the observations.",
+            "The quotes do not name a currency, so I should not add one. Same figures without the symbol, and I will say tax is still unknown.",
+          ]), conversationInput: true)
     }
     if id == "chat.undo-redo" && variant != "Empty" {
       // A change made through sql, so the answer carries "Change saved" with its Undo.

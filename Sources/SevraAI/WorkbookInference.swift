@@ -207,10 +207,13 @@ package protocol WorkbookInference: Actor {
     request: Value, directory: URL, cancellation: Cancellation,
     progress: @escaping @Sendable (String) -> Void
   ) async throws -> Value
+  /// answerPreview receives the answer as it is written. reasoningPreview receives this call's
+  /// reasoning so far, for the person to read. Neither is a saved result.
   func respondStreaming(
     messages: [InferenceMessage], directory: URL, cancellation: Cancellation,
     progress: @escaping @Sendable (String) -> Void, toolScope: InferenceToolScope,
-    citationIDs: [String], answerPreview: @escaping @Sendable (String) -> Void
+    citationIDs: [String], answerPreview: @escaping @Sendable (String) -> Void,
+    reasoningPreview: @escaping @Sendable (String) -> Void
   ) async throws -> NativeReply
   func respond(
     messages: [InferenceMessage], directory: URL, cancellation: Cancellation,
@@ -220,13 +223,21 @@ package protocol WorkbookInference: Actor {
 }
 
 /// A provisional answer, never a saved result or action receipt. Sequence numbers
-/// let UI delivery discard delayed updates after a retry or final clear.
+/// let UI delivery discard delayed updates after a retry or final clear, so each update
+/// carries everything shown: the answer so far, the current call's reasoning so far and
+/// the run's finished thoughts.
 public struct AnswerPreview: Sendable {
   public let sequence: Int
   public let text: String?
-  public init(sequence: Int, text: String?) {
+  public let reasoning: String?
+  public let thoughts: [ActivityThought]
+  public init(
+    sequence: Int, text: String?, reasoning: String? = nil, thoughts: [ActivityThought] = []
+  ) {
     self.sequence = sequence
     self.text = text
+    self.reasoning = reasoning
+    self.thoughts = thoughts
   }
 }
 
@@ -236,7 +247,8 @@ extension WorkbookInference {
   package func respondStreaming(
     messages: [InferenceMessage], directory: URL, cancellation: Cancellation,
     progress: @escaping @Sendable (String) -> Void, toolScope: InferenceToolScope,
-    citationIDs: [String], answerPreview: @escaping @Sendable (String) -> Void
+    citationIDs: [String], answerPreview: @escaping @Sendable (String) -> Void,
+    reasoningPreview: @escaping @Sendable (String) -> Void
   ) async throws -> NativeReply {
     try await respond(
       messages: messages, directory: directory, cancellation: cancellation,

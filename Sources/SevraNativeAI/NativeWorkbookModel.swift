@@ -280,13 +280,15 @@ package actor NativeWorkbookModel: WorkbookInference {
   ) async throws -> NativeReply {
     try await respondStreaming(
       messages: messages, directory: directory, cancellation: cancellation,
-      progress: progress, toolScope: toolScope, citationIDs: citationIDs, answerPreview: { _ in })
+      progress: progress, toolScope: toolScope, citationIDs: citationIDs, answerPreview: { _ in },
+      reasoningPreview: { _ in })
   }
 
   package func respondStreaming(
     messages: [InferenceMessage], directory: URL, cancellation: Cancellation,
     progress: @escaping @Sendable (String) -> Void, toolScope: InferenceToolScope,
-    citationIDs: [String], answerPreview: @escaping @Sendable (String) -> Void
+    citationIDs: [String], answerPreview: @escaping @Sendable (String) -> Void,
+    reasoningPreview: @escaping @Sendable (String) -> Void
   ) async throws -> NativeReply {
     try require(leased && !active, "busy", "The native model needs an exclusive workbook run.")
     active = true
@@ -298,7 +300,7 @@ package actor NativeWorkbookModel: WorkbookInference {
       let result = try await worker.respond(
         messages: messages, directory: directory, cancellation: cancellation,
         progress: progress, toolScope: toolScope, citationIDs: citationIDs,
-        answerPreview: answerPreview)
+        answerPreview: answerPreview, reasoningPreview: reasoningPreview)
       try cancellation.check()
       lastMetrics = result.1
       return result.0
@@ -702,13 +704,14 @@ private final class NativeWorker: @unchecked Sendable {
     messages: [InferenceMessage], directory: URL, cancellation: Cancellation,
     progress: @escaping @Sendable (String) -> Void, toolScope: InferenceToolScope,
     citationIDs: [String], interpretation: Value? = nil,
-    answerPreview: @escaping @Sendable (String) -> Void = { _ in }
+    answerPreview: @escaping @Sendable (String) -> Void = { _ in },
+    reasoningPreview: @escaping @Sendable (String) -> Void = { _ in }
   ) async throws -> (NativeReply, Value) {
     try await perform(directory: directory, cancellation: cancellation, progress: progress) {
       session in
       try self.generate(
         messages, session, cancellation, progress, toolScope, citationIDs, interpretation,
-        answerPreview)
+        answerPreview, reasoningPreview)
     }
   }
   private func perform<T>(
@@ -857,7 +860,8 @@ private final class NativeWorker: @unchecked Sendable {
     _ messages: [InferenceMessage], _ session: Session,
     _ cancellation: Cancellation, _ progress: @escaping @Sendable (String) -> Void,
     _ toolScope: InferenceToolScope, _ citationIDs: [String], _ interpretation: Value? = nil,
-    _ answerPreview: @escaping @Sendable (String) -> Void = { _ in }
+    _ answerPreview: @escaping @Sendable (String) -> Void = { _ in },
+    _ reasoningPreview: @escaping @Sendable (String) -> Void = { _ in }
   ) throws -> (NativeReply, Value) {
     let hostStart = ProcessInfo.processInfo.systemUptime
     let prepared = try session.prepare(
@@ -931,6 +935,10 @@ private final class NativeWorker: @unchecked Sendable {
     var matchedPromptTokens = 0
     var lastPreview = ""
     var lastPreviewAt = ProcessInfo.processInfo.systemUptime
+    // The reasoning as it is written, for the person to read. It never reaches the answer.
+    var reasoningText = ""
+    var reasoningSent = 0
+    var reasoningSentAt = 0.0
     var missed = false
     var resent = false
     var generated: SplashNativeProcess.Result
@@ -968,7 +976,21 @@ private final class NativeWorker: @unchecked Sendable {
             streamedTokens += tokens.count
             if firstTokensAt == nil { firstTokensAt = eventStarted }
           }
-          _ = try output.append(tokens: tokens)
+          let deltas = try output.append(tokens: tokens)
+          for case .reasoning(let part) in deltas
+          where reasoningText.utf8.count < ActivityThought.limit * 4 {
+            reasoningText += part
+          }
+          if reasoningText.utf8.count > reasoningSent,
+            !cancellation.isCancelled && !cancellation.isExpired
+          {
+            let now = ProcessInfo.processInfo.systemUptime
+            if reasoningSent == 0 || now - reasoningSentAt >= 0.1 || !output.isReasoning {
+              reasoningSent = reasoningText.utf8.count
+              reasoningSentAt = now
+              reasoningPreview(reasoningText)
+            }
+          }
           if let text = output.answerPreview, text != lastPreview,
             !cancellation.isCancelled && !cancellation.isExpired
           {
@@ -980,7 +1002,7 @@ private final class NativeWorker: @unchecked Sendable {
               answerPreview(text)
             }
           }
-          let phase = output.isReasoning ? "Working through the request" : "Preparing a response"
+          let phase = output.isReasoning ? ActivityThought.reasoningPhase : "Preparing a response"
           if phase != generationPhase {
             if ChatTiming.enabled, !output.isReasoning, answerPhaseAt == nil {
               answerPhaseAt = ChatTiming.now
@@ -1013,6 +1035,8 @@ private final class NativeWorker: @unchecked Sendable {
     constraint = try session.factory.create(grammar: policy.grammar)
     output = try SplashOutputStream(
       frontend: session.frontend, tools: policy.outputTools, thinking: reasoning.enabled)
+    reasoningText = ""
+    reasoningSent = 0
     seed = try session.primePrefix(
       prompt, common: prepared.stablePrefixCount, scope: prepared.scopePrefixCount,
       helper: helper, cancellation: cancellation)

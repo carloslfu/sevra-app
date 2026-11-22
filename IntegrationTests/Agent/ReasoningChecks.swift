@@ -156,17 +156,22 @@ func checkReasoningHistory() async throws {
     try expectEqual(reply.answer, "4")
   }
   let history = try encoded(book.messages(limit: 100)).json()
-  let receipts = try Value.array(book.agentRuns()).json()
   let payloads = try book.historySlice().payloads
   try expectEqual(history.contains("Private synthetic"), false)
-  try expectEqual(receipts.contains("Private synthetic"), false)
   try expectEqual(try Value.object(payloads).json().contains("Private synthetic"), false)
+  // The run keeps each thought for the person to read, and nothing else saved holds it.
+  for run in try book.agentRuns() {
+    let thoughts = try book.runThoughts(run["id"].text, conversation: run["conversation_id"].text)
+    try expectEqual(
+      thoughts.map { $0.text },
+      ["Private synthetic intermediate state.", "Private synthetic final state."])
+  }
   let finishes = payloads.values.filter { $0["tool"].text == "finish" }
   try expectEqual(finishes.count, 2)
   try expectEqual(
     finishes.allSatisfy { $0["arguments"]["basis"].text == "current_request" }, true)
   try expectEqual(try book.verify()["ok"], .bool(true))
   print(
-    "PASS reasoning survives tool steps, counts toward context, and is absent from saved history and later requests"
+    "PASS reasoning survives tool steps, counts toward context, is saved only as the run's thoughts, and is absent from saved history and later requests"
   )
 }

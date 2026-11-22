@@ -34,9 +34,20 @@ dispatch update the row. Native committed token events distinguish reasoning
 from response preparation and show counts in expanded details at a bounded update
 rate. Keep the collapsed phase label brief. Counts are
 generated tokens for the current model call, not a forecast or throughput claim.
-Do not expose raw private reasoning or generate extra model calls to invent a
-progress narrative. Useful user-facing reasoning belongs in the final answer;
-activity is a truthful execution summary.
+Do not generate extra model calls to invent a progress narrative; activity is a
+truthful execution summary.
+
+AA03a. Owner-directed November 22, 2026 ([[sources/notes/2026/11/visible-reasoning]]),
+replacing the earlier rule that hid raw reasoning: the person can read the model's
+reasoning by default, so they can see what it is doing and debug it themselves.
+While the model reasons, the collapsed row shows its latest words on one line under
+the phase. Expanded, each call's thought comes before the step it led to, and the
+thought being written streams at the end with its newest words in view. Long
+thoughts show four lines with Show more. A call Sevra did not accept shows as its
+own row: an answer sent back shows what the model wrote and what Sevra replied, and
+an unusable or over-long reply shows what Sevra asked for instead. One line under
+the timeline says thoughts are the model's working notes and Sevra does not check
+them against the workbook. Thoughts are never citations, evidence or answers.
 
 AA04. Expansion shows ordered real tool steps with completed, failed or no-final-
 receipt states. Include the actual search terms, inspected originals, result
@@ -61,8 +72,13 @@ only visible request IDs in the current conversation, ordered tool receipts and
 bounded label fields and small complete results, with a 512 KiB aggregate result
 budget. Exact inputs are fetched only when a receipt is opened. More than 64 steps
 per request is explicitly indicated;
-large results are loaded on demand. Original model reasoning stays ephemeral,
-consistent with [[records/specs/intelligence]].
+large results are loaded on demand. Each call's reasoning, and what Sevra sent back
+for a call it did not accept, is saved as a thought in the run's existing per-call
+record (`agent_runs.metrics`), read only when a finished activity is opened. No
+prompt, tool, search, summary or history slice reads it, so the model never sees an
+earlier thought; see [[records/specs/intelligence]]. A call with no reasoning keeps
+an empty entry that only places its step in order. Thoughts are kept when the run
+ends, is stopped or fails; a run lost to a crash keeps none.
 
 AA07. Admission reports exact request/run identity to the native window. Existing
 workspace-operation ownership fences reject late progress after Stop, completion,

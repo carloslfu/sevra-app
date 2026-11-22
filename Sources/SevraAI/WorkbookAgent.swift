@@ -200,6 +200,30 @@ public enum WorkbookAgent {
     let runID = request.runID
     let requestMessage = request.messageID
     var metrics: [Value] = []
+    // What the model thought on each call, for the person to read. Saved in the run's
+    // metrics, which no model prompt or tool reads.
+    var thoughts: [ActivityThought] = []
+    func think(_ thought: ActivityThought) {
+      // A call without reasoning still places its step in order.
+      guard thought.isVisible || thought.callID != nil else { return }
+      thoughts.append(thought)
+      metrics.append(thought.value)
+      previews.thoughts(thoughts)
+    }
+    /// A call that did not become a step: what Sevra sent back to the model instead.
+    func sentBack(step: Int, outcome: String, note: String, draft: String? = nil) {
+      guard let index = thoughts.lastIndex(where: { $0.step == step }) else {
+        return think(
+          ActivityThought(step: step, text: "", outcome: outcome, note: note, draft: draft))
+      }
+      thoughts[index].outcome = outcome
+      thoughts[index].note = String(note.prefix(4_000))
+      thoughts[index].draft = draft.map { String($0.prefix(4_000)) }
+      if let saved = metrics.lastIndex(where: { ActivityThought($0)?.step == step }) {
+        metrics[saved] = thoughts[index].value
+      }
+      previews.thoughts(thoughts)
+    }
     // Reuse only the immediately preceding successful calculation in a read-only turn.
     // A new submission, different arguments or intervening operation gets a fresh result.
     var previousCalculation: ReusableCalculation?
@@ -454,7 +478,7 @@ public enum WorkbookAgent {
             try await model.respondStreaming(
               messages: messages, directory: modelDirectory, cancellation: cancellation,
               progress: progress, toolScope: inferenceScope, citationIDs: citationChoices(),
-              answerPreview: { previews.update($0) })
+              answerPreview: { previews.update($0) }, reasoningPreview: { previews.reasoning($0) })
           }
           ChatTiming.mark(
             "agent.call",
@@ -463,19 +487,31 @@ public enum WorkbookAgent {
           // Nothing from a response cut off at the output limit was applied, so it can be redone.
           failures += 1
           completedSteps = step
-          messages.append(
-            InferenceMessage(
-              role: "user",
-              content:
-                "Your previous response ran past the output limit and was discarded. No action from it was executed. Respond again with shorter reasoning and shorter arguments, without retyping text you can copy by passage ID."
-            ))
+          let retry =
+            "Your previous response ran past the output limit and was discarded. No action from it was executed. Respond again with shorter reasoning and shorter arguments, without retyping text you can copy by passage ID."
+          think(
+            ActivityThought(
+              step: step, text: previews.currentReasoning ?? "", outcome: "too_long", note: retry))
+          messages.append(InferenceMessage(role: "user", content: retry))
           continue
         }
         try cancellation.check()
         metrics.append(await model.lastMetrics)
         completedSteps = step
+        think(
+          ActivityThought(
+            step: step, callID: response.calls.count == 1 ? response.calls.first?.id : nil,
+            tool: response.calls.count == 1 ? response.calls.first?.name : nil,
+            text: response.reasoning))
         guard response.calls.count == 1, let call = response.calls.first else {
           failures += 1
+          let retry =
+            response.refusal.map {
+              "That tool call was refused: " + $0
+                + ". No action from your previous response was executed. Call the tool again with a corrected value."
+            }
+            ?? "Use exactly one of the supplied native tools. Use finish to deliver an answer with citations. No action from your previous response was executed."
+          sentBack(step: step, outcome: "unusable", note: retry)
           try require(
             failures < 3, "model_format",
             "The model did not produce one valid tool call. No action from this response was applied."
@@ -483,15 +519,7 @@ public enum WorkbookAgent {
           messages.append(
             InferenceMessage(
               role: "assistant", content: response.text, reasoning: response.reasoning))
-          messages.append(
-            InferenceMessage(
-              role: "user",
-              content: response.refusal.map {
-                "That tool call was refused: " + $0
-                  + ". No action from your previous response was executed. Call the tool again with a corrected value."
-              }
-                ?? "Use exactly one of the supplied native tools. Use finish to deliver an answer with citations. No action from your previous response was executed."
-            ))
+          messages.append(InferenceMessage(role: "user", content: retry))
           continue
         }
         // A chat tool call is routed to the operation that does its work before any check
@@ -927,6 +955,9 @@ public enum WorkbookAgent {
           }
           if !problems.isEmpty {
             finalFailures += 1
+            sentBack(
+              step: step, outcome: "answer_refused", note: problems.joined(separator: " "),
+              draft: a["answer"].string)
             let feedback = try Value.object(["error": .string(problems.joined(separator: " "))])
               .json()
             messages.append(
@@ -1328,7 +1359,11 @@ public enum WorkbookAgent {
                   build.request, workbook: workbook, conversation: conversation,
                   context: build.context, modelDirectory: modelDirectory,
                   cancellation: cancellation,
-                  progress: progress, answerPreview: { previews.update($0.text) }, model: model,
+                  progress: progress,
+                  answerPreview: {
+                    previews.update($0.text)
+                    previews.reasoning($0.reasoning)
+                  }, model: model,
                   enableCompaction: enableCompaction,
                   requestStarted: requestStarted, workspaceAction: workspaceAction,
                   excelConversion: build)

@@ -141,7 +141,9 @@ responses; the existing twelve-step bound limits the overall tool loop. The
 512-token limit is not a whole-job thinking allowance.
 
 Reasoning text is separated from answer/tool content and is not persisted as new
-user evidence or shown as a completed answer. Tool-free history summaries remain
+user evidence or shown as a completed answer. Since November 22, 2026 the person can
+read it as the run's thoughts ([[records/specs/agent-activity]] AA03a), which no
+model input reads. Tool-free history summaries remain
 on their existing configuration during the comparison. This adds no user backend
 picker, settings burden, provider fallback or production default. Off remains the
 control until measured completion, correctness and latency justify a change.
@@ -151,7 +153,7 @@ failed runs and the exact scope of any adopted candidate setting. Preserve the
 same model and workbook authority boundaries in either mode.
 
 ## Reasoning continuity within a request
-Retain parsed reasoning in ephemeral assistant messages between tools within the same request. The exact pinned template places reasoning_content in its thinking block after the latest user query. Count it in preparation and rendered-token budgets. Do not save it in original messages, tool receipts, summaries, Sources or Records. New requests reconstruct evidence from durable history with no old private reasoning. Context maintenance may discard older reasoning while retaining the latest complete tool group, with the same measured budget and citation reset rules. This is model execution state, never authority or independently citeable evidence. Reasoning remains disabled in the non-thinking control; shared host validation applies in both modes.
+Retain parsed reasoning in ephemeral assistant messages between tools within the same request. The exact pinned template places reasoning_content in its thinking block after the latest user query. Count it in preparation and rendered-token budgets. Do not save it in original messages, tool receipts, summaries, Sources or Records. For the person only, each call's reasoning is saved as a thought in the run's per-call record ([[sources/notes/2026/11/visible-reasoning]]); no prompt, tool, search or summary reads that record. New requests reconstruct evidence from durable history with no old reasoning. Context maintenance may discard older reasoning while retaining the latest complete tool group, with the same measured budget and citation reset rules. This is model execution state, never authority or independently citeable evidence. Reasoning remains disabled in the non-thinking control; shared host validation applies in both modes.
 
 ## Calculated answer provenance
 The host retains the inspected input version IDs used by balance and compare_rows, including both opening stock and inventory effects. It attaches them from their receipts to any answer that reports work, so the model never retypes them and a list too long for an answer can still be carried. They render as one link, labeled "[N calculation inputs]" when there are several, and the finish payload records their count and receipt IDs as calculationInputs. A receipt with more than 32 inputs offers the model only the versions it names as citation choices. Unresolved, completed-action and preview answers and host-built outcomes state no calculation and carry none. Clear them when compaction invalidates the corresponding inspected calculations; retain the latest calculation inputs with its visible tool group. Do not add uninspected or historical IDs merely because a summary mentions them.

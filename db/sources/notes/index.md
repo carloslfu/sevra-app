@@ -2,11 +2,13 @@
 type: index
 scope: type-folder
 folder: sources/notes
-updated: 2026-11-22T17:33:53.838327Z
+updated: 2026-11-22T20:23:03.666317Z
 ---
 
 # sources/notes
 
+- [[sources/notes/2026/11/visible-reasoning]] — Carlos asks that people see the model's reasoning and the calls Sevra sends back, by default, collapsed under each request.
+- [[sources/notes/2026/11/start-window-ready-chat]] — Carlos asks for the start window to be a chat that is ready to use, with a default workbooks folder, saving by default and easy renaming.
 - [[sources/notes/2026/11/chat-response-time-analysis]] — Carlos asks where chat time goes on the first turn and on follow-ups, measured with debug-mode timers, improvements left for later.
 - [[sources/notes/2026/11/header-trim-direction]] — Carlos asks for the chat header at its minimum expression that still does the work, and says to trim it and run the light set once.
 - [[sources/notes/2026/11/chat-history-panel]] — On November 21, 2026 the owner asked what the best way to see chat history is, whether a panel should slide in rather than a menu, and whether the dropdown menu of chat titles was right. He asked for

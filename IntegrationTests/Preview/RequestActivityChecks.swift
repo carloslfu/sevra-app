@@ -132,6 +132,23 @@ func checkRequestActivity() throws {
   try require(live.answerPreview == nil, "activity_check", "Late answer undid Stop")
   try require(
     live.stopping && live.status == "Stopping…", "activity_check", "Late progress undid Stop")
+  // Thoughts arrive with every update: an older one never replaces newer thoughts, and Stop
+  // ends the current reasoning but keeps what the model already thought.
+  var thinking = LiveRequestActivity(conversation: book.startChat)
+  let thought = ActivityThought(step: 1, callID: "a", tool: "search", text: "Search first.")
+  thinking.show(nil, reasoning: "Now reading", thoughts: [thought], sequence: 2)
+  thinking.show(nil, reasoning: "An older partial", thoughts: [], sequence: 1)
+  try require(
+    thinking.reasoning == "Now reading" && thinking.thoughts == [thought], "activity_check",
+    "A late update replaced newer thoughts")
+  thinking.preview("An answer", sequence: 3)
+  try require(
+    thinking.thoughts == [thought] && thinking.answerPreview == "An answer", "activity_check",
+    "An answer update dropped the thoughts")
+  thinking.stop()
+  try require(
+    thinking.reasoning == nil && thinking.thoughts == [thought], "activity_check",
+    "Stop hid what the model already thought")
   var continuation = LiveRequestActivity(conversation: book.startChat)
   continuation.attach(next, conversation: branch)
   try require(
