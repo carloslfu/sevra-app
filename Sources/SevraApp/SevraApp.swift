@@ -609,10 +609,10 @@ struct WorkspaceWindow: View {
   /// Renames the workbook's file and title together. The workbook closes for the move and opens
   /// again in this window under its new name.
   private func rename(to requested: String) async throws {
-    guard let window = ownWindow, let book = state.workbook else { return }
+    // Only the place is kept: holding the workbook itself here would keep it open through the move.
+    guard let window = ownWindow, let source = state.workbook?.url else { return }
     try require(
       !state.busy, "busy", "Wait for the current work to finish, then rename the workbook.")
-    let source = book.url
     // Refused here, while the workbook is still open and the rename sheet can say why.
     _ = try WorkbookLibrary.renameTarget(source, to: requested)
     let saved = await state.saveBeforeClosing()

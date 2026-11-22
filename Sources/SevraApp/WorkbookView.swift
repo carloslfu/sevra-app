@@ -53,7 +53,7 @@ struct WorkbookView: View {
           .accessibilityLabel(state.focus ? "Show conversation" : "Focus workspace")
         ObserverMark().fill(.primary).frame(width: 28, height: 28).accessibilityHidden(true)
         if state.renameWorkbook != nil, let book = state.workbook {
-          WorkbookTitleMenu(state: state, book: book)
+          WorkbookTitleMenu(state: state, title: book.title, url: book.url)
         } else {
           Text(state.workbook?.title ?? "Sevra").readingFont(.headline).accessibilityAddTraits(
             .isHeader
@@ -772,17 +772,20 @@ private struct RenameSheet: View {
 /// it, find its file, start another or go to a recent one.
 private struct WorkbookTitleMenu: View {
   @ObservedObject var state: WorkspaceState
-  let book: Workbook
+  // The name and place only. A view that kept the workbook itself would keep it open after the
+  // window let it go, and a rename could not open it again.
+  let title: String
+  let url: URL
   @ObservedObject private var recents = RecentWorkbookList.shared
   @Environment(\.openWindow) private var openWindow
   var body: some View {
     let files = WorkbookFiles(openWindow: openWindow)
     let others = recents.paths.filter {
-      WorkbookWindowRegistry.canonical($0) != WorkbookWindowRegistry.canonical(book.url.path)
+      WorkbookWindowRegistry.canonical($0) != WorkbookWindowRegistry.canonical(url.path)
     }
     Menu {
-      Button("Rename…") { state.workbookRename = .init(title: book.title) }.disabled(state.busy)
-      Button("Show in Finder") { NSWorkspace.shared.activateFileViewerSelecting([book.url]) }
+      Button("Rename…") { state.workbookRename = .init(title: title) }.disabled(state.busy)
+      Button("Show in Finder") { NSWorkspace.shared.activateFileViewerSelecting([url]) }
       Divider()
       Button("New Workbook") { files.startPage() }
       Button("Open Workbook…") { files.open() }
@@ -790,14 +793,10 @@ private struct WorkbookTitleMenu: View {
         Section("Recent") { RecentWorkbookButtons(paths: Array(others.prefix(8)), files: files) }
       }
     } label: {
-      HStack(spacing: 5) {
-        Text(book.title).readingFont(.headline).lineLimit(1)
-        Image(systemName: "chevron.down").imageScale(.small).foregroundStyle(.secondary)
-          .accessibilityHidden(true)
-      }
+      Text(title).readingFont(.headline).lineLimit(1)
     }
-    .menuStyle(.borderlessButton).menuIndicator(.hidden).fixedSize()
+    .menuStyle(.borderlessButton).menuIndicator(.visible).fixedSize()
     .help("Rename, find or switch workbooks")
-    .accessibilityLabel("Workbook: " + book.title)
+    .accessibilityLabel("Workbook: " + title)
   }
 }
