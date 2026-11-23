@@ -14,7 +14,11 @@ public actor ProductAI {
   private var pressureSource: DispatchSourceMemoryPressure?
   private let observesSystemPressure: Bool
   private var prewarming: Task<Void, Never>?
+  /// The engine's memory budget, known once its configuration has been read.
+  private var engineBytes: UInt64?
   private var prewarmCancellation: Cancellation?
+  /// The start's progress, for a request that comes to wait for it.
+  private let prewarmProgress = ProgressRelay()
 
   private init() {
     observesSystemPressure = true
@@ -114,10 +118,11 @@ public actor ProductAI {
     }
   }
 
-  /// Starts the local engine while the person reads or types, so the first request does not wait
-  /// for it. Nothing is sent to the model. It does nothing while the model is in use, already
-  /// starting, not set up, or held by another process, and the next request reports any failure.
-  /// The engine then follows the ordinary idle timer and memory-pressure release.
+  /// Starts the local engine as soon as a window opens, so the first request does not wait for
+  /// it. Nothing is sent to the model. It does nothing while the model is in use, already
+  /// starting, not set up, held by another process, or when this Mac lacks the memory to hold it
+  /// with room to spare; the next request then starts it, or reports why it cannot. The engine
+  /// follows the ordinary idle timer and memory-pressure release.
   public func prewarm(modelDirectory: URL = ProductAI.defaultDirectory) {
     guard !active, prewarming == nil, !releaseRequested else { return }
     if model == nil {
@@ -126,15 +131,24 @@ public actor ProductAI {
           atPath: modelDirectory.appendingPathComponent(pack.name + "/model.json").path),
         let configuration = try? NativeProductResources.configuration(modelsRoot: modelDirectory)
       else { return }
+      engineBytes = configuration.memoryBytes
       model = NativeWorkbookModel(configuration: configuration)
     }
     guard let model else { return }
+    // A loaded engine holds its memory already, so this can only decline a start that is not
+    // needed; a start after the idle release is checked like the first.
+    if observesSystemPressure, let engineBytes, !Self.hasRoom(forEngineBytes: engineBytes) {
+      return
+    }
     observeMemoryPressure()
     let cancellation = Cancellation()
     prewarmCancellation = cancellation
+    prewarmProgress.reset()
+    let relay = prewarmProgress
     ChatTiming.beginBackground("prewarm")
     prewarming = Task { [weak self] in
-      let started = await model.prewarm(directory: modelDirectory, cancellation: cancellation)
+      let started = await model.prewarm(
+        directory: modelDirectory, cancellation: cancellation, progress: relay.send)
       ChatTiming.endBackground("prewarm", outcome: started ? "started" : "not_started")
       await self?.prewarmEnded()
     }
@@ -143,12 +157,52 @@ public actor ProductAI {
     prewarming = nil
     prewarmCancellation = nil
   }
-  /// A request waits for a start already under way, since it needs the engine too. Unloading and
-  /// memory pressure stop it first.
-  private func settlePrewarm(cancelling: Bool) async {
+  /// A request waits for a start already under way, since it needs the engine too, and is told
+  /// how far it has come. Its own Stop ends the wait and leaves the start running for the next
+  /// request. Unloading and memory pressure stop the start first.
+  private func settlePrewarm(
+    cancelling: Bool, request: Cancellation? = nil,
+    progress: (@Sendable (String) -> Void)? = nil
+  ) async {
     guard let task = prewarming else { return }
     if cancelling { prewarmCancellation?.cancel() }
-    await ChatTiming.asyncSpan("product.wait_for_prewarm") { await task.value }
+    guard let request else {
+      await ChatTiming.asyncSpan("product.wait_for_prewarm") { await task.value }
+      return
+    }
+    prewarmProgress.listen(progress)
+    defer { prewarmProgress.listen(nil) }
+    await ChatTiming.asyncSpan("product.wait_for_prewarm") {
+      // The start clears `prewarming` when it ends; the actor runs that while this sleeps.
+      while prewarming == task, !request.isCancelled, !request.isExpired {
+        try? await Task.sleep(nanoseconds: 50_000_000)
+      }
+    }
+  }
+
+  /// Whether this Mac can take the engine now and keep several gigabytes for everything else:
+  /// free, inactive, purgeable and speculative memory, which macOS gives back without swapping.
+  /// A load past that would push other apps into swap, so the start waits for Send instead.
+  package static func hasRoom(
+    forEngineBytes engine: UInt64, reclaimable: UInt64? = ProductAI.reclaimableBytes()
+  ) -> Bool {
+    guard let reclaimable else { return false }
+    return reclaimable >= engine + 6 * 1024 * 1024 * 1024
+  }
+  static func reclaimableBytes() -> UInt64? {
+    var stats = vm_statistics64()
+    var count = mach_msg_type_number_t(
+      MemoryLayout<vm_statistics64_data_t>.size / MemoryLayout<integer_t>.size)
+    let result = withUnsafeMutablePointer(to: &stats) {
+      $0.withMemoryRebound(to: integer_t.self, capacity: Int(count)) {
+        host_statistics64(mach_host_self(), HOST_VM_INFO64, $0, &count)
+      }
+    }
+    guard result == KERN_SUCCESS else { return nil }
+    let pages =
+      UInt64(stats.free_count) + UInt64(stats.inactive_count) + UInt64(stats.purgeable_count)
+      + UInt64(stats.speculative_count)
+    return pages * UInt64(vm_kernel_page_size)
   }
 
   /// Ordinary user unload does not interrupt an active job. Exiting calls this too: the inference
@@ -190,10 +244,12 @@ public actor ProductAI {
     return await unload() ? .released : .releasePending
   }
 
-  private func perform<T>(cancellation: Cancellation, operation: () async throws -> T) async throws
-    -> T
-  {
-    await settlePrewarm(cancelling: false)
+  private func perform<T>(
+    cancellation: Cancellation, progress: (@Sendable (String) -> Void)? = nil,
+    operation: () async throws -> T
+  ) async throws -> T {
+    await settlePrewarm(cancelling: false, request: cancellation, progress: progress)
+    try cancellation.check()
     try require(!active, "busy", "Sevra is already using its local model.")
     active = true
     activeCancellation = cancellation
@@ -244,7 +300,7 @@ public actor ProductAI {
     modelDirectory: URL = ProductAI.defaultDirectory, cancellation: Cancellation = .init(),
     progress: @escaping @Sendable (String) -> Void = { _ in }
   ) async throws -> Value {
-    try await perform(cancellation: cancellation) {
+    try await perform(cancellation: cancellation, progress: progress) {
       try await WorkflowCoordinator.run(
         workbook: workbook, session: session, owner: owner, directory: modelDirectory,
         cancellation: cancellation, progress: progress,
@@ -271,13 +327,13 @@ public actor ProductAI {
       ChatTiming.mark("product.run_returned")
       if ownsTiming { ChatTiming.endTurn(outcome: "returned") }
     }
-    return try await perform(cancellation: cancellation) {
+    return try await perform(cancellation: cancellation, progress: progress) {
       if model == nil {
-        model = try ChatTiming.span("product.model_configuration") {
-          NativeWorkbookModel(
-            configuration:
-              try NativeProductResources.configuration(modelsRoot: modelDirectory))
+        let configuration = try ChatTiming.span("product.model_configuration") {
+          try NativeProductResources.configuration(modelsRoot: modelDirectory)
         }
+        engineBytes = configuration.memoryBytes
+        model = NativeWorkbookModel(configuration: configuration)
       }
       guard let model else { throw SevraError("model", "The local model is unavailable.") }
       ChatTiming.mark("product.model_lease")
@@ -297,7 +353,7 @@ public actor ProductAI {
     modelDirectory: URL = ProductAI.defaultDirectory,
     cancellation: Cancellation = .init(), progress: @escaping @Sendable (String) -> Void = { _ in }
   ) async throws -> Value {
-    try await perform(cancellation: cancellation) {
+    try await perform(cancellation: cancellation, progress: progress) {
       let model = try self.workflowModel(directory: modelDirectory)
       let plan = try await ExcelConversionAgent.analyze(
         conversion, workbook: workbook, model: model,
@@ -306,6 +362,34 @@ public actor ProductAI {
     }
   }
 
+}
+
+/// The latest progress of a start, and the one request waiting on it, if any. A request that
+/// begins waiting is told where the start is at once.
+final class ProgressRelay: @unchecked Sendable {
+  private let lock = NSLock()
+  private var latest: String?
+  private var listener: (@Sendable (String) -> Void)?
+  func reset() {
+    lock.lock()
+    latest = nil
+    listener = nil
+    lock.unlock()
+  }
+  func listen(_ next: (@Sendable (String) -> Void)?) {
+    lock.lock()
+    listener = next
+    let current = latest
+    lock.unlock()
+    if let next, let current { next(current) }
+  }
+  @Sendable func send(_ value: String) {
+    lock.lock()
+    latest = value
+    let current = listener
+    lock.unlock()
+    current?(value)
+  }
 }
 
 /// Network callbacks may arrive many times per frame. Keep UI updates bounded

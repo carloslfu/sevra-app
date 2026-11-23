@@ -2,11 +2,12 @@
 type: index
 scope: type-folder
 folder: sources/notes
-updated: 2026-11-22T20:23:03.666317Z
+updated: 2026-11-23T00:57:54.080961Z
 ---
 
 # sources/notes
 
+- [[sources/notes/2026/11/start-local-ai-with-window]] — Carlos asks for Local AI to start when the window opens and for a sent message, its progress and any failure to show in the chat at once.
 - [[sources/notes/2026/11/visible-reasoning]] — Carlos asks that people see the model's reasoning and the calls Sevra sends back, by default, collapsed under each request.
 - [[sources/notes/2026/11/start-window-ready-chat]] — Carlos asks for the start window to be a chat that is ready to use, with a default workbooks folder, saving by default and easy renaming.
 - [[sources/notes/2026/11/chat-response-time-analysis]] — Carlos asks where chat time goes on the first turn and on follow-ups, measured with debug-mode timers, improvements left for later.

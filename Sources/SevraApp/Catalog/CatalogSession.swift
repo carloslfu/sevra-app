@@ -745,6 +745,23 @@ import SwiftUI
       }
       ws.liveActivity = live
     }
+    // A message sent while Local AI starts shows at once with the start's progress under it; one
+    // stopped before it was ready stays in the chat with Retry and Edit. Synthetic text.
+    if id == "chat.activity", variant == "Starting" || variant == "Not sent" {
+      let text = "Which supplier is cheaper for brass bolts, delivery included?"
+      let sent = SentMessage(text: text, conversation: ws.conversation)
+      if variant == "Starting" {
+        ws.busy = true
+        ws.status = "Preparing local AI · 3 of 8 steps"
+        var live = LiveRequestActivity(
+          conversation: ws.conversation, started: Date(timeIntervalSinceNow: -4))
+        live.update(ws.status)
+        ws.liveActivity = live
+        ws.sentMessage = sent
+      } else {
+        ws.sentMessage = sent.failed("Not sent. You stopped it before Local AI was ready.")
+      }
+    }
     if variant == "Opened" || variant == "Long labels" || variant == "Thinking opened" {
       ws.activityExpandedByDefault = true
     }

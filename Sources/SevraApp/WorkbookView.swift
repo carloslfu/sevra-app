@@ -421,7 +421,7 @@ struct WorkbookView: View {
             if state.hasEarlierMessages {
               Button("Load earlier exchanges") { state.pageConversation(earlier: true) }
             }
-            if state.messages.isEmpty {
+            if state.messages.isEmpty && state.sentMessage == nil {
               VStack(alignment: .leading, spacing: 12) {
                 Text("What are we working on?").readingFont(.title2, weight: .medium)
                   .accessibilityAddTraits(.isHeader)
@@ -474,6 +474,16 @@ struct WorkbookView: View {
             if state.hasLaterMessages {
               Button("Load later exchanges") { state.pageConversation(earlier: false) }
             }
+            if let sent = state.shownSentMessage {
+              // Its frame counts as a row, so the chat follows it as it grows, as with a reply.
+              SentMessageView(sent: sent, state: state).id("sent")
+                .background(
+                  GeometryReader { geometry in
+                    Color.clear.preference(
+                      key: ConversationRowFrames.self,
+                      value: ["sent:" + sent.id.uuidString: geometry.frame(in: .named("conversation-content"))])
+                  })
+            }
             if let live = state.liveActivity, live.conversation == state.conversation,
               !state.messages.contains(where: { $0.id == live.requestID })
             {
@@ -503,7 +513,9 @@ struct WorkbookView: View {
                 guard state.interactionActive, !state.changingConversation,
                   state.conversation == chat, state.interactionIdentity == owner
                 else { return }
-                state.conversationSession.updateReading(position)
+                // The message on its way is the newest row, never a place to come back to.
+                state.conversationSession.updateReading(
+                  position.message?.hasPrefix("sent:") == true ? .init() : position)
               }
             )
             .onPreferenceChange(ConversationRowFrames.self) { conversationFrames = $0 }
@@ -798,5 +810,51 @@ private struct WorkbookTitleMenu: View {
     .menuStyle(.borderlessButton).menuIndicator(.visible).fixedSize()
     .help("Rename, find or switch workbooks")
     .accessibilityLabel("Workbook: " + title)
+  }
+}
+
+extension WorkspaceState {
+  /// The message just sent, while its chat has not shown it yet, or one that was not sent.
+  var shownSentMessage: SentMessage? {
+    guard let sent = sentMessage, sent.conversation == conversation else { return nil }
+    if sent.failure != nil { return sent }
+    guard let saved = liveActivity?.requestID else { return sent }
+    return messages.contains(where: { $0.id == saved }) ? nil : sent
+  }
+}
+
+/// The person's message as soon as they send it, drawn like a saved one. One that did not reach
+/// its chat says why, with Retry and Edit.
+private struct SentMessageView: View {
+  let sent: SentMessage
+  @ObservedObject var state: WorkspaceState
+  var body: some View {
+    VStack(alignment: .trailing, spacing: 8) {
+      HStack {
+        Spacer(minLength: 48)
+        Text(sent.text).textSelection(.enabled).lineSpacing(4)
+          .padding(.horizontal, 14).padding(.vertical, 9)
+          .background(
+            Color.primary.opacity(0.065),
+            in: RoundedRectangle(cornerRadius: 16, style: .continuous))
+      }.accessibilityElement(children: .combine).accessibilityLabel("You: " + sent.text)
+      if let failure = sent.failure {
+        VStack(alignment: .leading, spacing: 8) {
+          HStack(alignment: .firstTextBaseline, spacing: 6) {
+            Image(systemName: "exclamationmark.circle").foregroundStyle(.orange)
+              .accessibilityHidden(true)
+            Text(failure).readingFont(.callout).foregroundStyle(.secondary)
+              .textSelection(.enabled).fixedSize(horizontal: false, vertical: true)
+          }
+          HStack(spacing: 8) {
+            Button("Retry", action: state.retryNotSent)
+              .disabled(state.busy || state.changingConversation)
+            Button("Edit", action: state.editNotSent)
+          }.controlSize(.small)
+        }
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .accessibilityElement(children: .contain).accessibilityLabel("Message not sent")
+      }
+    }
   }
 }

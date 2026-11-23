@@ -148,11 +148,14 @@ package actor NativeWorkbookModel: WorkbookInference {
   /// Starts the engine before a request needs it, so Send does not wait for the model to load.
   /// Nothing is sent to the model. It holds the same lock as a run and leaves the engine on the
   /// ordinary idle timer. A failure is not reported here: the request that follows meets it.
-  package func prewarm(directory: URL, cancellation: Cancellation) async -> Bool {
+  package func prewarm(
+    directory: URL, cancellation: Cancellation, progress: @escaping @Sendable (String) -> Void
+  ) async -> Bool {
     guard !leased && !active else { return false }
     do { try beginRun() } catch { return false }
     active = true
-    let started = await worker.prewarm(directory: directory, cancellation: cancellation)
+    let started = await worker.prewarm(
+      directory: directory, cancellation: cancellation, progress: progress)
     active = false
     await endRun()
     return started
@@ -657,10 +660,12 @@ private final class NativeWorker: @unchecked Sendable {
   }
 
   /// Creates the session and starts its engine, restoring the prepared header, without a request.
-  func prewarm(directory: URL, cancellation: Cancellation) async -> Bool {
-    (try? await perform(directory: directory, cancellation: cancellation, progress: { _ in }) {
+  func prewarm(
+    directory: URL, cancellation: Cancellation, progress: @escaping @Sendable (String) -> Void
+  ) async -> Bool {
+    (try? await perform(directory: directory, cancellation: cancellation, progress: progress) {
       (session: Session) -> Void in
-      _ = try session.start(cancellation: cancellation, progress: { _ in })
+      _ = try session.start(cancellation: cancellation, progress: progress)
       // Nobody waited for this setup, so no request reports it.
       self.unreportedSessionSetup = 0
     }) != nil

@@ -24,6 +24,23 @@ typealias WorkbookReadingTarget = ReadingTarget
   }
 }
 
+/// A message on its way to its chat, or one that did not get there.
+struct SentMessage: Equatable {
+  let id = UUID()
+  let text: String
+  let conversation: String
+  private(set) var failure: String?
+  init(text: String, conversation: String) {
+    self.text = text
+    self.conversation = conversation
+  }
+  func failed(_ reason: String) -> SentMessage {
+    var next = self
+    next.failure = reason
+    return next
+  }
+}
+
 struct FolderReview {
   let root: URL
   let plan: FolderPlan
@@ -98,6 +115,9 @@ struct FolderReview {
   }
   @Published var requestActivities: [RequestActivity] = []
   @Published var liveActivity: LiveRequestActivity?
+  /// The message just sent, shown in its chat at once. It stays until the chat has saved it, and
+  /// a message that never got there stays as not sent, with why, Retry and Edit.
+  @Published var sentMessage: SentMessage?
   /// Whether activity rows start open. They start closed; the UI catalog opens them to show
   /// their contents.
   var activityExpandedByDefault = false
@@ -184,6 +204,9 @@ struct FolderReview {
   let clarificationDrafts = WorkflowClarificationScope()
   @Published private(set) var changingConversation = false {
     didSet {
+      // A message left unsent goes back into the composer of its chat, which the change saves
+      // as that chat's draft, so leaving the chat never loses it.
+      if changingConversation, !oldValue { keepNotSentAsDraft() }
       if !changingConversation, unsentAwaitsChange {
         unsentAwaitsChange = false
         returnUnsent()
@@ -357,11 +380,14 @@ struct FolderReview {
 
   /// Starts the local engine while the person reads or types, so Send does not wait for the
   /// model to load. Nothing is sent to it, and the request that follows reports any failure.
-  func prewarmLocalAI() {
+  func prewarmLocalAI() { Self.prewarmLocalAI(ai, defaults: defaults) }
+  /// Also for the start window and the app coming forward, which have no workbook yet.
+  static func prewarmLocalAI(_ ai: ProductAI? = nil, defaults: UserDefaults = .standard) {
+    guard AppHost.allowsBackgroundServices else { return }
+    let ai = ai ?? AppHost.ai
     let path =
       defaults.string(forKey: ProductAI.preferenceKey).map { URL(fileURLWithPath: $0) }
       ?? ProductAI.defaultDirectory
-    let ai = self.ai
     Task { await ai.prewarm(modelDirectory: path) }
   }
   init(
@@ -385,7 +411,13 @@ struct FolderReview {
       self.prompt = draft
       self.restoringConversation = false
     }
+    // Quitting saves composers before windows close, so a message not sent goes into its
+    // composer first. Delivered on the posting thread, before that save.
+    notSentObserver = NotificationCenter.default.addObserver(
+      forName: .sevraKeepNotSent, object: nil, queue: nil
+    ) { [weak self] _ in MainActor.assumeIsolated { self?.keepNotSentAsDraft() } }
   }
+  private var notSentObserver: NSObjectProtocol?
   private func restoreConversationPresentation() {
     restoringConversation = true
     prompt = conversationSession.state.draft
@@ -689,6 +721,8 @@ struct FolderReview {
       landingAnswer = .init(request: request, run: run, text: text)
     }
     liveActivity = nil
+    // A message kept as not sent says so under itself; the bar would only repeat it.
+    if sentMessage?.failure != nil { terminalStatus = nil } else { sentMessage = nil }
     activeIntake = nil
     refresh()
   }
@@ -1268,6 +1302,8 @@ struct FolderReview {
     // Set on the agent's own thread, so a failure right after admission still sees it.
     let admitted = OSAllocatedUnfairLock(initialState: false)
     liveActivity = LiveRequestActivity(conversation: conversation)
+    let fromQueue = dispatchedQueued != nil
+    sentMessage = inputAnswerID == nil ? SentMessage(text: input, conversation: conversation) : nil
     let chat = conversation
     let navigationID = itemPreviewIdentity
     let context = agentContext + (selection.isEmpty ? "" : "\nSelection: " + selection)
@@ -1382,11 +1418,71 @@ struct FolderReview {
       } catch {
         ChatTiming.requestFinished(
           awaitingReplyTo: nil, outcome: ticket.cancellation.isCancelled ? "cancelled" : "failed")
-        if admitted.withLock({ $0 }) { unsent = nil } else { returnUnsent() }
-        report(error, for: ticket, in: book)
+        if admitted.withLock({ $0 }) {
+          unsent = nil
+          // The chat already says it under the message when the run recorded the failure, so the
+          // bar below would only repeat it. It still shows a failure the chat did not record.
+          let shown = error.localizedDescription
+          let recorded = await Task.detached {
+            (try? book.messages(conversation: chat, limit: 1))?.last.map {
+              $0.role == "assistant" && ["failed", "cancelled"].contains($0.state)
+                && $0.body == shown
+            } ?? false
+          }.value
+          if !recorded { report(error, for: ticket, in: book) }
+        } else if !fromQueue, keepNotSent(error, cancelled: ticket.cancellation.isCancelled,
+          chat: chat, book: book)
+        {
+          unsent = nil
+        } else {
+          returnUnsent()
+          report(error, for: ticket, in: book)
+        }
       }
     }
   }
+  // MARK: A message that did not reach its chat
+
+  /// Keeps a message that failed or was stopped before its chat saved it, under the chat with
+  /// the reason, rather than back in the composer. False when it belongs elsewhere now.
+  private func keepNotSent(_ failure: Error, cancelled: Bool, chat: String, book: Workbook) -> Bool
+  {
+    guard interactionActive, workbook === book, conversation == chat, !changingConversation,
+      let sent = sentMessage, sent.conversation == chat
+    else { return false }
+    let stopped = cancelled && (failure as? SevraError)?.code == "cancelled"
+    sentMessage = sent.failed(
+      stopped ? "Not sent. You stopped it before Local AI was ready." : failure.localizedDescription)
+    return true
+  }
+  /// Sends a message that was not sent, as it was.
+  func retryNotSent() {
+    guard let sent = sentMessage, sent.failure != nil, sent.conversation == conversation,
+      let book = workbook, !busy, !changingConversation, conversationSession.ready
+    else { return }
+    sentMessage = nil
+    submit(sent.text, selection: "", book: book, fromComposer: false)
+  }
+  /// Puts a message that was not sent back into the composer to change it.
+  func editNotSent() {
+    guard let sent = sentMessage, sent.failure != nil, sent.conversation == conversation else {
+      return
+    }
+    sentMessage = nil
+    returnInput(sent.text)
+    composerFocusRequest = UUID()
+  }
+  /// Before the chat changes or the window closes. Quitting saves it through the composer too.
+  func keepNotSentAsDraft() {
+    guard let sent = sentMessage, sent.failure != nil else { return }
+    sentMessage = nil
+    if sent.conversation == conversation {
+      returnInput(sent.text)
+    } else if let workbook {
+      try? ComposerInput.keep(sent.text, conversation: sent.conversation, in: workbook)
+    }
+  }
+
   // MARK: Waiting messages
 
   private func enqueue(_ input: String) {
@@ -2077,6 +2173,7 @@ struct FolderReview {
   }
   func saveBeforeClosing() async -> Bool {
     speech.stop()
+    keepNotSentAsDraft()
     guard !changingConversation, documentDrafts.flush() else { return false }
     let saved = await conversationSession.flush()
     await spaceNavigation.flush()
@@ -2088,6 +2185,7 @@ struct FolderReview {
   /// gone. The window saved before it closed, so the workbook is let go here and its connection
   /// and memory end with the window.
   func close() {
+    keepNotSentAsDraft()
     closeNativeApps()
     endInteraction()
     conversationSession.close()
@@ -2152,6 +2250,7 @@ struct FolderReview {
   }
   func beginInteraction() { interactionActive = true }
   func endInteraction() {
+    keepNotSentAsDraft()
     interactionActive = false
     returnUnsent()
     showingChats = false
@@ -2167,6 +2266,7 @@ struct FolderReview {
     busy = false
     status = ""
     liveActivity = nil
+    sentMessage = nil
     landingAnswer = nil
     requestActivities = []
     activePreview?.cancel()

@@ -290,6 +290,8 @@ struct RecentWorkbookButtons: View {
       if !CommandLine.arguments.contains("--check-resources") { updates.start() }
     #endif
     NativeAutomationHost.shared.start()
+    // The local engine starts with the first window, so a first message does not wait for it.
+    if !CommandLine.arguments.contains("--check-resources") { WorkspaceState.prewarmLocalAI() }
     let events = NSAppleEventManager.shared()
     events.setEventHandler(
       self, andSelector: #selector(quitEvent(_:reply:)),
@@ -300,6 +302,13 @@ struct RecentWorkbookButtons: View {
     events.setEventHandler(
       self, andSelector: #selector(openEvent(_:reply:)),
       forEventClass: AEEventClass(kCoreEventClass), andEventID: AEEventID(kAEOpenDocuments))
+  }
+  /// Coming back after the idle timer released the engine starts it again before Send.
+  func applicationDidBecomeActive(_ notification: Notification) {
+    guard !quitting, !WorkbookWindowRegistry.quitting,
+      !CommandLine.arguments.contains("--check-resources")
+    else { return }
+    WorkspaceState.prewarmLocalAI()
   }
   func applicationShouldTerminate(_ sender: NSApplication) -> NSApplication.TerminateReply {
     guard DocumentDraftScope.flushAll() else { return .terminateCancel }
@@ -343,6 +352,7 @@ struct RecentWorkbookButtons: View {
     application(NSApp, open: urls)
   }
   private func finishWork() async -> Bool {
+    NotificationCenter.default.post(name: .sevraKeepNotSent, object: nil)
     NativeAutomationHost.shared.beginTermination()
     await NativeAutomationHost.shared.yieldForInteractive()
     let saved = await ConversationSession.flushAll()
@@ -369,6 +379,7 @@ struct RecentWorkbookButtons: View {
 }
 extension Notification.Name {
   static let sevraStopping = Notification.Name("sevraStopping")
+  static let sevraKeepNotSent = Notification.Name("sevraKeepNotSent")
   static let sevraImport = Notification.Name("sevraImport"),
     sevraSearch = Notification.Name("sevraSearch"),
     sevraReviews = Notification.Name("sevraReviews"),

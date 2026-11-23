@@ -201,8 +201,11 @@ package protocol WorkbookInference: Actor {
   func beginRun() async throws
   func endRun() async
   func releaseResources() async -> Bool
-  /// Loads the model ahead of a request. Models with nothing to load return false.
-  func prewarm(directory: URL, cancellation: Cancellation) async -> Bool
+  /// Loads the model ahead of a request. Models with nothing to load return false. Progress
+  /// reaches a request that comes to wait for this start.
+  func prewarm(
+    directory: URL, cancellation: Cancellation, progress: @escaping @Sendable (String) -> Void
+  ) async -> Bool
   func interpret(
     request: Value, directory: URL, cancellation: Cancellation,
     progress: @escaping @Sendable (String) -> Void
@@ -243,7 +246,9 @@ public struct AnswerPreview: Sendable {
 
 // Synthetic inference fixtures must explicitly opt in to context maintenance.
 extension WorkbookInference {
-  package func prewarm(directory: URL, cancellation: Cancellation) async -> Bool { false }
+  package func prewarm(
+    directory: URL, cancellation: Cancellation, progress: @escaping @Sendable (String) -> Void
+  ) async -> Bool { false }
   package func respondStreaming(
     messages: [InferenceMessage], directory: URL, cancellation: Cancellation,
     progress: @escaping @Sendable (String) -> Void, toolScope: InferenceToolScope,

@@ -204,7 +204,7 @@ enum CatalogRegistry {
         kind == "activity"
           ? [
             "Default", "Opened", "Empty", "Busy", "Thinking", "Thinking opened", "Streaming",
-            "Failure", "Long labels",
+            "Starting", "Not sent", "Failure", "Long labels",
           ]
           : ["Default", "Empty", "Busy", "Failure", "Long labels"])
     }
