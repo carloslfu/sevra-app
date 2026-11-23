@@ -289,6 +289,7 @@ actor PausedModel: WorkbookInference {
       "PASS setup release failure prevents subsequent model reuse without writing workbook data")
 
     try await checkPrewarm(book: try book("prewarm"))
+    try await checkNaming(at: root)
     try await checkWorkflowModelLifecycle()
     try await checkWorkflowExtractionLifecycle()
     try await checkWorkflowIntakeLifecycle()

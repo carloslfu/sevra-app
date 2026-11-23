@@ -102,12 +102,43 @@ public enum WorkbookLibrary {
         throw SevraError("manifest", "The workbook manifest is not readable.")
       }
       fields["title"] = .string(name)
+      // The person named it, so Sevra no longer changes the name.
+      fields["titleSource"] = .string("person")
       try Data(try Value.object(fields).json().utf8).write(
         to: target.appendingPathComponent(manifestName), options: .atomic)
     } catch {
       if !sameFile { try? FileManager.default.moveItem(at: target, to: url) }
       throw error
     }
+    return target
+  }
+
+  /// The name a workbook shows: its manifest title, or its file name when that cannot be read.
+  public static func displayName(_ path: String) -> String {
+    let url = URL(fileURLWithPath: path)
+    let file = url.deletingPathExtension().lastPathComponent
+    guard let text = try? String(contentsOf: url.appendingPathComponent("manifest.json"), encoding: .utf8),
+      text.utf8.count <= 64_000, let title = (try? Value.parse(text))?["title"].string,
+      !title.isEmpty
+    else { return file }
+    return title
+  }
+
+  /// A closed workbook whose name Sevra chose, moved to a file named like it: "Name.sevra", or
+  /// "Name 2.sevra" when that is taken. Nil when there is nothing to move.
+  public static func fileMatchingAutomaticTitle(_ url: URL) throws -> URL? {
+    let manifest = try Value.parse(
+      String(contentsOf: url.appendingPathComponent("manifest.json"), encoding: .utf8))
+    guard manifest["format"].text == "sevra", Workbook.automaticTitle(manifest) else { return nil }
+    let name = Self.name(from: manifest["title"].text)
+    let current = url.deletingPathExtension().lastPathComponent
+    // "Name 2" is already this name's file when "Name" was taken.
+    guard current != name, current.range(
+      of: "^" + NSRegularExpression.escapedPattern(for: name) + " [0-9]+$",
+      options: .regularExpression) == nil
+    else { return nil }
+    let target = available(name, in: url.deletingLastPathComponent())
+    try FileManager.default.moveItem(at: url, to: target)
     return target
   }
 }

@@ -140,3 +140,101 @@ private final class ProgressSeen: @unchecked Sendable {
   }
 }
 
+
+/// A model that names work: it answers once released, or stops when cancelled.
+private actor NamingModel: WorkbookInference {
+  let identity = "Synthetic naming qualification"
+  var lastMetrics: Value { .null }
+  var supportsCompaction: Bool { false }
+  private(set) var events: [String] = []
+  private var answer = false
+  func release() { answer = true }
+  func titles(
+    messages: [InferenceMessage], directory: URL, cancellation: Cancellation
+  ) async throws -> WorkTitlesReply? {
+    events.append("titles")
+    while !answer && !cancellation.isCancelled { try? await Task.sleep(nanoseconds: 5_000_000) }
+    events.append(cancellation.isCancelled ? "titles cancelled" : "titled")
+    return WorkTitlesReply(chat: "\"Brass bolt comparison.\"", workbook: "Supplier quotes")
+  }
+  func beginRun() { events.append("run") }
+  func endRun() {}
+  func releaseResources() -> Bool { true }
+  func measureContext(
+    messages: [InferenceMessage], directory: URL, cancellation: Cancellation,
+    summary: Bool, toolScope: InferenceToolScope, citationIDs: [String],
+    progress: @escaping @Sendable (String) -> Void
+  ) throws -> ContextMeasurement {
+    .init(promptTokens: 1000, capacity: 65536, templateIdentity: "naming-check")
+  }
+  func respond(
+    messages: [InferenceMessage], directory: URL, cancellation: Cancellation,
+    progress: @escaping @Sendable (String) -> Void, toolScope: InferenceToolScope,
+    citationIDs: [String]
+  ) throws -> NativeReply {
+    events.append("respond")
+    throw SevraError("check_stop", "The request reached the model.")
+  }
+}
+
+/// No model. Naming runs after the first and third replies on names that are still Sevra's,
+/// cleans what the model wrote, and stops at once for a request.
+func checkNaming(at root: URL) async throws {
+  let url = root.appendingPathComponent("Naming.sevra")
+  let book = try Workbook.create(at: url, title: "Untitled", automaticTitle: true)
+  let chat = try book.chats()[0].id
+  _ = try book.addMessage("hi", role: "user", conversation: chat)
+  let model = NamingModel()
+  let service = ProductAI(qualifying: model)
+  let none = await service.nameWork(book, conversation: chat)
+  let untouched = await model.events.isEmpty
+  try expect(!none && untouched, "Named a chat with no reply yet.")
+  _ = try book.addMessage("Hello.", role: "assistant", conversation: chat)
+
+  // A request stops naming before it uses the model.
+  let naming = Task { await service.nameWork(book, conversation: chat) }
+  for _ in 0..<200 where !(await model.events.contains("titles")) {
+    try await Task.sleep(nanoseconds: 5_000_000)
+  }
+  _ = try? await service.run("next", workbook: book, conversation: chat)
+  let stopped = await naming.value
+  let order = await model.events
+  try expect(!stopped, "A stopped naming still changed a name.")
+  try expect(
+    order.prefix(4) == ["run", "titles", "titles cancelled", "run"],
+    "A request did not stop naming first: \(order)")
+  try expect(book.title == "Untitled", "A stopped naming renamed the workbook.")
+
+  await model.release()
+  let named = await service.nameWork(book, conversation: chat)
+  try expect(named, "Naming after the first reply changed nothing.")
+  try expect(
+    try book.chats()[0].title == "Brass bolt comparison" && book.title == "Supplier quotes",
+    "Names were not applied or cleaned: \(try book.chats()[0].title), \(book.title)")
+  // After the third reply a name Sevra gave stays.
+  for turn in 2...4 {
+    _ = try book.addMessage("More \(turn)?", role: "user", conversation: chat)
+    _ = try book.addMessage("Yes.", role: "assistant", conversation: chat)
+  }
+  let before = await model.events.count
+  let fourth = await service.nameWork(book, conversation: chat)
+  let after = await model.events.count
+  try expect(!fourth && before == after, "Named again after the fourth reply.")
+  // A stand-in name still gets a real one after a later reply.
+  let late = try Workbook.create(
+    at: root.appendingPathComponent("Late.sevra"), title: "Untitled", automaticTitle: true)
+  let lateChat = try late.chats()[0].id
+  for turn in 1...4 {
+    _ = try late.addMessage("Question \(turn)", role: "user", conversation: lateChat)
+    _ = try late.addMessage("Answer.", role: "assistant", conversation: lateChat)
+  }
+  let lateNamed = await service.nameWork(late, conversation: lateChat)
+  try expect(
+    lateNamed && late.title == "Supplier quotes" && !late.titleIsPlaceholder,
+    "A stand-in name after the third reply was not replaced: \(late.title)")
+  try expect(WorkTitles.clean("New chat") == nil && WorkTitles.clean("") == nil, "Kept a placeholder.")
+  try expect(WorkTitles.clean("brass bolt quotes") == "Brass bolt quotes", "Left a lowercase title.")
+  print(
+    "PASS naming: stand-in names after any reply, given names improved only in the first three replies, cleaned, and stopped at once by a request without renaming"
+  )
+}

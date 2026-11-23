@@ -1396,6 +1396,7 @@ struct FolderReview {
         unsent = nil
         guard owns(ticket, in: book) else { return }
         refresh()
+        nameWork(book, chat: chat, modelDirectory: path)
         let present =
           conversation == chat && itemPreviewIdentity == expectedNavigationID
           && conversationNavigationIdentity == conversationOrigin
@@ -1441,6 +1442,19 @@ struct FolderReview {
       }
     }
   }
+  /// After a reply, while the engine is still running: Sevra names the chat and the workbook if
+  /// they are still its to name. Any new request stops this first.
+  private func nameWork(_ book: Workbook, chat: String, modelDirectory: URL) {
+    let ai = self.ai
+    Task {
+      guard await ai.nameWork(book, conversation: chat, modelDirectory: modelDirectory),
+        workbook === book
+      else { return }
+      objectWillChange.send()
+      refresh()
+    }
+  }
+
   // MARK: A message that did not reach its chat
 
   /// Keeps a message that failed or was stopped before its chat saved it, under the chat with

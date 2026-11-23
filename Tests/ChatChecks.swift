@@ -2,6 +2,42 @@ import Foundation
 @testable import SevraCore
 
 func checkChats(at root: URL) {
+  check("Sevra names work only while the name is its own, and the file follows on the next open") {
+    let folder = root.appendingPathComponent("Titles")
+    try FileManager.default.createDirectory(at: folder, withIntermediateDirectories: true)
+    let url = folder.appendingPathComponent("Untitled.sevra")
+    var book: Workbook? = try Workbook.create(at: url, title: "Untitled", automaticTitle: true)
+    try expect(book!.titleIsAutomatic)
+    try expect(try book!.setAutomaticTitle("Brass bolt quotes") && book!.title == "Brass bolt quotes")
+    // The chat: "New chat", then the first message's title, then a better one, are all Sevra's.
+    let chat = try book!.chats()[0].id
+    try expect(try book!.chatTitleIsAutomatic(chat))
+    _ = try book!.addMessage("compare the quotes for brass bolts", role: "user", conversation: chat)
+    try expect(try book!.chatTitleIsAutomatic(chat))
+    try expect(try book!.setAutomaticChatTitle(chat, title: "Brass bolt comparison"))
+    try expect(try book!.chats()[0].title == "Brass bolt comparison")
+    try expect(try book!.chatTitleIsAutomatic(chat))
+    // A title the person gives ends it.
+    try book!.renameChat(chat, title: "Bolts")
+    try expect(try !book!.chatTitleIsAutomatic(chat))
+    try expect(try !book!.setAutomaticChatTitle(chat, title: "Something else"))
+    try expect(try book!.chats()[0].title == "Bolts")
+    book = nil
+    // Closed and opened again: the file takes the name, and a taken name gets a number.
+    _ = try Workbook.create(at: folder.appendingPathComponent("Brass bolt quotes.sevra"), title: "Other")
+    let moved = try WorkbookLibrary.fileMatchingAutomaticTitle(url)
+    try expect(moved?.lastPathComponent == "Brass bolt quotes 2.sevra")
+    try expect(try WorkbookLibrary.fileMatchingAutomaticTitle(moved!) == nil)
+    try expect(WorkbookLibrary.displayName(moved!.path) == "Brass bolt quotes")
+    // Renaming by the person makes the name theirs.
+    let named = try WorkbookLibrary.rename(moved!, to: "Bolts 2026")
+    let reopened = try Workbook(named)
+    try expect(!reopened.titleIsAutomatic)
+    try expect(try !reopened.setAutomaticTitle("Not this") && reopened.title == "Bolts 2026")
+    // A workbook made before names were marked counts as Sevra's only while it is untitled.
+    try expect(Workbook.automaticTitle(.object(["title": .string("Untitled 3")])))
+    try expect(!Workbook.automaticTitle(.object(["title": .string("Quotes")])))
+  }
   check("A new workbook gets a name and a place without a save panel, and can be renamed") {
     try expect(WorkbookLibrary.name(fromMessage: "hi") == "Untitled")
     try expect(WorkbookLibrary.name(fromMessage: "thanks a lot") == "Thanks a lot")

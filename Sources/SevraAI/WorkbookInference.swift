@@ -210,6 +210,11 @@ package protocol WorkbookInference: Actor {
     request: Value, directory: URL, cancellation: Cancellation,
     progress: @escaping @Sendable (String) -> Void
   ) async throws -> Value
+  /// A few words for the chat and the workbook, from an engine that is already running. Nil when
+  /// it is not, or the reply is unusable.
+  func titles(
+    messages: [InferenceMessage], directory: URL, cancellation: Cancellation
+  ) async throws -> WorkTitlesReply?
   /// answerPreview receives the answer as it is written. reasoningPreview receives this call's
   /// reasoning so far, for the person to read. Neither is a saved result.
   func respondStreaming(
@@ -246,6 +251,9 @@ public struct AnswerPreview: Sendable {
 
 // Synthetic inference fixtures must explicitly opt in to context maintenance.
 extension WorkbookInference {
+  package func titles(
+    messages: [InferenceMessage], directory: URL, cancellation: Cancellation
+  ) async throws -> WorkTitlesReply? { nil }
   package func prewarm(
     directory: URL, cancellation: Cancellation, progress: @escaping @Sendable (String) -> Void
   ) async -> Bool { false }

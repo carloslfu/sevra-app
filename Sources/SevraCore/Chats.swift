@@ -89,6 +89,51 @@ extension Workbook {
     }
   }
 
+  /// Whether Sevra still names this chat: it is "New chat", or it has the name Sevra gave it from
+  /// the first message or later. A name the person gave it is kept.
+  public func chatTitleIsAutomatic(_ id: String) throws -> Bool {
+    try synchronized { try automaticChatTitle(id) }
+  }
+  private func automaticChatTitle(_ id: String) throws -> Bool {
+    let title = try db.scalar("SELECT title FROM conversations WHERE id=?", [.string(id)]).text
+    if title == Self.newChatTitle { return true }
+    let given = try db.scalar("SELECT value FROM meta WHERE key=?", [.string("chat-title:" + id)])
+    if given.string == title { return true }
+    let first = try db.scalar(
+      "SELECT body FROM messages WHERE conversation_id=? AND role='user' ORDER BY rowid LIMIT 1",
+      [.string(id)])
+    return first.string.map(Self.chatTitle(from:)) == title
+  }
+  /// Whether the title is still a stand-in, "New chat" or the first message, rather than one Sevra
+  /// gave from the work.
+  public func chatTitleIsPlaceholder(_ id: String) throws -> Bool {
+    try synchronized {
+      guard try automaticChatTitle(id) else { return false }
+      let title = try db.scalar("SELECT title FROM conversations WHERE id=?", [.string(id)]).text
+      let given = try db.scalar("SELECT value FROM meta WHERE key=?", [.string("chat-title:" + id)])
+      return given.string != title
+    }
+  }
+  /// Gives a chat Sevra still names a better title. False when the person renamed it meanwhile.
+  @discardableResult public func setAutomaticChatTitle(
+    _ id: String, title: String, token: String = identifier(),
+    cancellation: Cancellation = .init()
+  ) throws -> Bool {
+    let name = try Self.validChatTitle(title)
+    let control = Cancellation(parent: cancellation, deadlineAfterSeconds: 3)
+    return try mutation(
+      "auto_title_chat", token: token,
+      request: .object(["id": .string(id), "title": .string(name)]), cancellation: control
+    ) {
+      try requireLiveChat(id)
+      guard try automaticChatTitle(id) else { return .bool(false) }
+      try db.execute("UPDATE conversations SET title=? WHERE id=?", [.string(name), .string(id)])
+      try db.execute(
+        "INSERT OR REPLACE INTO meta VALUES(?,?)", [.string("chat-title:" + id), .string(name)])
+      return .bool(true)
+    } == .bool(true)
+  }
+
   /// Removes a chat from the list, with its unsent draft. Its messages stay in the workbook,
   /// because the Sources and receipts its requests created point at them, but it cannot be
   /// opened or written to again.
@@ -116,7 +161,9 @@ extension Workbook {
           [.string(id)]
         ).int == 0, "chat_busy", "Stop the answer in this chat before deleting it.")
       try db.execute("UPDATE conversations SET deleted=1 WHERE id=?", [.string(id)])
-      try db.execute("DELETE FROM meta WHERE key=?", [.string("conversation-view:" + id)])
+      try db.execute(
+        "DELETE FROM meta WHERE key IN (?,?)",
+        [.string("conversation-view:" + id), .string("chat-title:" + id)])
       return .string(try readChats().first?.id ?? insertChat())
     }.text
   }

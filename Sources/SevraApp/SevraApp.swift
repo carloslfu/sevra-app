@@ -140,7 +140,7 @@ struct RecentWorkbookButtons: View {
   let files: WorkbookFiles
   var body: some View {
     ForEach(paths, id: \.self) { path in
-      Button(URL(fileURLWithPath: path).deletingPathExtension().lastPathComponent) {
+      Button(WorkbookLibrary.displayName(path)) {
         files.show(URL(fileURLWithPath: path))
       }
     }
@@ -201,12 +201,13 @@ struct RecentWorkbookButtons: View {
   /// Brings an open workbook forward, or opens a window for it. Either way the start page closes,
   /// and a workbook that is gone is reported before any window opens.
   func show(_ url: URL) {
-    let path = WorkbookWindowRegistry.canonical(url.path)
-    if let owner = WorkbookWindowRegistry.owner(of: path) {
+    if let owner = WorkbookWindowRegistry.owner(of: WorkbookWindowRegistry.canonical(url.path)) {
       WorkbookWindowRegistry.bringForward(owner)
       NSApp.activate(ignoringOtherApps: true)
       return
     }
+    let url = Self.fileNamedLikeTitle(url)
+    let path = WorkbookWindowRegistry.canonical(url.path)
     guard FileManager.default.fileExists(atPath: path) else {
       RecentWorkbooks.forget(url.path)
       Self.report(
@@ -216,6 +217,23 @@ struct RecentWorkbookButtons: View {
       return
     }
     openWindow(value: path)
+  }
+  /// A workbook Sevra named while it was open keeps its old file name until it opens again,
+  /// since nothing may hold it while it moves. Here nothing does, so the file takes the name.
+  static func fileNamedLikeTitle(_ url: URL) -> URL {
+    guard WorkbookWindowRegistry.owner(of: WorkbookWindowRegistry.canonical(url.path)) == nil,
+      FileManager.default.fileExists(atPath: url.appendingPathComponent("manifest.json").path),
+      let moved = try? WorkbookLibrary.fileMatchingAutomaticTitle(url)
+    else { return url }
+    let defaults = UserDefaults.standard
+    for old in Set([url.path, WorkbookWindowRegistry.canonical(url.path)]) {
+      RecentWorkbooks.forget(old)
+      if let chat = defaults.string(forKey: "lastConversation:" + old) {
+        defaults.removeObject(forKey: "lastConversation:" + old)
+        defaults.set(chat, forKey: "lastConversation:" + moved.path)
+      }
+    }
+    return moved
   }
   /// On the window in front when there is one, so it reads as that window's answer.
   static func report(_ title: String, _ message: String) {
@@ -510,7 +528,8 @@ struct WorkspaceWindow: View {
         if path == nil, state.workbook == nil,
           let first = urls.firstIndex(where: { $0.pathExtension != "sevraz" })
         {
-          path = WorkbookWindowRegistry.canonical(urls.remove(at: first).path)
+          path = WorkbookWindowRegistry.canonical(
+            WorkbookFiles.fileNamedLikeTitle(urls.remove(at: first)).path)
         }
         urls.forEach(files.open)
       }
@@ -607,7 +626,9 @@ struct WorkspaceWindow: View {
       do {
         let url = try await Task.detached(priority: .userInitiated) {
           let url = try WorkbookLibrary.newURL(name)
-          _ = try Workbook.create(at: url, title: url.deletingPathExtension().lastPathComponent)
+          // Sevra chose this name, so it may name the workbook better once the work is clear.
+          _ = try Workbook.create(
+            at: url, title: url.deletingPathExtension().lastPathComponent, automaticTitle: true)
           return url
         }.value
         guard ownWindow === owner, path == nil else { return }

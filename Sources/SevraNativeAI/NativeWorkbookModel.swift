@@ -240,6 +240,26 @@ package actor NativeWorkbookModel: WorkbookInference {
     }
   }
 
+  package func titles(
+    messages: [InferenceMessage], directory: URL, cancellation: Cancellation
+  ) async throws -> WorkTitlesReply? {
+    try require(leased && !active, "busy", "The native model needs an exclusive workbook run.")
+    active = true
+    defer { active = false }
+    return try await withTaskCancellationHandler {
+      if Task.isCancelled { cancellation.cancel() }
+      try cancellation.check()
+      // Never worth starting the engine for.
+      guard await worker.hasSession() else { return nil }
+      let reply = try await worker.titles(
+        messages: messages, directory: directory, cancellation: cancellation)
+      try cancellation.check()
+      return reply
+    } onCancel: {
+      cancellation.cancel()
+    }
+  }
+
   package func interpret(
     request: Value, directory: URL, cancellation: Cancellation,
     progress: @escaping @Sendable (String) -> Void
@@ -858,6 +878,50 @@ private final class NativeWorker: @unchecked Sendable {
           "decodeSeconds": .number(Double(generated.done.decodeMicros) / 1e6),
         ])
       )
+    }
+  }
+
+  /// Names the work: a few words for the chat and for the workbook, as constrained JSON. Only for
+  /// an engine already started, since a title is never worth loading the model for.
+  func titles(
+    messages: [InferenceMessage], directory: URL, cancellation: Cancellation
+  ) async throws -> WorkTitlesReply? {
+    try await perform(directory: directory, cancellation: cancellation, progress: { _ in }) {
+      session -> WorkTitlesReply? in
+      guard session.helper?.isOpen == true else { return nil }
+      let prompt = try session.frontend.prepare(
+        messages: messages.map(nativeTemplateMessage), contextLimit: SplashWire.maxTokens)
+      // A title is a few tokens; the budget's own floor still leaves the prompt plenty of room.
+      _ = try self.configuration.contextBudget.allowance(
+        promptTokens: prompt.tokens.count,
+        outputTokens: max(
+          WorkTitlesReply.maximumOutputTokens, self.configuration.contextBudget.minimumOutputTokens),
+        capacity: session.capacity, toolResultTokens: 0)
+      let helper = try session.start(cancellation: cancellation, progress: { _ in })
+      let constraint = try session.factory.create(grammar: WorkTitlesReply.schema, type: "json")
+      let output = try SplashOutputStream(frontend: session.frontend, structured: true)
+      session.requestID += 1
+      var request = SplashWire.Request(
+        id: session.requestID, prompt: prompt.tokens,
+        absoluteDeadline: UInt64((Date().timeIntervalSince1970 + 30) * 1e6),
+        remainingDeadline: 30_000_000)
+      request.maxOutput = UInt32(WorkTitlesReply.maximumOutputTokens)
+      request.generationTokens = prompt.generationTokens
+      request.tokenMask = true
+      try cancellation.check()
+      let generated = try helper.generate(
+        request,
+        cancelled: { cancellation.isCancelled || cancellation.isExpired },
+        mask: { try constraint.masks(committed: $0, simulation: $1, words: $2) },
+        event: { event in
+          if case .tokens(_, _, let tokens) = event { _ = try output.append(tokens: tokens) }
+        })
+      try cancellation.check()
+      guard generated.done.reason == .stop, !generated.done.bounded else { return nil }
+      try constraint.finish(committed: generated.tokens, requireComplete: true)
+      let parsed = try output.finish(generated.done.reason).0
+      guard parsed.calls.isEmpty else { return nil }
+      return WorkTitlesReply(json: parsed.text)
     }
   }
 

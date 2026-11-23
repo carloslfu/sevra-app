@@ -84,7 +84,7 @@ struct StartView: View {
                   } label: {
                     HStack(spacing: 10) {
                       Image(systemName: "doc").foregroundStyle(.secondary)
-                      Text(URL(fileURLWithPath: path).deletingPathExtension().lastPathComponent)
+                      Text(WorkbookLibrary.displayName(path))
                         .foregroundStyle(Color.primary).lineLimit(1).truncationMode(.middle)
                       Spacer(minLength: 0)
                     }.frame(maxWidth: .infinity, alignment: .leading)

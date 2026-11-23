@@ -9,6 +9,13 @@ title: Minimum-feature continuation handoff
 ---
 # Minimum-feature continuation handoff
 
+## Sevra names untitled work, November 22
+At the owner's word ([[sources/notes/2026/11/name-untitled-work]]). After a reply, `WorkspaceState.nameWork` asks `ProductAI.nameWork` to name the chat and the workbook when they are still Sevra's to name. `WorkTitles` builds a short prompt (the first request, the last six messages, up to eight file names and the current names) and the native engine answers through a JSON grammar with `chat` and `workbook`, 0 to 60 characters each; empty means the work is not clear yet. It runs only on an engine that is already running, and any request, unload or start stops it first. Measured: 1.7 s after the reply.
+
+Who chose a name: the manifest's `titleSource` is `auto` (a stand-in Sevra picked), `model` (named from the work) or `person`; a manifest without it counts as Sevra's only while it is "Untitled" or "Untitled N". A chat's title is Sevra's while it is "New chat", its first message's title, or the title stored under meta `chat-title:<id>`; the person's rename ends it. Stand-in names are named after any reply; a model name may improve only in the first three replies. The workbook's file takes the name when it next opens (`WorkbookFiles.fileNamedLikeTitle`), with recents and the last chat carried over; recent lists show manifest titles meanwhile. The model ignored the capitalization instruction, so `WorkTitles.clean` capitalizes the first letter.
+
+Checked: core and product checks without a model (who may name, stopping on a request, the three-reply rule, a late stand-in, cleaning, the file move), and the packaged build with the model: a greeting left the names, a supplier question named the chat and workbook live in 1.7 s, reopening from recents moved the file, and a stand-in past three replies was named. The debug timing log records each naming's outcome as `kind: naming`. Not checked: naming a chat that is not the workbook's first, and a workbook started from files.
+
 ## Local AI starts with the window, November 22
 At the owner's word ([[sources/notes/2026/11/start-local-ai-with-window]]). The cause he saw: a message sent while the prewarm was still starting waited for the whole start inside `ProductAI.perform`, with the start's progress discarded, the message not yet saved and Stop unable to end the wait, so the chat showed only "Preparing local AI". The new start window made it common, because nothing started the engine before the first message.
 

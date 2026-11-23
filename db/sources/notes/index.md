@@ -2,11 +2,12 @@
 type: index
 scope: type-folder
 folder: sources/notes
-updated: 2026-11-23T00:57:54.080961Z
+updated: 2026-11-23T02:09:19.766262Z
 ---
 
 # sources/notes
 
+- [[sources/notes/2026/11/name-untitled-work]] — Carlos asks for untitled workbooks and chats to be named smartly; the local model names them after replies until the person names them.
 - [[sources/notes/2026/11/start-local-ai-with-window]] — Carlos asks for Local AI to start when the window opens and for a sent message, its progress and any failure to show in the chat at once.
 - [[sources/notes/2026/11/visible-reasoning]] — Carlos asks that people see the model's reasoning and the calls Sevra sends back, by default, collapsed under each request.
 - [[sources/notes/2026/11/start-window-ready-chat]] — Carlos asks for the start window to be a chat that is ready to use, with a default workbooks folder, saving by default and easy renaming.

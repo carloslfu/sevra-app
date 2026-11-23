@@ -5,8 +5,16 @@ public final class Workbook: @unchecked Sendable {
   public let url: URL
   /// Package identity survives copying/export. Links never use the filesystem path.
   public let id: String
-  /// Written once at creation.
-  public let title: String
+  /// The workbook's name. One Sevra chose can change while the workbook is open.
+  public var title: String { synchronizedTitle { storedTitle } }
+  /// Whether Sevra chose the name and may still improve it. A name the person gave is kept.
+  public var titleIsAutomatic: Bool { synchronizedTitle { storedTitleIsAutomatic } }
+  /// Whether the name is still a stand-in, "Untitled" or the first words of a message, rather
+  /// than one Sevra gave from the work. A stand-in gets a name after any reply.
+  public var titleIsPlaceholder: Bool { synchronizedTitle { storedTitleIsPlaceholder } }
+  private var storedTitle: String
+  private var storedTitleIsAutomatic: Bool
+  private var storedTitleIsPlaceholder: Bool
   let db: Database
   /// The query and table `temp.filtered_rows` holds, while one page reads it.
   var rememberedFilter: String?
@@ -14,7 +22,10 @@ public final class Workbook: @unchecked Sendable {
   private var lockFD: Int32 = -1
   /// Tables whose rows changed in the running transaction.
   var tablesWithChangedRows = Set<String>()
-  public static func create(at url: URL, title: String) throws -> Workbook {
+  /// `automaticTitle` marks a name Sevra chose for the person, which it may improve later.
+  public static func create(at url: URL, title: String, automaticTitle: Bool = false) throws
+    -> Workbook
+  {
     try require(
       !FileManager.default.fileExists(atPath: url.path), "exists", "Choose a new workbook location."
     )
@@ -26,7 +37,7 @@ public final class Workbook: @unchecked Sendable {
       }
       let manifest: Value = .object([
         "format": .string("sevra"), "version": .number(1), "id": .string(identifier()),
-        "title": .string(title),
+        "title": .string(title), "titleSource": .string(automaticTitle ? "auto" : "person"),
       ])
       try Data(try manifest.json().utf8).write(
         to: url.appendingPathComponent("manifest.json"), options: .atomic)
@@ -68,7 +79,9 @@ public final class Workbook: @unchecked Sendable {
       m["id"].string != nil, "workbook_identity", "The workbook identity must be a string.")
     try Self.validateReferenceIdentity(m["id"].text)
     id = m["id"].text
-    title = m["title"].text
+    storedTitle = m["title"].text
+    storedTitleIsAutomatic = Self.automaticTitle(m)
+    storedTitleIsPlaceholder = storedTitleIsAutomatic && m["titleSource"].string != "model"
     db = try Database(url.appendingPathComponent("workbook.sqlite"))
     let giveUp = ProcessInfo.processInfo.systemUptime + busyWaitSeconds
     // Read before making the lock file, so a workbook in another format stays untouched.
@@ -185,6 +198,41 @@ public final class Workbook: @unchecked Sendable {
   }
   /// A mutation that answers with something read from what it saved. The read runs before
   /// COMMIT: past that point the change is final, and a busy file must not report it as failed.
+  private func synchronizedTitle<T>(_ read: () -> T) -> T {
+    lock.lock()
+    defer { lock.unlock() }
+    return read()
+  }
+  /// A manifest says who chose the name: "auto" for a stand-in Sevra picked, "model" for one it
+  /// gave from the work, "person" for the person's. One from before it said so counts as Sevra's
+  /// only while it is still "Untitled" or "Untitled 2" and so on.
+  static func automaticTitle(_ manifest: Value) -> Bool {
+    if let source = manifest["titleSource"].string { return ["auto", "model"].contains(source) }
+    return manifest["title"].text.range(
+      of: #"^Untitled( [0-9]+)?$"#, options: .regularExpression) != nil
+  }
+  /// Gives a workbook whose name Sevra chose a better one. The manifest changes now; the file
+  /// keeps its name until the workbook closes. False when the person has named it since.
+  @discardableResult public func setAutomaticTitle(_ requested: String) throws -> Bool {
+    let name = WorkbookLibrary.name(from: requested)
+    lock.lock()
+    defer { lock.unlock() }
+    let file = url.appendingPathComponent("manifest.json")
+    let manifest = try Value.parse(String(contentsOf: file, encoding: .utf8))
+    guard storedTitleIsAutomatic, Self.automaticTitle(manifest), case .object(var fields) = manifest
+    else {
+      storedTitleIsAutomatic = false
+      storedTitleIsPlaceholder = false
+      return false
+    }
+    guard name != storedTitle || storedTitleIsPlaceholder else { return true }
+    fields["title"] = .string(name)
+    fields["titleSource"] = .string("model")
+    try Data(try Value.object(fields).json().utf8).write(to: file, options: .atomic)
+    storedTitle = name
+    storedTitleIsPlaceholder = false
+    return true
+  }
   func mutation<T>(
     _ kind: String, token: String = identifier(), request: Value = .null, expected: Int? = nil,
     cancellation: Cancellation? = nil, actor: ChangeActor? = nil,

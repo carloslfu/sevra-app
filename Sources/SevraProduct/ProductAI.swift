@@ -17,6 +17,9 @@ public actor ProductAI {
   /// The engine's memory budget, known once its configuration has been read.
   private var engineBytes: UInt64?
   private var prewarmCancellation: Cancellation?
+  /// Naming the work after a reply. Any request stops it first, so it never delays one.
+  private var naming: Task<Bool, Never>?
+  private var namingCancellation: Cancellation?
   /// The start's progress, for a request that comes to wait for it.
   private let prewarmProgress = ProgressRelay()
 
@@ -124,7 +127,7 @@ public actor ProductAI {
   /// with room to spare; the next request then starts it, or reports why it cannot. The engine
   /// follows the ordinary idle timer and memory-pressure release.
   public func prewarm(modelDirectory: URL = ProductAI.defaultDirectory) {
-    guard !active, prewarming == nil, !releaseRequested else { return }
+    guard !active, prewarming == nil, naming == nil, !releaseRequested else { return }
     if model == nil {
       guard let pack = try? SplashModelPack.selected(),
         FileManager.default.fileExists(
@@ -209,6 +212,7 @@ public actor ProductAI {
   /// lock ends with the process, so the helper has to stop first or another process could load
   /// the model while this one still holds the memory.
   @discardableResult public func unload() async -> Bool {
+    await settleNaming()
     await settlePrewarm(cancelling: true)
     guard !active else { return false }
     active = true
@@ -248,6 +252,7 @@ public actor ProductAI {
     cancellation: Cancellation, progress: (@Sendable (String) -> Void)? = nil,
     operation: () async throws -> T
   ) async throws -> T {
+    await settleNaming()
     await settlePrewarm(cancelling: false, request: cancellation, progress: progress)
     try cancellation.check()
     try require(!active, "busy", "Sevra is already using its local model.")
@@ -284,6 +289,84 @@ public actor ProductAI {
       releaseRequested = !released
     }
     active = false
+  }
+
+  /// Names a chat and its workbook from what was said, when Sevra still names them: after the
+  /// first reply and the third. Runs on the engine the reply left running, never loads it, and
+  /// stops at once for any request. True when a name changed.
+  public func nameWork(
+    _ workbook: Workbook, conversation: String,
+    modelDirectory: URL = ProductAI.defaultDirectory
+  ) async -> Bool {
+    func skip(_ reason: String) -> Bool {
+      ChatTiming.beginBackground("naming")
+      ChatTiming.endBackground("naming", outcome: "skipped: " + reason)
+      return false
+    }
+    if active { return skip("model in use") }
+    if naming != nil { return skip("already naming") }
+    if prewarming != nil { return skip("engine starting") }
+    if releaseRequested { return skip("release pending") }
+    guard let model else { return skip("no model") }
+    let plan: WorkTitles.Plan
+    do {
+      guard let planned = try WorkTitles.plan(workbook, conversation: conversation) else {
+        return skip("nothing to name")
+      }
+      plan = planned
+    } catch { return skip("plan failed: " + error.localizedDescription) }
+    let cancellation = Cancellation()
+    namingCancellation = cancellation
+    ChatTiming.beginBackground("naming")
+    let task = Task<Bool, Never> {
+      // The outcome goes to the debug timing log, so a name that did not change says why.
+      var outcome = "not_started"
+      defer { ChatTiming.endBackground("naming", outcome: outcome) }
+      do {
+        try await model.beginRun()
+      } catch {
+        outcome = "busy"
+        return false
+      }
+      let reply: WorkTitlesReply?
+      do {
+        reply = try await model.titles(
+          messages: plan.messages, directory: modelDirectory, cancellation: cancellation)
+      } catch {
+        await model.endRun()
+        outcome = cancellation.isCancelled ? "cancelled" : "failed: " + error.localizedDescription
+        return false
+      }
+      await model.endRun()
+      guard let reply, !cancellation.isCancelled else {
+        outcome = cancellation.isCancelled ? "cancelled" : "no_engine"
+        return false
+      }
+      do {
+        let changed = try WorkTitles.apply(reply, plan: plan, to: workbook)
+        outcome = (changed ? "named" : "kept") + " chat=\(reply.chat) workbook=\(reply.workbook)"
+        return changed
+      } catch {
+        outcome = "not_saved: " + error.localizedDescription
+        return false
+      }
+    }
+    naming = task
+    let changed = await task.value
+    if naming == task {
+      naming = nil
+      namingCancellation = nil
+    }
+    return changed
+  }
+  private func settleNaming() async {
+    guard let task = naming else { return }
+    namingCancellation?.cancel()
+    _ = await task.value
+    if naming == task {
+      naming = nil
+      namingCancellation = nil
+    }
   }
 
   private func workflowModel(directory: URL) throws -> any WorkbookInference {
