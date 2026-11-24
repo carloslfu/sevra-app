@@ -258,12 +258,19 @@ nonisolated(unsafe) private var checksCompleted = false
       }
       try expect(try book.counts() == counts, "Refusal left a partial human edit")
     }
-    check("Maximum Unicode titles and explicit empty document bodies remain editable") {
+    check("Maximum Unicode titles stay editable and an empty edit points to remove") {
       let (book, original) = try fixture(title: String(repeating: "é", count: 2048))
-      let blank = try book.editDocument(original.id, text: "")
+      let counts = try book.counts()
+      for empty in ["", " \n\t"] {
+        try refuses("document_edit") { _ = try book.editDocument(original.id, text: empty) }
+      }
       try expect(
-        blank.text.isEmpty && blank.title == original.title, "Empty edit or full title was lost")
-      let copy = try book.editDocument(blank.id, text: "Café 👩🏽‍💻", separate: true)
+        try book.counts() == counts && book.item(original.logicalID).id == original.id,
+        "A refused empty edit saved something")
+      let edited = try book.editDocument(original.id, text: "Short")
+      try expect(
+        edited.text == "Short" && edited.title == original.title, "Edit or full title was lost")
+      let copy = try book.editDocument(edited.id, text: "Café 👩🏽‍💻", separate: true)
       try expect(
         copy.title.utf8.count <= 4096 && !copy.title.contains("�") && copy.text == "Café 👩🏽‍💻",
         "Copy split Unicode or lost text")
