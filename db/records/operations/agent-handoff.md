@@ -3,15 +3,27 @@ type: operational
 meta-type: operational
 id: 01m659x4nd2q89tkpzzsssd7yr
 created: 2026-10-30T02:23:30.477380+00:00
-updated: 2026-11-24T14:59:07.045852+00:00
+updated: 2026-11-24T15:26:39.282820+00:00
 summary: Chat stops on lack of progress and chooses defaults instead of asking about choices; checked with the model, not yet packaged or installed.
 title: Minimum-feature continuation handoff
 ---
 # Minimum-feature continuation handoff
 
+## Release gate repaired, November 24
+
+`scripts/check.sh` had failed on committed code since the chat tools became general (November 19) and threads became plain chats (November 21); nobody ran it until the Splash 1.7.1 upgrade. At the owner's word ("fix it all"), its stale checks were updated, none weakened:
+
+- `db/DB.md` declares the log kinds `fix` and `install`, which entries already use; the log is append-only (committed with the upgrade).
+- The extraction descriptor check compares a new workbook with its own revision: a new workbook holds its first chat (committed with the upgrade).
+- The native app authoring check "native app authoring through a scoped conversation continuation" is removed. It scripted `start_thread_and_continue`, which left with threads; nothing replaces the continuation it checked.
+- Five scripts (`check_shared_admissions.py`, `check_condition_dispatch.py`, `check_business_events.py`, `check_derivation_roles.py`, `check_business_inputs.py`) expected workbook format 31; the format is 33.
+- In `check_business_inputs.py` the change counts after a crash start at one, as a new workbook records its first chat.
+
+A separate session found the script fixes; the upgrade session removed the thread check, ran the gate and committed.
+
 ## Splash 1.7.1, November 24
 
-The owner approved [[records/plans/splash-1-7-1-upgrade]] and its implementation ([[sources/notes/2026/11/splash-1-7-1-upgrade-approval]]). The pin is Splash 1.7.1, protocol 15. The host reads the new start fields, sends grammar masks over the draft tree as the reference does, keeps the tool grammar's whitespace in the thinking rule, and launches with one lane. The header was remade (its state file is 20.5 MB with int8 cached states). Every model-free check, both context tiers at 12 GiB, the eight header tests and the light set (11 of 11) pass; the timing conversation decoded 92.9 tokens a second against 50.7 on 1.6.1, one run each. Rollback: `.build/rollback/` holds the 1.6.1 app, header and pin. Follow-ups F1 to F5 in the plan are not started. Committed after the chat work below. The release gate still stops at a native app authoring check that scripts a removed thread tool; a separate session repairs the gate.
+The owner approved [[records/plans/splash-1-7-1-upgrade]] and its implementation ([[sources/notes/2026/11/splash-1-7-1-upgrade-approval]]). The pin is Splash 1.7.1, protocol 15. The host reads the new start fields, sends grammar masks over the draft tree as the reference does, keeps the tool grammar's whitespace in the thinking rule, and launches with one lane. The header was remade (its state file is 20.5 MB with int8 cached states). Every model-free check, both context tiers at 12 GiB, the eight header tests and the light set (11 of 11) pass; the timing conversation decoded 92.9 tokens a second against 50.7 on 1.6.1, one run each. Rollback: `.build/rollback/` holds the 1.6.1 app, header and pin. Follow-ups F1 to F5 in the plan are not started. Committed after the chat work below. The release gate repair is the section above.
 
 ## Defaults, and progress instead of a step limit, November 23
 At the owner's word ([[sources/notes/2026/11/defaults-and-step-limit]]), after a request for a counter on Home in an empty workbook asked a question, refused when it was skipped and then hit the twelve-step limit. What the run showed, what changed and what the model runs showed: [[records/reviews/home-counter-run-2026-11-23]].

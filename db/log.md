@@ -379,3 +379,6 @@ Packaged and installed the made-general working tree on 480c7c5; installed UUID 
 ## [2026-11-24 14:52] implementation | records/plans/splash-1-7-1-upgrade
 Splash 1.7.1 upgrade implemented: protocol 15, tree grammar masks, tool grammar fix, one lane, header remade; model-free checks, header tests and light set 11 of 11 pass; installed 499AD265; release gate stops at a pre-existing authoring check; not committed
 
+## [2026-11-24 15:37] verification | sevra-app
+Release gate repaired: thread continuation check removed, five scripts expect workbook format 33, first-chat counts; check.sh passes all checks
+

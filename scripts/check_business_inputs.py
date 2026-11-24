@@ -38,7 +38,7 @@ def run(cli, worker, output):
         assert not fixture.stderr, fixture.stderr
         data = json.loads(fixture.stdout)
         with sqlite3.connect(book / "workbook.sqlite") as db:
-            assert db.execute("PRAGMA user_version").fetchone()[0] == 31
+            assert db.execute("PRAGMA user_version").fetchone()[0] == 33
             workbook_id = db.execute("SELECT value FROM meta WHERE key='workbook-id'").fetchone()[0]
             declaration = db.execute("SELECT commit_id,kind,policy FROM business_inputs WHERE source_id=?",
                                      [data["sourceID"]]).fetchone()
@@ -138,7 +138,8 @@ def run(cli, worker, output):
             with sqlite3.connect(path / "workbook.sqlite") as db:
                 counts = [db.execute("SELECT count(*) FROM " + table).fetchone()[0]
                           for table in ["items", "business_inputs", "committed_changes", "operations"]]
-            assert counts == ([0, 0, 0, 0] if stage == "prepared" else [1, 1, 1, 1]), counts
+            # A new workbook records one change, its first chat; the publication adds one of each or nothing.
+            assert counts == ([0, 0, 1, 1] if stage == "prepared" else [1, 1, 2, 2]), counts
             assert call("verify", path)["ok"]
             copied = folder / ("Recovered-" + stage + ".sevra")
             call("reconstruct", path, copied)

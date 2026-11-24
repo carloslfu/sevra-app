@@ -815,23 +815,8 @@ func checkNativeAppAuthoring() async throws {
       [{"kind":"expect_control","target":"Plan"},{"kind":"press_region","target":"Plan","value":"Table A"},{"kind":"expect_region","target":"Plan","value":"Table A","x":10,"y":20},{"kind":"drop","target":"Plan","value":"Table A","x":80,"y":100},{"kind":"expect_region","target":"Plan","value":"Table A","x":90,"y":120},{"kind":"drop","target":"Plan","value":"Table A","x":-10,"y":5},{"kind":"expect_region","target":"Plan","value":"Table A","x":80,"y":125}]
       """))
   print("PASS canvas drop, native region coordinates and presentation draft updates")
-  let branchBook = try Workbook.create(
-    at: root.appendingPathComponent("Branch.sevra"), title: "Branch")
-  let task = "Create a native calculator app called Multiply."
-  let branch = try await WorkbookAgent.run(
-    "Start a new thread called Apps. " + task, workbook: branchBook,
-    model: AppAuthoringModel([
-      (
-        "start_thread_and_continue",
-        .object([
-          "title": .string("Apps"), "task": .string(task), "work": .string("save_native_app"),
-        ])
-      ), ("native_app_sdk", .object([:])), ("save_native_app", args),
-    ]))
-  try expectEqual(branch.state, "complete")
-  try expectEqual(try branchBook.spaces().filter { $0.definition.app != nil }.count, 1)
-  print("PASS native app authoring through a scoped conversation continuation")
-
+  // Authoring through a thread's scoped continuation left with threads, which plain chats
+  // replaced on November 21; there is no continuation to check.
 }
 
 private func checkCompleteSavedEffects(_ workspace: NativeAppPackage) async throws {
