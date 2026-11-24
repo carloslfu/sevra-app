@@ -174,6 +174,11 @@ extension Workbook {
               && dependencies[0]["target_dataset"] == .string(intake.datasetID)
               && dependencies[0]["target_dataset_definition"] == .string(intake.definitionID),
             "definition_integrity", "Intake lost its exact target schema dependency.")
+        } else if saved.kind == "tool" {
+          // A tool's body is SQL or a script it runs on its own: it binds no definition or table.
+          _ = try DefinitionTool(descriptor)
+          try require(
+            dependencies.isEmpty, "definition_integrity", "A saved tool records no dependencies.")
         } else if saved.kind == "extraction" {
           _ = try DefinitionExtraction(descriptor)
           try require(

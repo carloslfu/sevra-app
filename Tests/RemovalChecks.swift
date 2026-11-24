@@ -143,7 +143,7 @@ func checkRemoval(at root: URL) {
     _ = try book.verify()
   }
 
-  check("a saved tool is retired by remove and comes back enabled") {
+  check("a saved tool is retired by remove, comes back enabled, and verifies") {
     let book = try book("Tool")
     let source = try book.addItem(category: "source", kind: "observation", title: "Visits")
     _ = try book.createDataset(
@@ -160,5 +160,13 @@ func checkRemoval(at root: URL) {
     _ = try book.restore(tool.logicalID, actor: person)
     let back = try book.savedTools().first { $0.name == "log_visit" }
     try expect(back != nil && book.isToolEnabled(back!.definitionID))
+    _ = try book.verify()
+    // A tool binds nothing, so a dependency recorded for it is damage verify must find.
+    _ = try book.db.transaction {
+      try book.db.execute(
+        "INSERT INTO app_definition_dependencies VALUES(?,0,'definition','exact',?,?,NULL,NULL)",
+        [.string(back!.definitionID), .string(back!.logicalID), .string(back!.definitionID)])
+    }
+    try refuses("definition_integrity") { _ = try book.verify() }
   }
 }
