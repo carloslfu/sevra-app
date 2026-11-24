@@ -88,6 +88,7 @@ struct FolderReview {
     case automation(String)
     case workflow(String)
     case tools
+    case removed
   }
   @Published var workbook: Workbook?
   @Published var folderReview: FolderReview?
@@ -1759,7 +1760,7 @@ struct FolderReview {
     case .excelImport(let id): return routeContext + "\nActive Excel import ID: " + id
     case .automation(let id): return routeContext + "\nActive exact automation version ID: " + id
     case .workflow(let id): return routeContext + "\nActive workflow run ID: " + id
-    case .search, .reviews, .activity, .automations, .tools: return routeContext
+    case .search, .reviews, .activity, .automations, .tools, .removed: return routeContext
     }
   }
   var routeContext: String {
@@ -1777,7 +1778,9 @@ struct FolderReview {
     case .activity: return "Workflow activity"
     case .automations: return "Automations"
     case .tools:
-      return "The workbook's saved tools. Enabling or removing one is the user's step here, never a chat action."
+      return "The workbook's saved tools. Enabling one is the user's step here, never a chat action. remove takes one out after the user confirms."
+    case .removed:
+      return "What was removed from the workbook. restore brings one back after the user confirms."
     case .automation:
       return
         "Inspecting a saved automation. Saving/opening never grants device execution permission."

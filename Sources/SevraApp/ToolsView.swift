@@ -52,12 +52,18 @@ struct ToolsView: View {
       titleVisibility: .visible
     ) {
       Button("Remove tool", role: .destructive) {
-        if let tool = removing { change(tool) { _ = try $0.retireTool(tool.name) } }
+        if let tool = removing {
+          change(tool) {
+            _ = try $0.remove(tool.definitionID, actor: .human("SevraApp.tools"))
+          }
+        }
         removing = nil
       }
       Button("Cancel", role: .cancel) { removing = nil }
     } message: {
-      Text("It stops running everywhere this workbook is used. Its history stays in the workbook.")
+      Text(
+        "It stops running everywhere this workbook is used. Removed in the workbook menu lists it, and Restore brings it back."
+      )
     }
   }
 

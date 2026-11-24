@@ -140,6 +140,12 @@ struct WorkbookView: View {
                         + Date().formatted(date: .abbreviated, time: .shortened))
                   }.disabled(state.busy)
                 }
+                if id != "home" {
+                  Button(space.definition.app != nil ? "Remove app" : "Remove view") {
+                    state.removeOrRestore(id, removing: true)
+                  }.disabled(state.busy).help(
+                    "Take it out of the workbook. Removed lists it, and Restore brings it back.")
+                }
                 Divider()
               }
               Menu("Tables") {
@@ -160,6 +166,7 @@ struct WorkbookView: View {
               Button("Workflow runs") { state.navigate(.activity) }
               Button("Automations") { state.navigate(.automations) }
               Button("Tools") { state.navigate(.tools) }
+              Button("Removed") { state.navigate(.removed) }
               Divider()
               Button("Make a shareable copy…", action: state.exportPanel).disabled(state.busy)
             }
@@ -322,6 +329,7 @@ struct WorkbookView: View {
     case .automation: return "Automation"
     case .workflow: return "Workflow"
     case .tools: return "Tools"
+    case .removed: return "Removed"
     }
   }
   private var workspaceActions: some View {
@@ -732,6 +740,7 @@ struct WorkbookView: View {
       case .automation(let id): AutomationFocusedView(definitionID: id, workspace: state)
       case .workflow(let id): WorkflowRunView(runID: id, workspace: state).id(id)
       case .tools: ToolsView(workspace: state)
+      case .removed: RemovedView(workspace: state)
       }
     }
   }

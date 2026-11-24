@@ -74,6 +74,22 @@ import SevraCore
         text: "Updated observations. Inspect the previous version in history.", supersedes: old.id)
       fileItems["historical"] = old.id
     }
+    // A removed document shows Removed with Restore. The Removed list shows two.
+    if (id == "main.document" && variant == "Removed") || (id == "main.removed" && variant == "Default")
+    {
+      let note = try b.addItem(
+        category: "record", kind: "document", title: "Supplier summary draft",
+        text: "Oak Supply is cheaper by 3.50 before delivery.", inputs: [source!.id])
+      _ = try b.remove(note.id, actor: .human("Catalog.synthetic"))
+      fileItems["historical"] = note.logicalID
+      if id == "main.removed" {
+        // The catalog's views chart its table, so the list's second entry is another document.
+        let second = try b.addItem(
+          category: "record", kind: "document", title: "Delivery terms notes",
+          text: "Cedar Tools excludes shipping.", inputs: [source!.id])
+        _ = try b.remove(second.id, actor: .human("Catalog.synthetic"))
+      }
+    }
     if id == "main.automations" || id == "main.automation-detail",
       let definition = automationDefinition, ["Armed", "Paused", "Stale"].contains(variant)
     {

@@ -1909,9 +1909,10 @@ public enum WorkbookAgent {
         if tool == "workspace_action", !callFailed,
           result["status"] == .string("confirmation_required")
         {
+          // The change itself is on the card above, with its buttons. Repeating it here showed
+          // the same text twice.
           return try conclude(
-            result["preview"].text
-              + "\n\nType **Confirm** to apply this change, or **Cancel approval** to discard it.",
+            "Waiting for you to confirm the change above. You can also type **Confirm** to apply it, or **Cancel approval** to discard it.",
             step: step, receiptID: receiptID, state: "needs_review",
             payload: .object([
               "kind": .string("chat_approval_preview"), "receiptID": .string(receiptID),

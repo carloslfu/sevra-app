@@ -482,7 +482,10 @@ extension WorkspaceState {
     else { return }
     let chat = conversation
     Task {
-      defer { finishOperation(ticket, in: book) }
+      defer {
+        finishOperation(
+          ticket, in: book, successStatus: cancel ? "Change cancelled." : "Change applied.")
+      }
       var approval: ChatApproval?
       do {
         let claimed = try book.claimChatApproval(

@@ -114,6 +114,20 @@ extension Workbook {
     try require(
       try !isRemoved(target.id), "already_removed",
       "“" + target.title + "” is already removed. restore brings it back.")
+    if target.type == "view" || target.type == "app" {
+      // A view that shows this one by its ID would be left pointing at something hidden.
+      func shows(_ components: [Component]) -> Bool {
+        components.contains { $0.spaceID == target.id || shows($0.children ?? []) }
+      }
+      if let holder = try spaces().first(where: {
+        $0.id != target.id && shows($0.definition.components)
+      }) {
+        throw SevraError(
+          "remove_in_use",
+          "“" + holder.title + "” shows “" + target.title
+            + "”. Take it off that view first, then remove it.")
+      }
+    }
     switch target.type {
     case "table":
       let table = try dataset(target.id)
@@ -167,8 +181,10 @@ extension Workbook {
     let marker = try synchronized { try removalMarker(target.id) }
     let tool = target.type == "tool"
       ? try DefinitionTool(DefinitionDescriptor(applicationDefinition(target.id).content)) : nil
+    // A table archived in its definition, or a tool removed in the Tools list, has no marker.
+    let archived = target.type == "table" ? try dataset(target.id).archived : false
     try require(
-      marker?.status == "accepted" || tool?.retired == true, "not_removed",
+      marker?.status == "accepted" || tool?.retired == true || archived, "not_removed",
       "“" + target.title + "” is not removed.")
     switch target.type {
     case "table":

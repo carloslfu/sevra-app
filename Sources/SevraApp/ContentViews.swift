@@ -735,14 +735,20 @@ struct DatasetView: View {
           Button("Redo") { undo(true) }.disabled(state.tableRedo[table.id] == nil || state.busy)
           Divider()
           Button("Table definition…") { schemaEditing = table }
+          if !table.archived {
+            Button("Remove table") { state.removeOrRestore(table.id, removing: true) }
+              .disabled(state.busy)
+          }
           Button("Export CSV…", action: export)
         }
       }.padding(compact ? 8 : 14)
       if table.archived {
-        Text(
-          "Archived table. Its data and history are preserved. Restore it in Table definition to edit."
-        )
-        .readingFont(.callout).foregroundStyle(.secondary).padding(8)
+        HStack {
+          Text("Removed table. Its data and history are kept. Restore it to edit.")
+            .readingFont(.callout).foregroundStyle(.secondary)
+          Button("Restore") { state.removeOrRestore(table.id, removing: false) }
+            .disabled(state.busy)
+        }.padding(8)
       }
       if let page = loader.page {
         NativeTable(

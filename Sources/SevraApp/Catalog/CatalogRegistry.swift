@@ -95,7 +95,7 @@ enum CatalogRegistry {
       ),
       (
         "document", "Document and provenance", "Viewers.swift",
-        ["Default", "Historical", "Failure", "Long labels"]
+        ["Default", "Historical", "Removed", "Failure", "Long labels"]
       ),
       ("intake", "Import and table update", "IntakeView.swift", ["Default", "Empty", "Failure"]),
       (
@@ -116,6 +116,7 @@ enum CatalogRegistry {
         ["Default", "Empty", "Detail", "Armed", "Paused", "Stale"]
       ),
       ("tools", "Saved tools", "ToolsView.swift", ["Default", "Empty"]),
+      ("removed", "Removed", "RemovedView.swift", ["Default", "Empty"]),
       (
         "settings", "Model and reading settings", "SpeechAndSettings.swift",
         ["Default", "Installing", "Installed", "Loading", "Failure", "Cancelled", "Software updates"]

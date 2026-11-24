@@ -58,6 +58,7 @@ private let groups: [() -> Void] = [
   { checkConditionCauses(at: temp) },
   { checkConditionDispatch(at: temp) },
   { checkReviewFollowUps(at: temp) },
+  { checkRemoval(at: temp) },
   { check("Chat operations and immutable table changes") { try checkChatOperations() } },
 ]
 

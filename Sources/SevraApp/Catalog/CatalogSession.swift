@@ -722,6 +722,8 @@ import SwiftUI
         ? .workflow(workflowRunID!) : .activity
     } else if id == "main.tools" {
       ws.route = .tools
+    } else if id == "main.removed" {
+      ws.route = .removed
     } else if id == "main.automations" {
       ws.route =
         variant == "Detail" || variant == "Armed"

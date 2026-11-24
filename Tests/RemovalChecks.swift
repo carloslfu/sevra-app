@@ -169,4 +169,74 @@ func checkRemoval(at root: URL) {
     }
     try refuses("definition_integrity") { _ = try book.verify() }
   }
+
+  check("an app is hidden and restored, and one that Home shows is refused until taken off") {
+    let book = try book("App")
+    let app = try book.installNativeAppContents(
+      NativeAppPackage(
+        name: "Orders", source: "Sevra.mount(Sevra.h(Sevra.Text,{text:'Orders'}));", datasets: [:]))
+    try expect(try book.removalTarget(app.id).type == "app")
+    _ = try book.remove(app.id, actor: person)
+    try expect(try book.spaces().allSatisfy { $0.id != app.id })
+    try expect(try book.removedThings().contains { $0["type"] == .string("app") })
+    let back = try book.restore(app.id, actor: person)
+    try expect(back["note"].text.contains("turned off"))
+    try expect(try book.spaces().contains { $0.id == app.id })
+
+    let home = try book.space("home")
+    _ = try book.editSpace(
+      "home", expectedVersion: home.version,
+      edits: [
+        .init(
+          operation: "insert", at: "last",
+          component: Component(id: "orders", type: "app", title: "Orders", spaceID: app.id))
+      ])
+    try refuses("remove_in_use") { _ = try book.remove(app.id, actor: person) }
+    try expect(try !book.isRemoved(app.id))
+    _ = try book.verify()
+  }
+
+  check("an automation is hidden, cannot be found by name or start its workflow, and comes back")
+  {
+    let book = try book("Automation")
+    let function = try book.saveApplicationDefinition(
+      logicalID: identifier(),
+      content: .object([
+        "kind": .string("function"), "title": .string("Double count"),
+        "description": .string("Synthetic automation fixture."),
+        "parameters": .array([ActionRegistry.field("quantity", "Count", "decimal", unit: "items")]),
+        "payload": .object(["expression": .string("quantity*2"), "unit": .string("items")]),
+      ]))
+    let workflow = try book.saveApplicationDefinition(
+      logicalID: identifier(), content: book.workflowTemplate(function.id))
+    let automation = try book.saveApplicationDefinition(
+      logicalID: identifier(),
+      content: .object([
+        "kind": .string("automation"), "title": .string("Weekday count"),
+        "description": .string("An inert intention, not permission to execute."),
+        "parameters": .array([]),
+        "payload": .object([
+          "policy": .string("calendar-drafts-v1"),
+          "workflow": .object(["mode": .string("exact"), "versionID": .string(workflow.id)]),
+          "arguments": .object(["quantity": .string("5.00")]),
+          "schedule": .object([
+            "policy": .string("native-calendar-v1"), "timeZone": .string("America/Bogota"),
+            "hour": .number(9), "minute": .number(0),
+            "recurrence": .object(["kind": .string("weekly"), "weekdays": .array([.number(1)])]),
+          ]),
+        ]),
+      ]))
+    _ = try book.remove(automation.id, actor: person)
+    try refuses("automation_not_found") { _ = try book.automationTarget("Weekday count") }
+    _ = try book.remove(workflow.id, actor: person)
+    try refuses("removed") {
+      _ = try book.startWorkflow(
+        workflow.id, arguments: .object(["quantity": .string("5.00")]), token: identifier())
+    }
+    let back = try book.restore(automation.logicalID, actor: person)
+    try expect(back["note"].text.contains("turned off"))
+    try expect(try book.automationTarget("Weekday count").id == automation.id)
+    _ = try book.restore(workflow.logicalID, actor: person)
+    _ = try book.verify()
+  }
 }

@@ -3,11 +3,22 @@ type: operational
 meta-type: operational
 id: 01m659x4nd2q89tkpzzsssd7yr
 created: 2026-10-30T02:23:30.477380+00:00
-updated: 2026-11-24T18:56:07.250322+00:00
-summary: The chat holds still while a reply runs and lands, with three lines of thinking under a closed row; committed, pushed and installed, checked with one real reply.
+updated: 2026-11-24T19:46:49.171803+00:00
+summary: Remove and restore work for every saved kind, in chat with confirmation and in the app with a Removed list; checked with the model and in the installed app, committed and pushed.
 title: Minimum-feature continuation handoff
 ---
 # Minimum-feature continuation handoff
+
+## Remove and restore, November 24
+
+At the owner's word, after a chat emptied a story draft when asked to remove it. The design, the checks and the model runs are in [[records/plans/general-chat-tools]] under "Remove and restore". Commits `092c646`, `7f0f77e`, `3c9735e` and the one after them, all pushed.
+
+- **One verb.** `remove {id}` and `restore {id}` are `run` actions the person confirms in chat. Nothing is erased: a `removal` marker Source records who removed what, and the thing leaves lists, search, the request's context and name lookups. Documents and records also get a rejected version; tables are archived; views and apps are hidden, and an app loses its permission on this Mac; definitions are hidden and refuse to run; automations are paused; saved tools are retired. A view or app that another view shows is refused until it is taken off that view.
+- **In the app.** Remove on an open document or record, Remove view or Remove app and Remove table in their menus, Restore on a removed document and on a removed table's banner, and a Removed screen in the workbook menu that lists everything removed with Open and Restore. The Tools screen's Remove now goes through the same path.
+- **Chat confirmations** show the change once, on the card; the reply only points at it. A confirmed change ends with "Change applied." instead of the generic "Operation ended".
+- **Checked.** `sevra-checks --removal`, ten groups, now also in the default suite (670 checks pass). The light set plus `change.remove_document` passed 12 of 12 with the model. In the installed app, on throwaway workbooks: Remove and Restore on a document, a chat removal of a document and of a view with their confirmations. The UI Catalog has `main.removed` (Default, Empty) and `main.document` Removed, captured at 900 points.
+- **Not checked live.** The workbook menu's Remove view, Remove table and Removed items in the installed app, because background control cannot open that menu; they are the catalog's production views. Removing an app in chat, which revokes its permission in the app layer, has no run.
+- **Fixed on the way.** `Workbook.verify()` failed on any workbook with a saved tool; a tool is now verified as a tool.
 
 ## A steady chat while a reply runs, November 24
 
