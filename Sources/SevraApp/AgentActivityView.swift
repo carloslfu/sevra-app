@@ -5,21 +5,39 @@ import SwiftUI
 
 /// A compact disclosure in the conversation. The answer and activity have
 /// different authority: checked receipts describe execution, not business truth.
+///
+/// Nothing here changes height while a reply runs except by growing at its end: the title stays
+/// on one line, the thinking shows in a window of fixed height, and the row keeps its open or
+/// closed state from Send until the saved reply replaces the preview.
 struct AgentActivityView: View {
   @ObservedObject var workspace: WorkspaceState
   let activity: RequestActivity?
   let live: LiveRequestActivity?
   /// The answer being written, or just written and not yet loaded as a saved message.
   var preview: String?
-  @State private var expanded = false
+  /// The run ended here and its saved reply has not loaded yet. Its last thoughts stay until
+  /// the reply takes their place, so the chat does not shrink and then grow back.
+  var settling = false
+  @AppStorage(ReadingStyle.preference) private var textScale = 1.0
   /// The run's saved thoughts, read when the finished activity is opened.
   @State private var savedThoughts: [ActivityThought]?
   /// The last thoughts seen while the run lasted, shown until the saved ones are read.
   @State private var lastLiveThoughts: [ActivityThought] = []
 
+  /// The run this row shows; "pending" before the run has an ID.
+  private var key: String { activity?.id ?? live?.runID ?? "pending" }
+  private var expanded: Bool { workspace.openActivities.contains(key) }
+  /// How the run ended in this window, until and after the saved run loads.
+  private var ended: WorkspaceState.EndedRun? { live == nil ? workspace.endedRuns[key] : nil }
+  private static let finalStates: Set<String> = [
+    "complete", "needs_input", "needs_review", "cancelled", "failed", "interrupted",
+  ]
+
   private var title: String {
     if let live { return live.title }
-    switch activity?.state {
+    // The saved run can still say it is running for a moment after it ended here.
+    let saved = activity?.state ?? ""
+    switch Self.finalStates.contains(saved) ? saved : ended?.state ?? saved {
     case "complete": return "Finished"
     case "needs_input": return "Waiting for your answer"
     case "needs_review": return "Needs your review"
@@ -29,59 +47,39 @@ struct AgentActivityView: View {
     default: return "Unfinished run"
     }
   }
-  private var start: Date { live?.started ?? activity?.started ?? Date() }
+  /// From Send while the run lasts, and the same figure once it ends here, so the clock never
+  /// steps back when the saved run, which starts later, loads.
+  private var start: Date { live?.started ?? ended?.started ?? activity?.started ?? Date() }
   private var thoughts: [ActivityThought] {
     if let live { return live.thoughts.isEmpty ? lastLiveThoughts : live.thoughts }
     return savedThoughts ?? lastLiveThoughts
   }
   /// The model's reasoning on the call it is making now.
   private var reasoning: String? { live?.stopping == false ? live?.reasoning : nil }
+  /// The thinking under a closed row while the run works: all of it so far, newest words last,
+  /// until the answer starts and takes its place.
+  private var thinking: String? {
+    guard !expanded, live != nil || settling, (preview ?? "").isEmpty else { return nil }
+    let text = ThoughtText.stream(thoughts, reasoning: reasoning)
+    return text.isEmpty ? nil : text
+  }
+  /// The chevron's column. Both chevrons get the same width, so the title never moves sideways.
+  private var chevronWidth: CGFloat { 10 * ReadingStyle.scale(textScale) }
+
   var body: some View {
     VStack(alignment: .leading, spacing: 10) {
-      HStack(alignment: .firstTextBaseline, spacing: 8) {
-        Button {
-          expanded.toggle()
-        } label: {
-          HStack(alignment: .firstTextBaseline, spacing: 6) {
-            Image(systemName: expanded ? "chevron.down" : "chevron.right")
-              .readingFont(size: 9, weight: .semibold).foregroundStyle(.secondary)
-            VStack(alignment: .leading, spacing: 3) {
-              ActivityShimmer(text: title, active: live != nil && live?.stopping == false)
-                .readingFont(.callout)
-                .multilineTextAlignment(.leading)
-              if !expanded, live?.isReasoning == true, let reasoning {
-                // While the model reasons, its latest words show without opening the activity.
-                Text(ThoughtText.line(reasoning))
-                  .readingFont(.caption).foregroundStyle(.tertiary)
-                  .lineLimit(1).truncationMode(.head)
-                  .accessibilityIdentifier("activity-thinking-line")
-              }
-            }
-          }.frame(maxWidth: .infinity, alignment: .leading).contentShape(Rectangle())
-        }.buttonStyle(.plain)
-          .accessibilityLabel((expanded ? "Hide activity: " : "Show activity: ") + title)
-          .accessibilityValue(expanded ? "Expanded" : "Collapsed")
-          .help("See what the model thought, and its searches, reads and saved results")
-        TimelineView(.animation(minimumInterval: 1, paused: live == nil)) { context in
-          let end = live == nil ? activity?.updated ?? start : context.date
-          Text(Self.duration(max(0, end.timeIntervalSince(start))))
-            .readingFont(.caption).monospacedDigit().foregroundStyle(.secondary)
-            .accessibilityLabel(
-              "Elapsed time: " + Self.duration(max(0, end.timeIntervalSince(start))))
-        }
-        // Saved when the run ends, so a run still working has no figure yet.
-        if live == nil, let speed = activity?.generation {
-          Text(speed.label)
-            .readingFont(.caption).monospacedDigit().foregroundStyle(.secondary)
-            .help(
-              "Writing speed: \(speed.tokens) tokens in \(String(format: "%.1f", speed.seconds)) s of generation. Reading the request, tools and waiting are not counted."
-            )
-            .accessibilityLabel("Writing speed: " + speed.label.replacingOccurrences(of: "tok/s", with: "tokens per second"))
-            .accessibilityIdentifier("activity-generation-speed")
-        }
-        if let live {
-          Button("Stop", action: workspace.stop).buttonStyle(.plain).readingFont(.caption)
-            .disabled(live.stopping).accessibilityLabel("Stop this request")
+      VStack(alignment: .leading, spacing: 4) {
+        header
+        if let thinking {
+          ThoughtWindow(text: thinking, lines: 3, fixed: true)
+            .readingFont(.caption).foregroundStyle(.secondary).lineSpacing(2)
+            .padding(.leading, chevronWidth + 6)
+            .contentShape(Rectangle())
+            .onTapGesture(perform: toggle)
+            .accessibilityElement(children: .ignore)
+            .accessibilityLabel("Thinking")
+            .accessibilityValue(ThoughtText.line(thinking))
+            .accessibilityIdentifier("activity-thinking-line")
         }
       }
       if expanded {
@@ -100,24 +98,16 @@ struct AgentActivityView: View {
           if let reasoning {
             ActivityThinkingView(text: reasoning, active: live?.isReasoning == true)
           }
-          if let activity {
-            if activity.hasMoreSteps {
-              Text("Showing the first 64 steps. Full results remain in the workbook journal.")
-                .readingFont(.caption).foregroundStyle(.secondary)
-            }
-            if timeline.isEmpty && reasoning == nil {
-              Text(live == nil ? "No tool calls were saved." : "No tool calls yet.")
-                .readingFont(.caption).foregroundStyle(.secondary)
-            }
+          if activity?.hasMoreSteps == true {
+            Text("Showing the first 64 steps. Full results remain in the workbook journal.")
+              .readingFont(.caption).foregroundStyle(.secondary)
           }
-          // While the model reasons, the thought being written already says what it is doing.
-          if let live, !live.isReasoning || reasoning == nil {
-            HStack(alignment: .top, spacing: 8) {
-              Image(systemName: live.stopping ? "stop.circle" : "ellipsis")
-                .frame(width: 14).accessibilityHidden(true)
-              Text(live.status).readingFont(.caption).textSelection(.enabled)
-            }.foregroundStyle(.secondary)
+          if timeline.isEmpty && reasoning == nil {
+            Text(live == nil ? "No tool calls were saved." : "No tool calls yet.")
+              .readingFont(.caption).foregroundStyle(.secondary)
           }
+          // What the run is doing now is the row's title, whole in its tooltip; a line for it
+          // here repeated the title and came and went at every step.
           if thoughts.contains(where: \.isVisible) || reasoning != nil {
             Text("Thoughts are the model’s working notes. Sevra does not check them against your workbook.")
               .readingFont(.caption).foregroundStyle(.tertiary)
@@ -128,17 +118,66 @@ struct AgentActivityView: View {
       }
       if let preview, !preview.isEmpty {
         // Laid out exactly like the saved reply that replaces it, so nothing moves when it lands.
-        StreamingAnswerView(text: preview).padding(.top, 14)
+        StreamingAnswerView(text: preview).equatable().padding(.top, 14)
       }
     }.accessibilityElement(children: .contain)
       .accessibilityIdentifier("agent-activity-" + (activity?.id ?? "preparing"))
       .onChange(of: live?.thoughts ?? []) { _, value in
         if !value.isEmpty { lastLiveThoughts = value }
       }
-      .onAppear { if workspace.activityExpandedByDefault { expanded = true } }
+      .onAppear {
+        if workspace.activityExpandedByDefault { workspace.openActivities.insert(key) }
+        if let live, !live.thoughts.isEmpty { lastLiveThoughts = live.thoughts }
+      }
       .task(id: "\(expanded)-\(activity?.id ?? "")-\(activity?.state ?? "")-\(live == nil)") {
         await loadThoughts()
       }
+  }
+
+  private var header: some View {
+    HStack(alignment: .firstTextBaseline, spacing: 8) {
+      Button(action: toggle) {
+        HStack(alignment: .firstTextBaseline, spacing: 6) {
+          Image(systemName: expanded ? "chevron.down" : "chevron.right")
+            .readingFont(size: 9, weight: .semibold).foregroundStyle(.secondary)
+            .frame(width: chevronWidth)
+          // One line: a long step title would otherwise wrap and push the chat down, then
+          // pull it back up at the next step. Opening the row shows it whole.
+          ActivityShimmer(text: title, active: live != nil && live?.stopping == false)
+            .readingFont(.callout).lineLimit(1).truncationMode(.tail)
+        }.frame(maxWidth: .infinity, alignment: .leading).contentShape(Rectangle())
+      }.buttonStyle(.plain)
+        .accessibilityLabel((expanded ? "Hide activity: " : "Show activity: ") + title)
+        .accessibilityValue(expanded ? "Expanded" : "Collapsed")
+        .help(
+          (live.map { $0.status + ". " } ?? "")
+            + "See what the model thought, and its searches, reads and saved results")
+      TimelineView(.animation(minimumInterval: 1, paused: live == nil)) { context in
+        let end = live == nil ? ended?.ended ?? activity?.updated ?? start : context.date
+        Text(Self.duration(max(0, end.timeIntervalSince(start))))
+          .readingFont(.caption).monospacedDigit().foregroundStyle(.secondary)
+          .accessibilityLabel(
+            "Elapsed time: " + Self.duration(max(0, end.timeIntervalSince(start))))
+      }
+      // Saved when the run ends, so a run still working has no figure yet.
+      if live == nil, let speed = activity?.generation {
+        Text(speed.label)
+          .readingFont(.caption).monospacedDigit().foregroundStyle(.secondary)
+          .help(
+            "Writing speed: \(speed.tokens) tokens in \(String(format: "%.1f", speed.seconds)) s of generation. Reading the request, tools and waiting are not counted."
+          )
+          .accessibilityLabel("Writing speed: " + speed.label.replacingOccurrences(of: "tok/s", with: "tokens per second"))
+          .accessibilityIdentifier("activity-generation-speed")
+      }
+      if let live {
+        Button("Stop", action: workspace.stop).buttonStyle(.plain).readingFont(.caption)
+          .disabled(live.stopping).accessibilityLabel("Stop this request")
+      }
+    }
+  }
+
+  private func toggle() {
+    if workspace.openActivities.remove(key) == nil { workspace.openActivities.insert(key) }
   }
 
   /// A finished run's thoughts come from the workbook, read only when the activity is open.
@@ -161,11 +200,12 @@ struct AgentActivityView: View {
   }
 }
 
-/// The answer while it is being written, in the place and shape of the finished Sevra message.
-private struct StreamingAnswerView: View {
+/// The answer while it is being written, in the place and shape of the finished Sevra message:
+/// the same blocks and spacing, and room for the actions row the saved message adds under itself.
+private struct StreamingAnswerView: View, Equatable {
   let text: String
   var body: some View {
-    let content = ConversationMessageContent(text)
+    let content = ConversationMessageContent(StreamingMarkdown.settled(text))
     VStack(alignment: .leading, spacing: 6) {
       VStack(alignment: .leading, spacing: 10) {
         ForEach(Array(content.blocks.enumerated()), id: \.offset) { _, block in
@@ -179,28 +219,51 @@ private struct StreamingAnswerView: View {
           }
         }
       }
+      MessageActionsSpace()
     }.frame(maxWidth: .infinity, alignment: .leading)
       .accessibilityElement(children: .contain).accessibilityLabel("Sevra message, writing")
       .accessibilityIdentifier("answer-preview")
   }
 }
 
-/// How a thought reads in a line or a block.
-enum ThoughtText {
-  /// The last words, on one line.
-  static func line(_ text: String) -> String {
-    String(text.suffix(240)).split(whereSeparator: \.isNewline).joined(separator: " ")
+/// The newest lines of a growing text, no taller than `lines` lines. A short text takes its own
+/// height, or the whole window when `fixed`; a longer one shows its last lines. The window is
+/// that many lines of the same font and spacing, so it cuts cleanly between two lines.
+struct ThoughtWindow: View {
+  let text: String
+  let lines: Int
+  var fixed = false
+  var body: some View {
+    TailLayout(fixed: fixed) {
+      Text(String(repeating: "\n", count: max(0, lines - 1)) + " ").hidden()
+        .accessibilityHidden(true)
+      Text(text)
+    }.clipped()
   }
-  /// The last part of a thought that is still being written, so the newest words show.
-  static func tail(_ text: String, limit: Int = 480) -> String {
-    guard text.count > limit else { return text }
-    let start = text.index(text.endIndex, offsetBy: -limit)
-    let rest = text[start...]
-    let word = rest.firstIndex(where: \.isWhitespace).map { rest.index(after: $0) } ?? start
-    return "…" + rest[word...]
+}
+
+/// A window the height of its first view, or of the text when that is shorter and the window is
+/// not fixed. The text starts at the top while it fits and ends at the bottom once it does not.
+private struct TailLayout: Layout {
+  let fixed: Bool
+  func sizeThatFits(proposal: ProposedViewSize, subviews: Subviews, cache: inout ()) -> CGSize {
+    guard subviews.count == 2 else { return .zero }
+    let limit = subviews[0].sizeThatFits(.init(width: proposal.width, height: nil))
+    let text = subviews[1].sizeThatFits(.init(width: proposal.width, height: nil))
+    return CGSize(
+      width: proposal.width ?? max(limit.width, text.width),
+      height: fixed ? limit.height : min(limit.height, text.height))
   }
-  static func isLong(_ text: String) -> Bool {
-    text.count > 320 || text.filter(\.isNewline).count > 3
+  func placeSubviews(
+    in bounds: CGRect, proposal: ProposedViewSize, subviews: Subviews, cache: inout ()
+  ) {
+    guard subviews.count == 2 else { return }
+    subviews[0].place(
+      at: bounds.origin, anchor: .topLeading, proposal: .init(width: bounds.width, height: nil))
+    let height = subviews[1].sizeThatFits(.init(width: bounds.width, height: nil)).height
+    subviews[1].place(
+      at: CGPoint(x: bounds.minX, y: height > bounds.height ? bounds.maxY - height : bounds.minY),
+      anchor: .topLeading, proposal: .init(width: bounds.width, height: height))
   }
 }
 
@@ -264,8 +327,9 @@ private struct ActivityThoughtView: View {
   }
 }
 
-/// The thought the model is writing now. The newest words stay in view as it grows. Once
-/// the model moves on to its call or answer, the thought stays, finished.
+/// The thought the model is writing now, in a window that grows to five lines and then keeps its
+/// newest lines in view, about the height the finished thought takes with Show more under it.
+/// Once the model moves on to its call or answer, the thought stays, finished.
 private struct ActivityThinkingView: View {
   let text: String
   let active: Bool
@@ -276,10 +340,12 @@ private struct ActivityThinkingView: View {
       VStack(alignment: .leading, spacing: 4) {
         ActivityShimmer(text: active ? "Thinking" : "Thought", active: active)
           .readingFont(.caption, weight: .medium)
-        Text(ThoughtText.tail(text)).readingFont(.caption).foregroundStyle(.secondary)
-          .lineSpacing(2).textSelection(.enabled).fixedSize(horizontal: false, vertical: true)
+        ThoughtWindow(text: ThoughtText.tail(text, limit: 1_500), lines: 5)
+          .readingFont(.caption).foregroundStyle(.secondary).lineSpacing(2)
       }.frame(maxWidth: .infinity, alignment: .leading)
-    }.accessibilityElement(children: .combine)
+    }.accessibilityElement(children: .ignore)
+      .accessibilityLabel(active ? "Thinking" : "Thought")
+      .accessibilityValue(ThoughtText.line(text))
       .accessibilityIdentifier("activity-thinking")
   }
 }

@@ -204,8 +204,8 @@ enum CatalogRegistry {
         "Sources/SevraApp/ConversationViews.swift",
         kind == "activity"
           ? [
-            "Default", "Opened", "Empty", "Busy", "Thinking", "Thinking opened", "Streaming",
-            "Starting", "Not sent", "Failure", "Long labels",
+            "Default", "Opened", "Empty", "Busy", "Thinking", "Thinking opened", "Between steps",
+            "Streaming", "Starting", "Not sent", "Failure", "Long labels",
           ]
           : ["Default", "Empty", "Busy", "Failure", "Long labels"])
     }

@@ -1,13 +1,13 @@
 ---
 type: index
 scope: root
-updated: 2026-11-24T15:26:39.282820Z
+updated: 2026-11-24T18:56:07.250322Z
 ---
 
 # Knowledge base index
 
-## Sources (84)
-- [[sources/notes/index|Notes]] (84)
+## Sources (85)
+- [[sources/notes/index|Notes]] (85)
 
 ## Records (94)
 - [[records/operations/index|Operations]] (7)

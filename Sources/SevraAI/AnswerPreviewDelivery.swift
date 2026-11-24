@@ -40,6 +40,12 @@ final class AnswerPreviewDelivery: @unchecked Sendable {
       $0.reasoning = nil
     }
   }
+  /// Ends the run's reasoning and keeps the last answer written. The window shows that answer
+  /// until the saved reply replaces it, instead of losing it just before; a run that failed or
+  /// stopped drops it there.
+  func end() {
+    change { $0.reasoning = nil }
+  }
   private func change(_ edit: (AnswerPreviewDelivery) -> Void) {
     lock.lock()
     defer { lock.unlock() }

@@ -2,11 +2,12 @@
 type: index
 scope: type-folder
 folder: sources/notes
-updated: 2026-11-24T14:06:07.576649Z
+updated: 2026-11-24T18:13:45.034756Z
 ---
 
 # sources/notes
 
+- [[sources/notes/2026/11/steady-chat-layout]] — Carlos asks for less layout shift while a chat reply runs and when it finishes, a little more of the model's thoughts on screen, and a review of every detail of the chat UI.
 - [[sources/notes/2026/11/splash-1-7-1-upgrade-approval]] — Carlos approves the Splash 1.7.1 upgrade plan as written, with int8 cached states and the header-test run, and asks for its implementation.
 - [[sources/notes/2026/11/general-behavior-not-the-example]] — Carlos asks that the defaults and button work be general, built for real use cases, not fitted to his counter example, and reviewed several times.
 - [[sources/notes/2026/11/view-button-and-size]] — Carlos asks for a button and a size setting for views, after the Home counter request gave a small number and no button.

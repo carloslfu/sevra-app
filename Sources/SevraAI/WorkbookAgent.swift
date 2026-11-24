@@ -136,7 +136,7 @@ public enum WorkbookAgent {
       context.utf8.count <= ContextBudget.maximumMessageBytes, "context_structure",
       "The selected context exceeds its preparation limit.")
     let previews = AnswerPreviewDelivery(answerPreview)
-    defer { previews.clear() }
+    defer { previews.end() }
     let compactionAvailable = await model.supportsCompaction
     let shouldCompact = enableCompaction && compactionAvailable
     try require(

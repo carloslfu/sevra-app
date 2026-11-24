@@ -46,6 +46,11 @@ public struct ConversationScrollObserver: NSViewRepresentable {
     private var previousFrames: [String: CGRect] = [:]
     private var scheduled = false
     private var restoring = false
+    /// Where the reader is, in points from the top of the row they read, at the row's width.
+    /// A row that grows below the reader, as a reply does while it is written, then leaves them
+    /// where they are; its fraction would move them down with every line. A new width or an
+    /// explicit jump goes back to the fraction.
+    private var anchor: (id: String, offset: CGFloat, width: CGFloat)?
     public override func viewDidMoveToWindow() {
       super.viewDidMoveToWindow()
       schedule()
@@ -87,10 +92,18 @@ public struct ConversationScrollObserver: NSViewRepresentable {
       let y: CGFloat
       if let id = config.position.message {
         guard let row = config.frames[id] else { return }
-        y =
-          convert(NSPoint(x: 0, y: row.minY + row.height * config.position.fraction), to: document)
-          .y
+        let offset: CGFloat
+        if applied == config.request, let anchor, anchor.id == id,
+          abs(anchor.width - row.width) < 0.5
+        {
+          offset = anchor.offset
+        } else {
+          offset = row.height * config.position.fraction
+          anchor = (id, offset, row.width)
+        }
+        y = convert(NSPoint(x: 0, y: row.minY + offset), to: document).y
       } else {
+        anchor = nil
         y = document.bounds.height - clip.bounds.height
       }
       restoring = true
@@ -121,6 +134,7 @@ public struct ConversationScrollObserver: NSViewRepresentable {
       let clip = scroll.contentView
       reportVisible(config, clip: clip, document: document)
       if config.canFollowLatest && document.bounds.height - clip.bounds.maxY < 8 {
+        anchor = nil
         config.changed(.init())
         return
       }
@@ -128,6 +142,7 @@ public struct ConversationScrollObserver: NSViewRepresentable {
       let ordered = config.frames.sorted { $0.value.minY < $1.value.minY }
       guard let row = ordered.first(where: { $0.value.maxY > top }) ?? ordered.last else { return }
       let fraction = min(1, max(0, (top - row.value.minY) / max(1, row.value.height)))
+      anchor = (row.key, top - row.value.minY, row.value.width)
       config.changed(.init(message: row.key, fraction: fraction))
     }
     deinit { if let token { NotificationCenter.default.removeObserver(token) } }

@@ -256,6 +256,65 @@ struct ConversationMessageRow: View, Equatable {
   }
 }
 
+/// The room a message's actions button takes, kept by a message drawn before it has the button:
+/// the answer being written, under itself, and the message just sent, beside its bubble. The
+/// saved message that replaces either then lays out the same.
+struct MessageActionsSpace: View {
+  /// Beside a sent message's bubble, rather than under a reply.
+  var beside = false
+  @AppStorage(ReadingStyle.preference) private var textScale = 1.0
+  var body: some View {
+    let side = 28 * ReadingStyle.scale(textScale)
+    if beside {
+      Color.clear.frame(width: side, height: side).accessibilityHidden(true)
+    } else {
+      Color.clear.frame(width: side, height: side).padding(.leading, -6).padding(.vertical, -8)
+        .accessibilityHidden(true)
+    }
+  }
+}
+
+/// Whether each saved reply has a change row, read with the chat off the main thread. A reply
+/// that saved a change then lands with the row's line already there, instead of growing a line
+/// a moment later. The row reads its exact state itself.
+final class ConversationReceiptHints: @unchecked Sendable {
+  private let lock = NSLock()
+  private var entries: [String: Bool] = [:]
+
+  func hasChange(_ messageID: String) -> Bool {
+    lock.lock()
+    defer { lock.unlock() }
+    return entries[messageID] ?? false
+  }
+
+  /// Call off the main thread with the messages about to be shown. Each reply is read once.
+  func prepare(
+    _ messages: [Message], book: Workbook, conversation: String, cancellation: Cancellation
+  ) throws {
+    for message in messages where message.role == "assistant" && message.state == "complete" {
+      try cancellation.check()
+      lock.lock()
+      let known = entries[message.id] != nil
+      lock.unlock()
+      if known { continue }
+      let change =
+        try book.conversationAppReceipt(message.id, conversation: conversation) != nil
+        || book.conversationSQLReceipt(message.id, conversation: conversation) != nil
+      lock.lock()
+      entries[message.id] = change
+      lock.unlock()
+    }
+  }
+
+  /// The window that is now on screen. Everything else is forgotten.
+  func retain(_ messages: [Message]) {
+    let shown = Set(messages.map(\.id))
+    lock.lock()
+    entries = entries.filter { shown.contains($0.key) }
+    lock.unlock()
+  }
+}
+
 /// A code block keeps its lines; a long line scrolls sideways instead of wrapping.
 struct ConversationCodeBlock: View {
   let code: String
@@ -280,10 +339,15 @@ private struct ConversationReversalView: View {
   @State private var sql: (token: String, state: String)?
   @State private var busy = false
   @State private var failure: String?
+  /// Whether the first read is done. Until then a reply known to have saved a change keeps the
+  /// row's line, so the reply does not grow a line after it lands.
+  @State private var loaded = false
 
   var body: some View {
     VStack(alignment: .leading, spacing: 6) {
-      if let sql {
+      if !loaded && sql == nil && receipt == nil && state.receiptHints.hasChange(messageID) {
+        Text("Change saved").font(.caption).hidden().accessibilityHidden(true)
+      } else if let sql {
         HStack {
           Text(sql.state == "undone" ? "Change undone" : "Change saved")
             .foregroundStyle(.secondary)
@@ -312,7 +376,10 @@ private struct ConversationReversalView: View {
     }
     // A stack, not a Group: an empty Group never starts its task, so the row never loaded.
     // It brings its own spacing, so replies without a change keep their layout.
-    .padding(.top, sql == nil && receipt == nil ? 0 : 6)
+    .padding(
+      .top,
+      sql == nil && receipt == nil && (loaded || !state.receiptHints.hasChange(messageID)) ? 0 : 6
+    )
     .task(id: [state.conversation, state.datasetSnapshot, String(state.spaces.count)]) {
       await refresh()
     }
@@ -320,6 +387,7 @@ private struct ConversationReversalView: View {
 
   private func refresh() async {
     guard let book = state.workbook else { return }
+    defer { if !Task.isCancelled { loaded = true } }
     let chat = state.conversation
     do {
       let saved = try await Task.detached {

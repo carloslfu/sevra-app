@@ -29,10 +29,17 @@ struct SentMessage: Equatable {
   let id = UUID()
   let text: String
   let conversation: String
+  /// Parsed once, as the saved message will be, so the bubble keeps its shape when that loads.
+  let content: ConversationMessageContent
   private(set) var failure: String?
   init(text: String, conversation: String) {
     self.text = text
     self.conversation = conversation
+    content = ConversationMessageContent(text)
+  }
+  static func == (left: SentMessage, right: SentMessage) -> Bool {
+    left.id == right.id && left.text == right.text && left.conversation == right.conversation
+      && left.failure == right.failure
   }
   func failed(_ reason: String) -> SentMessage {
     var next = self
@@ -129,13 +136,32 @@ struct FolderReview {
   /// Whether activity rows start open. They start closed; the UI catalog opens them to show
   /// their contents.
   var activityExpandedByDefault = false
-  /// The streamed answer of a run that just ended, kept on screen until the saved reply loads.
+  /// The activity rows the person opened, by run. A row keeps it as it moves from under the sent
+  /// message into its saved request and as its run ends. "pending" is the run not yet started.
+  @Published var openActivities: Set<String> = []
+  /// The reply of a run that just ended, kept on screen until the saved reply loads. It is the
+  /// saved reply's own text when the run returned it, so the two look the same.
   struct LandingAnswer: Equatable {
     let request: String
     let run: String
     let text: String
   }
   @Published var landingAnswer: LandingAnswer?
+  /// How a run that ended in this window ended, and its time from Send. The activity row reads
+  /// the same before the saved run loads, when that still says it is running, and after.
+  struct EndedRun: Equatable {
+    let state: String
+    let started: Date
+    let ended: Date
+  }
+  @Published var endedRuns: [String: EndedRun] = [:]
+  /// The run that just ended with a reply on its way. Its last thoughts stay under it until the
+  /// first refresh read after it ended, which has the reply when there is one.
+  @Published var settlingRun: String?
+  /// What the run that is ending returned, until its operation finishes.
+  private var runOutcome: (run: String, state: String, answer: String)?
+  /// Which saved replies have a change row, read with each refresh.
+  let receiptHints = ConversationReceiptHints()
   /// Whether the chat on screen already shows a saved message after this request.
   func hasReply(to request: String) -> Bool {
     let shown = messages.filter { $0.role != "tool" }
@@ -446,6 +472,9 @@ struct FolderReview {
     let changedView = refreshSession.identity != identity
     if changedView && refreshSession.identity?.conversation != conversation {
       landingAnswer = nil
+      settlingRun = nil
+      endedRuns = [:]
+      openActivities = []
       messages = []
       proposalReviews = [:]
       requestActivities = []
@@ -458,6 +487,9 @@ struct FolderReview {
     let navigationGeneration = spaceNavigation.generation
     let activeInputID = replyInputID
     let contents = contents
+    let receiptHints = receiptHints
+    // A read that starts after a run ended sees its saved reply, if it has one.
+    let settled = settlingRun
     refreshSession.request(identity: identity, onlyWhenIdle: polling && !changedView) { control in
       let started = ChatTiming.now
       let snapshot = try book.workspaceSnapshot(
@@ -475,6 +507,9 @@ struct FolderReview {
           let open = Set(snapshot.pendingInputs.map(\.id))
           try contents.prepare(
             snapshot.messages, body: { Self.displayBody($0, open: open) }, cancellation: control)
+          try receiptHints.prepare(
+            snapshot.messages, book: book, conversation: identity.conversation,
+            cancellation: control)
         }
       }
       return snapshot
@@ -487,6 +522,7 @@ struct FolderReview {
       switch result {
       case .success(let snapshot):
         guard let snapshot else {
+          if settled != nil, settled == self.settlingRun { self.settlingRun = nil }
           self.advanceQueueIfDue()
           return
         }
@@ -532,8 +568,11 @@ struct FolderReview {
         self.conversationVisuals = snapshot.visuals
         self.resumableAnswer = snapshot.resumableAnswer
         self.excelImports = snapshot.excelImports
+        // In the same update as the messages, so the reply takes the thoughts' place at once.
+        if settled != nil, settled == self.settlingRun { self.settlingRun = nil }
         self.messages = snapshot.messages
         self.contents.retain(snapshot.messages)
+        self.receiptHints.retain(snapshot.messages)
         if let waiting = ChatTiming.awaitingReply, self.hasReply(to: waiting) {
           ChatTiming.replyInView(waiting)
         }
@@ -702,6 +741,8 @@ struct FolderReview {
   ) {
     guard owns(ticket, in: book), operations.acceptsProgress(ticket) else { return }
     liveActivity?.attach(request, conversation: conversation)
+    // A row opened before the run had an ID stays open under its ID.
+    if openActivities.remove("pending") != nil { openActivities.insert(request.runID) }
     refresh()
   }
   func finishOperation(
@@ -726,12 +767,22 @@ struct FolderReview {
     }
     busy = false
     status = ""
-    if error == nil, !ticket.cancellation.isCancelled, let live = liveActivity,
-      let request = live.requestID, let run = live.runID,
-      let text = live.answerPreview, !text.isEmpty, !hasReply(to: request)
-    {
-      landingAnswer = .init(request: request, run: run, text: text)
+    if let live = liveActivity, let run = live.runID {
+      let outcome = runOutcome?.run == run ? runOutcome : nil
+      let stopped = ticket.cancellation.isCancelled
+      endedRuns[run] = .init(
+        state: stopped ? "cancelled" : error != nil ? "failed" : outcome?.state ?? "complete",
+        started: live.started, ended: Date())
+      if error == nil, !stopped, let request = live.requestID, !hasReply(to: request) {
+        settlingRun = run
+        // The reply as saved, when the run returned a finished one: its links and notes are
+        // already in it, so the saved message that replaces it looks the same. Otherwise the
+        // answer as written stays until the saved message, which has a shape of its own, loads.
+        let text = outcome?.state == "complete" ? outcome?.answer : live.answerPreview
+        if let text, !text.isEmpty { landingAnswer = .init(request: request, run: run, text: text) }
+      }
     }
+    runOutcome = nil
     liveActivity = nil
     // A message kept as not sent says so under itself; the bar would only repeat it.
     if sentMessage?.failure != nil { terminalStatus = nil } else { sentMessage = nil }
@@ -1314,6 +1365,8 @@ struct FolderReview {
     }
     // Set on the agent's own thread, so a failure right after admission still sees it.
     let admitted = OSAllocatedUnfairLock(initialState: false)
+    openActivities.remove("pending")
+    runOutcome = nil
     liveActivity = LiveRequestActivity(conversation: conversation)
     let fromQueue = dispatchedQueued != nil
     sentMessage = inputAnswerID == nil ? SentMessage(text: input, conversation: conversation) : nil
@@ -1405,6 +1458,9 @@ struct FolderReview {
               action, arguments: arguments, book: book, readOnly: readOnly,
               cancellation: cancellation)
           }, conversationInput: true, inputAnswerID: inputAnswerID)
+        if owns(ticket, in: book), let run = liveActivity?.runID {
+          runOutcome = (run, result.state, result.answer)
+        }
         ChatTiming.requestFinished(awaitingReplyTo: liveActivity?.requestID, outcome: result.state)
         unsent = nil
         guard owns(ticket, in: book) else { return }
@@ -2295,6 +2351,10 @@ struct FolderReview {
     liveActivity = nil
     sentMessage = nil
     landingAnswer = nil
+    settlingRun = nil
+    endedRuns = [:]
+    openActivities = []
+    runOutcome = nil
     requestActivities = []
     activePreview?.cancel()
     activePreview = nil

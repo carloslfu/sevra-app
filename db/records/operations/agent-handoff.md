@@ -3,11 +3,32 @@ type: operational
 meta-type: operational
 id: 01m659x4nd2q89tkpzzsssd7yr
 created: 2026-10-30T02:23:30.477380+00:00
-updated: 2026-11-24T15:26:39.282820+00:00
-summary: Chat stops on lack of progress and chooses defaults instead of asking about choices; checked with the model, not yet packaged or installed.
+updated: 2026-11-24T18:56:07.250322+00:00
+summary: The chat holds still while a reply runs and lands, with three lines of thinking under a closed row; committed, pushed and installed, checked with one real reply.
 title: Minimum-feature continuation handoff
 ---
 # Minimum-feature continuation handoff
+
+## A steady chat while a reply runs, November 24
+
+At the owner's word ([[sources/notes/2026/11/steady-chat-layout]]). Committed as its own commit on `092c646` and pushed, at the owner's word ("Commit, reinstall and push"). The installed app is that code: rebuilt from it, its executable UUID `20511EDB-B500-3C86-844D-B6ED19693EB3` equals `output/native`'s and the first install's, so the first install, made while the code review session was still editing, already held that session's final code. The code review session's tool changes grew the prompt header to 4,480 tokens.
+
+What moved, and what holds it still now:
+
+- **The reply vanished at the end.** The agent cleared the streamed answer just before the app kept it as the landing text, so the reply could disappear until the saved message loaded. `AnswerPreviewDelivery.end()` now keeps the last answer and drops only the reasoning. The landing is the run's returned `answer` when it finished (`runOutcome` in `WorkspaceState`), which is the saved body with its links, so the saved message that replaces it looks the same.
+- **The saved reply was 18 points taller.** It adds the actions button under itself; the preview keeps that room (`MessageActionsSpace`). The sent message's bubble keeps the button's room beside it and parses its text as the saved one does, so a long message wraps the same way.
+- **The header changed twice at the end.** The saved run still said running for a moment ("Unfinished run"), and its clock, which starts at the run and not at Send, stepped back. `endedRuns` keeps the state and the time from Send for the chat's session.
+- **"Change saved" grew a line after the reply landed.** `ConversationReceiptHints` reads with each refresh, off the main thread, which replies have a change row; the row keeps its line until it has read its state.
+- **The thinking line came and went at every step, and long step titles wrapped.** A closed row now shows the run's thinking in a window of exactly three lines (`ThoughtWindow`, `ThoughtText.stream`): every thought so far, newest words at the bottom, kept between steps and replaced by the answer when it starts. The title stays on one line, whole in its tooltip. An open row's live thought grows to five lines and then scrolls inside them; the status line that repeated the title is gone.
+- **An opened row closed itself.** Its open state was the view's own and was lost when the run moved from under the sent message into its saved request. `openActivities` keeps it by run ID, and one `ForEach` keyed by run keeps the row's identity through the run's first load and its end. The sent message and its run are spaced as the saved request and its run (12 points).
+- **Scrolled up, the chat drifted.** The reading position was a fraction of the row, and the row grows as the reply is written. `ConversationScrollObserver` keeps the offset in points at the same width.
+- **Half-written syntax showed and jumped.** `StreamingMarkdown.settled` holds back a table row until its line ends and a header until the line that makes it a table, and closes open bold and code in the preview only.
+
+Checked without the model: `sevra-preview-checks` (all pass, with the new `checkStreamingText`), and the UI Catalog's `chat.activity` captured at 900 points in Thinking, Between steps (new), Streaming, Thinking opened, Default and Starting.
+
+Checked with the model, once: the installed executable UUID `20511EDB-B500-3C86-844D-B6ED19693EB3` equals `output/native`'s, the CLI is byte-identical, the signature verifies and the header is present at 4,480 tokens. In a new demo workbook in the session's scratch folder, "Compare the supplier costs and show the evidence." was captured about every three seconds in the chat pane. The three-line window kept its height across "Reading the working context" and "Preparing a response"; the answer took its place and its table drew as a table; the row turned "Finished · 13s · 70 tok/s" without a step back; and the saved message replaced the landing with no visible change. The one move left at the end is the citation line the host adds when it saves, which the chat follows by one line. Not watched: a long run, an opened row, the "Change saved" row and reading while scrolled up. Sevra was quit after the run and no engine stayed running.
+
+Another session was changing SevraCore, the model's tools and `ChatActions.swift` in this checkout at the same time; those changes are not part of this work.
 
 ## Release gate repaired, November 24
 

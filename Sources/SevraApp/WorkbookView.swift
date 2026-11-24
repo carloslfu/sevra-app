@@ -442,23 +442,16 @@ struct WorkbookView: View {
                   controlsEnabled: !state.busy && !state.changingConversation
                 ).equatable()
                 let replied = state.hasReply(to: message.id)
-                ForEach(state.requestActivities.filter { $0.requestID == message.id }) { activity in
-                  let live = state.liveActivity?.runID == activity.id ? state.liveActivity : nil
+                // One row per run, by its ID: the live run keeps its row, and what the row holds,
+                // when its saved run first loads and when it ends.
+                ForEach(state.activityRuns(for: message.id)) { run in
                   AgentActivityView(
-                    workspace: state, activity: activity, live: live,
+                    workspace: state, activity: run.activity, live: run.live,
                     preview: replied
                       ? nil
-                      : live?.answerPreview
-                        ?? (state.landingAnswer?.run == activity.id
-                          ? state.landingAnswer?.text : nil))
-                }
-                if let live = state.liveActivity, live.conversation == state.conversation,
-                  live.requestID == message.id,
-                  !state.requestActivities.contains(where: { $0.id == live.runID })
-                {
-                  AgentActivityView(
-                    workspace: state, activity: nil, live: live,
-                    preview: replied ? nil : live.answerPreview)
+                      : run.live?.answerPreview
+                        ?? (state.landingAnswer?.run == run.id ? state.landingAnswer?.text : nil),
+                    settling: !replied && run.live == nil && state.settlingRun == run.id)
                 }
               }.id(message.id)
                 .accessibilityElement(children: .contain)
@@ -474,22 +467,37 @@ struct WorkbookView: View {
             if state.hasLaterMessages {
               Button("Load later exchanges") { state.pageConversation(earlier: false) }
             }
+            let working = state.liveActivity.flatMap { live in
+              live.conversation == state.conversation
+                && !state.messages.contains(where: { $0.id == live.requestID }) ? live : nil
+            }
             if let sent = state.shownSentMessage {
-              // Its frame counts as a row, so the chat follows it as it grows, as with a reply.
-              SentMessageView(sent: sent, state: state).id("sent")
+              // The sent message and its run, spaced as the saved request and its run will be, so
+              // nothing moves when that loads. Their frame counts as a row, so the chat follows
+              // them as they grow, as with a reply.
+              VStack(alignment: .leading, spacing: 12) {
+                SentMessageView(sent: sent, state: state)
+                if let working {
+                  AgentActivityView(
+                    workspace: state, activity: nil, live: working, preview: working.answerPreview)
+                }
+              }.id("sent")
                 .background(
                   GeometryReader { geometry in
                     Color.clear.preference(
                       key: ConversationRowFrames.self,
                       value: ["sent:" + sent.id.uuidString: geometry.frame(in: .named("conversation-content"))])
                   })
-            }
-            if let live = state.liveActivity, live.conversation == state.conversation,
-              !state.messages.contains(where: { $0.id == live.requestID })
-            {
+            } else if let working {
               AgentActivityView(
-                workspace: state, activity: nil, live: live, preview: live.answerPreview
+                workspace: state, activity: nil, live: working, preview: working.answerPreview
               ).id("working")
+                .background(
+                  GeometryReader { geometry in
+                    Color.clear.preference(
+                      key: ConversationRowFrames.self,
+                      value: ["sent:working": geometry.frame(in: .named("conversation-content"))])
+                  })
             } else if state.busy && state.liveActivity == nil {
               HStack {
                 ProgressView().controlSize(.small)
@@ -813,7 +821,28 @@ private struct WorkbookTitleMenu: View {
   }
 }
 
+/// One run under a request: its saved activity, the live progress while it runs, or both.
+struct ActivityRun: Identifiable {
+  let id: String
+  let activity: RequestActivity?
+  let live: LiveRequestActivity?
+}
+
 extension WorkspaceState {
+  /// The runs under a saved request, the live one included before its saved run first loads.
+  func activityRuns(for request: String) -> [ActivityRun] {
+    let live =
+      liveActivity.flatMap { $0.conversation == conversation && $0.requestID == request ? $0 : nil }
+    var runs = requestActivities.filter { $0.requestID == request }.map { activity in
+      ActivityRun(
+        id: activity.id, activity: activity, live: live?.runID == activity.id ? live : nil)
+    }
+    if let live, !runs.contains(where: { $0.id == live.runID }) {
+      runs.append(ActivityRun(id: live.runID ?? "pending", activity: nil, live: live))
+    }
+    return runs
+  }
+
   /// The message just sent, while its chat has not shown it yet, or one that was not sent.
   var shownSentMessage: SentMessage? {
     guard let sent = sentMessage, sent.conversation == conversation else { return nil }
@@ -830,14 +859,29 @@ private struct SentMessageView: View {
   @ObservedObject var state: WorkspaceState
   var body: some View {
     VStack(alignment: .trailing, spacing: 8) {
-      HStack {
+      // The saved message's bubble: the same parsed text, and the room its actions button takes,
+      // so a long message wraps the same way when the saved one replaces it.
+      HStack(alignment: .center, spacing: 4) {
         Spacer(minLength: 48)
-        Text(sent.text).textSelection(.enabled).lineSpacing(4)
-          .padding(.horizontal, 14).padding(.vertical, 9)
-          .background(
-            Color.primary.opacity(0.065),
-            in: RoundedRectangle(cornerRadius: 16, style: .continuous))
-      }.accessibilityElement(children: .combine).accessibilityLabel("You: " + sent.text)
+        MessageActionsSpace(beside: true)
+        VStack(alignment: .leading, spacing: 10) {
+          ForEach(Array(sent.content.blocks.enumerated()), id: \.offset) { _, block in
+            switch block {
+            case .text(let text):
+              Text(text).textSelection(.enabled).lineSpacing(4)
+            case .table(let table):
+              ReadOnlyTableView(content: table, label: "Comparison table", inline: true, open: { _ in })
+            case .code(let code):
+              ConversationCodeBlock(code: code)
+            }
+          }
+        }
+        .padding(.horizontal, 14).padding(.vertical, 9)
+        .background(
+          Color.primary.opacity(0.065),
+          in: RoundedRectangle(cornerRadius: 16, style: .continuous))
+      }.frame(maxWidth: .infinity, alignment: .trailing)
+        .accessibilityElement(children: .combine).accessibilityLabel("You: " + sent.text)
       if let failure = sent.failure {
         VStack(alignment: .leading, spacing: 8) {
           HStack(alignment: .firstTextBaseline, spacing: 6) {

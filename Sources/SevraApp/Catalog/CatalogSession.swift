@@ -755,11 +755,20 @@ import SwiftUI
       ws.conversationSession.updateQueue(queue)
     }
     let thinking = variant.hasPrefix("Thinking")
+    // Between two calls: the model runs a step with a long title, and its last thoughts stay in
+    // the window under the closed row. Synthetic thoughts, not model output.
+    let betweenSteps = variant == "Between steps"
     if variant == "Busy" || variant == "Analyzing" || variant == "Building"
-      || variant == "Streaming" || thinking || (id == "chat.queue" && variant != "Paused")
+      || variant == "Streaming" || thinking || betweenSteps
+      || (id == "chat.queue" && variant != "Paused")
     {
       ws.busy = true
-      ws.status = thinking ? ActivityThought.reasoningPhase : "Reading synthetic evidence…"
+      ws.status =
+        thinking
+        ? ActivityThought.reasoningPhase
+        : betweenSteps
+          ? "Search for “brass bolt quotes from Oak Supply and Cedar Tools, delivery included, per hundred”"
+          : "Reading synthetic evidence…"
       var live = LiveRequestActivity(conversation: ws.conversation, started: Date(timeIntervalSinceNow: -12))
       live.update(ws.status)
       if variant == "Streaming" {
@@ -778,6 +787,17 @@ import SwiftUI
               step: 1, callID: "catalog-search", tool: "search",
               text:
                 "The person asks what the supplier quotes say. I should search the workbook for the quotes before answering.")
+          ], sequence: 1)
+      }
+      if betweenSteps {
+        live.show(
+          nil, reasoning: nil,
+          thoughts: [
+            ActivityThought(
+              step: 1, callID: "catalog-search", tool: "search",
+              text:
+                "The person asks which supplier is cheaper for brass bolts with delivery included. I should search the workbook for both quotes first, then read the originals for the delivery terms before comparing."
+            )
           ], sequence: 1)
       }
       ws.liveActivity = live

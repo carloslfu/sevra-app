@@ -388,3 +388,12 @@ Follow-ups: forced tokens, literal control tokens as characters with a swift-tra
 ## [2026-11-24 16:17] install | sevra-app
 Installed the Splash 1.7.1 follow-ups build; UUID 32DBB9A2-2663-306F-9986-F9D1B35ED90E matches output/native, header 4,429 tokens present, check.sh passes all checks
 
+## [2026-11-24 18:14] fix | sevra-app
+Steadier chat while a reply runs and when it lands: the answer no longer vanishes before the saved reply, preview and sent bubble keep the saved layout, thinking shows in a fixed three-line window, one-line titles, stable open state and scroll anchor; not committed or installed
+
+## [2026-11-24 18:29] install | sevra-app
+Installed the steady-chat build with the code review session's unfinished edits; UUID 20511EDB-B500-3C86-844D-B6ED19693EB3 matches output/native, header 4,480 tokens present; one real reply in a scratch demo workbook landed with no visible change
+
+## [2026-11-24 18:56] install | sevra-app
+Reinstalled the steady-chat build from current code on 092c646; UUID 20511EDB-B500-3C86-844D-B6ED19693EB3 matches output/native and the first install, header 4,480 tokens reused; committed and pushed
+

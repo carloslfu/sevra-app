@@ -108,3 +108,40 @@ func checkConversationPresentation() throws {
     "PASS conversation links preserve formatted labels, exact version/locator/origin and safe native routes; code blocks keep their lines"
   )
 }
+
+/// The answer preview shows no half-written syntax, and the thinking window gets the run's
+/// thinking as one bounded passage, newest words last.
+func checkStreamingText() throws {
+  func expect(_ condition: @autoclosure () -> Bool, _ message: String) throws {
+    try require(condition(), "streaming_text", message)
+  }
+  let settled = StreamingMarkdown.settled
+  try expect(settled("Plain words") == "Plain words", "Plain text changed")
+  try expect(settled("The **cheapest") == "The **cheapest**", "Open bold stayed open")
+  try expect(settled("The **cheapest** quote **") == "The **cheapest** quote", "A bare opener showed")
+  try expect(settled("Bolts *") == "Bolts", "Half a bold marker showed")
+  try expect(settled("Run `sum(total") == "Run `sum(total`", "Open code stayed open")
+  try expect(settled("Use `") == "Use", "A bare backtick showed")
+  try expect(settled("Code `**` here **x") == "Code `**` here **x**", "Bold inside code counted")
+  try expect(settled("```\nlet **x") == "```\nlet **x", "Text in an open code fence changed")
+  let table = "Quotes:\n\n| Supplier | Price |\n|---|---|\n| Oak | 4 |"
+  try expect(settled(table + "\n| Ced") == table, "A row still being written showed")
+  try expect(settled(table + "\n") == table, "A whole table did not show")
+  try expect(
+    settled("Quotes:\n\n| Supplier | Price |\n") == "Quotes:", "A header showed before its table")
+  try expect(
+    settled("Quotes:\n\n| Supplier | Price |\n|--") == "Quotes:", "A half delimiter showed")
+  try expect(settled("| a | **b") == "", "A table row was closed as bold")
+  let thoughts = [
+    ActivityThought(step: 1, text: "First\n\nthought."),
+    ActivityThought(step: 2, text: "", outcome: "answer_refused", note: "No."),
+  ]
+  try expect(
+    ThoughtText.stream(thoughts, reasoning: "Now  reading\nthe file") == "First thought.\nNow reading the file",
+    "Thoughts did not join as one passage")
+  let long = ThoughtText.stream(
+    [ActivityThought(step: 1, text: String(repeating: "word ", count: 2_000))], reasoning: "end",
+    limit: 100)
+  try expect(long.count <= 100 && long.hasSuffix("\nend") && long.hasPrefix("word"), "The passage was not bounded at a word")
+  print("PASS streaming answers hide half-written syntax; thinking reads as one bounded passage")
+}
