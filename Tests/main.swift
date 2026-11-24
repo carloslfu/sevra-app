@@ -106,6 +106,11 @@ if (4...5).contains(CommandLine.arguments.count)
   }
   exit(0)
 }
+if CommandLine.arguments.dropFirst() == ["--persistence"] {
+  checkPersistence(at: temp)
+  print("\(passed) passed; \(failed) failed")
+  exit(failed == 0 ? 0 : 1)
+}
 if CommandLine.arguments.dropFirst() == ["--tool-receipts"] {
   checkToolReceipts(at: temp)
   print("\(passed) passed; \(failed) failed")

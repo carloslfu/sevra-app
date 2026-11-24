@@ -2,18 +2,37 @@ import CSQLite
 import Foundation
 
 extension Workbook {
+  /// Each change with its cause, read from records saved with it: the operation
+  /// receipt sharing its ID and, for an AI tool, the tool call and the request.
   public func committedHistory(limit: Int = 100) throws -> [Value] {
     try require(
       (1...1000).contains(limit), "limit", "History supports 1 to 1,000 changes per inspection.")
     return try synchronized {
       try db.execute(
-        "SELECT id,previous_id,hash,recorded,writer_id,actor,row_changes FROM committed_changes ORDER BY rowid DESC LIMIT ?",
+        """
+        SELECT c.id,c.previous_id,c.hash,c.recorded,c.writer_id,c.actor,c.row_changes,
+          o.kind AS operation,t.id AS tool_call,t.tool,t.run_id,r.message_id AS request
+        FROM committed_changes c
+        LEFT JOIN operations o ON o.id=c.id
+        LEFT JOIN tool_calls t ON t.rowid=(
+          SELECT rowid FROM tool_calls WHERE operation_token=c.id ORDER BY rowid DESC LIMIT 1)
+        LEFT JOIN run_requests r ON r.run_id=t.run_id
+        ORDER BY c.rowid DESC LIMIT ?
+        """,
         [.number(Double(limit))]
       ).map { row in
+        let toolCall: Value =
+          row["tool_call"] == .null
+          ? .null
+          : .object([
+            "id": row["tool_call"]!, "tool": row["tool"]!, "runID": row["run_id"]!,
+            "requestMessageID": row["request"]!,
+          ])
         return .object([
           "id": row["id"]!, "previousID": row["previous_id"]!, "hash": row["hash"]!,
           "recorded": row["recorded"]!, "writerID": row["writer_id"]!,
           "actor": try Value.parse(row["actor"]!.text), "rowChanges": row["row_changes"]!,
+          "cause": .object(["operation": row["operation"]!, "toolCall": toolCall]),
         ])
       }
     }

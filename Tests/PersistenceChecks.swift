@@ -169,6 +169,7 @@ func checkPersistence(at root: URL) {
       }
       let history = try book.committedHistory()[0]
       try expect(history["actor"] == encoded(actor))
+      try expect(history["cause"] == .object(["operation": .string("accept"), "toolCall": .null]))
       let decisions = try book.lineage(result.id).filter {
         $0["transformation"].text == "accept-v1"
       }
@@ -189,14 +190,26 @@ func checkPersistence(at root: URL) {
     }
     let run = try book.startAgentRequest(
       "Draft a forecast", conversation: book.startChat, model: "fixture-local-model")
+    let proposal: Value = .object([
+      "title": .string("Generated forecast"), "text": .string("Possible demand"),
+      "kind": .string("forecast"), "meaning": .string("estimate"),
+    ])
+    let call = try book.prepareToolCall(
+      runID: run.runID, callID: "forecast", tool: "propose_record", arguments: proposal)
     _ = try WorkbookTools(book, runID: run.runID, requestSourceID: source.id).execute(
-      "propose_record",
-      .object([
-        "title": .string("Generated forecast"), "text": .string("Possible demand"),
-        "kind": .string("forecast"), "meaning": .string("estimate"),
-      ]))
-    try expect(try book.committedHistory()[0]["actor"]["kind"].text == "ai")
-    try expect(try book.committedHistory()[0]["actor"]["model"].text == "fixture-local-model")
+      "propose_record", proposal)
+    let generated = try book.committedHistory()[0]
+    try expect(generated["actor"]["kind"].text == "ai")
+    try expect(generated["actor"]["model"].text == "fixture-local-model")
+    let request = try book.db.scalar(
+      "SELECT message_id FROM run_requests WHERE run_id=?", [.string(run.runID)])
+    try expect(
+      generated["cause"]["toolCall"]
+        == .object([
+          "id": .string(call), "tool": .string("propose_record"), "runID": .string(run.runID),
+          "requestMessageID": request,
+        ]))
+    try expect(generated["cause"]["operation"] != .null)
     let replay = try book.reconstruct(to: root.appendingPathComponent("ActorsReplay.sevra"))
     try expect(try replay.committedHistory() == book.committedHistory())
   }

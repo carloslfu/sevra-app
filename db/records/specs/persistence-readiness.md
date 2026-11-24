@@ -2,7 +2,7 @@
 type: spec
 id: 01m61nphrhdhafzcdjn35zka1b
 created: 2026-10-28T16:32:39.697180+00:00
-updated: 2026-11-19T03:18:37.588178+00:00
+updated: 2026-11-24T12:00:00.000000+00:00
 summary: Required complete, causal and replayable local persistence for future syncing; cloud, transport, replica coordination and a new conflict resolver remain out of scope.
 title: Persistence readiness for future syncing
 status: reviewed
@@ -193,3 +193,6 @@ portable presentation state through its declared checkpoint path.
 [[records/plans/general-chat-tools]] keeps the rule against executable SQL in historical payloads. A change made by the chat `sql` or `run` tool is recorded as row operations and table definitions through the existing write paths. The model's statements stay in the tool receipt for inspection and are never replayed.
 
 One Undo for a call is built from those recorded steps: each step kept the call's token in its own, and the Undo takes them back in reverse order.
+
+## Cause in committed history, November 24, 2026
+`committedHistory()` and `sevra commits WORKBOOK [LIMIT]` now show each saved change's cause, read from records already kept with it, with no new storage and no format change. `cause.operation` is the kind of the operation receipt that shares the change's ID. When an AI tool made the change, `cause.toolCall` gives the tool call, its tool, its run and the user's request message; otherwise it is null. Reconstruction keeps these records, so a rebuilt workbook shows the same causes.
