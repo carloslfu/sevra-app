@@ -8,26 +8,23 @@ extension Workbook {
     try require(
       (1...1000).contains(limit), "limit", "History supports 1 to 1,000 changes per inspection.")
     return try synchronized {
-      try db.execute(
+      let rows = try db.execute(
         """
         SELECT c.id,c.previous_id,c.hash,c.recorded,c.writer_id,c.actor,c.row_changes,
-          o.kind AS operation,t.id AS tool_call,t.tool,t.run_id,r.message_id AS request
-        FROM committed_changes c
-        LEFT JOIN operations o ON o.id=c.id
-        LEFT JOIN tool_calls t ON t.rowid=(
-          SELECT rowid FROM tool_calls WHERE operation_token=c.id ORDER BY rowid DESC LIMIT 1)
-        LEFT JOIN run_requests r ON r.run_id=t.run_id
+          o.kind AS operation
+        FROM committed_changes c LEFT JOIN operations o ON o.id=c.id
         ORDER BY c.rowid DESC LIMIT ?
         """,
-        [.number(Double(limit))]
-      ).map { row in
-        let toolCall: Value =
-          row["tool_call"] == .null
-          ? .null
-          : .object([
-            "id": row["tool_call"]!, "tool": row["tool"]!, "runID": row["run_id"]!,
-            "requestMessageID": row["request"]!,
-          ])
+        [.number(Double(limit))])
+      let keys = rows.map { Self.toolCallKeys(in: $0["id"]!.text) }
+      let calls = try toolCalls(for: Set(keys.flatMap { $0.map(\.key) }))
+      return try zip(rows, keys).map { row, keys in
+        var toolCall = Value.null
+        if let found = keys.lazy.compactMap({ key in calls[key.key].map { (key, $0) } }).first {
+          var fields = found.1
+          fields["relation"] = .string(found.0.relation)
+          toolCall = .object(fields)
+        }
         return .object([
           "id": row["id"]!, "previousID": row["previous_id"]!, "hash": row["hash"]!,
           "recorded": row["recorded"]!, "writerID": row["writer_id"]!,
@@ -36,6 +33,56 @@ extension Workbook {
         ])
       }
     }
+  }
+
+  private static let callIdentity = try! NSRegularExpression(
+    pattern: "[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}(?:-[0-9a-f]{24})?")
+
+  /// A tool's changes are saved under IDs built from its call: the operation token
+  /// (run ID and argument hash) exactly, or the call ID or token inside a longer ID
+  /// such as `sql-<call>-<step>` or `run-<token>`, with `~undo` or `~rollback` after it
+  /// when the change takes the call's work back. Earlier keys in the ID come first.
+  static func toolCallKeys(in id: String) -> [(key: String, relation: String)] {
+    let text = id as NSString
+    return callIdentity.matches(in: id, range: NSRange(location: 0, length: text.length))
+      .flatMap { match -> [(key: String, relation: String)] in
+        let token = text.substring(with: match.range)
+        let rest = text.substring(from: match.range.location + match.range.length)
+        let relation =
+          rest.hasPrefix("~undo") ? "undo" : rest.hasPrefix("~rollback") ? "rollback" : "made"
+        // A token holds the run ID first; the call ID is the bare form.
+        let bare = String(token.prefix(36))
+        return token.count > 36
+          ? [(token, relation), (bare, relation)] : [(token, relation)]
+      }
+  }
+
+  /// The earliest tool call for each key, by call ID or operation token. A repeated
+  /// call with the same arguments shares a token but changed nothing new.
+  private func toolCalls(for keys: Set<String>) throws -> [String: [String: Value]] {
+    var found: [String: (order: Int64, fields: [String: Value])] = [:]
+    let all = keys.sorted()
+    for start in stride(from: 0, to: all.count, by: 400) {
+      let chunk = all[start..<min(start + 400, all.count)].map(Value.string)
+      let marks = Array(repeating: "?", count: chunk.count).joined(separator: ",")
+      for row in try db.execute(
+        """
+        SELECT t.rowid AS sequence,t.id,t.tool,t.run_id,t.operation_token,r.message_id
+        FROM tool_calls t LEFT JOIN run_requests r ON r.run_id=t.run_id
+        WHERE t.id IN (\(marks)) OR t.operation_token IN (\(marks))
+        """, chunk + chunk)
+      {
+        let order = Int64(row["sequence"]!.int ?? 0)
+        let fields: [String: Value] = [
+          "id": row["id"]!, "tool": row["tool"]!, "runID": row["run_id"]!,
+          "requestMessageID": row["message_id"]!,
+        ]
+        for key in [row["id"]!.text, row["operation_token"]!.text] where keys.contains(key) {
+          if found[key].map({ $0.order > order }) ?? true { found[key] = (order, fields) }
+        }
+      }
+    }
+    return found.mapValues(\.fields)
   }
 
   /// Reconstruct into a new package. The original is never edited. A failed or

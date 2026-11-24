@@ -207,9 +207,38 @@ func checkPersistence(at root: URL) {
       generated["cause"]["toolCall"]
         == .object([
           "id": .string(call), "tool": .string("propose_record"), "runID": .string(run.runID),
-          "requestMessageID": request,
+          "requestMessageID": request, "relation": .string("made"),
         ]))
     try expect(generated["cause"]["operation"] != .null)
+    // The same arguments again share the token but change nothing: the first call keeps it.
+    _ = try book.prepareToolCall(
+      runID: run.runID, callID: "forecast-again", tool: "propose_record", arguments: proposal)
+    _ = try WorkbookTools(book, runID: run.runID, requestSourceID: source.id).execute(
+      "propose_record", proposal)
+    try expect(
+      try book.committedHistory(limit: 1000).first { $0["id"] == generated["id"] }?["cause"]
+        == generated["cause"])
+    // sql saves each step under the call ID; its Undo is linked to the same call.
+    let statements: Value = .object([
+      "statements": .array([
+        .string("CREATE TABLE cause_plan (units REAL)"),
+        .string("INSERT INTO cause_plan (units) VALUES (4)"),
+      ])
+    ])
+    let sqlCall = try book.prepareToolCall(
+      runID: run.runID, callID: "plan", tool: "sql", arguments: statements)
+    _ = try WorkbookTools(book, runID: run.runID, requestSourceID: source.id).execute(
+      "sql", statements, receiptID: sqlCall)
+    let made = try book.committedHistory().filter {
+      $0["cause"]["toolCall"]["id"].text == sqlCall
+    }
+    try expect(
+      !made.isEmpty && made.allSatisfy { $0["cause"]["toolCall"]["relation"].text == "made" })
+    try expect(made.allSatisfy { $0["cause"]["toolCall"]["requestMessageID"] == request })
+    _ = try book.chatSQLUndo("sql-" + sqlCall, actor: .human("PersistenceChecks"))
+    let undone = try book.committedHistory()[0]["cause"]["toolCall"]
+    try expect(undone["id"].text == sqlCall && undone["relation"].text == "undo")
+    try expect(Workbook.toolCallKeys(in: "sevra-chat-table-change-policy-v2").isEmpty)
     let replay = try book.reconstruct(to: root.appendingPathComponent("ActorsReplay.sevra"))
     try expect(try replay.committedHistory() == book.committedHistory())
   }
