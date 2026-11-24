@@ -69,6 +69,16 @@ struct AgentActivityView: View {
             .accessibilityLabel(
               "Elapsed time: " + Self.duration(max(0, end.timeIntervalSince(start))))
         }
+        // Saved when the run ends, so a run still working has no figure yet.
+        if live == nil, let speed = activity?.generation {
+          Text(speed.label)
+            .readingFont(.caption).monospacedDigit().foregroundStyle(.secondary)
+            .help(
+              "Writing speed: \(speed.tokens) tokens in \(String(format: "%.1f", speed.seconds)) s of generation. Reading the request, tools and waiting are not counted."
+            )
+            .accessibilityLabel("Writing speed: " + speed.label.replacingOccurrences(of: "tok/s", with: "tokens per second"))
+            .accessibilityIdentifier("activity-generation-speed")
+        }
         if let live {
           Button("Stop", action: workspace.stop).buttonStyle(.plain).readingFont(.caption)
             .disabled(live.stopping).accessibilityLabel("Stop this request")

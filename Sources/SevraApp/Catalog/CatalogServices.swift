@@ -41,7 +41,10 @@ final class CatalogSavePanel: NSSavePanel {
 /// Scripted tool calls still run through the production agent and workbook transaction paths.
 actor CatalogInference: WorkbookInference {
   let identity = "Catalog scripted inference"
-  let lastMetrics = Value.null
+  /// Scripted figures in the engine's shape, different for each call, so a finished activity
+  /// shows its writing speed. Sample numbers, not a measurement.
+  private(set) var lastMetrics = Value.null
+  private var answered = 0
   var calls: [(String, Value)]
   /// Scripted reasoning for each call in turn, shown as the model's thoughts.
   var thoughts: [String]
@@ -59,6 +62,12 @@ actor CatalogInference: WorkbookInference {
     citationIDs: [String]
   ) async throws -> NativeReply {
     try cancellation.check()
+    answered += 1
+    lastMetrics = .object([
+      "backend": .string("splash"), "decodeTokens": .number(Double(30 + answered * 12)),
+      "decodeSeconds": .number(0.8 + Double(answered) * 0.2),
+      "requestSeconds": .number(1.5 + Double(answered) * 0.3),
+    ])
     let next =
       calls.isEmpty
       ? (

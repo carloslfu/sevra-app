@@ -12,6 +12,40 @@ public struct RequestActivity: Identifiable, Sendable {
   public let updated: Date
   public let steps: [ToolActivity]
   public let hasMoreSteps: Bool
+  /// How fast the model wrote during this run, from the figures its model calls saved.
+  public var generation: GenerationSpeed? = nil
+}
+
+/// Output speed across a run's model calls: the tokens the engine produced while its decode clock
+/// ran, over that clock's time. The engine starts the clock when it sends the first token batch,
+/// so that batch is left out, as the engine's own stream rate does. Time spent reading the prompt,
+/// running tools or waiting is not in it.
+public struct GenerationSpeed: Sendable, Equatable {
+  public let tokens: Int
+  public let seconds: Double
+
+  /// Nil when there is nothing to measure.
+  public init?(tokens: Int, seconds: Double) {
+    guard tokens > 0, seconds.isFinite, seconds > 0 else { return nil }
+    self.tokens = tokens
+    self.seconds = seconds
+  }
+
+  /// Totals over the calls, so a long call counts for its length, not as one equal vote.
+  public init?(calls: [(tokens: Int, seconds: Double)]) {
+    let counted = calls.filter { $0.tokens >= 0 && $0.seconds.isFinite && $0.seconds > 0 }
+    self.init(
+      tokens: counted.reduce(0) { $0 + $1.tokens },
+      seconds: counted.reduce(0) { $0 + $1.seconds })
+  }
+
+  public var tokensPerSecond: Double { Double(tokens) / seconds }
+
+  /// "8.4 tok/s" under ten, "52 tok/s" from ten up.
+  public var label: String {
+    let rate = tokensPerSecond
+    return (rate < 10 ? String(format: "%.1f", rate) : String(Int(rate.rounded()))) + " tok/s"
+  }
 }
 
 public struct ToolActivity: Identifiable, Sendable {
@@ -122,11 +156,23 @@ extension Workbook {
             arguments: .object(call["query"]?.string.map { ["query": .string($0)] } ?? [:]),
             result: result)
         }
+        // One row per model call. DISTINCT drops a call's figures saved twice; two different
+        // calls never match on all three timings.
+        let speed = try db.execute(
+          "SELECT DISTINCT json_extract(j.value,'$.decodeTokens') AS tokens,json_extract(j.value,'$.decodeSeconds') AS seconds,json_extract(j.value,'$.requestSeconds') AS request FROM agent_runs a, json_each(a.metrics) j WHERE a.id=? AND json_valid(a.metrics) AND json_type(a.metrics)='array' AND j.type='object' AND json_extract(j.value,'$.backend')='splash' AND json_type(j.value,'$.decodeTokens') IN ('integer','real') AND json_type(j.value,'$.decodeSeconds') IN ('integer','real')",
+          [run["id"]!])
+        let generation = GenerationSpeed(
+          calls: speed.compactMap { row in
+            guard case .number(let tokens)? = row["tokens"], case .number(let seconds)? = row["seconds"],
+              tokens.isFinite, tokens >= 0, tokens < 1e12
+            else { return nil }
+            return (Int(tokens), seconds)
+          })
         return RequestActivity(
           id: run["id"]!.text, requestID: run["message_id"]!.text,
           conversation: conversation, state: run["status"]!.text, model: run["model"]!.text,
           started: date(run["created"]!.text), updated: date(run["updated"]!.text),
-          steps: steps, hasMoreSteps: calls.count > 64)
+          steps: steps, hasMoreSteps: calls.count > 64, generation: generation)
       }
     }
   }

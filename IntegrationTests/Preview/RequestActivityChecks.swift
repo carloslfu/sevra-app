@@ -3,6 +3,7 @@ import SevraCore
 import SevraPreviewUI
 
 func checkRequestActivity() throws {
+  try checkGenerationSpeed()
   let root = FileManager.default.temporaryDirectory.appendingPathComponent(
     "activity-" + identifier())
   defer { try? FileManager.default.removeItem(at: root) }
@@ -157,4 +158,53 @@ func checkRequestActivity() throws {
   print(
     "PASS request activity: receipts, scopes, failures, cancellation, reopen, bounded results and late progress"
   )
+}
+
+/// The tok/s figure: totals over model calls, the first batch already left out by the engine
+/// adapter, a call saved twice counted once, and nothing shown when nothing was measured.
+func checkGenerationSpeed() throws {
+  let root = FileManager.default.temporaryDirectory.appendingPathComponent(
+    "speed-" + identifier())
+  defer { try? FileManager.default.removeItem(at: root) }
+  let book = try Workbook.create(at: root.appendingPathComponent("Speed.sevra"), title: "Speed")
+  func call(_ tokens: Double, _ seconds: Double, _ request: Double) -> Value {
+    .object([
+      "backend": .string("splash"), "decodeTokens": .number(tokens),
+      "decodeSeconds": .number(seconds), "requestSeconds": .number(request),
+      "generatedTokens": .number(tokens + 1),
+    ])
+  }
+  let measured = try book.startAgentRequest(
+    "Compare suppliers", conversation: book.startChat, model: "Synthetic model")
+  let first = call(59, 1.0, 2.25)
+  try book.finishAgentRun(
+    measured.runID, status: "complete", steps: 3,
+    metrics: .array([
+      first, first,  // the same call's figures saved twice
+      call(30, 0.5, 0.75),
+      call(0, 0, 0.1),  // a call that ended at its first token
+      .object(["backend": .string("other"), "decodeTokens": .number(500), "decodeSeconds": .number(1)]),
+      .object(["kind": .string("reasoning"), "step": .number(1), "text": .string("thinking")]),
+      .object(["backend": .string("splash"), "decodeTokens": .string("40"), "decodeSeconds": .number(1)]),
+      .string("not an object"), .number(7),
+    ]))
+  let empty = try book.startAgentRequest(
+    "Say hello", conversation: book.startChat, model: "Synthetic model")
+  try book.finishAgentRun(empty.runID, status: "failed", steps: 0, metrics: .array([]))
+  let activity = try book.requestActivities(
+    messageIDs: [measured.messageID, empty.messageID], conversation: book.startChat)
+  let speed = activity.first { $0.requestID == measured.messageID }?.generation
+  try require(
+    speed?.tokens == 89 && speed.map { abs($0.seconds - 1.5) < 1e-9 } == true
+      && speed?.label == "59 tok/s", "speed_check",
+    "Speed was not 89 tokens over 1.5 s: \(String(describing: speed))")
+  try require(
+    activity.first { $0.requestID == empty.messageID }?.generation == nil, "speed_check",
+    "A run with no model figures showed a speed")
+  try require(
+    GenerationSpeed(tokens: 42, seconds: 5)?.label == "8.4 tok/s"
+      && GenerationSpeed(tokens: 0, seconds: 1) == nil
+      && GenerationSpeed(tokens: 5, seconds: .infinity) == nil
+      && GenerationSpeed(calls: [(10, 0), (10, -1)]) == nil, "speed_check",
+    "Speed label or empty cases are wrong")
 }

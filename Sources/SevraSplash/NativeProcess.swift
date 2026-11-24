@@ -17,6 +17,11 @@ public final class SplashNativeProcess {
     public let done: SplashWire.Done
     public let firstTokenSeconds: Double?
     public let requestSeconds: Double
+    /// Tokens in the first `tokens` event. The engine's decode clock starts when that event is
+    /// sent, so these tokens belong to prefill time, not to `done.decodeMicros`.
+    public let firstBatchTokens: Int
+    /// Tokens produced inside `done.decodeMicros`, the engine's own count for its stream rate.
+    public var decodeTokens: Int { max(0, tokens.count - firstBatchTokens) }
   }
   private let process = Process()
   private let terminated = DispatchSemaphore(value: 0)
@@ -135,6 +140,7 @@ public final class SplashNativeProcess {
     let started = clock
     var deadline = started + timeout
     var first: Double?
+    var firstBatch = 0
     var state = SplashStreamState(request)
     do {
       while true {
@@ -153,7 +159,10 @@ public final class SplashNativeProcess {
             try check(lane < ready!.concurrent, "Invalid native lane")
           }
           let done = try state.accept(message)
-          if case .tokens = message, first == nil { first = clock - started }
+          if case .tokens(_, _, let batch) = message, first == nil {
+            first = clock - started
+            firstBatch = batch.count
+          }
           if case .mask(_, let maskID, let words, let simulation) = message {
             try check(
               words == (ready!.vocabulary + 31) / 32
@@ -173,7 +182,7 @@ public final class SplashNativeProcess {
         if let completion {
           return Result(
             tokens: state.tokens, done: completion, firstTokenSeconds: first,
-            requestSeconds: clock - started)
+            requestSeconds: clock - started, firstBatchTokens: firstBatch)
         }
       }
     } catch let failure as SplashWire.Failure where failure.classification == 1 {

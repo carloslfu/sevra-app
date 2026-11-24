@@ -876,6 +876,7 @@ private final class NativeWorker: @unchecked Sendable {
           "firstTokenSeconds": generated.firstTokenSeconds.map(Value.number) ?? .null,
           "prefillSeconds": .number(Double(generated.done.prefillMicros) / 1e6),
           "decodeSeconds": .number(Double(generated.done.decodeMicros) / 1e6),
+          "decodeTokens": .number(Double(generated.decodeTokens)),
         ])
       )
     }
@@ -1186,6 +1187,7 @@ private final class NativeWorker: @unchecked Sendable {
       "reasoningBudgetOverrun": .number(Double(max(0, reasoningTokens - reasoning.rawValue))),
       "prefillSeconds": .number(Double(generated.done.prefillMicros) / 1e6),
       "decodeSeconds": .number(Double(generated.done.decodeMicros) / 1e6),
+      "decodeTokens": .number(Double(generated.decodeTokens)),
       "draftedTokens": .number(Double(generated.done.drafted)),
       "acceptedDraftTokens": .number(Double(generated.done.accepted)),
       "speculativeMethod": .string("DFlash2"),

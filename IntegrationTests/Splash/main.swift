@@ -156,6 +156,17 @@ func peer(_ mode: String) throws {
       try emit(start + mask)
       continue
     }
+    if mode == "split" {
+      // The engine sends its first token alone, then the rest as decoding runs.
+      var first = tokens.prefix(36)
+      set(&first, 8, 20, width: 8)
+      set(&first, 28, 1)
+      var rest = tokens.prefix(32) + tokens.suffix(8)
+      set(&rest, 8, 24, width: 8)
+      set(&rest, 24, 1)
+      set(&rest, 28, 2)
+      tokens = Data(first) + Data(rest)
+    }
     var bytes = start + tokens + done
     if mode == "duplicate" { bytes.append(done) }
     try emit(bytes)
@@ -360,6 +371,12 @@ test("request state refuses gap, duplicate, wrong id and progress after tokens")
   try rejects { _ = try state.accept(.tokens(id: 91, offset: 0, tokens: [2])) }
   try rejects { _ = try state.accept(.progress(id: 91, processed: 1, micros: 4)) }
 }
+test("decode tokens leave out the first batch, as the engine's decode clock does") {
+  let p = try process("split")
+  defer { p.close() }
+  let r = try p.generate(request())
+  try expect(r.tokens == [10, 11, 12] && r.firstBatchTokens == 1 && r.decodeTokens == 2)
+}
 test("native pipes run multiple requests, status and idle release") {
   let p = try process()
   defer { p.close() }
@@ -368,6 +385,8 @@ test("native pipes run multiple requests, status and idle release") {
     let r = try p.generate(request(id))
     try expect(r.tokens == [10, 11, 12] && r.done.reason == .stop)
     try expect(r.firstTokenSeconds != nil && r.requestSeconds > 0)
+    // One batch arrived before the decode clock started, so none of it counts as decoding.
+    try expect(r.firstBatchTokens == 3 && r.decodeTokens == 0)
   }
   try expect(try JSONSerialization.jsonObject(with: p.status(id: 808)) is [String: Any])
   try expect(
