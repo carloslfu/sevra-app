@@ -29,7 +29,7 @@ private final class HeaderRequestLog: @unchecked Sendable {
 /// Opt-in, actual model. The prepared header's tests on a packaged development build, phase
 /// H3 of the general chat tools plan. One run each, in English:
 ///
-/// - resumed, not computed: a cold first turn resumes the restored header and primes none of it;
+/// - resumed, not computed: a cold first turn resumes the restored header and asks for none of it as a head;
 /// - faster: the same turn is faster than with the comparison setting, which computes it;
 /// - same answers: both settings generate the same tokens for the same requests;
 /// - recovers without computing: a seam reports one missed resume; the request restarts and
@@ -187,21 +187,21 @@ func runHeaderTests(
   record(
     "resumedNotComputed",
     restoredTurns[0].error == nil && first["headerResumed"] == .bool(true)
-      && (first["prefixPrimeTokens"].int ?? 0) != manifest.tokens
+      && (first["headTokens"].int ?? 0) != manifest.tokens
       && (first["matchedPromptTokens"].int ?? 0) >= manifest.lastCompletePage,
     [
       "matchedPromptTokens": first["matchedPromptTokens"],
-      "prefixPrimeTokens": first["prefixPrimeTokens"], "headerResumed": first["headerResumed"],
+      "headTokens": first["headTokens"], "headerResumed": first["headerResumed"],
     ])
   let computedFirst = metrics(computedTurns[0]).first ?? .null
-  // The header's share of the first decision: priming it plus the request's own prefill. A
-  // whole turn's wall time is mostly the model load, which varies by seconds between runs.
+  // The header's share of the first decision: the request's own prefill, which computes the
+  // header when it is not restored. A whole turn's wall time is mostly the model load.
   func seconds(_ value: Value) -> Double {
     if case .number(let number) = value { return number }
     return 0
   }
   func headerWork(_ value: Value) -> Double {
-    seconds(value["prefixPrimeSeconds"]) + seconds(value["prefillSeconds"])
+    seconds(value["prefillSeconds"])
   }
   record(
     "faster",
@@ -209,7 +209,7 @@ func runHeaderTests(
     [
       "restoredFirstDecisionSeconds": .number(headerWork(first)),
       "computedFirstDecisionSeconds": .number(headerWork(computedFirst)),
-      "computedHeaderPrimeSeconds": computedFirst["prefixPrimeSeconds"],
+      "computedHeadTokens": computedFirst["headTokens"],
       "restoredTurnSeconds": .number(restoredTurns[0].seconds),
       "computedTurnSeconds": .number(computedTurns[0].seconds),
     ])
@@ -247,7 +247,7 @@ func runHeaderTests(
     "recoversWithoutComputing",
     seamTurn.error == nil && seamFirst["headerRestarts"].int == 1
       && seamFirst["headerResumed"] == .bool(true)
-      && (seamFirst["prefixPrimeTokens"].int ?? 0) != manifest.tokens
+      && (seamFirst["headTokens"].int ?? 0) != manifest.tokens
       && seamLog.admissions == 2,
     [
       "headerRestarts": seamFirst["headerRestarts"], "engineStarts": .number(Double(seamLog.admissions)),

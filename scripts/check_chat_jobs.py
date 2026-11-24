@@ -1138,7 +1138,7 @@ def trace(book):
                     'toolScope', 'phase', 'promptTokens', 'matchedPromptTokens', 'stablePrefixTokens',
                     'scopePrefixTokens', 'generatedTokens',
                     'reasoningTokens', 'requestSeconds', 'prefillSeconds', 'decodeSeconds',
-                    'prefixPrimeSeconds', 'helperStartSeconds', 'headerResumed', 'headerRestarts')
+                    'headTokens', 'helperStartSeconds', 'headerResumed', 'headerRestarts')
                     if metric.get(k) is not None})
     run_ids = {r['id'] for r in runs}
     tools, messages = [], {}
@@ -1194,7 +1194,7 @@ def attempt(job, language, folder, number, redact, minimum, self_test=None, keep
         'passed': not problems, 'failure': '; '.join(problems) or None, 'state': run['state'],
         'model': traced['runs'][0]['model'] if traced['runs'] else None,
         'steps': run['steps'], 'modelCalls': len(traced['calls']), 'wallSeconds': round(seconds, 2),
-        'modelSeconds': round(sum(c.get('requestSeconds', 0) + c.get('prefixPrimeSeconds', 0) for c in traced['calls']), 2),
+        'modelSeconds': round(sum(c.get('requestSeconds', 0) for c in traced['calls']), 2),
         'promptTokens': [c['promptTokens'] for c in traced['calls']], 'tools': traced['tools'],
         'answer': run['answer'], 'citations': run['citations'],
         'saved': run['saved']})

@@ -382,3 +382,9 @@ Splash 1.7.1 upgrade implemented: protocol 15, tree grammar masks, tool grammar 
 ## [2026-11-24 15:37] verification | sevra-app
 Release gate repaired: thread continuation check removed, five scripts expect workbook format 33, first-chat counts; check.sh passes all checks
 
+## [2026-11-24 16:07] implementation | records/plans/splash-1-7-1-upgrade
+Follow-ups: forced tokens, literal control tokens as characters with a swift-transformers split fix, head_tokens instead of prime requests, header identity without restore-neutral options; verify-rows auto measured and not taken; header tests 8 of 8, light set 11 of 11
+
+## [2026-11-24 16:17] install | sevra-app
+Installed the Splash 1.7.1 follow-ups build; UUID 32DBB9A2-2663-306F-9986-F9D1B35ED90E matches output/native, header 4,429 tokens present, check.sh passes all checks
+

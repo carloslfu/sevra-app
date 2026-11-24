@@ -14,6 +14,7 @@ func checkWorkbookGrammars(frontend: SplashTextFrontend, factory: SplashGrammarF
         /// Each draft token's parent: the first's is `SplashWire.noParent`, the others earlier.
         let parents: [UInt32]
         let maskSHA256: String
+        let forced: [UInt32]
       }
       let name: String
       let choice: String
@@ -88,11 +89,14 @@ func checkWorkbookGrammars(frontend: SplashTextFrontend, factory: SplashGrammarF
     let constraint = try factory.create(grammar: policy.grammar)
     try expectEqual(frontend.encode(item.output), item.tokens)
     for (index, step) in item.steps.enumerated() {
-      let actual = try constraint.masks(
+      let reply = try constraint.masks(
         .init(
           committed: step.committed, simulation: step.simulation, parents: step.parents,
-          words: (SplashTextFrontend.vocabularySize + 31) / 32)
-      ).words
+          words: (SplashTextFrontend.vocabularySize + 31) / 32))
+      let actual = reply.words
+      guard reply.forced == step.forced else {
+        throw SplashError("Workbook grammar forced tokens differ: \(item.name) step \(index)")
+      }
       let hash = actual.withUnsafeBytes {
         SHA256.hash(data: Data($0)).map { String(format: "%02x", $0) }.joined()
       }

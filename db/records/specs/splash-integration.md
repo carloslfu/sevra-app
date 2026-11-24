@@ -10,6 +10,8 @@ status: reviewed
 ---
 # Native Splash integration and upgrades
 
+Revision 12, November 24, 2026. The five follow-ups of the 1.7.1 upgrade landed the same day, at the owner's word: forced tokens (I14), literal control tokens as characters (I06), `head_tokens` for prompts without a prepared header and a header identity without restore-neutral options; `--verify-rows auto` was measured and not taken. See "Follow-ups" under "Splash 1.7.1, November 24".
+
 Revision 11, November 24, 2026. The owner approved [[records/plans/splash-1-7-1-upgrade]] ([[sources/notes/2026/11/splash-1-7-1-upgrade-approval]]): the native preview moves to Splash 1.7.1, protocol 15, with tree grammar masks and one engine lane. See "Splash 1.7.1, November 24" below.
 
 Revision 10, November 16, 2026. The owner authorized a focused preview upgrade and a practical 32K versus 64K comparison. Splash 1.6.1 was installed in the native preview. The source chooses 64K on Macs with at least 48 GiB of unified memory and 32K below that tier, with a 12 GiB engine budget and automatic context maintenance in both cases. The previous 1.4.1 bundle and model selection are backed up. Broader production qualification retains the earlier failures. See [[records/operations/inference-context-execution]].
@@ -52,11 +54,18 @@ I06. Render the selected model's actual chat template, tokenize and incrementall
 decode in Swift using maintained libraries where suitable. Compare prompt token
 IDs, special tokens, Unicode, system/tool/history formatting and truncation with
 the pinned upstream frontend. Never silently substitute a handwritten approximation.
-One difference from upstream is deliberate. The tokenizer matches added tokens
-anywhere in a rendered prompt, so a document could close its turn and open a system
-one. A literal added token in message content, tool arguments or names therefore
-gets a space after its `<` before rendering. Text with no such literal and the host's
-tool definitions keep upstream's exact tokens.
+The tokenizer library matches added tokens anywhere in a rendered prompt, so a
+document could close its turn and open a system one. As Splash 1.7.1's server
+(`PromptTokenizer`), every text the template is given is quoted first: messages, tool
+arguments and names, and tool definitions. A mark follows each `<` that begins an added
+token, whole or cut off by the text's end, and U+0000 becomes U+FFFD. The rendered prompt
+is split at the template's own whole added tokens, and each text between them, its marks
+removed, encodes as ordinary text, so a literal control token reaches the model as its
+characters. swift-transformers finds the pre-tokenizer's pieces with Foundation's
+character-based search. Where a character holds several scalars (`❤️<b>`, an accent after
+punctuation) that moves a piece's end, so such text is first cut at the split pattern's own
+boundaries, matched over scalars as the reference does. Fixtures compare literal control
+tokens, U+0000 and these characters with the pinned reference.
 I07. Native transport must reject bad versions, oversized frames, invalid IDs,
 duplicate/gapped tokens and unexpected terminal events. Bound buffers, deadlines
 and result sizes. Model completion, truncation, cancellation, memory refusal and
@@ -110,9 +119,12 @@ a token back: LLGuidance 1.8.0 keeps its last mask keyed by lexer state and pars
 which another branch can reach after a rollback (Splash #790, LLGuidance #390). A token
 outside the vocabulary, a stop token or a refused token is a row the target never accepts;
 it and its descendants take the parent's mask. A request holds at most Ready's mask rows (17
-in 1.7.1) and the wire's 32 tokens; under `--verify-rows all` a lane verifies eight. The host
-returns no forced tokens yet. Fixtures hold chains, trees with a valid, a refused and a stop
-branch, and Splash's #790 case, and every row must equal the reference.
+in 1.7.1) and the wire's 32 tokens; under `--verify-rows all` a lane verifies eight. As the
+reference's `_reach`, the host returns forced tokens (`llg_matcher_compute_ff_tokens`) after
+every reached row from 1, and after row 0 only when the request has no draft, at most Ready's
+mask rows less one a row; the engine uses a row's run only when the target selected its first
+token. Fixtures hold chains, trees with a valid, a refused and a stop branch, and Splash's #790
+case, and every row's mask and forced tokens must equal the reference.
 
 The pinned Rust toolchain is a contributor build/check dependency; the installed
 app does not need Rust. The app packages the grammar library. All transitive
@@ -455,7 +467,7 @@ Qualification of this pin now includes the header tests in `sevra-agent-checks -
 
 [[records/plans/splash-1-7-1-upgrade]] moved the pin from 1.6.1 to the tagged 1.7.1 (1.7.2 on upstream `main` is untagged). The engine files, model, model folder format, status schema, launch flags and cache file names are unchanged; the host changed in five places.
 
-- **Wire, protocol 15.** A request carries `head_tokens` (0: ordinary chat resumes the prepared header). A start carries the KV-matched prefix, where the resumed state came from (none, memory or disk) and whether a state was lost; the host checks both counts against the prompt and records them as `prefixTokens`, `stateSource` and `lostState`. Mask requests carry parents, and mask responses carry forced pairs, empty for now.
+- **Wire, protocol 15.** A request carries `head_tokens` (0: ordinary chat resumes the prepared header). A start carries the KV-matched prefix, where the resumed state came from (none, memory or disk) and whether a state was lost; the host checks both counts against the prompt and records them as `prefixTokens`, `stateSource` and `lostState`. Mask requests carry parents, and mask responses carry forced pairs (empty at first; follow-up F4).
 - **Tool grammar.** As upstream 1.6.2: a required or named call starts at its first token, and the whitespace after reasoning belongs to the thinking rule.
 - **Tree masks** (I14 above).
 - **Header.** Remade: the cache namespace's GDN state layout changed. Cached states are int8 codes, so the header's state file is 20.5 MB instead of 66.7 MB. The namespace holds no path, context, memory, lanes or verify rows, so one header still serves both tiers and every Mac.
@@ -464,3 +476,13 @@ Qualification of this pin now includes the header tests in `sevra-agent-checks -
 Decisions: keep `--verify-rows all` (repeatable output, the tree at 1.6.1's step size, no step-cost measurement); take the int8 cached-states default; send `head_tokens` 0 and no forced tokens; keep the app's space after `<` in literal control tokens. Later: `auto` verify rows, header identity without restore-point-neutral options, `head_tokens` for prompts without a prepared header, forced tokens from `llg_matcher_compute_ff_tokens`, and literal control tokens as characters.
 
 Results, one run each on a 48 GiB M5 Pro: every model-free check passes, including byte parity with every 1.7.1 protocol golden and 1,655 tree and chain masks equal to the reference; both context tiers start at 12 GiB; the eight header tests pass; the light set passes 11 of 11 on the first run. The five-message timing conversation decoded 92.9 tokens a second against 50.7 on 1.6.1, at 45.6 ms and 4.23 tokens a cycle against 77.1 ms and 3.91, with grammar masks at 0.92 ms against 2.04; page-cache state between the two runs was not controlled. The Neural Engine split and step costs do not apply to this model and setting. The performance and differential harnesses (`compare_*_performance.py`, `splash_performance_reference.py`, `check_splash_reference.py`) load the pinned reference and cannot run against 1.7.1 until ported; `check.sh` imports only their pure helpers. Evidence: `integration/evidence/2026-11-24-splash-1-7-1/`.
+
+Follow-ups, the same day, at the owner's word, one run each:
+
+- **F1, `--verify-rows auto`: not taken.** On the timing conversation it decoded 4.09 tokens a cycle against 4.18 under `all` with forced tokens, both at 58 ms a cycle, so it saved no step cost and accepted fewer tokens. The 45.6 ms of the upgrade run came with about 27 GiB reclaimable against about 22 for these two, so cycle times compare only with each other.
+- **F2, header identity.** A manifest no longer mismatches on `--verify-rows`, `--max-concurrent-requests` or `--idle-sleep`, which change no restore point; activations still count, as they change the stored numbers.
+- **F3, `head_tokens`.** A prompt without a prepared header (Excel conversion, reviews, scope blocks, the comparison setting) sends the shared prefix, or a stable scope at least 2,048 tokens past it, as `head_tokens` in the request itself; the host records the state only where the engine keeps one (the head's last complete page, at least 2,048 tokens past the resumed state and not past the replay boundary). The one-token prime requests are gone.
+- **F4, forced tokens** (I14). The timing conversation decoded 72.0 tokens a second at 4.18 tokens a cycle; it holds too few tool calls to show a gain, and the host now matches the reference's forced pairs.
+- **F5, literal control tokens as characters, U+0000 as U+FFFD** (I06). Every prompt now renders and splits one way. Fixing it found the character-based search difference in swift-transformers, which also changed ordinary text such as `❤️<b>`.
+
+Results: 32 text cases, 214 grammar steps (1,326 forced pairs) and 1,441 workbook tool masks (14,800 forced pairs) equal the reference; 39 Splash checks and the agent checks pass. The packaged header's inputs are unchanged (4,429 tokens). The eight header tests pass: with the comparison setting the first request carries `head_tokens` 4,429 and its first decision takes 2.16 s against 1.30 s from the restored header. The light set passes 11 of 11 on the first run. Evidence: `chat-timing-1.7.1-auto.jsonl`, `chat-timing-1.7.1-forced.jsonl`, `header-tests-followups.json` and `light-followups/` in the same folder.

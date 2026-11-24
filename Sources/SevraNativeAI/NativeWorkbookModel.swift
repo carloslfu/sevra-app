@@ -405,45 +405,34 @@ private final class NativeWorker: @unchecked Sendable {
       if replayPrefixes.count == 4 { replayPrefixes.removeFirst() }
       replayPrefixes.append(prefix)
     }
-    func primePrefix(
-      _ prompt: SplashTextFrontend.Prompt, common: Int, scope: Int, helper: SplashNativeProcess,
-      cancellation: Cancellation
-    ) throws -> (tokens: Int, matched: Int, seconds: Double, prefill: Double) {
-      guard common >= 2048, !configuration.diagnosticRequestCacheIsolation else { return (0, 0, 0, 0) }
-      // Prime the shared boundary first. An additional large stable scope earns a separate
-      // checkpoint on a later dispatch. Never introduce more than one prime per dispatch.
+    /// The head a request asks the engine to keep a state at (`head_tokens`): the shared
+    /// prefix, or a large stable scope past it once the prefix has a state, when no earlier
+    /// request left one there. Splash 1.7.1 keeps it during the request's own prefill, so no
+    /// separate one-token request computes it first, as 1.6.1 needed.
+    func headTokens(_ prompt: SplashTextFrontend.Prompt, common: Int, scope: Int) -> Int {
+      guard common >= 2048, !configuration.diagnosticRequestCacheIsolation else { return 0 }
       // A deeper replay state the prompt starts with already covers both boundaries.
       let count = [common, scope].first { size in
-        (size == common || size >= common + 2048)
+        (size == common || size >= common + 2048) && size < prompt.tokens.count
           && !checkpointPrefixes.contains { $0.count == size && prompt.tokens.prefix(size).elementsEqual($0) }
           && !replayPrefixes.contains { $0.count >= size && prompt.tokens.starts(with: $0) }
       }
-      guard let count else { return (0, 0, 0, 0) }
-      let prefix = Array(prompt.tokens.prefix(count))
-      requestID += 1
-      var seed = SplashWire.Request(
-        id: requestID, prompt: prefix,
-        absoluteDeadline: UInt64((Date().timeIntervalSince1970 + 180) * 1e6),
-        remainingDeadline: 180_000_000)
-      // This engine takes a restorable checkpoint at the last complete prefix page.
-      // One discarded token closes the wire request; it cannot execute workbook tools.
-      seed.maxOutput = 1
-      var matched = 0
-      let primeStarted = ChatTiming.now
-      let result = try helper.generate(
-        seed, cancelled: { cancellation.isCancelled || cancellation.isExpired },
-        event: { if case .start(let start) = $0 { matched = Int(start.matched) } })
-      ChatTiming.record(
-        "engine.prime", since: primeStarted,
-        ["tokens": .number(Double(count)), "matched": .number(Double(matched)),
-         "prefillSeconds": .number(Double(result.done.prefillMicros) / 1e6)])
-      try cancellation.check()
+      return count ?? 0
+    }
+    /// Records the head's state when the engine kept it: on the head's last complete page, at
+    /// least 2,048 tokens (the draft's window) past the state the request resumed from and not
+    /// past the request's replay boundary (`Engine::configureDraftStatePlan`).
+    func recordHead(_ prompt: [UInt32], head: Int, matched: Int, generationTokens: Int) {
+      let page = head / 32 * 32
+      let replay = (prompt.count - max(generationTokens, 1)) / 32 * 32
+      guard head > 0, page >= matched + 2048, page <= replay else { return }
+      let prefix = Array(prompt.prefix(head))
+      checkpointPrefixes.removeAll { $0 == prefix }
       if checkpointPrefixes.count == 4 { checkpointPrefixes.removeFirst() }
       checkpointPrefixes.append(prefix)
-      return (count, matched, result.requestSeconds, Double(result.done.prefillMicros) / 1e6)
     }
     func observeResume(prompt: [UInt32], matched: Int) {
-      // A live process can evict old KV pages under its memory budget. Re-prime a missing
+      // A live process can evict old KV pages under its memory budget. Ask for a missing
       // boundary on a later request instead of trusting the host's record indefinitely.
       // Splash 1.7.1 checkpoints complete 32-token pages before the suffix.
       checkpointPrefixes.removeAll { prefix in
@@ -971,9 +960,8 @@ private final class NativeWorker: @unchecked Sendable {
     }
     var output = try SplashOutputStream(
       frontend: session.frontend, tools: policy.outputTools, thinking: reasoning.enabled)
-    var seed = try session.primePrefix(
-      prompt, common: prepared.stablePrefixCount, scope: prepared.scopePrefixCount,
-      helper: helper, cancellation: cancellation)
+    var head = session.headTokens(
+      prompt, common: prepared.stablePrefixCount, scope: prepared.scopePrefixCount)
     session.requestID += 1
     var request = SplashWire.Request(
       id: session.requestID, prompt: prompt.tokens,
@@ -992,6 +980,7 @@ private final class NativeWorker: @unchecked Sendable {
       request.generationTokens = UInt32(prompt.tokens.count - replayBoundary)
     }
     request.tokenMask = true
+    request.headTokens = UInt32(head)
     request.thinking = try reasoning.budget(outputTokens: outputBudget)
     if configuration.diagnosticRequestCacheIsolation {
       request.saltLow = session.requestID
@@ -1118,9 +1107,9 @@ private final class NativeWorker: @unchecked Sendable {
       frontend: session.frontend, tools: policy.outputTools, thinking: reasoning.enabled)
     reasoningText = ""
     reasoningSent = 0
-    seed = try session.primePrefix(
-      prompt, common: prepared.stablePrefixCount, scope: prepared.scopePrefixCount,
-      helper: helper, cancellation: cancellation)
+    head = session.headTokens(
+      prompt, common: prepared.stablePrefixCount, scope: prepared.scopePrefixCount)
+    request.headTokens = UInt32(head)
     session.requestID += 1
     request.id = session.requestID
     previewAt = nil
@@ -1136,6 +1125,9 @@ private final class NativeWorker: @unchecked Sendable {
     try constraint.finish(committed: generated.tokens, requireComplete: true)
     let parsed = try output.finish(generated.done.reason).0
     session.observeResume(prompt: prompt.tokens, matched: matchedPromptTokens)
+    session.recordHead(
+      prompt.tokens, head: head, matched: matchedPromptTokens,
+      generationTokens: Int(request.generationTokens))
     if let replayBoundary { session.recordReplay(prompt.tokens, boundary: replayBoundary) }
     let reasoningTokens = try reasoning.generatedTokens(generated.tokens)
     try require(
@@ -1176,10 +1168,7 @@ private final class NativeWorker: @unchecked Sendable {
         Double(
           replayBoundary.map { $0 / 32 * 32 }
             ?? (prompt.tokens.count - Int(prompt.generationTokens)) / 32 * 32)),
-      "prefixPrimeTokens": .number(Double(seed.tokens)),
-      "prefixPrimeMatchedTokens": .number(Double(seed.matched)),
-      "prefixPrimeSeconds": .number(seed.seconds),
-      "prefixPrimePrefillSeconds": .number(seed.prefill),
+      "headTokens": .number(Double(head)),
       "firstTokenSeconds": generated.firstTokenSeconds.map(Value.number) ?? .null,
       "promptTokens": .number(Double(prompt.tokens.count)),
       "matchedPromptTokens": .number(Double(matchedPromptTokens)),

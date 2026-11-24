@@ -21,8 +21,8 @@ package enum PromptHeader {
   package static let release = "1.7.1"
   package static let commit = "1988a72f26a6031127efc29f861bfb46d36286c4"
 
-  /// The launch options that decide what a restore point holds and how it is read. The
-  /// context, memory and quota do not: a header made at 64K is taken back at 32K (phase H1).
+  /// The launch options the app starts the engine with. The context, memory and quota are not
+  /// among them: a header made at 64K is taken back at 32K (phase H1).
   /// The app runs one request at a time, so it asks for one lane: Splash 1.7.1 gives every
   /// lane a 16-row verify arena, and one lane leaves the expert store more of the budget.
   package static func engineOptions(activations: String) -> [String] {
@@ -31,6 +31,28 @@ package enum PromptHeader {
       "--state-format", "fp32", "--ane", "on", "--activations", activations,
       "--max-concurrent-requests", "1",
     ]
+  }
+
+  /// Options that change neither what a restore point holds nor the numbers it was computed
+  /// with: how many rows a decode cycle verifies, how many lanes serve, and whether an idle
+  /// engine sleeps. Splash 1.7.1's cache namespace leaves them out too, so a header made under
+  /// other values of them is taken back whole.
+  package static let restoreNeutralOptions: Set<String> = [
+    "--verify-rows", "--max-concurrent-requests", "--idle-sleep",
+  ]
+  /// `options` without the restore-neutral ones and their values: what a header depends on.
+  package static func restoreOptions(_ options: [String]) -> [String] {
+    var kept: [String] = []
+    var index = options.startIndex
+    while index < options.endIndex {
+      if restoreNeutralOptions.contains(options[index]) {
+        index += 2
+      } else {
+        kept.append(options[index])
+        index += 1
+      }
+    }
+    return kept
   }
 
   /// The first decision of an ordinary chat turn, reduced to what its header depends on.
@@ -163,7 +185,11 @@ package enum PromptHeader {
       if engine.release != identity.engine.release || engine.commit != identity.engine.commit {
         return "the engine"
       }
-      if engineOptions != identity.engineOptions { return "the engine settings" }
+      if PromptHeader.restoreOptions(engineOptions)
+        != PromptHeader.restoreOptions(identity.engineOptions)
+      {
+        return "the engine settings"
+      }
       if model != identity.model { return "the model" }
       return nil
     }

@@ -2,6 +2,7 @@ import CoreFoundation
 import CryptoKit
 import Foundation
 import Hub
+import Jinja
 import SevraSplash
 import Tokenizers
 
@@ -29,7 +30,25 @@ public final class SplashTextFrontend {
   private static let promptCacheBudget = 8 * 1024 * 1024
   private let lock = NSLock()
   private var addedGrammarTokens: [UInt32: [UInt8]] = [:]
-  private var addedLiterals: [String] = []
+  /// Added tokens by their text, and each one's text after its first character, `<`.
+  private var addedIDs: [String: Int] = [:]
+  private var addedRests: [[Unicode.Scalar]] = []
+  /// Splits a rendered prompt at every whole added token, the longest first, as the tokenizer does.
+  private var addedSplit: NSRegularExpression?
+  /// A text no request can hold, drawn when the frontend loads. `quote` sets it after the `<` of
+  /// an added token that begins in text the host did not write, as Splash 1.7.1's
+  /// `PromptTokenizer.quote` does, so that token reaches the model as its characters.
+  private let quoteMark = "__sevra_quoted_" + (0..<16).map { _ in
+    String(format: "%02x", UInt8.random(in: 0...255))
+  }.joined() + "__"
+  /// The same normalizer, pre-tokenizer and model without the added tokens: how a part of a
+  /// prompt between two of the template's own tokens encodes. It keeps one added token, the
+  /// mark, which no part holds, as a tokenizer without any splits its input at every character.
+  private let plainTokenizer: any Tokenizer
+  /// The tokenizer's own split pattern, matched over scalars as the reference tokenizer does.
+  private var pieceSplit: NSRegularExpression?
+  private let compiledTemplate: Template
+  private var specialContext: [String: Jinja.Value] = [:]
   private var grammarVocabularyCache: ByteVocabulary?
   private var outputSpecialTokens: Set<UInt32> = []
   public struct ByteVocabulary {
@@ -94,9 +113,46 @@ public final class SplashTextFrontend {
     }
     tokenizer = try AutoTokenizer.from(
       tokenizerConfig: tokenizerConfig, tokenizerData: tokenizerData, strict: true)
+    var plainData = tokenizerData.dictionary() ?? [:]
+    plainData["added_tokens"] = Config([
+      Config([
+        "id": Config(Int(Self.stopTokens[0])), "content": Config(quoteMark),
+        "special": Config(true), "lstrip": Config(false), "rstrip": Config(false),
+        "normalized": Config(false), "single_word": Config(false),
+      ] as [String: Config])
+    ])
+    plainTokenizer = try AutoTokenizer.from(
+      tokenizerConfig: tokenizerConfig, tokenizerData: Config(plainData), strict: true)
+    compiledTemplate = try Template(adapted, with: .init(lstripBlocks: true, trimBlocks: true))
+    // As swift-transformers' applyChatTemplate gives a template the tokenizer's special tokens.
+    for (key, value) in tokenizerConfig.dictionary(or: [:])
+    where ["bos_token", "eos_token", "unk_token", "sep_token", "pad_token", "cls_token",
+      "mask_token", "additional_special_tokens"].contains(key.string) && !value.isNull()
+    {
+      if let text = value.string() {
+        specialContext[key.string] = .string(text)
+      } else if let content = value.dictionary()?["content"]?.string() {
+        specialContext[key.string] = .string(content)
+      } else if let texts: [String] = value.get() {
+        specialContext[key.string] = .array(texts.map { .string($0) })
+      }
+    }
     guard tokenizerData.decoder.type.string() == "ByteLevel" else {
       throw SplashError("Selected tokenizer byte decoder changed")
     }
+    // `encodeText` cuts text at this pattern's pieces, which holds only for an NFC normalizer,
+    // a split that keeps each piece, and a byte-level step that does not split again.
+    let steps = tokenizerData.preTokenizer.pretokenizers.array(or: [])
+    guard tokenizerData.normalizer.type.string() == "NFC",
+      tokenizerData.preTokenizer.type.string() == "Sequence", steps.count == 2,
+      steps[0].type.string() == "Split", steps[0].behavior.string() == "Isolated",
+      !steps[0].invert.boolean(or: false), let pattern = steps[0].pattern.Regex.string(),
+      steps[1].type.string() == "ByteLevel", !steps[1].useRegex.boolean(or: true),
+      !steps[1].addPrefixSpace.boolean(or: true)
+    else {
+      throw SplashError("Selected tokenizer normalizer or pre-tokenizer changed")
+    }
+    pieceSplit = try NSRegularExpression(pattern: pattern)
     for entry in tokenizerData["addedTokens"].array(or: []) {
       guard let id = entry.id.integer(), id >= 0, id < Self.vocabularySize,
         let content = entry.content.string()
@@ -111,11 +167,26 @@ public final class SplashTextFrontend {
         || (content.hasPrefix("<") && content.hasSuffix(">"))
       addedGrammarTokens[UInt32(id)] = (special ? [0xff] : []) + Array(content.utf8)
       if entry.special.boolean(or: false) { outputSpecialTokens.insert(UInt32(id)) }
-      guard content.hasPrefix("<") else {
+      guard content.hasPrefix("<"), content.unicodeScalars.count >= 2,
+        !content.contains(quoteMark), !quoteMark.contains(content)
+      else {
         throw SplashError("Selected tokenizer has an unsupported added token")
       }
-      addedLiterals.append(content)
+      addedIDs[content] = id
+      addedRests.append(Array(content.unicodeScalars.dropFirst()))
     }
+    addedSplit = try NSRegularExpression(
+      pattern: addedIDs.keys.sorted { $0.utf16.count > $1.utf16.count }
+        .map(NSRegularExpression.escapedPattern(for:)).joined(separator: "|"))
+    // The part encoder reads ordinary text as the tokenizer does, and an added token's text as
+    // its characters.
+    for probe in ["Quarterly report: Café, 日本語 and 18 bolts.\n", "a < b <b> x<"] {
+      guard plainTokenizer.encode(text: probe, addSpecialTokens: false)
+        == tokenizer.encode(text: probe, addSpecialTokens: false)
+      else { throw SplashError("Tokenizer without added tokens encodes ordinary text differently") }
+    }
+    guard !plainTokenizer.encode(text: "<|im_start|>", addSpecialTokens: false).contains(248045)
+    else { throw SplashError("Tokenizer without added tokens still reads them") }
     for (text, id) in [
       "<|endoftext|>": 248044, "<|im_start|>": 248045, "<|im_end|>": 248046,
       "</think>": 248069, "<tool_call>": 248058,
@@ -141,10 +212,9 @@ public final class SplashTextFrontend {
            ["role": "user", "content": "A different message: Bogotá 日本語."]],
         ] {
           func probe(_ generation: Bool) throws -> [Int] {
-            try tokenizer.applyChatTemplate(
-              messages: canary, chatTemplate: .literal(template), addGenerationPrompt: generation,
-              truncation: false, maxLength: nil, tools: nil,
-              additionalContext: ["enable_thinking": thinking, "preserve_thinking": preserve])
+            try render(
+              canary, tools: nil, generation: generation, thinking: thinking,
+              preserveThinking: preserve)
           }
           let without = try probe(false)
           let with = try probe(true)
@@ -258,18 +328,14 @@ public final class SplashTextFrontend {
       }
       return value
     }
-    // Tool definitions are the host's own. Everything in a message is not.
-    let templateMessages = messages.map(messageWithoutAddedLiterals).map {
-      $0.mapValues(templateValue)
-    }
-    let templateTools = tools?.map { $0.mapValues(templateValue) }
-    let context: [String: any Sendable] = [
-      "enable_thinking": thinking, "preserve_thinking": preserveThinking,
-    ]
+    // As Splash 1.7.1, every text the template is given is quoted, messages and tool
+    // definitions alike: an added token one spells reaches the model as its characters.
+    let templateMessages = messages.map(quoteObject).map { $0.mapValues(templateValue) }
+    let templateTools = tools?.map(quoteObject).map { $0.mapValues(templateValue) }
     func render(_ source: [Message], _ definitions: [ToolSpec]?) throws -> [Int] {
-      try tokenizer.applyChatTemplate(
-        messages: source, chatTemplate: .literal(template), addGenerationPrompt: true,
-        truncation: false, maxLength: nil, tools: definitions, additionalContext: context)
+      try self.render(
+        source, tools: definitions, generation: true, thinking: thinking,
+        preserveThinking: preserveThinking)
     }
     // Workbook headers contain only host policy and schemas. The next role starts with
     // a verified special token, so tokenization cannot merge across the join.
@@ -316,44 +382,124 @@ public final class SplashTextFrontend {
     return prompt
   }
 
-  /// The tokenizer matches added tokens anywhere in the rendered prompt, so a
-  /// document could otherwise close its turn and open a system one. The template
-  /// renders the real control tokens itself, after this pass. Text with no literal
-  /// comes back unchanged, so ordinary prompts keep their exact tokens.
-  private func withoutAddedLiterals(_ text: String) -> String {
-    guard text.utf8.contains(UInt8(ascii: "<")) else { return text }
-    // Literal options match code units as the tokenizer does. The default
-    // comparison misses a token that a combining mark follows.
-    return addedLiterals.reduce(text) {
-      $0.replacingOccurrences(of: $1, with: "< " + $1.dropFirst(), options: .literal)
+  /// The tokens of the template rendered with the context swift-transformers' applyChatTemplate
+  /// gives it. Only the template's own tokens are added tokens; each text between two of them,
+  /// its marks taken out, encodes as ordinary text (`PromptTokenizer.tokens`).
+  private func render(
+    _ messages: [Message], tools: [ToolSpec]?, generation: Bool, thinking: Bool,
+    preserveThinking: Bool
+  ) throws -> [Int] {
+    var context: [String: Jinja.Value] = [
+      "messages": .array(try messages.map { try Value(any: $0) }),
+      "add_generation_prompt": .boolean(generation),
+      "enable_thinking": .boolean(thinking), "preserve_thinking": .boolean(preserveThinking),
+    ]
+    if let tools { context["tools"] = .array(try tools.map { try Value(any: $0) }) }
+    for (key, value) in specialContext { context[key] = value }
+    return try tokensOf(try compiledTemplate.render(context))
+  }
+
+  /// `text` with each U+0000 as U+FFFD, and the mark after every `<` where an added token
+  /// begins: one the text spells whole, or one its end cuts off, which what the template writes
+  /// next could complete (Splash 1.7.1's `PromptTokenizer.quote`). Scalars, not characters, as
+  /// the tokenizer reads them: a combining mark after `>` must not hide a token.
+  private func quote(_ text: String) -> String {
+    guard text.unicodeScalars.contains(where: { $0 == "<" || $0 == "\u{0}" }) else { return text }
+    let scalars = text.unicodeScalars.map { $0 == "\u{0}" ? "\u{FFFD}" : $0 }
+    var result = String.UnicodeScalarView()
+    for (index, scalar) in scalars.enumerated() {
+      result.append(scalar)
+      guard scalar == "<" else { continue }
+      let begins = addedRests.contains { rest in
+        var matched = 0
+        while matched < rest.count, index + 1 + matched < scalars.count,
+          scalars[index + 1 + matched] == rest[matched]
+        {
+          matched += 1
+        }
+        return matched == rest.count || index + 1 + matched == scalars.count
+      }
+      if begins { result.append(contentsOf: quoteMark.unicodeScalars) }
     }
+    return String(result)
   }
-  /// The template closes tool and parameter names with its own ">", which could
-  /// complete a literal that the name leaves open.
-  private func nameWithoutAddedLiterals(_ name: String) -> String {
-    var scalars = withoutAddedLiterals(name + ">").unicodeScalars
-    scalars.removeLast()
-    return String(scalars)
-  }
-  private func messageWithoutAddedLiterals(_ object: [String: any Sendable]) -> [String: any Sendable] {
+  private func quoteObject(_ object: [String: any Sendable]) -> [String: any Sendable] {
     // Sorted so keys that collide here resolve the same way on every render.
     var result: [String: any Sendable] = [:]
     for (key, value) in object.sorted(by: { $0.key < $1.key }) {
-      let name = nameWithoutAddedLiterals(key)
+      let name = quote(key)
       guard result[name] == nil else { continue }
-      if key == "name", let text = value as? String {
-        result[name] = nameWithoutAddedLiterals(text)
-      } else {
-        result[name] = valueWithoutAddedLiterals(value)
-      }
+      result[name] = quoteValue(value)
     }
     return result
   }
-  private func valueWithoutAddedLiterals(_ value: any Sendable) -> any Sendable {
-    if let text = value as? String { return withoutAddedLiterals(text) }
-    if let object = value as? [String: any Sendable] { return messageWithoutAddedLiterals(object) }
-    if let array = value as? [any Sendable] { return array.map(valueWithoutAddedLiterals) }
+  private func quoteValue(_ value: any Sendable) -> any Sendable {
+    if let text = value as? String { return quote(text) }
+    if let object = value as? [String: any Sendable] { return quoteObject(object) }
+    if let array = value as? [any Sendable] { return array.map(quoteValue) }
     return value
+  }
+  /// The tokens of a rendered prompt: each whole added token the template wrote, and between
+  /// them the text without its marks, as ordinary text (`PromptTokenizer.tokens`).
+  private func tokensOf(_ rendered: String) throws -> [Int] {
+    guard let addedSplit else { throw SplashError("Selected tokenizer has no added tokens") }
+    let text = rendered as NSString
+    var tokens: [Int] = []
+    var start = 0
+    func plain(_ end: Int) throws {
+      guard end > start else { return }
+      let part = text.substring(with: NSRange(location: start, length: end - start))
+        .replacingOccurrences(of: quoteMark, with: "")
+      if !part.isEmpty { tokens += try encodeText(part) }
+    }
+    for match in addedSplit.matches(in: rendered, range: NSRange(location: 0, length: text.length)) {
+      try plain(match.range.location)
+      tokens.append(addedIDs[text.substring(with: match.range)]!)
+      start = match.range.location + match.range.length
+    }
+    try plain(text.length)
+    return tokens
+  }
+  /// Ordinary text as the reference tokenizer encodes it. swift-transformers finds the split
+  /// pattern's pieces with Foundation's search, which reads characters, not scalars: a
+  /// character of several scalars can move a piece's end, so `❤️<b>` splits as `❤️<` and `b`
+  /// where the reference has `❤️` and `<b`. Text whose characters are single scalars reads the
+  /// same both ways. Other text is cut around each piece that holds a character of several
+  /// scalars, at the pattern's own boundaries, and each run encodes alone.
+  private func encodeText(_ text: String) throws -> [Int] {
+    let normalized = text.precomposedStringWithCanonicalMapping
+    guard normalized.unicodeScalars.count != normalized.count else {
+      return plainTokenizer.encode(text: normalized, addSpecialTokens: false)
+    }
+    guard let pieceSplit else { throw SplashError("Selected tokenizer has no split pattern") }
+    let units = normalized as NSString
+    var wide: [Range<Int>] = []
+    var index = normalized.startIndex
+    while index < normalized.endIndex {
+      let after = normalized.index(after: index)
+      if normalized[index].unicodeScalars.count > 1 {
+        wide.append(index.utf16Offset(in: normalized)..<after.utf16Offset(in: normalized))
+      }
+      index = after
+    }
+    var cuts: [Int] = []
+    var next = 0
+    for match in pieceSplit.matches(in: normalized, range: NSRange(location: 0, length: units.length)) {
+      let piece = match.range.location..<(match.range.location + match.range.length)
+      while next < wide.count, wide[next].upperBound <= piece.lowerBound { next += 1 }
+      if next < wide.count, wide[next].overlaps(piece) {
+        cuts += [piece.lowerBound, piece.upperBound]
+      }
+    }
+    var tokens: [Int] = []
+    var start = 0
+    for end in cuts + [units.length] where end > start {
+      tokens += plainTokenizer.encode(
+        text: units.substring(with: NSRange(location: start, length: end - start)),
+        addSpecialTokens: false)
+      start = end
+    }
+    return tokens
   }
 
   public var promptCacheStatistics: (entries: Int, bytes: Int, hits: Int) {

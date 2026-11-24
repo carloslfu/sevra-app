@@ -28,6 +28,7 @@ private final class GuidanceAPI {
   let validate: @convention(c) (OpaquePointer?, UnsafePointer<UInt32>?, Int) -> Int32
   let accepting: @convention(c) (OpaquePointer?) -> Bool
   let stopped: @convention(c) (OpaquePointer?) -> Bool
+  let forced: @convention(c) (OpaquePointer?, UnsafeMutablePointer<UInt32>?, Int) -> Int32
 
   init(library: URL, expectedSHA256: String) throws {
     guard library.isFileURL, expectedSHA256.count == 64 else {
@@ -65,6 +66,7 @@ private final class GuidanceAPI {
       validate = try symbol("llg_matcher_validate_tokens")
       accepting = try symbol("llg_matcher_is_accepting")
       stopped = try symbol("llg_matcher_is_stopped")
+      forced = try symbol("llg_matcher_compute_ff_tokens")
       handle = loaded
     } catch {
       dlclose(loaded)
@@ -241,7 +243,9 @@ public final class SplashGrammarConstraint {
   /// and the parser's row index, which another branch can reach again after a rollback with
   /// other parser rows under it (Splash #790, LLGuidance #390). A token outside the vocabulary,
   /// a stop token or a token the grammar refuses is a row the target never accepts, nor any row
-  /// below it; those rows take their parent's mask. No forced tokens are returned.
+  /// below it; those rows take their parent's mask. Beside the masks come the tokens the grammar
+  /// forces after each reached row from 1, and after row 0 only for a first token's request:
+  /// pairs of a row and a token, at most `maxForced` a row.
   public func masks(_ query: SplashWire.MaskQuery) throws -> SplashWire.MaskReply {
     let rows = query.rows
     guard !failed, query.simulation.count <= SplashWire.maxSimulationTokens,
@@ -259,6 +263,8 @@ public final class SplashGrammarConstraint {
     let width = Int(query.words)
     var result = [UInt32](repeating: 0, count: width * rows)
     var reached = [Bool](repeating: false, count: rows)
+    var forced = [[UInt32]](repeating: [], count: rows)
+    var forcedBuffer = [UInt32](repeating: 0, count: max(0, query.maxForced))
     var children = [[Int]](repeating: [], count: rows)
     let follows = query.parents.map { $0 == SplashWire.noParent ? 0 : Int($0) + 1 }
     for (index, parentRow) in follows.enumerated() { children[parentRow].append(index + 1) }
@@ -272,6 +278,14 @@ public final class SplashGrammarConstraint {
         throw SplashError("Cannot compute the output grammar mask")
       }
       reached[row] = true
+      // As the reference's `_reach`: the engine reads a row's forced tokens after each verify
+      // row's path, and before a first token. LLGuidance reports none for a matcher in error.
+      if (row > 0 || rows == 1) && !forcedBuffer.isEmpty {
+        let count = forcedBuffer.withUnsafeMutableBufferPointer {
+          api.forced(state, $0.baseAddress, $0.count)
+        }
+        if count > 0 { forced[row] = Array(forcedBuffer.prefix(Int(count))) }
+      }
     }
     func walk(_ state: OpaquePointer, _ row: Int) throws {
       let last = children[row].count - 1
@@ -328,7 +342,10 @@ public final class SplashGrammarConstraint {
       failed = true
       throw SplashError("Output grammar has no valid next token")
     }
-    return SplashWire.MaskReply(words: result)
+    let pairs = forced.enumerated().flatMap { row, tokens in
+      tokens.flatMap { [UInt32(row), $0] }
+    }
+    return SplashWire.MaskReply(words: result, forced: pairs)
   }
 
   public func finish(committed: [UInt32], requireComplete: Bool) throws {

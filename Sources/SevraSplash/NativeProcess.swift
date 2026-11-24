@@ -171,7 +171,8 @@ public final class SplashNativeProcess {
               "Mask request exceeds native Ready capabilities")
             guard let mask else { throw SplashError("Missing mask provider") }
             let query = SplashWire.MaskQuery(
-              committed: state.tokens, simulation: simulation, parents: parents, words: words)
+              committed: state.tokens, simulation: simulation, parents: parents, words: words,
+              maxForced: Int(ready!.maskRows) - 1)
             let reply = try mask(query)
             // The engine checks only the forced pairs' shape, and ends the request otherwise.
             try check(
@@ -179,6 +180,10 @@ public final class SplashNativeProcess {
                 && stride(from: 0, to: reply.forced.count, by: 2).allSatisfy {
                   $0 + 1 < reply.forced.count && Int(reply.forced[$0]) < query.rows
                     && reply.forced[$0 + 1] < ready!.vocabulary
+                }
+                && Dictionary(grouping: stride(from: 0, to: reply.forced.count, by: 2)) {
+                  reply.forced[$0]
+                }.values.allSatisfy { $0.count <= query.maxForced
                 },
               "Mask provider returned incorrect dimensions")
             try queue(

@@ -122,11 +122,13 @@ func checkPromptHeader() async throws {
     try bytes.write(to: folder.appendingPathComponent(name))
     entries[name] = .init(bytes: bytes.count, sha256: String(repeating: "0", count: 64))
   }
-  func manifest(engine: PromptHeader.Engine = identity.engine) -> PromptHeader.Manifest {
+  func manifest(
+    engine: PromptHeader.Engine = identity.engine, options: [String] = identity.engineOptions
+  ) -> PromptHeader.Manifest {
     .init(
       inputs: identity.inputs, tokens: 2572, tokenSHA256: String(repeating: "1", count: 64),
       lastCompletePage: 2560, cacheName: String(repeating: "2", count: 32), engine: engine,
-      engineOptions: identity.engineOptions, model: identity.model,
+      engineOptions: options, model: identity.model,
       assemblyKey: String(repeating: "3", count: 64),
       takenBack: .init(states: 1, kvBlocks: 80, bytes: 94_273_536), files: entries)
   }
@@ -145,6 +147,25 @@ func checkPromptHeader() async throws {
   try expectHeader(
     PromptHeader.state(at: headers, identity: identity) == .mismatched("the engine"),
     "A header for another engine is not refused.")
+  // Verify rows, lanes and idle sleep leave a restore point as it is; activations do not.
+  func replacing(_ flag: String, with value: String) -> [String] {
+    var options = identity.engineOptions
+    if let index = options.firstIndex(of: flag) { options[index + 1] = value }
+    return options
+  }
+  try write(manifest(options: replacing("--verify-rows", with: "auto")))
+  var neutral = PromptHeader.state(at: headers, identity: identity)
+  try write(manifest(options: replacing("--max-concurrent-requests", with: "4")))
+  let lanes = PromptHeader.state(at: headers, identity: identity)
+  guard case .present = neutral, case .present = lanes else {
+    throw SevraError(
+      "prompt_header_check", "A header made with other verify rows or lanes is refused.")
+  }
+  try write(manifest(options: replacing("--activations", with: "fp16")))
+  neutral = PromptHeader.state(at: headers, identity: identity)
+  try expectHeader(
+    neutral == .mismatched("the engine settings"),
+    "A header made with other activations is not refused.")
   try write(manifest())
   try Data([1]).write(to: folder.appendingPathComponent("kv.slots"))
   try expectHeader(

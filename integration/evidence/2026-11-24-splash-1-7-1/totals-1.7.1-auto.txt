@@ -1,0 +1,5 @@
+chat-timing-1.7.1-auto.jsonl
+  requests 11  generated 2926  decode 41.60s  -> 70.3 tokens/s
+  cycles 716  tokens/cycle 4.09  ms/cycle 58.1  drafted 2488 accepted 2048
+  first token mean 1.12s  prefill 12.25s for 13883 computed tokens
+  host masks 878 in 0.50s (0.57 ms each)  engine wall 53.88s

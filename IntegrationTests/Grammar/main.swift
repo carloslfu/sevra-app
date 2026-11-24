@@ -13,6 +13,8 @@ struct Fixtures: Decodable {
       /// Each draft token's parent: the first's is `SplashWire.noParent`, the others earlier indexes.
       let parents: [UInt32]
       let maskSHA256: String
+      /// The reference's forced tokens: pairs of a row and a token.
+      let forced: [UInt32]
     }
     let name: String
     let grammar: String
@@ -63,11 +65,14 @@ do {
       throw SplashError("Grammar fixture tokenizer differs: " + fixture.name)
     }
     for (index, step) in fixture.steps.enumerated() {
-      let masks = try grammar.masks(
+      let reply = try grammar.masks(
         .init(
           committed: step.committed, simulation: step.simulation, parents: step.parents,
-          words: words)
-      ).words
+          words: words))
+      let masks = reply.words
+      guard reply.forced == step.forced else {
+        throw SplashError("Native forced tokens differ from reference: \(fixture.name), step \(index)")
+      }
       let hash = masks.withUnsafeBytes {
         SHA256.hash(data: Data($0)).map { String(format: "%02x", $0) }.joined()
       }

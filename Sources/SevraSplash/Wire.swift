@@ -185,11 +185,18 @@ public enum SplashWire {
     public let simulation: [UInt32]
     public let parents: [UInt32]
     public let words: UInt32
-    public init(committed: [UInt32], simulation: [UInt32], parents: [UInt32], words: UInt32) {
+    /// The most forced tokens a row may carry: Ready's mask rows less one, as many as a request
+    /// simulates. A longer forced run would send a response past what the engine reads.
+    public let maxForced: Int
+    public init(
+      committed: [UInt32], simulation: [UInt32], parents: [UInt32], words: UInt32,
+      maxForced: Int = SplashWire.maxSimulationTokens
+    ) {
       self.committed = committed
       self.simulation = simulation
       self.parents = parents
       self.words = words
+      self.maxForced = maxForced
     }
     public var rows: Int { simulation.count + 1 }
     /// The draft tokens on the path to mask row `row`: none for row 0, else token `row - 1`
@@ -204,10 +211,14 @@ public enum SplashWire {
       return tokens.reversed()
     }
     /// A draft chain: each token follows the one before it.
-    public static func chain(committed: [UInt32], simulation: [UInt32], words: UInt32) -> MaskQuery {
+    public static func chain(
+      committed: [UInt32], simulation: [UInt32], words: UInt32,
+      maxForced: Int = SplashWire.maxSimulationTokens
+    ) -> MaskQuery {
       .init(
         committed: committed, simulation: simulation,
-        parents: simulation.indices.map { $0 == 0 ? noParent : UInt32($0 - 1) }, words: words)
+        parents: simulation.indices.map { $0 == 0 ? noParent : UInt32($0 - 1) }, words: words,
+        maxForced: maxForced)
     }
   }
   /// A mask provider's answer: `words` for every row, and forced pairs of a row and a token.

@@ -36,7 +36,7 @@ def first_chat(cli, profile, install_dir, models, header):
     if first.get("headerInputs") != header["inputs"] or first.get("headerResumed") is not True:
         raise ValueError("The installed copy did not resume its own header in its first chat")
     return {"headerResumed": True, "matchedPromptTokens": first.get("matchedPromptTokens"),
-            "prefixPrimeTokens": first.get("prefixPrimeTokens")}
+            "headTokens": first.get("headTokens")}
 
 
 def check(record, install_dir, full_runtime, models=None):

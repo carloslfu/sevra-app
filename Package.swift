@@ -44,6 +44,8 @@ let package = Package(
     .package(url: "https://github.com/weichsel/ZIPFoundation.git", exact: "0.9.20"),
     .package(url: "https://github.com/huggingface/swift-transformers.git", exact: "1.3.5"),
     .package(url: "https://github.com/swiftlang/swift-markdown.git", exact: "0.9.0"),
+    // Already resolved through swift-transformers; the text frontend renders prompts with it.
+    .package(url: "https://github.com/huggingface/swift-jinja.git", exact: "2.5.2"),
   ],
   targets: [
     .executableTarget(
@@ -149,6 +151,7 @@ let package = Package(
         "SevraSplash",
         .product(name: "Tokenizers", package: "swift-transformers"),
         .product(name: "Hub", package: "swift-transformers"),
+        .product(name: "Jinja", package: "swift-jinja"),
       ],
       resources: [.copy("Resources/template-patch.json")], swiftSettings: [.swiftLanguageMode(.v5)]),
     .executableTarget(
