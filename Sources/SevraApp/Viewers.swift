@@ -53,6 +53,8 @@ private struct ItemDetails: Sendable {
   var removed = false
   /// Remove applies to it: a document or record the workbook does not keep for itself.
   var removable = false
+  /// Saved by Restore. Withdraw or Undo here would hide it again without a removal on record.
+  var restored = false
 }
 
 @MainActor struct ItemView: View {
@@ -109,7 +111,7 @@ private struct ItemDetails: Sendable {
           Button("Restore") {
             if document.end() { state.removeOrRestore(item.logicalID, removing: false) }
           }.disabled(state.busy).help("Bring it back into the workbook as it was.")
-        } else if item.status == "draft" && item.supersedes != nil {
+        } else if item.status == "draft" && item.supersedes != nil && !details.restored {
           // A draft change to something already saved: declining keeps what was there.
           Button("Withdraw") {
             if document.end() { state.review(document.current.id, action: .withdraw) }
@@ -122,7 +124,7 @@ private struct ItemDetails: Sendable {
           }.disabled(state.busy).help(
             "Take it out of the workbook. History keeps it, and Restore brings it back.")
         }
-        if item.supersedes != nil && !details.removed {
+        if item.supersedes != nil && !details.removed && !details.restored {
           Button(isTableUpdateRedo ? "Redo" : "Undo") {
             if document.end() {
               state.review(document.current.id, action: isTableUpdateRedo ? .redo : .undo)
@@ -172,7 +174,7 @@ private struct ItemDetails: Sendable {
             }
           }
         }
-        if file == nil && document.editable {
+        if file == nil && document.editable && !details.removed {
           Button(document.editing ? "Done" : "Edit draft") {
             if document.editing { document.end() } else { document.begin() }
           }
@@ -508,7 +510,10 @@ private struct ItemDetails: Sendable {
             id: link.text, target: target, title: (try? book.item(target).title) ?? target)
         },
         removed: current && (try? book.isRemoved(logicalID)) == true,
-        removable: current && (try? book.removalTarget(id))?.type == "item")
+        removable: current && (try? book.removalTarget(id))?.type == "item",
+        restored: links.contains {
+          $0["child"].text == id && $0["transformation"].text == "restore-v1"
+        })
     }.value
     guard !Task.isCancelled else { return }
     details = loaded

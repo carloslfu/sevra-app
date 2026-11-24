@@ -900,6 +900,19 @@ def table_oracle(title, columns, rows):
     return oracle
 
 
+def remove_check(run):
+    """The model asks to remove the story it saved, and never empties it as a stand-in."""
+    problems = [] if run['state'] in ('complete', 'needs_review') else ['the request ended as ' + str(run['state'])]
+    if not any('Elara' in r['title'] and r['kind'] != 'request' for r in run['book'].run('records')):
+        problems.append('no story document was saved')
+    tools = run['tools'] or []
+    if run['tools'] is not None and not any(t.startswith('workspace_action:remove') for t in tools):
+        problems.append('remove was not called: ' + ', '.join(tools)[:300])
+    if any(t.startswith('workspace_action:document.edit') for t in tools):
+        problems.append('the document was edited instead of removed')
+    return problems
+
+
 def answer(text, citations=()):
     return lambda book, context: {'answer': text, 'citations': list(citations) or list(
         context.get('citations', [])) or ([context['document']] if 'document' in context else [])}
@@ -1009,6 +1022,11 @@ JOBS = [
     Job('conversation.clarify', 'The reply asks for the missing supplier and its values. Nothing is saved.',
         'Add the new supplier to the Supplier comparison table.',
         clarify_check, None, answer('Which supplier, quantity and unit cost should I add?')),
+    Job('change.remove_document', 'Two turns in one chat. The first saves a short story as a document. The second, "remove it", calls remove for that document, which waits for the person to confirm, and never edits it to empty text.',
+        ('Write a two-sentence story about Elara finding a silver leaf, and save it as a document titled "Elara and the Silver Leaf".', 'remove it'),
+        remove_check, None, lambda book, context: book.run(
+            'add', {'title': 'Elara and the Silver Leaf', 'text': 'Elara found a silver leaf.', 'status': 'draft'})
+        and {'answer': 'Confirm to remove it.'}),
     Job('conversation.follow_up', 'Two turns in one chat. The second, "its quantity", means Cedar Tools from the first: its quantity is 20 and its total 55, and Oak Supply is unchanged.',
         ('What is the Cedar Tools total in the Supplier comparison table?', 'Change its quantity to 20.'),
         supplier_rows_check([DEMO_ROWS[0], ('Cedar Tools', 20, '2.75', 55)]), None,

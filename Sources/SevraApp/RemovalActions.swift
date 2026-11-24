@@ -8,7 +8,11 @@ extension WorkspaceState {
     let chat = conversation
     let navigationID = itemPreviewIdentity
     Task {
-      defer { finishOperation(ticket, in: book) }
+      defer {
+        finishOperation(
+          ticket, in: book,
+          successStatus: removing ? "Removed. Restore brings it back." : "Restored.")
+      }
       do {
         let (result, current) = try await Task.detached {
           try ticket.cancellation.check()
@@ -21,8 +25,7 @@ extension WorkspaceState {
           (removing ? "Removed " : "Restored ") + current.referenceMarkdown
             + (removing ? ". History keeps it, and Restore brings it back." : "."),
           role: "event", conversation: chat)
-        guard owns(ticket, in: book) else { return }
-        _ = result
+        guard owns(ticket, in: book), result["status"] != .null else { return }
         refresh()
         if conversation == chat, itemPreviewIdentity == navigationID {
           navigate(.item(current.id), replacing: true)
