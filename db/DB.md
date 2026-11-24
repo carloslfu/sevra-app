@@ -66,7 +66,9 @@ no em dashes, native controls, purposeful visuals and light/dark accessibility.
 
 ### Validation log kinds
 - design
+- fix
 - implementation
+- install
 - verification
 
 ## Schemas

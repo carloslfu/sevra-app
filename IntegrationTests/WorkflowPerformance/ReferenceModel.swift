@@ -4,6 +4,7 @@ import Foundation
 import SevraAI
 import SevraCore
 import SevraNativeAI
+import SevraSplash
 import SevraSplashText
 
 final class Observations: @unchecked Sendable {
@@ -28,24 +29,27 @@ final class Observations: @unchecked Sendable {
     maskRows = []
     lock.unlock()
   }
-  func appendMask(_ committed: [UInt32], _ simulation: [UInt32], _ words: UInt32, _ masks: [UInt32])
-  {
+  func appendMask(_ query: SplashWire.MaskQuery, _ masks: [UInt32]) {
+    let committed = query.committed
+    let words = query.words
     func digest(_ values: [UInt32]) -> Value {
       let bytes = values.map(\.littleEndian).withUnsafeBytes { Data($0) }
       return .string(SHA256.hash(data: bytes).map { String(format: "%02x", $0) }.joined())
     }
     var entries: [Value] = []
-    if words == 0 || masks.count != Int(words) * (simulation.count + 1) {
+    if words == 0 || masks.count != Int(words) * query.rows {
       entries = [.object(["error": .string("Unexpected diagnostic mask dimensions")])]
     } else {
-      for index in 0...simulation.count {
-        let prefix = committed + simulation.prefix(index)
+      for index in 0..<query.rows {
+        // Each row's prefix follows its token's parents through the draft tree.
+        let path = query.path(index)
+        let prefix = committed + path
         let row = Array(masks[(index * Int(words))..<((index + 1) * Int(words))])
         entries.append(
           .object([
             "tokenCount": .number(Double(prefix.count)), "prefixSHA256": digest(prefix),
             "committedCount": .number(Double(committed.count)),
-            "simulationTokens": .array(simulation.prefix(index).map { .number(Double($0)) }),
+            "simulationTokens": .array(path.map { .number(Double($0)) }),
             "maskSHA256": digest(row),
           ]))
       }

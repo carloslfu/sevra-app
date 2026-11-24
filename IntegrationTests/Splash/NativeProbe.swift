@@ -25,10 +25,14 @@ func nativeProbe(_ arguments: [String]) throws -> Bool {
       withJSONObject: value, options: [.sortedKeys, .withoutEscapingSlashes])
     try FileHandle.standardOutput.write(contentsOf: bytes + Data([10]))
   }
-  if arguments.first == "--admit-engine", arguments.count == 5 {
+  if arguments.first == "--admit-engine", arguments.count == 5 || arguments.count == 7 {
+    // An optional lane count, the only extra engine option an admission experiment takes.
+    let lanes = arguments.count == 7 ? arguments[5...6] : []
     guard let context = UInt32(arguments[3]), [32768, 65536, 131072].contains(context),
       let memory = UInt64(arguments[4]), [12, 24].map({ UInt64($0) << 30 }).contains(memory),
-      memory + (8 << 30) <= ProcessInfo.processInfo.physicalMemory
+      memory + (8 << 30) <= ProcessInfo.processInfo.physicalMemory,
+      lanes.isEmpty
+        || (lanes.first == "--max-concurrent-requests" && (1...8).contains(Int(lanes.last!) ?? 0))
     else { throw SplashError("Unsupported or unsafe admission experiment") }
     let lockURL = FileManager.default.homeDirectoryForCurrentUser.appendingPathComponent(
       "Library/Application Support/Sevra/inference.lock")
@@ -58,7 +62,7 @@ func nativeProbe(_ arguments: [String]) throws -> Bool {
           "serve-native", arguments[2], String(context), String(memory),
           "--persistent-cache", "off", "--idle-sleep", "allow", "--verify-rows", "all",
           "--activations", "bf16", "--kv-format", "int8", "--state-format", "fp32", "--ane", "on",
-        ], timeout: 180,
+        ] + lanes, timeout: 180,
         cancelled: { stop.stopped || ProcessInfo.processInfo.thermalState.rawValue >= 2 },
         onLaunch: {
           owned = $0
@@ -66,10 +70,15 @@ func nativeProbe(_ arguments: [String]) throws -> Bool {
         })
       try expect(helper.ready?.context == context, "Engine changed requested capacity")
       let status = try JSONSerialization.jsonObject(with: helper.status(id: 1))
+      // The engine's own startup lines on how it planned memory, its lanes and its experts.
+      let startup = helper.diagnosticTail.split(separator: "\n").map(String.init).filter {
+        ["expert", "memory", "lane", "verify", "budget"].contains(where: $0.lowercased().contains)
+      }
       try json([
         "event": "admission", "admitted": true, "context": helper.ready!.context,
+        "lanes": helper.ready!.concurrent, "maskRows": helper.ready!.maskRows,
         "readySeconds": ProcessInfo.processInfo.systemUptime - began, "status": status,
-        "generatedRequests": 0,
+        "startupLines": startup, "generatedRequests": 0,
       ])
       let released = try JSONSerialization.jsonObject(with: helper.status(id: 2, release: true))
       try json(["event": "released", "status": released])

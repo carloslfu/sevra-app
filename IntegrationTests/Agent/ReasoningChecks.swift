@@ -42,7 +42,7 @@ func checkReasoningGrammar(frontend: SplashTextFrontend, factory: SplashGrammarF
   let tokens = frontend.encode(text)
   let constraint = try factory.create(grammar: policy.grammar)
   _ = try constraint.masks(
-    committed: [], simulation: [], words: (SplashTextFrontend.vocabularySize + 31) / 32)
+    .chain(committed: [], simulation: [], words: (SplashTextFrontend.vocabularySize + 31) / 32))
   try constraint.finish(committed: tokens, requireComplete: true)
   let stream = try SplashOutputStream(frontend: frontend, tools: policy.outputTools, thinking: true)
   _ = try stream.append(tokens: tokens)

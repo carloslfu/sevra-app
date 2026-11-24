@@ -151,26 +151,28 @@ do {
     let result = try helper.generate(
       request, cancelled: { false },
       mask: constraint.map { constraint in
-        { committed, simulation, words in
-          let masks = try constraint.masks(
-            committed: committed, simulation: simulation, words: words)
+        { query in
+          let reply = try constraint.masks(query)
           if config["diagnosticMasks"] as? Bool == true {
-            for index in 0...simulation.count {
-              let prefix = committed + simulation.prefix(index)
-              let row = Array(masks[(index * Int(words))..<((index + 1) * Int(words))])
+            let words = Int(query.words)
+            for index in 0..<query.rows {
+              // Each row's prefix follows its token's parents through the draft tree.
+              let path = query.path(index)
+              let prefix = query.committed + path
+              let row = Array(reply.words[(index * words)..<((index + 1) * words)])
               maskTrace.append([
                 "tokenCount": prefix.count, "prefixSHA256": hashWords(prefix),
-                "maskSHA256": hashWords(row), "committedCount": committed.count,
-                "simulationTokens": Array(simulation.prefix(index)),
+                "maskSHA256": hashWords(row), "committedCount": query.committed.count,
+                "simulationTokens": path,
               ])
             }
           }
-          return masks
+          return reply
         }
       },
       event: { event in
         if case .tokens(_, _, let tokens) = event { _ = try output.append(tokens: tokens) }
-        if case .start(_, _, let matched) = event { matchedPrompt = Int(matched) }
+        if case .start(let start) = event { matchedPrompt = Int(start.matched) }
       })
     try constraint?.finish(committed: result.tokens, requireComplete: result.done.reason == .stop)
     let parsed = try output.finish(result.done.reason).0

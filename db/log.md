@@ -375,3 +375,7 @@ Made general, continued: model runs of four real requests (1, 2, then 3 of 4) an
 
 ## [2026-11-24 13:17] install | sevra-app
 Packaged and installed the made-general working tree on 480c7c5; installed UUID 93E75F7C-B777-3C74-ABF1-8A454C8C60C5 matches output/native, header 4,429 tokens present.
+
+## [2026-11-24 14:52] implementation | records/plans/splash-1-7-1-upgrade
+Splash 1.7.1 upgrade implemented: protocol 15, tree grammar masks, tool grammar fix, one lane, header remade; model-free checks, header tests and light set 11 of 11 pass; installed 499AD265; release gate stops at a pre-existing authoring check; not committed
+

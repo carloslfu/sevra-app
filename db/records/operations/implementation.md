@@ -3,7 +3,7 @@ type: operational
 meta-type: conclusion
 id: 01m5rbxzcsjnewm0pwmb9a06cj
 created: 2026-10-25T01:48:47.385772+00:00
-updated: 2026-11-21T19:20:00+00:00
+updated: 2026-11-24T14:42:43.076299+00:00
 summary: Automatic local-model Excel conversion qualified across 10 generated apps and 89 independent originals, including five held-out states; no manual generated-code repairs.
 title: Implementation and acceptance
 ---
@@ -7795,3 +7795,6 @@ The native agent reuses verified prompt prefixes and separates screen metadata f
 
 ## Plain chats, November 21
 Threads, chapters, bookmarks and the main conversation became one list of chats per workbook, under [[records/plans/simple-chats]]. Format 33 (`conversations(id,title,created,deleted)`), a soft delete guarded by a trigger, automatic titles, per-chat compaction, and no model tool for chats. The thread tools, handoffs and the `change` scope were removed; the tool snapshot and grammar fixtures were regenerated (50 internal tools, 78 cases, 739 masks). Checks: 658 core checks, the agent and grammar suite, preview, document, product and automation UI checks, the persistence, history and receipt scripts, the chat-job self-test, and the light model set once (11 of 11, 281 s). Two adversarial reviews; their findings were fixed or recorded in the plan.
+
+## Splash 1.7.1, November 24
+The native engine moved from Splash 1.6.1 to 1.7.1 under [[records/plans/splash-1-7-1-upgrade]], approved in [[sources/notes/2026/11/splash-1-7-1-upgrade-approval]]. Protocol 15, tree grammar masks equal to the reference, the upstream tool-grammar whitespace fix, one engine lane and a remade header. Model-free checks, both context tiers, the eight header tests and the light set (11 of 11) pass; the timing conversation decoded 92.9 tokens a second against 50.7. [[records/specs/splash-integration]] holds the contract.

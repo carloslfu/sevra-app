@@ -10,6 +10,8 @@ struct Fixtures: Decodable {
     struct Step: Decodable {
       let committed: [UInt32]
       let simulation: [UInt32]
+      /// Each draft token's parent: the first's is `SplashWire.noParent`, the others earlier indexes.
+      let parents: [UInt32]
       let maskSHA256: String
     }
     let name: String
@@ -62,7 +64,10 @@ do {
     }
     for (index, step) in fixture.steps.enumerated() {
       let masks = try grammar.masks(
-        committed: step.committed, simulation: step.simulation, words: words)
+        .init(
+          committed: step.committed, simulation: step.simulation, parents: step.parents,
+          words: words)
+      ).words
       let hash = masks.withUnsafeBytes {
         SHA256.hash(data: Data($0)).map { String(format: "%02x", $0) }.joined()
       }
@@ -90,15 +95,25 @@ do {
     let cached = try factory.create(grammar: fixture.grammar, type: fixture.type)
     guard !cached.isAccepting else { throw SplashError("Cached grammar state was mutated") }
     try refused { try cached.finish(committed: [], requireComplete: true) }
-    try refused { _ = try cached.masks(committed: [], simulation: [1], words: 0) }
+    try refused { _ = try cached.masks(.chain(committed: [], simulation: [1], words: 0)) }
     let invalid = try factory.create(grammar: fixture.grammar, type: fixture.type)
     try refused {
       try invalid.finish(committed: [SplashTextFrontend.vocabularySize], requireComplete: false)
     }
+    // The wire carries at most 32 draft tokens; NativeProcess holds a request to Ready's rows.
     let invalidCount = try factory.create(grammar: fixture.grammar, type: fixture.type)
     try refused {
       _ = try invalidCount.masks(
-        committed: [], simulation: Array(repeating: 1, count: 9), words: words)
+        .chain(
+          committed: [], simulation: Array(repeating: 1, count: SplashWire.maxSimulationTokens + 1),
+          words: words))
+    }
+    for parents: [UInt32] in [[0, 0], [SplashWire.noParent, 1], [SplashWire.noParent]] {
+      let malformed = try factory.create(grammar: fixture.grammar, type: fixture.type)
+      try refused {
+        _ = try malformed.masks(
+          .init(committed: [], simulation: [1, 2], parents: parents, words: words))
+      }
     }
     let invalidText = try factory.create(grammar: fixture.grammar, type: fixture.type)
     try refused {

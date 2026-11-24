@@ -11,6 +11,8 @@ func checkWorkbookGrammars(frontend: SplashTextFrontend, factory: SplashGrammarF
       struct Step: Decodable {
         let committed: [UInt32]
         let simulation: [UInt32]
+        /// Each draft token's parent: the first's is `SplashWire.noParent`, the others earlier.
+        let parents: [UInt32]
         let maskSHA256: String
       }
       let name: String
@@ -87,8 +89,10 @@ func checkWorkbookGrammars(frontend: SplashTextFrontend, factory: SplashGrammarF
     try expectEqual(frontend.encode(item.output), item.tokens)
     for (index, step) in item.steps.enumerated() {
       let actual = try constraint.masks(
-        committed: step.committed, simulation: step.simulation,
-        words: (SplashTextFrontend.vocabularySize + 31) / 32)
+        .init(
+          committed: step.committed, simulation: step.simulation, parents: step.parents,
+          words: (SplashTextFrontend.vocabularySize + 31) / 32)
+      ).words
       let hash = actual.withUnsafeBytes {
         SHA256.hash(data: Data($0)).map { String(format: "%02x", $0) }.joined()
       }

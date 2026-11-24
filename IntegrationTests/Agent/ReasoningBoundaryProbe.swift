@@ -76,7 +76,7 @@ func runReasoningBoundaryProbe(
     request.thinking = .init(tokens: UInt32(budget), end: [248069], alsoEnds: 248058)
     let generated = try helper.generate(
       request, cancelled: { shouldCancel },
-      mask: { try constraint.masks(committed: $0, simulation: $1, words: $2) },
+      mask: { try constraint.masks($0) },
       event: {
         if case .tokens(_, _, let tokens) = $0 {
           _ = try stream.append(tokens: tokens)

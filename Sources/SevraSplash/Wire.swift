@@ -15,13 +15,19 @@ func check(_ condition: Bool, _ message: String) throws {
   if !condition { throw SplashError(message) }
 }
 
-// Splash 1.6.1 protocol v13. Layout is pinned against upstream's byte fixtures.
+// Splash 1.7.1 protocol v15. Layout is pinned against upstream's byte fixtures.
 // This frontend initially submits text only. Images remain an explicit unsupported input.
 public enum SplashWire {
-  public static let version: UInt16 = 13
+  public static let version: UInt16 = 15
   public static let statusSchemaVersion = 8
   public static let maxTokens = 1 << 20
   public static let maxStatusBytes = 32 * 1024 * 1024
+  /// The most draft tokens one mask request carries, whatever Ready's mask rows allow.
+  public static let maxSimulationTokens = 32
+  /// The parent of a mask request's first draft token: the tree's root follows row 0.
+  public static let noParent: UInt32 = 0xFFFF_FFFF
+  /// A row and a token for as many tokens as a request simulates, after each of its rows.
+  public static let maxForcedWords = 2 * (maxSimulationTokens + 1) * maxSimulationTokens
   public struct Sampling: Sendable, Equatable {
     public var temperature: Float = 0
     public var topP: Float = 1
@@ -67,6 +73,8 @@ public enum SplashWire {
     public var saltLow: UInt64 = 0
     public var saltHigh: UInt64 = 0
     public var thinking: Thinking?
+    /// Tokens of a head the engine keeps a state at for later prompts that share it. Zero for none.
+    public var headTokens: UInt32 = 0
     public init(id: UInt64, prompt: [UInt32], absoluteDeadline: UInt64, remainingDeadline: UInt64) {
       self.id = id
       self.prompt = prompt
@@ -77,7 +85,8 @@ public enum SplashWire {
       try check(id != 0 && priority <= 2, "Invalid request identity or priority")
       try check(absoluteDeadline > 0 && remainingDeadline > 0, "Invalid deadline")
       try check(
-        !prompt.isEmpty && prompt.count <= maxTokens && generationTokens < prompt.count,
+        !prompt.isEmpty && prompt.count <= maxTokens && generationTokens < prompt.count
+          && headTokens < prompt.count,
         "Invalid prompt size")
       try check(flags & ~3 == 0, "Unknown request flags")
       try sampling.validate()
@@ -128,6 +137,7 @@ public enum SplashWire {
       w.u32(thinking?.tokens ?? UInt32.max)
       w.u32(UInt32(thinking?.end.count ?? 0))
       w.u32(thinking?.alsoEnds ?? 0)
+      w.u32(headTokens)
       for token in prompt { w.u32(token) }
       for token in scores { w.u32(token) }
       for token in thinking?.end ?? [] { w.u32(token) }
@@ -147,15 +157,67 @@ public enum SplashWire {
     w.u64(id)
     return frame(6, w.data)
   }
-  public static func mask(id: UInt64, maskID: UInt64, words: [UInt32]) throws -> Data {
+  /// One mask response: the rows' mask words, then forced tokens as pairs of a mask row and a
+  /// token, the rows non-decreasing. The engine checks only their shape.
+  public static func mask(id: UInt64, maskID: UInt64, words: [UInt32], forced: [UInt32] = [])
+    throws -> Data
+  {
     try check(
       id > 0 && maskID > 0 && !words.isEmpty && words.count <= maxTokens, "Invalid mask response")
+    try check(
+      forced.count % 2 == 0 && forced.count <= maxForcedWords
+        && stride(from: 2, to: forced.count, by: 2).allSatisfy { forced[$0] >= forced[$0 - 2] },
+      "Invalid forced tokens")
     var w = Writer()
     w.u64(id)
     w.u64(maskID)
     w.u32(UInt32(words.count))
+    w.u32(UInt32(forced.count))
     for word in words { w.u32(word) }
+    for word in forced { w.u32(word) }
     return frame(3, w.data)
+  }
+  /// What a mask provider is asked: the tokens generated so far, the draft tokens with their
+  /// parents (token 0's is `noParent`, every other an earlier index), and the words of a row.
+  /// Row 0 is the mask before token 0, and row i + 1 the mask after token i's path.
+  public struct MaskQuery: Sendable, Equatable {
+    public let committed: [UInt32]
+    public let simulation: [UInt32]
+    public let parents: [UInt32]
+    public let words: UInt32
+    public init(committed: [UInt32], simulation: [UInt32], parents: [UInt32], words: UInt32) {
+      self.committed = committed
+      self.simulation = simulation
+      self.parents = parents
+      self.words = words
+    }
+    public var rows: Int { simulation.count + 1 }
+    /// The draft tokens on the path to mask row `row`: none for row 0, else token `row - 1`
+    /// after its ancestors.
+    public func path(_ row: Int) -> [UInt32] {
+      var tokens: [UInt32] = []
+      var index = row - 1
+      while index >= 0 && index < simulation.count {
+        tokens.append(simulation[index])
+        index = parents[index] == noParent ? -1 : Int(parents[index])
+      }
+      return tokens.reversed()
+    }
+    /// A draft chain: each token follows the one before it.
+    public static func chain(committed: [UInt32], simulation: [UInt32], words: UInt32) -> MaskQuery {
+      .init(
+        committed: committed, simulation: simulation,
+        parents: simulation.indices.map { $0 == 0 ? noParent : UInt32($0 - 1) }, words: words)
+    }
+  }
+  /// A mask provider's answer: `words` for every row, and forced pairs of a row and a token.
+  public struct MaskReply: Sendable, Equatable {
+    public let words: [UInt32]
+    public let forced: [UInt32]
+    public init(words: [UInt32], forced: [UInt32] = []) {
+      self.words = words
+      self.forced = forced
+    }
   }
   public static func status(_ id: UInt64, release: Bool = false) -> Data {
     var w = Writer()
@@ -208,16 +270,40 @@ public enum SplashWire {
     public let message: Data
     public var errorDescription: String? { String(decoding: message, as: UTF8.self) }
   }
+  /// Where a request's resumed state came from.
+  public enum StateSource: UInt8, Sendable { case none = 0, memory = 1, disk = 2 }
+  /// What a request's start found in the cache: `matched` tokens of the state it resumes from,
+  /// `prefix` tokens whose KV matched (the state's included), the state's source, and whether a
+  /// matched block past the state once held a state that is gone.
+  public struct Start: Sendable, Equatable {
+    public let id: UInt64
+    public let lane: UInt32
+    public let matched: UInt32
+    public let prefix: UInt32
+    public let source: StateSource
+    public let lostState: Bool
+    public init(
+      id: UInt64, lane: UInt32, matched: UInt32, prefix: UInt32 = 0,
+      source: StateSource = .none, lostState: Bool = false
+    ) {
+      self.id = id
+      self.lane = lane
+      self.matched = matched
+      self.prefix = prefix
+      self.source = source
+      self.lostState = lostState
+    }
+  }
   public enum Event: Sendable, Equatable {
     case ready(
       concurrent: UInt32, context: UInt32, vision: Bool,
       vocabulary: UInt32, maskRows: UInt32, stopTokens: [UInt32])
     case warming(completed: UInt32, total: UInt32)
     case startFailed(StartFailure)
-    case start(id: UInt64, lane: UInt32, matched: UInt32)
+    case start(Start)
     case progress(id: UInt64, processed: UInt32, micros: UInt64)
     case tokens(id: UInt64, offset: UInt32, tokens: [UInt32])
-    case mask(id: UInt64, maskID: UInt64, words: UInt32, simulation: [UInt32])
+    case mask(id: UInt64, maskID: UInt64, words: UInt32, simulation: [UInt32], parents: [UInt32])
     case done(Done)
     case error(Failure)
     case status(id: UInt64, json: Data)
@@ -234,10 +320,10 @@ public enum SplashWire {
     case 0x100: bounds = 25...UInt64(21 + 256 * 4)
     case 0x109: bounds = 26...(26 + 1024 * 1024)
     case 0x10A: bounds = 8...8
-    case 0x101: bounds = 16...16
+    case 0x101: bounds = 22...22
     case 0x108: bounds = 20...20
     case 0x102: bounds = 16...(16 + 4096 * 4)
-    case 0x103: bounds = 24...(24 + 32 * 4)
+    case 0x103: bounds = 24...UInt64(24 + maxSimulationTokens * 8)
     case 0x104: bounds = 62...(62 + 255 * 4)
     case 0x105: bounds = 22...(22 + 2 * 1024 * 1024)
     case 0x107: bounds = 8...UInt64(8 + maxStatusBytes)
@@ -288,7 +374,19 @@ public enum SplashWire {
       try check(total > 0 && completed <= total, "Invalid native warming progress")
       event = .warming(completed: completed, total: total)
     case 0x101:
-      event = .start(id: try r.id(), lane: try r.u32(), matched: try r.u32())
+      let id = try r.id()
+      let lane = try r.u32()
+      let matched = try r.u32()
+      let prefix = try r.u32()
+      let source = try r.u8()
+      let lost = try r.u8()
+      guard let source = StateSource(rawValue: source), lost <= 1 else {
+        throw SplashError("Invalid start state source or lost state")
+      }
+      event = .start(
+        Start(
+          id: id, lane: lane, matched: matched, prefix: prefix, source: source,
+          lostState: lost == 1))
     case 0x108:
       let id = try r.id()
       let n = try r.u32()
@@ -309,9 +407,18 @@ public enum SplashWire {
       let words = try r.u32()
       let count = try r.u32()
       try check(
-        words > 0 && count <= 32 && UInt64(words) * (UInt64(count) + 1) <= maxTokens,
+        words > 0 && count <= maxSimulationTokens
+          && UInt64(words) * (UInt64(count) + 1) <= maxTokens,
         "Invalid mask dimensions")
-      event = .mask(id: id, maskID: maskID, words: words, simulation: try r.words(count))
+      let values = try r.words(2 * count)
+      let parents = Array(values[Int(count)...])
+      // The first token is the tree's root, and every other follows one before it.
+      try check(
+        parents.indices.allSatisfy { $0 == 0 ? parents[0] == noParent : parents[$0] < $0 },
+        "Mask request tokens are not a tree whose parents come first")
+      event = .mask(
+        id: id, maskID: maskID, words: words, simulation: Array(values[..<Int(count)]),
+        parents: parents)
     case 0x104:
       let id = try r.id()
       let rawReason = try r.u8()

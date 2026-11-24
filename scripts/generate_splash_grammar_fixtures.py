@@ -8,6 +8,7 @@ from pathlib import Path
 import subprocess
 import sys
 from splash_reference_identity import verify
+from splash_mask_trees import chain, step, tree
 
 ROOT = Path(__file__).resolve().parents[1]
 parser = argparse.ArgumentParser(description=__doc__)
@@ -21,13 +22,14 @@ sys.path.insert(0, str(upstream))
 from transformers import AutoTokenizer
 from server.chat_format import QWEN
 from server.constraints import ConstraintFactory
+from server.protocol import NO_PARENT
 from server.tool_schema import json_grammar, tool_grammar, normalize_tools
 
 tokenizer = AutoTokenizer.from_pretrained(str(args.model.resolve()), local_files_only=True)
 from server.protocol import ReadyEvent
 # CPU fixture contract; live qualification separately validates actual Ready metadata.
 ready = ReadyEvent(1, 32768, False, 248320, 33, (248044, 248046))
-factory = ConstraintFactory(tokenizer, ready)
+factory = ConstraintFactory(ConstraintFactory.table(tokenizer, QWEN, ready.vocabulary_size), ready)
 simple = {"type": "object", "properties": {"answer": {"const": "ready"}},
           "required": ["answer"], "additionalProperties": False}
 rich = {"type": "object", "properties": {"label": {"type": "string"}, "values": {
@@ -37,6 +39,11 @@ tools = [{"type": "function", "function": {"name": "find_evidence", "strict": Tr
     "parameters": {"type": "object", "properties": {"query": {"type": "string"},
     "limit": {"type": "integer"}}, "required": ["query", "limit"], "additionalProperties": False}}}]
 _, policy = normalize_tools(tools, "required", False)
+# Splash #790: under an array of at most three arrays of at most two integers, after "[[1" the
+# branches ",2],[3" and "],[2,3" each end inside an integer after as many lexemes, but only the
+# first lets a "," follow. A walk that rolls back leaves the second branch's mask cached.
+nested = {"type": "array", "maxItems": 3,
+          "items": {"type": "array", "maxItems": 2, "items": {"type": "integer"}}}
 cases = [
     ("json", json_grammar(simple, False, chat_format=QWEN), '{"answer":"ready"}'),
     ("unicode", json_grammar(rich, False, chat_format=QWEN),
@@ -46,7 +53,24 @@ cases = [
     ("strict_tool", tool_grammar(policy, False, chat_format=QWEN),
      '<tool_call>\n<function=find_evidence>\n<parameter=query>\ninvoice 1042\n</parameter>\n'
      '<parameter=limit>\n4\n</parameter>\n</function>\n</tool_call>'),
+    ("issue_790", json_grammar(nested, False, chat_format=QWEN), "[[1,2],[3]]"),
 ]
+
+
+def issue_790_steps(constraint, tokens, index):
+    """The #790 tree after "[[", and after "[[1,2],[3" a mask for the "," the retained branch
+    admits."""
+    encode = lambda text: tokenizer.encode(text, add_special_tokens=False)
+    retained, other = encode("1,2],[3"), encode("],[2,3")
+    if tokens[:index] == encode("[["):
+        assert tokens[index:index + len(retained)] == retained
+        simulation = retained + other
+        parents = chain(retained, NO_PARENT) + [0] + list(range(len(retained), len(simulation) - 1))
+        return [step(constraint, tokens[:index], simulation, parents)]
+    if tokens[:index] == encode("[[1,2],[3"):
+        return [step(constraint, tokens[:index], encode(","), [NO_PARENT])]
+    return []
+
 result = []
 for name, grammar, output in cases:
     tokens = tokenizer.encode(output, add_special_tokens=False)
@@ -56,9 +80,12 @@ for name, grammar, output in cases:
         if index:
             constraint.commit(tokens[index-1:index])
         simulation = tokens[index:index+8]
-        masks = constraint.masks(simulation)
-        steps.append({"committed": tokens[:index], "simulation": simulation,
-                      "maskSHA256": hashlib.sha256(masks).hexdigest()})
+        steps.append(step(constraint, tokens[:index], simulation, chain(simulation, NO_PARENT)))
+        shape = tree(factory, grammar, tokens, index, ready, NO_PARENT)
+        if shape:
+            steps.append(step(constraint, tokens[:index], *shape))
+        if name == "issue_790":
+            steps += issue_790_steps(constraint, tokens, index)
     constraint.finish()
     assert constraint.matcher.is_accepting()
     for eos in ready.stop_token_ids:
@@ -71,9 +98,7 @@ for name, grammar, output in cases:
     invalid = factory.create(grammar)
     for simulation in [[ready.vocabulary_size], [tokens[0], ready.vocabulary_size, 1],
                        tokenizer.encode("incorrect", add_special_tokens=False)[:8]]:
-        masks = invalid.masks(simulation)
-        steps.insert(0, {"committed": [], "simulation": simulation,
-                         "maskSHA256": hashlib.sha256(masks).hexdigest()})
+        steps.insert(0, step(invalid, [], simulation, chain(simulation, NO_PARENT)))
     result.append({"name": name, "grammar": grammar, "type": "lark" if isinstance(grammar, str) and grammar.startswith("%llguidance") else "llguidance",
                    "output": output, "tokens": tokens, "steps": steps})
 import struct
@@ -91,4 +116,6 @@ if args.write:
     path.write_text(text)
 elif path.read_text() != text:
     raise RuntimeError("Native grammar reference fixture changed")
-print(json.dumps({"cases": len(result), "maskRequests": sum(len(x["steps"]) for x in result)}))
+print(json.dumps({"cases": len(result), "maskRequests": sum(len(x["steps"]) for x in result),
+                  "treeRequests": sum(s["parents"] != chain(s["simulation"], NO_PARENT)
+                                      for x in result for s in x["steps"])}))

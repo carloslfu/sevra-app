@@ -80,7 +80,19 @@ func runHeaderTests(
     return String(decoding: data, as: UTF8.self).split(whereSeparator: \.isNewline).count
   }
   func ready() throws {
-    try PromptHeader.admitModelLoad()
+    // A stopped or killed engine's memory returns to the system a moment after its process
+    // exits, more slowly after a forced kill. Wait for it, bounded, instead of refusing the
+    // next start; the product's own guard is unchanged.
+    var waited = 0.0
+    while true {
+      do {
+        try PromptHeader.admitModelLoad()
+        return
+      } catch let error as SevraError where error.code == "memory" && waited < 30 {
+        usleep(500_000)
+        waited += 0.5
+      }
+    }
   }
   struct Turn {
     var seconds: Double
@@ -145,6 +157,10 @@ func runHeaderTests(
     detail["passed"] = .bool(passed)
     results[name] = .object(detail)
     fputs("header-tests: \(name) \(passed ? "passed" : "FAILED")\n", stderr)
+    // A later step that throws must not lose why this one failed.
+    if !passed, let text = try? Value.object(detail).json() {
+      fputs("header-tests: \(name) detail \(text)\n", stderr)
+    }
   }
 
   // Restored against computed: resumed, faster, same answers.

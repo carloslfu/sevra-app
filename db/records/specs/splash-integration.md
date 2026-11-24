@@ -3,14 +3,16 @@ type: spec
 meta-type: conclusion
 id: 01m5wps1qcharh0qv8vq40wbjr
 created: 2026-10-26T18:15:17.996137+00:00
-updated: 2026-11-19T16:00:23+00:00
+updated: 2026-11-24T14:41:48.831174+00:00
 summary: Python-free Swift integration of pinned upstream Splash, explicit behavior mapping, differential verification and measured adoption gates.
 title: Native Splash integration and upgrades
 status: reviewed
 ---
 # Native Splash integration and upgrades
 
-Revision 10, November 16, 2026. The owner authorized a focused preview upgrade and a practical 32K versus 64K comparison. Splash 1.6.1 is installed in the native preview. The source chooses 64K on Macs with at least 48 GiB of unified memory and 32K below that tier, with a 12 GiB engine budget and automatic context maintenance in both cases. The previous 1.4.1 bundle and model selection are backed up. Broader production qualification retains the earlier failures. See [[records/operations/inference-context-execution]].
+Revision 11, November 24, 2026. The owner approved [[records/plans/splash-1-7-1-upgrade]] ([[sources/notes/2026/11/splash-1-7-1-upgrade-approval]]): the native preview moves to Splash 1.7.1, protocol 15, with tree grammar masks and one engine lane. See "Splash 1.7.1, November 24" below.
+
+Revision 10, November 16, 2026. The owner authorized a focused preview upgrade and a practical 32K versus 64K comparison. Splash 1.6.1 was installed in the native preview. The source chooses 64K on Macs with at least 48 GiB of unified memory and 32K below that tier, with a 12 GiB engine budget and automatic context maintenance in both cases. The previous 1.4.1 bundle and model selection are backed up. Broader production qualification retains the earlier failures. See [[records/operations/inference-context-execution]].
 Authority: [[sources/notes/2026/10/workbook-primary-splash-direction]].
 On November 19, 2026, by owner direction, the Slotstream/MLX build and its product dependencies were removed. Native Splash is the only inference engine; the open gates below are unchanged.
 
@@ -21,9 +23,11 @@ owns the Swift product, workbook agent and integration. Do not port inference,
 attention, expert routing, speculative verification or GPU scheduling to Swift.
 No runtime Python interpreter, Python server, HTTP proxy or implicit cloud fallback.
 Upstream Python is allowed only in development/reference verification tools.
-I02. The native preview pin is Splash 1.6.1, commit
-`d8af1054aab0f97de21d043e01aa98af3754f10e`. The initial 1.4.1 pin at
-`1744cfafee415fb463b289449cec59a864e768e9` is preserved separately. Pin source,
+I02. The native preview pin is Splash 1.7.1, commit
+`1988a72f26a6031127efc29f861bfb46d36286c4`, protocol 15 and status schema 8. The
+1.6.1 pin at `d8af1054aab0f97de21d043e01aa98af3754f10e` is preserved in
+`integration/splash-1.6.1-preserved.json`, and the initial 1.4.1 pin at
+`1744cfafee415fb463b289449cec59a864e768e9` separately. Pin source,
 runtime archive digest and source-to-binary identity. Retain upstream licenses.
 Do not fetch a moving branch at app startup. Follow newer releases through I11.
 I03. Initial implementation uses Splash's native executable and binary protocol
@@ -95,7 +99,20 @@ The grammar library is loaded only from an explicit trusted, hash-verified nativ
 path. Never accept that path from workbook content or model output. Cache at most
 32 immutable grammar states within an 8 MiB source budget; each run gets its own
 clone. Compiler limits remain enabled; suppress detailed grammar/output dumps in
-errors. Bound simulation to eight tokens and validate mask dimensions exactly.
+errors. Validate mask dimensions exactly.
+
+Since Splash 1.7.1 a mask request carries the draft as a tree: each token's parent is an
+earlier token, and the first token's is `0xFFFFFFFF`. Row 0 is the mask after the committed
+tokens and row i + 1 the mask after token i's path. As the reference's
+`TokenConstraint.masks`, the host walks the tree depth first and only forward, on a copy of
+the committed matcher, and gives every child but a row's last its own copy. No matcher takes
+a token back: LLGuidance 1.8.0 keeps its last mask keyed by lexer state and parser row,
+which another branch can reach after a rollback (Splash #790, LLGuidance #390). A token
+outside the vocabulary, a stop token or a refused token is a row the target never accepts;
+it and its descendants take the parent's mask. A request holds at most Ready's mask rows (17
+in 1.7.1) and the wire's 32 tokens; under `--verify-rows all` a lane verifies eight. The host
+returns no forced tokens yet. Fixtures hold chains, trees with a valid, a refused and a stop
+branch, and Splash's #790 case, and every row must equal the reference.
 
 The pinned Rust toolchain is a contributor build/check dependency; the installed
 app does not need Rust. The app packages the grammar library. All transitive
@@ -428,8 +445,22 @@ Exact prompt/streaming/projection and vocabulary/tool-mask fixtures, 37 protocol
 The accounting and history fixes are independent host behavior: exact scope/output/result budgeting, preserved original receipts, review metadata retention and bounded navigation candidates that do not hide explicit original pointers behind incidental history IDs. Real multi-compaction, portable continuation, false-digest/current-authority, summary cancellation and explicit retry checks pass after documented repairs. User-facing inference progress uses real preparation/reading/response phases rather than token counts. Full profile/performance and final native UI gates remain distinct from these headless results.
 ## Prepared prompt header, November 19
 
-[[records/plans/general-chat-tools]] phase H3. The ordinary chat header, the instructions and shared tool declarations every ordinary chat turn starts with, is made ahead of time by `sevra header make` and sealed in the app. The app never computes it. Before every engine start the host restores its four data files into an emptied cache directory and launches with `serve-native MODEL CONTEXT MEMORY 8589934592 --persistent-cache on --cache-dir ~/Library/Caches/Sevra/PromptCache` and the unchanged `--idle-sleep allow --verify-rows all --kv-format int8 --state-format fp32 --ane on --activations bf16`. The 8 GiB quota holds the header and a conversation that fills the context. After Ready the host requires `disk.persistent`, the manifest's restore points taken back and none left behind; it repeats a short start once from the app's files and then reports a damaged installation. Every request that starts with the header must resume it to its last complete page; a miss is cancelled before it generates and sent once more after a restart. The directory is removed at every stop.
+[[records/plans/general-chat-tools]] phase H3. The ordinary chat header, the instructions and shared tool declarations every ordinary chat turn starts with, is made ahead of time by `sevra header make` and sealed in the app. The app never computes it. Before every engine start the host restores its four data files into an emptied cache directory and launches with `serve-native MODEL CONTEXT MEMORY 8589934592 --persistent-cache on --cache-dir ~/Library/Caches/Sevra/PromptCache` and `--idle-sleep allow --verify-rows all --kv-format int8 --state-format fp32 --ane on --activations bf16`, since Splash 1.7.1 followed by `--max-concurrent-requests 1`. The 8 GiB quota holds the header and a conversation that fills the context. After Ready the host requires `disk.persistent`, the manifest's restore points taken back and none left behind; it repeats a short start once from the app's files and then reports a damaged installation. Every request that starts with the header must resume it to its last complete page; a miss is cancelled before it generates and sent once more after a restart. The directory is removed at every stop.
 
 A header is named by the digest of its inputs, which need no model, and its manifest must match the engine release and commit, the engine settings above, the selected model pack, and after the model loads the assembly key and the header's tokens. Since phase H2 the assembly's `model.json` holds no path or file time of this Mac, so the assembly key and the engine's cache name are the same on every Mac for the same pack; this Mac's paths and times sit beside the assembly in a file the engine never reads. One header serves both memory tiers: a 64K header is taken back and resumed at 32K.
 
 Qualification of this pin now includes the header tests in `sevra-agent-checks --header-tests`: resumed and not computed, faster for the header's share of a first decision, the same decisions and factual answers as the comparison setting that computes the header, recovery from a missed resume without computing, loud failure with no header, a mismatched manifest or a damaged file, nothing kept after a stop, the header only after a forced kill, and the same header from a model prepared in another folder. The engine is not repeatable token for token across processes, so same answers means the same decisions and factual answers. Evidence: `integration/evidence/2026-11-19-header-tests/`.
+
+## Splash 1.7.1, November 24
+
+[[records/plans/splash-1-7-1-upgrade]] moved the pin from 1.6.1 to the tagged 1.7.1 (1.7.2 on upstream `main` is untagged). The engine files, model, model folder format, status schema, launch flags and cache file names are unchanged; the host changed in five places.
+
+- **Wire, protocol 15.** A request carries `head_tokens` (0: ordinary chat resumes the prepared header). A start carries the KV-matched prefix, where the resumed state came from (none, memory or disk) and whether a state was lost; the host checks both counts against the prompt and records them as `prefixTokens`, `stateSource` and `lostState`. Mask requests carry parents, and mask responses carry forced pairs, empty for now.
+- **Tool grammar.** As upstream 1.6.2: a required or named call starts at its first token, and the whitespace after reasoning belongs to the thinking rule.
+- **Tree masks** (I14 above).
+- **Header.** Remade: the cache namespace's GDN state layout changed. Cached states are int8 codes, so the header's state file is 20.5 MB instead of 66.7 MB. The namespace holds no path, context, memory, lanes or verify rows, so one header still serves both tiers and every Mac.
+- **One lane.** The app runs one request at a time. At 64K and 12 GiB one lane left the expert store 7,901 MiB against 7,705 at four lanes and dropped three decode warm-ups.
+
+Decisions: keep `--verify-rows all` (repeatable output, the tree at 1.6.1's step size, no step-cost measurement); take the int8 cached-states default; send `head_tokens` 0 and no forced tokens; keep the app's space after `<` in literal control tokens. Later: `auto` verify rows, header identity without restore-point-neutral options, `head_tokens` for prompts without a prepared header, forced tokens from `llg_matcher_compute_ff_tokens`, and literal control tokens as characters.
+
+Results, one run each on a 48 GiB M5 Pro: every model-free check passes, including byte parity with every 1.7.1 protocol golden and 1,655 tree and chain masks equal to the reference; both context tiers start at 12 GiB; the eight header tests pass; the light set passes 11 of 11 on the first run. The five-message timing conversation decoded 92.9 tokens a second against 50.7 on 1.6.1, at 45.6 ms and 4.23 tokens a cycle against 77.1 ms and 3.91, with grammar masks at 0.92 ms against 2.04; page-cache state between the two runs was not controlled. The Neural Engine split and step costs do not apply to this model and setting. The performance and differential harnesses (`compare_*_performance.py`, `splash_performance_reference.py`, `check_splash_reference.py`) load the pinned reference and cannot run against 1.7.1 until ported; `check.sh` imports only their pure helpers. Evidence: `integration/evidence/2026-11-24-splash-1-7-1/`.

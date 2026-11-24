@@ -82,9 +82,9 @@ func runNativeGrammar(
     var deltas: [SplashOutputDelta] = []
     let result = try helper.generate(
       request, cancelled: { id == 4 },
-      mask: { committed, simulation, words in
+      mask: { query in
         maskCalls += 1
-        return try grammar.masks(committed: committed, simulation: simulation, words: words)
+        return try grammar.masks(query)
       },
       event: { event in
         if case .tokens(_, _, let tokens) = event {

@@ -3,11 +3,15 @@ type: operational
 meta-type: operational
 id: 01m659x4nd2q89tkpzzsssd7yr
 created: 2026-10-30T02:23:30.477380+00:00
-updated: 2026-11-24T14:42:19.995658+00:00
+updated: 2026-11-24T14:59:07.045852+00:00
 summary: Chat stops on lack of progress and chooses defaults instead of asking about choices; checked with the model, not yet packaged or installed.
 title: Minimum-feature continuation handoff
 ---
 # Minimum-feature continuation handoff
+
+## Splash 1.7.1, November 24
+
+The owner approved [[records/plans/splash-1-7-1-upgrade]] and its implementation ([[sources/notes/2026/11/splash-1-7-1-upgrade-approval]]). The pin is Splash 1.7.1, protocol 15. The host reads the new start fields, sends grammar masks over the draft tree as the reference does, keeps the tool grammar's whitespace in the thinking rule, and launches with one lane. The header was remade (its state file is 20.5 MB with int8 cached states). Every model-free check, both context tiers at 12 GiB, the eight header tests and the light set (11 of 11) pass; the timing conversation decoded 92.9 tokens a second against 50.7 on 1.6.1, one run each. Rollback: `.build/rollback/` holds the 1.6.1 app, header and pin. Follow-ups F1 to F5 in the plan are not started. Committed after the chat work below. The release gate still stops at a native app authoring check that scripts a removed thread tool; a separate session repairs the gate.
 
 ## Defaults, and progress instead of a step limit, November 23
 At the owner's word ([[sources/notes/2026/11/defaults-and-step-limit]]), after a request for a counter on Home in an empty workbook asked a question, refused when it was skipped and then hit the twelve-step limit. What the run showed, what changed and what the model runs showed: [[records/reviews/home-counter-run-2026-11-23]].
@@ -32,7 +36,7 @@ After the work was made general, each run once on a release build: the light set
 
 Checked without the model after those changes: `sevra-agent-checks` (all 62 groups, the stored `workbook-tools.json` and grammar masks regenerated), `--field-order-checks` (new, 50 shapes), `sevra-checks` (660 groups), the UI Catalog fixtures (182) and the harness self-test of all four `defaults.*` jobs.
 
-**Not committed; the installed app has this work.** On November 24, at the owner's word, the working tree on `480c7c5` was packaged and installed. The installed executable UUID, `93E75F7C-B777-3C74-ABF1-8A454C8C60C5`, matches `output/native`, the CLI is byte-identical, the signature verifies and the prompt header is present at 4,429 tokens, reused without loading the model. The app's own window was not opened after this install. Open:
+**Committed on November 24 as its own commit, before the Splash 1.7.1 upgrade; the app installed then also has this work.** On November 24, at the owner's word, the working tree on `480c7c5` was packaged and installed. The installed executable UUID, `93E75F7C-B777-3C74-ABF1-8A454C8C60C5`, matches `output/native`, the CLI is byte-identical, the signature verifies and the prompt header is present at 4,429 tokens, reused without loading the model. The app's own window was not opened after this install. Open:
 
 - **A button's script actions are not undone.** Undo takes back a press's table changes; a script tool's queued actions stay, and the status says so.
 - **The counter request may put no number on Home.** See the review's Not done list for this and the other open points.

@@ -8,7 +8,7 @@ import struct
 import tempfile
 
 from check_workflow_isolation import results as fixtures
-from probe_request_cache_isolation import ROOT, REQUEST, SALT_HIGH, summarize, verify_salts
+from probe_request_cache_isolation import ROOT, REQUEST, SALT_HIGH, WIRE_VERSION, summarize, verify_salts
 from compare_workflow_performance import summarize as performance_summary
 from check_workflow_performance import results as cohort, protocol as performance_protocol
 
@@ -25,9 +25,9 @@ with tempfile.TemporaryDirectory() as temporary:
                 for request in job['trace']['requests']:
                     index += 1
                     fields = [1, 0, 1, 1, 180000000, 1800, 1, 0, 0., 1., 0, 0., 0., 1., 0., 42, 0, 0, 0,
-                              index if arm == 'isolated' else 0, SALT_HIGH if arm == 'isolated' else 0, 512, 0, 0]
+                              index if arm == 'isolated' else 0, SALT_HIGH if arm == 'isolated' else 0, 512, 0, 0, 0]
                     payload = REQUEST.pack(*fields) + struct.pack('<I', 99)
-                    frame = struct.pack('<4sHHQ', b'SPLH', 13, 1, len(payload)) + payload
+                    frame = struct.pack('<4sHHQ', b'SPLH', WIRE_VERSION, 1, len(payload)) + payload
                     checksum = hashlib.sha256(frame).hexdigest()
                     (folder / (checksum + '.request.json')).write_text(json.dumps({'base64': base64.b64encode(frame).decode()}))
                     request['requestSHA256'] = checksum

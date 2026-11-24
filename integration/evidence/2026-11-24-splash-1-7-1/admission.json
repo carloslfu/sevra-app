@@ -1,0 +1,91 @@
+{
+ "engine": "Splash 1.7.1",
+ "budgetGiB": 12,
+ "machine": "Apple M5 Pro, 48 GiB, macOS 26.6.2",
+ "command": "sevra-splash-checks --admit-engine ENGINE ASSEMBLY CONTEXT 12884901888 [--max-concurrent-requests 1]",
+ "note": "Startup only, no request, persistent cache off. The first start read the weights cold, so its readySeconds includes file reads.",
+ "runs": [
+  {
+   "run": "64k-4lanes",
+   "admitted": true,
+   "contextTokens": 65536,
+   "lanes": 4,
+   "maskRows": 17,
+   "readySeconds": 9.54,
+   "expertSlots": 3645,
+   "experts": 10240,
+   "expertFloorMiB": 6150,
+   "expertStoreMiB": 7705,
+   "laneStateMiB": 173,
+   "sharedDecodeMiB": 261,
+   "sharedPrefillMiB": 829,
+   "kvCapacityTokens": 73728,
+   "peakGiB": 10.62,
+   "footprintGiB": 10.98,
+   "warmups": [
+    "composite_state_restore",
+    "decode_b1",
+    "decode_b2",
+    "decode_b3",
+    "decode_b4",
+    "prefill_2048",
+    "prefill_row_classes"
+   ],
+   "neuralEngine": "off: the target's FFN layers are not all dense",
+   "verifyRows": "all"
+  },
+  {
+   "run": "32k-4lanes",
+   "admitted": true,
+   "contextTokens": 32768,
+   "lanes": 4,
+   "maskRows": 17,
+   "readySeconds": 2.5,
+   "expertSlots": 3811,
+   "experts": 10240,
+   "expertFloorMiB": 6431,
+   "expertStoreMiB": 8034,
+   "laneStateMiB": 173,
+   "sharedDecodeMiB": 261,
+   "sharedPrefillMiB": 829,
+   "kvCapacityTokens": 40960,
+   "peakGiB": 10.94,
+   "footprintGiB": 11.28,
+   "warmups": [
+    "composite_state_restore",
+    "decode_b1",
+    "decode_b2",
+    "prefill_2048",
+    "prefill_row_classes"
+   ],
+   "neuralEngine": "off: the target's FFN layers are not all dense",
+   "verifyRows": "all"
+  },
+  {
+   "run": "64k-1lane",
+   "admitted": true,
+   "contextTokens": 65536,
+   "lanes": 1,
+   "maskRows": 17,
+   "readySeconds": 2.34,
+   "expertSlots": 3744,
+   "experts": 10240,
+   "expertFloorMiB": 6318,
+   "expertStoreMiB": 7901,
+   "laneStateMiB": 173,
+   "sharedDecodeMiB": 66,
+   "sharedPrefillMiB": 828,
+   "kvCapacityTokens": 73728,
+   "peakGiB": 10.62,
+   "footprintGiB": 10.96,
+   "warmups": [
+    "composite_state_restore",
+    "decode_b1",
+    "prefill_2048",
+    "prefill_row_classes"
+   ],
+   "neuralEngine": "off: the target's FFN layers are not all dense",
+   "verifyRows": "all"
+  }
+ ]
+}

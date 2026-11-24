@@ -1,12 +1,12 @@
 {
   "schemaVersion": 1,
-  "splashCommit": "d8af1054aab0f97de21d043e01aa98af3754f10e",
+  "splashCommit": "1988a72f26a6031127efc29f861bfb46d36286c4",
   "llguidance": "1.8.0",
   "byteVocabularySHA256": "04e98aa773f45d4b1a6fd1d0f10d615df914987d24a7f15627cafee54200a0b5",
   "cases": [
     {
       "name": "json",
-      "grammar": "%llguidance {}\nstart: WS %json {\"type\":\"object\",\"properties\":{\"answer\":{\"const\":\"ready\"}},\"required\":[\"answer\"],\"additionalProperties\":false,\"x-guidance\":{\"lenient\":true,\"whitespace_pattern\":\"[ \\\\t\\\\n\\\\r]{0,64}\"}}\nWS: /[ \\t\\n\\r]{0,64}/\n",
+      "grammar": "%llguidance {}\nstart: %json {\"type\":\"object\",\"properties\":{\"answer\":{\"const\":\"ready\"}},\"required\":[\"answer\"],\"additionalProperties\":false,\"x-guidance\":{\"lenient\":true,\"whitespace_pattern\":\"[ \\\\t\\\\n\\\\r]{0,64}\"}}\nWS: /[ \\t\\n\\r]{0,64}/\n",
       "type": "lark",
       "output": "{\"answer\":\"ready\"}",
       "tokens": [
@@ -22,7 +22,11 @@
           "simulation": [
             59869
           ],
-          "maskSHA256": "7fc4fdb3cfb7e6d4032837af39d00679c9db0ca875db48bb72504f9e4e56fa96"
+          "parents": [
+            4294967295
+          ],
+          "maskSHA256": "60c300dd9d5ff639d0e0338f5ad032da630ae2165a976e26890e449482111754",
+          "forced": []
         },
         {
           "committed": [],
@@ -31,14 +35,27 @@
             248320,
             1
           ],
-          "maskSHA256": "2575e8b03ed7ccaf037b3c0585467bd7c15d8208a15b5f148a7ea663914e8306"
+          "parents": [
+            4294967295,
+            0,
+            1
+          ],
+          "maskSHA256": "3d5635a48addefb2c2c86cc5e00e1d267ca5240b01ab2eff9a8a3e05b01f88de",
+          "forced": [
+            1,
+            8944
+          ]
         },
         {
           "committed": [],
           "simulation": [
             248320
           ],
-          "maskSHA256": "7fc4fdb3cfb7e6d4032837af39d00679c9db0ca875db48bb72504f9e4e56fa96"
+          "parents": [
+            4294967295
+          ],
+          "maskSHA256": "60c300dd9d5ff639d0e0338f5ad032da630ae2165a976e26890e449482111754",
+          "forced": []
         },
         {
           "committed": [],
@@ -49,7 +66,44 @@
             2232,
             8934
           ],
-          "maskSHA256": "f9ef3596ad22f7fb153346489bcecac632eda3153c4bc6f33ca5cea58c890c68"
+          "parents": [
+            4294967295,
+            0,
+            1,
+            2,
+            3
+          ],
+          "maskSHA256": "4a99c99b2dfdbb4fd893ba967ffadd6748fc959397caba357817cab01ff5c7de",
+          "forced": [
+            1,
+            8944,
+            3,
+            2232
+          ]
+        },
+        {
+          "committed": [],
+          "simulation": [
+            4754,
+            8944,
+            3147,
+            248046,
+            0
+          ],
+          "parents": [
+            4294967295,
+            0,
+            1,
+            1,
+            0
+          ],
+          "maskSHA256": "f4d119343da3a45a809b66190521d529bcbe2da6bac9bd267d7608513858db67",
+          "forced": [
+            1,
+            8944,
+            3,
+            2232
+          ]
         },
         {
           "committed": [
@@ -61,7 +115,43 @@
             2232,
             8934
           ],
-          "maskSHA256": "39cafc49ea78983ef1f950fb284f63dcc703a530c36769364f25f39a1b3aaeb0"
+          "parents": [
+            4294967295,
+            0,
+            1,
+            2
+          ],
+          "maskSHA256": "39cafc49ea78983ef1f950fb284f63dcc703a530c36769364f25f39a1b3aaeb0",
+          "forced": [
+            2,
+            2232
+          ]
+        },
+        {
+          "committed": [
+            4754
+          ],
+          "simulation": [
+            8944,
+            3147,
+            2232,
+            248046,
+            1,
+            0
+          ],
+          "parents": [
+            4294967295,
+            0,
+            1,
+            1,
+            0,
+            0
+          ],
+          "maskSHA256": "01ee027a4db970a638a4915686c7ede96a9828eef0e141a2a1e35ea8f6d418ad",
+          "forced": [
+            2,
+            2232
+          ]
         },
         {
           "committed": [
@@ -73,7 +163,41 @@
             2232,
             8934
           ],
-          "maskSHA256": "9d4588f8a14d9fe1fb4759be0b8ddac5351df18cb6ecf88cd4f2d232ad75fb2b"
+          "parents": [
+            4294967295,
+            0,
+            1
+          ],
+          "maskSHA256": "9d4588f8a14d9fe1fb4759be0b8ddac5351df18cb6ecf88cd4f2d232ad75fb2b",
+          "forced": [
+            1,
+            2232
+          ]
+        },
+        {
+          "committed": [
+            4754,
+            8944
+          ],
+          "simulation": [
+            3147,
+            2232,
+            8934,
+            248046,
+            0
+          ],
+          "parents": [
+            4294967295,
+            0,
+            1,
+            1,
+            0
+          ],
+          "maskSHA256": "145238dde42b9c81a19f164e16b2ced7e8c95a3c12f70e3b1e4e91e88e574ca0",
+          "forced": [
+            1,
+            2232
+          ]
         },
         {
           "committed": [
@@ -85,7 +209,35 @@
             2232,
             8934
           ],
-          "maskSHA256": "2f6b733926793f46b74b314a4b7e10a9bdcdf1e56ec97bb8960b2c09f9c20648"
+          "parents": [
+            4294967295,
+            0
+          ],
+          "maskSHA256": "2f6b733926793f46b74b314a4b7e10a9bdcdf1e56ec97bb8960b2c09f9c20648",
+          "forced": []
+        },
+        {
+          "committed": [
+            4754,
+            8944,
+            3147
+          ],
+          "simulation": [
+            2232,
+            8934,
+            248046,
+            1,
+            0
+          ],
+          "parents": [
+            4294967295,
+            0,
+            1,
+            0,
+            0
+          ],
+          "maskSHA256": "c234ba3d7b8e90c276f21883cb356dec57de45c383ec5a25f2a784fc9cd2dfcb",
+          "forced": []
         },
         {
           "committed": [
@@ -97,7 +249,31 @@
           "simulation": [
             8934
           ],
-          "maskSHA256": "f3e942fe641c49e6f2a58ab56436286dfe5fa96c54aefbe32fe84a8b26d8ca3f"
+          "parents": [
+            4294967295
+          ],
+          "maskSHA256": "f3e942fe641c49e6f2a58ab56436286dfe5fa96c54aefbe32fe84a8b26d8ca3f",
+          "forced": []
+        },
+        {
+          "committed": [
+            4754,
+            8944,
+            3147,
+            2232
+          ],
+          "simulation": [
+            8934,
+            0,
+            248046
+          ],
+          "parents": [
+            4294967295,
+            0,
+            0
+          ],
+          "maskSHA256": "980894dfdf7282aff37aa75ead8e098bdaae54283fd840327ae65e2540814142",
+          "forced": []
         },
         {
           "committed": [
@@ -108,13 +284,15 @@
             8934
           ],
           "simulation": [],
-          "maskSHA256": "f642a4437ed45b2947fe001a7e831c62458a772e87ddff574ccc328554d2f374"
+          "parents": [],
+          "maskSHA256": "f642a4437ed45b2947fe001a7e831c62458a772e87ddff574ccc328554d2f374",
+          "forced": []
         }
       ]
     },
     {
       "name": "unicode",
-      "grammar": "%llguidance {}\nstart: WS %json {\"type\":\"object\",\"properties\":{\"label\":{\"type\":\"string\"},\"values\":{\"type\":\"array\",\"items\":{\"type\":[\"number\",\"boolean\",\"null\"]}}},\"required\":[\"label\",\"values\"],\"additionalProperties\":false,\"x-guidance\":{\"lenient\":true,\"whitespace_pattern\":\"[ \\\\t\\\\n\\\\r]{0,64}\"}}\nWS: /[ \\t\\n\\r]{0,64}/\n",
+      "grammar": "%llguidance {}\nstart: %json {\"type\":\"object\",\"properties\":{\"label\":{\"type\":\"string\"},\"values\":{\"type\":\"array\",\"items\":{\"type\":[\"number\",\"boolean\",\"null\"]}}},\"required\":[\"label\",\"values\"],\"additionalProperties\":false,\"x-guidance\":{\"lenient\":true,\"whitespace_pattern\":\"[ \\\\t\\\\n\\\\r]{0,64}\"}}\nWS: /[ \\t\\n\\r]{0,64}/\n",
       "type": "lark",
       "output": "{\"label\":\"Bogotá, 日本語, 🧮 and \\\"quote\\\"\",\"values\":[1.25,-2,true,null]}",
       "tokens": [
@@ -154,7 +332,11 @@
           "simulation": [
             59869
           ],
-          "maskSHA256": "7fc4fdb3cfb7e6d4032837af39d00679c9db0ca875db48bb72504f9e4e56fa96"
+          "parents": [
+            4294967295
+          ],
+          "maskSHA256": "60c300dd9d5ff639d0e0338f5ad032da630ae2165a976e26890e449482111754",
+          "forced": []
         },
         {
           "committed": [],
@@ -163,14 +345,27 @@
             248320,
             1
           ],
-          "maskSHA256": "7384d88efca75e93b8209c0923854abad70d7ab7790b18dc40c2a5bd63f02488"
+          "parents": [
+            4294967295,
+            0,
+            1
+          ],
+          "maskSHA256": "582390a5cb511740f1496d337b4797bc5f2d652ffa0d27e4f1f0cca01c374362",
+          "forced": [
+            1,
+            1448
+          ]
         },
         {
           "committed": [],
           "simulation": [
             248320
           ],
-          "maskSHA256": "7fc4fdb3cfb7e6d4032837af39d00679c9db0ca875db48bb72504f9e4e56fa96"
+          "parents": [
+            4294967295
+          ],
+          "maskSHA256": "60c300dd9d5ff639d0e0338f5ad032da630ae2165a976e26890e449482111754",
+          "forced": []
         },
         {
           "committed": [],
@@ -184,7 +379,43 @@
             11,
             220
           ],
-          "maskSHA256": "c6c77c1a6b0db0908031fd2374ddffb35a1844da7504555f419876b0c8d1fca6"
+          "parents": [
+            4294967295,
+            0,
+            1,
+            2,
+            3,
+            4,
+            5,
+            6
+          ],
+          "maskSHA256": "21ece0f3c9f3f7e22f18c66da8ddcd6296a484bda2ebd7d5ae2da2d91830ee65",
+          "forced": [
+            1,
+            1448
+          ]
+        },
+        {
+          "committed": [],
+          "simulation": [
+            4754,
+            1448,
+            3147,
+            248046,
+            0
+          ],
+          "parents": [
+            4294967295,
+            0,
+            1,
+            1,
+            0
+          ],
+          "maskSHA256": "bacce48659a8d399e319f70ad5ec1003863cdf7f2915dc0a1b1fa961a8f73aa3",
+          "forced": [
+            1,
+            1448
+          ]
         },
         {
           "committed": [
@@ -200,7 +431,41 @@
             220,
             247359
           ],
-          "maskSHA256": "795e4c03bcf8ffdbdb1642e2f5cd92b058d4556c742e3c0bf8fef5f7a6996a2a"
+          "parents": [
+            4294967295,
+            0,
+            1,
+            2,
+            3,
+            4,
+            5,
+            6
+          ],
+          "maskSHA256": "795e4c03bcf8ffdbdb1642e2f5cd92b058d4556c742e3c0bf8fef5f7a6996a2a",
+          "forced": []
+        },
+        {
+          "committed": [
+            4754
+          ],
+          "simulation": [
+            1448,
+            3147,
+            33,
+            248046,
+            1,
+            0
+          ],
+          "parents": [
+            4294967295,
+            0,
+            1,
+            1,
+            0,
+            0
+          ],
+          "maskSHA256": "80da4e3c9683cb4926efb4bae049d267e4dc37cd61d70312f3d1ae2d9d17b1f9",
+          "forced": []
         },
         {
           "committed": [
@@ -217,7 +482,42 @@
             247359,
             11
           ],
-          "maskSHA256": "e2253890c8687c753ecf1b3d376a871a09a2e52a76b794e86c82da6d56108abf"
+          "parents": [
+            4294967295,
+            0,
+            1,
+            2,
+            3,
+            4,
+            5,
+            6
+          ],
+          "maskSHA256": "e2253890c8687c753ecf1b3d376a871a09a2e52a76b794e86c82da6d56108abf",
+          "forced": []
+        },
+        {
+          "committed": [
+            4754,
+            1448
+          ],
+          "simulation": [
+            3147,
+            33,
+            525,
+            248046,
+            0,
+            94
+          ],
+          "parents": [
+            4294967295,
+            0,
+            1,
+            1,
+            0,
+            0
+          ],
+          "maskSHA256": "92475b2dca9197595aa4be5938d61d894e97811eb81ec14f076bad5b10b58aea",
+          "forced": []
         },
         {
           "committed": [
@@ -235,7 +535,43 @@
             11,
             10838
           ],
-          "maskSHA256": "3095511dd176da9ef0502bba35e139d5ce7ac4f36ba5b80cbaeebdf39cdb7880"
+          "parents": [
+            4294967295,
+            0,
+            1,
+            2,
+            3,
+            4,
+            5,
+            6
+          ],
+          "maskSHA256": "3095511dd176da9ef0502bba35e139d5ce7ac4f36ba5b80cbaeebdf39cdb7880",
+          "forced": []
+        },
+        {
+          "committed": [
+            4754,
+            1448,
+            3147
+          ],
+          "simulation": [
+            33,
+            525,
+            166034,
+            248046,
+            0,
+            94
+          ],
+          "parents": [
+            4294967295,
+            0,
+            1,
+            1,
+            0,
+            0
+          ],
+          "maskSHA256": "44fe2c9c8371d916917584ad66ef521698eaf6836c09ee25307556b525d22511",
+          "forced": []
         },
         {
           "committed": [
@@ -254,7 +590,44 @@
             10838,
             100
           ],
-          "maskSHA256": "4f2a0c1e9e9526c075a8fbc28ca2f065150ddc3633996ccbe828a51c7f6db941"
+          "parents": [
+            4294967295,
+            0,
+            1,
+            2,
+            3,
+            4,
+            5,
+            6
+          ],
+          "maskSHA256": "4f2a0c1e9e9526c075a8fbc28ca2f065150ddc3633996ccbe828a51c7f6db941",
+          "forced": []
+        },
+        {
+          "committed": [
+            4754,
+            1448,
+            3147,
+            33
+          ],
+          "simulation": [
+            525,
+            166034,
+            11,
+            248046,
+            0,
+            94
+          ],
+          "parents": [
+            4294967295,
+            0,
+            1,
+            1,
+            0,
+            0
+          ],
+          "maskSHA256": "44fe2c9c8371d916917584ad66ef521698eaf6836c09ee25307556b525d22511",
+          "forced": []
         },
         {
           "committed": [
@@ -274,7 +647,45 @@
             100,
             106
           ],
-          "maskSHA256": "6c29ffaff163363eb1563eed7b737f2f7e85f1f566301f76218ae58283c535f7"
+          "parents": [
+            4294967295,
+            0,
+            1,
+            2,
+            3,
+            4,
+            5,
+            6
+          ],
+          "maskSHA256": "6c29ffaff163363eb1563eed7b737f2f7e85f1f566301f76218ae58283c535f7",
+          "forced": []
+        },
+        {
+          "committed": [
+            4754,
+            1448,
+            3147,
+            33,
+            525
+          ],
+          "simulation": [
+            166034,
+            11,
+            220,
+            248046,
+            0,
+            94
+          ],
+          "parents": [
+            4294967295,
+            0,
+            1,
+            1,
+            0,
+            0
+          ],
+          "maskSHA256": "44fe2c9c8371d916917584ad66ef521698eaf6836c09ee25307556b525d22511",
+          "forced": []
         },
         {
           "committed": [
@@ -295,7 +706,46 @@
             106,
             321
           ],
-          "maskSHA256": "c426f73ae3b37b5a9d2be40d193d801e36cae0ad2b53594541889fde831d94dd"
+          "parents": [
+            4294967295,
+            0,
+            1,
+            2,
+            3,
+            4,
+            5,
+            6
+          ],
+          "maskSHA256": "c426f73ae3b37b5a9d2be40d193d801e36cae0ad2b53594541889fde831d94dd",
+          "forced": []
+        },
+        {
+          "committed": [
+            4754,
+            1448,
+            3147,
+            33,
+            525,
+            166034
+          ],
+          "simulation": [
+            11,
+            220,
+            247359,
+            248046,
+            0,
+            94
+          ],
+          "parents": [
+            4294967295,
+            0,
+            1,
+            1,
+            0,
+            0
+          ],
+          "maskSHA256": "44fe2c9c8371d916917584ad66ef521698eaf6836c09ee25307556b525d22511",
+          "forced": []
         },
         {
           "committed": [
@@ -317,7 +767,47 @@
             321,
             7018
           ],
-          "maskSHA256": "10e09a49ea055eb58d711551de54d60e066a82cd5a2f95d7f482bd4985af7b08"
+          "parents": [
+            4294967295,
+            0,
+            1,
+            2,
+            3,
+            4,
+            5,
+            6
+          ],
+          "maskSHA256": "10e09a49ea055eb58d711551de54d60e066a82cd5a2f95d7f482bd4985af7b08",
+          "forced": []
+        },
+        {
+          "committed": [
+            4754,
+            1448,
+            3147,
+            33,
+            525,
+            166034,
+            11
+          ],
+          "simulation": [
+            220,
+            247359,
+            11,
+            248046,
+            0,
+            94
+          ],
+          "parents": [
+            4294967295,
+            0,
+            1,
+            1,
+            0,
+            0
+          ],
+          "maskSHA256": "44fe2c9c8371d916917584ad66ef521698eaf6836c09ee25307556b525d22511",
+          "forced": []
         },
         {
           "committed": [
@@ -340,7 +830,48 @@
             7018,
             2855
           ],
-          "maskSHA256": "70740255f2a064982138196c18c999bbc2955efdaa5ed1bedb02d65d6825c9b2"
+          "parents": [
+            4294967295,
+            0,
+            1,
+            2,
+            3,
+            4,
+            5,
+            6
+          ],
+          "maskSHA256": "70740255f2a064982138196c18c999bbc2955efdaa5ed1bedb02d65d6825c9b2",
+          "forced": []
+        },
+        {
+          "committed": [
+            4754,
+            1448,
+            3147,
+            33,
+            525,
+            166034,
+            11,
+            220
+          ],
+          "simulation": [
+            247359,
+            11,
+            10838,
+            248046,
+            0,
+            94
+          ],
+          "parents": [
+            4294967295,
+            0,
+            1,
+            1,
+            0,
+            0
+          ],
+          "maskSHA256": "7ce3a83cb634260fab70f0e5be88df661e99b7724a001043a7da78b26728624a",
+          "forced": []
         },
         {
           "committed": [
@@ -364,7 +895,49 @@
             2855,
             2037
           ],
-          "maskSHA256": "5864683448533322d8c96f1c3309aebe01d34c49a07342bd9c41dbd4766cd124"
+          "parents": [
+            4294967295,
+            0,
+            1,
+            2,
+            3,
+            4,
+            5,
+            6
+          ],
+          "maskSHA256": "5864683448533322d8c96f1c3309aebe01d34c49a07342bd9c41dbd4766cd124",
+          "forced": []
+        },
+        {
+          "committed": [
+            4754,
+            1448,
+            3147,
+            33,
+            525,
+            166034,
+            11,
+            220,
+            247359
+          ],
+          "simulation": [
+            11,
+            10838,
+            100,
+            248046,
+            0,
+            94
+          ],
+          "parents": [
+            4294967295,
+            0,
+            1,
+            1,
+            0,
+            0
+          ],
+          "maskSHA256": "72eda3bcaac09aa6d6fb8b8af4d9ec589a6b8d2e75807db5c4e030ded9a5cb8c",
+          "forced": []
         },
         {
           "committed": [
@@ -389,7 +962,53 @@
             2037,
             2129
           ],
-          "maskSHA256": "4430be4527e7b8774b963c7ebb2953d79c93b66ecb32488cd5a014fa6b75db58"
+          "parents": [
+            4294967295,
+            0,
+            1,
+            2,
+            3,
+            4,
+            5,
+            6
+          ],
+          "maskSHA256": "4430be4527e7b8774b963c7ebb2953d79c93b66ecb32488cd5a014fa6b75db58",
+          "forced": [
+            8,
+            3535
+          ]
+        },
+        {
+          "committed": [
+            4754,
+            1448,
+            3147,
+            33,
+            525,
+            166034,
+            11,
+            220,
+            247359,
+            11
+          ],
+          "simulation": [
+            10838,
+            100,
+            106,
+            248046,
+            94,
+            0
+          ],
+          "parents": [
+            4294967295,
+            0,
+            1,
+            1,
+            0,
+            0
+          ],
+          "maskSHA256": "bcec1a03d60bc8ea6190a35576c387b599a81c1bde9157cf70871e0672fbe359",
+          "forced": []
         },
         {
           "committed": [
@@ -415,7 +1034,54 @@
             2129,
             3535
           ],
-          "maskSHA256": "999e600d179ac5e556705b0cef32a813db30977e3d926a502fa124be01c9b33d"
+          "parents": [
+            4294967295,
+            0,
+            1,
+            2,
+            3,
+            4,
+            5,
+            6
+          ],
+          "maskSHA256": "999e600d179ac5e556705b0cef32a813db30977e3d926a502fa124be01c9b33d",
+          "forced": [
+            7,
+            3535
+          ]
+        },
+        {
+          "committed": [
+            4754,
+            1448,
+            3147,
+            33,
+            525,
+            166034,
+            11,
+            220,
+            247359,
+            11,
+            10838
+          ],
+          "simulation": [
+            100,
+            106,
+            321,
+            248046,
+            94,
+            0
+          ],
+          "parents": [
+            4294967295,
+            0,
+            1,
+            1,
+            0,
+            0
+          ],
+          "maskSHA256": "46f580b3442320a43ff63f1993aa13dd20dd95aa82e52355cb60d32768d8c9d0",
+          "forced": []
         },
         {
           "committed": [
@@ -442,7 +1108,55 @@
             3535,
             8631
           ],
-          "maskSHA256": "b6651be2b0d667204700dbc3b4144e21b5784841cf85b2ba0178a65b5789174f"
+          "parents": [
+            4294967295,
+            0,
+            1,
+            2,
+            3,
+            4,
+            5,
+            6
+          ],
+          "maskSHA256": "b6651be2b0d667204700dbc3b4144e21b5784841cf85b2ba0178a65b5789174f",
+          "forced": [
+            6,
+            3535
+          ]
+        },
+        {
+          "committed": [
+            4754,
+            1448,
+            3147,
+            33,
+            525,
+            166034,
+            11,
+            220,
+            247359,
+            11,
+            10838,
+            100
+          ],
+          "simulation": [
+            106,
+            321,
+            7018,
+            248046,
+            0,
+            94
+          ],
+          "parents": [
+            4294967295,
+            0,
+            1,
+            1,
+            0,
+            0
+          ],
+          "maskSHA256": "27686998f8f5c853fd78f5db86c89be2508ed0b869ee189446d076ce1bcfb85c",
+          "forced": []
         },
         {
           "committed": [
@@ -470,7 +1184,56 @@
             8631,
             16
           ],
-          "maskSHA256": "f9f0d6b247c0cb6e518ad04b9e75778a701bec0720d066ab4b25450b847bf02b"
+          "parents": [
+            4294967295,
+            0,
+            1,
+            2,
+            3,
+            4,
+            5,
+            6
+          ],
+          "maskSHA256": "f9f0d6b247c0cb6e518ad04b9e75778a701bec0720d066ab4b25450b847bf02b",
+          "forced": [
+            5,
+            3535
+          ]
+        },
+        {
+          "committed": [
+            4754,
+            1448,
+            3147,
+            33,
+            525,
+            166034,
+            11,
+            220,
+            247359,
+            11,
+            10838,
+            100,
+            106
+          ],
+          "simulation": [
+            321,
+            7018,
+            2855,
+            248046,
+            0,
+            94
+          ],
+          "parents": [
+            4294967295,
+            0,
+            1,
+            1,
+            0,
+            0
+          ],
+          "maskSHA256": "44fe2c9c8371d916917584ad66ef521698eaf6836c09ee25307556b525d22511",
+          "forced": []
         },
         {
           "committed": [
@@ -499,7 +1262,57 @@
             16,
             13
           ],
-          "maskSHA256": "15e287acd6ef57d374890b17898b9deb965b731dabde685ed3bbfc0feb4ed23b"
+          "parents": [
+            4294967295,
+            0,
+            1,
+            2,
+            3,
+            4,
+            5,
+            6
+          ],
+          "maskSHA256": "15e287acd6ef57d374890b17898b9deb965b731dabde685ed3bbfc0feb4ed23b",
+          "forced": [
+            4,
+            3535
+          ]
+        },
+        {
+          "committed": [
+            4754,
+            1448,
+            3147,
+            33,
+            525,
+            166034,
+            11,
+            220,
+            247359,
+            11,
+            10838,
+            100,
+            106,
+            321
+          ],
+          "simulation": [
+            7018,
+            2855,
+            2037,
+            248046,
+            0,
+            94
+          ],
+          "parents": [
+            4294967295,
+            0,
+            1,
+            1,
+            0,
+            0
+          ],
+          "maskSHA256": "44fe2c9c8371d916917584ad66ef521698eaf6836c09ee25307556b525d22511",
+          "forced": []
         },
         {
           "committed": [
@@ -529,7 +1342,61 @@
             13,
             17
           ],
-          "maskSHA256": "698bcfa4b97a0a95cd31e8dcf4b41b1f8a2e3baa035af3601e176b47c1a75b14"
+          "parents": [
+            4294967295,
+            0,
+            1,
+            2,
+            3,
+            4,
+            5,
+            6
+          ],
+          "maskSHA256": "698bcfa4b97a0a95cd31e8dcf4b41b1f8a2e3baa035af3601e176b47c1a75b14",
+          "forced": [
+            3,
+            3535
+          ]
+        },
+        {
+          "committed": [
+            4754,
+            1448,
+            3147,
+            33,
+            525,
+            166034,
+            11,
+            220,
+            247359,
+            11,
+            10838,
+            100,
+            106,
+            321,
+            7018
+          ],
+          "simulation": [
+            2855,
+            2037,
+            2129,
+            248046,
+            0,
+            94
+          ],
+          "parents": [
+            4294967295,
+            0,
+            1,
+            1,
+            0,
+            0
+          ],
+          "maskSHA256": "b2f86c2767052260cd8fbd300abade6ab798302596a011b1314ce5ad4c24a965",
+          "forced": [
+            3,
+            3535
+          ]
         },
         {
           "committed": [
@@ -560,7 +1427,62 @@
             17,
             20
           ],
-          "maskSHA256": "d707685a7f37e1396eaf0a0e95921c96665027c744cfc695b2fc7c03b89a7d69"
+          "parents": [
+            4294967295,
+            0,
+            1,
+            2,
+            3,
+            4,
+            5,
+            6
+          ],
+          "maskSHA256": "d707685a7f37e1396eaf0a0e95921c96665027c744cfc695b2fc7c03b89a7d69",
+          "forced": [
+            2,
+            3535
+          ]
+        },
+        {
+          "committed": [
+            4754,
+            1448,
+            3147,
+            33,
+            525,
+            166034,
+            11,
+            220,
+            247359,
+            11,
+            10838,
+            100,
+            106,
+            321,
+            7018,
+            2855
+          ],
+          "simulation": [
+            2037,
+            2129,
+            3535,
+            248046,
+            0,
+            94
+          ],
+          "parents": [
+            4294967295,
+            0,
+            1,
+            1,
+            0,
+            0
+          ],
+          "maskSHA256": "65055fcc812c1dbe0a667c3ec61b252d808348fa51a3b578c26477b88e04b0b9",
+          "forced": [
+            2,
+            3535
+          ]
         },
         {
           "committed": [
@@ -592,7 +1514,61 @@
             20,
             4838
           ],
-          "maskSHA256": "3b9124ad8241b0157dcf679ba8543ec339843178ee7fa39c0330f8018072275b"
+          "parents": [
+            4294967295,
+            0,
+            1,
+            2,
+            3,
+            4,
+            5,
+            6
+          ],
+          "maskSHA256": "3b9124ad8241b0157dcf679ba8543ec339843178ee7fa39c0330f8018072275b",
+          "forced": [
+            1,
+            3535
+          ]
+        },
+        {
+          "committed": [
+            4754,
+            1448,
+            3147,
+            33,
+            525,
+            166034,
+            11,
+            220,
+            247359,
+            11,
+            10838,
+            100,
+            106,
+            321,
+            7018,
+            2855,
+            2037
+          ],
+          "simulation": [
+            2129,
+            3535,
+            8631,
+            248046,
+            0
+          ],
+          "parents": [
+            4294967295,
+            0,
+            1,
+            1,
+            0
+          ],
+          "maskSHA256": "9e458a8d3baf15cbb647025d9c6ee7829b9d3dd84086fe32274b3e8b71e9b5e4",
+          "forced": [
+            1,
+            3535
+          ]
         },
         {
           "committed": [
@@ -625,7 +1601,58 @@
             4838,
             17
           ],
-          "maskSHA256": "759ad7a9a33a466c19b4b3b2637aa5f8a27d65bf0418c329516976163fb2029f"
+          "parents": [
+            4294967295,
+            0,
+            1,
+            2,
+            3,
+            4,
+            5,
+            6
+          ],
+          "maskSHA256": "759ad7a9a33a466c19b4b3b2637aa5f8a27d65bf0418c329516976163fb2029f",
+          "forced": []
+        },
+        {
+          "committed": [
+            4754,
+            1448,
+            3147,
+            33,
+            525,
+            166034,
+            11,
+            220,
+            247359,
+            11,
+            10838,
+            100,
+            106,
+            321,
+            7018,
+            2855,
+            2037,
+            2129
+          ],
+          "simulation": [
+            3535,
+            8631,
+            16,
+            248046,
+            1,
+            0
+          ],
+          "parents": [
+            4294967295,
+            0,
+            1,
+            1,
+            0,
+            0
+          ],
+          "maskSHA256": "6226db64c70f84260fb13a162c531d9b831b3b2f24b20bf347f8f4ac6c6969d7",
+          "forced": []
         },
         {
           "committed": [
@@ -659,7 +1686,59 @@
             17,
             20691
           ],
-          "maskSHA256": "0e902a337c40b3b5678c0ff77ff09b21432b72868bb62d1d2f3776f0facb3cf1"
+          "parents": [
+            4294967295,
+            0,
+            1,
+            2,
+            3,
+            4,
+            5,
+            6
+          ],
+          "maskSHA256": "0e902a337c40b3b5678c0ff77ff09b21432b72868bb62d1d2f3776f0facb3cf1",
+          "forced": []
+        },
+        {
+          "committed": [
+            4754,
+            1448,
+            3147,
+            33,
+            525,
+            166034,
+            11,
+            220,
+            247359,
+            11,
+            10838,
+            100,
+            106,
+            321,
+            7018,
+            2855,
+            2037,
+            2129,
+            3535
+          ],
+          "simulation": [
+            8631,
+            16,
+            13,
+            248046,
+            12,
+            0
+          ],
+          "parents": [
+            4294967295,
+            0,
+            1,
+            1,
+            0,
+            0
+          ],
+          "maskSHA256": "7c761650fbbb77e1931522557e1657a9918653ccc6167bdaad7dc877734c64a8",
+          "forced": []
         },
         {
           "committed": [
@@ -694,7 +1773,60 @@
             20691,
             22357
           ],
-          "maskSHA256": "e7a1a33d46c216a386592978adaed88f589bb21d0e311dd59ae69e4753b3939d"
+          "parents": [
+            4294967295,
+            0,
+            1,
+            2,
+            3,
+            4,
+            5,
+            6
+          ],
+          "maskSHA256": "e7a1a33d46c216a386592978adaed88f589bb21d0e311dd59ae69e4753b3939d",
+          "forced": []
+        },
+        {
+          "committed": [
+            4754,
+            1448,
+            3147,
+            33,
+            525,
+            166034,
+            11,
+            220,
+            247359,
+            11,
+            10838,
+            100,
+            106,
+            321,
+            7018,
+            2855,
+            2037,
+            2129,
+            3535,
+            8631
+          ],
+          "simulation": [
+            16,
+            13,
+            17,
+            248046,
+            11,
+            0
+          ],
+          "parents": [
+            4294967295,
+            0,
+            1,
+            1,
+            0,
+            0
+          ],
+          "maskSHA256": "cda81ef93aca3bb2d3bdbdf1ff4795900d595bf51422ef43cdd8bdce56c74981",
+          "forced": []
         },
         {
           "committed": [
@@ -730,7 +1862,61 @@
             22357,
             13587
           ],
-          "maskSHA256": "eabbfa2e657ee879efb2906700e1a3a3c209801da985bf24ca841690460788d4"
+          "parents": [
+            4294967295,
+            0,
+            1,
+            2,
+            3,
+            4,
+            5,
+            6
+          ],
+          "maskSHA256": "eabbfa2e657ee879efb2906700e1a3a3c209801da985bf24ca841690460788d4",
+          "forced": []
+        },
+        {
+          "committed": [
+            4754,
+            1448,
+            3147,
+            33,
+            525,
+            166034,
+            11,
+            220,
+            247359,
+            11,
+            10838,
+            100,
+            106,
+            321,
+            7018,
+            2855,
+            2037,
+            2129,
+            3535,
+            8631,
+            16
+          ],
+          "simulation": [
+            13,
+            17,
+            20,
+            248046,
+            15,
+            0
+          ],
+          "parents": [
+            4294967295,
+            0,
+            1,
+            1,
+            0,
+            0
+          ],
+          "maskSHA256": "6fc117ac4ea419896abc8b96549eee0996b5c34a8067a2edf8b8138284c52d1f",
+          "forced": []
         },
         {
           "committed": [
@@ -766,7 +1952,61 @@
             22357,
             13587
           ],
-          "maskSHA256": "ac8120651fd8ed2fed956ac45fc185f85bbaaa6db6b3e1da9d1d7cdc0d2fd74e"
+          "parents": [
+            4294967295,
+            0,
+            1,
+            2,
+            3,
+            4,
+            5
+          ],
+          "maskSHA256": "ac8120651fd8ed2fed956ac45fc185f85bbaaa6db6b3e1da9d1d7cdc0d2fd74e",
+          "forced": []
+        },
+        {
+          "committed": [
+            4754,
+            1448,
+            3147,
+            33,
+            525,
+            166034,
+            11,
+            220,
+            247359,
+            11,
+            10838,
+            100,
+            106,
+            321,
+            7018,
+            2855,
+            2037,
+            2129,
+            3535,
+            8631,
+            16,
+            13
+          ],
+          "simulation": [
+            17,
+            20,
+            4838,
+            248046,
+            11,
+            0
+          ],
+          "parents": [
+            4294967295,
+            0,
+            1,
+            1,
+            0,
+            0
+          ],
+          "maskSHA256": "8d40f4d545eab9185e73460abb7dcc85d428bc23f8731adafcec3b9a3b6eb881",
+          "forced": []
         },
         {
           "committed": [
@@ -802,7 +2042,61 @@
             22357,
             13587
           ],
-          "maskSHA256": "b6fb39554bae8c7d31f9c2cf22091afd8d7874c018cd2a07edbd89ecdf75ddd0"
+          "parents": [
+            4294967295,
+            0,
+            1,
+            2,
+            3,
+            4
+          ],
+          "maskSHA256": "b6fb39554bae8c7d31f9c2cf22091afd8d7874c018cd2a07edbd89ecdf75ddd0",
+          "forced": []
+        },
+        {
+          "committed": [
+            4754,
+            1448,
+            3147,
+            33,
+            525,
+            166034,
+            11,
+            220,
+            247359,
+            11,
+            10838,
+            100,
+            106,
+            321,
+            7018,
+            2855,
+            2037,
+            2129,
+            3535,
+            8631,
+            16,
+            13,
+            17
+          ],
+          "simulation": [
+            20,
+            4838,
+            17,
+            248046,
+            11,
+            0
+          ],
+          "parents": [
+            4294967295,
+            0,
+            1,
+            1,
+            0,
+            0
+          ],
+          "maskSHA256": "0e88f6d3284feba6981b6e12aae2837d050b2600b32c86ebe2dfd672630756a8",
+          "forced": []
         },
         {
           "committed": [
@@ -838,7 +2132,61 @@
             22357,
             13587
           ],
-          "maskSHA256": "cb221b5b66a33ca08133433e9204f8866467a777ff00a7644ad57582f2a1920d"
+          "parents": [
+            4294967295,
+            0,
+            1,
+            2,
+            3
+          ],
+          "maskSHA256": "cb221b5b66a33ca08133433e9204f8866467a777ff00a7644ad57582f2a1920d",
+          "forced": []
+        },
+        {
+          "committed": [
+            4754,
+            1448,
+            3147,
+            33,
+            525,
+            166034,
+            11,
+            220,
+            247359,
+            11,
+            10838,
+            100,
+            106,
+            321,
+            7018,
+            2855,
+            2037,
+            2129,
+            3535,
+            8631,
+            16,
+            13,
+            17,
+            20
+          ],
+          "simulation": [
+            4838,
+            17,
+            20691,
+            248046,
+            15,
+            0
+          ],
+          "parents": [
+            4294967295,
+            0,
+            1,
+            1,
+            0,
+            0
+          ],
+          "maskSHA256": "0b19186ece30e626d70c21df564b2d256a6fe220483305437cd4e66cec613b48",
+          "forced": []
         },
         {
           "committed": [
@@ -874,7 +2222,61 @@
             22357,
             13587
           ],
-          "maskSHA256": "2f1b0b5e6b7f7bf997a4274a91210ac29a95f7e05a1647424114141799715572"
+          "parents": [
+            4294967295,
+            0,
+            1,
+            2
+          ],
+          "maskSHA256": "2f1b0b5e6b7f7bf997a4274a91210ac29a95f7e05a1647424114141799715572",
+          "forced": []
+        },
+        {
+          "committed": [
+            4754,
+            1448,
+            3147,
+            33,
+            525,
+            166034,
+            11,
+            220,
+            247359,
+            11,
+            10838,
+            100,
+            106,
+            321,
+            7018,
+            2855,
+            2037,
+            2129,
+            3535,
+            8631,
+            16,
+            13,
+            17,
+            20,
+            4838
+          ],
+          "simulation": [
+            17,
+            20691,
+            22357,
+            248046,
+            11,
+            0
+          ],
+          "parents": [
+            4294967295,
+            0,
+            1,
+            1,
+            0,
+            0
+          ],
+          "maskSHA256": "d4c8d55ab94a0f9839a5bc9462dcec0deba1c435310f520c5795bcb1c5696ce9",
+          "forced": []
         },
         {
           "committed": [
@@ -910,7 +2312,61 @@
             22357,
             13587
           ],
-          "maskSHA256": "8bc52cea88ff34850a62aa57f5d2adf6b41c12547182a54d877399826bfbf690"
+          "parents": [
+            4294967295,
+            0,
+            1
+          ],
+          "maskSHA256": "8bc52cea88ff34850a62aa57f5d2adf6b41c12547182a54d877399826bfbf690",
+          "forced": []
+        },
+        {
+          "committed": [
+            4754,
+            1448,
+            3147,
+            33,
+            525,
+            166034,
+            11,
+            220,
+            247359,
+            11,
+            10838,
+            100,
+            106,
+            321,
+            7018,
+            2855,
+            2037,
+            2129,
+            3535,
+            8631,
+            16,
+            13,
+            17,
+            20,
+            4838,
+            17
+          ],
+          "simulation": [
+            20691,
+            22357,
+            13587,
+            248046,
+            11,
+            0
+          ],
+          "parents": [
+            4294967295,
+            0,
+            1,
+            1,
+            0,
+            0
+          ],
+          "maskSHA256": "b7e1c864fd4d300436c669cd5a61dc7d0cca6e7dc7b3d435a9fae69640649749",
+          "forced": []
         },
         {
           "committed": [
@@ -946,7 +2402,59 @@
             22357,
             13587
           ],
-          "maskSHA256": "5b3e553cb04e0e68bc8a353209355b92995c41f7e5acf878c35b8d340cf4a5c5"
+          "parents": [
+            4294967295,
+            0
+          ],
+          "maskSHA256": "5b3e553cb04e0e68bc8a353209355b92995c41f7e5acf878c35b8d340cf4a5c5",
+          "forced": []
+        },
+        {
+          "committed": [
+            4754,
+            1448,
+            3147,
+            33,
+            525,
+            166034,
+            11,
+            220,
+            247359,
+            11,
+            10838,
+            100,
+            106,
+            321,
+            7018,
+            2855,
+            2037,
+            2129,
+            3535,
+            8631,
+            16,
+            13,
+            17,
+            20,
+            4838,
+            17,
+            20691
+          ],
+          "simulation": [
+            22357,
+            13587,
+            248046,
+            11,
+            0
+          ],
+          "parents": [
+            4294967295,
+            0,
+            1,
+            0,
+            0
+          ],
+          "maskSHA256": "4d2b608c4c4e6aeadbd4fb441db0a8de2f8d0b00e55661bcc6d836cc146e9a6b",
+          "forced": []
         },
         {
           "committed": [
@@ -982,7 +2490,55 @@
           "simulation": [
             13587
           ],
-          "maskSHA256": "b31f020184e0479035cb5ef50aa33f348b4f5bf7688b3c152260ae2b4c478c07"
+          "parents": [
+            4294967295
+          ],
+          "maskSHA256": "b31f020184e0479035cb5ef50aa33f348b4f5bf7688b3c152260ae2b4c478c07",
+          "forced": []
+        },
+        {
+          "committed": [
+            4754,
+            1448,
+            3147,
+            33,
+            525,
+            166034,
+            11,
+            220,
+            247359,
+            11,
+            10838,
+            100,
+            106,
+            321,
+            7018,
+            2855,
+            2037,
+            2129,
+            3535,
+            8631,
+            16,
+            13,
+            17,
+            20,
+            4838,
+            17,
+            20691,
+            22357
+          ],
+          "simulation": [
+            13587,
+            0,
+            248046
+          ],
+          "parents": [
+            4294967295,
+            0,
+            0
+          ],
+          "maskSHA256": "2774db78471692bf57eeaf844e602b2782a3feec1dd5020b67a8027e50e63227",
+          "forced": []
         },
         {
           "committed": [
@@ -1017,13 +2573,15 @@
             13587
           ],
           "simulation": [],
-          "maskSHA256": "f642a4437ed45b2947fe001a7e831c62458a772e87ddff574ccc328554d2f374"
+          "parents": [],
+          "maskSHA256": "f642a4437ed45b2947fe001a7e831c62458a772e87ddff574ccc328554d2f374",
+          "forced": []
         }
       ]
     },
     {
       "name": "reasoning_json",
-      "grammar": "%llguidance {}\nstart: think WS %json {\"type\":\"object\",\"properties\":{\"answer\":{\"const\":\"ready\"}},\"required\":[\"answer\"],\"additionalProperties\":false,\"x-guidance\":{\"lenient\":true,\"whitespace_pattern\":\"[ \\\\t\\\\n\\\\r]{0,64}\"}}\nthink: TEXT <[248069]>\nTEXT: /(?s:.*)/ & ~/(?s:.*)(<\\/think>)(?s:.*)/\nWS: /[ \\t\\n\\r]{0,64}/\n",
+      "grammar": "%llguidance {}\nstart: think %json {\"type\":\"object\",\"properties\":{\"answer\":{\"const\":\"ready\"}},\"required\":[\"answer\"],\"additionalProperties\":false,\"x-guidance\":{\"lenient\":true,\"whitespace_pattern\":\"[ \\\\t\\\\n\\\\r]{0,64}\"}}\nthink: TEXT <[248069]> WS\nTEXT: /(?s:.*)/ & ~/(?s:.*)(<\\/think>)(?s:.*)/\nWS: /[ \\t\\n\\r]{0,64}/\n",
       "type": "lark",
       "output": "The requested value is ready.</think>\n\n{\"answer\":\"ready\"}",
       "tokens": [
@@ -1047,7 +2605,11 @@
           "simulation": [
             59869
           ],
-          "maskSHA256": "2e49c5b65fcb397080085bee88076ab588c2d1c45f6b6d75356cb711a7e1241b"
+          "parents": [
+            4294967295
+          ],
+          "maskSHA256": "2e49c5b65fcb397080085bee88076ab588c2d1c45f6b6d75356cb711a7e1241b",
+          "forced": []
         },
         {
           "committed": [],
@@ -1056,14 +2618,24 @@
             248320,
             1
           ],
-          "maskSHA256": "fa99182f28da3dcedd77331a80d08c3a913edd2871d85f9df27f5459ce714c6d"
+          "parents": [
+            4294967295,
+            0,
+            1
+          ],
+          "maskSHA256": "fa99182f28da3dcedd77331a80d08c3a913edd2871d85f9df27f5459ce714c6d",
+          "forced": []
         },
         {
           "committed": [],
           "simulation": [
             248320
           ],
-          "maskSHA256": "2e49c5b65fcb397080085bee88076ab588c2d1c45f6b6d75356cb711a7e1241b"
+          "parents": [
+            4294967295
+          ],
+          "maskSHA256": "2e49c5b65fcb397080085bee88076ab588c2d1c45f6b6d75356cb711a7e1241b",
+          "forced": []
         },
         {
           "committed": [],
@@ -1077,7 +2649,39 @@
             248069,
             271
           ],
-          "maskSHA256": "7160cd9ca78be04510501d4eea9c385519c12b6de29029aeaf275236a5fa57a7"
+          "parents": [
+            4294967295,
+            0,
+            1,
+            2,
+            3,
+            4,
+            5,
+            6
+          ],
+          "maskSHA256": "7160cd9ca78be04510501d4eea9c385519c12b6de29029aeaf275236a5fa57a7",
+          "forced": []
+        },
+        {
+          "committed": [],
+          "simulation": [
+            760,
+            10897,
+            869,
+            248046,
+            0,
+            94
+          ],
+          "parents": [
+            4294967295,
+            0,
+            1,
+            1,
+            0,
+            0
+          ],
+          "maskSHA256": "6676ade6c04a488ec866ee54dba3472f62a6265a31425e731db53f3ee35cc156",
+          "forced": []
         },
         {
           "committed": [
@@ -1093,7 +2697,44 @@
             271,
             4754
           ],
-          "maskSHA256": "9515753e176f631b4672047ffb7ed047b54ce6741b802f2836ef930b1f7bd802"
+          "parents": [
+            4294967295,
+            0,
+            1,
+            2,
+            3,
+            4,
+            5,
+            6
+          ],
+          "maskSHA256": "9515753e176f631b4672047ffb7ed047b54ce6741b802f2836ef930b1f7bd802",
+          "forced": [
+            8,
+            8944
+          ]
+        },
+        {
+          "committed": [
+            760
+          ],
+          "simulation": [
+            10897,
+            869,
+            369,
+            248046,
+            0,
+            94
+          ],
+          "parents": [
+            4294967295,
+            0,
+            1,
+            1,
+            0,
+            0
+          ],
+          "maskSHA256": "6676ade6c04a488ec866ee54dba3472f62a6265a31425e731db53f3ee35cc156",
+          "forced": []
         },
         {
           "committed": [
@@ -1110,7 +2751,45 @@
             4754,
             8944
           ],
-          "maskSHA256": "a375f4b11be72ea4adb2c1a81ef65c44f173c8306928afba1832ec3c14f87602"
+          "parents": [
+            4294967295,
+            0,
+            1,
+            2,
+            3,
+            4,
+            5,
+            6
+          ],
+          "maskSHA256": "a375f4b11be72ea4adb2c1a81ef65c44f173c8306928afba1832ec3c14f87602",
+          "forced": [
+            7,
+            8944
+          ]
+        },
+        {
+          "committed": [
+            760,
+            10897
+          ],
+          "simulation": [
+            869,
+            369,
+            5354,
+            248046,
+            0,
+            94
+          ],
+          "parents": [
+            4294967295,
+            0,
+            1,
+            1,
+            0,
+            0
+          ],
+          "maskSHA256": "6676ade6c04a488ec866ee54dba3472f62a6265a31425e731db53f3ee35cc156",
+          "forced": []
         },
         {
           "committed": [
@@ -1128,7 +2807,48 @@
             8944,
             3147
           ],
-          "maskSHA256": "020ee15a915f76bdf478a2efd58d5a30f3b62c3601750edd165f7877a6b4ee7c"
+          "parents": [
+            4294967295,
+            0,
+            1,
+            2,
+            3,
+            4,
+            5,
+            6
+          ],
+          "maskSHA256": "020ee15a915f76bdf478a2efd58d5a30f3b62c3601750edd165f7877a6b4ee7c",
+          "forced": [
+            6,
+            8944,
+            8,
+            2232
+          ]
+        },
+        {
+          "committed": [
+            760,
+            10897,
+            869
+          ],
+          "simulation": [
+            369,
+            5354,
+            13,
+            248046,
+            0,
+            94
+          ],
+          "parents": [
+            4294967295,
+            0,
+            1,
+            1,
+            0,
+            0
+          ],
+          "maskSHA256": "6676ade6c04a488ec866ee54dba3472f62a6265a31425e731db53f3ee35cc156",
+          "forced": []
         },
         {
           "committed": [
@@ -1147,7 +2867,49 @@
             3147,
             2232
           ],
-          "maskSHA256": "944a5fd86590333367dbc487cf7d1c1ec5b907278ace1acf519857e78137ca3d"
+          "parents": [
+            4294967295,
+            0,
+            1,
+            2,
+            3,
+            4,
+            5,
+            6
+          ],
+          "maskSHA256": "944a5fd86590333367dbc487cf7d1c1ec5b907278ace1acf519857e78137ca3d",
+          "forced": [
+            5,
+            8944,
+            7,
+            2232
+          ]
+        },
+        {
+          "committed": [
+            760,
+            10897,
+            869,
+            369
+          ],
+          "simulation": [
+            5354,
+            13,
+            248069,
+            248046,
+            0,
+            94
+          ],
+          "parents": [
+            4294967295,
+            0,
+            1,
+            1,
+            0,
+            0
+          ],
+          "maskSHA256": "b992b561bf03559e06ec6c00ea886f023388f7921cfe830024cab3118961be6c",
+          "forced": []
         },
         {
           "committed": [
@@ -1167,7 +2929,50 @@
             2232,
             8934
           ],
-          "maskSHA256": "1a2d9abf69693fa9921b1bb25647cfa306d7b8a8ab8e3ff7541c316858ab8472"
+          "parents": [
+            4294967295,
+            0,
+            1,
+            2,
+            3,
+            4,
+            5,
+            6
+          ],
+          "maskSHA256": "1a2d9abf69693fa9921b1bb25647cfa306d7b8a8ab8e3ff7541c316858ab8472",
+          "forced": [
+            4,
+            8944,
+            6,
+            2232
+          ]
+        },
+        {
+          "committed": [
+            760,
+            10897,
+            869,
+            369,
+            5354
+          ],
+          "simulation": [
+            13,
+            248069,
+            271,
+            248046,
+            0,
+            94
+          ],
+          "parents": [
+            4294967295,
+            0,
+            1,
+            1,
+            0,
+            0
+          ],
+          "maskSHA256": "31098d923d8432c7e60765917a47071180ab4f91cdbbe4ca12b3eccb06cfe32e",
+          "forced": []
         },
         {
           "committed": [
@@ -1187,7 +2992,53 @@
             2232,
             8934
           ],
-          "maskSHA256": "1db021aa409a65fd91826c7473bbe520f7ef4a53dcf920767ade9c3199c7062a"
+          "parents": [
+            4294967295,
+            0,
+            1,
+            2,
+            3,
+            4,
+            5
+          ],
+          "maskSHA256": "1db021aa409a65fd91826c7473bbe520f7ef4a53dcf920767ade9c3199c7062a",
+          "forced": [
+            3,
+            8944,
+            5,
+            2232
+          ]
+        },
+        {
+          "committed": [
+            760,
+            10897,
+            869,
+            369,
+            5354,
+            13
+          ],
+          "simulation": [
+            248069,
+            271,
+            4754,
+            248046,
+            90,
+            0
+          ],
+          "parents": [
+            4294967295,
+            0,
+            1,
+            1,
+            0,
+            0
+          ],
+          "maskSHA256": "f9cea0009014d3fef0cdf87ed6df1058bc969f4553431319da95add8ad487f18",
+          "forced": [
+            3,
+            8944
+          ]
         },
         {
           "committed": [
@@ -1207,7 +3058,53 @@
             2232,
             8934
           ],
-          "maskSHA256": "4508b538ab3e42486b895f3f6fb41943497362daededbcd9c805557602e9bf2f"
+          "parents": [
+            4294967295,
+            0,
+            1,
+            2,
+            3,
+            4
+          ],
+          "maskSHA256": "4508b538ab3e42486b895f3f6fb41943497362daededbcd9c805557602e9bf2f",
+          "forced": [
+            2,
+            8944,
+            4,
+            2232
+          ]
+        },
+        {
+          "committed": [
+            760,
+            10897,
+            869,
+            369,
+            5354,
+            13,
+            248069
+          ],
+          "simulation": [
+            271,
+            4754,
+            8944,
+            248046,
+            90,
+            0
+          ],
+          "parents": [
+            4294967295,
+            0,
+            1,
+            1,
+            0,
+            0
+          ],
+          "maskSHA256": "f885d9680c5c8229305a4c8e26e213014b1cd2891150288b4b82a185d0a14f68",
+          "forced": [
+            2,
+            8944
+          ]
         },
         {
           "committed": [
@@ -1227,7 +3124,53 @@
             2232,
             8934
           ],
-          "maskSHA256": "1af02f7379e75f02557b1a7a3da5b097e85db1123952f45a97f2f1e24446b4c4"
+          "parents": [
+            4294967295,
+            0,
+            1,
+            2,
+            3
+          ],
+          "maskSHA256": "1af02f7379e75f02557b1a7a3da5b097e85db1123952f45a97f2f1e24446b4c4",
+          "forced": [
+            1,
+            8944,
+            3,
+            2232
+          ]
+        },
+        {
+          "committed": [
+            760,
+            10897,
+            869,
+            369,
+            5354,
+            13,
+            248069,
+            271
+          ],
+          "simulation": [
+            4754,
+            8944,
+            3147,
+            248046,
+            0
+          ],
+          "parents": [
+            4294967295,
+            0,
+            1,
+            1,
+            0
+          ],
+          "maskSHA256": "5d99d961b87375c51dc10d1abe49833854d0c409de167663659d7e169a0a33cc",
+          "forced": [
+            1,
+            8944,
+            3,
+            2232
+          ]
         },
         {
           "committed": [
@@ -1247,7 +3190,51 @@
             2232,
             8934
           ],
-          "maskSHA256": "39cafc49ea78983ef1f950fb284f63dcc703a530c36769364f25f39a1b3aaeb0"
+          "parents": [
+            4294967295,
+            0,
+            1,
+            2
+          ],
+          "maskSHA256": "39cafc49ea78983ef1f950fb284f63dcc703a530c36769364f25f39a1b3aaeb0",
+          "forced": [
+            2,
+            2232
+          ]
+        },
+        {
+          "committed": [
+            760,
+            10897,
+            869,
+            369,
+            5354,
+            13,
+            248069,
+            271,
+            4754
+          ],
+          "simulation": [
+            8944,
+            3147,
+            2232,
+            248046,
+            1,
+            0
+          ],
+          "parents": [
+            4294967295,
+            0,
+            1,
+            1,
+            0,
+            0
+          ],
+          "maskSHA256": "01ee027a4db970a638a4915686c7ede96a9828eef0e141a2a1e35ea8f6d418ad",
+          "forced": [
+            2,
+            2232
+          ]
         },
         {
           "committed": [
@@ -1267,7 +3254,49 @@
             2232,
             8934
           ],
-          "maskSHA256": "9d4588f8a14d9fe1fb4759be0b8ddac5351df18cb6ecf88cd4f2d232ad75fb2b"
+          "parents": [
+            4294967295,
+            0,
+            1
+          ],
+          "maskSHA256": "9d4588f8a14d9fe1fb4759be0b8ddac5351df18cb6ecf88cd4f2d232ad75fb2b",
+          "forced": [
+            1,
+            2232
+          ]
+        },
+        {
+          "committed": [
+            760,
+            10897,
+            869,
+            369,
+            5354,
+            13,
+            248069,
+            271,
+            4754,
+            8944
+          ],
+          "simulation": [
+            3147,
+            2232,
+            8934,
+            248046,
+            0
+          ],
+          "parents": [
+            4294967295,
+            0,
+            1,
+            1,
+            0
+          ],
+          "maskSHA256": "145238dde42b9c81a19f164e16b2ced7e8c95a3c12f70e3b1e4e91e88e574ca0",
+          "forced": [
+            1,
+            2232
+          ]
         },
         {
           "committed": [
@@ -1287,7 +3316,43 @@
             2232,
             8934
           ],
-          "maskSHA256": "2f6b733926793f46b74b314a4b7e10a9bdcdf1e56ec97bb8960b2c09f9c20648"
+          "parents": [
+            4294967295,
+            0
+          ],
+          "maskSHA256": "2f6b733926793f46b74b314a4b7e10a9bdcdf1e56ec97bb8960b2c09f9c20648",
+          "forced": []
+        },
+        {
+          "committed": [
+            760,
+            10897,
+            869,
+            369,
+            5354,
+            13,
+            248069,
+            271,
+            4754,
+            8944,
+            3147
+          ],
+          "simulation": [
+            2232,
+            8934,
+            248046,
+            1,
+            0
+          ],
+          "parents": [
+            4294967295,
+            0,
+            1,
+            0,
+            0
+          ],
+          "maskSHA256": "c234ba3d7b8e90c276f21883cb356dec57de45c383ec5a25f2a784fc9cd2dfcb",
+          "forced": []
         },
         {
           "committed": [
@@ -1307,7 +3372,39 @@
           "simulation": [
             8934
           ],
-          "maskSHA256": "f3e942fe641c49e6f2a58ab56436286dfe5fa96c54aefbe32fe84a8b26d8ca3f"
+          "parents": [
+            4294967295
+          ],
+          "maskSHA256": "f3e942fe641c49e6f2a58ab56436286dfe5fa96c54aefbe32fe84a8b26d8ca3f",
+          "forced": []
+        },
+        {
+          "committed": [
+            760,
+            10897,
+            869,
+            369,
+            5354,
+            13,
+            248069,
+            271,
+            4754,
+            8944,
+            3147,
+            2232
+          ],
+          "simulation": [
+            8934,
+            0,
+            248046
+          ],
+          "parents": [
+            4294967295,
+            0,
+            0
+          ],
+          "maskSHA256": "980894dfdf7282aff37aa75ead8e098bdaae54283fd840327ae65e2540814142",
+          "forced": []
         },
         {
           "committed": [
@@ -1326,13 +3423,15 @@
             8934
           ],
           "simulation": [],
-          "maskSHA256": "f642a4437ed45b2947fe001a7e831c62458a772e87ddff574ccc328554d2f374"
+          "parents": [],
+          "maskSHA256": "f642a4437ed45b2947fe001a7e831c62458a772e87ddff574ccc328554d2f374",
+          "forced": []
         }
       ]
     },
     {
       "name": "strict_tool",
-      "grammar": "{\"grammars\":[{\"name\":\"tool_output\",\"lark_grammar\":\"%llguidance {}\\nstart: WS (call_0) WS\\ncall_0: <tool_call> \\\"\\\\n<function=find_evidence>\\\\n\\\" @arguments_0 \\\"</function>\\\\n\\\" </tool_call>\\nWS: /[ \\\\t\\\\n\\\\r]{0,64}/\\nTEXT: /(?s:.*)/ & ~/(?s:.*)(<tool_call>|<\\\\/think>)(?s:.*)/\\n\"},{\"name\":\"arguments_0\",\"lark_grammar\":\"%llguidance {}\\nstart: parameter_0 parameter_1\\nparameter_0: \\\"<parameter=\\\" \\\"query\\\" \\\">\\\\n\\\" parameter_0_value\\nparameter_0_value[suffix=\\\"\\\\n</parameter>\\\\n\\\"]: /(?s:.*)/\\nparameter_1: \\\"<parameter=\\\" \\\"limit\\\" \\\">\\\\n\\\" (%json {\\\"type\\\":\\\"integer\\\",\\\"x-guidance\\\":{\\\"lenient\\\":true,\\\"whitespace_pattern\\\":\\\"[ \\\\\\\\t\\\\\\\\n\\\\\\\\r]{0,64}\\\"}}) \\\"\\\\n</parameter>\\\\n\\\"\\n\"}]}",
+      "grammar": "{\"grammars\":[{\"name\":\"tool_output\",\"lark_grammar\":\"%llguidance {}\\nstart: (call_0) WS\\ncall_0: <tool_call> \\\"\\\\n<function=find_evidence>\\\\n\\\" @arguments_0 \\\"</function>\\\\n\\\" </tool_call>\\nWS: /[ \\\\t\\\\n\\\\r]{0,64}/\\nTEXT: /(?s:.*)/ & ~/(?s:.*)(<tool_call>|<\\\\/think>)(?s:.*)/\\n\"},{\"name\":\"arguments_0\",\"lark_grammar\":\"%llguidance {}\\nstart: parameter_0 parameter_1\\nparameter_0: \\\"<parameter=\\\" \\\"query\\\" \\\">\\\\n\\\" parameter_0_value\\nparameter_0_value[suffix=\\\"\\\\n</parameter>\\\\n\\\"]: /(?s:.*)/\\nparameter_1: \\\"<parameter=\\\" \\\"limit\\\" \\\">\\\\n\\\" (%json {\\\"type\\\":\\\"integer\\\",\\\"x-guidance\\\":{\\\"lenient\\\":true,\\\"whitespace_pattern\\\":\\\"[ \\\\\\\\t\\\\\\\\n\\\\\\\\r]{0,64}\\\"}}) \\\"\\\\n</parameter>\\\\n\\\"\\n\"}]}",
       "type": "llguidance",
       "output": "<tool_call>\n<function=find_evidence>\n<parameter=query>\ninvoice 1042\n</parameter>\n<parameter=limit>\n4\n</parameter>\n</function>\n</tool_call>",
       "tokens": [
@@ -1385,7 +3484,11 @@
           "simulation": [
             59869
           ],
-          "maskSHA256": "f7937694e917486ef0a947ec85a9f59f21c33e36877adc162847df7335d30943"
+          "parents": [
+            4294967295
+          ],
+          "maskSHA256": "b7b538225296027dd72e1361fc28a69668db74403044d30b5256b131cc7ae40a",
+          "forced": []
         },
         {
           "committed": [],
@@ -1394,14 +3497,49 @@
             248320,
             1
           ],
-          "maskSHA256": "c037a07e2bad67cb49aa129f5990f2804bbf35ec93900229f5cad084d11d2c89"
+          "parents": [
+            4294967295,
+            0,
+            1
+          ],
+          "maskSHA256": "a559f636816dd9642494651191e2f242723abbdebe2c182e0f135fd6eff13398",
+          "forced": [
+            1,
+            198,
+            1,
+            27,
+            1,
+            1628,
+            1,
+            58479,
+            1,
+            2135,
+            1,
+            26590,
+            1,
+            29,
+            1,
+            198,
+            1,
+            27,
+            1,
+            15704,
+            1,
+            76478,
+            1,
+            29
+          ]
         },
         {
           "committed": [],
           "simulation": [
             248320
           ],
-          "maskSHA256": "f7937694e917486ef0a947ec85a9f59f21c33e36877adc162847df7335d30943"
+          "parents": [
+            4294967295
+          ],
+          "maskSHA256": "b7b538225296027dd72e1361fc28a69668db74403044d30b5256b131cc7ae40a",
+          "forced": []
         },
         {
           "committed": [],
@@ -1415,7 +3553,241 @@
             26590,
             29
           ],
-          "maskSHA256": "8a46caa88dc3d8e4fbc521f314f238affa5d264fdab4d18eaf5ecc241e806126"
+          "parents": [
+            4294967295,
+            0,
+            1,
+            2,
+            3,
+            4,
+            5,
+            6
+          ],
+          "maskSHA256": "3e53b03db41196f1250ae7d574df8d31a70ba46c44244d80e5c6672f83a7417d",
+          "forced": [
+            1,
+            198,
+            1,
+            27,
+            1,
+            1628,
+            1,
+            58479,
+            1,
+            2135,
+            1,
+            26590,
+            1,
+            29,
+            1,
+            198,
+            1,
+            27,
+            1,
+            15704,
+            1,
+            76478,
+            1,
+            29,
+            2,
+            27,
+            2,
+            1628,
+            2,
+            58479,
+            2,
+            2135,
+            2,
+            26590,
+            2,
+            29,
+            2,
+            198,
+            2,
+            27,
+            2,
+            15704,
+            2,
+            76478,
+            2,
+            29,
+            3,
+            1628,
+            3,
+            58479,
+            3,
+            2135,
+            3,
+            26590,
+            3,
+            29,
+            3,
+            198,
+            3,
+            27,
+            3,
+            15704,
+            3,
+            76478,
+            3,
+            29,
+            4,
+            58479,
+            4,
+            2135,
+            4,
+            26590,
+            4,
+            29,
+            4,
+            198,
+            4,
+            27,
+            4,
+            15704,
+            4,
+            76478,
+            4,
+            29,
+            5,
+            2135,
+            5,
+            26590,
+            5,
+            29,
+            5,
+            198,
+            5,
+            27,
+            5,
+            15704,
+            5,
+            76478,
+            5,
+            29,
+            6,
+            26590,
+            6,
+            29,
+            6,
+            198,
+            6,
+            27,
+            6,
+            15704,
+            6,
+            76478,
+            6,
+            29,
+            7,
+            29,
+            7,
+            198,
+            7,
+            27,
+            7,
+            15704,
+            7,
+            76478,
+            7,
+            29,
+            8,
+            198,
+            8,
+            27,
+            8,
+            15704,
+            8,
+            76478,
+            8,
+            29
+          ]
+        },
+        {
+          "committed": [],
+          "simulation": [
+            248058,
+            198,
+            27,
+            248046,
+            0
+          ],
+          "parents": [
+            4294967295,
+            0,
+            1,
+            1,
+            0
+          ],
+          "maskSHA256": "7638520c7c869c6f5f37f4c8ec0c9b12a89f2340d91315c242d57de1bf1ef619",
+          "forced": [
+            1,
+            198,
+            1,
+            27,
+            1,
+            1628,
+            1,
+            58479,
+            1,
+            2135,
+            1,
+            26590,
+            1,
+            29,
+            1,
+            198,
+            1,
+            27,
+            1,
+            15704,
+            1,
+            76478,
+            1,
+            29,
+            2,
+            27,
+            2,
+            1628,
+            2,
+            58479,
+            2,
+            2135,
+            2,
+            26590,
+            2,
+            29,
+            2,
+            198,
+            2,
+            27,
+            2,
+            15704,
+            2,
+            76478,
+            2,
+            29,
+            3,
+            1628,
+            3,
+            58479,
+            3,
+            2135,
+            3,
+            26590,
+            3,
+            29,
+            3,
+            198,
+            3,
+            27,
+            3,
+            15704,
+            3,
+            76478,
+            3,
+            29
+          ]
         },
         {
           "committed": [
@@ -1431,7 +3803,221 @@
             29,
             198
           ],
-          "maskSHA256": "e67244880c9deb0576c26fe5326a29b16115b4c13922c1baf727b9ae2de94bd1"
+          "parents": [
+            4294967295,
+            0,
+            1,
+            2,
+            3,
+            4,
+            5,
+            6
+          ],
+          "maskSHA256": "e67244880c9deb0576c26fe5326a29b16115b4c13922c1baf727b9ae2de94bd1",
+          "forced": [
+            1,
+            27,
+            1,
+            1628,
+            1,
+            58479,
+            1,
+            2135,
+            1,
+            26590,
+            1,
+            29,
+            1,
+            198,
+            1,
+            27,
+            1,
+            15704,
+            1,
+            76478,
+            1,
+            29,
+            2,
+            1628,
+            2,
+            58479,
+            2,
+            2135,
+            2,
+            26590,
+            2,
+            29,
+            2,
+            198,
+            2,
+            27,
+            2,
+            15704,
+            2,
+            76478,
+            2,
+            29,
+            3,
+            58479,
+            3,
+            2135,
+            3,
+            26590,
+            3,
+            29,
+            3,
+            198,
+            3,
+            27,
+            3,
+            15704,
+            3,
+            76478,
+            3,
+            29,
+            4,
+            2135,
+            4,
+            26590,
+            4,
+            29,
+            4,
+            198,
+            4,
+            27,
+            4,
+            15704,
+            4,
+            76478,
+            4,
+            29,
+            5,
+            26590,
+            5,
+            29,
+            5,
+            198,
+            5,
+            27,
+            5,
+            15704,
+            5,
+            76478,
+            5,
+            29,
+            6,
+            29,
+            6,
+            198,
+            6,
+            27,
+            6,
+            15704,
+            6,
+            76478,
+            6,
+            29,
+            7,
+            198,
+            7,
+            27,
+            7,
+            15704,
+            7,
+            76478,
+            7,
+            29,
+            8,
+            27,
+            8,
+            15704,
+            8,
+            76478,
+            8,
+            29
+          ]
+        },
+        {
+          "committed": [
+            248058
+          ],
+          "simulation": [
+            198,
+            27,
+            1628,
+            248046,
+            0
+          ],
+          "parents": [
+            4294967295,
+            0,
+            1,
+            1,
+            0
+          ],
+          "maskSHA256": "d1441b7c83f55d29e3202845a0c760d4d8348b00ed2c5ba603b3294d4aab77ba",
+          "forced": [
+            1,
+            27,
+            1,
+            1628,
+            1,
+            58479,
+            1,
+            2135,
+            1,
+            26590,
+            1,
+            29,
+            1,
+            198,
+            1,
+            27,
+            1,
+            15704,
+            1,
+            76478,
+            1,
+            29,
+            2,
+            1628,
+            2,
+            58479,
+            2,
+            2135,
+            2,
+            26590,
+            2,
+            29,
+            2,
+            198,
+            2,
+            27,
+            2,
+            15704,
+            2,
+            76478,
+            2,
+            29,
+            3,
+            58479,
+            3,
+            2135,
+            3,
+            26590,
+            3,
+            29,
+            3,
+            198,
+            3,
+            27,
+            3,
+            15704,
+            3,
+            76478,
+            3,
+            29
+          ]
         },
         {
           "committed": [
@@ -1448,7 +4034,200 @@
             198,
             27
           ],
-          "maskSHA256": "e0037784df035c3c60b325b57f5564f7b963e932f9c4edb2e3b7fbfc6d346941"
+          "parents": [
+            4294967295,
+            0,
+            1,
+            2,
+            3,
+            4,
+            5,
+            6
+          ],
+          "maskSHA256": "e0037784df035c3c60b325b57f5564f7b963e932f9c4edb2e3b7fbfc6d346941",
+          "forced": [
+            1,
+            1628,
+            1,
+            58479,
+            1,
+            2135,
+            1,
+            26590,
+            1,
+            29,
+            1,
+            198,
+            1,
+            27,
+            1,
+            15704,
+            1,
+            76478,
+            1,
+            29,
+            2,
+            58479,
+            2,
+            2135,
+            2,
+            26590,
+            2,
+            29,
+            2,
+            198,
+            2,
+            27,
+            2,
+            15704,
+            2,
+            76478,
+            2,
+            29,
+            3,
+            2135,
+            3,
+            26590,
+            3,
+            29,
+            3,
+            198,
+            3,
+            27,
+            3,
+            15704,
+            3,
+            76478,
+            3,
+            29,
+            4,
+            26590,
+            4,
+            29,
+            4,
+            198,
+            4,
+            27,
+            4,
+            15704,
+            4,
+            76478,
+            4,
+            29,
+            5,
+            29,
+            5,
+            198,
+            5,
+            27,
+            5,
+            15704,
+            5,
+            76478,
+            5,
+            29,
+            6,
+            198,
+            6,
+            27,
+            6,
+            15704,
+            6,
+            76478,
+            6,
+            29,
+            7,
+            27,
+            7,
+            15704,
+            7,
+            76478,
+            7,
+            29,
+            8,
+            15704,
+            8,
+            76478,
+            8,
+            29
+          ]
+        },
+        {
+          "committed": [
+            248058,
+            198
+          ],
+          "simulation": [
+            27,
+            1628,
+            58479,
+            248046,
+            0
+          ],
+          "parents": [
+            4294967295,
+            0,
+            1,
+            1,
+            0
+          ],
+          "maskSHA256": "866e92292f22bbb34d5c6090eef145289e340936dddd014c73916b82dbd75243",
+          "forced": [
+            1,
+            1628,
+            1,
+            58479,
+            1,
+            2135,
+            1,
+            26590,
+            1,
+            29,
+            1,
+            198,
+            1,
+            27,
+            1,
+            15704,
+            1,
+            76478,
+            1,
+            29,
+            2,
+            58479,
+            2,
+            2135,
+            2,
+            26590,
+            2,
+            29,
+            2,
+            198,
+            2,
+            27,
+            2,
+            15704,
+            2,
+            76478,
+            2,
+            29,
+            3,
+            2135,
+            3,
+            26590,
+            3,
+            29,
+            3,
+            198,
+            3,
+            27,
+            3,
+            15704,
+            3,
+            76478,
+            3,
+            29
+          ]
         },
         {
           "committed": [
@@ -1466,7 +4245,179 @@
             27,
             15704
           ],
-          "maskSHA256": "55f6d988e6b4f6d05b586d063196cff1f9e7d4b8f539f0d40a4eed75d6e7f832"
+          "parents": [
+            4294967295,
+            0,
+            1,
+            2,
+            3,
+            4,
+            5,
+            6
+          ],
+          "maskSHA256": "55f6d988e6b4f6d05b586d063196cff1f9e7d4b8f539f0d40a4eed75d6e7f832",
+          "forced": [
+            1,
+            58479,
+            1,
+            2135,
+            1,
+            26590,
+            1,
+            29,
+            1,
+            198,
+            1,
+            27,
+            1,
+            15704,
+            1,
+            76478,
+            1,
+            29,
+            2,
+            2135,
+            2,
+            26590,
+            2,
+            29,
+            2,
+            198,
+            2,
+            27,
+            2,
+            15704,
+            2,
+            76478,
+            2,
+            29,
+            3,
+            26590,
+            3,
+            29,
+            3,
+            198,
+            3,
+            27,
+            3,
+            15704,
+            3,
+            76478,
+            3,
+            29,
+            4,
+            29,
+            4,
+            198,
+            4,
+            27,
+            4,
+            15704,
+            4,
+            76478,
+            4,
+            29,
+            5,
+            198,
+            5,
+            27,
+            5,
+            15704,
+            5,
+            76478,
+            5,
+            29,
+            6,
+            27,
+            6,
+            15704,
+            6,
+            76478,
+            6,
+            29,
+            7,
+            15704,
+            7,
+            76478,
+            7,
+            29,
+            8,
+            76478,
+            8,
+            29
+          ]
+        },
+        {
+          "committed": [
+            248058,
+            198,
+            27
+          ],
+          "simulation": [
+            1628,
+            58479,
+            2135,
+            248046,
+            0
+          ],
+          "parents": [
+            4294967295,
+            0,
+            1,
+            1,
+            0
+          ],
+          "maskSHA256": "0198ca25ae1aa180bb3ff96091c2fd248f0a4733f85ab1be6a2577b76086bfb9",
+          "forced": [
+            1,
+            58479,
+            1,
+            2135,
+            1,
+            26590,
+            1,
+            29,
+            1,
+            198,
+            1,
+            27,
+            1,
+            15704,
+            1,
+            76478,
+            1,
+            29,
+            2,
+            2135,
+            2,
+            26590,
+            2,
+            29,
+            2,
+            198,
+            2,
+            27,
+            2,
+            15704,
+            2,
+            76478,
+            2,
+            29,
+            3,
+            26590,
+            3,
+            29,
+            3,
+            198,
+            3,
+            27,
+            3,
+            15704,
+            3,
+            76478,
+            3,
+            29
+          ]
         },
         {
           "committed": [
@@ -1485,7 +4436,158 @@
             15704,
             76478
           ],
-          "maskSHA256": "9ccd76067ad66104fba29416239767a0d140192e387eecdf7c7c66d4b3b8e086"
+          "parents": [
+            4294967295,
+            0,
+            1,
+            2,
+            3,
+            4,
+            5,
+            6
+          ],
+          "maskSHA256": "9ccd76067ad66104fba29416239767a0d140192e387eecdf7c7c66d4b3b8e086",
+          "forced": [
+            1,
+            2135,
+            1,
+            26590,
+            1,
+            29,
+            1,
+            198,
+            1,
+            27,
+            1,
+            15704,
+            1,
+            76478,
+            1,
+            29,
+            2,
+            26590,
+            2,
+            29,
+            2,
+            198,
+            2,
+            27,
+            2,
+            15704,
+            2,
+            76478,
+            2,
+            29,
+            3,
+            29,
+            3,
+            198,
+            3,
+            27,
+            3,
+            15704,
+            3,
+            76478,
+            3,
+            29,
+            4,
+            198,
+            4,
+            27,
+            4,
+            15704,
+            4,
+            76478,
+            4,
+            29,
+            5,
+            27,
+            5,
+            15704,
+            5,
+            76478,
+            5,
+            29,
+            6,
+            15704,
+            6,
+            76478,
+            6,
+            29,
+            7,
+            76478,
+            7,
+            29,
+            8,
+            29
+          ]
+        },
+        {
+          "committed": [
+            248058,
+            198,
+            27,
+            1628
+          ],
+          "simulation": [
+            58479,
+            2135,
+            26590,
+            248046,
+            0
+          ],
+          "parents": [
+            4294967295,
+            0,
+            1,
+            1,
+            0
+          ],
+          "maskSHA256": "132ba0804969b402f13fc0729213c581f026f2c352d45a535f9fe6fd610d9e1e",
+          "forced": [
+            1,
+            2135,
+            1,
+            26590,
+            1,
+            29,
+            1,
+            198,
+            1,
+            27,
+            1,
+            15704,
+            1,
+            76478,
+            1,
+            29,
+            2,
+            26590,
+            2,
+            29,
+            2,
+            198,
+            2,
+            27,
+            2,
+            15704,
+            2,
+            76478,
+            2,
+            29,
+            3,
+            29,
+            3,
+            198,
+            3,
+            27,
+            3,
+            15704,
+            3,
+            76478,
+            3,
+            29
+          ]
         },
         {
           "committed": [
@@ -1505,7 +4607,137 @@
             76478,
             29
           ],
-          "maskSHA256": "5e0420859e93e26da9b0a0c06661fa0948e509a2e79d58e65c2f5aa66de40d21"
+          "parents": [
+            4294967295,
+            0,
+            1,
+            2,
+            3,
+            4,
+            5,
+            6
+          ],
+          "maskSHA256": "5e0420859e93e26da9b0a0c06661fa0948e509a2e79d58e65c2f5aa66de40d21",
+          "forced": [
+            1,
+            26590,
+            1,
+            29,
+            1,
+            198,
+            1,
+            27,
+            1,
+            15704,
+            1,
+            76478,
+            1,
+            29,
+            2,
+            29,
+            2,
+            198,
+            2,
+            27,
+            2,
+            15704,
+            2,
+            76478,
+            2,
+            29,
+            3,
+            198,
+            3,
+            27,
+            3,
+            15704,
+            3,
+            76478,
+            3,
+            29,
+            4,
+            27,
+            4,
+            15704,
+            4,
+            76478,
+            4,
+            29,
+            5,
+            15704,
+            5,
+            76478,
+            5,
+            29,
+            6,
+            76478,
+            6,
+            29,
+            7,
+            29
+          ]
+        },
+        {
+          "committed": [
+            248058,
+            198,
+            27,
+            1628,
+            58479
+          ],
+          "simulation": [
+            2135,
+            26590,
+            29,
+            248046,
+            0
+          ],
+          "parents": [
+            4294967295,
+            0,
+            1,
+            1,
+            0
+          ],
+          "maskSHA256": "1b45734fd8286b919c944326effaa368aeaf67fa48ba1acc6ee14f282ce72670",
+          "forced": [
+            1,
+            26590,
+            1,
+            29,
+            1,
+            198,
+            1,
+            27,
+            1,
+            15704,
+            1,
+            76478,
+            1,
+            29,
+            2,
+            29,
+            2,
+            198,
+            2,
+            27,
+            2,
+            15704,
+            2,
+            76478,
+            2,
+            29,
+            3,
+            198,
+            3,
+            27,
+            3,
+            15704,
+            3,
+            76478,
+            3,
+            29
+          ]
         },
         {
           "committed": [
@@ -1526,7 +4758,118 @@
             29,
             198
           ],
-          "maskSHA256": "97bf7c5852529132118f214c222cdebfd8adeaa7fa13b9eced46babe38abc378"
+          "parents": [
+            4294967295,
+            0,
+            1,
+            2,
+            3,
+            4,
+            5,
+            6
+          ],
+          "maskSHA256": "97bf7c5852529132118f214c222cdebfd8adeaa7fa13b9eced46babe38abc378",
+          "forced": [
+            1,
+            29,
+            1,
+            198,
+            1,
+            27,
+            1,
+            15704,
+            1,
+            76478,
+            1,
+            29,
+            2,
+            198,
+            2,
+            27,
+            2,
+            15704,
+            2,
+            76478,
+            2,
+            29,
+            3,
+            27,
+            3,
+            15704,
+            3,
+            76478,
+            3,
+            29,
+            4,
+            15704,
+            4,
+            76478,
+            4,
+            29,
+            5,
+            76478,
+            5,
+            29,
+            6,
+            29
+          ]
+        },
+        {
+          "committed": [
+            248058,
+            198,
+            27,
+            1628,
+            58479,
+            2135
+          ],
+          "simulation": [
+            26590,
+            29,
+            198,
+            248046,
+            0
+          ],
+          "parents": [
+            4294967295,
+            0,
+            1,
+            1,
+            0
+          ],
+          "maskSHA256": "5ecb647a5c6ff18d6b1544e4ae4023e7d711c9be05f1c3fd7a34fd9453e2cb28",
+          "forced": [
+            1,
+            29,
+            1,
+            198,
+            1,
+            27,
+            1,
+            15704,
+            1,
+            76478,
+            1,
+            29,
+            2,
+            198,
+            2,
+            27,
+            2,
+            15704,
+            2,
+            76478,
+            2,
+            29,
+            3,
+            27,
+            3,
+            15704,
+            3,
+            76478,
+            3,
+            29
+          ]
         },
         {
           "committed": [
@@ -1548,7 +4891,101 @@
             198,
             21529
           ],
-          "maskSHA256": "4d7119f3b964ff77e38d9f962107f8de3561b0dd46e2bd9e1ab885581aca2516"
+          "parents": [
+            4294967295,
+            0,
+            1,
+            2,
+            3,
+            4,
+            5,
+            6
+          ],
+          "maskSHA256": "4d7119f3b964ff77e38d9f962107f8de3561b0dd46e2bd9e1ab885581aca2516",
+          "forced": [
+            1,
+            198,
+            1,
+            27,
+            1,
+            15704,
+            1,
+            76478,
+            1,
+            29,
+            2,
+            27,
+            2,
+            15704,
+            2,
+            76478,
+            2,
+            29,
+            3,
+            15704,
+            3,
+            76478,
+            3,
+            29,
+            4,
+            76478,
+            4,
+            29,
+            5,
+            29
+          ]
+        },
+        {
+          "committed": [
+            248058,
+            198,
+            27,
+            1628,
+            58479,
+            2135,
+            26590
+          ],
+          "simulation": [
+            29,
+            198,
+            27,
+            248046,
+            0
+          ],
+          "parents": [
+            4294967295,
+            0,
+            1,
+            1,
+            0
+          ],
+          "maskSHA256": "b75688c9ffb5202332373516ad84232cdc0a9a7b7cdb3968a45c6d80aab41f0f",
+          "forced": [
+            1,
+            198,
+            1,
+            27,
+            1,
+            15704,
+            1,
+            76478,
+            1,
+            29,
+            2,
+            27,
+            2,
+            15704,
+            2,
+            76478,
+            2,
+            29,
+            3,
+            15704,
+            3,
+            76478,
+            3,
+            29
+          ]
         },
         {
           "committed": [
@@ -1571,7 +5008,86 @@
             21529,
             220
           ],
-          "maskSHA256": "bde0f314680da42764a12804a3b30d71b07873edf778d2e45efe843e6cd3a576"
+          "parents": [
+            4294967295,
+            0,
+            1,
+            2,
+            3,
+            4,
+            5,
+            6
+          ],
+          "maskSHA256": "bde0f314680da42764a12804a3b30d71b07873edf778d2e45efe843e6cd3a576",
+          "forced": [
+            1,
+            27,
+            1,
+            15704,
+            1,
+            76478,
+            1,
+            29,
+            2,
+            15704,
+            2,
+            76478,
+            2,
+            29,
+            3,
+            76478,
+            3,
+            29,
+            4,
+            29
+          ]
+        },
+        {
+          "committed": [
+            248058,
+            198,
+            27,
+            1628,
+            58479,
+            2135,
+            26590,
+            29
+          ],
+          "simulation": [
+            198,
+            27,
+            15704,
+            248046,
+            0
+          ],
+          "parents": [
+            4294967295,
+            0,
+            1,
+            1,
+            0
+          ],
+          "maskSHA256": "792289f07903bbc884f731e2a076cc3d5fc6cc7b2e0d04c17685f9cb29d82eaa",
+          "forced": [
+            1,
+            27,
+            1,
+            15704,
+            1,
+            76478,
+            1,
+            29,
+            2,
+            15704,
+            2,
+            76478,
+            2,
+            29,
+            3,
+            76478,
+            3,
+            29
+          ]
         },
         {
           "committed": [
@@ -1595,7 +5111,73 @@
             220,
             16
           ],
-          "maskSHA256": "19af829109a1c5d930664c71ab0c35d8e48b0aaf7fc0efb752b0784b6702dd92"
+          "parents": [
+            4294967295,
+            0,
+            1,
+            2,
+            3,
+            4,
+            5,
+            6
+          ],
+          "maskSHA256": "19af829109a1c5d930664c71ab0c35d8e48b0aaf7fc0efb752b0784b6702dd92",
+          "forced": [
+            1,
+            15704,
+            1,
+            76478,
+            1,
+            29,
+            2,
+            76478,
+            2,
+            29,
+            3,
+            29
+          ]
+        },
+        {
+          "committed": [
+            248058,
+            198,
+            27,
+            1628,
+            58479,
+            2135,
+            26590,
+            29,
+            198
+          ],
+          "simulation": [
+            27,
+            15704,
+            76478,
+            248046,
+            0
+          ],
+          "parents": [
+            4294967295,
+            0,
+            1,
+            1,
+            0
+          ],
+          "maskSHA256": "89432ca8d86bd04693fa4a692b665128489ddfdbfc8b164d4d2bf110cebe0ae8",
+          "forced": [
+            1,
+            15704,
+            1,
+            76478,
+            1,
+            29,
+            2,
+            76478,
+            2,
+            29,
+            3,
+            29
+          ]
         },
         {
           "committed": [
@@ -1620,7 +5202,62 @@
             16,
             15
           ],
-          "maskSHA256": "299fc37037216c3c64c8fa69aba23cc60709f7775f46976b754cdd4c3f061d21"
+          "parents": [
+            4294967295,
+            0,
+            1,
+            2,
+            3,
+            4,
+            5,
+            6
+          ],
+          "maskSHA256": "299fc37037216c3c64c8fa69aba23cc60709f7775f46976b754cdd4c3f061d21",
+          "forced": [
+            1,
+            76478,
+            1,
+            29,
+            2,
+            29
+          ]
+        },
+        {
+          "committed": [
+            248058,
+            198,
+            27,
+            1628,
+            58479,
+            2135,
+            26590,
+            29,
+            198,
+            27
+          ],
+          "simulation": [
+            15704,
+            76478,
+            29,
+            248046,
+            0
+          ],
+          "parents": [
+            4294967295,
+            0,
+            1,
+            1,
+            0
+          ],
+          "maskSHA256": "a652ab100cec4c1be441165575bff3c6e2bda8abffd4647f79c90b5b79cc2250",
+          "forced": [
+            1,
+            76478,
+            1,
+            29,
+            2,
+            29
+          ]
         },
         {
           "committed": [
@@ -1646,7 +5283,55 @@
             15,
             19
           ],
-          "maskSHA256": "3c65e8c49d00b85d564df4fa027fd54b3c7a1c69a92fc823aea34e8ed5ef8516"
+          "parents": [
+            4294967295,
+            0,
+            1,
+            2,
+            3,
+            4,
+            5,
+            6
+          ],
+          "maskSHA256": "3c65e8c49d00b85d564df4fa027fd54b3c7a1c69a92fc823aea34e8ed5ef8516",
+          "forced": [
+            1,
+            29
+          ]
+        },
+        {
+          "committed": [
+            248058,
+            198,
+            27,
+            1628,
+            58479,
+            2135,
+            26590,
+            29,
+            198,
+            27,
+            15704
+          ],
+          "simulation": [
+            76478,
+            29,
+            198,
+            248046,
+            0
+          ],
+          "parents": [
+            4294967295,
+            0,
+            1,
+            1,
+            0
+          ],
+          "maskSHA256": "0ad0b7b3a2af120174cf0b6ab513cbcbdcf7294c169b1c87e5656627b61ff204",
+          "forced": [
+            1,
+            29
+          ]
         },
         {
           "committed": [
@@ -1673,7 +5358,52 @@
             19,
             17
           ],
-          "maskSHA256": "bada9a907aea4c2de74baff84f9422d44af69c1599c8eca37172811ce296752b"
+          "parents": [
+            4294967295,
+            0,
+            1,
+            2,
+            3,
+            4,
+            5,
+            6
+          ],
+          "maskSHA256": "bada9a907aea4c2de74baff84f9422d44af69c1599c8eca37172811ce296752b",
+          "forced": []
+        },
+        {
+          "committed": [
+            248058,
+            198,
+            27,
+            1628,
+            58479,
+            2135,
+            26590,
+            29,
+            198,
+            27,
+            15704,
+            76478
+          ],
+          "simulation": [
+            29,
+            198,
+            21529,
+            248046,
+            271,
+            0
+          ],
+          "parents": [
+            4294967295,
+            0,
+            1,
+            1,
+            0,
+            0
+          ],
+          "maskSHA256": "60a3ba6d2a0ebc35b384f42b2e0f9bf0acd36580f970c3f55d753840ad5446b8",
+          "forced": []
         },
         {
           "committed": [
@@ -1701,7 +5431,53 @@
             17,
             198
           ],
-          "maskSHA256": "728199e769e62d70b20a257c46cc140a655cb956891f2e0a6a6e9c03c142b9f1"
+          "parents": [
+            4294967295,
+            0,
+            1,
+            2,
+            3,
+            4,
+            5,
+            6
+          ],
+          "maskSHA256": "728199e769e62d70b20a257c46cc140a655cb956891f2e0a6a6e9c03c142b9f1",
+          "forced": []
+        },
+        {
+          "committed": [
+            248058,
+            198,
+            27,
+            1628,
+            58479,
+            2135,
+            26590,
+            29,
+            198,
+            27,
+            15704,
+            76478,
+            29
+          ],
+          "simulation": [
+            198,
+            21529,
+            220,
+            248046,
+            0,
+            94
+          ],
+          "parents": [
+            4294967295,
+            0,
+            1,
+            1,
+            0,
+            0
+          ],
+          "maskSHA256": "5fa607a73b189b061c33bb16802c2fc135c62d5bdb5d4db21a33d74abd3cdcd2",
+          "forced": []
         },
         {
           "committed": [
@@ -1730,7 +5506,54 @@
             198,
             510
           ],
-          "maskSHA256": "1b04e68350e52537c5842101e08f280422a70372d10401e5dca23c75a20293d1"
+          "parents": [
+            4294967295,
+            0,
+            1,
+            2,
+            3,
+            4,
+            5,
+            6
+          ],
+          "maskSHA256": "1b04e68350e52537c5842101e08f280422a70372d10401e5dca23c75a20293d1",
+          "forced": []
+        },
+        {
+          "committed": [
+            248058,
+            198,
+            27,
+            1628,
+            58479,
+            2135,
+            26590,
+            29,
+            198,
+            27,
+            15704,
+            76478,
+            29,
+            198
+          ],
+          "simulation": [
+            21529,
+            220,
+            16,
+            248046,
+            0,
+            94
+          ],
+          "parents": [
+            4294967295,
+            0,
+            1,
+            1,
+            0,
+            0
+          ],
+          "maskSHA256": "5f1551febfed52cf54cd9aed73a8a33d966a137435fed024dc7edc2b76be8149",
+          "forced": []
         },
         {
           "committed": [
@@ -1760,7 +5583,55 @@
             510,
             15704
           ],
-          "maskSHA256": "1b04e68350e52537c5842101e08f280422a70372d10401e5dca23c75a20293d1"
+          "parents": [
+            4294967295,
+            0,
+            1,
+            2,
+            3,
+            4,
+            5,
+            6
+          ],
+          "maskSHA256": "1b04e68350e52537c5842101e08f280422a70372d10401e5dca23c75a20293d1",
+          "forced": []
+        },
+        {
+          "committed": [
+            248058,
+            198,
+            27,
+            1628,
+            58479,
+            2135,
+            26590,
+            29,
+            198,
+            27,
+            15704,
+            76478,
+            29,
+            198,
+            21529
+          ],
+          "simulation": [
+            220,
+            16,
+            15,
+            248046,
+            0,
+            94
+          ],
+          "parents": [
+            4294967295,
+            0,
+            1,
+            1,
+            0,
+            0
+          ],
+          "maskSHA256": "5f1551febfed52cf54cd9aed73a8a33d966a137435fed024dc7edc2b76be8149",
+          "forced": []
         },
         {
           "committed": [
@@ -1791,7 +5662,56 @@
             15704,
             29
           ],
-          "maskSHA256": "02babe3bb86a48fb42ab407589fb1e78fd335e9d4881adce63cc3656d513cef0"
+          "parents": [
+            4294967295,
+            0,
+            1,
+            2,
+            3,
+            4,
+            5,
+            6
+          ],
+          "maskSHA256": "02babe3bb86a48fb42ab407589fb1e78fd335e9d4881adce63cc3656d513cef0",
+          "forced": []
+        },
+        {
+          "committed": [
+            248058,
+            198,
+            27,
+            1628,
+            58479,
+            2135,
+            26590,
+            29,
+            198,
+            27,
+            15704,
+            76478,
+            29,
+            198,
+            21529,
+            220
+          ],
+          "simulation": [
+            16,
+            15,
+            19,
+            248046,
+            0,
+            94
+          ],
+          "parents": [
+            4294967295,
+            0,
+            1,
+            1,
+            0,
+            0
+          ],
+          "maskSHA256": "5f1551febfed52cf54cd9aed73a8a33d966a137435fed024dc7edc2b76be8149",
+          "forced": []
         },
         {
           "committed": [
@@ -1823,7 +5743,70 @@
             29,
             198
           ],
-          "maskSHA256": "0f049f27b64147099cc74b786b87a1a7b59696f117585d2800c709fa3a72634c"
+          "parents": [
+            4294967295,
+            0,
+            1,
+            2,
+            3,
+            4,
+            5,
+            6
+          ],
+          "maskSHA256": "0f049f27b64147099cc74b786b87a1a7b59696f117585d2800c709fa3a72634c",
+          "forced": [
+            8,
+            27,
+            8,
+            15704,
+            8,
+            28,
+            8,
+            9226,
+            8,
+            29,
+            8,
+            198
+          ]
+        },
+        {
+          "committed": [
+            248058,
+            198,
+            27,
+            1628,
+            58479,
+            2135,
+            26590,
+            29,
+            198,
+            27,
+            15704,
+            76478,
+            29,
+            198,
+            21529,
+            220,
+            16
+          ],
+          "simulation": [
+            15,
+            19,
+            17,
+            248046,
+            0,
+            94
+          ],
+          "parents": [
+            4294967295,
+            0,
+            1,
+            1,
+            0,
+            0
+          ],
+          "maskSHA256": "5f1551febfed52cf54cd9aed73a8a33d966a137435fed024dc7edc2b76be8149",
+          "forced": []
         },
         {
           "committed": [
@@ -1856,7 +5839,81 @@
             198,
             27
           ],
-          "maskSHA256": "3c0947ce1a4460c345205ba0d9f7737144b8b10696761f030a861995e8882e23"
+          "parents": [
+            4294967295,
+            0,
+            1,
+            2,
+            3,
+            4,
+            5,
+            6
+          ],
+          "maskSHA256": "3c0947ce1a4460c345205ba0d9f7737144b8b10696761f030a861995e8882e23",
+          "forced": [
+            7,
+            27,
+            7,
+            15704,
+            7,
+            28,
+            7,
+            9226,
+            7,
+            29,
+            7,
+            198,
+            8,
+            15704,
+            8,
+            28,
+            8,
+            9226,
+            8,
+            29,
+            8,
+            198
+          ]
+        },
+        {
+          "committed": [
+            248058,
+            198,
+            27,
+            1628,
+            58479,
+            2135,
+            26590,
+            29,
+            198,
+            27,
+            15704,
+            76478,
+            29,
+            198,
+            21529,
+            220,
+            16,
+            15
+          ],
+          "simulation": [
+            19,
+            17,
+            198,
+            248046,
+            0,
+            94
+          ],
+          "parents": [
+            4294967295,
+            0,
+            1,
+            1,
+            0,
+            0
+          ],
+          "maskSHA256": "5f1551febfed52cf54cd9aed73a8a33d966a137435fed024dc7edc2b76be8149",
+          "forced": []
         },
         {
           "committed": [
@@ -1890,7 +5947,90 @@
             27,
             15704
           ],
-          "maskSHA256": "d55b36446bb0854b4d640bc59b4573549b382d62f786414a41be3337b716c573"
+          "parents": [
+            4294967295,
+            0,
+            1,
+            2,
+            3,
+            4,
+            5,
+            6
+          ],
+          "maskSHA256": "d55b36446bb0854b4d640bc59b4573549b382d62f786414a41be3337b716c573",
+          "forced": [
+            6,
+            27,
+            6,
+            15704,
+            6,
+            28,
+            6,
+            9226,
+            6,
+            29,
+            6,
+            198,
+            7,
+            15704,
+            7,
+            28,
+            7,
+            9226,
+            7,
+            29,
+            7,
+            198,
+            8,
+            28,
+            8,
+            9226,
+            8,
+            29,
+            8,
+            198
+          ]
+        },
+        {
+          "committed": [
+            248058,
+            198,
+            27,
+            1628,
+            58479,
+            2135,
+            26590,
+            29,
+            198,
+            27,
+            15704,
+            76478,
+            29,
+            198,
+            21529,
+            220,
+            16,
+            15,
+            19
+          ],
+          "simulation": [
+            17,
+            198,
+            510,
+            248046,
+            0,
+            94
+          ],
+          "parents": [
+            4294967295,
+            0,
+            1,
+            1,
+            0,
+            0
+          ],
+          "maskSHA256": "5f1551febfed52cf54cd9aed73a8a33d966a137435fed024dc7edc2b76be8149",
+          "forced": []
         },
         {
           "committed": [
@@ -1925,7 +6065,97 @@
             15704,
             28
           ],
-          "maskSHA256": "c8aa7025f2b11dc8d30e43b17400776c4cabead950beafe375fd6cc4793b8cfb"
+          "parents": [
+            4294967295,
+            0,
+            1,
+            2,
+            3,
+            4,
+            5,
+            6
+          ],
+          "maskSHA256": "c8aa7025f2b11dc8d30e43b17400776c4cabead950beafe375fd6cc4793b8cfb",
+          "forced": [
+            5,
+            27,
+            5,
+            15704,
+            5,
+            28,
+            5,
+            9226,
+            5,
+            29,
+            5,
+            198,
+            6,
+            15704,
+            6,
+            28,
+            6,
+            9226,
+            6,
+            29,
+            6,
+            198,
+            7,
+            28,
+            7,
+            9226,
+            7,
+            29,
+            7,
+            198,
+            8,
+            9226,
+            8,
+            29,
+            8,
+            198
+          ]
+        },
+        {
+          "committed": [
+            248058,
+            198,
+            27,
+            1628,
+            58479,
+            2135,
+            26590,
+            29,
+            198,
+            27,
+            15704,
+            76478,
+            29,
+            198,
+            21529,
+            220,
+            16,
+            15,
+            19,
+            17
+          ],
+          "simulation": [
+            198,
+            510,
+            15704,
+            248046,
+            0,
+            94
+          ],
+          "parents": [
+            4294967295,
+            0,
+            1,
+            1,
+            0,
+            0
+          ],
+          "maskSHA256": "5f1551febfed52cf54cd9aed73a8a33d966a137435fed024dc7edc2b76be8149",
+          "forced": []
         },
         {
           "committed": [
@@ -1961,7 +6191,102 @@
             28,
             9226
           ],
-          "maskSHA256": "c6d97e935297cd4169d5a1925656b0003b720de82c2de1aa447cc7a4095770d2"
+          "parents": [
+            4294967295,
+            0,
+            1,
+            2,
+            3,
+            4,
+            5,
+            6
+          ],
+          "maskSHA256": "c6d97e935297cd4169d5a1925656b0003b720de82c2de1aa447cc7a4095770d2",
+          "forced": [
+            4,
+            27,
+            4,
+            15704,
+            4,
+            28,
+            4,
+            9226,
+            4,
+            29,
+            4,
+            198,
+            5,
+            15704,
+            5,
+            28,
+            5,
+            9226,
+            5,
+            29,
+            5,
+            198,
+            6,
+            28,
+            6,
+            9226,
+            6,
+            29,
+            6,
+            198,
+            7,
+            9226,
+            7,
+            29,
+            7,
+            198,
+            8,
+            29,
+            8,
+            198
+          ]
+        },
+        {
+          "committed": [
+            248058,
+            198,
+            27,
+            1628,
+            58479,
+            2135,
+            26590,
+            29,
+            198,
+            27,
+            15704,
+            76478,
+            29,
+            198,
+            21529,
+            220,
+            16,
+            15,
+            19,
+            17,
+            198
+          ],
+          "simulation": [
+            510,
+            15704,
+            29,
+            248046,
+            0,
+            94
+          ],
+          "parents": [
+            4294967295,
+            0,
+            1,
+            1,
+            0,
+            0
+          ],
+          "maskSHA256": "03ae7f41aa68e78610f0ffa0d57eeea1340dbf4929ac67949ec2465951e5bdbc",
+          "forced": []
         },
         {
           "committed": [
@@ -1998,7 +6323,118 @@
             9226,
             29
           ],
-          "maskSHA256": "8013bd257ee9afb1715413e017480f72a59e0104f5ec0a301e5a7016b96cd21e"
+          "parents": [
+            4294967295,
+            0,
+            1,
+            2,
+            3,
+            4,
+            5,
+            6
+          ],
+          "maskSHA256": "8013bd257ee9afb1715413e017480f72a59e0104f5ec0a301e5a7016b96cd21e",
+          "forced": [
+            3,
+            27,
+            3,
+            15704,
+            3,
+            28,
+            3,
+            9226,
+            3,
+            29,
+            3,
+            198,
+            4,
+            15704,
+            4,
+            28,
+            4,
+            9226,
+            4,
+            29,
+            4,
+            198,
+            5,
+            28,
+            5,
+            9226,
+            5,
+            29,
+            5,
+            198,
+            6,
+            9226,
+            6,
+            29,
+            6,
+            198,
+            7,
+            29,
+            7,
+            198,
+            8,
+            198
+          ]
+        },
+        {
+          "committed": [
+            248058,
+            198,
+            27,
+            1628,
+            58479,
+            2135,
+            26590,
+            29,
+            198,
+            27,
+            15704,
+            76478,
+            29,
+            198,
+            21529,
+            220,
+            16,
+            15,
+            19,
+            17,
+            198,
+            510
+          ],
+          "simulation": [
+            15704,
+            29,
+            198,
+            248046,
+            0,
+            94
+          ],
+          "parents": [
+            4294967295,
+            0,
+            1,
+            1,
+            0,
+            0
+          ],
+          "maskSHA256": "30cca2dd2d5c04d39f87cb334048becadbec470c2bfd6f275dbee4d6d53249f2",
+          "forced": [
+            3,
+            27,
+            3,
+            15704,
+            3,
+            28,
+            3,
+            9226,
+            3,
+            29,
+            3,
+            198
+          ]
         },
         {
           "committed": [
@@ -2036,7 +6472,129 @@
             29,
             198
           ],
-          "maskSHA256": "e430e4d8748c7d801c9d37c1cbd45d5e13bf6ce9475684d0344aa7c5d9cfe002"
+          "parents": [
+            4294967295,
+            0,
+            1,
+            2,
+            3,
+            4,
+            5,
+            6
+          ],
+          "maskSHA256": "e430e4d8748c7d801c9d37c1cbd45d5e13bf6ce9475684d0344aa7c5d9cfe002",
+          "forced": [
+            2,
+            27,
+            2,
+            15704,
+            2,
+            28,
+            2,
+            9226,
+            2,
+            29,
+            2,
+            198,
+            3,
+            15704,
+            3,
+            28,
+            3,
+            9226,
+            3,
+            29,
+            3,
+            198,
+            4,
+            28,
+            4,
+            9226,
+            4,
+            29,
+            4,
+            198,
+            5,
+            9226,
+            5,
+            29,
+            5,
+            198,
+            6,
+            29,
+            6,
+            198,
+            7,
+            198
+          ]
+        },
+        {
+          "committed": [
+            248058,
+            198,
+            27,
+            1628,
+            58479,
+            2135,
+            26590,
+            29,
+            198,
+            27,
+            15704,
+            76478,
+            29,
+            198,
+            21529,
+            220,
+            16,
+            15,
+            19,
+            17,
+            198,
+            510,
+            15704
+          ],
+          "simulation": [
+            29,
+            198,
+            27,
+            248046,
+            0,
+            94
+          ],
+          "parents": [
+            4294967295,
+            0,
+            1,
+            1,
+            0,
+            0
+          ],
+          "maskSHA256": "2e1280aad1754dab01edc3024ddce4dcd64723c3b065537539990d345b466710",
+          "forced": [
+            2,
+            27,
+            2,
+            15704,
+            2,
+            28,
+            2,
+            9226,
+            2,
+            29,
+            2,
+            198,
+            3,
+            15704,
+            3,
+            28,
+            3,
+            9226,
+            3,
+            29,
+            3,
+            198
+          ]
         },
         {
           "committed": [
@@ -2075,7 +6633,136 @@
             198,
             19
           ],
-          "maskSHA256": "5d7f18caa0a0d8b088ce120e6da59e9630785b8581d44b7b4a2b7f6788b2841f"
+          "parents": [
+            4294967295,
+            0,
+            1,
+            2,
+            3,
+            4,
+            5,
+            6
+          ],
+          "maskSHA256": "5d7f18caa0a0d8b088ce120e6da59e9630785b8581d44b7b4a2b7f6788b2841f",
+          "forced": [
+            1,
+            27,
+            1,
+            15704,
+            1,
+            28,
+            1,
+            9226,
+            1,
+            29,
+            1,
+            198,
+            2,
+            15704,
+            2,
+            28,
+            2,
+            9226,
+            2,
+            29,
+            2,
+            198,
+            3,
+            28,
+            3,
+            9226,
+            3,
+            29,
+            3,
+            198,
+            4,
+            9226,
+            4,
+            29,
+            4,
+            198,
+            5,
+            29,
+            5,
+            198,
+            6,
+            198
+          ]
+        },
+        {
+          "committed": [
+            248058,
+            198,
+            27,
+            1628,
+            58479,
+            2135,
+            26590,
+            29,
+            198,
+            27,
+            15704,
+            76478,
+            29,
+            198,
+            21529,
+            220,
+            16,
+            15,
+            19,
+            17,
+            198,
+            510,
+            15704,
+            29
+          ],
+          "simulation": [
+            198,
+            27,
+            15704,
+            248046,
+            0
+          ],
+          "parents": [
+            4294967295,
+            0,
+            1,
+            1,
+            0
+          ],
+          "maskSHA256": "d37ea83041babdf489e9e919c5f491c7b10f0445756604e0e30095c115728b50",
+          "forced": [
+            1,
+            27,
+            1,
+            15704,
+            1,
+            28,
+            1,
+            9226,
+            1,
+            29,
+            1,
+            198,
+            2,
+            15704,
+            2,
+            28,
+            2,
+            9226,
+            2,
+            29,
+            2,
+            198,
+            3,
+            28,
+            3,
+            9226,
+            3,
+            29,
+            3,
+            198
+          ]
         },
         {
           "committed": [
@@ -2115,7 +6802,137 @@
             19,
             198
           ],
-          "maskSHA256": "4b820c1098955e92f3a707a236fc2f743cd789eb8e8b3193defd67deeedd5a18"
+          "parents": [
+            4294967295,
+            0,
+            1,
+            2,
+            3,
+            4,
+            5,
+            6
+          ],
+          "maskSHA256": "4b820c1098955e92f3a707a236fc2f743cd789eb8e8b3193defd67deeedd5a18",
+          "forced": [
+            1,
+            15704,
+            1,
+            28,
+            1,
+            9226,
+            1,
+            29,
+            1,
+            198,
+            2,
+            28,
+            2,
+            9226,
+            2,
+            29,
+            2,
+            198,
+            3,
+            9226,
+            3,
+            29,
+            3,
+            198,
+            4,
+            29,
+            4,
+            198,
+            5,
+            198,
+            8,
+            510,
+            8,
+            15704,
+            8,
+            29,
+            8,
+            198,
+            8,
+            510,
+            8,
+            1628,
+            8,
+            29,
+            8,
+            198,
+            8,
+            248059
+          ]
+        },
+        {
+          "committed": [
+            248058,
+            198,
+            27,
+            1628,
+            58479,
+            2135,
+            26590,
+            29,
+            198,
+            27,
+            15704,
+            76478,
+            29,
+            198,
+            21529,
+            220,
+            16,
+            15,
+            19,
+            17,
+            198,
+            510,
+            15704,
+            29,
+            198
+          ],
+          "simulation": [
+            27,
+            15704,
+            28,
+            248046,
+            0
+          ],
+          "parents": [
+            4294967295,
+            0,
+            1,
+            1,
+            0
+          ],
+          "maskSHA256": "72e944664b340a8a6a2b48e4528029935824af9dcf45639dabacb4423a8cc63e",
+          "forced": [
+            1,
+            15704,
+            1,
+            28,
+            1,
+            9226,
+            1,
+            29,
+            1,
+            198,
+            2,
+            28,
+            2,
+            9226,
+            2,
+            29,
+            2,
+            198,
+            3,
+            9226,
+            3,
+            29,
+            3,
+            198
+          ]
         },
         {
           "committed": [
@@ -2156,7 +6973,138 @@
             198,
             510
           ],
-          "maskSHA256": "be88b832cab840251faad152e5a5aba7e84cb17ec8a6b4ffd6e946bd30122f41"
+          "parents": [
+            4294967295,
+            0,
+            1,
+            2,
+            3,
+            4,
+            5,
+            6
+          ],
+          "maskSHA256": "be88b832cab840251faad152e5a5aba7e84cb17ec8a6b4ffd6e946bd30122f41",
+          "forced": [
+            1,
+            28,
+            1,
+            9226,
+            1,
+            29,
+            1,
+            198,
+            2,
+            9226,
+            2,
+            29,
+            2,
+            198,
+            3,
+            29,
+            3,
+            198,
+            4,
+            198,
+            7,
+            510,
+            7,
+            15704,
+            7,
+            29,
+            7,
+            198,
+            7,
+            510,
+            7,
+            1628,
+            7,
+            29,
+            7,
+            198,
+            7,
+            248059,
+            8,
+            15704,
+            8,
+            29,
+            8,
+            198,
+            8,
+            510,
+            8,
+            1628,
+            8,
+            29,
+            8,
+            198,
+            8,
+            248059
+          ]
+        },
+        {
+          "committed": [
+            248058,
+            198,
+            27,
+            1628,
+            58479,
+            2135,
+            26590,
+            29,
+            198,
+            27,
+            15704,
+            76478,
+            29,
+            198,
+            21529,
+            220,
+            16,
+            15,
+            19,
+            17,
+            198,
+            510,
+            15704,
+            29,
+            198,
+            27
+          ],
+          "simulation": [
+            15704,
+            28,
+            9226,
+            248046,
+            0
+          ],
+          "parents": [
+            4294967295,
+            0,
+            1,
+            1,
+            0
+          ],
+          "maskSHA256": "fadfcd97bf6e3679c90625c55cdbe5377eceea44ec0fe710fa7e2bc2465f9aca",
+          "forced": [
+            1,
+            28,
+            1,
+            9226,
+            1,
+            29,
+            1,
+            198,
+            2,
+            9226,
+            2,
+            29,
+            2,
+            198,
+            3,
+            29,
+            3,
+            198
+          ]
         },
         {
           "committed": [
@@ -2198,7 +7146,139 @@
             510,
             15704
           ],
-          "maskSHA256": "87b9d854613c612c44de04567d511f3d9f2d399aa2a8de948a327c094cdda407"
+          "parents": [
+            4294967295,
+            0,
+            1,
+            2,
+            3,
+            4,
+            5,
+            6
+          ],
+          "maskSHA256": "87b9d854613c612c44de04567d511f3d9f2d399aa2a8de948a327c094cdda407",
+          "forced": [
+            1,
+            9226,
+            1,
+            29,
+            1,
+            198,
+            2,
+            29,
+            2,
+            198,
+            3,
+            198,
+            6,
+            510,
+            6,
+            15704,
+            6,
+            29,
+            6,
+            198,
+            6,
+            510,
+            6,
+            1628,
+            6,
+            29,
+            6,
+            198,
+            6,
+            248059,
+            7,
+            15704,
+            7,
+            29,
+            7,
+            198,
+            7,
+            510,
+            7,
+            1628,
+            7,
+            29,
+            7,
+            198,
+            7,
+            248059,
+            8,
+            29,
+            8,
+            198,
+            8,
+            510,
+            8,
+            1628,
+            8,
+            29,
+            8,
+            198,
+            8,
+            248059
+          ]
+        },
+        {
+          "committed": [
+            248058,
+            198,
+            27,
+            1628,
+            58479,
+            2135,
+            26590,
+            29,
+            198,
+            27,
+            15704,
+            76478,
+            29,
+            198,
+            21529,
+            220,
+            16,
+            15,
+            19,
+            17,
+            198,
+            510,
+            15704,
+            29,
+            198,
+            27,
+            15704
+          ],
+          "simulation": [
+            28,
+            9226,
+            29,
+            248046,
+            0
+          ],
+          "parents": [
+            4294967295,
+            0,
+            1,
+            1,
+            0
+          ],
+          "maskSHA256": "c7a1ad8f9862aa53b732f0cb6f2e9ea4c433ed04600b3f97dc5186af8a70a4fe",
+          "forced": [
+            1,
+            9226,
+            1,
+            29,
+            1,
+            198,
+            2,
+            29,
+            2,
+            198,
+            3,
+            198
+          ]
         },
         {
           "committed": [
@@ -2241,7 +7321,140 @@
             15704,
             29
           ],
-          "maskSHA256": "a3a437c91f665b1a93ecc1059d6d8f390be25046c8558a33aa0cc2f2176e9933"
+          "parents": [
+            4294967295,
+            0,
+            1,
+            2,
+            3,
+            4,
+            5,
+            6
+          ],
+          "maskSHA256": "a3a437c91f665b1a93ecc1059d6d8f390be25046c8558a33aa0cc2f2176e9933",
+          "forced": [
+            1,
+            29,
+            1,
+            198,
+            2,
+            198,
+            5,
+            510,
+            5,
+            15704,
+            5,
+            29,
+            5,
+            198,
+            5,
+            510,
+            5,
+            1628,
+            5,
+            29,
+            5,
+            198,
+            5,
+            248059,
+            6,
+            15704,
+            6,
+            29,
+            6,
+            198,
+            6,
+            510,
+            6,
+            1628,
+            6,
+            29,
+            6,
+            198,
+            6,
+            248059,
+            7,
+            29,
+            7,
+            198,
+            7,
+            510,
+            7,
+            1628,
+            7,
+            29,
+            7,
+            198,
+            7,
+            248059,
+            8,
+            198,
+            8,
+            510,
+            8,
+            1628,
+            8,
+            29,
+            8,
+            198,
+            8,
+            248059
+          ]
+        },
+        {
+          "committed": [
+            248058,
+            198,
+            27,
+            1628,
+            58479,
+            2135,
+            26590,
+            29,
+            198,
+            27,
+            15704,
+            76478,
+            29,
+            198,
+            21529,
+            220,
+            16,
+            15,
+            19,
+            17,
+            198,
+            510,
+            15704,
+            29,
+            198,
+            27,
+            15704,
+            28
+          ],
+          "simulation": [
+            9226,
+            29,
+            198,
+            248046,
+            0
+          ],
+          "parents": [
+            4294967295,
+            0,
+            1,
+            1,
+            0
+          ],
+          "maskSHA256": "8d847b638455b7180cc953997cf6966f9aad98319ca308101a4a9f9c08d5fa06",
+          "forced": [
+            1,
+            29,
+            1,
+            198,
+            2,
+            198
+          ]
         },
         {
           "committed": [
@@ -2285,7 +7498,143 @@
             29,
             198
           ],
-          "maskSHA256": "cf3c9fc8d1859755885b6977d3f2edb83a61db4269ba22b0fce866e819927062"
+          "parents": [
+            4294967295,
+            0,
+            1,
+            2,
+            3,
+            4,
+            5,
+            6
+          ],
+          "maskSHA256": "cf3c9fc8d1859755885b6977d3f2edb83a61db4269ba22b0fce866e819927062",
+          "forced": [
+            1,
+            198,
+            4,
+            510,
+            4,
+            15704,
+            4,
+            29,
+            4,
+            198,
+            4,
+            510,
+            4,
+            1628,
+            4,
+            29,
+            4,
+            198,
+            4,
+            248059,
+            5,
+            15704,
+            5,
+            29,
+            5,
+            198,
+            5,
+            510,
+            5,
+            1628,
+            5,
+            29,
+            5,
+            198,
+            5,
+            248059,
+            6,
+            29,
+            6,
+            198,
+            6,
+            510,
+            6,
+            1628,
+            6,
+            29,
+            6,
+            198,
+            6,
+            248059,
+            7,
+            198,
+            7,
+            510,
+            7,
+            1628,
+            7,
+            29,
+            7,
+            198,
+            7,
+            248059,
+            8,
+            510,
+            8,
+            1628,
+            8,
+            29,
+            8,
+            198,
+            8,
+            248059
+          ]
+        },
+        {
+          "committed": [
+            248058,
+            198,
+            27,
+            1628,
+            58479,
+            2135,
+            26590,
+            29,
+            198,
+            27,
+            15704,
+            76478,
+            29,
+            198,
+            21529,
+            220,
+            16,
+            15,
+            19,
+            17,
+            198,
+            510,
+            15704,
+            29,
+            198,
+            27,
+            15704,
+            28,
+            9226
+          ],
+          "simulation": [
+            29,
+            198,
+            19,
+            248046,
+            0
+          ],
+          "parents": [
+            4294967295,
+            0,
+            1,
+            1,
+            0
+          ],
+          "maskSHA256": "bbd7533e7422e55a78ad42eaf4894a607785faaab7b60980326c9f84d4cddca7",
+          "forced": [
+            1,
+            198
+          ]
         },
         {
           "committed": [
@@ -2330,7 +7679,168 @@
             198,
             510
           ],
-          "maskSHA256": "677a652a2999d2fb079381727199300c1dd755389a41ea007825ca69fc9e502a"
+          "parents": [
+            4294967295,
+            0,
+            1,
+            2,
+            3,
+            4,
+            5,
+            6
+          ],
+          "maskSHA256": "677a652a2999d2fb079381727199300c1dd755389a41ea007825ca69fc9e502a",
+          "forced": [
+            3,
+            510,
+            3,
+            15704,
+            3,
+            29,
+            3,
+            198,
+            3,
+            510,
+            3,
+            1628,
+            3,
+            29,
+            3,
+            198,
+            3,
+            248059,
+            4,
+            15704,
+            4,
+            29,
+            4,
+            198,
+            4,
+            510,
+            4,
+            1628,
+            4,
+            29,
+            4,
+            198,
+            4,
+            248059,
+            5,
+            29,
+            5,
+            198,
+            5,
+            510,
+            5,
+            1628,
+            5,
+            29,
+            5,
+            198,
+            5,
+            248059,
+            6,
+            198,
+            6,
+            510,
+            6,
+            1628,
+            6,
+            29,
+            6,
+            198,
+            6,
+            248059,
+            7,
+            510,
+            7,
+            1628,
+            7,
+            29,
+            7,
+            198,
+            7,
+            248059,
+            8,
+            1628,
+            8,
+            29,
+            8,
+            198,
+            8,
+            248059
+          ]
+        },
+        {
+          "committed": [
+            248058,
+            198,
+            27,
+            1628,
+            58479,
+            2135,
+            26590,
+            29,
+            198,
+            27,
+            15704,
+            76478,
+            29,
+            198,
+            21529,
+            220,
+            16,
+            15,
+            19,
+            17,
+            198,
+            510,
+            15704,
+            29,
+            198,
+            27,
+            15704,
+            28,
+            9226,
+            29
+          ],
+          "simulation": [
+            198,
+            19,
+            198,
+            248046,
+            12,
+            0
+          ],
+          "parents": [
+            4294967295,
+            0,
+            1,
+            1,
+            0,
+            0
+          ],
+          "maskSHA256": "7ea13fc100438a8be010f54b1ce76361c19b7c6544520d05c8a3600ef4fd49b6",
+          "forced": [
+            3,
+            510,
+            3,
+            15704,
+            3,
+            29,
+            3,
+            198,
+            3,
+            510,
+            3,
+            1628,
+            3,
+            29,
+            3,
+            198,
+            3,
+            248059
+          ]
         },
         {
           "committed": [
@@ -2376,7 +7886,191 @@
             510,
             1628
           ],
-          "maskSHA256": "98f52412c595d9f495e9b22f72411ace2a94309e0ee1e94b8b2587512fe57f3a"
+          "parents": [
+            4294967295,
+            0,
+            1,
+            2,
+            3,
+            4,
+            5,
+            6
+          ],
+          "maskSHA256": "98f52412c595d9f495e9b22f72411ace2a94309e0ee1e94b8b2587512fe57f3a",
+          "forced": [
+            2,
+            510,
+            2,
+            15704,
+            2,
+            29,
+            2,
+            198,
+            2,
+            510,
+            2,
+            1628,
+            2,
+            29,
+            2,
+            198,
+            2,
+            248059,
+            3,
+            15704,
+            3,
+            29,
+            3,
+            198,
+            3,
+            510,
+            3,
+            1628,
+            3,
+            29,
+            3,
+            198,
+            3,
+            248059,
+            4,
+            29,
+            4,
+            198,
+            4,
+            510,
+            4,
+            1628,
+            4,
+            29,
+            4,
+            198,
+            4,
+            248059,
+            5,
+            198,
+            5,
+            510,
+            5,
+            1628,
+            5,
+            29,
+            5,
+            198,
+            5,
+            248059,
+            6,
+            510,
+            6,
+            1628,
+            6,
+            29,
+            6,
+            198,
+            6,
+            248059,
+            7,
+            1628,
+            7,
+            29,
+            7,
+            198,
+            7,
+            248059,
+            8,
+            29,
+            8,
+            198,
+            8,
+            248059
+          ]
+        },
+        {
+          "committed": [
+            248058,
+            198,
+            27,
+            1628,
+            58479,
+            2135,
+            26590,
+            29,
+            198,
+            27,
+            15704,
+            76478,
+            29,
+            198,
+            21529,
+            220,
+            16,
+            15,
+            19,
+            17,
+            198,
+            510,
+            15704,
+            29,
+            198,
+            27,
+            15704,
+            28,
+            9226,
+            29,
+            198
+          ],
+          "simulation": [
+            19,
+            198,
+            510,
+            248046,
+            15,
+            0
+          ],
+          "parents": [
+            4294967295,
+            0,
+            1,
+            1,
+            0,
+            0
+          ],
+          "maskSHA256": "4e79fbdcb23bd1bde02cffff38ae803be1eaa143c4b576ba2808cb40eec1ee0f",
+          "forced": [
+            2,
+            510,
+            2,
+            15704,
+            2,
+            29,
+            2,
+            198,
+            2,
+            510,
+            2,
+            1628,
+            2,
+            29,
+            2,
+            198,
+            2,
+            248059,
+            3,
+            15704,
+            3,
+            29,
+            3,
+            198,
+            3,
+            510,
+            3,
+            1628,
+            3,
+            29,
+            3,
+            198,
+            3,
+            248059
+          ]
         },
         {
           "committed": [
@@ -2423,7 +8117,208 @@
             1628,
             29
           ],
-          "maskSHA256": "1e939bf24dc56236bf3e709faecfd97f830abe9aab3feca14b9847553c5b26da"
+          "parents": [
+            4294967295,
+            0,
+            1,
+            2,
+            3,
+            4,
+            5,
+            6
+          ],
+          "maskSHA256": "1e939bf24dc56236bf3e709faecfd97f830abe9aab3feca14b9847553c5b26da",
+          "forced": [
+            1,
+            510,
+            1,
+            15704,
+            1,
+            29,
+            1,
+            198,
+            1,
+            510,
+            1,
+            1628,
+            1,
+            29,
+            1,
+            198,
+            1,
+            248059,
+            2,
+            15704,
+            2,
+            29,
+            2,
+            198,
+            2,
+            510,
+            2,
+            1628,
+            2,
+            29,
+            2,
+            198,
+            2,
+            248059,
+            3,
+            29,
+            3,
+            198,
+            3,
+            510,
+            3,
+            1628,
+            3,
+            29,
+            3,
+            198,
+            3,
+            248059,
+            4,
+            198,
+            4,
+            510,
+            4,
+            1628,
+            4,
+            29,
+            4,
+            198,
+            4,
+            248059,
+            5,
+            510,
+            5,
+            1628,
+            5,
+            29,
+            5,
+            198,
+            5,
+            248059,
+            6,
+            1628,
+            6,
+            29,
+            6,
+            198,
+            6,
+            248059,
+            7,
+            29,
+            7,
+            198,
+            7,
+            248059,
+            8,
+            198,
+            8,
+            248059
+          ]
+        },
+        {
+          "committed": [
+            248058,
+            198,
+            27,
+            1628,
+            58479,
+            2135,
+            26590,
+            29,
+            198,
+            27,
+            15704,
+            76478,
+            29,
+            198,
+            21529,
+            220,
+            16,
+            15,
+            19,
+            17,
+            198,
+            510,
+            15704,
+            29,
+            198,
+            27,
+            15704,
+            28,
+            9226,
+            29,
+            198,
+            19
+          ],
+          "simulation": [
+            198,
+            510,
+            15704,
+            248046,
+            0
+          ],
+          "parents": [
+            4294967295,
+            0,
+            1,
+            1,
+            0
+          ],
+          "maskSHA256": "b051f3d2b2e26360603b578ece1ed77acd4c5e0565dd6d5ca20bb10a06d0919d",
+          "forced": [
+            1,
+            510,
+            1,
+            15704,
+            1,
+            29,
+            1,
+            198,
+            1,
+            510,
+            1,
+            1628,
+            1,
+            29,
+            1,
+            198,
+            1,
+            248059,
+            2,
+            15704,
+            2,
+            29,
+            2,
+            198,
+            2,
+            510,
+            2,
+            1628,
+            2,
+            29,
+            2,
+            198,
+            2,
+            248059,
+            3,
+            29,
+            3,
+            198,
+            3,
+            510,
+            3,
+            1628,
+            3,
+            29,
+            3,
+            198,
+            3,
+            248059
+          ]
         },
         {
           "committed": [
@@ -2471,7 +8366,187 @@
             29,
             198
           ],
-          "maskSHA256": "7022e7ba2dd10a491468cd4af8735f280e8b393be0ad0937bb8510d81b59cb13"
+          "parents": [
+            4294967295,
+            0,
+            1,
+            2,
+            3,
+            4,
+            5,
+            6
+          ],
+          "maskSHA256": "7022e7ba2dd10a491468cd4af8735f280e8b393be0ad0937bb8510d81b59cb13",
+          "forced": [
+            1,
+            15704,
+            1,
+            29,
+            1,
+            198,
+            1,
+            510,
+            1,
+            1628,
+            1,
+            29,
+            1,
+            198,
+            1,
+            248059,
+            2,
+            29,
+            2,
+            198,
+            2,
+            510,
+            2,
+            1628,
+            2,
+            29,
+            2,
+            198,
+            2,
+            248059,
+            3,
+            198,
+            3,
+            510,
+            3,
+            1628,
+            3,
+            29,
+            3,
+            198,
+            3,
+            248059,
+            4,
+            510,
+            4,
+            1628,
+            4,
+            29,
+            4,
+            198,
+            4,
+            248059,
+            5,
+            1628,
+            5,
+            29,
+            5,
+            198,
+            5,
+            248059,
+            6,
+            29,
+            6,
+            198,
+            6,
+            248059,
+            7,
+            198,
+            7,
+            248059,
+            8,
+            248059
+          ]
+        },
+        {
+          "committed": [
+            248058,
+            198,
+            27,
+            1628,
+            58479,
+            2135,
+            26590,
+            29,
+            198,
+            27,
+            15704,
+            76478,
+            29,
+            198,
+            21529,
+            220,
+            16,
+            15,
+            19,
+            17,
+            198,
+            510,
+            15704,
+            29,
+            198,
+            27,
+            15704,
+            28,
+            9226,
+            29,
+            198,
+            19,
+            198
+          ],
+          "simulation": [
+            510,
+            15704,
+            29,
+            248046,
+            0
+          ],
+          "parents": [
+            4294967295,
+            0,
+            1,
+            1,
+            0
+          ],
+          "maskSHA256": "6864353f2c005838494f96d3a9a8adada328c22b2f6521e8e9af1d93fb6a7906",
+          "forced": [
+            1,
+            15704,
+            1,
+            29,
+            1,
+            198,
+            1,
+            510,
+            1,
+            1628,
+            1,
+            29,
+            1,
+            198,
+            1,
+            248059,
+            2,
+            29,
+            2,
+            198,
+            2,
+            510,
+            2,
+            1628,
+            2,
+            29,
+            2,
+            198,
+            2,
+            248059,
+            3,
+            198,
+            3,
+            510,
+            3,
+            1628,
+            3,
+            29,
+            3,
+            198,
+            3,
+            248059
+          ]
         },
         {
           "committed": [
@@ -2520,7 +8595,166 @@
             198,
             248059
           ],
-          "maskSHA256": "295ffd037ef35a68e53bef101631bcc6a82cdc73a0b648e01212fee4d302dbff"
+          "parents": [
+            4294967295,
+            0,
+            1,
+            2,
+            3,
+            4,
+            5,
+            6
+          ],
+          "maskSHA256": "295ffd037ef35a68e53bef101631bcc6a82cdc73a0b648e01212fee4d302dbff",
+          "forced": [
+            1,
+            29,
+            1,
+            198,
+            1,
+            510,
+            1,
+            1628,
+            1,
+            29,
+            1,
+            198,
+            1,
+            248059,
+            2,
+            198,
+            2,
+            510,
+            2,
+            1628,
+            2,
+            29,
+            2,
+            198,
+            2,
+            248059,
+            3,
+            510,
+            3,
+            1628,
+            3,
+            29,
+            3,
+            198,
+            3,
+            248059,
+            4,
+            1628,
+            4,
+            29,
+            4,
+            198,
+            4,
+            248059,
+            5,
+            29,
+            5,
+            198,
+            5,
+            248059,
+            6,
+            198,
+            6,
+            248059,
+            7,
+            248059
+          ]
+        },
+        {
+          "committed": [
+            248058,
+            198,
+            27,
+            1628,
+            58479,
+            2135,
+            26590,
+            29,
+            198,
+            27,
+            15704,
+            76478,
+            29,
+            198,
+            21529,
+            220,
+            16,
+            15,
+            19,
+            17,
+            198,
+            510,
+            15704,
+            29,
+            198,
+            27,
+            15704,
+            28,
+            9226,
+            29,
+            198,
+            19,
+            198,
+            510
+          ],
+          "simulation": [
+            15704,
+            29,
+            198,
+            248046,
+            0
+          ],
+          "parents": [
+            4294967295,
+            0,
+            1,
+            1,
+            0
+          ],
+          "maskSHA256": "78517335875bff39cfc827a5aa8003a4c1c969c1e948b642688b0647f25ca08e",
+          "forced": [
+            1,
+            29,
+            1,
+            198,
+            1,
+            510,
+            1,
+            1628,
+            1,
+            29,
+            1,
+            198,
+            1,
+            248059,
+            2,
+            198,
+            2,
+            510,
+            2,
+            1628,
+            2,
+            29,
+            2,
+            198,
+            2,
+            248059,
+            3,
+            510,
+            3,
+            1628,
+            3,
+            29,
+            3,
+            198,
+            3,
+            248059
+          ]
         },
         {
           "committed": [
@@ -2569,7 +8803,146 @@
             198,
             248059
           ],
-          "maskSHA256": "2df35a51c8c6b9839aad9f5bd3c7f6b974bfc1ac326e7577b1f639458121fe3d"
+          "parents": [
+            4294967295,
+            0,
+            1,
+            2,
+            3,
+            4,
+            5
+          ],
+          "maskSHA256": "2df35a51c8c6b9839aad9f5bd3c7f6b974bfc1ac326e7577b1f639458121fe3d",
+          "forced": [
+            1,
+            198,
+            1,
+            510,
+            1,
+            1628,
+            1,
+            29,
+            1,
+            198,
+            1,
+            248059,
+            2,
+            510,
+            2,
+            1628,
+            2,
+            29,
+            2,
+            198,
+            2,
+            248059,
+            3,
+            1628,
+            3,
+            29,
+            3,
+            198,
+            3,
+            248059,
+            4,
+            29,
+            4,
+            198,
+            4,
+            248059,
+            5,
+            198,
+            5,
+            248059,
+            6,
+            248059
+          ]
+        },
+        {
+          "committed": [
+            248058,
+            198,
+            27,
+            1628,
+            58479,
+            2135,
+            26590,
+            29,
+            198,
+            27,
+            15704,
+            76478,
+            29,
+            198,
+            21529,
+            220,
+            16,
+            15,
+            19,
+            17,
+            198,
+            510,
+            15704,
+            29,
+            198,
+            27,
+            15704,
+            28,
+            9226,
+            29,
+            198,
+            19,
+            198,
+            510,
+            15704
+          ],
+          "simulation": [
+            29,
+            198,
+            510,
+            248046,
+            0
+          ],
+          "parents": [
+            4294967295,
+            0,
+            1,
+            1,
+            0
+          ],
+          "maskSHA256": "ffe23810265368f327a180e448619f4207f8b8475efbe9e6a3b6ccb472157171",
+          "forced": [
+            1,
+            198,
+            1,
+            510,
+            1,
+            1628,
+            1,
+            29,
+            1,
+            198,
+            1,
+            248059,
+            2,
+            510,
+            2,
+            1628,
+            2,
+            29,
+            2,
+            198,
+            2,
+            248059,
+            3,
+            1628,
+            3,
+            29,
+            3,
+            198,
+            3,
+            248059
+          ]
         },
         {
           "committed": [
@@ -2618,7 +8991,128 @@
             198,
             248059
           ],
-          "maskSHA256": "527c9610eddba336de40bdd53a4e83a9b21eff448480c189050d3fdb74441462"
+          "parents": [
+            4294967295,
+            0,
+            1,
+            2,
+            3,
+            4
+          ],
+          "maskSHA256": "527c9610eddba336de40bdd53a4e83a9b21eff448480c189050d3fdb74441462",
+          "forced": [
+            1,
+            510,
+            1,
+            1628,
+            1,
+            29,
+            1,
+            198,
+            1,
+            248059,
+            2,
+            1628,
+            2,
+            29,
+            2,
+            198,
+            2,
+            248059,
+            3,
+            29,
+            3,
+            198,
+            3,
+            248059,
+            4,
+            198,
+            4,
+            248059,
+            5,
+            248059
+          ]
+        },
+        {
+          "committed": [
+            248058,
+            198,
+            27,
+            1628,
+            58479,
+            2135,
+            26590,
+            29,
+            198,
+            27,
+            15704,
+            76478,
+            29,
+            198,
+            21529,
+            220,
+            16,
+            15,
+            19,
+            17,
+            198,
+            510,
+            15704,
+            29,
+            198,
+            27,
+            15704,
+            28,
+            9226,
+            29,
+            198,
+            19,
+            198,
+            510,
+            15704,
+            29
+          ],
+          "simulation": [
+            198,
+            510,
+            1628,
+            248046,
+            0
+          ],
+          "parents": [
+            4294967295,
+            0,
+            1,
+            1,
+            0
+          ],
+          "maskSHA256": "31a2b65543c403a583071fc97817b5843c779c74f73a971262540cdd4f1835e3",
+          "forced": [
+            1,
+            510,
+            1,
+            1628,
+            1,
+            29,
+            1,
+            198,
+            1,
+            248059,
+            2,
+            1628,
+            2,
+            29,
+            2,
+            198,
+            2,
+            248059,
+            3,
+            29,
+            3,
+            198,
+            3,
+            248059
+          ]
         },
         {
           "committed": [
@@ -2667,7 +9161,112 @@
             198,
             248059
           ],
-          "maskSHA256": "2350692368b6478268996dc557798dcbec4706f2f7323f80d861c926df60fc46"
+          "parents": [
+            4294967295,
+            0,
+            1,
+            2,
+            3
+          ],
+          "maskSHA256": "2350692368b6478268996dc557798dcbec4706f2f7323f80d861c926df60fc46",
+          "forced": [
+            1,
+            1628,
+            1,
+            29,
+            1,
+            198,
+            1,
+            248059,
+            2,
+            29,
+            2,
+            198,
+            2,
+            248059,
+            3,
+            198,
+            3,
+            248059,
+            4,
+            248059
+          ]
+        },
+        {
+          "committed": [
+            248058,
+            198,
+            27,
+            1628,
+            58479,
+            2135,
+            26590,
+            29,
+            198,
+            27,
+            15704,
+            76478,
+            29,
+            198,
+            21529,
+            220,
+            16,
+            15,
+            19,
+            17,
+            198,
+            510,
+            15704,
+            29,
+            198,
+            27,
+            15704,
+            28,
+            9226,
+            29,
+            198,
+            19,
+            198,
+            510,
+            15704,
+            29,
+            198
+          ],
+          "simulation": [
+            510,
+            1628,
+            29,
+            248046,
+            0
+          ],
+          "parents": [
+            4294967295,
+            0,
+            1,
+            1,
+            0
+          ],
+          "maskSHA256": "7da2f3484673d662e24bd559ecb8ed9e00e637bc69633f482c19e5aebec3e39a",
+          "forced": [
+            1,
+            1628,
+            1,
+            29,
+            1,
+            198,
+            1,
+            248059,
+            2,
+            29,
+            2,
+            198,
+            2,
+            248059,
+            3,
+            198,
+            3,
+            248059
+          ]
         },
         {
           "committed": [
@@ -2716,7 +9315,98 @@
             198,
             248059
           ],
-          "maskSHA256": "d90d5daefc9cc66df8c77976a1837a7e2d53e0408e36a519581392a45016446b"
+          "parents": [
+            4294967295,
+            0,
+            1,
+            2
+          ],
+          "maskSHA256": "d90d5daefc9cc66df8c77976a1837a7e2d53e0408e36a519581392a45016446b",
+          "forced": [
+            1,
+            29,
+            1,
+            198,
+            1,
+            248059,
+            2,
+            198,
+            2,
+            248059,
+            3,
+            248059
+          ]
+        },
+        {
+          "committed": [
+            248058,
+            198,
+            27,
+            1628,
+            58479,
+            2135,
+            26590,
+            29,
+            198,
+            27,
+            15704,
+            76478,
+            29,
+            198,
+            21529,
+            220,
+            16,
+            15,
+            19,
+            17,
+            198,
+            510,
+            15704,
+            29,
+            198,
+            27,
+            15704,
+            28,
+            9226,
+            29,
+            198,
+            19,
+            198,
+            510,
+            15704,
+            29,
+            198,
+            510
+          ],
+          "simulation": [
+            1628,
+            29,
+            198,
+            248046,
+            0
+          ],
+          "parents": [
+            4294967295,
+            0,
+            1,
+            1,
+            0
+          ],
+          "maskSHA256": "5deec92034a2094b30975e8d0175c53a8c5c54bd6ac1b82ea83571a2f5e36cd6",
+          "forced": [
+            1,
+            29,
+            1,
+            198,
+            1,
+            248059,
+            2,
+            198,
+            2,
+            248059,
+            3,
+            248059
+          ]
         },
         {
           "committed": [
@@ -2765,7 +9455,86 @@
             198,
             248059
           ],
-          "maskSHA256": "49a97aa03b7381841922e2975845ab4acb921e6902095101730df00180cae8cd"
+          "parents": [
+            4294967295,
+            0,
+            1
+          ],
+          "maskSHA256": "49a97aa03b7381841922e2975845ab4acb921e6902095101730df00180cae8cd",
+          "forced": [
+            1,
+            198,
+            1,
+            248059,
+            2,
+            248059
+          ]
+        },
+        {
+          "committed": [
+            248058,
+            198,
+            27,
+            1628,
+            58479,
+            2135,
+            26590,
+            29,
+            198,
+            27,
+            15704,
+            76478,
+            29,
+            198,
+            21529,
+            220,
+            16,
+            15,
+            19,
+            17,
+            198,
+            510,
+            15704,
+            29,
+            198,
+            27,
+            15704,
+            28,
+            9226,
+            29,
+            198,
+            19,
+            198,
+            510,
+            15704,
+            29,
+            198,
+            510,
+            1628
+          ],
+          "simulation": [
+            29,
+            198,
+            248059,
+            248046,
+            0
+          ],
+          "parents": [
+            4294967295,
+            0,
+            1,
+            1,
+            0
+          ],
+          "maskSHA256": "447e733fdce702cc47124e1d9d1c7c766c896cabcaf40622266f2b92af9aec6b",
+          "forced": [
+            1,
+            198,
+            1,
+            248059,
+            2,
+            248059
+          ]
         },
         {
           "committed": [
@@ -2814,7 +9583,76 @@
             198,
             248059
           ],
-          "maskSHA256": "260bbbe6189732b05b0e5f3b3eb092f2460017a788c7b9e4e8af44725c7a3885"
+          "parents": [
+            4294967295,
+            0
+          ],
+          "maskSHA256": "260bbbe6189732b05b0e5f3b3eb092f2460017a788c7b9e4e8af44725c7a3885",
+          "forced": [
+            1,
+            248059
+          ]
+        },
+        {
+          "committed": [
+            248058,
+            198,
+            27,
+            1628,
+            58479,
+            2135,
+            26590,
+            29,
+            198,
+            27,
+            15704,
+            76478,
+            29,
+            198,
+            21529,
+            220,
+            16,
+            15,
+            19,
+            17,
+            198,
+            510,
+            15704,
+            29,
+            198,
+            27,
+            15704,
+            28,
+            9226,
+            29,
+            198,
+            19,
+            198,
+            510,
+            15704,
+            29,
+            198,
+            510,
+            1628,
+            29
+          ],
+          "simulation": [
+            198,
+            248059,
+            248046,
+            0
+          ],
+          "parents": [
+            4294967295,
+            0,
+            1,
+            0
+          ],
+          "maskSHA256": "5adbc44d1dfb8b07569ec8a0c9d6f285fa7a7bb83b371f0c5994059f29dde797",
+          "forced": [
+            1,
+            248059
+          ]
         },
         {
           "committed": [
@@ -2863,7 +9701,70 @@
           "simulation": [
             248059
           ],
-          "maskSHA256": "00e2072df14e4102fa6ff7186797203523c9913e872bf4c767c024140f3cca00"
+          "parents": [
+            4294967295
+          ],
+          "maskSHA256": "00e2072df14e4102fa6ff7186797203523c9913e872bf4c767c024140f3cca00",
+          "forced": []
+        },
+        {
+          "committed": [
+            248058,
+            198,
+            27,
+            1628,
+            58479,
+            2135,
+            26590,
+            29,
+            198,
+            27,
+            15704,
+            76478,
+            29,
+            198,
+            21529,
+            220,
+            16,
+            15,
+            19,
+            17,
+            198,
+            510,
+            15704,
+            29,
+            198,
+            27,
+            15704,
+            28,
+            9226,
+            29,
+            198,
+            19,
+            198,
+            510,
+            15704,
+            29,
+            198,
+            510,
+            1628,
+            29,
+            198
+          ],
+          "simulation": [
+            248059,
+            197,
+            0,
+            248046
+          ],
+          "parents": [
+            4294967295,
+            0,
+            0,
+            0
+          ],
+          "maskSHA256": "50ff3859389a1ea7400ee5cb69e692897648948215795f8d8bdeef1ec759ebcb",
+          "forced": []
         },
         {
           "committed": [
@@ -2911,7 +9812,437 @@
             248059
           ],
           "simulation": [],
-          "maskSHA256": "033f3556ec53b9e3b6a40c953213bd9fd273faac720196891d8b109790ebdf1e"
+          "parents": [],
+          "maskSHA256": "033f3556ec53b9e3b6a40c953213bd9fd273faac720196891d8b109790ebdf1e",
+          "forced": []
+        }
+      ]
+    },
+    {
+      "name": "issue_790",
+      "grammar": "%llguidance {}\nstart: %json {\"type\":\"array\",\"maxItems\":3,\"items\":{\"type\":\"array\",\"maxItems\":2,\"items\":{\"type\":\"integer\"}},\"x-guidance\":{\"lenient\":true,\"whitespace_pattern\":\"[ \\\\t\\\\n\\\\r]{0,64}\"}}\nWS: /[ \\t\\n\\r]{0,64}/\n",
+      "type": "lark",
+      "output": "[[1,2],[3]]",
+      "tokens": [
+        15050,
+        16,
+        11,
+        17,
+        14522,
+        18,
+        4891
+      ],
+      "steps": [
+        {
+          "committed": [],
+          "simulation": [
+            59869
+          ],
+          "parents": [
+            4294967295
+          ],
+          "maskSHA256": "10d4bb5a8a4a3ba3bd340118c893a511799ddf29fe2b8b2303f3205bf25a657a",
+          "forced": []
+        },
+        {
+          "committed": [],
+          "simulation": [
+            15050,
+            248320,
+            1
+          ],
+          "parents": [
+            4294967295,
+            0,
+            1
+          ],
+          "maskSHA256": "71cbdd26324b1114f8724b74b16e5eb6da90178fae52c586232230b2ed3b38c9",
+          "forced": []
+        },
+        {
+          "committed": [],
+          "simulation": [
+            248320
+          ],
+          "parents": [
+            4294967295
+          ],
+          "maskSHA256": "10d4bb5a8a4a3ba3bd340118c893a511799ddf29fe2b8b2303f3205bf25a657a",
+          "forced": []
+        },
+        {
+          "committed": [],
+          "simulation": [
+            15050,
+            16,
+            11,
+            17,
+            14522,
+            18,
+            4891
+          ],
+          "parents": [
+            4294967295,
+            0,
+            1,
+            2,
+            3,
+            4,
+            5
+          ],
+          "maskSHA256": "d84f5704b74ecbcc61212a755c834b05275d337fa94d38c0fe227958c7de2d38",
+          "forced": []
+        },
+        {
+          "committed": [],
+          "simulation": [
+            15050,
+            16,
+            11,
+            248046,
+            12,
+            0
+          ],
+          "parents": [
+            4294967295,
+            0,
+            1,
+            1,
+            0,
+            0
+          ],
+          "maskSHA256": "7e2645b12e457f39e79f498065e4143f1ee0624db9263cd27b2a1d0dabd03ae1",
+          "forced": []
+        },
+        {
+          "committed": [
+            15050
+          ],
+          "simulation": [
+            16,
+            11,
+            17,
+            14522,
+            18,
+            4891
+          ],
+          "parents": [
+            4294967295,
+            0,
+            1,
+            2,
+            3,
+            4
+          ],
+          "maskSHA256": "51bbf75be30311b05728377dfe3bde01d10f57cc1d1011f0e7f60c1db230c029",
+          "forced": []
+        },
+        {
+          "committed": [
+            15050
+          ],
+          "simulation": [
+            16,
+            11,
+            17,
+            248046,
+            15,
+            0
+          ],
+          "parents": [
+            4294967295,
+            0,
+            1,
+            1,
+            0,
+            0
+          ],
+          "maskSHA256": "38606f4b428d7c7700e7b07c06965a45edaec6ae47db963eaa772d4b82fdf906",
+          "forced": []
+        },
+        {
+          "committed": [
+            15050
+          ],
+          "simulation": [
+            16,
+            11,
+            17,
+            14522,
+            18,
+            14522,
+            17,
+            11,
+            18
+          ],
+          "parents": [
+            4294967295,
+            0,
+            1,
+            2,
+            3,
+            0,
+            5,
+            6,
+            7
+          ],
+          "maskSHA256": "62616ddab9d2ab51f32f40723457fdc386d89b27651c0609a6766bdb6875604d",
+          "forced": []
+        },
+        {
+          "committed": [
+            15050,
+            16
+          ],
+          "simulation": [
+            11,
+            17,
+            14522,
+            18,
+            4891
+          ],
+          "parents": [
+            4294967295,
+            0,
+            1,
+            2,
+            3
+          ],
+          "maskSHA256": "ba1e785c1e93d7526c51991e9e603fc20cf4dfb0d478c20cb726a829dad17b0f",
+          "forced": []
+        },
+        {
+          "committed": [
+            15050,
+            16
+          ],
+          "simulation": [
+            11,
+            17,
+            14522,
+            248046,
+            12,
+            0
+          ],
+          "parents": [
+            4294967295,
+            0,
+            1,
+            1,
+            0,
+            0
+          ],
+          "maskSHA256": "de0a72465f47a6b7ae0de0ded8d7f6fc8e3121498265983d3674d82c445f83ca",
+          "forced": []
+        },
+        {
+          "committed": [
+            15050,
+            16,
+            11
+          ],
+          "simulation": [
+            17,
+            14522,
+            18,
+            4891
+          ],
+          "parents": [
+            4294967295,
+            0,
+            1,
+            2
+          ],
+          "maskSHA256": "6c1bb2d67f189e68f2c0d1fa33aeb7be1bcace50b940b58a34fcaad3a7ef95f6",
+          "forced": []
+        },
+        {
+          "committed": [
+            15050,
+            16,
+            11
+          ],
+          "simulation": [
+            17,
+            14522,
+            18,
+            248046,
+            15,
+            0
+          ],
+          "parents": [
+            4294967295,
+            0,
+            1,
+            1,
+            0,
+            0
+          ],
+          "maskSHA256": "ac2425802bf2c993ffeed221c6ea5a2aa0fbaa825e080822e01ba95c7f355996",
+          "forced": []
+        },
+        {
+          "committed": [
+            15050,
+            16,
+            11,
+            17
+          ],
+          "simulation": [
+            14522,
+            18,
+            4891
+          ],
+          "parents": [
+            4294967295,
+            0,
+            1
+          ],
+          "maskSHA256": "083c222528cd43f2e86d4f651bc3c1db79edaa714886830873f4642f01b8c42d",
+          "forced": []
+        },
+        {
+          "committed": [
+            15050,
+            16,
+            11,
+            17
+          ],
+          "simulation": [
+            14522,
+            18,
+            4891,
+            248046,
+            12,
+            0
+          ],
+          "parents": [
+            4294967295,
+            0,
+            1,
+            1,
+            0,
+            0
+          ],
+          "maskSHA256": "196c3221c6b83117e9e3eb0d9c0584b920d9fa46acc1efc425cdd95f6739aa60",
+          "forced": []
+        },
+        {
+          "committed": [
+            15050,
+            16,
+            11,
+            17,
+            14522
+          ],
+          "simulation": [
+            18,
+            4891
+          ],
+          "parents": [
+            4294967295,
+            0
+          ],
+          "maskSHA256": "7ef07dffd70f6b18871154cf6d75c5b28ca728eda0758523a0dfc17c9cd0c9a2",
+          "forced": []
+        },
+        {
+          "committed": [
+            15050,
+            16,
+            11,
+            17,
+            14522
+          ],
+          "simulation": [
+            18,
+            4891,
+            248046,
+            11,
+            0
+          ],
+          "parents": [
+            4294967295,
+            0,
+            1,
+            0,
+            0
+          ],
+          "maskSHA256": "71c05e56a8b86ec338623ae61e892394e86f093550069be7e8bf3148ec2d2f5f",
+          "forced": []
+        },
+        {
+          "committed": [
+            15050,
+            16,
+            11,
+            17,
+            14522,
+            18
+          ],
+          "simulation": [
+            4891
+          ],
+          "parents": [
+            4294967295
+          ],
+          "maskSHA256": "cce58b0eac2dd56cf0ff71f2dcf352045292a4abf3367bbfc6c6ca1044def0e4",
+          "forced": []
+        },
+        {
+          "committed": [
+            15050,
+            16,
+            11,
+            17,
+            14522,
+            18
+          ],
+          "simulation": [
+            4891,
+            0,
+            248046
+          ],
+          "parents": [
+            4294967295,
+            0,
+            0
+          ],
+          "maskSHA256": "1291910a15abdbb905b33f143c5d5decb781c2321a2e66e2201e08f84756b798",
+          "forced": []
+        },
+        {
+          "committed": [
+            15050,
+            16,
+            11,
+            17,
+            14522,
+            18
+          ],
+          "simulation": [
+            11
+          ],
+          "parents": [
+            4294967295
+          ],
+          "maskSHA256": "8c458ffe7efb2dfc1cb37813bc340bebeb19d40fe6279c7081ccfbf8105a8375",
+          "forced": []
+        },
+        {
+          "committed": [
+            15050,
+            16,
+            11,
+            17,
+            14522,
+            18,
+            4891
+          ],
+          "simulation": [],
+          "parents": [],
+          "maskSHA256": "f642a4437ed45b2947fe001a7e831c62458a772e87ddff574ccc328554d2f374",
+          "forced": []
         }
       ]
     }

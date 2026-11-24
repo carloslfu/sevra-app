@@ -7,24 +7,27 @@ import json
 from pathlib import Path
 import sys
 from splash_reference_identity import verify
+from splash_mask_trees import chain, step as mask_step, tree
 
 ROOT = Path(__file__).resolve().parents[1]
 parser = argparse.ArgumentParser(description=__doc__)
 parser.add_argument('model', type=Path)
 parser.add_argument('--write', action='store_true')
 args = parser.parse_args()
+pin = json.loads((ROOT/'integration/splash.json').read_text())
 sys.path.insert(0, str(verify(ROOT, args.model)))
 assert importlib.metadata.version('llguidance') == '1.8.0'
 from transformers import AutoTokenizer
 from server.chat_format import QWEN
 from server.constraints import ConstraintFactory
+from server.protocol import NO_PARENT
 from server.tool_schema import normalize_tools, tool_grammar
 
 tokenizer = AutoTokenizer.from_pretrained(str(args.model.resolve()), local_files_only=True)
 from server.protocol import ReadyEvent
 # CPU fixture contract; live qualification separately validates actual Ready metadata.
 ready = ReadyEvent(1, 32768, False, 248320, 33, (248044, 248046))
-factory = ConstraintFactory(tokenizer, ready)
+factory = ConstraintFactory(ConstraintFactory.table(tokenizer, QWEN, ready.vocabulary_size), ready)
 tools = json.loads((ROOT/'IntegrationTests/Agent/workbook-tools.json').read_text())
 # LLGuidance preserves schema property order. Match the app's required-first
 # ordering for nested JSON while leaving XML argument order unchanged.
@@ -126,11 +129,19 @@ for tool in tools:
         outputs.append(('draft_parts', xml(name, composed), composed))
 
 cases = []
-choices = [('required', 'required', False, outputs),
-           ('auto', 'auto', False, [('plain', 'The workbook is ready.', None), ('tool', 'Looking.\n' + outputs[0][1], outputs[0][2])]),
-           ('named_finish', {'type':'function','function':{'name':'finish'}}, False, [next(v for v in outputs if v[0]=='finish')]),
-           ('thinking', 'required', True, [('reasoned', 'Read the evidence.</think>\n' + outputs[0][1], outputs[0][2])])]
-for choice_name, choice, thinking, examples in choices:
+finish = next(v for v in outputs if v[0]=='finish')
+named = {'type':'function','function':{'name':'finish'}}
+# (case prefix, the app's choice, the reference's choice, reasoning, examples)
+choices = [('required', 'required', 'required', False, outputs),
+           ('auto', 'auto', 'auto', False, [('plain', 'The workbook is ready.', None), ('tool', 'Looking.\n' + outputs[0][1], outputs[0][2])]),
+           ('named_finish', 'named_finish', named, False, [finish]),
+           ('thinking', 'required', 'required', True, [('reasoned', 'Read the evidence.</think>\n' + outputs[0][1], outputs[0][2])]),
+           ('auto_thinking', 'auto', 'auto', True,
+            [('plain', 'Nothing to look up.</think>\n\nThe workbook is ready.', None),
+             ('tool', 'Read the evidence.</think>\n\nLooking.\n' + outputs[0][1], outputs[0][2])]),
+           ('named_finish_thinking', 'named_finish', named, True,
+            [('reasoned', 'Answer from the evidence.</think>\n\n' + finish[1], finish[2])])]
+for choice_name, app_choice, choice, thinking, examples in choices:
     _, policy = normalize_tools(tools, choice, False)
     grammar = tool_grammar(policy, thinking, chat_format=QWEN)
     for name, output, arguments in examples:
@@ -143,13 +154,15 @@ for choice_name, choice, thinking, examples in choices:
             constraint.commit(tokens[consumed:offset])
             consumed = offset
             simulation = tokens[offset:offset+8]
-            masks = constraint.masks(simulation)
-            steps.append(dict(committed=tokens[:offset], simulation=simulation, maskSHA256=hashlib.sha256(masks).hexdigest()))
+            steps.append(mask_step(constraint, tokens[:offset], simulation, chain(simulation, NO_PARENT)))
+            shape = tree(factory, grammar, tokens, offset, ready, NO_PARENT)
+            if shape:
+                steps.append(mask_step(constraint, tokens[:offset], *shape))
         constraint.finish()
         assert constraint.matcher.is_accepting()
-        cases.append(dict(name=choice_name+'_'+name, choice=choice_name, thinking=thinking,
+        cases.append(dict(name=choice_name+'_'+name, choice=app_choice, thinking=thinking,
                           output=output, arguments=arguments, tokens=tokens, steps=steps))
-result = dict(schemaVersion=1, nestedPropertyOrder='required-then-component-and-definition-selectors', splashCommit='d8af1054aab0f97de21d043e01aa98af3754f10e',
+result = dict(schemaVersion=1, nestedPropertyOrder='required-then-component-and-definition-selectors', splashCommit=pin['commit'],
               toolsSHA256=hashlib.sha256((ROOT/'IntegrationTests/Agent/workbook-tools.json').read_bytes()).hexdigest(),
               cases=cases)
 path = ROOT/'IntegrationTests/Agent/tool-grammar-fixtures.json'

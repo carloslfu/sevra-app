@@ -3,15 +3,17 @@ type: operational
 meta-type: operational
 id: 01m7jmgpet71503tz8tqy8k3ax
 created: 2026-11-16T16:54:46.490015+00:00
-updated: 2026-11-19T21:20:58Z
-summary: Splash 1.6.1 installed. A focused task comparison supports 64K on the 48 GiB test Mac with the existing 12 GiB engine budget.
+updated: 2026-11-24T14:42:24.662749+00:00
+summary: 'The Splash 1.6.1 step: 64K on the 48 GiB test Mac with a 12 GiB engine budget. Splash 1.7.1 replaced the engine on November 24.'
 title: Inference and context implementation
 ---
 # Inference and context implementation
 
 ## Current engine
 
-The owner authorized a focused preview upgrade and a practical 32K versus 64K comparison. Splash 1.6.1 is installed in the app. The source chooses 64K on Macs with at least 48 GiB of unified memory and 32K below that tier, with a 12 GiB engine budget and automatic context maintenance in both cases.
+November 24: the engine is now Splash 1.7.1 under [[records/plans/splash-1-7-1-upgrade]]; the context tiers and the 12 GiB budget are unchanged. The rest of this record describes the 1.6.1 step.
+
+The owner authorized a focused preview upgrade and a practical 32K versus 64K comparison. Splash 1.6.1 was installed in the app. The source chooses 64K on Macs with at least 48 GiB of unified memory and 32K below that tier, with a 12 GiB engine budget and automatic context maintenance in both cases.
 
 On the 48 GiB M5 Pro, both settings passed the cited inventory task and the 14K-token purchasing audit. The 42K-token audit was refused at 32K and answered all three values correctly at 64K in 32.8 seconds. Observed peak host and helper footprint was 12.0 and 11.9 GiB respectively, with unchanged swap. These were single runs with synthetic inputs. See the [preview comparison receipt](../../../integration/evidence/2026-11-16-splash-native-preview.json) for the measurements and installed build identity.
 

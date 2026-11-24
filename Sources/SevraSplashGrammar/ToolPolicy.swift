@@ -116,10 +116,13 @@ public final class SplashToolPolicy {
     if case .auto = choice {
       body = "TEXT (\(alternatives) WS)?"
     } else {
-      body = "WS \(alternatives) WS"
+      // As Splash 1.6.2's tool_schema.py: a call comes first, at its first token. The
+      // whitespace that sets it apart from reasoning belongs to the thinking rule, so a reply
+      // without reasoning cannot spend its output on whitespace before the call.
+      body = "\(alternatives) WS"
     }
     var main = ["%llguidance {}", "start: \(thinking ? "think " : "")\(body)"]
-    if thinking { main.append("think: TEXT <[248069]>") }
+    if thinking { main.append("think: TEXT <[248069]> WS") }
     main += calls
     main += [
       "WS: /\(Self.whitespace)/", #"TEXT: /(?s:.*)/ & ~/(?s:.*)(<tool_call>|<\/think>)(?s:.*)/"#,

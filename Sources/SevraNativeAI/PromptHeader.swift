@@ -18,15 +18,18 @@ package enum PromptHeader {
   package static func requiredFreeBytes(_ manifest: Manifest) -> UInt64 {
     (12 << 30) + UInt64(manifest.dataBytes)
   }
-  package static let release = "1.6.1"
-  package static let commit = "d8af1054aab0f97de21d043e01aa98af3754f10e"
+  package static let release = "1.7.1"
+  package static let commit = "1988a72f26a6031127efc29f861bfb46d36286c4"
 
   /// The launch options that decide what a restore point holds and how it is read. The
   /// context, memory and quota do not: a header made at 64K is taken back at 32K (phase H1).
+  /// The app runs one request at a time, so it asks for one lane: Splash 1.7.1 gives every
+  /// lane a 16-row verify arena, and one lane leaves the expert store more of the budget.
   package static func engineOptions(activations: String) -> [String] {
     [
       "--idle-sleep", "allow", "--verify-rows", "all", "--kv-format", "int8",
       "--state-format", "fp32", "--ane", "on", "--activations", activations,
+      "--max-concurrent-requests", "1",
     ]
   }
 
@@ -400,7 +403,7 @@ package enum PromptHeader {
       var matched = 0
       _ = try helper.generate(
         request, timeout: 300,
-        event: { if case .start(_, _, let reused) = $0 { matched = Int(reused) } })
+        event: { if case .start(let start) = $0 { matched = Int(start.matched) } })
       return matched
     }
     func start() throws -> SplashNativeProcess {

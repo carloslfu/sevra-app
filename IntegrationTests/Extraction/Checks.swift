@@ -92,9 +92,11 @@ private final class Failures: @unchecked Sendable {
     check("child does not inherit an open workbook's database or lock descriptors") {
       let book = try Workbook.create(
         at: root.appendingPathComponent("Descriptors.sevra"), title: "Descriptors")
+      // A new workbook already holds its first chat, so compare with its own revision.
+      let before = try book.revision()
       _ = try withExtendedLifetime(book) { try worker("descriptors").extract(source) }
       try reaped("descriptors")
-      try expect(try book.revision() == 0, "Descriptor check changed workbook state")
+      try expect(try book.revision() == before, "Descriptor check changed workbook state")
     }
     check("worker crash preserves original and prior searchable index; retry recovers") {
       let book = try Workbook.create(at: root.appendingPathComponent("Crash.sevra"), title: "Crash")

@@ -1,0 +1,6 @@
+header-tests: resumedNotComputed passed
+header-tests: faster passed
+header-tests: sameAnswers FAILED
+header-tests: nothingKeptAfterStop passed
+header-tests: recoversWithoutComputing passed
+header-tests: failsLoudly passed

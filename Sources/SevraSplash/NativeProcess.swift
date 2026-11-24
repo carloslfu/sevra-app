@@ -123,7 +123,7 @@ public final class SplashNativeProcess {
   public func generate(
     _ request: SplashWire.Request, timeout: Double = 180,
     cancelled: () -> Bool = { false },
-    mask: (([UInt32], [UInt32], UInt32) throws -> [UInt32])? = nil,
+    mask: ((SplashWire.MaskQuery) throws -> SplashWire.MaskReply)? = nil,
     event: (SplashWire.Event) throws -> Void = { _ in }
   ) throws -> Result {
     try check(
@@ -155,26 +155,35 @@ public final class SplashNativeProcess {
           if case .error = message {
             try check(index == events.count - 1, "Unexpected event after native error")
           }
-          if case .start(_, let lane, _) = message {
-            try check(lane < ready!.concurrent, "Invalid native lane")
+          if case .start(let start) = message {
+            try check(start.lane < ready!.concurrent, "Invalid native lane")
           }
           let done = try state.accept(message)
           if case .tokens(_, _, let batch) = message, first == nil {
             first = clock - started
             firstBatch = batch.count
           }
-          if case .mask(_, let maskID, let words, let simulation) = message {
+          if case .mask(_, let maskID, let words, let simulation, let parents) = message {
             try check(
               words == (ready!.vocabulary + 31) / 32
                 && simulation.count + 1 <= Int(ready!.maskRows)
                 && simulation.allSatisfy { $0 < ready!.vocabulary },
               "Mask request exceeds native Ready capabilities")
             guard let mask else { throw SplashError("Missing mask provider") }
-            let result = try mask(state.tokens, simulation, words)
+            let query = SplashWire.MaskQuery(
+              committed: state.tokens, simulation: simulation, parents: parents, words: words)
+            let reply = try mask(query)
+            // The engine checks only the forced pairs' shape, and ends the request otherwise.
             try check(
-              result.count == Int(words) * (simulation.count + 1),
+              reply.words.count == Int(words) * query.rows
+                && stride(from: 0, to: reply.forced.count, by: 2).allSatisfy {
+                  $0 + 1 < reply.forced.count && Int(reply.forced[$0]) < query.rows
+                    && reply.forced[$0 + 1] < ready!.vocabulary
+                },
               "Mask provider returned incorrect dimensions")
-            try queue(SplashWire.mask(id: request.id, maskID: maskID, words: result))
+            try queue(
+              SplashWire.mask(
+                id: request.id, maskID: maskID, words: reply.words, forced: reply.forced))
           }
           try event(message)
           if let done { completion = done }

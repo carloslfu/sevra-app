@@ -2,7 +2,7 @@
 type: operational
 id: 01m5refyq97sez3da1rywz08wf
 created: 2026-10-25T02:33:33.673437+00:00
-updated: 2026-11-22T15:09:36+00:00
+updated: 2026-11-24T14:42:19.905628+00:00
 summary: Current-checkout discovery, portable source installation and build paths, local AI setup, independent CLI use, verification and uninstall.
 title: Build and run
 ---
@@ -19,7 +19,9 @@ The planned [[records/plans/native-storybook|native UI catalog]] uses separate r
 <a id="native-mvp-source-installation"></a>
 
 ## Native source installation
-The owner authorized a focused preview upgrade and a practical 32K versus 64K comparison. Splash 1.6.1 is installed in the app. The source chooses 64K on Macs with at least 48 GiB of unified memory and 32K below that tier, with a 12 GiB engine budget and automatic context maintenance in both cases. See [[records/operations/inference-context-execution]].
+The engine is Splash 1.7.1 since November 24 ([[records/plans/splash-1-7-1-upgrade]]). `scripts/fetch_splash.py` fetches the pinned release; `scripts/build_native.sh` packages it and remakes the prompt header when the engine changes. The reference fixture generators run with `.build/splash-reference/bin/python` against the 1.7.1 clone; the performance and differential harnesses cannot run against 1.7.1 until ported.
+
+The owner authorized a focused preview upgrade and a practical 32K versus 64K comparison. Splash 1.6.1 was installed in the app before that. The source chooses 64K on Macs with at least 48 GiB of unified memory and 32K below that tier, with a 12 GiB engine budget and automatic context maintenance in both cases. See [[records/operations/inference-context-execution]].
 
 Prerequisites: Apple M3 or newer, macOS 26.4+, Swift 6.3, Git, Python 3 for build
 tooling, and Rust 1.96.0 through rustup. The checked host is macOS 26.6.2 with 48 GB

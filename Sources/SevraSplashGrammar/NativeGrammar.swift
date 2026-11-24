@@ -233,45 +233,102 @@ public final class SplashGrammarConstraint {
     consumed = committed
   }
 
-  public func masks(committed: [UInt32], simulation: [UInt32], words: UInt32) throws -> [UInt32] {
-    guard !failed, simulation.count < 9,
-      words == (SplashTextFrontend.vocabularySize + 31) / 32,
-      api.maskBytes(matcher) == Int(words) * 4
+  /// Row 0 is the grammar's mask after the committed tokens, and row i + 1 the mask after draft
+  /// token i's path: the tokens from the first along their parents to it. As Splash 1.7.1's
+  /// `TokenConstraint.masks`, the tree is walked depth first and only forward, on a copy of the
+  /// committed matcher; a row with several children gives each but the last a copy of its own.
+  /// No matcher takes a token back: LLGuidance 1.8.0 keeps its last mask keyed by the lexer state
+  /// and the parser's row index, which another branch can reach again after a rollback with
+  /// other parser rows under it (Splash #790, LLGuidance #390). A token outside the vocabulary,
+  /// a stop token or a token the grammar refuses is a row the target never accepts, nor any row
+  /// below it; those rows take their parent's mask. No forced tokens are returned.
+  public func masks(_ query: SplashWire.MaskQuery) throws -> SplashWire.MaskReply {
+    let rows = query.rows
+    guard !failed, query.simulation.count <= SplashWire.maxSimulationTokens,
+      query.parents.count == query.simulation.count,
+      query.parents.indices.allSatisfy({
+        $0 == 0 ? query.parents[0] == SplashWire.noParent : query.parents[$0] < $0
+      }),
+      query.words == (SplashTextFrontend.vocabularySize + 31) / 32,
+      api.maskBytes(matcher) == Int(query.words) * 4
     else {
       failed = true
       throw SplashError("Invalid native grammar mask dimensions")
     }
-    try consume(committed)
-    let inRange = Array(simulation.prefix { $0 < SplashTextFrontend.vocabularySize })
-    let count = inRange.withUnsafeBufferPointer { api.validate(matcher, $0.baseAddress, $0.count) }
-    guard count >= 0, count <= inRange.count, let speculative = api.clone(matcher) else {
-      failed = true
-      throw SplashError("Cannot validate speculative grammar tokens")
+    try consume(query.committed)
+    let width = Int(query.words)
+    var result = [UInt32](repeating: 0, count: width * rows)
+    var reached = [Bool](repeating: false, count: rows)
+    var children = [[Int]](repeating: [], count: rows)
+    let follows = query.parents.map { $0 == SplashWire.noParent ? 0 : Int($0) + 1 }
+    for (index, parentRow) in follows.enumerated() { children[parentRow].append(index + 1) }
+
+    func reach(_ state: OpaquePointer, _ row: Int) throws {
+      let code = result.withUnsafeMutableBufferPointer {
+        api.compute(state, $0.baseAddress! + row * width, width * 4)
+      }
+      guard code == 0 else {
+        failed = true
+        throw SplashError("Cannot compute the output grammar mask")
+      }
+      reached[row] = true
     }
-    defer { api.freeMatcher(speculative) }
-    var result: [UInt32] = []
-    result.reserveCapacity(Int(words) * (simulation.count + 1))
-    var row = [UInt32](repeating: 0, count: Int(words))
-    for index in 0...Int(count) {
-      if index > 0 {
-        let token = simulation[index - 1]
-        let stoppedEOS =
-          SplashTextFrontend.stopTokens.contains(token)
-          && api.error(speculative) == nil && api.stopped(speculative) && api.accepting(speculative)
-        if !stoppedEOS && api.consumeOne(speculative, token) != 0 {
+    func walk(_ state: OpaquePointer, _ row: Int) throws {
+      let last = children[row].count - 1
+      for (index, child) in children[row].enumerated() {
+        var token = query.simulation[child - 1]
+        if token >= SplashTextFrontend.vocabularySize
+          || SplashTextFrontend.stopTokens.contains(token)
+        {
+          continue
+        }
+        // As the reference: copy first, then try the token on the copy, so a sibling never
+        // sees a matcher another sibling validated on.
+        let branch: OpaquePointer
+        if index == last {
+          branch = state
+        } else {
+          guard let copy = api.clone(state) else {
+            failed = true
+            throw SplashError("Cannot copy the output grammar")
+          }
+          branch = copy
+        }
+        defer { if index != last { api.freeMatcher(branch) } }
+        let valid = api.validate(branch, &token, 1)
+        guard valid >= 0, valid <= 1 else {
+          failed = true
+          throw SplashError("Cannot validate speculative grammar tokens")
+        }
+        if valid == 0 { continue }
+        guard api.consumeOne(branch, token) == 0 else {
           failed = true
           throw SplashError("Speculative grammar validation changed")
         }
+        try reach(branch, child)
+        try walk(branch, child)
       }
-      guard api.compute(speculative, &row, row.count * 4) == 0, row.contains(where: { $0 != 0 })
-      else {
-        failed = true
-        throw SplashError("Output grammar has no valid next token")
-      }
-      result += row
     }
-    for _ in Int(count)..<simulation.count { result += row }
-    return result
+
+    try reach(matcher, 0)
+    if !query.simulation.isEmpty {
+      guard let walker = api.clone(matcher) else {
+        failed = true
+        throw SplashError("Cannot copy the output grammar")
+      }
+      defer { api.freeMatcher(walker) }
+      try walk(walker, 0)
+    }
+    // A parent's row comes before its children's.
+    for row in 1..<max(1, rows) where !reached[row] {
+      let parent = follows[row - 1]
+      for word in 0..<width { result[row * width + word] = result[parent * width + word] }
+    }
+    for row in 0..<rows where !result[(row * width)..<((row + 1) * width)].contains(where: { $0 != 0 }) {
+      failed = true
+      throw SplashError("Output grammar has no valid next token")
+    }
+    return SplashWire.MaskReply(words: result)
   }
 
   public func finish(committed: [UInt32], requireComplete: Bool) throws {

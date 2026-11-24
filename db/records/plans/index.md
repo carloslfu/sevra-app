@@ -2,11 +2,12 @@
 type: index
 scope: type-folder
 folder: records/plans
-updated: 2026-11-23T20:30:37Z
+updated: 2026-11-24T14:59:06.949687Z
 ---
 
 # records/plans
 
+- [[records/plans/splash-1-7-1-upgrade]] — Move the pinned engine from Splash 1.6.1 to 1.7.1: wire protocol 15, tree grammar masks, the tool grammar fix and a new prompt header, within the light testing rules.
 - [[records/plans/general-chat-tools]] — Seven general chat tools (SQL on a scratch copy, sandboxed code, workbook tools) and a prompt header made at build time. Built, looked at, and updated in the app between two headers.
 - [[records/plans/rich-native-visuals]] — Native chat inputs, images, charts and work views implemented in source. The document records focused evidence and remaining visual and release work.
 - [[records/plans/chat-response-time]] — Debug-mode chat timing and one measured five-message conversation: 96% of reply time is the engine, and the number of model calls per message decides it.

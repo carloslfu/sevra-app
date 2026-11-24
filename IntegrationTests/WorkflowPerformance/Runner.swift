@@ -3,6 +3,7 @@ import Foundation
 import SevraAI
 import SevraCore
 import SevraNativeAI
+import SevraSplash
 
 func emit(_ value: Value) throws {
   try FileHandle.standardOutput.write(contentsOf: Data((try value.json() + "\n").utf8))
@@ -308,7 +309,7 @@ func selfCheck() async throws {
     FixtureContext.current == nil && timestamp() != "2001-01-01T00:00:00Z"
       && identifier() != identifier(), "fixture", "Fixture changed ordinary identity or time")
   let masks = Observations()
-  masks.appendMask([1], [2], 2, [1, 0, 3, 0])
+  masks.appendMask(.chain(committed: [1], simulation: [2], words: 2), [1, 0, 3, 0])
   masks.append(.object([:]))
   let trace = masks.snapshot()[0]["maskTrace"].array
   try require(
@@ -351,11 +352,9 @@ func selfCheck() async throws {
       else { throw SevraError("configuration", "Unsupported experiment profile") }
       let underlying: any WorkbookInference
       if backend == "native" {
-        let maskObserver: (@Sendable ([UInt32], [UInt32], UInt32, [UInt32]) -> Void)?
+        let maskObserver: (@Sendable (SplashWire.MaskQuery, [UInt32]) -> Void)?
         if config["diagnosticMasks"] == .bool(true) {
-          maskObserver = { committed, simulation, words, masks in
-            observations.appendMask(committed, simulation, words, masks)
-          }
+          maskObserver = { query, masks in observations.appendMask(query, masks) }
         } else {
           maskObserver = nil
         }

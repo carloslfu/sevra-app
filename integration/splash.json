@@ -2,18 +2,18 @@
   "schemaVersion": 1,
   "state": "candidate",
   "activeBackend": "splash",
-  "release": "1.6.1",
+  "release": "1.7.1",
   "source": "https://github.com/incoai/splash.git",
-  "commit": "d8af1054aab0f97de21d043e01aa98af3754f10e",
-  "protocolVersion": 13,
+  "commit": "1988a72f26a6031127efc29f861bfb46d36286c4",
+  "protocolVersion": 15,
   "runtime": {
-    "url": "https://github.com/incoai/splash/releases/download/1.6.1/splash-1.6.1-arm64-macos26.tar.gz",
-    "sha256": "0ed408a781f951a13ff58bed95c9e8c1d1dc67ab9d649fcaf365972b6720ce6c",
-    "archiveBytes": 78670846,
+    "url": "https://github.com/incoai/splash/releases/download/1.7.1/splash-1.7.1-arm64-macos26.tar.gz",
+    "sha256": "ee520768e0eb408eb9342df998cad16e6391043a953dd274b5a3589542162714",
+    "archiveBytes": 102085714,
     "files": {
-      "engine/splash": "ce771e5f51081a2fd60df0ee0083f982a278a863ffaeab29fd590f55e9e36e89",
-      "engine/splash.metallib": "7006f53dedd016809a16f4e5694c78e4f8959f31691e4473a35ad46be45b9b03",
-      "engine/host-step.metallib": "9f94af73a1a7ab440d381268281989cb80698b3921ebec95772e2b889fc54ffb",
+      "engine/splash": "a20152bf09f86b7143d8f76ab3a01fc84ce58d30b150b56008fdd79d08ba4dfc",
+      "engine/splash.metallib": "5fcbcd2874ec57c3c913a849f41183836b6a85cb6b2ee41e750b9a91fbe8f021",
+      "engine/host-step.metallib": "8e177c753e2051cd8a31c79bf031b3fae8daf04f5564ced9fc37db064bdfe51a",
       "LICENSE": "cfc7749b96f63bd31c3c42b5c471bf756814053e847c10f3eb003417bc523d30",
       "THIRD_PARTY_NOTICES": "b8052712a0bc25a90672127c1ce30b1b55e3cce2c9778652ab76c90e067a31c4"
     }
@@ -40,7 +40,7 @@
         "Sources/SevraSplash/Wire.swift",
         "Sources/SevraSplash/StreamState.swift"
       ],
-      "status": "1.6.1-protocol13-status8-fixture-and-malformation-checks-passed",
+      "status": "1.7.1-protocol15-status8-candidate",
       "checks": "IntegrationTests/Splash/main.swift"
     },
     {
@@ -51,7 +51,7 @@
         "runtime/engine/Bootstrap.hpp"
       ],
       "swift": "Sources/SevraSplash/NativeProcess.swift",
-      "status": "1.6.1-startup-cancel-release-recovery-passed-full-qualification-blocked",
+      "status": "1.7.1-candidate-full-qualification-blocked",
       "checks": [
         "IntegrationTests/Splash/main.swift",
         "IntegrationTests/Splash/NativeProbe.swift",
@@ -74,7 +74,7 @@
         "Sources/SevraNativeSetup/main.swift",
         "Sources/SevraProduct/ProductAI.swift"
       ],
-      "status": "1.6.1-native-upstream-assembly-byte-parity-and-unchanged-weight-reuse-passed",
+      "status": "1.7.1-candidate-unchanged-assembly-and-weight-reuse",
       "checks": [
         "IntegrationTests/Splash/ModelChecks.swift",
         "scripts/check_splash_reference.py",
@@ -86,14 +86,15 @@
       "upstream": [
         "server/frontend.py",
         "server/chat_format.py",
-        "server/chat_templates.py"
+        "server/chat_templates.py",
+        "server/tokenization.py"
       ],
       "swift": [
         "Sources/SevraSplashText/TextFrontend.swift",
         "Sources/SevraSplashText/Resources/template-patch.json",
         "Sources/SevraSplashText/StreamingDecoder.swift"
       ],
-      "status": "24-exact-prompt-and-80-streaming-fixtures-passed",
+      "status": "1.7.1-candidate",
       "checks": [
         "IntegrationTests/Text/main.swift",
         "IntegrationTests/Text/fixtures.json",
@@ -122,7 +123,7 @@
         "Sources/SevraNativeAI/NativeCitationPolicy.swift",
         "Sources/SevraAI/ContextBudget.swift"
       ],
-      "status": "1.6.1-fixture-verified-live-semantic-failures-retained",
+      "status": "1.7.1-candidate",
       "checks": [
         "IntegrationTests/Text/OutputChecks.swift",
         "IntegrationTests/Text/output-fixtures.json",
@@ -145,7 +146,7 @@
         "Sources/SevraSplashText/TextFrontend.swift",
         "Sources/SevraSplashGrammar/ToolPolicy.swift"
       ],
-      "status": "1.6.1-full-vocabulary-and-tool-mask-fixtures-pass-2830-live-prefix-masks-match",
+      "status": "1.7.1-candidate-tree-masks",
       "checks": [
         "IntegrationTests/Grammar/main.swift",
         "IntegrationTests/Grammar/NativeProbe.swift",
@@ -168,7 +169,7 @@
         "Sources/SevraProduct/NativeProductResources.swift",
         "Sources/SevraSplash/RuntimeResources.swift"
       ],
-      "status": "1.6.1-native-package-install-extraction-and-isolated-UI-passed-adoption-blocked",
+      "status": "1.7.1-candidate-adoption-blocked",
       "checks": [
         "scripts/build_native.sh",
         "scripts/package_native.py",
@@ -187,7 +188,7 @@
         "Sources/SevraNativeAI/NativeWorkbookModel.swift",
         "Sources/SevraAI/WorkbookInference.swift"
       ],
-      "status": "explicit-bf16-and-bounded-reasoning-candidate-adoption-blocked",
+      "status": "1.7.1-candidate-adoption-blocked",
       "checks": [
         "IntegrationTests/Agent/ReasoningChecks.swift",
         "IntegrationTests/Agent/ReasoningBoundaryProbe.swift",
@@ -199,7 +200,7 @@
   "golden": {
     "path": "IntegrationTests/Splash/protocol_golden.txt",
     "upstream": "dev/tests/engine/protocol_golden.txt",
-    "sha256": "7b20f4427a55290bcae3ef11e38ca603495107355e4180179188bcbac4d49ce6"
+    "sha256": "8418dabd3517673c8ce58d1ec935765b944b7cdea3eff100fdd34baab978eebe"
   },
   "nativeSmokeEvidence": "integration/evidence/2026-10-26-native-smoke.json",
   "grammarPin": "integration/llguidance.json",
@@ -207,7 +208,7 @@
   "nativeProductEvidence": "integration/evidence/2026-10-27-native-product.json",
   "activeBackendMeaning": "The app's only inference engine, pinned below.",
   "statusSchemaVersion": 8,
-  "previousNativePreviewPin": "integration/splash-1.4.1-preserved.json",
+  "previousNativePreviewPin": "integration/splash-1.6.1-preserved.json",
   "qualification": {
     "state": "blocked",
     "evidence": "integration/evidence/2026-11-16-splash-upgrade.json",
@@ -220,7 +221,7 @@
     "scope": "Broader production qualification"
   },
   "nativePreview": {
-    "release": "1.6.1",
+    "release": "1.7.1",
     "contextTokensAt48GiBOrMore": 65536,
     "contextTokensBelow48GiB": 32768,
     "engineBudgetGiB": 12,

@@ -153,7 +153,7 @@ private struct HeaderProbeSetup {
   let prepared: NativePreparedRequest
   let first: (messages: [InferenceMessage], scope: InferenceToolScope, citations: [String])
   let header: [UInt32]
-  /// Splash 1.6.1 keeps a restore point on the last complete 32-token page (observeResume).
+  /// Splash 1.7.1 keeps a restore point on the last complete 32-token page (observeResume).
   var lastCompletePage: Int { (header.count - 1) / 32 * 32 }
 }
 
@@ -231,6 +231,7 @@ func runHeaderCacheProbe(modelsRoot: String, engine: String, work: String) async
     "--persistent-cache", "on", "--cache-dir", cacheRoot.path,
     "--idle-sleep", "allow", "--verify-rows", "all",
     "--kv-format", "int8", "--state-format", "fp32", "--ane", "on", "--activations", "bf16",
+    "--max-concurrent-requests", "1",
   ]
   func scrub(_ text: String) -> String {
     var text = text
@@ -300,7 +301,7 @@ func runHeaderCacheProbe(modelsRoot: String, engine: String, work: String) async
     request.generationTokens = generation
     var matched = 0
     let result = try helper.generate(
-      request, event: { if case .start(_, _, let reused) = $0 { matched = Int(reused) } })
+      request, event: { if case .start(let start) = $0 { matched = Int(start.matched) } })
     return .object([
       "promptTokens": .number(Double(tokens.count)),
       "matchedPromptTokens": .number(Double(matched)),
@@ -447,6 +448,7 @@ func runHeaderCacheLimitsProbe(modelsRoot: String, engine: String, work: String)
       "--persistent-cache", "on", "--cache-dir", cache.path,
       "--idle-sleep", "allow", "--verify-rows", "all",
       "--kv-format", "int8", "--state-format", "fp32", "--ane", "on", "--activations", "bf16",
+      "--max-concurrent-requests", "1",
     ]
   }
   func scrub(_ text: String) -> String {
@@ -498,7 +500,7 @@ func runHeaderCacheLimitsProbe(modelsRoot: String, engine: String, work: String)
     request.maxOutput = 1
     var matched = 0
     let result = try helper.generate(
-      request, event: { if case .start(_, _, let reused) = $0 { matched = Int(reused) } })
+      request, event: { if case .start(let start) = $0 { matched = Int(start.matched) } })
     return .object([
       "promptTokens": .number(Double(tokens.count)),
       "matchedPromptTokens": .number(Double(matched)),

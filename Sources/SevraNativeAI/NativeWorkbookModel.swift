@@ -27,7 +27,7 @@ package actor NativeWorkbookModel: WorkbookInference {
     /// Evaluation-only startup status sampling; absent from product and timing cohorts.
     package let observeAdmission: (@Sendable (Value) -> Void)?
     package let observeRequest: (@Sendable (Value) -> Void)?
-    package let observeMask: (@Sendable ([UInt32], [UInt32], UInt32, [UInt32]) -> Void)?
+    package let observeMask: (@Sendable (SplashWire.MaskQuery, [UInt32]) -> Void)?
     /// Qualification intervention only. Product callers retain shared caching.
     package let diagnosticRequestCacheIsolation: Bool
     /// The product restores the prepared header from `location` before every engine start
@@ -49,7 +49,7 @@ package actor NativeWorkbookModel: WorkbookInference {
       contextBudget: ContextBudget = .init(), reasoning: NativeReasoning = .off,
       modelLayout: ModelLayout = .localPack, contextMaintenanceEnabled: Bool = true,
       observeRequest: (@Sendable (Value) -> Void)? = nil,
-      observeMask: (@Sendable ([UInt32], [UInt32], UInt32, [UInt32]) -> Void)? = nil,
+      observeMask: (@Sendable (SplashWire.MaskQuery, [UInt32]) -> Void)? = nil,
       diagnosticRequestCacheIsolation: Bool = false, activations: Activations = .bf16,
       observeAdmission: (@Sendable (Value) -> Void)? = nil,
       header: Header = .restore(PromptHeader.location()),
@@ -89,7 +89,7 @@ package actor NativeWorkbookModel: WorkbookInference {
     worker = NativeWorker(configuration)
     contextMaintenanceEnabled = configuration.contextMaintenanceEnabled
     identity =
-      "Splash 1.6.1; d8af1054aab0f97de21d043e01aa98af3754f10e; Qwen3.6-35B-A3B-4bit + DFlash2; native Swift candidate"
+      "Splash 1.7.1; 1988a72f26a6031127efc29f861bfb46d36286c4; Qwen3.6-35B-A3B-4bit + DFlash2; native Swift candidate"
       + "; context \(configuration.contextBudget.contextTokens); memory \(configuration.memoryBytes); activations \(configuration.activations.rawValue); KV int8; state fp32; ANE on"
       + "; reasoning budget \(configuration.reasoning.rawValue); within-request reasoning retained"
   }
@@ -432,7 +432,7 @@ private final class NativeWorker: @unchecked Sendable {
       let primeStarted = ChatTiming.now
       let result = try helper.generate(
         seed, cancelled: { cancellation.isCancelled || cancellation.isExpired },
-        event: { if case .start(_, _, let reused) = $0 { matched = Int(reused) } })
+        event: { if case .start(let start) = $0 { matched = Int(start.matched) } })
       ChatTiming.record(
         "engine.prime", since: primeStarted,
         ["tokens": .number(Double(count)), "matched": .number(Double(matched)),
@@ -445,7 +445,7 @@ private final class NativeWorker: @unchecked Sendable {
     func observeResume(prompt: [UInt32], matched: Int) {
       // A live process can evict old KV pages under its memory budget. Re-prime a missing
       // boundary on a later request instead of trusting the host's record indefinitely.
-      // Splash 1.6.1 checkpoints complete 32-token pages before the suffix.
+      // Splash 1.7.1 checkpoints complete 32-token pages before the suffix.
       checkpointPrefixes.removeAll { prefix in
         let lastCompletePage = ((prefix.count - 1) / 32) * 32
         return matched < lastCompletePage && prompt.starts(with: prefix)
@@ -850,10 +850,10 @@ private final class NativeWorker: @unchecked Sendable {
       let generated = try helper.generate(
         request,
         cancelled: { cancellation.isCancelled || cancellation.isExpired },
-        mask: { try constraint.masks(committed: $0, simulation: $1, words: $2) },
+        mask: { try constraint.masks($0) },
         event: { event in
           if case .tokens(_, _, let tokens) = event { _ = try output.append(tokens: tokens) }
-          if case .start(_, _, let matched) = event { matchedPromptTokens = Int(matched) }
+          if case .start(let start) = event { matchedPromptTokens = Int(start.matched) }
         })
       try cancellation.check()
       try require(
@@ -913,7 +913,7 @@ private final class NativeWorker: @unchecked Sendable {
       let generated = try helper.generate(
         request,
         cancelled: { cancellation.isCancelled || cancellation.isExpired },
-        mask: { try constraint.masks(committed: $0, simulation: $1, words: $2) },
+        mask: { try constraint.masks($0) },
         event: { event in
           if case .tokens(_, _, let tokens) = event { _ = try output.append(tokens: tokens) }
         })
@@ -1003,6 +1003,7 @@ private final class NativeWorker: @unchecked Sendable {
     var previewAt: Double?
     var generationPhase: String?
     var matchedPromptTokens = 0
+    var resumedStart: SplashWire.Start?
     var lastPreview = ""
     var lastPreviewAt = ProcessInfo.processInfo.systemUptime
     // The reasoning as it is written, for the person to read. It never reaches the answer.
@@ -1026,16 +1027,15 @@ private final class NativeWorker: @unchecked Sendable {
     generated = try helper.generate(
       request,
       cancelled: { cancellation.isCancelled || cancellation.isExpired || missed },
-      mask: { committed, simulation, words in
+      mask: { query in
         let maskStarted = ChatTiming.enabled ? ChatTiming.now : 0
-        let values = try constraint.masks(
-          committed: committed, simulation: simulation, words: words)
-        self.configuration.observeMask?(committed, simulation, words, values)
+        let reply = try constraint.masks(query)
+        self.configuration.observeMask?(query, reply.words)
         if ChatTiming.enabled {
           masks += 1
           maskSeconds += ChatTiming.now - maskStarted
         }
-        return values
+        return reply
       },
       event: { event in
         let eventStarted = ChatTiming.enabled ? ChatTiming.now : 0
@@ -1082,9 +1082,10 @@ private final class NativeWorker: @unchecked Sendable {
             progress(phase)
           }
         }
-        if case .start(_, _, let matched) = event {
+        if case .start(let start) = event {
           if ChatTiming.enabled, startEventAt == nil { startEventAt = eventStarted }
-          matchedPromptTokens = Int(matched)
+          matchedPromptTokens = Int(start.matched)
+          resumedStart = start
           if checksHeader {
             let seam = session.missedResumeSeam
             session.missedResumeSeam = false
@@ -1097,6 +1098,16 @@ private final class NativeWorker: @unchecked Sendable {
     // The restart restores the files from the app. Restoring a clean directory resets the
     // engine's own count of failed starts, so the host counts.
     missed = false
+    if ChatTiming.enabled, let start = resumedStart {
+      ChatTiming.mark(
+        "model.header_missed",
+        [
+          "matchedTokens": .number(Double(start.matched)),
+          "prefixTokens": .number(Double(start.prefix)),
+          "stateSource": .string(String(describing: start.source)),
+          "lostState": .bool(start.lostState),
+        ])
+    }
     try require(!resent, "model_header", PromptHeader.damaged().message)
     resent = true
     session.headerRestarts += 1
@@ -1145,7 +1156,7 @@ private final class NativeWorker: @unchecked Sendable {
     try cancellation.check()
     let metrics: Value = .object([
       "backend": .string("splash"),
-      "runtimeRelease": .string("1.6.1"),
+      "runtimeRelease": .string("1.7.1"),
       "activations": .string(configuration.activations.rawValue),
       "requestedContextTokens": .number(Double(budget.contextTokens)),
       "requestedMemoryBytes": .number(Double(configuration.memoryBytes)),
@@ -1172,6 +1183,9 @@ private final class NativeWorker: @unchecked Sendable {
       "firstTokenSeconds": generated.firstTokenSeconds.map(Value.number) ?? .null,
       "promptTokens": .number(Double(prompt.tokens.count)),
       "matchedPromptTokens": .number(Double(matchedPromptTokens)),
+      "prefixTokens": resumedStart.map { .number(Double($0.prefix)) } ?? .null,
+      "stateSource": resumedStart.map { .string(String(describing: $0.source)) } ?? .null,
+      "lostState": resumedStart.map { .bool($0.lostState) } ?? .null,
       "deduplicatedKVTokens": .number(Double(generated.done.deduplicated)),
       "contextTokens": .number(Double(session.capacity)),
       "maintenanceThreshold": .number(Double(measurement.threshold)),
@@ -1204,6 +1218,9 @@ private final class NativeWorker: @unchecked Sendable {
         [
           "promptTokens": .number(Double(prompt.tokens.count)),
           "matchedTokens": .number(Double(matchedPromptTokens)),
+          "prefixTokens": resumedStart.map { .number(Double($0.prefix)) } ?? .null,
+          "stateSource": resumedStart.map { .string(String(describing: $0.source)) } ?? .null,
+          "lostState": resumedStart.map { .bool($0.lostState) } ?? .null,
           "computedTokens": .number(Double(prompt.tokens.count - matchedPromptTokens)),
           "generatedTokens": .number(Double(generated.tokens.count)),
           "reasoningTokens": .number(Double(reasoningTokens)),

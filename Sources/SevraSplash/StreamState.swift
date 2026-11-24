@@ -17,11 +17,15 @@ public struct SplashStreamState {
   {
     try check(!terminal, "Native event arrived after terminal result")
     switch event {
-    case .start(let id, _, let cached):
-      try identity(id)
-      try check(!started && cached <= request.prompt.count, "Invalid or repeated start")
+    case .start(let start):
+      try identity(start.id)
+      // Progress starts at the resumed state. The KV prefix may reach past it, and a state
+      // restored from neither tier is recorded by the caller, not refused.
+      try check(
+        !started && start.matched <= request.prompt.count && start.prefix <= request.prompt.count,
+        "Invalid or repeated start")
       started = true
-      matched = cached
+      matched = start.matched
     case .progress(let id, let processed, let elapsed):
       try identity(id)
       try check(
@@ -40,7 +44,7 @@ public struct SplashStreamState {
         !batch.isEmpty && tokens.count + batch.count <= request.maxOutput,
         "Output exceeds admitted limit")
       tokens.append(contentsOf: batch)
-    case .mask(let id, let maskID, _, _):
+    case .mask(let id, let maskID, _, _, _):
       try identity(id)
       try check(
         started && request.tokenMask && maskID > lastMask, "Unexpected or repeated mask request")

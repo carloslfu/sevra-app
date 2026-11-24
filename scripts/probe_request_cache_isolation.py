@@ -17,9 +17,11 @@ from compare_workflow_performance import worker
 from probe_workflow_isolation import cache_counts, summarize as summarize_jobs
 
 SALT_HIGH = 0x5345565241493200
-# Protocol 13 preserves the 114-byte request body after its 16-byte header.
+# Protocol 15's fixed request body is 118 bytes after its 16-byte header: protocol 13's
+# 114 and head_tokens.
 WIRE_VERSION = json.loads((ROOT / 'integration/splash.json').read_text())['protocolVersion']
-REQUEST = struct.Struct('<QBBQQIIIffIffffQIIIQQIII')
+REQUEST = struct.Struct('<QBBQQIIIffIffffQIIIQQIIII')
+assert REQUEST.size == 118
 
 
 def verify_salts(result, directory, isolated):

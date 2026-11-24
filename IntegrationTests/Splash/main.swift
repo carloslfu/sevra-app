@@ -139,6 +139,10 @@ func peer(_ mode: String) throws {
     set(&start, 16, id, width: 8)
     set(&start, 24, 0)
     set(&start, 28, 0)
+    // A cold start: no KV prefix, no state source and nothing lost.
+    set(&start, 32, 0)
+    start[36] = 0
+    start[37] = 0
     var tokens = golden["tokens"]!
     set(&tokens, 16, id, width: 8)
     set(&tokens, 24, mode == "gap" ? 1 : 0)
@@ -146,9 +150,15 @@ func peer(_ mode: String) throws {
       var mask = golden["mask_request_initial"]!
       set(&mask, 16, id, width: 8)
       if mode == "mask-rows" {
-        // Ready allows nine rows. Request ten, within the wire's global bound.
+        // Ready allows nine rows. Request ten as a valid chain, within the wire's global bound,
+        // so only the row limit refuses it.
         set(&mask, 36, 9)
         mask.append(Data(repeating: 0, count: 9 * 4))
+        for parent in [UInt64(SplashWire.noParent)] + (0..<8).map(UInt64.init) {
+          var word = Data(count: 4)
+          set(&word, 0, parent)
+          mask.append(word)
+        }
         set(&mask, 8, UInt64(mask.count - 16), width: 8)
       } else {
         set(&mask, 32, 1)
@@ -225,6 +235,7 @@ func example() -> SplashWire.Request {
   r.saltLow = 0x8899_AABB_CCDD_EEFF
   r.saltHigh = 0x0011_2233_4455_6677
   r.thinking = .init(tokens: 4096, end: [198, 248069], alsoEnds: 248058)
+  r.headTokens = 2
   return r
 }
 func request(_ id: UInt64 = 91) -> SplashWire.Request {
@@ -261,8 +272,12 @@ test("upstream request variants and control frames") {
   try expect(try SplashWire.stopForSuccess(91) == golden["stop"])
   try expect(try SplashWire.cancel(91) != SplashWire.stopForSuccess(91))
   try expect(
-    try SplashWire.mask(id: 91, maskID: 7, words: [.max, 0, 0xA5A5_A5A5]) == golden["mask_response"]
-  )
+    try SplashWire.mask(
+      id: 91, maskID: 7, words: [.max, 0, 0xA5A5_A5A5], forced: [1, 40, 1, 41, 2, 50])
+      == golden["mask_response"])
+  // Forced pairs: an even count, rows non-decreasing.
+  try rejects { _ = try SplashWire.mask(id: 91, maskID: 7, words: [1], forced: [1]) }
+  try rejects { _ = try SplashWire.mask(id: 91, maskID: 7, words: [1], forced: [2, 40, 1, 41]) }
   try expect(SplashWire.status(808) == golden["status_request"])
   try expect(SplashWire.status(808, release: true) == golden["release_request"])
 }
@@ -290,6 +305,16 @@ test("every upstream engine golden, fragmented at every byte") {
         concurrent: 4, context: 524288, vision: false, vocabulary: 248320, maskRows: 9,
         stopTokens: [248044, 248046]))
   try expect(try decode(golden["tokens"]!) == .tokens(id: 91, offset: 17, tokens: [10, 11, 12]))
+  try expect(
+    try decode(golden["start"]!)
+      == .start(
+        .init(id: 91, lane: 2, matched: 4096, prefix: 4160, source: .disk, lostState: true)))
+  // A verify block's rows as a tree: token 0 is the root, tokens 1 and 2 both follow it.
+  try expect(
+    try decode(golden["mask_request_verify"]!)
+      == .mask(
+        id: 91, maskID: 7, words: 4, simulation: [101, 102, 103],
+        parents: [SplashWire.noParent, 0, 0]))
   if case .done(let d) = try decode(golden["done"]!) {
     try expect(
       d.prompt == 4096 && d.completion == 512 && d.prefillMicros == 1000 && d.decodeMicros == 2000
@@ -325,6 +350,8 @@ test("partial EOF and malformed event bodies are refused") {
     ("warming", 16, 10, 4), ("warming", 20, 0, 4),
     ("start_failed_memory", 16, 9, 1), ("start_failed_memory", 17, 3, 1),
     ("start_failed_memory", 38, 999999, 4), ("start", 16, 0, 8), ("tokens", 28, 4000, 4),
+    ("start", 36, 3, 1), ("start", 37, 2, 1),
+    ("mask_request_verify", 52, 0, 4), ("mask_request_verify", 56, 1, 4),
     ("done", 24, 8, 1),
     ("done", 25, 1, 1), ("error_request", 16, 2, 1),
     ("mask_request_initial", 32, UInt64(UInt32.max), 4),
@@ -348,6 +375,9 @@ test("invalid client configuration is rejected") {
   r.generationTokens = 4
   try rejects { _ = try r.encoded() }
   r = request()
+  r.headTokens = 4
+  try rejects { _ = try r.encoded() }
+  r = request()
   r.id = 0
   try rejects { _ = try r.encoded() }
   r = request()
@@ -357,16 +387,26 @@ test("invalid client configuration is rejected") {
 test("request state refuses gap, duplicate, wrong id and progress after tokens") {
   for bad in [
     SplashWire.Event.tokens(id: 91, offset: 1, tokens: [2]),
-    .tokens(id: 92, offset: 0, tokens: [2]), .start(id: 91, lane: 0, matched: 0),
+    .tokens(id: 92, offset: 0, tokens: [2]), .start(.init(id: 91, lane: 0, matched: 0)),
   ] {
     var state = SplashStreamState(request())
-    try state.accept(.start(id: 91, lane: 0, matched: 0))
+    try state.accept(.start(.init(id: 91, lane: 0, matched: 0)))
     try rejects { _ = try state.accept(bad) }
   }
+  // A start's state and KV prefix lie within the prompt. A prefix past the resumed state is
+  // what a matched block without a state looks like, and is accepted.
+  for bad in [
+    SplashWire.Start(id: 91, lane: 0, matched: 5), .init(id: 91, lane: 0, matched: 0, prefix: 5),
+  ] {
+    var fresh = SplashStreamState(request())
+    try rejects { _ = try fresh.accept(.start(bad)) }
+  }
+  var deeper = SplashStreamState(request())
+  try deeper.accept(.start(.init(id: 91, lane: 0, matched: 0, prefix: 4, source: .none)))
   var r = request()
   r.flags = 2
   var state = SplashStreamState(r)
-  try state.accept(.start(id: 91, lane: 0, matched: 0))
+  try state.accept(.start(.init(id: 91, lane: 0, matched: 0)))
   try state.accept(.tokens(id: 91, offset: 0, tokens: [2]))
   try rejects { _ = try state.accept(.tokens(id: 91, offset: 0, tokens: [2])) }
   try rejects { _ = try state.accept(.progress(id: 91, processed: 1, micros: 4)) }
@@ -540,9 +580,9 @@ test("mask requests obey actual Ready vocabulary and row limits") {
     try rejects {
       _ = try child.generate(
         request,
-        mask: { _, _, _ in
+        mask: { _ in
           supplied = true
-          return []
+          return .init(words: [])
         })
     }
     try expect(!supplied && !child.isOpen)

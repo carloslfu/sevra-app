@@ -1,0 +1,14 @@
+turn  hist  total  text  shown   pre  calls  start  prep  gram  prime  engine  prefill  decode  mask  prompt  match  comp   gen  think  tool  maint  save  lock  late  tools
+  #2     1   6.05     -      -  2.42      1      0  0.02  0.01      0    3.63     1.49    2.12  0.06    5247   4416   831    96     35     0   0.02  0.00     0     0      -
+  #3     3   6.53     -      -  0.07      1   0.00  0.05  0.01      0    6.45     1.46    4.99  0.20    5458   4416  1042   237     64     0   0.04  0.01     0     0      -
+  #4     6  12.57     -      -  0.07      2      0  0.07  0.02      0   12.44     3.12    9.31  0.23    5723   4576  2267   392    183  0.00   0.07  0.00     0     0    sql
+  #5    10  31.11     -      -  0.08      3   0.00  0.11  0.02      0   30.93     4.86   26.06  0.63    6328   4800  3651  1469    510  0.00   0.07  0.00     0     0    sql
+  #6    12   5.48     -      -  0.08      1      0  0.05  0.01      0    5.39     2.08    3.32  0.11    7817   5376  2441   128     64     0   0.05  0.00     0     0      -
+
+total: Send to the reply drawn. text: first answer text on screen. shown: saved reply in the
+chat. pre: Send to the first engine request. start: engine start. prep: prompt building
+and tokenizing. gram: grammar compile. engine: engine request time, of which prefill and
+decode as the engine counts them, and mask the host spent on grammar masks. prompt and
+match: tokens of the first call and how many it resumed. comp: tokens computed in all calls.
+gen and think: tokens generated and of those, hidden reasoning. tool: tool time. maint: context
+maintenance. lock: waits for the workbook lock. late: main thread lateness over 20 ms.
