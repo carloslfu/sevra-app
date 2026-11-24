@@ -300,7 +300,8 @@ extension Workbook {
   public func rebuildSearch(cancellation: Cancellation = .init()) throws {
     _ = try mutation("rebuild_search", cancellation: cancellation, deadlineSeconds: .infinity) {
       try db.execute(
-        "UPDATE chunks SET is_current=EXISTS(SELECT 1 FROM heads h WHERE h.item_id=chunks.item_id)")
+        "UPDATE chunks SET is_current=EXISTS(SELECT 1 FROM heads h JOIN items i ON i.id=h.item_id WHERE h.item_id=chunks.item_id AND i.kind<>'removal' AND NOT "
+          + Workbook.removedSQL("i.logical_id") + ")")
       try db.execute("INSERT INTO search_fts(search_fts) VALUES('rebuild')")
       try db.execute("INSERT INTO names_fts(names_fts) VALUES('rebuild')")
       try db.execute("INSERT INTO message_fts(message_fts) VALUES('rebuild')")

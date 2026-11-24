@@ -429,6 +429,10 @@ package enum NativeTools {
         name: "spaces", description: "List saved native spaces.",
         parameters: object([:], required: [])),
       .init(
+        name: "removed",
+        description: "List what was removed, newest first, with the id restore takes.",
+        parameters: object([:], required: [])),
+      .init(
         name: "space_history",
         description: "Inspect saved layouts only; no restore/data changes.",
         parameters: object(

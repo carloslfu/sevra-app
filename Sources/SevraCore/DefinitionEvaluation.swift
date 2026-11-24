@@ -11,6 +11,9 @@ extension Workbook {
         try db.readTransaction {
           let definition = try applicationDefinition(id)
           try require(
+            try removalMarker(definition.logicalID)?.status != "accepted", "removed",
+            "“" + definition.title + "” was removed. restore brings it back before it can run.")
+          try require(
             ["function", "query"].contains(definition.kind), "definition_kind",
             "Actions and forms require explicit preview and invocation, not pure evaluation.")
           let descriptor = try DefinitionDescriptor(definition.content)

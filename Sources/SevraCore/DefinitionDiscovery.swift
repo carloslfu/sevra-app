@@ -53,7 +53,10 @@ extension Workbook {
               query.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty,
               "definition_query", "Search needs letters or digits.")
           }
-          if !historical { joins += " JOIN app_definition_heads h ON h.definition_id=d.id" }
+          if !historical {
+            joins += " JOIN app_definition_heads h ON h.definition_id=d.id"
+            predicates.append("NOT " + Workbook.removedSQL("d.logical_id"))
+          }
           if let kind {
             predicates.append("d.kind=?")
             values.append(.string(kind))

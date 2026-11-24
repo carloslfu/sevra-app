@@ -49,6 +49,10 @@ private struct ItemDetails: Sendable {
   }
   var extraction = ""
   var links: [Link] = []
+  /// Removed from the workbook, and this is its current version.
+  var removed = false
+  /// Remove applies to it: a document or record the workbook does not keep for itself.
+  var removable = false
 }
 
 @MainActor struct ItemView: View {
@@ -72,7 +76,8 @@ private struct ItemDetails: Sendable {
   @State private var showingExtractedText = false
   @State private var details = ItemDetails()
   private var classification: String {
-    let status = item.status == "rejected" ? "Withdrawn" : item.status.capitalized
+    let status =
+      details.removed ? "Removed" : item.status == "rejected" ? "Withdrawn" : item.status.capitalized
     return [item.category.capitalized, item.meaning.capitalized, status].joined(separator: " · ")
   }
   private var movementDirection: String? {
@@ -100,13 +105,24 @@ private struct ItemDetails: Sendable {
             if document.end() { state.review(document.current.id, accepting: true) }
           }.buttonStyle(.borderedProminent).disabled(state.busy)
         }
-        if item.status == "draft" {
+        if details.removed {
+          Button("Restore") {
+            if document.end() { state.removeOrRestore(item.logicalID, removing: false) }
+          }.disabled(state.busy).help("Bring it back into the workbook as it was.")
+        } else if item.status == "draft" && item.supersedes != nil {
+          // A draft change to something already saved: declining keeps what was there.
           Button("Withdraw") {
             if document.end() { state.review(document.current.id, action: .withdraw) }
           }.disabled(state.busy).help(
-            "Keep this draft in history without applying it. Undo can restore it.")
+            "Decline this change and keep the version before it. Undo can bring the change back.")
         }
-        if item.supersedes != nil {
+        if details.removable && !details.removed {
+          Button("Remove") {
+            if document.end() { state.removeOrRestore(item.logicalID, removing: true) }
+          }.disabled(state.busy).help(
+            "Take it out of the workbook. History keeps it, and Restore brings it back.")
+        }
+        if item.supersedes != nil && !details.removed {
           Button(isTableUpdateRedo ? "Redo" : "Undo") {
             if document.end() {
               state.review(document.current.id, action: isTableUpdateRedo ? .redo : .undo)
@@ -480,16 +496,19 @@ private struct ItemDetails: Sendable {
       && item.data["afterFingerprint"].string != nil
   }
   private func loadDetails() async {
-    let (id, book) = (item.id, workbook)
+    let (id, logicalID, book) = (item.id, item.logicalID, workbook)
     let loaded = await Task.detached(priority: .userInitiated) {
       let links = (try? book.lineage(id)) ?? []
+      let current = (try? book.item(logicalID))?.id == id
       return ItemDetails(
         extraction: (try? book.extractionStatus(id))?["detail"].text ?? "",
         links: links.map { link in
           let target = link["child"].text == id ? link["parent"].text : link["child"].text
           return .init(
             id: link.text, target: target, title: (try? book.item(target).title) ?? target)
-        })
+        },
+        removed: current && (try? book.isRemoved(logicalID)) == true,
+        removable: current && (try? book.removalTarget(id))?.type == "item")
     }.value
     guard !Task.isCancelled else { return }
     details = loaded

@@ -61,6 +61,11 @@ if CommandLine.arguments.dropFirst() == ["--corrupt-metadata"] {
   print("\(passed) passed; \(failed) failed")
   exit(failed == 0 ? 0 : 1)
 }
+if CommandLine.arguments.dropFirst() == ["--removal"] {
+  checkRemoval(at: temp)
+  print("\(passed) passed; \(failed) failed")
+  exit(failed == 0 ? 0 : 1)
+}
 if CommandLine.arguments.dropFirst() == ["--sheet-formulas"] {
   checkSheetFormulas(at: temp)
   print("\(passed) passed; \(failed) failed")

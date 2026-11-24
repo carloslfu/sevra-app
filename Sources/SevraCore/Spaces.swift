@@ -133,7 +133,8 @@ public struct Message: Codable, Identifiable, Sendable {
 extension Workbook {
   public func spaces() throws -> [Space] {
     try synchronized {
-      try db.execute("SELECT * FROM spaces ORDER BY CASE WHEN id='home' THEN 0 ELSE 1 END,title")
+      try db.execute(
+        "SELECT * FROM spaces WHERE NOT \(Self.removedSQL("spaces.id")) ORDER BY CASE WHEN id='home' THEN 0 ELSE 1 END,title")
         .map { row in
           guard let version = row["version"]?.int, (1...1_000_000_000).contains(version) else {
             throw SevraError("integrity", "Invalid space version.")

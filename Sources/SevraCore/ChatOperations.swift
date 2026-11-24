@@ -187,8 +187,16 @@ public enum ChatOperations {
       ["id", "expectedVersion"], host: true),
     .init(
       "record.review",
-      "Prepare a conversational decision for an exact inspected item version. decision: accept, undo, withdraw. User confirmation applies it.",
+      "Prepare a conversational decision for an exact inspected item version. decision: accept or undo. User confirmation applies it. To take a draft or anything else out of the workbook, use remove.",
       ["id", "decision"], host: true),
+    .init(
+      "remove",
+      "Take a document, record, table, view, app, form, workflow, function, rule, automation or saved tool out of the workbook, by its id. History keeps it and restore brings it back. The person confirms in chat.",
+      ["id"], host: true),
+    .init(
+      "restore",
+      "Bring back something removed, by the id read kind=removed lists. The person confirms in chat.",
+      ["id"], host: true),
     .init(
       "form.inspect", "Inspect a saved form's named inputs and current target, without opening it.",
       ["id"], readOnly: true),

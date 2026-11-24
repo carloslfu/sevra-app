@@ -37,6 +37,10 @@ extension Workbook {
       ]),
       cancellation: cancellation, actor: actor
     ) {
+      let started = try self.applicationDefinition(definitionID)
+      try require(
+        try self.removalMarker(started.logicalID)?.status != "accepted", "removed",
+        "“" + started.title + "” was removed. restore brings it back before it can start.")
       if let requestRunID {
         try self.validateApplicationToolRun(requestRunID, requestSourceID: requestSourceID)
       } else {

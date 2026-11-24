@@ -47,7 +47,7 @@ package enum GeneralTools {
     "archive": "archive_members", "reviews": "review_queue", "workflows": "workflow_activity",
     "actions": "workspace_actions", "app_guide": "native_app_sdk",
     "definition_guide": "definition_registry", "rule_guide": "guide",
-    "receiving_guide": "guide", "view_guide": "guide",
+    "receiving_guide": "guide", "view_guide": "guide", "removed": "removed",
   ]
   /// `save` kinds and the operation behind each. A tool is saved by the core's own `save`.
   package static let saves: [String: String] = [
@@ -290,7 +290,7 @@ package enum GeneralTools {
     let read = WorkbookToolDefinition(
       name: "read",
       description:
-        "Read one thing. With id alone: a document or record, with offset for later parts. references, lineage, archive: what that item links to, came from, or contains. Other kinds name their thing with ref. message: an earlier message. result: a page of a long saved tool result. app, definition, workflow, view_history: that saved thing. views, reviews, workflows: those lists, with no ref. actions: the actions run can perform, with ref as an optional group such as table, app, visual, file, workflow. app_guide: read before writing an app. rule_guide: read before saving a rule that watches stock. view_guide: view components beyond a table and a chart. definition_guide: the kinds of saved definitions.",
+        "Read one thing. With id alone: a document or record, with offset for later parts. references, lineage, archive: what that item links to, came from, or contains. Other kinds name their thing with ref. message: an earlier message. result: a page of a long saved tool result. app, definition, workflow, view_history: that saved thing. views, reviews, workflows, removed: those lists, with no ref. actions: the actions run can perform, with ref as an optional group such as table, app, visual, file, workflow. app_guide: read before writing an app. rule_guide: read before saving a rule that watches stock. view_guide: view components beyond a table and a chart. definition_guide: the kinds of saved definitions.",
       parameters: display
         ? object(readFields, required: [])
         : readShapes(readFields, items: items, messages: messages))
@@ -346,7 +346,8 @@ package enum GeneralTools {
               + Self.exact.subtracting(["workflow.prepare_answer"]).sorted().map {
                 $0 + " " + fields(parameters(actions[$0]!))
               }
-              .joined(separator: "; ") + "; and the actions read kind=actions lists with their inputs."),
+              .joined(separator: "; ")
+              + "; remove {id}: takes a document, record, table, view, app, definition or tool out of the workbook, never an empty edit; restore {id}: brings back one read kind=removed lists; and the actions read kind=actions lists with their inputs."),
         ]) { _, new in new }.wrapped
         : .object([
           "type": .string("object"), "anyOf": .array(shapes),
@@ -356,7 +357,7 @@ package enum GeneralTools {
     let run = WorkbookToolDefinition(
       name: "run",
       description: NativeTools.runDefinition.description
-        + " Or send action to perform one named action instead of code: charts, files, imports, apps, workflows, views and undo.",
+        + " Or send action to perform one named action instead of code: charts, files, imports, apps, workflows, views, undo, remove and restore.",
       parameters: object(runProperties, required: []))
     var kinds: [String: Value] = [
       "tool": .object(

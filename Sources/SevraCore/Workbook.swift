@@ -386,7 +386,7 @@ public final class Workbook: @unchecked Sendable {
   ) throws -> [Item] {
     try synchronized {
       try db.execute(
-        "SELECT i.* FROM items i JOIN heads h ON h.item_id=i.id WHERE (? IS NULL OR kind=?) AND (?=0 OR kind!='row') ORDER BY created DESC,i.id LIMIT ? OFFSET ?",
+        "SELECT i.* FROM items i JOIN heads h ON h.item_id=i.id WHERE (? IS NULL OR kind=?) AND (?=0 OR kind!='row') AND NOT \(Workbook.removedSQL("i.logical_id")) ORDER BY created DESC,i.id LIMIT ? OFFSET ?",
         [
           kind.map(Value.string) ?? .null, kind.map(Value.string) ?? .null, .bool(excludingRows),
           .number(Double(min(max(limit, 1), 500))), .number(Double(max(offset, 0))),
@@ -399,7 +399,7 @@ public final class Workbook: @unchecked Sendable {
   public func recentItemSummaries(limit: Int = 20) throws -> [ItemSummary] {
     try synchronized {
       try db.execute(
-        "SELECT i.id,i.category,i.kind,i.title,i.meaning,i.status,i.asset_id FROM items i JOIN heads h ON h.item_id=i.id WHERE i.kind NOT IN ('row',\(Item.technicalKindSQL)) ORDER BY i.created DESC,i.id LIMIT ?",
+        "SELECT i.id,i.category,i.kind,i.title,i.meaning,i.status,i.asset_id FROM items i JOIN heads h ON h.item_id=i.id WHERE i.kind NOT IN ('row',\(Item.technicalKindSQL)) AND NOT \(Workbook.removedSQL("i.logical_id")) ORDER BY i.created DESC,i.id LIMIT ?",
         [.number(Double(min(max(limit, 1), 100)))]
       ).map { row in
         ItemSummary(

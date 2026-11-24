@@ -22,6 +22,9 @@ extension Workbook {
       reading: { try item($0.text) }
     ) {
       try cancellation.check()
+      try require(
+        !text.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty, "document_edit",
+        "An edit cannot leave a document empty. To take it out of the workbook, use remove.")
       let original = try item(versionID)
       try require(
         original.id == versionID, "document_version", "Use the exact document version you edited.")

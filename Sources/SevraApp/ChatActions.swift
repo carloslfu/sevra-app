@@ -352,20 +352,53 @@ extension WorkspaceState {
         "Read the current item before deciding.")
       let decision = a["decision"].text
       try require(
-        ["accept", "undo", "withdraw"].contains(decision), "review",
-        "Choose accept, undo or withdraw.")
+        ["accept", "undo"].contains(decision), "review",
+        "Choose accept or undo. To take it out of the workbook, use remove.")
       if !confirmed {
         return try approve(
           decision.capitalized + " “" + item.title + "”?\n" + String(item.text.prefix(6000)))
       }
       let actor = ChangeActor.human("Sevra.chat-confirmation")
       let result: Item
-      switch decision {
-      case "accept": result = try book.accept(item.id, cancellation: cancellation, actor: actor)
-      case "undo": result = try book.undoItem(item.id, cancellation: cancellation, actor: actor)
-      default: result = try book.withdrawDraft(item.id, actor: actor)
+      if decision == "accept" {
+        result = try book.accept(item.id, cancellation: cancellation, actor: actor)
+      } else {
+        result = try book.undoItem(item.id, cancellation: cancellation, actor: actor)
       }
       return .object(["status": .string("completed"), "item": try encoded(result)])
+    case "remove", "restore":
+      let target = try book.removalTarget(a["id"].text)
+      let removing = name == "remove"
+      if !confirmed {
+        let what: String
+        switch target.type {
+        case "item": what = target.kind == "document" ? "document" : "record"
+        case "definition": what = target.kind ?? "definition"
+        default: what = target.type
+        }
+        return try approve(
+          (removing ? "Remove " : "Restore ") + what + " “" + target.title + "”?\n"
+            + (removing
+              ? "It leaves the workbook. History keeps it, and you can restore it."
+              : "It comes back as it was before it was removed."
+                + (target.type == "app" || target.kind == "automation"
+                  ? " It stays turned off until you enable it." : "")))
+      }
+      let actor = ChangeActor.human("Sevra.chat-confirmation")
+      if removing && target.type == "app" {
+        nativeAppSession(try book.space(target.id), book: book).revoke()
+      }
+      if removing && target.kind == "automation" {
+        let controller = automation.controller
+        let current = try book.applicationDefinition(target.id)
+        for grant in try controller.registry.grants().filter({
+          $0.sourceID == current.id && (try? controller.registry.matches($0, workbook: book)) == true
+        }) {
+          try await controller.pause(grant, actor: actor)
+        }
+      }
+      return removing
+        ? try book.remove(target.id, actor: actor) : try book.restore(target.id, actor: actor)
     case "file.transcribe":
       try await AppHost.transcribe(book, id: a["id"].text, cancellation: cancellation)
       return .object(["status": .string("completed"), "sourceID": a["id"]])

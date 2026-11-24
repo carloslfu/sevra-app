@@ -242,7 +242,7 @@ public struct Item: Codable, Identifiable, Equatable, Sendable {
     "request", "annotation", "application_definition", "application_invocation",
     "automation_authorization", "automation_planning", "automation_dispatch",
     "workflow_authorization", "condition_intent", "condition_dismissal", "excel-formulas",
-    "excel-conversion", "visual_lineage", "visual_presentation",
+    "excel-conversion", "visual_lineage", "visual_presentation", "removal",
   ]
   static let technicalKindSQL = technicalKinds.sorted().map { "'" + $0 + "'" }.joined(
     separator: ",")

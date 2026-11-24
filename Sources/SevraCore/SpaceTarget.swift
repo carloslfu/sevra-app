@@ -26,7 +26,7 @@ extension Workbook {
         return try ApplicationDefinition(row)
       }
       let rows = try db.execute(
-        "SELECT d.* FROM app_definitions d JOIN app_definition_heads h ON h.definition_id=d.id WHERE d.kind='automation' AND d.title=? COLLATE NOCASE ORDER BY d.id LIMIT 2",
+        "SELECT d.* FROM app_definitions d JOIN app_definition_heads h ON h.definition_id=d.id WHERE d.kind='automation' AND d.title=? COLLATE NOCASE AND NOT \(Self.removedSQL("d.logical_id")) ORDER BY d.id LIMIT 2",
         [.string(target)])
       try require(
         !rows.isEmpty, "automation_not_found",
@@ -54,7 +54,7 @@ extension Workbook {
           return .init(id: row["id"]!.text, title: row["title"]!.text)
         }
         let rows = try db.execute(
-          "SELECT id,title FROM spaces WHERE title=? COLLATE NOCASE ORDER BY id LIMIT 2",
+          "SELECT id,title FROM spaces WHERE title=? COLLATE NOCASE AND NOT \(Self.removedSQL("spaces.id")) ORDER BY id LIMIT 2",
           [.string(target)])
         try require(
           !rows.isEmpty, "space_not_found", "No space has that exact name. Which space do you mean?"

@@ -37,7 +37,7 @@ extension Workbook {
       """
       SELECT i.id,i.category,i.kind,i.title,i.meaning,i.status,i.asset_id
       FROM items i JOIN heads h ON h.item_id=i.id
-      WHERE i.status!='withdrawn' AND (i.asset_id IS NOT NULL OR i.kind='document'
+      WHERE i.status!='rejected' AND NOT \(Workbook.removedSQL("i.logical_id")) AND (i.asset_id IS NOT NULL OR i.kind='document'
         OR (i.kind='note' AND i.status='accepted'))
         AND i.kind NOT IN ('row',\(Item.technicalKindSQL))
       ORDER BY i.created DESC,i.id LIMIT 3

@@ -53,7 +53,7 @@ public struct WorkbookTools {
     "definition_registry", "receiving_template", "form_template", "workflow_template",
     "inventory_automation_template",
     "evaluate_definition", "native_app_sdk", "read_native_app", "workspace_actions",
-    "preview_action", "workflow_activity", "read_workflow",
+    "preview_action", "workflow_activity", "read_workflow", "removed",
   ]
   public init(
     _ workbook: Workbook, runID: String = identifier(), cancellation: Cancellation = .init(),
@@ -457,6 +457,7 @@ public struct WorkbookTools {
       ])
     case "save_native_app":
       return try NativeAppAuthoring.save(a, checkResult: nativeAppCheck, tools: self)
+    case "removed": return .array(try workbook.removedThings())
     case "spaces":
       return .array(
         try workbook.spaces().map { space in

@@ -36,6 +36,7 @@ extension Workbook {
     }
     // Host bookkeeping such as saved requests is not what someone counting Sources means.
     if filters["kind"] == .null { terms.append("i.kind NOT IN (\(Item.technicalKindSQL))") }
+    terms.append("NOT " + Workbook.removedSQL("i.logical_id"))
     return try synchronized {
       try db.budget(cancellation: cancellation, seconds: 3) {
         try db.readTransaction {

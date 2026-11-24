@@ -26,7 +26,7 @@ extension Workbook {
       }
     }
     let rows = try db.execute(
-      "SELECT d.id,d.kind,d.title FROM app_definitions d JOIN app_definition_heads h ON h.definition_id=d.id WHERE d.kind<>'tool' ORDER BY d.kind,d.title LIMIT 40",
+      "SELECT d.id,d.kind,d.title FROM app_definitions d JOIN app_definition_heads h ON h.definition_id=d.id WHERE d.kind<>'tool' AND NOT \(Workbook.removedSQL("d.logical_id")) ORDER BY d.kind,d.title LIMIT 40",
       maxRows: 40, maxBytes: 262_144)
     let definitions = rows.map {
       ($0["kind"]?.text ?? "") + " " + ($0["title"]?.text ?? "") + " [" + ($0["id"]?.text ?? "") + "]"
