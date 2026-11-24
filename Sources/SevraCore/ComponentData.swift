@@ -39,18 +39,25 @@ extension Workbook {
     }
   }
   public func componentMetric(_ component: Component, data: ComponentSnapshot) throws -> String {
+    let function = component.aggregation ?? "SUM"
+    // A count is of rows, and the table knows how many it has however many are loaded.
+    if function == "COUNT" { return String(data.totalRows) }
     try require(
       data.rows.count == data.totalRows, "view_limit",
       "This metric exceeds 1,000 rows. Create a smaller derived table first; a partial sum would be misleading."
     )
-    let function = component.aggregation ?? "SUM"
-    if function == "COUNT" { return String(data.rows.count) }
     guard let column = component.y else {
       throw SevraError("view", "A metric needs a value column.")
     }
-    let numbers = try data.rows.map { try Numbers.decimal($0.values[column]?.text ?? "") }
+    // A blank cell is not a number yet, as in a spreadsheet. Text that is not a number is an
+    // error, so a typo is not silently left out of a total.
+    let numbers = try data.rows.compactMap { row -> Decimal? in
+      let text = row.values[column]?.text ?? ""
+      return text.trimmingCharacters(in: .whitespaces).isEmpty ? nil : try Numbers.decimal(text)
+    }
     guard var result = numbers.first else {
-      throw SevraError("missing_value", "This table has no values.")
+      // A total of nothing is 0. An average, a minimum or a maximum of nothing does not exist.
+      return function == "SUM" ? "0" : "No values yet"
     }
     for number in numbers.dropFirst() {
       switch function {
@@ -89,9 +96,9 @@ extension Workbook {
         try cancellation.check()
         try require(
           !SpaceDefinition.sectionTypes.contains(component.type)
-            && !["form", "app"].contains(component.type),
+            && !["form", "app", "button"].contains(component.type),
           "view_limit",
-          "Live workbook sections and forms cannot be frozen. Snapshot a space containing bound business views."
+          "Live workbook sections, forms and buttons cannot be frozen. Snapshot a space containing bound business views."
         )
         var copy = component
         if ["calculation", "query"].contains(component.type), component.evaluationSnapshot == nil {

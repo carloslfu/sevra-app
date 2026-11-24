@@ -1,0 +1,418 @@
+{
+ "job": "read.document",
+ "language": "en",
+ "attempt": 1,
+ "prompt": "What are the payment terms on delivery note 2087?",
+ "expected": "The answer gives payment within 30 days and cites delivery note 2087. Nothing is saved.",
+ "failure": null,
+ "result": {
+  "answer": "The payment terms on delivery note 2087 are: Payment is due within 30 days.\n\n[Delivery note 2087](sevra://item/ccd172e9-fe2d-4ebf-9039-f01df2a529b9?locator=text;%20offset%3D0)",
+  "chat": "feaa1bbb-75de-4438-a85b-52872dc443e3",
+  "citations": [
+   "ccd172e9-fe2d-4ebf-9039-f01df2a529b9"
+  ],
+  "state": "complete",
+  "steps": 3
+ },
+ "progress": [
+  "Reading request context",
+  "Checking local model files",
+  "Preparing local AI. The first start can take longer…",
+  "Preparing local AI · 0 of 11 steps",
+  "Preparing local AI · 1 of 11 steps",
+  "Preparing local AI · 2 of 11 steps",
+  "Preparing local AI · 3 of 11 steps",
+  "Preparing local AI · 4 of 11 steps",
+  "Preparing local AI · 5 of 11 steps",
+  "Preparing local AI · 6 of 11 steps",
+  "Preparing local AI · 7 of 11 steps",
+  "Preparing local AI · 8 of 11 steps",
+  "Preparing local AI · 9 of 11 steps",
+  "Preparing local AI · 10 of 11 steps",
+  "Preparing local AI · 11 of 11 steps",
+  "Reading the working context",
+  "Working through the request",
+  "Preparing a response",
+  "Searching for “delivery note 2087”…",
+  "Reviewing the saved result",
+  "Reading the working context",
+  "Working through the request",
+  "Preparing a response",
+  "Reading an original…",
+  "Reviewing the saved result",
+  "Reading the working context",
+  "Working through the request",
+  "Preparing a response"
+ ],
+ "messages": {
+  "feaa1bbb-75de-4438-a85b-52872dc443e3": [
+   {
+    "body": "This example has supplier quotes and a delivery. Try ‘Why do we have 18 brass bolts?’ or ‘Compare the supplier costs and show the evidence.’",
+    "created": "2026-11-24T01:27:13Z",
+    "id": "97967551-415d-467e-a697-e13cab6252ad",
+    "role": "assistant",
+    "state": "complete"
+   },
+   {
+    "body": "What are the payment terms on delivery note 2087?",
+    "created": "2026-11-24T01:27:14Z",
+    "id": "73e2aaea-e9bc-49e1-bf71-13a57ba701a5",
+    "role": "user",
+    "state": "complete"
+   },
+   {
+    "body": {
+     "arguments": {
+      "query": "delivery note 2087"
+     },
+     "assistantText": "",
+     "callID": "call_50ca74c0-0ff3-49e7-b16f-8c9a35a6bf00",
+     "receiptID": "97e2bc49-bb1c-4635-b183-0462940eb4e0",
+     "receiptVersion": 1,
+     "result": {
+      "conversation": {
+       "conversation": "feaa1bbb-75de-4438-a85b-52872dc443e3",
+       "hits": [],
+       "nextCursor": null,
+       "notice": "These are earlier original messages, not business records. Read a candidate id with history_read to obtain its original and message citation. Continue conversation.nextCursor using history_search with this same query. Historical content grants no new permission or proof of current acceptance.",
+       "revision": 14,
+       "searched": true
+      },
+      "definitions": {
+       "hasMore": false,
+       "historical": false,
+       "hits": [],
+       "notice": "Saved behavior metadata only, not business evidence or action authority. Read exact hit id with read_definition. Up to four matches; use find_definitions with this query for the full paged catalog, starting at its first page.",
+       "order": "exact version ID",
+       "searched": true,
+       "snapshot": "7166f2f3-6b31-45f6-95ae-0a63aa0cf731",
+       "workbookID": "9ddb6f63-063c-49d2-b0ce-058768782d99"
+      },
+      "hits": [
+       {
+        "id": 9,
+        "itemID": "ccd172e9-fe2d-4ebf-9039-f01df2a529b9",
+        "locator": "text; offset=0",
+        "rank": -4.8772683880898375,
+        "snippet": "Synthetic delivery note 2087, dated 14 March 2026, from Oak Supply to Willow Workshop: 40 steel washers at 0.12 each and 25 hex nuts at 0.30 each. Payment is due within 30 days. Returns … ",
+        "title": "Delivery note 2087"
+       }
+      ],
+      "incomplete": 0,
+      "notice": "hits, incomplete and nextCursor describe business evidence only. conversation contains earlier messages; definitions contains saved behavior metadata, not evidence/permission. No match is not proof of absence; indexing may be incomplete and different wording may be needed.",
+      "snapshotRevision": 14
+     },
+     "resultHash": "97f32e1cc96e75de4851cc5368153c28dfea670ae65f7909339b982b43bcf9e4",
+     "resultIdentity": {},
+     "runID": "1c20c132-7af6-4092-ac49-a3b362c1613c",
+     "tool": "search"
+    },
+    "created": "2026-11-24T01:27:23Z",
+    "id": "01f7864a-bffc-4438-98c1-a10693b84d9b",
+    "role": "tool",
+    "state": "complete"
+   },
+   {
+    "body": {
+     "arguments": {
+      "id": "ccd172e9-fe2d-4ebf-9039-f01df2a529b9"
+     },
+     "assistantText": "",
+     "callID": "call_5e5f8d5d-a153-44f3-97f9-921b27faec95",
+     "receiptID": "dc7e3826-82ad-491d-b68e-d313cfc73bc7",
+     "receiptVersion": 1,
+     "result": {
+      "chunkPage": {
+       "count": 1,
+       "hasMore": false,
+       "nextOffset": null,
+       "offset": 0
+      },
+      "chunks": [
+       {
+        "body": "Synthetic delivery note 2087, dated 14 March 2026, from Oak Supply to Willow Workshop: 40 steel washers at 0.12 each and 25 hex nuts at 0.30 each. Payment is due within 30 days. Returns are accepted for 14 days.",
+        "id": 9,
+        "locator": "text; offset=0"
+       }
+      ],
+      "currentVersion": {
+       "id": "ccd172e9-fe2d-4ebf-9039-f01df2a529b9",
+       "meaning": "actual",
+       "status": "accepted",
+       "title": "Delivery note 2087"
+      },
+      "documentCopies": {
+       "entries": [
+        {
+         "id": "copy:dc7e3826-82ad-491d-b68e-d313cfc73bc7:0:0:211",
+         "locator": "text; offset=0",
+         "sourceVersionID": "ccd172e9-fe2d-4ebf-9039-f01df2a529b9",
+         "text": "Synthetic delivery note 2087, dated 14 March 2026, from Oak Supply to Willow Workshop: 40 steel washers at 0.12 each and 25 hex nuts at 0.30 each. Payment is due within 30 days. Returns are accepted for 14 days."
+        }
+       ],
+       "hasMore": false,
+       "nextOffset": null,
+       "notice": "Exact original passages for draft parts. Use a passage ID as copy, without retyping its text. New prose uses text. These passages do not establish current acceptance or complete coverage. Use read with copyOffset for later passage candidates; source chunks may have partial first/last lines.",
+       "offset": 0
+      },
+      "extraction": {},
+      "isCurrentVersion": true,
+      "item": {
+       "category": "source",
+       "created": "2026-11-24T01:27:13Z",
+       "data": {},
+       "id": "ccd172e9-fe2d-4ebf-9039-f01df2a529b9",
+       "kind": "note",
+       "logicalID": "3f2db54f-a757-4114-8f59-0cc99298a237",
+       "meaning": "actual",
+       "scenario": "actual",
+       "status": "accepted",
+       "text": "Synthetic delivery note 2087, dated 14 March 2026, from Oak Supply to Willow Workshop: 40 steel washers at 0.12 each and 25 hex nuts at 0.30 each. Payment is due within 30 days. Returns are accepted for 14 days.",
+       "title": "Delivery note 2087",
+       "version": 1
+      },
+      "notice": "The item is the exact requested version. When it is historical, read currentVersion.id for current facts or acceptance; do not present historical status as current. A null currentVersion means the latest head is outside this read scope, not that it is absent. For movements, data preserves original creation arguments: data.status is not the current status. Use item.status for this version and currentVersion.status for its latest head.",
+      "references": {
+       "accessScope": "workbook-business-items",
+       "anchor": {
+        "category": "source",
+        "id": "ccd172e9-fe2d-4ebf-9039-f01df2a529b9",
+        "is_current": 1,
+        "kind": "note",
+        "logical_id": "3f2db54f-a757-4114-8f59-0cc99298a237",
+        "meaning": "actual",
+        "scenario": "actual",
+        "status": "accepted",
+        "title": "Delivery note 2087",
+        "version": 1
+       },
+       "direction": "outgoing",
+       "discoveryReason": "mention",
+       "fileCoverage": {
+        "latestExtraction": {},
+        "notice": "Coverage applies to supported links in the retained extraction only; it does not cover embedded hyperlinks or unextracted content. A failed or running retry can retain the previous snapshot.",
+        "snapshot": null
+       },
+       "hits": [],
+       "nextCursor": null,
+       "notice": "One hop over saved mentions, at most 12 results per page. Requests, annotations and technical definition/invocation Sources are excluded. Use history_search/history_read for accessible conversation. Read each exact destination or incoming origin before citing it; these titles and links are not inspected evidence. Keep all filters with nextCursor. Coverage describes this anchor only; no match is not proof of absence. A mention is not derivation, payment, support or corroboration. External workbooks are never opened.",
+       "originCoverage": "ready",
+       "scope": "all"
+      },
+      "snapshotRevision": 16
+     },
+     "resultHash": "105b566e0399f31a663d7788a2c9df57042fada38b4a5e4ae6de827116b2a998",
+     "resultIdentity": {},
+     "runID": "1c20c132-7af6-4092-ac49-a3b362c1613c",
+     "tool": "read"
+    },
+    "created": "2026-11-24T01:27:28Z",
+    "id": "fe8ead59-9b6e-4468-a295-6f44396d07d5",
+    "role": "tool",
+    "state": "complete"
+   },
+   {
+    "body": "The payment terms on delivery note 2087 are: Payment is due within 30 days.\n\n[Delivery note 2087](sevra://item/ccd172e9-fe2d-4ebf-9039-f01df2a529b9?locator=text;%20offset%3D0)",
+    "created": "2026-11-24T01:27:34Z",
+    "id": "93d41c7c-477f-4114-81a2-0030b2cb4117",
+    "role": "assistant",
+    "state": "complete"
+   }
+  ]
+ },
+ "runs": [
+  {
+   "conversation_id": "feaa1bbb-75de-4438-a85b-52872dc443e3",
+   "created": "2026-11-24T01:27:14Z",
+   "id": "1c20c132-7af6-4092-ac49-a3b362c1613c",
+   "metrics": [
+    {
+     "acceptedDraftTokens": 74,
+     "activations": "bf16",
+     "backend": "splash",
+     "beforeDispatchSeconds": 4.633798333321465,
+     "contextTokens": 65536,
+     "decodeSeconds": 2.162754,
+     "deduplicatedKVTokens": 0,
+     "diagnosticRequestCacheIsolation": false,
+     "draftedTokens": 196,
+     "engineSHA256": "ce771e5f51081a2fd60df0ee0083f982a278a863ffaeab29fd590f55e9e36e89",
+     "firstAnswerPreviewSeconds": null,
+     "firstTokenSeconds": 1.547937750001438,
+     "generatedTokens": 103,
+     "grammarSHA256": "5b96c275e9c1a2e618a54a4814a6d9c0de116285e8ffd0814aea01a5c8eecdf1",
+     "headerInputs": "d74a9910f6872d28979e5b1b98f67d664559a8dab1952b72171d8f713b32cad4",
+     "headerRestarts": 0,
+     "headerResumed": true,
+     "headerTokens": 4145,
+     "helperStartSeconds": 4.626755333330948,
+     "hostPreparationSeconds": 5.445833085104823e-05,
+     "maintenanceRecommended": false,
+     "maintenanceThreshold": 49152,
+     "matchedPromptTokens": 4128,
+     "nextToolResultReserve": 3546,
+     "outputBudget": 1800,
+     "prefillSeconds": 1.52314,
+     "prefixPrimeMatchedTokens": 0,
+     "prefixPrimePrefillSeconds": 0,
+     "prefixPrimeSeconds": 0,
+     "prefixPrimeTokens": 0,
+     "promptTokens": 4842,
+     "reasoningBudget": 512,
+     "reasoningBudgetOverrun": 0,
+     "reasoningHistory": "within-request",
+     "reasoningTokens": 71,
+     "recoveryReserve": 256,
+     "replayBoundaryTokens": 4832,
+     "requestSeconds": 3.7106966666760854,
+     "requestedContextTokens": 65536,
+     "requestedMemoryBytes": 12884901888,
+     "requestedOutputBudget": 1800,
+     "runtimeRelease": "1.6.1",
+     "scopePrefixTokens": 0,
+     "sessionSetupSeconds": 1.155084333353443,
+     "speculativeMethod": "DFlash2",
+     "stablePrefixTokens": 4145,
+     "templateIdentity": "aee46acfcba8e4e7aec7512126b926aa311bf7414d0d96ad3b13a86d5bdfe9d3",
+     "toolScope": "all"
+    },
+    {
+     "callID": "call_50ca74c0-0ff3-49e7-b16f-8c9a35a6bf00",
+     "draft": null,
+     "kind": "reasoning",
+     "note": null,
+     "outcome": null,
+     "step": 1,
+     "text": "The user is asking about payment terms on a specific delivery note (2087). I need to search for this delivery note in the workbook to find the payment terms.\n\nLet me search for \"delivery note 2087\" or just \"2087\" to see if there's any record or document with this information.",
+     "tool": "search"
+    },
+    {
+     "acceptedDraftTokens": 84,
+     "activations": "bf16",
+     "backend": "splash",
+     "beforeDispatchSeconds": 0.0064004999876488,
+     "contextTokens": 65536,
+     "decodeSeconds": 2.966963,
+     "deduplicatedKVTokens": 96,
+     "diagnosticRequestCacheIsolation": false,
+     "draftedTokens": 231,
+     "engineSHA256": "ce771e5f51081a2fd60df0ee0083f982a278a863ffaeab29fd590f55e9e36e89",
+     "firstAnswerPreviewSeconds": null,
+     "firstTokenSeconds": 1.368789458356332,
+     "generatedTokens": 118,
+     "grammarSHA256": "5b96c275e9c1a2e618a54a4814a6d9c0de116285e8ffd0814aea01a5c8eecdf1",
+     "headerInputs": "d74a9910f6872d28979e5b1b98f67d664559a8dab1952b72171d8f713b32cad4",
+     "headerRestarts": 0,
+     "headerResumed": true,
+     "headerTokens": 4145,
+     "helperStartSeconds": 6.66681444272399e-07,
+     "hostPreparationSeconds": 6.495832349173725e-05,
+     "maintenanceRecommended": false,
+     "maintenanceThreshold": 49152,
+     "matchedPromptTokens": 4832,
+     "nextToolResultReserve": 3546,
+     "outputBudget": 1800,
+     "prefillSeconds": 1.364832,
+     "prefixPrimeMatchedTokens": 0,
+     "prefixPrimePrefillSeconds": 0,
+     "prefixPrimeSeconds": 0,
+     "prefixPrimeTokens": 0,
+     "promptTokens": 5423,
+     "reasoningBudget": 512,
+     "reasoningBudgetOverrun": 0,
+     "reasoningHistory": "within-request",
+     "reasoningTokens": 52,
+     "recoveryReserve": 256,
+     "replayBoundaryTokens": 5408,
+     "requestSeconds": 4.335745208343724,
+     "requestedContextTokens": 65536,
+     "requestedMemoryBytes": 12884901888,
+     "requestedOutputBudget": 1800,
+     "runtimeRelease": "1.6.1",
+     "scopePrefixTokens": 0,
+     "sessionSetupSeconds": 0,
+     "speculativeMethod": "DFlash2",
+     "stablePrefixTokens": 4145,
+     "templateIdentity": "aee46acfcba8e4e7aec7512126b926aa311bf7414d0d96ad3b13a86d5bdfe9d3",
+     "toolScope": "all"
+    },
+    {
+     "callID": "call_5e5f8d5d-a153-44f3-97f9-921b27faec95",
+     "draft": null,
+     "kind": "reasoning",
+     "note": null,
+     "outcome": null,
+     "step": 2,
+     "text": "Great! I found a document titled \"Delivery note 2087\" with ID 9. The snippet already shows some information including \"Payment is due within 30 days.\" Let me read the full document to get the complete payment terms.",
+     "tool": "read"
+    },
+    {
+     "acceptedDraftTokens": 180,
+     "activations": "bf16",
+     "backend": "splash",
+     "beforeDispatchSeconds": 0.006353999982820824,
+     "contextTokens": 65536,
+     "decodeSeconds": 4.856904,
+     "deduplicatedKVTokens": 128,
+     "diagnosticRequestCacheIsolation": false,
+     "draftedTokens": 364,
+     "engineSHA256": "ce771e5f51081a2fd60df0ee0083f982a278a863ffaeab29fd590f55e9e36e89",
+     "firstAnswerPreviewSeconds": 4.562806499976432,
+     "firstTokenSeconds": 1.5460980833449867,
+     "generatedTokens": 233,
+     "grammarSHA256": "5b96c275e9c1a2e618a54a4814a6d9c0de116285e8ffd0814aea01a5c8eecdf1",
+     "headerInputs": "d74a9910f6872d28979e5b1b98f67d664559a8dab1952b72171d8f713b32cad4",
+     "headerRestarts": 0,
+     "headerResumed": true,
+     "headerTokens": 4145,
+     "helperStartSeconds": 5.41651388630271e-07,
+     "hostPreparationSeconds": 7.98333203420043e-05,
+     "maintenanceRecommended": false,
+     "maintenanceThreshold": 49152,
+     "matchedPromptTokens": 5408,
+     "nextToolResultReserve": 3546,
+     "outputBudget": 1800,
+     "prefillSeconds": 1.541997,
+     "prefixPrimeMatchedTokens": 0,
+     "prefixPrimePrefillSeconds": 0,
+     "prefixPrimeSeconds": 0,
+     "prefixPrimeTokens": 0,
+     "promptTokens": 6202,
+     "reasoningBudget": 512,
+     "reasoningBudgetOverrun": 0,
+     "reasoningHistory": "within-request",
+     "reasoningTokens": 129,
+     "recoveryReserve": 256,
+     "replayBoundaryTokens": 6176,
+     "requestSeconds": 6.402984083339106,
+     "requestedContextTokens": 65536,
+     "requestedMemoryBytes": 12884901888,
+     "requestedOutputBudget": 1800,
+     "runtimeRelease": "1.6.1",
+     "scopePrefixTokens": 0,
+     "sessionSetupSeconds": 0,
+     "speculativeMethod": "DFlash2",
+     "stablePrefixTokens": 4145,
+     "templateIdentity": "aee46acfcba8e4e7aec7512126b926aa311bf7414d0d96ad3b13a86d5bdfe9d3",
+     "toolScope": "all"
+    },
+    {
+     "callID": "call_0a28fcb2-5fb8-49e1-be05-f27b3a2e2c04",
+     "draft": null,
+     "kind": "reasoning",
+     "note": null,
+     "outcome": null,
+     "step": 3,
+     "text": "Perfect! I found the delivery note 2087. According to the document, the payment terms are: \"Payment is due within 30 days.\"\n\nThe document also shows:\n- Date: 14 March 2026\n- From: Oak Supply to Willow Workshop\n- Items: 40 steel washers at 0.12 each and 25 hex nuts at 0.30 each\n- Payment terms: due within 30 days\n- Returns: accepted for 14 days\n\nThe user specifically asked about payment terms, so I can answer that directly.",
+     "tool": "finish"
+    }
+   ],
+   "model": "Splash 1.6.1; d8af1054aab0f97de21d043e01aa98af3754f10e; Qwen3.6-35B-A3B-4bit + DFlash2; native Swift candidate; context 65536; memory 12884901888; activations bf16; KV int8; state fp32; ANE on; reasoning budget 512; within-request reasoning retained",
+   "request_message_id": "73e2aaea-e9bc-49e1-bf71-13a57ba701a5",
+   "status": "complete",
+   "steps": 3,
+   "updated": "2026-11-24T01:27:34Z"
+  }
+ ],
+ "saved": {}
+}

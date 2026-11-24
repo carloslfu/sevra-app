@@ -410,7 +410,7 @@ struct NativeComponent: View {
   }
   var body: some View {
     VStack(alignment: .leading, spacing: 12) {
-      if component.type != "visual" {
+      if !["visual", "button"].contains(component.type) {
         Text(component.title).readingFont(.title3, weight: .medium).accessibilityAddTraits(
           .isHeader)
       }
@@ -428,7 +428,9 @@ struct NativeComponent: View {
           state.interactionIdentity)
       case "form":
         FormComponentView(component: component, workspace: state).id(state.interactionIdentity)
-      case "text": Text(component.text ?? "").textSelection(.enabled).foregroundStyle(.secondary)
+      case "text":
+        Text(component.text ?? "").readingFont(sized(.callout, .body, .title2))
+          .textSelection(.enabled).foregroundStyle(.secondary)
       case "comparison":
         ViewThatFits(in: .horizontal) {
           HStack(alignment: .top, spacing: 20) {
@@ -445,14 +447,20 @@ struct NativeComponent: View {
         }
       case "metric":
         if let metric {
-          Text(metric + unitSuffix).readingFont(size: 32, weight: .medium, design: .rounded)
+          Text(metric + ((try? Numbers.decimal(metric)) == nil ? "" : unitSuffix)).readingFont(
+            size: sized(22, 32, 64), weight: .medium, design: .rounded)
+            .lineLimit(1).minimumScaleFactor(0.4)
         }
+      case "button":
+        ToolButtonView(component: component, state: state, owner: owner)
       case "table":
         if component.snapshot == nil, let id = component.datasetID,
           let table = state.dataset(id)
         {
           DatasetView(table: table, state: state, compact: true)
-            .frame(minHeight: 180, idealHeight: 280, maxHeight: 380)
+            .frame(
+              minHeight: sized(120, 180, 300), idealHeight: sized(180, 280, 460),
+              maxHeight: sized(240, 380, 640))
         } else if let data {
           snapshotTable(data)
         }
@@ -478,7 +486,7 @@ struct NativeComponent: View {
           .chartYAxisLabel(yTitle)
           .accessibilityLabel(component.title)
           .accessibilityValue(presentation.summary)
-          .frame(height: 220)
+          .frame(height: sized(150, 220, 340))
           DisclosureGroup("Exact values and sources") {
             snapshotTable(data)
           }
@@ -507,7 +515,8 @@ struct NativeComponent: View {
                   chart, snapshot: data.snapshot, queryHash: data.queryHash,
                   point: point, offset: offset)
               }.value
-            })
+            }
+          ).environment(\.visualPlotHeight, sized(140, 195, 320))
         } else if let work = component.visual?.work, let book = state.workbook {
           LiveWorkVisualView(
             definition: work, revision: state.datasetSnapshot,
@@ -581,7 +590,8 @@ struct NativeComponent: View {
       if let failure { Text(failure).readingFont(.callout).foregroundStyle(.red) }
     }.frame(maxWidth: .infinity, alignment: .leading)
       .task(id: component.id + String(state.revision)) {
-        guard component.datasetID != nil, let book = state.workbook else { return }
+        guard component.datasetID != nil, component.type != "button", let book = state.workbook
+        else { return }
         do {
           let result = try await Task.detached {
             let data = try book.componentData(component)
@@ -596,6 +606,10 @@ struct NativeComponent: View {
           failure = nil
         } catch is CancellationError {} catch { failure = error.localizedDescription }
       }
+  }
+  /// How large the component draws: small, medium or large, medium when absent.
+  private func sized<T>(_ small: T, _ medium: T, _ large: T) -> T {
+    component.size == "small" ? small : component.size == "large" ? large : medium
   }
   var unitSuffix: String {
     let unit = component.unit ?? data?.columns.first(where: { $0.id == component.y })?.unit

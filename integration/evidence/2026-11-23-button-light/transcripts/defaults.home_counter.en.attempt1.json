@@ -1,0 +1,609 @@
+{
+ "job": "defaults.home_counter",
+ "language": "en",
+ "attempt": 1,
+ "prompt": "Change my Home to show a big counter button",
+ "expected": "In a new, empty workbook, Home shows a large counter and a button that adds to it. Nothing is asked: the table, the title and the look are defaults the reply names. No example rows are added.",
+ "failure": null,
+ "result": {
+  "answer": "I've updated your Home view with a big counter button. It includes a large count display showing \"Total Clicks\" and a large \"Click Counter\" button that adds a new row each time you press it. Both are linked to a new \"Counters\" table.\n\nUpdated space “Home”.",
+  "chat": "276899f1-38ab-4421-bf3d-84a756b41b08",
+  "citations": [],
+  "state": "complete",
+  "steps": 5
+ },
+ "progress": [
+  "Reading request context",
+  "Checking local model files",
+  "Preparing local AI. The first start can take longer…",
+  "Preparing local AI · 0 of 11 steps",
+  "Preparing local AI · 1 of 11 steps",
+  "Preparing local AI · 2 of 11 steps",
+  "Preparing local AI · 3 of 11 steps",
+  "Preparing local AI · 4 of 11 steps",
+  "Preparing local AI · 5 of 11 steps",
+  "Preparing local AI · 6 of 11 steps",
+  "Preparing local AI · 7 of 11 steps",
+  "Preparing local AI · 8 of 11 steps",
+  "Preparing local AI · 9 of 11 steps",
+  "Preparing local AI · 10 of 11 steps",
+  "Preparing local AI · 11 of 11 steps",
+  "Reading the working context",
+  "Working through the request",
+  "Preparing a response",
+  "Spaces…",
+  "Reviewing the saved result",
+  "Reading the working context",
+  "Working through the request",
+  "Preparing a response",
+  "Working with your tables…",
+  "Reviewing the saved result",
+  "Reading the working context",
+  "Working through the request",
+  "Preparing a response",
+  "Updating a space…",
+  "Reviewing the saved result",
+  "Reading the working context",
+  "Working through the request",
+  "Preparing a response",
+  "Updating a space…",
+  "Reviewing the saved result",
+  "Reading the working context",
+  "Working through the request",
+  "Preparing a response"
+ ],
+ "messages": {
+  "276899f1-38ab-4421-bf3d-84a756b41b08": [
+   {
+    "body": "Change my Home to show a big counter button",
+    "created": "2026-11-24T02:16:12Z",
+    "id": "b3c03355-f969-4294-83a1-f051c3cd9742",
+    "role": "user",
+    "state": "complete"
+   },
+   {
+    "body": {
+     "arguments": {},
+     "assistantText": "",
+     "callID": "call_92c319ff-eb74-4335-be96-5c6628ae1f14",
+     "receiptID": "ead4af15-7f92-4a53-8d0c-404bf8c498d7",
+     "receiptVersion": 1,
+     "result": [
+      {
+       "definition": {
+        "components": [
+         {
+          "id": "attention",
+          "title": "Needs attention",
+          "type": "attention"
+         },
+         {
+          "id": "continue",
+          "title": "Continue working",
+          "type": "continue"
+         },
+         {
+          "id": "shortcuts",
+          "title": "Pinned spaces",
+          "type": "shortcuts"
+         }
+        ],
+        "version": 1
+       },
+       "id": "home",
+       "title": "Home",
+       "version": 1
+      }
+     ],
+     "resultHash": "0161a94b35902ffd38f567a07e9e7939e014f1eb5bc5e68fc55fc705d8fc2126",
+     "resultIdentity": {},
+     "runID": "9728dcc7-d831-4be1-a200-72a8ba341c55",
+     "tool": "spaces"
+    },
+    "created": "2026-11-24T02:16:21Z",
+    "id": "bc4d4a89-7cc9-498c-ad4c-59de9c9c1e3b",
+    "role": "tool",
+    "state": "complete"
+   },
+   {
+    "body": {
+     "arguments": {
+      "draft": false,
+      "statements": [
+       "CREATE TABLE counters (id INTEGER PRIMARY KEY, name TEXT, created_at TEXT DEFAULT CURRENT_TIMESTAMP)"
+      ]
+     },
+     "assistantText": "",
+     "callID": "call_fec1a6a3-2e6b-494d-a24d-c951578a13a3",
+     "receiptID": "b781626f-5ecd-4b8a-8094-43208c1ba2c3",
+     "receiptVersion": 1,
+     "result": {
+      "inputs": [],
+      "notice": "Saved. If the user asks to undo this, the undo action takes this result's undo value as its token.",
+      "read": [],
+      "results": [
+       {
+        "done": true
+       }
+      ],
+      "shape": [
+       {
+        "change": "created",
+        "columns": [
+         "Id",
+         "Name",
+         "Created at"
+        ],
+        "id": "a3183a1d-a25f-4911-9fc3-ac8fb45f969d",
+        "rows": 0,
+        "table": "counters",
+        "title": "Counters"
+       }
+      ],
+      "undo": "sql-b781626f-5ecd-4b8a-8094-43208c1ba2c3"
+     },
+     "resultHash": "3f08d70ca804f47a786bff92f7c67059fda8da7446e9a5fc98ccbedac6d1f508",
+     "resultIdentity": {},
+     "runID": "9728dcc7-d831-4be1-a200-72a8ba341c55",
+     "tool": "sql"
+    },
+    "created": "2026-11-24T02:16:29Z",
+    "id": "dea6d5cf-f511-4313-8636-bf96e34218d5",
+    "role": "tool",
+    "state": "complete"
+   },
+   {
+    "body": {
+     "arguments": {
+      "edits": [
+       {
+        "at": "first",
+        "component": {
+         "datasetID": "a3183a1d-a25f-4911-9fc3-ac8fb45f969d",
+         "id": "counter_button",
+         "size": "large",
+         "title": "Click Counter",
+         "type": "button"
+        },
+        "operation": "insert"
+       }
+      ],
+      "expectedVersion": 1,
+      "id": "home"
+     },
+     "assistantText": "",
+     "callID": "call_49983c71-b253-4454-a4a7-5a085e500393",
+     "receiptID": "9a4bf4ec-4fd5-42cc-af22-597238cd04f3",
+     "receiptVersion": 1,
+     "result": {
+      "spaceID": "home",
+      "title": "Home",
+      "version": 2
+     },
+     "resultHash": "c60dfd834a6707f4b5843a0711610964fe8c2da26c2772436423f2e9d0a77725",
+     "resultIdentity": {},
+     "runID": "9728dcc7-d831-4be1-a200-72a8ba341c55",
+     "tool": "edit_space"
+    },
+    "created": "2026-11-24T02:16:37Z",
+    "id": "5a0162c9-10b3-4dc6-805e-e58c80d4f1ba",
+    "role": "tool",
+    "state": "complete"
+   },
+   {
+    "body": {
+     "arguments": {
+      "edits": [
+       {
+        "at": "first",
+        "component": {
+         "aggregation": "COUNT",
+         "datasetID": "a3183a1d-a25f-4911-9fc3-ac8fb45f969d",
+         "id": "counter_display",
+         "size": "large",
+         "title": "Total Clicks",
+         "type": "metric"
+        },
+        "operation": "insert"
+       }
+      ],
+      "expectedVersion": 2,
+      "id": "home"
+     },
+     "assistantText": "",
+     "callID": "call_dce05b20-acda-44b7-885b-2bbc9dd5053a",
+     "receiptID": "34b6291b-13dd-47a9-9cc9-39f89bd67290",
+     "receiptVersion": 1,
+     "result": {
+      "spaceID": "home",
+      "title": "Home",
+      "version": 3
+     },
+     "resultHash": "9c4b7f333a5a09233177b7bf17524eb37a72c45632ef37d93581adec7d89272d",
+     "resultIdentity": {},
+     "runID": "9728dcc7-d831-4be1-a200-72a8ba341c55",
+     "tool": "edit_space"
+    },
+    "created": "2026-11-24T02:16:45Z",
+    "id": "a761c0f7-672b-4030-8767-06b6daf3ac5a",
+    "role": "tool",
+    "state": "complete"
+   },
+   {
+    "body": "I've updated your Home view with a big counter button. It includes a large count display showing \"Total Clicks\" and a large \"Click Counter\" button that adds a new row each time you press it. Both are linked to a new \"Counters\" table.\n\nUpdated space “Home”.",
+    "created": "2026-11-24T02:16:52Z",
+    "id": "e5d4f693-16f8-4297-8156-3d5792d0ab79",
+    "role": "assistant",
+    "state": "complete"
+   }
+  ]
+ },
+ "runs": [
+  {
+   "conversation_id": "276899f1-38ab-4421-bf3d-84a756b41b08",
+   "created": "2026-11-24T02:16:12Z",
+   "id": "9728dcc7-d831-4be1-a200-72a8ba341c55",
+   "metrics": [
+    {
+     "acceptedDraftTokens": 58,
+     "activations": "bf16",
+     "backend": "splash",
+     "beforeDispatchSeconds": 4.687742458336288,
+     "contextTokens": 65536,
+     "decodeSeconds": 1.796924,
+     "deduplicatedKVTokens": 0,
+     "diagnosticRequestCacheIsolation": false,
+     "draftedTokens": 168,
+     "engineSHA256": "ce771e5f51081a2fd60df0ee0083f982a278a863ffaeab29fd590f55e9e36e89",
+     "firstAnswerPreviewSeconds": null,
+     "firstTokenSeconds": 1.343651958333794,
+     "generatedTokens": 83,
+     "grammarSHA256": "5b96c275e9c1a2e618a54a4814a6d9c0de116285e8ffd0814aea01a5c8eecdf1",
+     "headerInputs": "31d4baa437ac090cb81aa4eba1cefb75e4d7087e175ef7b33b1670ac4628209e",
+     "headerRestarts": 0,
+     "headerResumed": true,
+     "headerTokens": 4215,
+     "helperStartSeconds": 4.679840500000864,
+     "hostPreparationSeconds": 5.366664845496416e-05,
+     "maintenanceRecommended": false,
+     "maintenanceThreshold": 49152,
+     "matchedPromptTokens": 4192,
+     "nextToolResultReserve": 3546,
+     "outputBudget": 1800,
+     "prefillSeconds": 1.316878,
+     "prefixPrimeMatchedTokens": 0,
+     "prefixPrimePrefillSeconds": 0,
+     "prefixPrimeSeconds": 0,
+     "prefixPrimeTokens": 0,
+     "promptTokens": 4604,
+     "reasoningBudget": 512,
+     "reasoningBudgetOverrun": 0,
+     "reasoningHistory": "within-request",
+     "reasoningTokens": 56,
+     "recoveryReserve": 256,
+     "replayBoundaryTokens": 4576,
+     "requestSeconds": 3.1405814583413303,
+     "requestedContextTokens": 65536,
+     "requestedMemoryBytes": 12884901888,
+     "requestedOutputBudget": 1800,
+     "runtimeRelease": "1.6.1",
+     "scopePrefixTokens": 0,
+     "sessionSetupSeconds": 1.1699142916477285,
+     "speculativeMethod": "DFlash2",
+     "stablePrefixTokens": 4215,
+     "templateIdentity": "aee46acfcba8e4e7aec7512126b926aa311bf7414d0d96ad3b13a86d5bdfe9d3",
+     "toolScope": "all"
+    },
+    {
+     "callID": "call_92c319ff-eb74-4335-be96-5c6628ae1f14",
+     "draft": null,
+     "kind": "reasoning",
+     "note": null,
+     "outcome": null,
+     "step": 1,
+     "text": "The user wants to change their Home view to show a big counter button. I need to first read the current Home view to see what's there, then edit it to add a big counter button.\n\nLet me start by reading the current views to find the Home view.",
+     "tool": "read"
+    },
+    {
+     "acceptedDraftTokens": 159,
+     "activations": "bf16",
+     "backend": "splash",
+     "beforeDispatchSeconds": 0.00014399999054148793,
+     "contextTokens": 65536,
+     "decodeSeconds": 6.819489,
+     "deduplicatedKVTokens": 96,
+     "diagnosticRequestCacheIsolation": false,
+     "draftedTokens": 476,
+     "engineSHA256": "ce771e5f51081a2fd60df0ee0083f982a278a863ffaeab29fd590f55e9e36e89",
+     "firstAnswerPreviewSeconds": null,
+     "firstTokenSeconds": 0.8511471666861326,
+     "generatedTokens": 228,
+     "grammarSHA256": "5b96c275e9c1a2e618a54a4814a6d9c0de116285e8ffd0814aea01a5c8eecdf1",
+     "headerInputs": "31d4baa437ac090cb81aa4eba1cefb75e4d7087e175ef7b33b1670ac4628209e",
+     "headerRestarts": 0,
+     "headerResumed": true,
+     "headerTokens": 4215,
+     "helperStartSeconds": 5.416804924607277e-07,
+     "hostPreparationSeconds": 5.7999975979328156e-05,
+     "maintenanceRecommended": false,
+     "maintenanceThreshold": 49152,
+     "matchedPromptTokens": 4576,
+     "nextToolResultReserve": 3546,
+     "outputBudget": 1800,
+     "prefillSeconds": 0.846835,
+     "prefixPrimeMatchedTokens": 0,
+     "prefixPrimePrefillSeconds": 0,
+     "prefixPrimeSeconds": 0,
+     "prefixPrimeTokens": 0,
+     "promptTokens": 4767,
+     "reasoningBudget": 512,
+     "reasoningBudgetOverrun": 0,
+     "reasoningHistory": "within-request",
+     "reasoningTokens": 168,
+     "recoveryReserve": 256,
+     "replayBoundaryTokens": 4736,
+     "requestSeconds": 7.6706375000067055,
+     "requestedContextTokens": 65536,
+     "requestedMemoryBytes": 12884901888,
+     "requestedOutputBudget": 1800,
+     "runtimeRelease": "1.6.1",
+     "scopePrefixTokens": 0,
+     "sessionSetupSeconds": 0,
+     "speculativeMethod": "DFlash2",
+     "stablePrefixTokens": 4215,
+     "templateIdentity": "aee46acfcba8e4e7aec7512126b926aa311bf7414d0d96ad3b13a86d5bdfe9d3",
+     "toolScope": "all"
+    },
+    {
+     "callID": "call_fec1a6a3-2e6b-494d-a24d-c951578a13a3",
+     "draft": null,
+     "kind": "reasoning",
+     "note": null,
+     "outcome": null,
+     "step": 2,
+     "text": "The current Home view has three components: attention, continue, and shortcuts. The user wants to add a big counter button. A counter button is a COUNT metric with a button over the same table. But the user hasn't specified which table to count.\n\nSince no table is specified, I need to create a simple table to count. Let me create a basic table first, then add a counter button and a button to it.\n\nActually, looking at the view structure more carefully:\n- A counter is a COUNT metric with size \"large\" (since they want it \"big\")\n- A button that adds one empty row each time it's pressed\n\nI need to create a table first, then add both a metric (COUNT) and a button to the Home view.\n\nLet me create a simple table first.",
+     "tool": "sql"
+    },
+    {
+     "acceptedDraftTokens": 228,
+     "activations": "bf16",
+     "backend": "splash",
+     "beforeDispatchSeconds": 0.00014662501052953303,
+     "contextTokens": 65536,
+     "decodeSeconds": 6.407469,
+     "deduplicatedKVTokens": 256,
+     "diagnosticRequestCacheIsolation": false,
+     "draftedTokens": 525,
+     "engineSHA256": "ce771e5f51081a2fd60df0ee0083f982a278a863ffaeab29fd590f55e9e36e89",
+     "firstAnswerPreviewSeconds": null,
+     "firstTokenSeconds": 1.2008539166708943,
+     "generatedTokens": 304,
+     "grammarSHA256": "5b96c275e9c1a2e618a54a4814a6d9c0de116285e8ffd0814aea01a5c8eecdf1",
+     "headerInputs": "31d4baa437ac090cb81aa4eba1cefb75e4d7087e175ef7b33b1670ac4628209e",
+     "headerRestarts": 0,
+     "headerResumed": true,
+     "headerTokens": 4215,
+     "helperStartSeconds": 6.250047590583563e-07,
+     "hostPreparationSeconds": 6.679166108369827e-05,
+     "maintenanceRecommended": false,
+     "maintenanceThreshold": 49152,
+     "matchedPromptTokens": 4736,
+     "nextToolResultReserve": 3546,
+     "outputBudget": 1800,
+     "prefillSeconds": 1.196421,
+     "prefixPrimeMatchedTokens": 0,
+     "prefixPrimePrefillSeconds": 0,
+     "prefixPrimeSeconds": 0,
+     "prefixPrimeTokens": 0,
+     "promptTokens": 5180,
+     "reasoningBudget": 512,
+     "reasoningBudgetOverrun": 0,
+     "reasoningHistory": "within-request",
+     "reasoningTokens": 170,
+     "recoveryReserve": 256,
+     "replayBoundaryTokens": 5152,
+     "requestSeconds": 7.6083123333519325,
+     "requestedContextTokens": 65536,
+     "requestedMemoryBytes": 12884901888,
+     "requestedOutputBudget": 1800,
+     "runtimeRelease": "1.6.1",
+     "scopePrefixTokens": 0,
+     "sessionSetupSeconds": 0,
+     "speculativeMethod": "DFlash2",
+     "stablePrefixTokens": 4215,
+     "templateIdentity": "aee46acfcba8e4e7aec7512126b926aa311bf7414d0d96ad3b13a86d5bdfe9d3",
+     "toolScope": "all"
+    },
+    {
+     "callID": "call_49983c71-b253-4454-a4a7-5a085e500393",
+     "draft": null,
+     "kind": "reasoning",
+     "note": null,
+     "outcome": null,
+     "step": 3,
+     "text": "Good, I created the counters table. Now I need to edit the Home view to add:\n1. A COUNT metric (counter button) with size \"large\" \n2. A button that adds empty rows\n\nThe metric should count rows from the counters table, and the button should add rows to the same table. Let me edit the Home view to insert these components.\n\nLooking at the view structure:\n- datasetID for the metric and button should be \"a3183a1d-a25f-4911-9fc3-ac8fb45f969d\" (the counters table id)\n- The metric is a COUNT aggregation with size \"large\"\n- The button adds one empty row\n\nI need to use action view.edit with edits to insert these components.",
+     "tool": "run"
+    },
+    {
+     "acceptedDraftTokens": 238,
+     "activations": "bf16",
+     "backend": "splash",
+     "beforeDispatchSeconds": 0.00021120833116583526,
+     "contextTokens": 65536,
+     "decodeSeconds": 6.56731,
+     "deduplicatedKVTokens": 192,
+     "diagnosticRequestCacheIsolation": false,
+     "draftedTokens": 616,
+     "engineSHA256": "ce771e5f51081a2fd60df0ee0083f982a278a863ffaeab29fd590f55e9e36e89",
+     "firstAnswerPreviewSeconds": null,
+     "firstTokenSeconds": 1.2499196249991655,
+     "generatedTokens": 327,
+     "grammarSHA256": "5b96c275e9c1a2e618a54a4814a6d9c0de116285e8ffd0814aea01a5c8eecdf1",
+     "headerInputs": "31d4baa437ac090cb81aa4eba1cefb75e4d7087e175ef7b33b1670ac4628209e",
+     "headerRestarts": 0,
+     "headerResumed": true,
+     "headerTokens": 4215,
+     "helperStartSeconds": 8.333299774676561e-07,
+     "hostPreparationSeconds": 0.00010266667231917381,
+     "maintenanceRecommended": false,
+     "maintenanceThreshold": 49152,
+     "matchedPromptTokens": 5152,
+     "nextToolResultReserve": 3546,
+     "outputBudget": 1800,
+     "prefillSeconds": 1.244853,
+     "prefixPrimeMatchedTokens": 0,
+     "prefixPrimePrefillSeconds": 0,
+     "prefixPrimeSeconds": 0,
+     "prefixPrimeTokens": 0,
+     "promptTokens": 5512,
+     "reasoningBudget": 512,
+     "reasoningBudgetOverrun": 0,
+     "reasoningHistory": "within-request",
+     "reasoningTokens": 185,
+     "recoveryReserve": 256,
+     "replayBoundaryTokens": 5504,
+     "requestSeconds": 7.817215874994872,
+     "requestedContextTokens": 65536,
+     "requestedMemoryBytes": 12884901888,
+     "requestedOutputBudget": 1800,
+     "runtimeRelease": "1.6.1",
+     "scopePrefixTokens": 0,
+     "sessionSetupSeconds": 0,
+     "speculativeMethod": "DFlash2",
+     "stablePrefixTokens": 4215,
+     "templateIdentity": "aee46acfcba8e4e7aec7512126b926aa311bf7414d0d96ad3b13a86d5bdfe9d3",
+     "toolScope": "all"
+    },
+    {
+     "callID": "call_dce05b20-acda-44b7-885b-2bbc9dd5053a",
+     "draft": null,
+     "kind": "reasoning",
+     "note": null,
+     "outcome": null,
+     "step": 4,
+     "text": "I added a button to the Home view. But the user asked for a \"big counter button\" which I interpret as a counter (COUNT metric) that is large/big. Let me re-read what the user wants.\n\nA \"counter button\" in the workbook context seems to be a COUNT metric (which shows a count) and a button (which adds rows). The user wants it \"big\" which means size \"large\".\n\nI added just a button. I should also add a COUNT metric to show the count. Let me add that too.\n\nActually, looking at the save description again: \"A counter people press is a COUNT metric and a button over the same table.\" So a counter consists of BOTH a COUNT metric AND a button. I only added the button. Let me add the COUNT metric as well.\n\nLet me edit the view again to add the COUNT metric with size \"large\".",
+     "tool": "run"
+    },
+    {
+     "acceptedDraftTokens": 159,
+     "activations": "bf16",
+     "backend": "splash",
+     "beforeDispatchSeconds": 0.000231999991228804,
+     "contextTokens": 65536,
+     "decodeSeconds": 5.656545,
+     "deduplicatedKVTokens": 192,
+     "diagnosticRequestCacheIsolation": false,
+     "draftedTokens": 518,
+     "engineSHA256": "ce771e5f51081a2fd60df0ee0083f982a278a863ffaeab29fd590f55e9e36e89",
+     "firstAnswerPreviewSeconds": 4.940995958342683,
+     "firstTokenSeconds": 1.3558772083488293,
+     "generatedTokens": 234,
+     "grammarSHA256": "5b96c275e9c1a2e618a54a4814a6d9c0de116285e8ffd0814aea01a5c8eecdf1",
+     "headerInputs": "31d4baa437ac090cb81aa4eba1cefb75e4d7087e175ef7b33b1670ac4628209e",
+     "headerRestarts": 0,
+     "headerResumed": true,
+     "headerTokens": 4215,
+     "helperStartSeconds": 7.083581294864416e-07,
+     "hostPreparationSeconds": 0.00012933331890963018,
+     "maintenanceRecommended": false,
+     "maintenanceThreshold": 49152,
+     "matchedPromptTokens": 5504,
+     "nextToolResultReserve": 3546,
+     "outputBudget": 1800,
+     "prefillSeconds": 1.350898,
+     "prefixPrimeMatchedTokens": 0,
+     "prefixPrimePrefillSeconds": 0,
+     "prefixPrimeSeconds": 0,
+     "prefixPrimeTokens": 0,
+     "promptTokens": 5867,
+     "reasoningBudget": 512,
+     "reasoningBudgetOverrun": 0,
+     "reasoningHistory": "within-request",
+     "reasoningTokens": 127,
+     "recoveryReserve": 256,
+     "replayBoundaryTokens": 5856,
+     "requestSeconds": 7.012416333338479,
+     "requestedContextTokens": 65536,
+     "requestedMemoryBytes": 12884901888,
+     "requestedOutputBudget": 1800,
+     "runtimeRelease": "1.6.1",
+     "scopePrefixTokens": 0,
+     "sessionSetupSeconds": 0,
+     "speculativeMethod": "DFlash2",
+     "stablePrefixTokens": 4215,
+     "templateIdentity": "aee46acfcba8e4e7aec7512126b926aa311bf7414d0d96ad3b13a86d5bdfe9d3",
+     "toolScope": "all"
+    },
+    {
+     "callID": "call_2a6bbfee-93e8-4505-bb78-5c5e7f8e284d",
+     "draft": null,
+     "kind": "reasoning",
+     "note": null,
+     "outcome": null,
+     "step": 5,
+     "text": "I've added both a COUNT metric (displaying the count) and a button (to add rows) to the Home view. The Home view now has version 3. The user asked for a \"big counter button\" and I've created:\n\n1. A large COUNT metric showing \"Total Clicks\" \n2. A large button called \"Click Counter\"\n\nBoth are over the same \"counters\" table. This creates a counter that people can press, which will add rows and update the count display.\n\nThe Home view now has: attention, continue, shortcuts, counter_button, and counter_display components.",
+     "tool": "finish"
+    }
+   ],
+   "model": "Splash 1.6.1; d8af1054aab0f97de21d043e01aa98af3754f10e; Qwen3.6-35B-A3B-4bit + DFlash2; native Swift candidate; context 65536; memory 12884901888; activations bf16; KV int8; state fp32; ANE on; reasoning budget 512; within-request reasoning retained",
+   "request_message_id": "b3c03355-f969-4294-83a1-f051c3cd9742",
+   "status": "complete",
+   "steps": 5,
+   "updated": "2026-11-24T02:16:52Z"
+  }
+ ],
+ "saved": {
+  "newTables": [
+   {
+    "title": "Counters",
+    "columns": [
+     {
+      "id": "id",
+      "title": "Id",
+      "type": "decimal"
+     },
+     {
+      "id": "name",
+      "title": "Name",
+      "type": "text"
+     },
+     {
+      "id": "created_at",
+      "title": "Created at",
+      "type": "text"
+     }
+    ],
+    "rows": []
+   }
+  ],
+  "changedSpaces": [
+   {
+    "title": "Home",
+    "version": 3,
+    "components": [
+     "metric",
+     "button",
+     "attention",
+     "continue",
+     "shortcuts"
+    ]
+   }
+  ],
+  "newItems": [
+   {
+    "category": "source",
+    "kind": "decision",
+    "status": "accepted",
+    "title": "Create table definition: Counters",
+    "id": "0df32a5d-7324-40f2-aa3d-a82031a09513"
+   },
+   {
+    "category": "source",
+    "kind": "rule",
+    "status": "accepted",
+    "title": "Chat table changes policy",
+    "id": "c652b5ec-fefd-4c99-ba2a-1dfb1105b69b"
+   }
+  ]
+ }
+}

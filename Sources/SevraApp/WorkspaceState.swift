@@ -110,8 +110,16 @@ struct FolderReview {
   }
   @Published var messages: [Message] = []
   private let contents = ConversationContentCache()
+  /// What a message shows. A question that is no longer open keeps its text, but not the line
+  /// that says how to answer it.
+  nonisolated static func displayBody(_ message: Message, open: Set<String>) -> String {
+    message.state == "needs_input" && !open.contains(message.id)
+      ? message.body.replacingOccurrences(of: "\n" + ConversationSurface.textReplyHint, with: "")
+      : message.body
+  }
   func messageContent(_ message: Message) -> ConversationMessageContent {
-    contents.content(id: message.id, body: message.body)
+    contents.content(
+      id: message.id, body: Self.displayBody(message, open: Set(pendingInputs.map(\.id))))
   }
   @Published var requestActivities: [RequestActivity] = []
   @Published var liveActivity: LiveRequestActivity?
@@ -463,7 +471,11 @@ struct FolderReview {
       if let snapshot {
         try ChatTiming.span(
           "ui.refresh_prepare", ["messages": .number(Double(snapshot.messages.count))]
-        ) { try contents.prepare(snapshot.messages, cancellation: control) }
+        ) {
+          let open = Set(snapshot.pendingInputs.map(\.id))
+          try contents.prepare(
+            snapshot.messages, body: { Self.displayBody($0, open: open) }, cancellation: control)
+        }
       }
       return snapshot
     } complete: { [weak self] result in
@@ -1156,7 +1168,8 @@ struct FolderReview {
       guard let surface = exactReplyInput() else { return }
       let reply = input.dropFirst("answer:".count).trimmingCharacters(in: .whitespacesAndNewlines)
       let response: ConversationInputResponse =
-        reply.lowercased() == "decline" ? .decline : .text(reply)
+        reply.lowercased() == "skip"
+        ? .decline : reply.lowercased() == "decline" ? .cancel : .text(reply)
       if submitInput(surface, response: response) { clearComposer() }
       return
     }

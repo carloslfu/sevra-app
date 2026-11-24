@@ -60,8 +60,11 @@ public struct ConversationMessageContent: Sendable {
   }
   public let presentation: ConversationPresentation
   public let blocks: [Block]
+  /// The text these blocks were made from, which can differ from the stored message.
+  public let source: String
 
   public init(_ body: String) {
+    source = body
     presentation = ConversationPresentation(body)
     blocks = presentation.blocks.compactMap { block in
       switch block {
@@ -103,10 +106,12 @@ public final class ConversationContentCache: @unchecked Sendable {
   }
 
   /// Call off the main thread with the messages about to be shown.
-  public func prepare(_ messages: [Message], cancellation: Cancellation) throws {
+  public func prepare(
+    _ messages: [Message], body: (Message) -> String = { $0.body }, cancellation: Cancellation
+  ) throws {
     for message in messages {
       try cancellation.check()
-      _ = content(id: message.id, body: message.body)
+      _ = content(id: message.id, body: body(message))
     }
   }
 

@@ -1,0 +1,135 @@
+{
+ "job": "conversation.clarify",
+ "language": "en",
+ "attempt": 1,
+ "prompt": "Add the new supplier to the Supplier comparison table.",
+ "expected": "The reply asks for the missing supplier and its values. Nothing is saved.",
+ "failure": null,
+ "result": {
+  "answer": "What are the details for the new supplier? I need:\n- Supplier name\n- Quantity\n- Unit cost",
+  "chat": "78afcc70-47b0-4a02-b861-fe68f153115b",
+  "citations": [],
+  "state": "complete",
+  "steps": 1
+ },
+ "progress": [
+  "Reading request context",
+  "Checking local model files",
+  "Preparing local AI. The first start can take longer…",
+  "Preparing local AI · 0 of 11 steps",
+  "Preparing local AI · 1 of 11 steps",
+  "Preparing local AI · 2 of 11 steps",
+  "Preparing local AI · 3 of 11 steps",
+  "Preparing local AI · 4 of 11 steps",
+  "Preparing local AI · 5 of 11 steps",
+  "Preparing local AI · 6 of 11 steps",
+  "Preparing local AI · 7 of 11 steps",
+  "Preparing local AI · 8 of 11 steps",
+  "Preparing local AI · 9 of 11 steps",
+  "Preparing local AI · 10 of 11 steps",
+  "Preparing local AI · 11 of 11 steps",
+  "Reading the working context",
+  "Working through the request",
+  "Preparing a response"
+ ],
+ "messages": {
+  "78afcc70-47b0-4a02-b861-fe68f153115b": [
+   {
+    "body": "This example has supplier quotes and a delivery. Try ‘Why do we have 18 brass bolts?’ or ‘Compare the supplier costs and show the evidence.’",
+    "created": "2026-11-24T02:17:02Z",
+    "id": "a85ab930-0b6a-436a-84d0-55d350aefdd8",
+    "role": "assistant",
+    "state": "complete"
+   },
+   {
+    "body": "Add the new supplier to the Supplier comparison table.",
+    "created": "2026-11-24T02:17:02Z",
+    "id": "81a4dcac-8b7e-4e49-ad52-e779442b3fa6",
+    "role": "user",
+    "state": "complete"
+   },
+   {
+    "body": "What are the details for the new supplier? I need:\n- Supplier name\n- Quantity\n- Unit cost",
+    "created": "2026-11-24T02:17:14Z",
+    "id": "605cf2a7-0676-4195-a250-600a6fa24a8b",
+    "role": "assistant",
+    "state": "complete"
+   }
+  ]
+ },
+ "runs": [
+  {
+   "conversation_id": "78afcc70-47b0-4a02-b861-fe68f153115b",
+   "created": "2026-11-24T02:17:02Z",
+   "id": "2fd54b60-0464-46bc-8818-4c0a612ef2f7",
+   "metrics": [
+    {
+     "acceptedDraftTokens": 131,
+     "activations": "bf16",
+     "backend": "splash",
+     "beforeDispatchSeconds": 4.684180041687796,
+     "contextTokens": 65536,
+     "decodeSeconds": 4.522166,
+     "deduplicatedKVTokens": 0,
+     "diagnosticRequestCacheIsolation": false,
+     "draftedTokens": 371,
+     "engineSHA256": "ce771e5f51081a2fd60df0ee0083f982a278a863ffaeab29fd590f55e9e36e89",
+     "firstAnswerPreviewSeconds": 9.34591158333933,
+     "firstTokenSeconds": 1.6652661250263918,
+     "generatedTokens": 185,
+     "grammarSHA256": "5b96c275e9c1a2e618a54a4814a6d9c0de116285e8ffd0814aea01a5c8eecdf1",
+     "headerInputs": "31d4baa437ac090cb81aa4eba1cefb75e4d7087e175ef7b33b1670ac4628209e",
+     "headerRestarts": 0,
+     "headerResumed": true,
+     "headerTokens": 4215,
+     "helperStartSeconds": 4.6735104999970645,
+     "hostPreparationSeconds": 6.016666884534061e-05,
+     "maintenanceRecommended": false,
+     "maintenanceThreshold": 49152,
+     "matchedPromptTokens": 4192,
+     "nextToolResultReserve": 3546,
+     "outputBudget": 1800,
+     "prefillSeconds": 1.63547,
+     "prefixPrimeMatchedTokens": 0,
+     "prefixPrimePrefillSeconds": 0,
+     "prefixPrimeSeconds": 0,
+     "prefixPrimeTokens": 0,
+     "promptTokens": 4911,
+     "reasoningBudget": 512,
+     "reasoningBudgetOverrun": 0,
+     "reasoningHistory": "within-request",
+     "reasoningTokens": 111,
+     "recoveryReserve": 256,
+     "replayBoundaryTokens": 4896,
+     "requestSeconds": 6.187435416679364,
+     "requestedContextTokens": 65536,
+     "requestedMemoryBytes": 12884901888,
+     "requestedOutputBudget": 1800,
+     "runtimeRelease": "1.6.1",
+     "scopePrefixTokens": 0,
+     "sessionSetupSeconds": 1.151436999993166,
+     "speculativeMethod": "DFlash2",
+     "stablePrefixTokens": 4215,
+     "templateIdentity": "aee46acfcba8e4e7aec7512126b926aa311bf7414d0d96ad3b13a86d5bdfe9d3",
+     "toolScope": "all"
+    },
+    {
+     "callID": "call_8893eec9-cc94-4a0f-9ad9-d2881b117ea6",
+     "draft": null,
+     "kind": "reasoning",
+     "note": null,
+     "outcome": null,
+     "step": 1,
+     "text": "The user wants to add a new supplier to the \"Supplier comparison\" table. I need to know what supplier details to add (name, quantity, unit cost). Since these business values are not provided in the request, I need to ask the user for them.\n\nLet me check the table structure:\n- supplier_comparison(supplier TEXT, quantity REAL, unit_cost REAL, total REAL GENERATED)\n\nI need:\n- supplier name\n- quantity\n- unit cost\n\nThe total is GENERATED, so I don't need to provide it.",
+     "tool": "finish"
+    }
+   ],
+   "model": "Splash 1.6.1; d8af1054aab0f97de21d043e01aa98af3754f10e; Qwen3.6-35B-A3B-4bit + DFlash2; native Swift candidate; context 65536; memory 12884901888; activations bf16; KV int8; state fp32; ANE on; reasoning budget 512; within-request reasoning retained",
+   "request_message_id": "81a4dcac-8b7e-4e49-ad52-e779442b3fa6",
+   "status": "complete",
+   "steps": 1,
+   "updated": "2026-11-24T02:17:14Z"
+  }
+ ],
+ "saved": {}
+}

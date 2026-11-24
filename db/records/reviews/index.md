@@ -2,11 +2,12 @@
 type: index
 scope: type-folder
 folder: records/reviews
-updated: 2026-11-17T18:20:21.942089Z
+updated: 2026-11-24T04:18:36.217043Z
 ---
 
 # records/reviews
 
+- [[records/reviews/home-counter-run-2026-11-23]] — A Home counter request asked, refused and hit the step limit. Its causes were fixed and made general: buttons run saved tools, choices get defaults. Real requests pass 3 of 4.
 - [[records/reviews/native-ui-catalog]] — Implemented native catalog: 176 stories, real workbook/XPC paths, isolated services, ten compositions, native capture and scoped acceptance.
 - [[records/reviews/readme-launch-copy]] — Four-pass README review: natural launch copy, local AI and workbook differentiation, factual limits and preserved setup links.
 - [[records/reviews/rich-native-visuals-recent-changes]] — Revision 16 accounts for all three recent inference commits, 95 changed files, token/receipt and human-answer contracts; 53 CPU agent groups pass.

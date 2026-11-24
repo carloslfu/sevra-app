@@ -100,8 +100,9 @@ public struct ConversationInputView: View {
       }
     }
     if !values.isEmpty { Button("Clear fields") { values = [:] }.buttonStyle(.link) }
-    Button("Decline") { submit(.decline, saved?.revision ?? 0) }.buttonStyle(.link)
+    Button("Skip") { submit(.decline, saved?.revision ?? 0) }.buttonStyle(.link)
       .disabled(saving)
+      .help("Sevra goes on without it and does not make it up")
     Button("Cancel question") { submit(.cancel, saved?.revision ?? 0) }.buttonStyle(.link)
       .disabled(saving)
   }

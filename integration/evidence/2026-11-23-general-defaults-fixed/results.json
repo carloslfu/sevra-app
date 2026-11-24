@@ -1,0 +1,423 @@
+{
+ "date": "2026-11-24T03:50:30Z",
+ "commit": "480c7c588daf68720f40ed506b61a1342807424d",
+ "workingTreeChanges": [
+  " M IntegrationTests/Agent/ActionConfirmationChecks.swift",
+  " M IntegrationTests/Agent/AnswerGroundingChecks.swift",
+  " M IntegrationTests/Agent/ConversationSurfaceChecks.swift",
+  " M IntegrationTests/Agent/SpaceActionChecks.swift",
+  " M IntegrationTests/Agent/main.swift",
+  " M IntegrationTests/Agent/tool-grammar-fixtures.json",
+  " M IntegrationTests/Agent/workbook-tools.json",
+  " M Sources/SevraAI/ActionConfirmations.swift",
+  " M Sources/SevraAI/GeneralTools.swift",
+  " M Sources/SevraAI/NativeTools.swift",
+  " M Sources/SevraAI/WorkbookAgent.swift",
+  " M Sources/SevraApp/AgentActivityView.swift",
+  " M Sources/SevraApp/Catalog/CatalogApp.swift",
+  " M Sources/SevraApp/Catalog/CatalogFixtures.swift",
+  " M Sources/SevraApp/Catalog/CatalogFlows.swift",
+  " M Sources/SevraApp/Catalog/CatalogRegistry.swift",
+  " M Sources/SevraApp/Catalog/CatalogSession.swift",
+  " M Sources/SevraApp/ContentViews.swift",
+  " M Sources/SevraApp/ConversationViews.swift",
+  " M Sources/SevraApp/WorkspaceState.swift",
+  " M Sources/SevraCLI/CLI.swift",
+  " M Sources/SevraCore/ApplicationDefinitions.swift",
+  " M Sources/SevraCore/ChatOperations.swift",
+  " M Sources/SevraCore/ChatSQL.swift",
+  " M Sources/SevraCore/ComponentData.swift",
+  " M Sources/SevraCore/ConversationSurface.swift",
+  " M Sources/SevraCore/DatasetQuery.swift",
+  " M Sources/SevraCore/DatasetQueryCompiler.swift",
+  " M Sources/SevraCore/DefinitionTool.swift",
+  " M Sources/SevraCore/RequestActivity.swift",
+  " M Sources/SevraCore/SpaceEditing.swift",
+  " M Sources/SevraCore/Spaces.swift",
+  " M Sources/SevraCore/Tools.swift",
+  " M Sources/SevraCore/VisualChart.swift",
+  " M Sources/SevraCore/VisualDefinition.swift",
+  " M Sources/SevraCore/VisualDiagram.swift",
+  " M Sources/SevraCore/VisualText.swift",
+  " M Sources/SevraCore/WorkVisual.swift",
+  " M Sources/SevraPreviewUI/ConversationInputView.swift",
+  " M Sources/SevraPreviewUI/ConversationPresentation.swift",
+  " M Sources/SevraSplashGrammar/ToolPolicy.swift",
+  " M Sources/SevraVisualUI/VisualChartView.swift",
+  " M Tests/SpaceEditingChecks.swift",
+  " M db/index.md",
+  " M db/log.md",
+  " M db/records/index.md",
+  " M db/records/operations/agent-handoff.md",
+  " M db/records/operations/index.jsonl",
+  " M db/records/operations/index.md",
+  " M db/records/plans/general-chat-tools.md",
+  " M db/records/plans/index.jsonl",
+  " M db/records/plans/index.md",
+  " M db/records/plans/rich-native-visuals.md",
+  " M db/records/reviews/index.jsonl",
+  " M db/records/reviews/index.md",
+  " M db/records/specs/conversation-context.md",
+  " M db/records/specs/index.jsonl",
+  " M db/records/specs/index.md",
+  " M db/sources/index.md",
+  " M db/sources/notes/index.jsonl",
+  " M db/sources/notes/index.md",
+  " M scripts/check_chat_jobs.py"
+ ],
+ "cliSHA256": "4d503f4ee178a7447c49f9bbac65638c1bc2753dff42f71203699c3c90ab30ae",
+ "cliVersion": {
+  "engine": "splash-1.6.1",
+  "version": "0.1.0-dev"
+ },
+ "method": "scripts/check_chat_jobs.py: one `ask` per turn, in English, through the native preview CLI on each job's own temporary synthetic workbook, run once. A job of two turns asks both in one chat. Each CLI request loads the model and unloads it on exit, so wallSeconds includes a model start; modelSeconds is the engine time of the decisions alone. The CLI has no window, so it cannot ask a structured question or open a view. Class totals use each job's first run.",
+ "models": [
+  "Splash 1.6.1; d8af1054aab0f97de21d043e01aa98af3754f10e; Qwen3.6-35B-A3B-4bit + DFlash2; native Swift candidate; context 65536; memory 12884901888; activations bf16; KV int8; state fp32; ANE on; reasoning budget 512; within-request reasoning retained"
+ ],
+ "languages": [
+  "en"
+ ],
+ "summary": {
+  "defaults": {
+   "en": {
+    "passed": 2,
+    "failed": 2,
+    "steps": 24,
+    "modelCalls": 24,
+    "wallSeconds": 163.58
+   }
+  }
+ },
+ "totals": {
+  "jobs": 4,
+  "passed": 2,
+  "passedFirstRun": 2,
+  "steps": 24,
+  "modelCalls": 24,
+  "wallSeconds": 163.58
+ },
+ "promptHeader": {
+  "inputs": "ac3913d3a2793b1a34c4cc182f80fc64e2533ef66209c7096159ed7a680b66c4",
+  "tokens": 4357,
+  "cacheName": "4da513908357e6bbd2f558a8ab1bad99"
+ },
+ "timedTurns": null,
+ "jobs": [
+  {
+   "attempt": 1,
+   "helperStopped": false,
+   "passed": false,
+   "failure": "Home shows no number: [\"button\", \"attention\", \"continue\", \"shortcuts\"]",
+   "state": "complete",
+   "model": "Splash 1.6.1; d8af1054aab0f97de21d043e01aa98af3754f10e; Qwen3.6-35B-A3B-4bit + DFlash2; native Swift candidate; context 65536; memory 12884901888; activations bf16; KV int8; state fp32; ANE on; reasoning budget 512; within-request reasoning retained",
+   "steps": 4,
+   "modelCalls": 4,
+   "wallSeconds": 30.46,
+   "modelSeconds": 24.52,
+   "promptTokens": [
+    4767,
+    4925,
+    5647,
+    5917
+   ],
+   "tools": [
+    "spaces",
+    "save",
+    "edit_space"
+   ],
+   "answer": "Your Home view now has a large Counter button at the top. It runs a counter tool each time you press it.\n\nUpdated space “Home”.",
+   "citations": [],
+   "saved": {
+    "changedSpaces": [
+     {
+      "title": "Home",
+      "version": 2,
+      "components": [
+       "button",
+       "attention",
+       "continue",
+       "shortcuts"
+      ]
+     }
+    ],
+    "newItems": [
+     {
+      "category": "source",
+      "kind": "application_definition",
+      "status": "accepted",
+      "title": "Define counter",
+      "id": "512fc856-0a23-4f3b-aa22-46811b850225"
+     }
+    ],
+    "newDefinitions": [
+     {
+      "description": "Increments a counter each time it's pressed",
+      "id": "85d9d9b7-c9b0-4336-badd-7b9dac8bbc2b",
+      "is_current": 1,
+      "kind": "tool",
+      "logical_id": "8fedca88-410c-5c4a-9ffe-ee6e70334752",
+      "source_id": "512fc856-0a23-4f3b-aa22-46811b850225",
+      "title": "counter",
+      "version": 1
+     }
+    ]
+   },
+   "transcript": "transcripts/defaults.home_counter.en.attempt1.json",
+   "job": "defaults.home_counter",
+   "group": "defaults",
+   "language": "en",
+   "expected": "In a new, empty workbook, Home shows a large count and a button whose saved tool adds one to it. Nothing is asked: the table, the tool, the titles and the look are defaults the reply names. No example rows are added.",
+   "passedFirstRun": false,
+   "attempts": 1,
+   "retries": []
+  },
+  {
+   "attempt": 1,
+   "helperStopped": false,
+   "passed": false,
+   "failure": "the reply does not say what was chosen: [\"log customer visit\", \"customer visits\", \"log customer visit\"]",
+   "state": "complete",
+   "model": "Splash 1.6.1; d8af1054aab0f97de21d043e01aa98af3754f10e; Qwen3.6-35B-A3B-4bit + DFlash2; native Swift candidate; context 65536; memory 12884901888; activations bf16; KV int8; state fp32; ANE on; reasoning budget 512; within-request reasoning retained",
+   "steps": 9,
+   "modelCalls": 9,
+   "wallSeconds": 44.14,
+   "modelSeconds": 37.93,
+   "promptTokens": [
+    4772,
+    4943,
+    5495,
+    5683,
+    5959,
+    6243,
+    6628,
+    7019,
+    7178
+   ],
+   "tools": [
+    "spaces",
+    "search",
+    "sql",
+    "sql (failed: Statement 1: remove AUTOINCREMENT. An INTEGER PRIMARY KEY column already numbers new rows. Nothing was changed.)",
+    "sql",
+    "save",
+    "save_space (failed: A space titled Home already exists. Do not save it again. To add to it, use edit_space with {id: \"home\", expectedVersion: 1, edits: [{operation: \"insert\", at: \")",
+    "edit_space"
+   ],
+   "answer": "Updated space “Home”.",
+   "citations": [],
+   "saved": {
+    "newTables": [
+     {
+      "title": "Customer visits",
+      "columns": [
+       {
+        "id": "id",
+        "title": "Id",
+        "type": "decimal"
+       },
+       {
+        "id": "customer_name",
+        "title": "Customer name",
+        "type": "text"
+       },
+       {
+        "id": "visit_date",
+        "title": "Visit date",
+        "type": "text"
+       },
+       {
+        "id": "visit_type",
+        "title": "Visit type",
+        "type": "text"
+       },
+       {
+        "id": "notes",
+        "title": "Notes",
+        "type": "text"
+       },
+       {
+        "id": "created_at",
+        "title": "Created at",
+        "type": "text"
+       }
+      ],
+      "rows": []
+     }
+    ],
+    "changedSpaces": [
+     {
+      "title": "Home",
+      "version": 2,
+      "components": [
+       "attention",
+       "continue",
+       "shortcuts",
+       "button"
+      ]
+     }
+    ],
+    "newItems": [
+     {
+      "category": "source",
+      "kind": "application_definition",
+      "status": "accepted",
+      "title": "Define log_customer_visit",
+      "id": "e9a45bf2-4abc-4572-a2e3-b669558611f8"
+     },
+     {
+      "category": "source",
+      "kind": "decision",
+      "status": "accepted",
+      "title": "Create table definition: Customer visits",
+      "id": "1dba7b2e-467c-45c0-a1c6-ce40b59e5f17"
+     },
+     {
+      "category": "source",
+      "kind": "rule",
+      "status": "accepted",
+      "title": "Chat table changes policy",
+      "id": "fae49411-8f41-495d-a303-da9fe1cf1005"
+     }
+    ],
+    "newDefinitions": [
+     {
+      "description": "Log a new customer visit with details",
+      "id": "918f4aca-1b7a-40a3-b0b6-06128a7022e1",
+      "is_current": 1,
+      "kind": "tool",
+      "logical_id": "c840b545-b7c9-56cf-8921-c016e7ff8639",
+      "source_id": "e9a45bf2-4abc-4572-a2e3-b669558611f8",
+      "title": "log_customer_visit",
+      "version": 1
+     }
+    ]
+   },
+   "transcript": "transcripts/defaults.log_visit.en.attempt1.json",
+   "job": "defaults.log_visit",
+   "group": "defaults",
+   "language": "en",
+   "expected": "In a new, empty workbook, Home has a button that logs a customer visit: pressing it adds one row. Nothing is asked and no rows are made up.",
+   "passedFirstRun": false,
+   "attempts": 1,
+   "retries": []
+  },
+  {
+   "attempt": 1,
+   "helperStopped": false,
+   "passed": true,
+   "failure": null,
+   "state": "complete",
+   "model": "Splash 1.6.1; d8af1054aab0f97de21d043e01aa98af3754f10e; Qwen3.6-35B-A3B-4bit + DFlash2; native Swift candidate; context 65536; memory 12884901888; activations bf16; KV int8; state fp32; ANE on; reasoning budget 512; within-request reasoning retained",
+   "steps": 5,
+   "modelCalls": 5,
+   "wallSeconds": 54.14,
+   "modelSeconds": 48.1,
+   "promptTokens": [
+    5088,
+    5828,
+    6469,
+    7492,
+    7817
+   ],
+   "tools": [
+    "space_history",
+    "save",
+    "save_space (failed: A space titled Home already exists. Do not save it again. To add to it, use edit_space with {id: \"home\", expectedVersion: 2, edits: [{operation: \"insert\", at: \")",
+    "edit_space"
+   ],
+   "answer": "I added a \"Mark Invoice Paid\" button to your Home view. When you click it, you will be asked to enter the invoice number to mark as paid.\n\nUpdated space “Home”.",
+   "citations": [],
+   "saved": {
+    "changedSpaces": [
+     {
+      "title": "Home",
+      "version": 3,
+      "components": [
+       "text",
+       "table",
+       "chart",
+       "button"
+      ]
+     }
+    ],
+    "newItems": [
+     {
+      "category": "source",
+      "kind": "application_definition",
+      "status": "accepted",
+      "title": "Define mark_invoice_paid",
+      "id": "3f81923d-d7c2-4b37-afb3-9bc7679c7f43"
+     }
+    ],
+    "newDefinitions": [
+     {
+      "description": "Updates the status of a specific invoice to 'Paid'.",
+      "id": "e8d2bdeb-b0fb-43e3-83d1-dceca6199741",
+      "is_current": 1,
+      "kind": "tool",
+      "logical_id": "83482965-a49c-5e47-a516-b0b56af9bfed",
+      "source_id": "3f81923d-d7c2-4b37-afb3-9bc7679c7f43",
+      "title": "mark_invoice_paid",
+      "version": 1
+     }
+    ]
+   },
+   "transcript": "transcripts/defaults.mark_paid.en.attempt1.json",
+   "job": "defaults.mark_paid",
+   "group": "defaults",
+   "language": "en",
+   "expected": "Home has a button that marks an invoice paid. Pressing it with INV-102 changes that invoice to paid and no other. Nothing is asked.",
+   "passedFirstRun": true,
+   "attempts": 1,
+   "retries": []
+  },
+  {
+   "attempt": 1,
+   "helperStopped": false,
+   "passed": true,
+   "failure": null,
+   "state": "complete",
+   "model": "Splash 1.6.1; d8af1054aab0f97de21d043e01aa98af3754f10e; Qwen3.6-35B-A3B-4bit + DFlash2; native Swift candidate; context 65536; memory 12884901888; activations bf16; KV int8; state fp32; ANE on; reasoning budget 512; within-request reasoning retained",
+   "steps": 6,
+   "modelCalls": 6,
+   "wallSeconds": 34.84,
+   "modelSeconds": 28.74,
+   "promptTokens": [
+    5075,
+    5407,
+    5661,
+    5903,
+    6165,
+    6443
+   ],
+   "tools": [
+    "sql",
+    "sql",
+    "save_space (failed: Table not found.)",
+    "sql",
+    "save_space"
+   ],
+   "answer": "Saved space “Stock Overview”.",
+   "citations": [],
+   "saved": {
+    "newSpaces": [
+     {
+      "title": "Stock Overview",
+      "version": 1,
+      "components": [
+       "table"
+      ]
+     }
+    ]
+   },
+   "transcript": "transcripts/defaults.stock_overview.en.attempt1.json",
+   "job": "defaults.stock_overview",
+   "group": "defaults",
+   "language": "en",
+   "expected": "A new or changed view shows the Parts table, chosen by default. Nothing is asked and no table changes.",
+   "passedFirstRun": true,
+   "attempts": 1,
+   "retries": []
+  }
+ ]
+}

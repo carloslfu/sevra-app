@@ -12,12 +12,12 @@ public struct WorkbookTools {
   public let conversation: String
   public let readOnly: Bool
   public let excelConversion: ExcelConversionBuild?
-  static let guides: [String: String] = [
+  package static let guides: [String: String] = [
     "rule": """
       A rule watches the stock of one inventory item. When the stock crosses a level, it drafts an alert for the user to read in Reviews, or runs a saved workflow. It never runs until the user enables it.
       1. subject is the item as the stock table names it. If unsure, read it with sql: SELECT subject FROM stock.
-      2. For an alert, run action template.rule with {alert: one sentence the user will read, subject: the item, operator: "<" or "<=" or ">" or ">=", threshold: the level as a number}. Example: {alert: "Brass bolts are below 10. Reorder them.", subject: "brass bolts", operator: "<", threshold: 10}.
-      3. Only when the user names a saved workflow to run instead: find it with search in=definitions, using one or two words of its title. In the hit, id is the workflow's exact version ID; never use logical_id or source_id. read kind=definition with ref set to that id. Then run action template.rule with {workflowID: that id, arguments: the workflow's inputs or {}, subject, operator, threshold}, without alert.
+      2. For an alert, run action template.rule with {subject: the item, operator: "<" or "<=" or ">" or ">=", threshold: the level as a number, alert: one sentence the user will read}. Example: {subject: "brass bolts", operator: "<", threshold: 10, alert: "Brass bolts are below 10. Reorder them."}.
+      3. Only when the user names a saved workflow to run instead: find it with search in=definitions, using one or two words of its title. In the hit, id is the workflow's exact version ID; never use logical_id or source_id. read kind=definition with ref set to that id. Then run action template.rule with {subject, operator, threshold, arguments: the workflow's inputs or {}, workflowID: that id}, without alert.
       4. template.rule returns a template receipt and changes nothing. save with template: {templateReceiptID: that receipt's ID, title: a short title}. Saving does not enable the rule; tell the user to enable it.
       """,
     "receiving": """
@@ -30,16 +30,20 @@ public struct WorkbookTools {
       """,
     "view": """
       A view is a saved page of up to 16 components. save with view: {title, definition: {version: 1, components}}. Every component has a short id of its own, a type and a visible title, and the fields its type uses. Saving a view does not open it.
+      A component's fields are written in this order, each only when its type uses it: \(SpaceDefinition.componentFieldOrder.joined(separator: ", ")). A field you have passed cannot be written later.
       table: datasetID, a table's id from SELECT name, id FROM tables.
-      chart: datasetID, x and y. x and y are column ids of that table from SELECT table_name, name, id FROM columns: x the categories, y a number. The chart adds up y for each x itself. chartStyle is bar or line, and bar when left out.
-      metric: datasetID, y and aggregation, one of SUM, AVERAGE, MIN, MAX or COUNT. Add unit only when the request or the evidence states one.
+      chart: chartStyle, datasetID, x and y, in that order. chartStyle is bar or line, and bar when left out. x and y are column ids of that table from SELECT table_name, name, id FROM columns: x the categories, y a number. The chart adds up y for each x itself.
+      metric: one number from a table, such as a count or a total: aggregation, datasetID, unit and y, in that order. aggregation is SUM, AVERAGE, MIN, MAX or COUNT, and SUM when left out. unit only when the request or the evidence states one. y is the column it reads; COUNT counts the rows and needs no y.
+      button: runs a saved tool when pressed: definitionBinding, arguments and size, in that order. definitionBinding is {tool: the tool's name}. arguments holds the values of inputs the button always uses; leave out each input the person picks when pressing, such as which invoice or which customer, and the button shows a field for it. One button serves the whole view, not one per row. Save the tool first: its statements are what a press does, such as an INSERT, an UPDATE or a DELETE. A button shows only what its last press returned: to keep what its tool records in view, such as a count or a total, add a metric or a table of that table.
+      size: small, medium or large, and medium when left out. It sets how large a \(SpaceDefinition.sizedTypes.dropLast().joined(separator: ", ")) or \(SpaceDefinition.sizedTypes.last!) is drawn; a visual takes it only when it is a chart.
       document, asset: itemID, the exact ID of that document or file.
       text: text, its content. search: query, its words.
       app: spaceID, the saved app's exact ID. To show one declared view of the app, add viewID and its viewVersion.
       comparison: children, two or three components side by side.
-      form, calculation, query: read kind=definition with ref set to the saved definition's ID, copy the nativeComponent it returns and fill its arguments. Keep its definitionBinding.
+      form, calculation, query: read kind=definition with ref set to the saved definition's ID, copy the nativeComponent it returns and fill its arguments. Keep its definitionBinding. A result lists fields by name, so write them in the component order above, not as the result lists them.
       Example: {title: "Purchasing", definition: {version: 1, components: [{id: "table1", type: "table", title: "Quotes", datasetID: the table's id}, {id: "chart1", type: "chart", title: "Total by supplier", datasetID: the table's id, x: "supplier", y: "total"}]}}.
-      To change a saved view, read kind=views for its id and version, then run action view.edit.
+      To change a saved view, read kind=views for its id and version, then run action view.edit with {id, expectedVersion, edits}. Home is the saved view with id home. To add a component: edits [{operation: "insert", at: "first" or "last", component}].
+      A screen with its own logic, beyond tables, charts and buttons, is an app: read kind=app_guide.
       """,
   ]
   public static let readOnlyTools: Set<String> = [
@@ -421,8 +425,7 @@ public struct WorkbookTools {
           build.conversionID, part: a["part"].string,
           offset: a["offset"].int ?? 0, cancellation: cancellation)
       }
-      let behavior = try JSONDecoder().decode(
-        ExcelBehavior.self, from: Data(a["behavior"].json().utf8))
+      let behavior = try decodeDescriptor(ExcelBehavior.self, from: a["behavior"], named: "behavior")
       return try workbook.compareExcelBehavior(
         behavior, conversionID: build.conversionID, cancellation: cancellation)
     case "native_app_sdk":
@@ -517,7 +520,7 @@ public struct WorkbookTools {
       guard let version = a["expectedVersion"].int else {
         throw SevraError("arguments", "Read the current space version before editing.")
       }
-      let edits = try JSONDecoder().decode([SpaceEdit].self, from: Data(a["edits"].json().utf8))
+      let edits = try decodeDescriptor([SpaceEdit].self, from: a["edits"], named: "edits")
       let saved = try workbook.editSpace(
         string("id"), expectedVersion: version, edits: edits, token: token)
       return .object([
@@ -535,8 +538,8 @@ public struct WorkbookTools {
         "version": .number(Double(saved.version)),
       ])
     case "save_space":
-      let definition = try JSONDecoder().decode(
-        SpaceDefinition.self, from: Data(a["definition"].json().utf8))
+      let definition = try decodeDescriptor(
+        SpaceDefinition.self, from: a["definition"], named: "definition")
       try require(
         definition.app == nil, "app_check",
         "Use save_native_app to check and save programmable source.")
@@ -550,7 +553,7 @@ public struct WorkbookTools {
           "space_duplicate",
           "A space titled \(title) already exists. Do not save it again. "
             + (existing.definition.app == nil
-              ? "Use edit_space to change it, or continue with the remaining work."
+              ? "To add to it, use edit_space with {id: \"\(existing.id)\", expectedVersion: \(existing.version), edits: [{operation: \"insert\", at: \"last\", component}]}, or continue with the remaining work."
               : "This is a programmable app. Use read_native_app with its exact name, then save_native_app with its ID and current version to change it.")
         )
       }
@@ -643,7 +646,8 @@ public struct WorkbookTools {
   }
 
   /// A workbook tool by name, enabled on this Mac: its script, or its statements through sql.
-  private func runSavedTool(
+  /// A view's button runs its tool here too.
+  func runSavedTool(
     _ name: String, values: [String: Value], readOnly unchanging: Bool, token: String
   ) throws -> Value {
     let tool = try workbook.synchronized { try workbook.runnableTool(name) }

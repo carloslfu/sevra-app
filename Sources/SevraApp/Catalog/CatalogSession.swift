@@ -588,6 +588,27 @@ import SwiftUI
             text: "The attention fallback keeps pending work reachable.")
         ]), expectedVersion: 1)
     }
+    // A large count and a button whose saved tool adds to what it counts, as chat builds them.
+    if id == "home.counter" {
+      _ = try b.chatSQL(
+        statements: ["CREATE TABLE visits (visited_on TEXT)"], readOnly: false,
+        token: "catalog-visits", requestSourceID: nil)
+      _ = try b.chatSaveTool(
+        name: "log_visit", description: "Logs a visit today.", inputs: [],
+        statements: ["INSERT INTO visits (visited_on) VALUES (date('now'))"], source: nil,
+        token: "catalog-log-visit", requestSourceID: nil)
+      let visits = try expectedTable(b, "Visits")
+      _ = try b.saveSpace(
+        id: "home", title: "Home",
+        definition: .init(components: [
+          .init(
+            id: "counter", type: "metric", title: "Visits", datasetID: visits,
+            aggregation: "COUNT", size: "large"),
+          .init(
+            id: "add", type: "button", title: "Log a visit",
+            definitionBinding: .object(["tool": .string("log_visit")]), size: "large"),
+        ]), expectedVersion: 1)
+    }
     if id == "home.embedded", let app {
       _ = try b.saveSpace(
         id: "home", title: "Home",
@@ -595,6 +616,12 @@ import SwiftUI
         expectedVersion: 1)
     }
     try await seedBoundaries(b, ws)
+  }
+  func expectedTable(_ b: Workbook, _ title: String) throws -> String {
+    guard let id = try b.datasets().first(where: { $0.title == title })?.id else {
+      throw SevraError("catalog_fixture", "No table titled \(title).")
+    }
+    return id
   }
   func spaceComponent(_ type: String) throws -> Component {
     let t = table!
@@ -606,6 +633,16 @@ import SwiftUI
     case "document", "asset":
       return .init(
         type: type, title: story.title, itemID: fileItems[type == "asset" ? "image" : "text"])
+    case "button":
+      // A saved tool with one input the button leaves open, so the story shows its field.
+      _ = try book!.chatSaveTool(
+        name: "add_supplier", description: "Adds a supplier by name.",
+        inputs: [("supplier", "text")],
+        statements: ["INSERT INTO supplier_comparison (supplier) VALUES (:supplier)"], source: nil,
+        token: "catalog-add-supplier", requestSourceID: nil)
+      return .init(
+        type: type, title: "Add supplier",
+        definitionBinding: .object(["tool": .string("add_supplier")]), size: "large")
     case "search": return .init(type: type, title: story.title, query: "supplier")
     case "text":
       return .init(

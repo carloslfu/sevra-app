@@ -245,7 +245,15 @@ public enum WorkbookAgent {
     var percentages: [Decimal] = []
     let statedPercentages = Self.percentValues(requestFacts + "\n" + context)
     var finalFailures = 0
-    let stepBudget = 12
+    // A count of steps says nothing about progress. A chat request stops when it stops getting
+    // anywhere (`wrapUp` below), and the count is only a backstop against a run that never
+    // ends. Excel conversion keeps its short budget: each of its steps is long.
+    let stepBudget = excelConversion == nil ? Self.chatStepBackstop : 12
+    // Why this request is being closed, once it is. From then on the model may only finish,
+    // and it is told to say what it did, what is saved and what blocked the rest.
+    var wrapUp: String?
+    var sameFailures: [String: Int] = [:]
+    var consecutiveFailures = 0
     var stoppedRequestRaised = false
     var emptySearches = 0
     var emptySearchesIncludedHistory = true
@@ -312,11 +320,11 @@ public enum WorkbookAgent {
     do {
       if conversationInput && excelConversion == nil {
         policy +=
-          "\nTo actually show a chart, image, work view, overview or diagram in chat, call workspace_action with action=visual.schema and arguments {family:chart|image|work|overview|diagram}. Then call workspace_action with action=visual.evaluate and that descriptor. For totals grouped by a single field, prefer visual.schema family=aggregate and pass that short aggregate descriptor to visual.evaluate. Use dataset ID and definition ID from datasets. For a declared app view use visual.app_capture. Finish with the receipt ID in finish.visuals. Prose or Markdown alone does not create a chart. Add it to Home only when asked."
+          "\nTo actually show a chart, image, work view, overview or diagram in chat, call workspace_action with action=visual.schema and arguments {family:chart|image|work|overview|diagram}. Then call workspace_action with action=visual.evaluate and that descriptor. For totals grouped by a single field, prefer visual.schema family=aggregate and pass that short aggregate descriptor to visual.evaluate. datasetID is a table's id from SELECT name, id FROM tables; leave definitionID out to use the table as it is now. For a declared app view use visual.app_capture. Finish with the receipt ID in finish.visuals. Prose or Markdown alone does not create a chart. These actions put a visual in the chat answer, not on Home. To put a number, table or chart on Home, save or edit a view instead."
       }
       if canAsk {
         policy +=
-          "\nUse request_input to ask for genuinely missing business values before applying changes. Offer choices with literal values when appropriate. Set a short snake_case field ID such as include_shipping. Use type=boolean when the choices contain true and false. Reuse each field ID as a key in literal choice values and give each choice its own ID. The run pauses until a human replies. Never ask again for values already supplied. Do not supply or approve the answer yourself."
+          "\nUse request_input to ask for genuinely missing business values before applying changes. Never use it for a choice about looks, names, placement or starting content: choose a default and say what you chose. Offer choices with literal values when appropriate. Set a short snake_case field ID such as include_shipping. Use type=boolean when the choices contain true and false. Reuse each field ID as a key in literal choice values and give each choice its own ID. The run pauses until a human replies. Never ask again for values already supplied. Do not supply or approve the answer yourself."
       }
       if [requestTask, submittedText].contains(where: {
         $0.range(
@@ -343,7 +351,7 @@ public enum WorkbookAgent {
           ]).json())
         if continuation.declined {
           policy +=
-            "\nThe person declined these inputs. Explain any remaining limit or provide a verified read-only result. Do not guess those values or ask for them again."
+            "\nThe person skipped this question. Do not ask it again. Go on with the original task without the values it asked for, and never make them up: do the part that does not need them, choose anything that is only a choice, such as how it looks or what it is called, and say what is still missing."
         }
       }
       messages[0] = InferenceMessage(role: "system", content: policy)
@@ -371,7 +379,7 @@ public enum WorkbookAgent {
       let hostRequest: Value = .object([
         "requestSourceID": .string(requestSource.id),
         "notice": .string(
-          "This Source preserves the current submission. Use it directly; drafts retain its lineage. It cannot prove facts about other documents. Answer the latest request. Use finish directly for conversation or when the available evidence already answers it."
+          "This Source is the current request itself, saved so that drafts keep its lineage. Its text is the request above, so do not read, search or list it. It cannot prove facts about other documents. Answer the latest request. Use finish directly for conversation or when the available evidence already answers it."
         ),
       ])
       messages[0] = InferenceMessage(
@@ -389,6 +397,7 @@ public enum WorkbookAgent {
           : excelConversion != nil
             ? .excelInterface
             : nextToolScope == .all ? phaseScope : nextToolScope
+        if wrapUp != nil { return .finish }
         if discoveryLimited && (selected == .all || selected == .answer) {
           return conversationInput ? .boundedConversationAnswer : .boundedAnswer
         }
@@ -424,6 +433,15 @@ public enum WorkbookAgent {
         if discoveryLimited, !messages[0].content.contains(explorationLimit) {
           messages[0].content += explorationLimit
         }
+        // The last steps of the backstop are kept for the closing answer.
+        if excelConversion == nil, wrapUp == nil, step > stepBudget - 3 {
+          wrapUp = "This request has taken \(step - 1) steps without finishing."
+          metrics.append(.object(["host": .string("wrap_up"), "reason": .string("steps")]))
+        }
+        if let wrapUp {
+          let notice = Self.wrapUpNotice(wrapUp)
+          if !messages[0].content.contains(notice) { messages[0].content += notice }
+        }
         try ContextBudget.validateEnvelope(messages)
         messages = try ChatTiming.span("agent.annotate_references") {
           try ItemReferenceCandidates.annotate(
@@ -439,15 +457,17 @@ public enum WorkbookAgent {
           : excelConversion != nil
             ? .excelInterface : nextToolScope == .all ? phaseScope : nextToolScope
         let toolScope: InferenceToolScope =
-          discoveryLimited && (selectedScope == .all || selectedScope == .answer)
-          ? (conversationInput ? .boundedConversationAnswer : .boundedAnswer)
-          : selectedScope
+          wrapUp != nil
+          ? .finish
+          : discoveryLimited && (selectedScope == .all || selectedScope == .answer)
+            ? (conversationInput ? .boundedConversationAnswer : .boundedAnswer)
+            : selectedScope
         let inferenceScope = inferenceScopeForNextStep()
         messages[0].initialChatDecision = messages[0].initialChatDecision && step == 1
         messages[0].hasCalculationResult = readOnly && conversationInput
           && messages.last?.role == "tool"
           && messages.last?.hasCalculationResult == true
-        messages[0].conversationInput = canAsk && !attemptedEffect
+        messages[0].conversationInput = canAsk && !attemptedEffect && wrapUp == nil
         messages[0].visualCaptureIDs = visualCaptures.keys.sorted()
         messages[0].countReceiptIDs = countReceipts.keys.sorted()
         if maintenance != nil {
@@ -535,8 +555,8 @@ public enum WorkbookAgent {
         try require(
           general
             ? GeneralTools.allowed(
-              call.name, in: toolScope, conversationInput: canAsk && !attemptedEffect)
-            : toolScope.allows(tool, conversationInput: canAsk && !attemptedEffect), "tool_scope",
+              call.name, in: toolScope, conversationInput: canAsk && !attemptedEffect && wrapUp == nil)
+            : toolScope.allows(tool, conversationInput: canAsk && !attemptedEffect && wrapUp == nil), "tool_scope",
           "The model did not perform the required evidence inspection. No action from this response was applied."
         )
         nextToolScope = toolScope == .workflowAnswer ? .workflowAnswer : .all
@@ -633,7 +653,7 @@ public enum WorkbookAgent {
         previousRead = nil
         if tool == "request_input" {
           try require(
-            inferenceScope.allows(tool, conversationInput: canAsk && !attemptedEffect),
+            inferenceScope.allows(tool, conversationInput: canAsk && !attemptedEffect && wrapUp == nil),
             "tool_scope", "This step cannot publish a question.")
           do {
             let input = try ConversationSurface.Input.parse(a)
@@ -716,13 +736,29 @@ public enum WorkbookAgent {
           let previewText =
             basis == "preview"
             ? pendingActionPreview.map { Self.renderActionPreview($0.plan) } : nil
+          // A request that saved something keeps the model's summary. It says what the model
+          // chose, which the user needs in order to change it, and the host's confirmation
+          // follows as the proof. Two refused answers are enough: after that the host's lines
+          // stand alone, whatever basis the answer claims, so a summary that cannot pass never
+          // fails a request that saved.
+          let saved = actionConfirmations.keepsSummary
+          let summaryRefused = saved && finalFailures >= 2
+          let keepsSummary =
+            saved && !summaryRefused
+            && !a["answer"].text.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
+          // A request the host closed ends in the model's own account of what it did and what
+          // blocked it. The host's outcomes follow it, each unfinished task named once, so
+          // the account cannot hide a failed write and the errors are not listed raw.
           let hostActionOnly =
-            ["completed_action", "general", "unresolved"].contains(basis)
-            || (basis == "current_request" && actionConfirmations.hasUnresolvedFailure)
+            wrapUp == nil && !keepsSummary
+            && (summaryRefused || ["completed_action", "general", "unresolved"].contains(basis)
+              || (basis == "current_request" && actionConfirmations.hasUnresolvedFailure))
           let actionText = previewText ?? (hostActionOnly ? actionConfirmations.rendered : nil)
           // Changing the answer label cannot turn a failed write into success.
           // Independent cited facts remain useful alongside explicit outcomes.
-          let supplementalActionText = actionText == nil ? actionConfirmations.rendered : nil
+          let supplementalActionText =
+            actionText == nil
+            ? actionConfirmations.rendered(excluding: nil, brief: wrapUp != nil) : nil
           var answer = actionText ?? a["answer"].text
           var citations = actionText == nil ? a["citations"].array.compactMap(\.string) : []
           // An answer built from host outcomes states no calculation, and neither does an
@@ -922,6 +958,22 @@ public enum WorkbookAgent {
           }
           if CostQualification.overstates(modelAnswer) {
             problems.append(CostQualification.feedback)
+          }
+          if keepsSummary, FidelityClaim.overstates(modelAnswer) {
+            problems.append(FidelityClaim.feedback)
+          }
+          // A summary of a save states no number that nothing gave: a count it did not read is
+          // not what the view shows. Cited evidence and the request's own numbers keep their
+          // checks under their own bases.
+          if keepsSummary, ["completed_action", "general"].contains(basis) {
+            let unsupported = numericValues(modelAnswer).subtracting(
+              requestNumbers.union(computedNumbers))
+            if !unsupported.isEmpty {
+              problems.append(
+                "The summary states " + unsupported.sorted().joined(separator: ", ")
+                  + ", which neither the request nor a result in this run gave. Remove it, or read it with sql first."
+              )
+            }
           }
           if !draftSaved, !draftCorrected, !readOnly, DraftRequest.asks(prompt) {
             draftCorrected = true
@@ -1473,7 +1525,7 @@ public enum WorkbookAgent {
             retainedSaveComparison = nil
           }
           var failureResult: [String: Value] = [
-            "error": .string(error.localizedDescription),
+            "error": .string(failureDescription(error)),
             "receiptID": .string(receiptID),
             "retryInstruction": .string(
               "The call did not finish successfully. Completed changes remain saved. Inspect the receipt and workbook state before retrying; do not claim no changes occurred. Fix the reported arguments when applicable."
@@ -1524,6 +1576,39 @@ public enum WorkbookAgent {
           result = .object(failureResult)
         }
         var recordedResult = result
+        // A failure that comes back unchanged is not progress. The second time, the model is
+        // told what the action takes instead of the general advice. The third time, or after
+        // five failed calls in a row, the request closes with the model's own account of it.
+        // App building repairs a failed save by design and keeps its own guards.
+        if callFailed, excelConversion == nil, tool != "save_native_app", !nothingFailed,
+          navigationFailure == nil, case .object(var fields) = recordedResult
+        {
+          let name = tool == "workspace_action" ? a["action"].text : tool
+          let key = name + "\u{0}" + recordedResult["error"].text
+          sameFailures[key, default: 0] += 1
+          consecutiveFailures += 1
+          let same = sameFailures[key, default: 0]
+          if same >= 3 || consecutiveFailures >= 5 {
+            if wrapUp == nil {
+              wrapUp =
+                same >= 3
+                ? "The same error came back three times, so trying again will not help."
+                : "Five calls in a row failed."
+              metrics.append(
+                .object([
+                  "host": .string("wrap_up"),
+                  "reason": .string(same >= 3 ? "same_error" : "failures"),
+                ]))
+            }
+            fields["retryInstruction"] = .string(
+              Self.wrapUpNotice(wrapUp!).trimmingCharacters(in: .whitespacesAndNewlines))
+          } else if same == 2 {
+            fields["retryInstruction"] = .string(Self.sameFailureHelp(tool: tool, arguments: a))
+          }
+          recordedResult = .object(fields)
+        } else if !callFailed {
+          consecutiveFailures = 0
+        }
         if let movementReview {
           var fields = result.object
           fields["directionReview"] = movementReview
@@ -1652,8 +1737,10 @@ public enum WorkbookAgent {
             key += "\u{0}inconclusive-review"
           }
           rejectedActions[key, default: 0] += 1
+          // A chat request that is closing gets to say what happened. Excel conversion and
+          // app building, which never close this way, still stop here.
           try require(
-            rejectedActions[key, default: 0] <= 2, "repeated_action",
+            rejectedActions[key, default: 0] <= 2 || wrapUp != nil, "repeated_action",
             "The model repeated an unsuccessful action. Completed changes and receipts are saved; inspect them before continuing."
           )
         } else {
@@ -1998,10 +2085,7 @@ public enum WorkbookAgent {
           }
         }
       }
-      throw SevraError(
-        "step_limit",
-        "This request reached its step limit. Completed changes are saved. Ask to continue, or narrow the question."
-      )
+      throw SevraError("step_limit", Self.stepLimitNotice)
     } catch {
       let terminal = cancellation.isCancelled ? "cancelled" : "failed"
       var failure = error
@@ -2024,6 +2108,35 @@ public enum WorkbookAgent {
   }
   static let contextLimitNotice =
     "This request needs more working room than Sevra has at once, so it stopped here. Your request and the work so far are saved. Ask for the next part to continue."
+  /// How many steps a chat request may take before it is closed whatever it is doing. Lack of
+  /// progress closes it long before this: see `wrapUp` in `run`.
+  package static let chatStepBackstop = 64
+  static let stepLimitNotice =
+    "Sevra stopped this request because it was not finishing. What it changed so far is saved. Say “continue” to go on from here."
+  /// What the model is told when its request is being closed: the only tool left is finish.
+  static func wrapUpNotice(_ reason: String) -> String {
+    "\nHost stop: " + reason
+      + " Stop working on this request and call finish now. No other tool is available. In the answer say in plain words, without IDs: what you did, what is saved, and what you could not do and why. Say that the user can reply “continue” to go on. Use basis=completed_action only if this request saved a change; otherwise basis=unresolved."
+  }
+  /// What replaces the general advice when an action fails the same way twice.
+  static func sameFailureHelp(tool: String, arguments: Value) -> String {
+    var help =
+      "This is the same error as the last attempt, so sending the call again will not work."
+    if tool == "workspace_action",
+      let operation = ChatOperations.operations.first(where: {
+        $0.name == arguments["action"].text
+      })
+    {
+      help +=
+        " " + operation.name + " takes "
+        + (operation.required.isEmpty
+          ? "no required fields" : "the required fields " + operation.required.joined(separator: ", "))
+        + (operation.optional.isEmpty
+          ? "." : " and may take " + operation.optional.joined(separator: ", ") + ".")
+    }
+    return help
+      + " Change the part the error names, or do the task another way. If neither is possible, finish and say what blocked you."
+  }
   package static func opaqueReferences(_ answer: String, inspected: Set<String>) -> [String] {
     let prefixes = Set(
       inspected.compactMap { reference -> String? in

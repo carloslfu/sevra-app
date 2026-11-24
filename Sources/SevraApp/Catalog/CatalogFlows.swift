@@ -260,6 +260,10 @@ enum CatalogFlows {
           claimed.action, arguments: claimed.arguments, book: b, readOnly: false,
           cancellation: .init(), confirmed: true)
         try b.finishChatApproval(claimed, conversation: b.chats()[0].id, result: result)
+      } else if step == 0, story.id == "home.counter" {
+        // One press through the production path. The count above the button goes up by one.
+        _ = try b.pressButton(
+          spaceID: "home", componentID: "add", actor: .human("Sevra view button"))
       } else if step == 0, story.id == "home.layout" || story.id == "home.limits" {
         _ = try b.editSpace(
           "home", expectedVersion: b.space("home").version,

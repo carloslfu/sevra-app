@@ -1,0 +1,814 @@
+{
+ "job": "steps.script",
+ "language": "en",
+ "attempt": 1,
+ "prompt": "Use a script to go through the Parts table: for each part whose stock is below its reorder level, set its stock to twice its reorder level. Tell me how many parts changed.",
+ "expected": "A script runs. Hex nuts has stock 50 and Hex key set has stock 4, the other parts are unchanged, and the answer says 2 parts changed.",
+ "failure": null,
+ "result": {
+  "answer": "2 parts changed: Hex nuts (stock 9 → 50) and Hex key set (stock 0 → 4).",
+  "chat": "83e5f759-56a6-4ac0-b6f7-3211243d2918",
+  "citations": [],
+  "state": "complete",
+  "steps": 5
+ },
+ "progress": [
+  "Reading request context",
+  "Checking local model files",
+  "Preparing local AI. The first start can take longer…",
+  "Preparing local AI · 0 of 11 steps",
+  "Preparing local AI · 1 of 11 steps",
+  "Preparing local AI · 2 of 11 steps",
+  "Preparing local AI · 3 of 11 steps",
+  "Preparing local AI · 4 of 11 steps",
+  "Preparing local AI · 5 of 11 steps",
+  "Preparing local AI · 6 of 11 steps",
+  "Preparing local AI · 7 of 11 steps",
+  "Preparing local AI · 8 of 11 steps",
+  "Preparing local AI · 9 of 11 steps",
+  "Preparing local AI · 10 of 11 steps",
+  "Preparing local AI · 11 of 11 steps",
+  "Reading the working context",
+  "Working through the request",
+  "Preparing a response",
+  "Working with your tables…",
+  "Reviewing the saved result",
+  "Reading the working context",
+  "Working through the request",
+  "Preparing a response",
+  "Working with your tables…",
+  "Reviewing the saved result",
+  "Reading the working context",
+  "Working through the request",
+  "Preparing a response",
+  "Working with your tables…",
+  "Reviewing the saved result",
+  "Reading the working context",
+  "Working through the request",
+  "Preparing a response",
+  "Running a script…",
+  "Reviewing the saved result",
+  "Reading the working context",
+  "Working through the request",
+  "Preparing a response"
+ ],
+ "messages": {
+  "83e5f759-56a6-4ac0-b6f7-3211243d2918": [
+   {
+    "body": "This example has supplier quotes and a delivery. Try ‘Why do we have 18 brass bolts?’ or ‘Compare the supplier costs and show the evidence.’",
+    "created": "2026-11-24T01:28:11Z",
+    "id": "98769d20-2a6e-47bf-8a0d-8502d0c6f44d",
+    "role": "assistant",
+    "state": "complete"
+   },
+   {
+    "body": "Use a script to go through the Parts table: for each part whose stock is below its reorder level, set its stock to twice its reorder level. Tell me how many parts changed.",
+    "created": "2026-11-24T01:28:12Z",
+    "id": "132e82b1-2a23-4578-8c26-83fcc464645b",
+    "role": "user",
+    "state": "complete"
+   },
+   {
+    "body": {
+     "arguments": {
+      "draft": true,
+      "statements": [
+       "SELECT part, category, stock, reorder_level FROM parts WHERE stock < reorder_level"
+      ]
+     },
+     "assistantText": "",
+     "callID": "call_6703afa3-8db5-4303-81e5-7114cb7c1199",
+     "receiptID": "85f7b42e-17db-434a-ab4f-ffc625653938",
+     "receiptVersion": 1,
+     "result": {
+      "inputs": [
+       "0f6c8929-9b02-462b-a6dc-d95b5584b845",
+       "9e79601a-3e17-406a-bad5-ba39b3836abe",
+       "9c5e9e56-4fff-4e2e-b855-04d4f01d6121",
+       "0563b90b-b7c3-45cc-89c5-6b94ba7de18d",
+       "8712bd58-e1db-4a00-9f78-d374551e8120",
+       "f96a088c-9bfd-4107-adfa-f71bc27db790"
+      ],
+      "read": [
+       {
+        "rows": 6,
+        "table": "parts",
+        "title": "Parts"
+       }
+      ],
+      "results": [
+       {
+        "columns": [
+         "part",
+         "category",
+         "stock",
+         "reorder_level"
+        ],
+        "rowCount": 2,
+        "rows": [
+         [
+          "Hex nuts",
+          "Fasteners",
+          "9",
+          "25"
+         ],
+         [
+          "Hex key set",
+          "Tools",
+          "0",
+          "2"
+         ]
+        ]
+       }
+      ]
+     },
+     "resultHash": "5b07e49e8774ed870c1f5ce763aa3387dd541eb1f446a9ebd4ab62b1ae9bb631",
+     "resultIdentity": {},
+     "runID": "42783756-a2a4-4649-baa2-cc40f14e4af8",
+     "tool": "sql"
+    },
+    "created": "2026-11-24T01:28:22Z",
+    "id": "97d77229-ceae-45ec-acf7-d4c8ae9c3a0d",
+    "role": "tool",
+    "state": "complete"
+   },
+   {
+    "body": {
+     "arguments": {
+      "draft": true,
+      "statements": [
+       "UPDATE parts SET stock = 2 * reorder_level WHERE stock < reorder_level"
+      ]
+     },
+     "assistantText": "",
+     "callID": "call_580f87b1-ce61-4b51-b3ee-1020a5c8928c",
+     "receiptID": "408c6452-121b-44a9-ad37-7fdbc1e0afd7",
+     "receiptVersion": 1,
+     "result": {
+      "drafts": [
+       {
+        "draftRows": 2,
+        "proposal": {
+         "category": "record",
+         "created": "2026-11-24T01:28:26Z",
+         "data": {
+          "datasetID": "067ece75-e3f3-4b16-816e-fb3bcfc5f2f1",
+          "edits": [
+           {
+            "id": "9c5e9e56-4fff-4e2e-b855-04d4f01d6121",
+            "values": {
+             "category": "Fasteners",
+             "part": "Hex nuts",
+             "reorder_level": "25",
+             "stock": "50"
+            }
+           },
+           {
+            "id": "f96a088c-9bfd-4107-adfa-f71bc27db790",
+            "values": {
+             "category": "Tools",
+             "part": "Hex key set",
+             "reorder_level": "2",
+             "stock": "4"
+            }
+           }
+          ]
+         },
+         "id": "63a98f61-fc25-4176-a348-71cfbacc4936",
+         "kind": "table-change",
+         "logicalID": "ed6906bb-fe03-498f-b44b-37fac1c173e9",
+         "meaning": "plan",
+         "scenario": "actual",
+         "status": "draft",
+         "text": "Parts, row 3: Stock: 9 → 50\nParts, row 6: Stock: 0 → 4",
+         "title": "Review changes to Parts",
+         "version": 1
+        },
+        "table": "parts",
+        "title": "Parts"
+       }
+      ],
+      "inputs": [],
+      "notice": "Saved as a proposal for the user to review. The table is unchanged.",
+      "read": [
+       {
+        "rows": 6,
+        "table": "parts",
+        "title": "Parts"
+       }
+      ],
+      "results": [
+       {
+        "changedRows": 2
+       }
+      ]
+     },
+     "resultHash": "524487e753da27c05d655d1700129712fd4c5b80e2833c982eacbf0041da4675",
+     "resultIdentity": {},
+     "runID": "42783756-a2a4-4649-baa2-cc40f14e4af8",
+     "tool": "sql"
+    },
+    "created": "2026-11-24T01:28:26Z",
+    "id": "8038dc41-8146-406e-a378-cf9d451e2d24",
+    "role": "tool",
+    "state": "complete"
+   },
+   {
+    "body": {
+     "arguments": {
+      "statements": [
+       "SELECT part, stock, reorder_level FROM parts WHERE stock < reorder_level"
+      ]
+     },
+     "assistantText": "",
+     "callID": "call_c26d68c1-398c-4331-8241-c1192b5ee102",
+     "receiptID": "76fb770a-8258-4212-bd7a-1a757856f6b4",
+     "receiptVersion": 1,
+     "result": {
+      "inputs": [
+       "0f6c8929-9b02-462b-a6dc-d95b5584b845",
+       "9e79601a-3e17-406a-bad5-ba39b3836abe",
+       "9c5e9e56-4fff-4e2e-b855-04d4f01d6121",
+       "0563b90b-b7c3-45cc-89c5-6b94ba7de18d",
+       "8712bd58-e1db-4a00-9f78-d374551e8120",
+       "f96a088c-9bfd-4107-adfa-f71bc27db790"
+      ],
+      "read": [
+       {
+        "rows": 6,
+        "table": "parts",
+        "title": "Parts"
+       }
+      ],
+      "results": [
+       {
+        "columns": [
+         "part",
+         "stock",
+         "reorder_level"
+        ],
+        "rowCount": 2,
+        "rows": [
+         [
+          "Hex nuts",
+          "9",
+          "25"
+         ],
+         [
+          "Hex key set",
+          "0",
+          "2"
+         ]
+        ]
+       }
+      ]
+     },
+     "resultHash": "2ad088601ad2b0db64c93eb575f7b22250d8beb39898bab78d4e3b8c6ae664cf",
+     "resultIdentity": {},
+     "runID": "42783756-a2a4-4649-baa2-cc40f14e4af8",
+     "tool": "sql"
+    },
+    "created": "2026-11-24T01:28:29Z",
+    "id": "c4046e35-3f8b-4e0b-bf5c-9194c5e4e618",
+    "role": "tool",
+    "state": "complete"
+   },
+   {
+    "body": {
+     "arguments": {
+      "code": "const parts = await sql('SELECT part, stock, reorder_level FROM parts');\nconst toUpdate = parts.filter(p => p.stock < p.reorder_level);\nconst ids = toUpdate.map(p => p.part);\nif (ids.length > 0) {\n  await sql('UPDATE parts SET stock = 2 * reorder_level WHERE stock < reorder_level');\n}\nreturn ids.length;"
+     },
+     "assistantText": "",
+     "callID": "call_6fef688f-1a6a-47d5-b39e-47e63c5f75c9",
+     "receiptID": "ae9e2c42-a4e0-420c-b682-4717a474f34e",
+     "receiptVersion": 1,
+     "result": {
+      "changes": [
+       {
+        "deleted": 0,
+        "inserted": 0,
+        "table": "parts",
+        "title": "Parts",
+        "updated": 2
+       }
+      ],
+      "inputs": [],
+      "notice": "Saved. If the user asks to undo this, the undo action takes this result's undo value as its token.",
+      "read": [
+       {
+        "rows": 6,
+        "table": "parts",
+        "title": "Parts"
+       }
+      ],
+      "statements": [
+       "SELECT part, stock, reorder_level FROM parts",
+       "UPDATE parts SET stock = 2 * reorder_level WHERE stock < reorder_level"
+      ],
+      "undo": "run-ae9e2c42-a4e0-420c-b682-4717a474f34e",
+      "value": 2
+     },
+     "resultHash": "dcd0664530332213eedd9579302a17cf5d4e68a2cfaf30b871cc7c40ca0889dd",
+     "resultIdentity": {},
+     "runID": "42783756-a2a4-4649-baa2-cc40f14e4af8",
+     "tool": "run"
+    },
+    "created": "2026-11-24T01:28:36Z",
+    "id": "4e0ad89d-c871-4b38-992d-9c24e7254953",
+    "role": "tool",
+    "state": "complete"
+   },
+   {
+    "body": "2 parts changed: Hex nuts (stock 9 → 50) and Hex key set (stock 0 → 4).",
+    "created": "2026-11-24T01:28:39Z",
+    "id": "6d1d0703-7fda-42db-81db-224e862ffc12",
+    "role": "assistant",
+    "state": "complete"
+   }
+  ]
+ },
+ "runs": [
+  {
+   "conversation_id": "83e5f759-56a6-4ac0-b6f7-3211243d2918",
+   "created": "2026-11-24T01:28:12Z",
+   "id": "42783756-a2a4-4649-baa2-cc40f14e4af8",
+   "metrics": [
+    {
+     "acceptedDraftTokens": 83,
+     "activations": "bf16",
+     "backend": "splash",
+     "beforeDispatchSeconds": 4.6307427500141785,
+     "contextTokens": 65536,
+     "decodeSeconds": 2.880664,
+     "deduplicatedKVTokens": 0,
+     "diagnosticRequestCacheIsolation": false,
+     "draftedTokens": 238,
+     "engineSHA256": "ce771e5f51081a2fd60df0ee0083f982a278a863ffaeab29fd590f55e9e36e89",
+     "firstAnswerPreviewSeconds": null,
+     "firstTokenSeconds": 1.557271124998806,
+     "generatedTokens": 118,
+     "grammarSHA256": "5b96c275e9c1a2e618a54a4814a6d9c0de116285e8ffd0814aea01a5c8eecdf1",
+     "headerInputs": "d74a9910f6872d28979e5b1b98f67d664559a8dab1952b72171d8f713b32cad4",
+     "headerRestarts": 0,
+     "headerResumed": true,
+     "headerTokens": 4145,
+     "helperStartSeconds": 4.624002124997787,
+     "hostPreparationSeconds": 6.287501309998333e-05,
+     "maintenanceRecommended": false,
+     "maintenanceThreshold": 49152,
+     "matchedPromptTokens": 4128,
+     "nextToolResultReserve": 3546,
+     "outputBudget": 1800,
+     "prefillSeconds": 1.532066,
+     "prefixPrimeMatchedTokens": 0,
+     "prefixPrimePrefillSeconds": 0,
+     "prefixPrimeSeconds": 0,
+     "prefixPrimeTokens": 0,
+     "promptTokens": 4892,
+     "reasoningBudget": 512,
+     "reasoningBudgetOverrun": 0,
+     "reasoningHistory": "within-request",
+     "reasoningTokens": 61,
+     "recoveryReserve": 256,
+     "replayBoundaryTokens": 4864,
+     "requestSeconds": 4.437942708318587,
+     "requestedContextTokens": 65536,
+     "requestedMemoryBytes": 12884901888,
+     "requestedOutputBudget": 1800,
+     "runtimeRelease": "1.6.1",
+     "scopePrefixTokens": 0,
+     "sessionSetupSeconds": 1.2039281666802708,
+     "speculativeMethod": "DFlash2",
+     "stablePrefixTokens": 4145,
+     "templateIdentity": "aee46acfcba8e4e7aec7512126b926aa311bf7414d0d96ad3b13a86d5bdfe9d3",
+     "toolScope": "all"
+    },
+    {
+     "callID": "call_6703afa3-8db5-4303-81e5-7114cb7c1199",
+     "draft": null,
+     "kind": "reasoning",
+     "note": null,
+     "outcome": null,
+     "step": 1,
+     "text": "The user wants me to:\n1. Read the Parts table to find parts where stock < reorder_level\n2. Update those parts' stock to 2 * reorder_level\n3. Count how many parts were changed\n\nLet me first read the parts table to see what we're working with.",
+     "tool": "sql"
+    },
+    {
+     "acceptedDraftTokens": 88,
+     "activations": "bf16",
+     "backend": "splash",
+     "beforeDispatchSeconds": 0.009514625009614974,
+     "contextTokens": 65536,
+     "decodeSeconds": 2.544514,
+     "deduplicatedKVTokens": 128,
+     "diagnosticRequestCacheIsolation": false,
+     "draftedTokens": 168,
+     "engineSHA256": "ce771e5f51081a2fd60df0ee0083f982a278a863ffaeab29fd590f55e9e36e89",
+     "firstAnswerPreviewSeconds": null,
+     "firstTokenSeconds": 1.1269097916665487,
+     "generatedTokens": 113,
+     "grammarSHA256": "5b96c275e9c1a2e618a54a4814a6d9c0de116285e8ffd0814aea01a5c8eecdf1",
+     "headerInputs": "d74a9910f6872d28979e5b1b98f67d664559a8dab1952b72171d8f713b32cad4",
+     "headerRestarts": 0,
+     "headerResumed": true,
+     "headerTokens": 4145,
+     "helperStartSeconds": 5.833280738443136e-07,
+     "hostPreparationSeconds": 8.920833352021873e-05,
+     "maintenanceRecommended": false,
+     "maintenanceThreshold": 49152,
+     "matchedPromptTokens": 4864,
+     "nextToolResultReserve": 3546,
+     "outputBudget": 1800,
+     "prefillSeconds": 1.122076,
+     "prefixPrimeMatchedTokens": 0,
+     "prefixPrimePrefillSeconds": 0,
+     "prefixPrimeSeconds": 0,
+     "prefixPrimeTokens": 0,
+     "promptTokens": 5118,
+     "reasoningBudget": 512,
+     "reasoningBudgetOverrun": 0,
+     "reasoningHistory": "within-request",
+     "reasoningTokens": 57,
+     "recoveryReserve": 256,
+     "replayBoundaryTokens": 5088,
+     "requestSeconds": 3.671414708311204,
+     "requestedContextTokens": 65536,
+     "requestedMemoryBytes": 12884901888,
+     "requestedOutputBudget": 1800,
+     "runtimeRelease": "1.6.1",
+     "scopePrefixTokens": 0,
+     "sessionSetupSeconds": 0,
+     "speculativeMethod": "DFlash2",
+     "stablePrefixTokens": 4145,
+     "templateIdentity": "aee46acfcba8e4e7aec7512126b926aa311bf7414d0d96ad3b13a86d5bdfe9d3",
+     "toolScope": "all"
+    },
+    {
+     "callID": "call_580f87b1-ce61-4b51-b3ee-1020a5c8928c",
+     "draft": null,
+     "kind": "reasoning",
+     "note": null,
+     "outcome": null,
+     "step": 2,
+     "text": "Found 2 parts below reorder level:\n- Hex nuts: stock=9, reorder_level=25 → new stock = 50\n- Hex key set: stock=0, reorder_level=2 → new stock = 4\n\nNow I'll update them.",
+     "tool": "sql"
+    },
+    {
+     "acceptedDraftTokens": 41,
+     "activations": "bf16",
+     "backend": "splash",
+     "beforeDispatchSeconds": 0.00698966666823253,
+     "contextTokens": 65536,
+     "decodeSeconds": 1.732354,
+     "deduplicatedKVTokens": 128,
+     "diagnosticRequestCacheIsolation": false,
+     "draftedTokens": 133,
+     "engineSHA256": "ce771e5f51081a2fd60df0ee0083f982a278a863ffaeab29fd590f55e9e36e89",
+     "firstAnswerPreviewSeconds": null,
+     "firstTokenSeconds": 1.374524458340602,
+     "generatedTokens": 61,
+     "grammarSHA256": "5b96c275e9c1a2e618a54a4814a6d9c0de116285e8ffd0814aea01a5c8eecdf1",
+     "headerInputs": "d74a9910f6872d28979e5b1b98f67d664559a8dab1952b72171d8f713b32cad4",
+     "headerRestarts": 0,
+     "headerResumed": true,
+     "headerTokens": 4145,
+     "helperStartSeconds": 5.41651388630271e-07,
+     "hostPreparationSeconds": 7.8541663242504e-05,
+     "maintenanceRecommended": false,
+     "maintenanceThreshold": 49152,
+     "matchedPromptTokens": 5088,
+     "nextToolResultReserve": 3546,
+     "outputBudget": 1800,
+     "prefillSeconds": 1.369881,
+     "prefixPrimeMatchedTokens": 0,
+     "prefixPrimePrefillSeconds": 0,
+     "prefixPrimeSeconds": 0,
+     "prefixPrimeTokens": 0,
+     "promptTokens": 5647,
+     "reasoningBudget": 512,
+     "reasoningBudgetOverrun": 0,
+     "reasoningHistory": "within-request",
+     "reasoningTokens": 18,
+     "recoveryReserve": 256,
+     "replayBoundaryTokens": 5632,
+     "requestSeconds": 3.1068789583514445,
+     "requestedContextTokens": 65536,
+     "requestedMemoryBytes": 12884901888,
+     "requestedOutputBudget": 1800,
+     "runtimeRelease": "1.6.1",
+     "scopePrefixTokens": 0,
+     "sessionSetupSeconds": 0,
+     "speculativeMethod": "DFlash2",
+     "stablePrefixTokens": 4145,
+     "templateIdentity": "aee46acfcba8e4e7aec7512126b926aa311bf7414d0d96ad3b13a86d5bdfe9d3",
+     "toolScope": "all"
+    },
+    {
+     "callID": "call_c26d68c1-398c-4331-8241-c1192b5ee102",
+     "draft": null,
+     "kind": "reasoning",
+     "note": null,
+     "outcome": null,
+     "step": 3,
+     "text": "The update changed 2 parts. Let me confirm the final state and report back.",
+     "tool": "sql"
+    },
+    {
+     "acceptedDraftTokens": 213,
+     "activations": "bf16",
+     "backend": "splash",
+     "beforeDispatchSeconds": 0.0001858333416748792,
+     "contextTokens": 65536,
+     "decodeSeconds": 5.645477,
+     "deduplicatedKVTokens": 64,
+     "diagnosticRequestCacheIsolation": false,
+     "draftedTokens": 518,
+     "engineSHA256": "ce771e5f51081a2fd60df0ee0083f982a278a863ffaeab29fd590f55e9e36e89",
+     "firstAnswerPreviewSeconds": null,
+     "firstTokenSeconds": 0.9974587083270308,
+     "generatedTokens": 288,
+     "grammarSHA256": "5b96c275e9c1a2e618a54a4814a6d9c0de116285e8ffd0814aea01a5c8eecdf1",
+     "headerInputs": "d74a9910f6872d28979e5b1b98f67d664559a8dab1952b72171d8f713b32cad4",
+     "headerRestarts": 0,
+     "headerResumed": true,
+     "headerTokens": 4145,
+     "helperStartSeconds": 4.999747034162283e-07,
+     "hostPreparationSeconds": 9.50000248849392e-05,
+     "maintenanceRecommended": false,
+     "maintenanceThreshold": 49152,
+     "matchedPromptTokens": 5632,
+     "nextToolResultReserve": 3546,
+     "outputBudget": 1800,
+     "prefillSeconds": 0.992718,
+     "prefixPrimeMatchedTokens": 0,
+     "prefixPrimePrefillSeconds": 0,
+     "prefixPrimeSeconds": 0,
+     "prefixPrimeTokens": 0,
+     "promptTokens": 5809,
+     "reasoningBudget": 512,
+     "reasoningBudgetOverrun": 0,
+     "reasoningHistory": "within-request",
+     "reasoningTokens": 178,
+     "recoveryReserve": 256,
+     "replayBoundaryTokens": 5792,
+     "requestSeconds": 6.642924874991877,
+     "requestedContextTokens": 65536,
+     "requestedMemoryBytes": 12884901888,
+     "requestedOutputBudget": 1800,
+     "runtimeRelease": "1.6.1",
+     "scopePrefixTokens": 0,
+     "sessionSetupSeconds": 0,
+     "speculativeMethod": "DFlash2",
+     "stablePrefixTokens": 4145,
+     "templateIdentity": "aee46acfcba8e4e7aec7512126b926aa311bf7414d0d96ad3b13a86d5bdfe9d3",
+     "toolScope": "all"
+    },
+    {
+     "callID": "call_6fef688f-1a6a-47d5-b39e-47e63c5f75c9",
+     "draft": null,
+     "kind": "reasoning",
+     "note": null,
+     "outcome": null,
+     "step": 4,
+     "text": "The draft shows 2 rows changed (Hex nuts: 9→50, Hex key set: 0→4), but the current table still shows the old values because it was a draft. The user asked me to use a script to do this. Let me re-read the request - they said \"Use a script to go through the Parts table\". I should use `run` with a script instead of a direct SQL update. But I already did the SQL update as a draft. Let me just confirm the count is 2 and report that. The draft proposal shows 2 parts changed.\n\nActually, looking at the result, the draft shows `changedRows: 2` and the text shows \"Hex nuts: Stock: 9 → 50\" and \"Hex key set: Stock: 0 → 4\". So 2 parts changed.",
+     "tool": "run"
+    },
+    {
+     "acceptedDraftTokens": 68,
+     "activations": "bf16",
+     "backend": "splash",
+     "beforeDispatchSeconds": 0.00019374999101273715,
+     "contextTokens": 65536,
+     "decodeSeconds": 2.301121,
+     "deduplicatedKVTokens": 288,
+     "diagnosticRequestCacheIsolation": false,
+     "draftedTokens": 168,
+     "engineSHA256": "ce771e5f51081a2fd60df0ee0083f982a278a863ffaeab29fd590f55e9e36e89",
+     "firstAnswerPreviewSeconds": 2.2429032916552387,
+     "firstTokenSeconds": 1.3539033333363477,
+     "generatedTokens": 93,
+     "grammarSHA256": "5b96c275e9c1a2e618a54a4814a6d9c0de116285e8ffd0814aea01a5c8eecdf1",
+     "headerInputs": "d74a9910f6872d28979e5b1b98f67d664559a8dab1952b72171d8f713b32cad4",
+     "headerRestarts": 0,
+     "headerResumed": true,
+     "headerTokens": 4145,
+     "helperStartSeconds": 5.416804924607277e-07,
+     "hostPreparationSeconds": 0.00010391665273346007,
+     "maintenanceRecommended": false,
+     "maintenanceThreshold": 49152,
+     "matchedPromptTokens": 5792,
+     "nextToolResultReserve": 3546,
+     "outputBudget": 1800,
+     "prefillSeconds": 1.349142,
+     "prefixPrimeMatchedTokens": 0,
+     "prefixPrimePrefillSeconds": 0,
+     "prefixPrimeSeconds": 0,
+     "prefixPrimeTokens": 0,
+     "promptTokens": 6280,
+     "reasoningBudget": 512,
+     "reasoningBudgetOverrun": 0,
+     "reasoningHistory": "within-request",
+     "reasoningTokens": 14,
+     "recoveryReserve": 256,
+     "replayBoundaryTokens": 6272,
+     "requestSeconds": 3.655017749988474,
+     "requestedContextTokens": 65536,
+     "requestedMemoryBytes": 12884901888,
+     "requestedOutputBudget": 1800,
+     "runtimeRelease": "1.6.1",
+     "scopePrefixTokens": 0,
+     "sessionSetupSeconds": 0,
+     "speculativeMethod": "DFlash2",
+     "stablePrefixTokens": 4145,
+     "templateIdentity": "aee46acfcba8e4e7aec7512126b926aa311bf7414d0d96ad3b13a86d5bdfe9d3",
+     "toolScope": "all"
+    },
+    {
+     "callID": "call_5b296a84-9954-4918-9289-76c8b0c240b3",
+     "draft": null,
+     "kind": "reasoning",
+     "note": null,
+     "outcome": null,
+     "step": 5,
+     "text": "The script updated 2 parts. Let me report the result.",
+     "tool": "finish"
+    }
+   ],
+   "model": "Splash 1.6.1; d8af1054aab0f97de21d043e01aa98af3754f10e; Qwen3.6-35B-A3B-4bit + DFlash2; native Swift candidate; context 65536; memory 12884901888; activations bf16; KV int8; state fp32; ANE on; reasoning budget 512; within-request reasoning retained",
+   "request_message_id": "132e82b1-2a23-4578-8c26-83fcc464645b",
+   "status": "complete",
+   "steps": 5,
+   "updated": "2026-11-24T01:28:39Z"
+  }
+ ],
+ "saved": {
+  "changedTables": [
+   {
+    "title": "Parts",
+    "before": {
+     "title": "Parts",
+     "columns": [
+      {
+       "id": "part",
+       "title": "Part",
+       "type": "text"
+      },
+      {
+       "id": "category",
+       "title": "Category",
+       "type": "text"
+      },
+      {
+       "id": "stock",
+       "title": "Stock",
+       "type": "decimal"
+      },
+      {
+       "id": "reorder_level",
+       "title": "Reorder level",
+       "type": "decimal"
+      }
+     ],
+     "rows": [
+      {
+       "category": "Fasteners",
+       "part": "Brass bolts",
+       "reorder_level": "12",
+       "stock": "18"
+      },
+      {
+       "category": "Fasteners",
+       "part": "Steel washers",
+       "reorder_level": "40",
+       "stock": "240"
+      },
+      {
+       "category": "Fasteners",
+       "part": "Hex nuts",
+       "reorder_level": "25",
+       "stock": "9"
+      },
+      {
+       "category": "Fasteners",
+       "part": "Wood screws",
+       "reorder_level": "50",
+       "stock": "130"
+      },
+      {
+       "category": "Tools",
+       "part": "Torque wrench",
+       "reorder_level": "1",
+       "stock": "2"
+      },
+      {
+       "category": "Tools",
+       "part": "Hex key set",
+       "reorder_level": "2",
+       "stock": "0"
+      }
+     ]
+    },
+    "after": {
+     "title": "Parts",
+     "columns": [
+      {
+       "id": "part",
+       "title": "Part",
+       "type": "text"
+      },
+      {
+       "id": "category",
+       "title": "Category",
+       "type": "text"
+      },
+      {
+       "id": "stock",
+       "title": "Stock",
+       "type": "decimal"
+      },
+      {
+       "id": "reorder_level",
+       "title": "Reorder level",
+       "type": "decimal"
+      }
+     ],
+     "rows": [
+      {
+       "category": "Fasteners",
+       "part": "Brass bolts",
+       "reorder_level": "12",
+       "stock": "18"
+      },
+      {
+       "category": "Fasteners",
+       "part": "Steel washers",
+       "reorder_level": "40",
+       "stock": "240"
+      },
+      {
+       "category": "Fasteners",
+       "part": "Hex nuts",
+       "reorder_level": "25",
+       "stock": 50
+      },
+      {
+       "category": "Fasteners",
+       "part": "Wood screws",
+       "reorder_level": "50",
+       "stock": "130"
+      },
+      {
+       "category": "Tools",
+       "part": "Torque wrench",
+       "reorder_level": "1",
+       "stock": "2"
+      },
+      {
+       "category": "Tools",
+       "part": "Hex key set",
+       "reorder_level": "2",
+       "stock": 4
+      }
+     ]
+    }
+   }
+  ],
+  "newItems": [
+   {
+    "category": "source",
+    "kind": "correction",
+    "status": "accepted",
+    "title": "Edit Parts",
+    "id": "20851350-e2a8-43ca-8100-ec0ba4cba9f5"
+   },
+   {
+    "category": "source",
+    "kind": "correction",
+    "status": "accepted",
+    "title": "Edit Parts",
+    "id": "67fcd55d-9672-4e8b-ba48-876acc9ec37b"
+   },
+   {
+    "category": "source",
+    "kind": "observation",
+    "status": "accepted",
+    "title": "Parts update",
+    "id": "a17f682c-5444-4e1c-9753-18996d5ad658"
+   },
+   {
+    "category": "source",
+    "kind": "rule",
+    "status": "accepted",
+    "title": "Chat table changes policy",
+    "id": "fc9f76b2-6f0b-43bb-a0c6-00ceace02b27"
+   },
+   {
+    "category": "record",
+    "kind": "table-change",
+    "status": "draft",
+    "title": "Review changes to Parts",
+    "id": "63a98f61-fc25-4176-a348-71cfbacc4936"
+   }
+  ]
+ }
+}

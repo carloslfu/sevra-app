@@ -261,7 +261,8 @@ func checkAttachedCalculationInputs() async throws {
   try expectEqual(cited.citations, rows)
   try expectEqual(cited.answer.contains("calculation inputs"), false)
 
-  // A write afterwards leaves a host-only answer, which reports no calculation and needs none.
+  // A view saved afterwards keeps the model's summary, which may report the comparison, so it
+  // carries the inputs like any other answer. The host's confirmation follows it.
   let saving = ScriptedCalls([
     compare(short),
     call(
@@ -277,8 +278,9 @@ func checkAttachedCalculationInputs() async throws {
     context: "Table: \(short.id)", model: saving)
   try expectEqual(spaced.state, "complete")
   try expectEqual(spaced.steps, 3)
-  try expectEqual(spaced.answer, "Saved space “Quotes”.")
-  try expectEqual(spaced.citations, [])
+  try expectEqual(spaced.answer.hasPrefix("Done.\n\n["), true)
+  try expectEqual(spaced.answer.hasSuffix("\n\nSaved space “Quotes”."), true)
+  try expectEqual(spaced.citations.isEmpty, false)
 
   // The grounding rules stay. No calculation means no attached inputs, a citation still has to
   // be inspected, and an input that moved on is read before it is reported.

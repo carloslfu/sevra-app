@@ -20,6 +20,7 @@ struct ConversationMessageRow: View, Equatable {
   @State private var hovering = false
   static func == (left: Self, right: Self) -> Bool {
     left.message.id == right.message.id && left.message.body == right.message.body
+      && left.content.source == right.content.source
       && left.message.state == right.message.state && left.message.role == right.message.role
       && left.review == right.review && left.inputSurface == right.inputSurface
       && left.visuals == right.visuals && left.approval == right.approval
@@ -32,7 +33,15 @@ struct ConversationMessageRow: View, Equatable {
     if message.state == "needs_input" {
       return inputSurface == nil ? "Question" : "Waiting for your answer"
     }
-    guard message.state == "needs_review" else { return message.state }
+    // A saved state is a word for the host. The person reads what happened.
+    guard message.state == "needs_review" else {
+      switch message.state {
+      case "failed": return "Couldn’t finish"
+      case "cancelled": return "Stopped"
+      case "interrupted": return "Interrupted"
+      default: return message.state.replacingOccurrences(of: "_", with: " ").capitalized
+      }
+    }
     guard let review else { return "Review requested" }
     switch review.status {
     case "accepted": return "Current version accepted"

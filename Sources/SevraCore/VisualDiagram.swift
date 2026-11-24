@@ -14,7 +14,7 @@ public struct VisualDiagram: Codable, Equatable, Sendable {
   static func parse(_ value: Value) throws -> Self {
     _ = try queryObject(
       value, keys: ["title", "nodes", "edges", "key", "label", "from", "to", "positions"])
-    let diagram = try JSONDecoder().decode(Self.self, from: Data(value.json().utf8))
+    let diagram = try decodeDescriptor(Self.self, from: value, named: "diagram")
     try diagram.validate()
     return diagram
   }

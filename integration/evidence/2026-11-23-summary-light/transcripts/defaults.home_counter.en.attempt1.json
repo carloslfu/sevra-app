@@ -1,0 +1,696 @@
+{
+ "job": "defaults.home_counter",
+ "language": "en",
+ "attempt": 1,
+ "prompt": "Change my Home to show a big counter button",
+ "expected": "In a new, empty workbook, Home shows a counter. Nothing is asked: the table, the title and the look are defaults the reply names. No example rows are added.",
+ "failure": null,
+ "result": {
+  "answer": "Added a \"Total Records\" counter button to your Home view. It's now the first item on the page, showing the count of all records. I created a Records table to track this.\n\nUpdated space “Home”.",
+  "chat": "285844aa-ed2a-443e-a4fc-5b2423005975",
+  "citations": [],
+  "state": "complete",
+  "steps": 6
+ },
+ "progress": [
+  "Reading request context",
+  "Checking local model files",
+  "Preparing local AI. The first start can take longer…",
+  "Preparing local AI · 0 of 11 steps",
+  "Preparing local AI · 1 of 11 steps",
+  "Preparing local AI · 2 of 11 steps",
+  "Preparing local AI · 3 of 11 steps",
+  "Preparing local AI · 4 of 11 steps",
+  "Preparing local AI · 5 of 11 steps",
+  "Preparing local AI · 6 of 11 steps",
+  "Preparing local AI · 7 of 11 steps",
+  "Preparing local AI · 8 of 11 steps",
+  "Preparing local AI · 9 of 11 steps",
+  "Preparing local AI · 10 of 11 steps",
+  "Preparing local AI · 11 of 11 steps",
+  "Reading the working context",
+  "Working through the request",
+  "Preparing a response",
+  "Archive Members…",
+  "Reviewing a tool failure",
+  "Reading the working context",
+  "Working through the request",
+  "Preparing a response",
+  "Spaces…",
+  "Reviewing the saved result",
+  "Reading the working context",
+  "Working through the request",
+  "Preparing a response",
+  "Updating a space…",
+  "Reviewing a tool failure",
+  "Reading the working context",
+  "Working through the request",
+  "Preparing a response",
+  "Working with your tables…",
+  "Reviewing the saved result",
+  "Reading the working context",
+  "Working through the request",
+  "Preparing a response",
+  "Updating a space…",
+  "Reviewing the saved result",
+  "Reading the working context",
+  "Working through the request",
+  "Preparing a response"
+ ],
+ "messages": {
+  "285844aa-ed2a-443e-a4fc-5b2423005975": [
+   {
+    "body": "Change my Home to show a big counter button",
+    "created": "2026-11-24T01:29:21Z",
+    "id": "3dad6888-416c-42a9-8283-9478517ba9e7",
+    "role": "user",
+    "state": "complete"
+   },
+   {
+    "body": {
+     "arguments": {
+      "id": "54c9785c-a974-41de-9c76-ea0e7a83208e"
+     },
+     "assistantText": "",
+     "callID": "call_c2ac1062-d41d-42c2-9669-fe0adbe0d4c6",
+     "receiptID": "f9fea5d7-245a-4ad4-9511-539dd95064b5",
+     "receiptVersion": 1,
+     "result": {
+      "error": "Choose an included or linked ZIP file.",
+      "receiptID": "f9fea5d7-245a-4ad4-9511-539dd95064b5",
+      "retryInstruction": "The call did not finish successfully. Completed changes remain saved. Inspect the receipt and workbook state before retrying; do not claim no changes occurred. Fix the reported arguments when applicable."
+     },
+     "resultHash": "3889546e8d0399ef09cd85b0afac057fbc45e97de57401cea1c4dde8a1a630bf",
+     "resultIdentity": {},
+     "runID": "529d4246-1159-4b4f-ba2e-f6029c71e0e3",
+     "tool": "archive_members"
+    },
+    "created": "2026-11-24T01:29:31Z",
+    "id": "dda3e7af-7f33-49d0-895e-df1c93d35547",
+    "role": "tool",
+    "state": "complete"
+   },
+   {
+    "body": {
+     "arguments": {},
+     "assistantText": "",
+     "callID": "call_8205a618-d98e-48b6-af1c-4ef19d1342f5",
+     "receiptID": "76330519-d25b-40f6-a38a-12e551dbf619",
+     "receiptVersion": 1,
+     "result": [
+      {
+       "definition": {
+        "components": [
+         {
+          "id": "attention",
+          "title": "Needs attention",
+          "type": "attention"
+         },
+         {
+          "id": "continue",
+          "title": "Continue working",
+          "type": "continue"
+         },
+         {
+          "id": "shortcuts",
+          "title": "Pinned spaces",
+          "type": "shortcuts"
+         }
+        ],
+        "version": 1
+       },
+       "id": "home",
+       "title": "Home",
+       "version": 1
+      }
+     ],
+     "resultHash": "0161a94b35902ffd38f567a07e9e7939e014f1eb5bc5e68fc55fc705d8fc2126",
+     "resultIdentity": {},
+     "runID": "529d4246-1159-4b4f-ba2e-f6029c71e0e3",
+     "tool": "spaces"
+    },
+    "created": "2026-11-24T01:29:34Z",
+    "id": "9a6b0192-da32-4766-afc2-d8f59cd0dc0f",
+    "role": "tool",
+    "state": "complete"
+   },
+   {
+    "body": {
+     "arguments": {
+      "edits": [
+       {
+        "at": "first",
+        "component": {
+         "aggregation": "COUNT",
+         "datasetID": "records",
+         "id": "counter",
+         "title": "Total Records",
+         "type": "metric"
+        },
+        "operation": "insert"
+       }
+      ],
+      "expectedVersion": 1,
+      "id": "home"
+     },
+     "assistantText": "",
+     "callID": "call_9a82f4b9-5145-4954-b25f-beb3f8b37def",
+     "receiptID": "0cbca7d9-728f-41b3-9a3f-d6ff639a0813",
+     "receiptVersion": 1,
+     "result": {
+      "error": "Table not found.",
+      "receiptID": "0cbca7d9-728f-41b3-9a3f-d6ff639a0813",
+      "retryInstruction": "The call did not finish successfully. Completed changes remain saved. Inspect the receipt and workbook state before retrying; do not claim no changes occurred. Fix the reported arguments when applicable."
+     },
+     "resultHash": "529caa98cb5a688f4abe574266abd0ba5eeb7e029778e0aeebe6919701e4a723",
+     "resultIdentity": {},
+     "runID": "529d4246-1159-4b4f-ba2e-f6029c71e0e3",
+     "tool": "edit_space"
+    },
+    "created": "2026-11-24T01:29:48Z",
+    "id": "4b12e8db-fdad-4ce6-80e0-45b211ae92d8",
+    "role": "tool",
+    "state": "complete"
+   },
+   {
+    "body": {
+     "arguments": {
+      "draft": false,
+      "statements": [
+       "CREATE TABLE records (id INTEGER PRIMARY KEY, name TEXT, created_at TEXT)"
+      ]
+     },
+     "assistantText": "",
+     "callID": "call_ef4139ab-6a31-4ec6-a33d-f3ac2bc85064",
+     "receiptID": "b76eadf5-3447-48e5-ab62-9ea886a05bab",
+     "receiptVersion": 1,
+     "result": {
+      "inputs": [],
+      "notice": "Saved. If the user asks to undo this, the undo action takes this result's undo value as its token.",
+      "read": [],
+      "results": [
+       {
+        "done": true
+       }
+      ],
+      "shape": [
+       {
+        "change": "created",
+        "columns": [
+         "Id",
+         "Name",
+         "Created at"
+        ],
+        "id": "c415907f-4d83-4681-9781-539df06ccbb5",
+        "rows": 0,
+        "table": "records",
+        "title": "Records"
+       }
+      ],
+      "undo": "sql-b76eadf5-3447-48e5-ab62-9ea886a05bab"
+     },
+     "resultHash": "70c10279e37590b219e8e129b31ed65d801730076524774c8c150be5894341d2",
+     "resultIdentity": {},
+     "runID": "529d4246-1159-4b4f-ba2e-f6029c71e0e3",
+     "tool": "sql"
+    },
+    "created": "2026-11-24T01:29:53Z",
+    "id": "6128cef9-da04-4b33-b58f-e3cbbd6760dc",
+    "role": "tool",
+    "state": "complete"
+   },
+   {
+    "body": {
+     "arguments": {
+      "edits": [
+       {
+        "at": "first",
+        "component": {
+         "aggregation": "COUNT",
+         "datasetID": "c415907f-4d83-4681-9781-539df06ccbb5",
+         "id": "counter",
+         "title": "Total Records",
+         "type": "metric"
+        },
+        "operation": "insert"
+       }
+      ],
+      "expectedVersion": 1,
+      "id": "home"
+     },
+     "assistantText": "",
+     "callID": "call_2fe3717e-dea2-4d5a-8aa0-6fa6f2b35295",
+     "receiptID": "46483d84-1897-407b-b3ae-903bbbffad60",
+     "receiptVersion": 1,
+     "result": {
+      "spaceID": "home",
+      "title": "Home",
+      "version": 2
+     },
+     "resultHash": "c60dfd834a6707f4b5843a0711610964fe8c2da26c2772436423f2e9d0a77725",
+     "resultIdentity": {},
+     "runID": "529d4246-1159-4b4f-ba2e-f6029c71e0e3",
+     "tool": "edit_space"
+    },
+    "created": "2026-11-24T01:29:59Z",
+    "id": "ccd3af43-19f0-4f5a-b2e0-4a38f5953a84",
+    "role": "tool",
+    "state": "complete"
+   },
+   {
+    "body": "Added a \"Total Records\" counter button to your Home view. It's now the first item on the page, showing the count of all records. I created a Records table to track this.\n\nUpdated space “Home”.",
+    "created": "2026-11-24T01:30:04Z",
+    "id": "6868628d-80a4-4c39-884c-68e6ae0af3ec",
+    "role": "assistant",
+    "state": "complete"
+   }
+  ]
+ },
+ "runs": [
+  {
+   "conversation_id": "285844aa-ed2a-443e-a4fc-5b2423005975",
+   "created": "2026-11-24T01:29:21Z",
+   "id": "529d4246-1159-4b4f-ba2e-f6029c71e0e3",
+   "metrics": [
+    {
+     "acceptedDraftTokens": 89,
+     "activations": "bf16",
+     "backend": "splash",
+     "beforeDispatchSeconds": 4.679284749989165,
+     "contextTokens": 65536,
+     "decodeSeconds": 2.828529,
+     "deduplicatedKVTokens": 0,
+     "diagnosticRequestCacheIsolation": false,
+     "draftedTokens": 238,
+     "engineSHA256": "ce771e5f51081a2fd60df0ee0083f982a278a863ffaeab29fd590f55e9e36e89",
+     "firstAnswerPreviewSeconds": null,
+     "firstTokenSeconds": 1.3343284583243076,
+     "generatedTokens": 124,
+     "grammarSHA256": "5b96c275e9c1a2e618a54a4814a6d9c0de116285e8ffd0814aea01a5c8eecdf1",
+     "headerInputs": "d74a9910f6872d28979e5b1b98f67d664559a8dab1952b72171d8f713b32cad4",
+     "headerRestarts": 0,
+     "headerResumed": true,
+     "headerTokens": 4145,
+     "helperStartSeconds": 4.6715292500157375,
+     "hostPreparationSeconds": 5.441665416583419e-05,
+     "maintenanceRecommended": false,
+     "maintenanceThreshold": 49152,
+     "matchedPromptTokens": 4128,
+     "nextToolResultReserve": 3546,
+     "outputBudget": 1800,
+     "prefillSeconds": 1.308294,
+     "prefixPrimeMatchedTokens": 0,
+     "prefixPrimePrefillSeconds": 0,
+     "prefixPrimeSeconds": 0,
+     "prefixPrimeTokens": 0,
+     "promptTokens": 4540,
+     "reasoningBudget": 512,
+     "reasoningBudgetOverrun": 0,
+     "reasoningHistory": "within-request",
+     "reasoningTokens": 54,
+     "recoveryReserve": 256,
+     "replayBoundaryTokens": 4512,
+     "requestSeconds": 4.162869083345868,
+     "requestedContextTokens": 65536,
+     "requestedMemoryBytes": 12884901888,
+     "requestedOutputBudget": 1800,
+     "runtimeRelease": "1.6.1",
+     "scopePrefixTokens": 0,
+     "sessionSetupSeconds": 1.3064725000003818,
+     "speculativeMethod": "DFlash2",
+     "stablePrefixTokens": 4145,
+     "templateIdentity": "aee46acfcba8e4e7aec7512126b926aa311bf7414d0d96ad3b13a86d5bdfe9d3",
+     "toolScope": "all"
+    },
+    {
+     "callID": "call_c2ac1062-d41d-42c2-9669-fe0adbe0d4c6",
+     "draft": null,
+     "kind": "reasoning",
+     "note": null,
+     "outcome": null,
+     "step": 1,
+     "text": "The user wants to change their Home view to show a \"big counter button\". This sounds like they want to add a metric (counter) to their Home view.\n\nLet me first read the current Home view to see what's there and what version it is.",
+     "tool": "read"
+    },
+    {
+     "acceptedDraftTokens": 39,
+     "activations": "bf16",
+     "backend": "splash",
+     "beforeDispatchSeconds": 0.00015720832743681967,
+     "contextTokens": 65536,
+     "decodeSeconds": 1.26671,
+     "deduplicatedKVTokens": 128,
+     "diagnosticRequestCacheIsolation": false,
+     "draftedTokens": 133,
+     "engineSHA256": "ce771e5f51081a2fd60df0ee0083f982a278a863ffaeab29fd590f55e9e36e89",
+     "firstAnswerPreviewSeconds": null,
+     "firstTokenSeconds": 1.08598137498484,
+     "generatedTokens": 59,
+     "grammarSHA256": "5b96c275e9c1a2e618a54a4814a6d9c0de116285e8ffd0814aea01a5c8eecdf1",
+     "headerInputs": "d74a9910f6872d28979e5b1b98f67d664559a8dab1952b72171d8f713b32cad4",
+     "headerRestarts": 0,
+     "headerResumed": true,
+     "headerTokens": 4145,
+     "helperStartSeconds": 6.66681444272399e-07,
+     "hostPreparationSeconds": 5.954166408628225e-05,
+     "maintenanceRecommended": false,
+     "maintenanceThreshold": 49152,
+     "matchedPromptTokens": 4512,
+     "nextToolResultReserve": 3546,
+     "outputBudget": 1800,
+     "prefillSeconds": 1.081719,
+     "prefixPrimeMatchedTokens": 0,
+     "prefixPrimePrefillSeconds": 0,
+     "prefixPrimeSeconds": 0,
+     "prefixPrimeTokens": 0,
+     "promptTokens": 4767,
+     "reasoningBudget": 512,
+     "reasoningBudgetOverrun": 0,
+     "reasoningHistory": "within-request",
+     "reasoningTokens": 32,
+     "recoveryReserve": 256,
+     "replayBoundaryTokens": 4736,
+     "requestSeconds": 2.352684749988839,
+     "requestedContextTokens": 65536,
+     "requestedMemoryBytes": 12884901888,
+     "requestedOutputBudget": 1800,
+     "runtimeRelease": "1.6.1",
+     "scopePrefixTokens": 0,
+     "sessionSetupSeconds": 0,
+     "speculativeMethod": "DFlash2",
+     "stablePrefixTokens": 4145,
+     "templateIdentity": "aee46acfcba8e4e7aec7512126b926aa311bf7414d0d96ad3b13a86d5bdfe9d3",
+     "toolScope": "all"
+    },
+    {
+     "callID": "call_8205a618-d98e-48b6-af1c-4ef19d1342f5",
+     "draft": null,
+     "kind": "reasoning",
+     "note": null,
+     "outcome": null,
+     "step": 2,
+     "text": "That error doesn't seem right - I tried to read the archive with the Home view ID. Let me try reading the views to find the Home view.",
+     "tool": "read"
+    },
+    {
+     "acceptedDraftTokens": 441,
+     "activations": "bf16",
+     "backend": "splash",
+     "beforeDispatchSeconds": 0.00016850000247359276,
+     "contextTokens": 65536,
+     "decodeSeconds": 13.176793,
+     "deduplicatedKVTokens": 64,
+     "diagnosticRequestCacheIsolation": false,
+     "draftedTokens": 1218,
+     "engineSHA256": "ce771e5f51081a2fd60df0ee0083f982a278a863ffaeab29fd590f55e9e36e89",
+     "firstAnswerPreviewSeconds": null,
+     "firstTokenSeconds": 0.7613312916655559,
+     "generatedTokens": 616,
+     "grammarSHA256": "5b96c275e9c1a2e618a54a4814a6d9c0de116285e8ffd0814aea01a5c8eecdf1",
+     "headerInputs": "d74a9910f6872d28979e5b1b98f67d664559a8dab1952b72171d8f713b32cad4",
+     "headerRestarts": 0,
+     "headerResumed": true,
+     "headerTokens": 4145,
+     "helperStartSeconds": 6.666523404419422e-07,
+     "hostPreparationSeconds": 9.012501686811447e-05,
+     "maintenanceRecommended": false,
+     "maintenanceThreshold": 49152,
+     "matchedPromptTokens": 4736,
+     "nextToolResultReserve": 3546,
+     "outputBudget": 1800,
+     "prefillSeconds": 0.757041,
+     "prefixPrimeMatchedTokens": 0,
+     "prefixPrimePrefillSeconds": 0,
+     "prefixPrimeSeconds": 0,
+     "prefixPrimeTokens": 0,
+     "promptTokens": 4906,
+     "reasoningBudget": 512,
+     "reasoningBudgetOverrun": 0,
+     "reasoningHistory": "within-request",
+     "reasoningTokens": 512,
+     "recoveryReserve": 256,
+     "replayBoundaryTokens": 4896,
+     "requestSeconds": 13.938115833327174,
+     "requestedContextTokens": 65536,
+     "requestedMemoryBytes": 12884901888,
+     "requestedOutputBudget": 1800,
+     "runtimeRelease": "1.6.1",
+     "scopePrefixTokens": 0,
+     "sessionSetupSeconds": 0,
+     "speculativeMethod": "DFlash2",
+     "stablePrefixTokens": 4145,
+     "templateIdentity": "aee46acfcba8e4e7aec7512126b926aa311bf7414d0d96ad3b13a86d5bdfe9d3",
+     "toolScope": "all"
+    },
+    {
+     "callID": "call_9a82f4b9-5145-4954-b25f-beb3f8b37def",
+     "draft": null,
+     "kind": "reasoning",
+     "note": null,
+     "outcome": null,
+     "step": 3,
+     "text": "The Home view currently has three components: attention, continue, and shortcuts. The user wants to add a \"big counter button\" which would be a metric component. I need to add a metric to the Home view.\n\nSince there are no tables in the workbook yet (based on the earlier context), I should create a simple metric that counts rows from a table. But wait - the user said \"a big counter button\" without specifying what to count. I should create a metric that counts something sensible.\n\nLooking at the instructions: \"a count of a table's rows is {id: \\\"metric1\\\", type: \\\"metric\\\", title, aggregation: \\\"COUNT\\\", datasetID}\". But there are no tables yet.\n\nLet me think about this - the user wants a \"big counter button\" on Home. Without knowing what table to count, I should probably create a simple metric. But I need a datasetID. Let me check if there are any tables first.\n\nActually, looking at the system message more carefully: \"When it lists none, the workbook has no tables yet, so do not search for one.\" So I shouldn't search for tables.\n\nBut I need to add a metric to the Home view. A metric needs a datasetID. Without tables, I can't create a meaningful metric. However, the user asked for a \"big counter button\" - maybe they just want the visual element.\n\nLet me re-read the instructions about views: \"x and y are column ids of that table from SELECT table_name, name, id FROM columns. The chart adds up y for each x itself, so never create a table of totals for one. One number is a metric, with its fields in this order: a count of a table's rows is {id: \\\"metric1\\\", type: \\\"metric\\\", title, aggregation: \\\"COUNT\\\", datasetID}\"\n\nSo a metric needs a datasetID (a table's id). Since there are no tables, I can't create a proper metric. But the user is asking for this, so maybe I should ask what to count?\n\nWait, the instructions say: \"When the request leaves open how something looks, what it is called, where it goes, or what a new view, chart or counter shows or counts, do not ask, with ask or in the answer: choose a sensible default, do the work, and say in the answer what you chose so the user can change it.\"\n\nSo I should choose a sensible default. But without",
+     "tool": "run"
+    },
+    {
+     "acceptedDraftTokens": 179,
+     "activations": "bf16",
+     "backend": "splash",
+     "beforeDispatchSeconds": 0.0001674583472777158,
+     "contextTokens": 65536,
+     "decodeSeconds": 4.085913,
+     "deduplicatedKVTokens": 512,
+     "diagnosticRequestCacheIsolation": false,
+     "draftedTokens": 476,
+     "engineSHA256": "ce771e5f51081a2fd60df0ee0083f982a278a863ffaeab29fd590f55e9e36e89",
+     "firstAnswerPreviewSeconds": null,
+     "firstTokenSeconds": 1.3573814583360218,
+     "generatedTokens": 248,
+     "grammarSHA256": "5b96c275e9c1a2e618a54a4814a6d9c0de116285e8ffd0814aea01a5c8eecdf1",
+     "headerInputs": "d74a9910f6872d28979e5b1b98f67d664559a8dab1952b72171d8f713b32cad4",
+     "headerRestarts": 0,
+     "headerResumed": true,
+     "headerTokens": 4145,
+     "helperStartSeconds": 5.00003807246685e-07,
+     "hostPreparationSeconds": 8.791667642071843e-05,
+     "maintenanceRecommended": false,
+     "maintenanceThreshold": 49152,
+     "matchedPromptTokens": 4896,
+     "nextToolResultReserve": 3546,
+     "outputBudget": 1800,
+     "prefillSeconds": 1.356153,
+     "prefixPrimeMatchedTokens": 0,
+     "prefixPrimePrefillSeconds": 0,
+     "prefixPrimeSeconds": 0,
+     "prefixPrimeTokens": 0,
+     "promptTokens": 5621,
+     "reasoningBudget": 512,
+     "reasoningBudgetOverrun": 0,
+     "reasoningHistory": "within-request",
+     "reasoningTokens": 191,
+     "recoveryReserve": 256,
+     "replayBoundaryTokens": 5600,
+     "requestSeconds": 5.443286791676655,
+     "requestedContextTokens": 65536,
+     "requestedMemoryBytes": 12884901888,
+     "requestedOutputBudget": 1800,
+     "runtimeRelease": "1.6.1",
+     "scopePrefixTokens": 0,
+     "sessionSetupSeconds": 0,
+     "speculativeMethod": "DFlash2",
+     "stablePrefixTokens": 4145,
+     "templateIdentity": "aee46acfcba8e4e7aec7512126b926aa311bf7414d0d96ad3b13a86d5bdfe9d3",
+     "toolScope": "all"
+    },
+    {
+     "callID": "call_ef4139ab-6a31-4ec6-a33d-f3ac2bc85064",
+     "draft": null,
+     "kind": "reasoning",
+     "note": null,
+     "outcome": null,
+     "step": 4,
+     "text": "The table \"records\" doesn't exist. I need to create a table first, or use a different approach. Let me check what tables exist by trying to query them.\n\nActually, let me try to create a simple table first, then add the metric. But the user just wants a \"big counter button\" - maybe I should create a simple table called \"records\" with no columns specified, or just add a metric that counts something.\n\nWait, looking at the error, it says \"Table not found\" for \"records\". I need to create a table first. Let me create a simple table and then add the metric.\n\nActually, let me think about this differently. The user wants a \"big counter button\" on Home. A metric component needs a datasetID which is a table's id. I need to create a table first.\n\nLet me create a simple table called \"records\" and then add the metric.",
+     "tool": "sql"
+    },
+    {
+     "acceptedDraftTokens": 170,
+     "activations": "bf16",
+     "backend": "splash",
+     "beforeDispatchSeconds": 0.00017970832413993776,
+     "contextTokens": 65536,
+     "decodeSeconds": 4.292423,
+     "deduplicatedKVTokens": 256,
+     "diagnosticRequestCacheIsolation": false,
+     "draftedTokens": 301,
+     "engineSHA256": "ce771e5f51081a2fd60df0ee0083f982a278a863ffaeab29fd590f55e9e36e89",
+     "firstAnswerPreviewSeconds": null,
+     "firstTokenSeconds": 1.239198708353797,
+     "generatedTokens": 214,
+     "grammarSHA256": "5b96c275e9c1a2e618a54a4814a6d9c0de116285e8ffd0814aea01a5c8eecdf1",
+     "headerInputs": "d74a9910f6872d28979e5b1b98f67d664559a8dab1952b72171d8f713b32cad4",
+     "headerRestarts": 0,
+     "headerResumed": true,
+     "headerTokens": 4145,
+     "helperStartSeconds": 5.41651388630271e-07,
+     "hostPreparationSeconds": 0.00010266667231917381,
+     "maintenanceRecommended": false,
+     "maintenanceThreshold": 49152,
+     "matchedPromptTokens": 5600,
+     "nextToolResultReserve": 3546,
+     "outputBudget": 1800,
+     "prefillSeconds": 1.234567,
+     "prefixPrimeMatchedTokens": 0,
+     "prefixPrimePrefillSeconds": 0,
+     "prefixPrimeSeconds": 0,
+     "prefixPrimeTokens": 0,
+     "promptTokens": 6050,
+     "reasoningBudget": 512,
+     "reasoningBudgetOverrun": 0,
+     "reasoningHistory": "within-request",
+     "reasoningTokens": 78,
+     "recoveryReserve": 256,
+     "replayBoundaryTokens": 6016,
+     "requestSeconds": 5.53162029167288,
+     "requestedContextTokens": 65536,
+     "requestedMemoryBytes": 12884901888,
+     "requestedOutputBudget": 1800,
+     "runtimeRelease": "1.6.1",
+     "scopePrefixTokens": 0,
+     "sessionSetupSeconds": 0,
+     "speculativeMethod": "DFlash2",
+     "stablePrefixTokens": 4145,
+     "templateIdentity": "aee46acfcba8e4e7aec7512126b926aa311bf7414d0d96ad3b13a86d5bdfe9d3",
+     "toolScope": "all"
+    },
+    {
+     "callID": "call_2fe3717e-dea2-4d5a-8aa0-6fa6f2b35295",
+     "draft": null,
+     "kind": "reasoning",
+     "note": null,
+     "outcome": null,
+     "step": 5,
+     "text": "Good, I created the \"records\" table with id \"c415907f-4d83-4681-9781-539df06ccbb5\". Now I can add a metric to the Home view that counts the rows in this table.\n\nLet me update the Home view to add the metric component.",
+     "tool": "run"
+    },
+    {
+     "acceptedDraftTokens": 93,
+     "activations": "bf16",
+     "backend": "splash",
+     "beforeDispatchSeconds": 0.00019929165137000382,
+     "contextTokens": 65536,
+     "decodeSeconds": 3.670422,
+     "deduplicatedKVTokens": 128,
+     "diagnosticRequestCacheIsolation": false,
+     "draftedTokens": 329,
+     "engineSHA256": "ce771e5f51081a2fd60df0ee0083f982a278a863ffaeab29fd590f55e9e36e89",
+     "firstAnswerPreviewSeconds": 2.9879050416639075,
+     "firstTokenSeconds": 1.2327735833532643,
+     "generatedTokens": 141,
+     "grammarSHA256": "5b96c275e9c1a2e618a54a4814a6d9c0de116285e8ffd0814aea01a5c8eecdf1",
+     "headerInputs": "d74a9910f6872d28979e5b1b98f67d664559a8dab1952b72171d8f713b32cad4",
+     "headerRestarts": 0,
+     "headerResumed": true,
+     "headerTokens": 4145,
+     "helperStartSeconds": 5.41651388630271e-07,
+     "hostPreparationSeconds": 0.00011870832531712949,
+     "maintenanceRecommended": false,
+     "maintenanceThreshold": 49152,
+     "matchedPromptTokens": 6016,
+     "nextToolResultReserve": 3546,
+     "outputBudget": 1800,
+     "prefillSeconds": 1.228102,
+     "prefixPrimeMatchedTokens": 0,
+     "prefixPrimePrefillSeconds": 0,
+     "prefixPrimeSeconds": 0,
+     "prefixPrimeTokens": 0,
+     "promptTokens": 6292,
+     "reasoningBudget": 512,
+     "reasoningBudgetOverrun": 0,
+     "reasoningHistory": "within-request",
+     "reasoningTokens": 50,
+     "recoveryReserve": 256,
+     "replayBoundaryTokens": 6272,
+     "requestSeconds": 4.903217416693224,
+     "requestedContextTokens": 65536,
+     "requestedMemoryBytes": 12884901888,
+     "requestedOutputBudget": 1800,
+     "runtimeRelease": "1.6.1",
+     "scopePrefixTokens": 0,
+     "sessionSetupSeconds": 0,
+     "speculativeMethod": "DFlash2",
+     "stablePrefixTokens": 4145,
+     "templateIdentity": "aee46acfcba8e4e7aec7512126b926aa311bf7414d0d96ad3b13a86d5bdfe9d3",
+     "toolScope": "all"
+    },
+    {
+     "callID": "call_75cca985-4f65-46a2-a264-1fd1ba42aa10",
+     "draft": null,
+     "kind": "reasoning",
+     "note": null,
+     "outcome": null,
+     "step": 6,
+     "text": "I've successfully added a \"Total Records\" counter button to the Home view. It's now the first component on the Home page, showing a count of all records in the Records table. The Home view has been updated to version 2.",
+     "tool": "finish"
+    }
+   ],
+   "model": "Splash 1.6.1; d8af1054aab0f97de21d043e01aa98af3754f10e; Qwen3.6-35B-A3B-4bit + DFlash2; native Swift candidate; context 65536; memory 12884901888; activations bf16; KV int8; state fp32; ANE on; reasoning budget 512; within-request reasoning retained",
+   "request_message_id": "3dad6888-416c-42a9-8283-9478517ba9e7",
+   "status": "complete",
+   "steps": 6,
+   "updated": "2026-11-24T01:30:04Z"
+  }
+ ],
+ "saved": {
+  "newTables": [
+   {
+    "title": "Records",
+    "columns": [
+     {
+      "id": "id",
+      "title": "Id",
+      "type": "decimal"
+     },
+     {
+      "id": "name",
+      "title": "Name",
+      "type": "text"
+     },
+     {
+      "id": "created_at",
+      "title": "Created at",
+      "type": "text"
+     }
+    ],
+    "rows": []
+   }
+  ],
+  "changedSpaces": [
+   {
+    "title": "Home",
+    "version": 2,
+    "components": [
+     "metric",
+     "attention",
+     "continue",
+     "shortcuts"
+    ]
+   }
+  ],
+  "newItems": [
+   {
+    "category": "source",
+    "kind": "rule",
+    "status": "accepted",
+    "title": "Chat table changes policy",
+    "id": "22772793-258b-4789-b40f-b0b2fe392f9f"
+   },
+   {
+    "category": "source",
+    "kind": "decision",
+    "status": "accepted",
+    "title": "Create table definition: Records",
+    "id": "ad9ffbfa-deb0-4684-bbf9-2fab3bc30863"
+   }
+  ]
+ }
+}

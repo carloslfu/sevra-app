@@ -14,7 +14,8 @@ extension Workbook {
       let definition = try datasetDefinition(source.dataset)
       try require(
         definition.id == source.definition, "stale_schema",
-        "A query's table definition changed. Refresh its fields and try again.")
+        "A query names a table definition that is not the table's current one. Refresh its fields and try again. In a new chart, leave definitionID out."
+      )
       return try db.managedSchema(source.dataset)
     }
     let quote = ChangeFormat.quote

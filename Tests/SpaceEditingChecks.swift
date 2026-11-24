@@ -322,7 +322,9 @@ func checkSpaceEditing(at temp: URL) {
     try expect(try portable.space("home").version == 2 && portable.spaceHistory("home").count == 2)
     try expect(try portable.verify()["ok"] == .bool(true))
   }
-  check("layout positions are explicit and unrelated fields never become silent edits") {
+  check(
+    "a move says where, an unplaced insertion goes last, and unrelated fields never become silent edits"
+  ) {
     let book = try fixture()
     let initial = try book.space("home")
     let revision = try book.revision()
@@ -331,7 +333,8 @@ func checkSpaceEditing(at temp: URL) {
       SpaceEdit(operation: "move", componentID: "continue"),
       SpaceEdit(operation: "move", componentID: "continue", beforeID: "attention", at: "first"),
       SpaceEdit(operation: "remove", componentID: "shortcuts", text: "Unused"),
-      SpaceEdit(operation: "insert", component: .init(type: "text", title: "Unplaced")),
+      SpaceEdit(
+        operation: "insert", component: .init(type: "text", title: "Titled"), title: "Tables"),
     ] {
       try refuses("view") { _ = try book.editSpace("home", expectedVersion: 1, edits: [edit]) }
     }
@@ -353,6 +356,14 @@ func checkSpaceEditing(at temp: URL) {
         .init(operation: "move", componentID: "continue", at: "last")
       ])
     try expect(last.definition.components.last?.id == "continue")
+    // An insertion that names no position goes last: a default, where a move has none.
+    let appended = try book.editSpace(
+      "home", expectedVersion: 3,
+      edits: [
+        SpaceEdit(
+          operation: "insert", component: .init(id: "unplaced", type: "text", title: "Unplaced"))
+      ])
+    try expect(appended.definition.components.last?.id == "unplaced")
   }
   check(
     "failed layout publication rolls back history, state and receipts; missing history is detected"

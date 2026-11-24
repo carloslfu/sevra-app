@@ -255,7 +255,7 @@ extension Workbook {
 }
 
 extension SpaceDefinition {
-  func component(_ id: String) -> Component? {
+  public func component(_ id: String) -> Component? {
     func find(_ components: [Component]) -> Component? {
       components.first { $0.id == id }
         ?? components.lazy.compactMap { find($0.children ?? []) }.first

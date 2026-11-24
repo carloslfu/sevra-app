@@ -278,6 +278,228 @@ private actor SpaceActionModel: WorkbookInference {
     model: SpaceActionModel([("edit_space", reset)]))
   try expectEqual(try Workbook(homeBook.url).space("home").definition, SpaceDefinition.defaultHome)
   try expectEqual(try homeBook.spaceHistory("home").map(\.version), [3, 2, 1])
+  // An edit as the model writes it under its grammar: the component before any position,
+  // an empty text where it reached for a field it had passed, and a replacement that names
+  // its target only by the component's own ID. The insertion goes last.
+  let asWritten = try homeBook.editSpace(
+    "home", expectedVersion: 3,
+    edits: [
+      SpaceEdit(
+        operation: "replace",
+        component: Component(id: "attention", type: "attention", title: "Needs attention"),
+        text: ""),
+      SpaceEdit(
+        operation: "insert",
+        component: Component(id: "note", type: "text", title: "Note", text: "Hello"), text: ""),
+    ])
+  try expectEqual(
+    asWritten.definition.components.map(\.id), ["attention", "continue", "shortcuts", "note"])
+  // Counterexamples: a move still says where, and text that carries something is refused
+  // on an insertion, with the order to write the fields in.
+  try expectThrows(
+    try homeBook.editSpace(
+      "home", expectedVersion: 4, edits: [SpaceEdit(operation: "move", componentID: "note")]))
+  do {
+    _ = try homeBook.editSpace(
+      "home", expectedVersion: 4,
+      edits: [
+        SpaceEdit(
+          operation: "insert",
+          component: Component(id: "other", type: "text", title: "Other", text: "x"),
+          text: "first")
+      ])
+    throw SevraError("fixture", "Text on an insertion was accepted.")
+  } catch let error as SevraError where error.code == "view" {
+    try expectEqual(
+      error.message.hasSuffix("in this order: operation, at, beforeID, component."), true)
+  }
+  // A count is of rows: it needs no column, and it reads 0 over an empty table. A total
+  // still names the column it adds up.
+  _ = try WorkbookTools(homeBook).execute(
+    "sql", .object(["statements": .array([.string("CREATE TABLE items (name TEXT)")])]))
+  let items = try homeBook.datasets().first { $0.title == "Items" }!.id
+  let counted = try homeBook.editSpace(
+    "home", expectedVersion: 4,
+    edits: [
+      SpaceEdit(
+        operation: "insert", at: "first",
+        component: Component(
+          id: "counter", type: "metric", title: "Items", datasetID: items, aggregation: "COUNT"))
+    ])
+  let counter = counted.definition.components[0]
+  try expectEqual(
+    try homeBook.componentMetric(counter, data: try homeBook.componentData(counter)), "0")
+  try expectThrows(
+    try homeBook.editSpace(
+      "home", expectedVersion: 5,
+      edits: [
+        SpaceEdit(
+          operation: "insert",
+          component: Component(id: "total", type: "metric", title: "Total", datasetID: items))
+      ]))
+  // A button runs a saved tool. The tool is the action, so the same component counts a visit,
+  // adds a named row or changes one, and a press can be taken back like any change. Inputs
+  // the button does not set itself are filled in by the person who presses it.
+  func tool(_ name: String, _ inputs: [(name: String, type: String)], _ statement: String) throws {
+    _ = try homeBook.chatSaveTool(
+      name: name, description: "", inputs: inputs, statements: [statement], source: nil,
+      token: "tool-" + name, requestSourceID: nil)
+  }
+  try tool("log_item", [], "INSERT INTO items (name) VALUES (NULL)")
+  try tool("add_item", [("name", "text")], "INSERT INTO items (name) VALUES (:name)")
+  try tool(
+    "rename_item", [("old", "text"), ("new", "text")],
+    "UPDATE items SET name = :new WHERE name = :old")
+  // A tool that touches no table does nothing when run, and a button over it counts nothing.
+  do {
+    try tool("counter", [], "SELECT 1 AS result")
+    throw SevraError("fixture", "A tool that touches no table was saved.")
+  } catch let error as SevraError where error.code == "tool" {
+    try expectEqual(error.message.hasPrefix("Tool counter reads and changes no table"), true)
+  }
+  try tool("item_count", [], "SELECT count(*) AS items FROM items")
+  func edit(_ edits: [SpaceEdit]) throws -> Space {
+    try homeBook.editSpace("home", expectedVersion: homeBook.space("home").version, edits: edits)
+  }
+  func button(_ id: String, _ tool: String, _ fixed: [String: Value]? = nil, size: String? = nil)
+    -> Component
+  {
+    Component(
+      id: id, type: "button", title: id, definitionBinding: .object(["tool": .string(tool)]),
+      arguments: fixed.map(Value.object), size: size)
+  }
+  let pressable = try edit([
+    SpaceEdit(
+      operation: "replace",
+      component: Component(
+        id: "counter", type: "metric", title: "Items", datasetID: items, aggregation: "COUNT",
+        size: "large")),
+    SpaceEdit(operation: "insert", component: button("log", "log_item", size: "large")),
+    SpaceEdit(operation: "insert", component: button("add", "add_item")),
+    SpaceEdit(operation: "insert", component: button("bolt", "add_item", ["name": .string("Bolt")])),
+    SpaceEdit(
+      operation: "insert", component: button("rename", "rename_item", ["new": .string("Nut")])),
+    SpaceEdit(
+      operation: "insert", component: Component(id: "big", type: "text", title: "Note", text: "Hi", size: "large")),
+  ])
+  try expectEqual(pressable.definition.component("counter")?.size, "large")
+  func count() throws -> String {
+    let counter = try expectValue(try homeBook.space("home").definition.component("counter"))
+    return try homeBook.componentMetric(counter, data: try homeBook.componentData(counter))
+  }
+  let first = try homeBook.pressButton(spaceID: "home", componentID: "log")
+  try expectEqual(Workbook.describeRun(first), "Added 1 row.")
+  let second = try homeBook.pressButton(spaceID: "home", componentID: "log")
+  try expectEqual(try count(), "2")
+  try homeBook.undoButtonPress(try expectValue(second["undo"].string))
+  try expectEqual(try count(), "1")
+  try homeBook.pressButton(spaceID: "home", componentID: "add", values: ["name": .string("Washer")])
+  try homeBook.pressButton(spaceID: "home", componentID: "bolt")
+  try expectEqual(try count(), "3")
+  let changedName = try homeBook.pressButton(
+    spaceID: "home", componentID: "rename", values: ["old": .string("Bolt")])
+  try expectEqual(Workbook.describeRun(changedName), "Changed 1 row.")
+  let itemColumns = try homeBook.dataset(items).columns
+  try expectEqual(
+    try homeBook.rows(items).map { homeBook.calculatedValues($0, columns: itemColumns)["name"] }
+      .filter { $0 == .string("Nut") }.count, 1)
+  // Counterexamples: only a button can be pressed; the person cannot leave out an input the
+  // button does not set, nor override one it does; a tool this Mac has not enabled does not
+  // run; a button names a saved tool and only that tool's inputs; a size has three values and
+  // belongs to a table, chart, metric, text or button; a snapshot cannot hold a button.
+  try expectThrows(try homeBook.pressButton(spaceID: "home", componentID: "counter"))
+  try expectThrows(try homeBook.pressButton(spaceID: "home", componentID: "add"))
+  try expectThrows(
+    try homeBook.pressButton(spaceID: "home", componentID: "bolt", values: ["name": .string("X")]))
+  let logTool = try expectValue(try homeBook.savedTools().first { $0.name == "log_item" })
+  try homeBook.disableTool(logTool.definitionID)
+  do {
+    try homeBook.pressButton(spaceID: "home", componentID: "log")
+    throw SevraError("fixture", "A tool this Mac has not enabled ran.")
+  } catch let error as SevraError where error.code == "tool_disabled" {}
+  try homeBook.enableTool(logTool.definitionID)
+  for refused in [
+    Component(id: "bare", type: "button", title: "Add"),
+    button("unknown", "no_such_tool"),
+    button("stray", "add_item", ["colour": .string("red")]),
+    button("blank", "add_item", ["name": .string("")]),
+    button("placeholder", "add_item", ["name": .string(":name")]),
+    button("huge", "log_item", size: "huge"),
+    Component(id: "sized", type: "search", title: "Find", query: "bolt", size: "large"),
+  ] {
+    try expectThrows(try edit([SpaceEdit(operation: "insert", component: refused)]))
+  }
+  let buttons = try homeBook.saveSpace(
+    title: "Buttons", definition: .init(components: [button("log", "log_item")]))
+  try expectThrows(try homeBook.pinSpace(buttons))
+  // A count is of every row, past the 1,000 a total loads. A total of nothing is 0, a blank cell
+  // is not a number yet, and an average of nothing has no value.
+  func metric(_ aggregation: String, _ cells: [String], total: Int? = nil) throws -> String {
+    try homeBook.componentMetric(
+      Component(type: "metric", title: "M", y: "v", aggregation: aggregation),
+      data: ComponentSnapshot(
+        columns: [Column(id: "v", title: "V", type: "decimal")],
+        rows: cells.enumerated().map { ComponentRow(id: "r\($0.offset)", values: ["v": .string($0.element)]) },
+        totalRows: total ?? cells.count, captured: ""))
+  }
+  try expectEqual(try metric("COUNT", Array(repeating: "", count: 1_000), total: 1_500), "1500")
+  try expectEqual(try metric("SUM", []), "0")
+  try expectEqual(try metric("SUM", ["2", "", "3.5"]), "5.5")
+  try expectEqual(try metric("AVERAGE", ["", " "]), "No values yet")
+  try expectThrows(try metric("SUM", ["2", "two"]))
+  try expectThrows(try metric("SUM", ["1"], total: 1_001))
+  // AUTOINCREMENT is named for what it is, not refused as an index or a view.
+  do {
+    _ = try homeBook.chatSQL(
+      statements: ["CREATE TABLE visits (id INTEGER PRIMARY KEY AUTOINCREMENT, who TEXT)"],
+      readOnly: false, token: "autoincrement", requestSourceID: nil)
+    throw SevraError("fixture", "AUTOINCREMENT was accepted.")
+  } catch let error as SevraError where error.code == "sql_shape" {
+    try expectEqual(error.message.hasPrefix("Statement 1: remove AUTOINCREMENT."), true)
+  }
+  // A UNIQUE column or a text key is named for what it is, not refused as an index the
+  // statement never wrote.
+  for statement in [
+    "CREATE TABLE counts (id INTEGER PRIMARY KEY, name TEXT UNIQUE, value INTEGER)",
+    "CREATE TABLE invoices2 (number TEXT PRIMARY KEY, status TEXT)",
+  ] {
+    do {
+      _ = try homeBook.chatSQL(
+        statements: [statement], readOnly: false, token: "unique-" + statement.prefix(19),
+        requestSourceID: nil)
+      throw SevraError("fixture", "An index SQLite makes for a constraint was accepted.")
+    } catch let error as SevraError where error.code == "sql_shape" {
+      try expectEqual(error.message.hasPrefix("Remove UNIQUE, and PRIMARY KEY"), true)
+    }
+  }
+  // A real index statement keeps its own message.
+  do {
+    _ = try homeBook.chatSQL(
+      statements: ["CREATE INDEX items_name ON items (name)"], readOnly: false, token: "index",
+      requestSourceID: nil)
+    throw SevraError("fixture", "CREATE INDEX was accepted.")
+  } catch let error as SevraError where error.code == "sql_shape" {
+    try expectEqual(error.message.hasPrefix("sql can create, alter and drop tables."), true)
+  }
+  // The word inside a quoted value is data.
+  _ = try homeBook.chatSQL(
+    statements: [
+      "CREATE TABLE sql_notes (id INTEGER PRIMARY KEY, body TEXT)",
+      "INSERT INTO sql_notes (body) VALUES ('Use AUTOINCREMENT only when ''reuse'' matters')",
+    ], readOnly: false, token: "autoincrement-value", requestSourceID: nil)
+  // A malformed call names the field to fix, not Foundation's "data is missing".
+  do {
+    _ = try WorkbookTools(homeBook).execute(
+      "edit_space",
+      .object([
+        "id": .string("home"), "expectedVersion": .number(Double(try homeBook.space("home").version)),
+        "edits": .array([.object(["at": .string("last")])]),
+      ]))
+    throw SevraError("fixture", "An edit with no operation was accepted.")
+  } catch let error as SevraError where error.code == "arguments" {
+    try expectEqual(error.message, "edits[0].operation is missing.")
+  }
+  print("PASS a button runs any saved tool, takes the person's inputs and can be undone; sizes and refusals")
   print("PASS chat Home composition, default reset, history, reopen and read-only refusal")
   print(
     "PASS scoped space opening, compound continuation, shortcut/snapshot separation, read-only denial and terminal ambiguity/window refusal"

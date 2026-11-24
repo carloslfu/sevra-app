@@ -428,6 +428,14 @@ do {
     try await checkPromptHeader()
     exit(0)
   }
+  if CommandLine.arguments.dropFirst() == ["--progress-stop-checks"] {
+    try await checkProgressStop()
+    exit(0)
+  }
+  if CommandLine.arguments.dropFirst() == ["--field-order-checks"] {
+    try checkFieldOrder()
+    exit(0)
+  }
   if CommandLine.arguments.dropFirst() == ["--thought-checks"] {
     try await checkVisibleThoughts()
     exit(0)
@@ -467,6 +475,8 @@ do {
   try await checkEvidenceAdmission()
   try await checkTerminalReceipts()
   try await checkRefusedToolCalls()
+  try await checkProgressStop()
+  try checkFieldOrder()
   try await checkPagedTableRows()
   try await checkDocumentCopies()
   try await checkCurrencyRejection()

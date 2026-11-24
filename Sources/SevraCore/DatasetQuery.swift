@@ -167,9 +167,15 @@ struct DatasetQuery {
 }
 
 func queryObject(_ value: Value, keys: Set<String>) throws -> [String: Value] {
-  guard case .object(let object) = value, Set(object.keys).isSubset(of: keys) else {
+  guard case .object(let object) = value else {
     throw SevraError("query", "Use a typed query object with known fields. SQL is not accepted.")
   }
+  // Naming the field is what lets the caller fix it.
+  let unknown = Set(object.keys).subtracting(keys).sorted()
+  try require(
+    unknown.isEmpty, "query",
+    "Unknown field" + (unknown.count == 1 ? " " : "s ") + unknown.joined(separator: ", ")
+      + ". The fields here are " + keys.sorted().joined(separator: ", ") + ".")
   return object
 }
 

@@ -2,6 +2,17 @@ import Charts
 import SevraCore
 import SwiftUI
 
+private struct VisualPlotHeightKey: EnvironmentKey {
+  static let defaultValue: CGFloat = 195
+}
+extension EnvironmentValues {
+  /// How tall a chart's plot is drawn. A view's size setting changes it.
+  public var visualPlotHeight: CGFloat {
+    get { self[VisualPlotHeightKey.self] }
+    set { self[VisualPlotHeightKey.self] = newValue }
+  }
+}
+
 public struct VisualChartView: View {
   let definition: VisualChart
   let data: VisualChartData
@@ -13,6 +24,7 @@ public struct VisualChartView: View {
   let loadSources: ((Int, Int) async throws -> Value)?
   @State private var pointSources: VisualChartData.Point?
   @State private var showExact = false
+  @Environment(\.visualPlotHeight) private var plotHeight
 
   public init(
     definition: VisualChart, data: VisualChartData, showsInspection: Bool = true,
@@ -71,7 +83,7 @@ public struct VisualChartView: View {
             ? .visible : .hidden
         )
         .chartForegroundStyleScale(domain: seriesDomain, range: seriesColors)
-        .frame(height: 195)
+        .frame(height: plotHeight)
         .accessibilityLabel(definition.title)
       }
       if definition.style == .heatmap,
@@ -470,6 +482,7 @@ public struct LiveVisualChartView: View {
   @State private var data: VisualChartData?
   @State private var loadedDefinition: VisualChart?
   @State private var error: String?
+  @Environment(\.visualPlotHeight) private var plotHeight
 
   public init(
     definition: VisualChart, revision: String,
@@ -493,7 +506,7 @@ public struct LiveVisualChartView: View {
           definition: definition, data: data, openOriginal: openOriginal,
           loadSources: loadSources.map { resolve in { try await resolve(data, $0, $1) } })
       } else {
-        ProgressView("Loading chart…").frame(minHeight: 195)
+        ProgressView("Loading chart…").frame(minHeight: plotHeight)
       }
     }
     .task(id: revision + "/" + ((try? encoded(definition).json()) ?? "")) {

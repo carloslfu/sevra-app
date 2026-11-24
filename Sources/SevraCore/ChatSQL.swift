@@ -442,6 +442,18 @@ final class ChatSQLSession {
   }
 
   func run(_ statements: [String], inputs: [String: Value]? = nil) throws -> [Value] {
+    // AUTOINCREMENT makes SQLite keep a table of its own, which the general refusal of other
+    // objects would name as an index or a view. Say what to change instead. The word inside a
+    // quoted value, such as a note that mentions it, is data and passes.
+    for (index, statement) in statements.enumerated()
+    where statement.replacingOccurrences(of: #"'(?:[^']|'')*'"#, with: "''", options: .regularExpression)
+      .range(of: #"\bAUTOINCREMENT\b"#, options: [.regularExpression, .caseInsensitive]) != nil
+    {
+      throw SevraError(
+        "sql_shape",
+        "Statement \(index + 1): remove AUTOINCREMENT. An INTEGER PRIMARY KEY column already numbers new rows. Nothing was changed."
+      )
+    }
     if let inputs {
       rehearsal.inputs = inputs
       scratch.inputs = inputs
@@ -822,6 +834,13 @@ final class SQLScratch {
       return refuse(
         "sql",
         "One sql call is one change, saved together. Remove BEGIN, COMMIT, ROLLBACK and SAVEPOINT.")
+    case SQLITE_CREATE_INDEX where name.hasPrefix("sqlite_autoindex_"):
+      // SQLite makes this index itself for a UNIQUE column or a key that is not INTEGER. Name
+      // the column constraint, not an index the statement never wrote.
+      return refuse(
+        "sql_shape",
+        "Remove UNIQUE, and PRIMARY KEY from any column that is not INTEGER: sql cannot make the index either one needs. An INTEGER PRIMARY KEY is fine. Nothing was changed."
+      )
     case SQLITE_CREATE_TEMP_TABLE, SQLITE_DROP_TEMP_TABLE, SQLITE_CREATE_INDEX,
       SQLITE_CREATE_TEMP_INDEX, SQLITE_DROP_INDEX, SQLITE_DROP_TEMP_INDEX, SQLITE_CREATE_VIEW,
       SQLITE_CREATE_TEMP_VIEW, SQLITE_DROP_VIEW, SQLITE_DROP_TEMP_VIEW, SQLITE_CREATE_TRIGGER,

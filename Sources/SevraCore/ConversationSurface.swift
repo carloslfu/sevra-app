@@ -216,12 +216,14 @@ public struct ConversationSurface: Codable, Equatable, Identifiable, Sendable {
             + (labels.isEmpty ? "" : " (" + labels.joined(separator: ", ") + ")")
         }
       }
-      if allowTextReply {
-        lines.append("You can also reply with Answer: followed by your response.")
-      }
+      if allowTextReply { lines.append(ConversationSurface.textReplyHint) }
       return lines.joined(separator: "\n")
     }
   }
+
+  /// The last line of an open question's text. Once the question is answered, skipped or
+  /// cancelled the line no longer applies, and the app leaves it out.
+  public static let textReplyHint = "You can also reply with Answer: followed by your response."
 
   public let id: String
   public let version: Int
@@ -467,7 +469,9 @@ extension Workbook {
         body = "Cancelled the question about “\(input.purpose)”."
       case .decline:
         kind = "conversation_input_answer"
-        body = "I decline to provide the requested information."
+        // Sevra asks only for business values, and a skipped one is not made up. Skipping is not
+        // a refusal: the task goes on without it.
+        body = "Skip this question. Go on without it."
         declined = true
       case .choice(let choiceID):
         guard let choice = input.choices.first(where: { $0.id == choiceID }) else {
@@ -548,7 +552,9 @@ extension Workbook {
           "conversation_input", "This answer already started.")
         let surface = answer.surface
         var originalRequest = try historyMessage(surface.requestID, conversation: conversation)
-        var readOnly = surface.readOnly || answer.declined
+        // A skipped question leaves the original request's authority as it was: the task
+        // goes on with defaults for the choices it left open.
+        var readOnly = surface.readOnly
         var priorAnswers: [Value] = []
         while try messagePayload(originalRequest.id, conversation: conversation)["kind"]
           == .string("conversation_input_answer")

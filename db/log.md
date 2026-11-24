@@ -340,3 +340,38 @@ Debug chat timing (off by default; SevraChatTiming default or SEVRA_CHAT_TIMING=
 ## [2026-11-22 20:26] implementation | records/specs/agent-activity
 Visible reasoning by default (owner request, sources/notes/2026/11/visible-reasoning): each model call's reasoning is saved as a thought in the run's per-call record (agent_runs.metrics, kind reasoning) with no format change; the activity streams the current thought, shows a one-line peek while reasoning, places each thought before its step, and shows answers sent back with the model's draft and Sevra's reply. No prompt, tool, search or summary reads thoughts. Agent checks pass up to the pre-existing workbook-tools fixture mismatch from 704f3d8; new thought checks, preview activity checks and the catalog check pass; one real-model message on a copy of t2 saved 8 thoughts matching its 7 steps, none in messages. Catalog captures reviewed in light and dark; not yet seen in the installed app.
 
+## [2026-11-23 16:43] update | records/operations/agent-handoff
+Defaults and progress stop, November 23: checked without the model; model run and install waiting on memory.
+
+## [2026-11-23 16:43] create | records/reviews/home-counter-run-2026-11-23
+Review of the failed Home counter run and what changed.
+
+## [2026-11-23 16:43] ingest | sources/notes/2026/11/defaults-and-step-limit.md
+Owner asks for defaults instead of questions and no small step limit.
+
+## [2026-11-23 20:30] update | records/reviews/home-counter-run-2026-11-23
+Model runs: light set 11 of 11; the Home counter request failed twice (edit field order, two instruction lines that disagreed) and passes in six steps after the changes each failure led to. View edits take what the model writes, a closed request ends in the model's account, header 4,145 tokens.
+
+## [2026-11-23 23:57] update | records/reviews/home-counter-run-2026-11-23
+At the owner's word, a saved or changed view keeps the model's summary above the host's confirmation line. Scripted checks pass; the model run for it is waiting on memory.
+
+## [2026-11-23 23:57] ingest | sources/notes/2026/11/summary-above-confirmation.md
+Owner approves the model's summary above the confirmation line after a saved view change.
+
+## [2026-11-24 01:32] update | records/reviews/home-counter-run-2026-11-23
+Model run with the summary rule: the light set and the Home counter request passed 12 of 12 on the final header. Both view requests ended in the model's summary and then the host's line; the counter summary called the counter a button.
+
+## [2026-11-24 01:41] update | records/operations/agent-handoff
+Packaged and installed the defaults and summary build from the working tree; the installed app matches the package and has its 4,145-token prompt header. Not committed.
+
+## [2026-11-24 02:26] ingest | sources/notes/2026/11/view-button-and-size.md
+Owner asks for a button and a size setting for views.
+
+## [2026-11-24 02:26] update | records/reviews/home-counter-run-2026-11-23
+Views gained a button that adds a row per press, with Undo, and a size on metrics and buttons. Light set and the Home counter job passed 12 of 12 on the 4,215-token header; the button was pressed and undone in the UI Catalog; the build is installed, not committed.
+
+## [2026-11-24 04:18] update | records/reviews/home-counter-run-2026-11-23
+Made general, continued: model runs of four real requests (1, 2, then 3 of 4) and their general fixes: retry intent keeps the summary, a tool must touch a table, SQLite's own index named for its cause; light set 11 of 11 at 4,429 tokens; the counter put no number on Home in its last run, recorded
+
+## [2026-11-24 13:17] install | sevra-app
+Packaged and installed the made-general working tree on 480c7c5; installed UUID 93E75F7C-B777-3C74-ABF1-8A454C8C60C5 matches output/native, header 4,429 tokens present.

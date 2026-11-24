@@ -1,0 +1,738 @@
+{
+ "job": "defaults.stock_overview",
+ "language": "en",
+ "attempt": 1,
+ "prompt": "Make me a stock overview.",
+ "expected": "A new or changed view shows the Parts table, chosen by default. Nothing is asked and no table changes.",
+ "failure": null,
+ "result": {
+  "answer": "Saved space “Stock Overview”.",
+  "chat": "649747da-2e65-4e41-bfc2-3f23a3bdbe7c",
+  "citations": [],
+  "state": "complete",
+  "steps": 6
+ },
+ "progress": [
+  "Reading request context",
+  "Checking local model files",
+  "Preparing local AI. The first start can take longer…",
+  "Preparing local AI · 0 of 11 steps",
+  "Preparing local AI · 1 of 11 steps",
+  "Preparing local AI · 2 of 11 steps",
+  "Preparing local AI · 3 of 11 steps",
+  "Preparing local AI · 4 of 11 steps",
+  "Preparing local AI · 5 of 11 steps",
+  "Preparing local AI · 6 of 11 steps",
+  "Preparing local AI · 7 of 11 steps",
+  "Preparing local AI · 8 of 11 steps",
+  "Preparing local AI · 9 of 11 steps",
+  "Preparing local AI · 10 of 11 steps",
+  "Preparing local AI · 11 of 11 steps",
+  "Reading the working context",
+  "Working through the request",
+  "Preparing a response",
+  "Working with your tables…",
+  "Reviewing the saved result",
+  "Reading the working context",
+  "Working through the request",
+  "Preparing a response",
+  "Working with your tables…",
+  "Reviewing the saved result",
+  "Reading the working context",
+  "Working through the request",
+  "Preparing a response",
+  "Saving a space…",
+  "Reviewing a tool failure",
+  "Reading the working context",
+  "Working through the request",
+  "Preparing a response",
+  "Working with your tables…",
+  "Reviewing the saved result",
+  "Reading the working context",
+  "Working through the request",
+  "Preparing a response",
+  "Saving a space…",
+  "Reviewing the saved result",
+  "Reading the working context",
+  "Working through the request",
+  "Preparing a response"
+ ],
+ "messages": {
+  "649747da-2e65-4e41-bfc2-3f23a3bdbe7c": [
+   {
+    "body": "This example has supplier quotes and a delivery. Try ‘Why do we have 18 brass bolts?’ or ‘Compare the supplier costs and show the evidence.’",
+    "created": "2026-11-24T03:52:40Z",
+    "id": "89fa499f-1cd5-4d46-8975-a867ecf466d0",
+    "role": "assistant",
+    "state": "complete"
+   },
+   {
+    "body": "Make me a stock overview.",
+    "created": "2026-11-24T03:52:40Z",
+    "id": "d19d0a86-2830-42ad-bf63-c86135a1b572",
+    "role": "user",
+    "state": "complete"
+   },
+   {
+    "body": {
+     "arguments": {
+      "statements": [
+       "SELECT s.subject, s.quantity, s.opening, s.opening_date, p.category, p.reorder_level FROM stock s LEFT JOIN parts p ON s.subject = p.part ORDER BY s.subject"
+      ]
+     },
+     "assistantText": "",
+     "callID": "call_e13ed240-ce18-4a1f-b4a7-6b7eccde9d09",
+     "receiptID": "3938d96a-7d08-4af5-8a45-7b2c2cc2581a",
+     "receiptVersion": 1,
+     "result": {
+      "inputs": [
+       "efb82981-3b7f-48b6-85f2-d15a528adc63",
+       "c010a0b5-e9b9-45f6-931e-2d41f14cdb8e",
+       "76d8aaad-0f8e-4750-a2fd-a223f1505ff0",
+       "b9f708ea-23b9-4100-af77-eaae9a6663e7",
+       "983c4461-bc35-4df7-a85c-49abdb32320d",
+       "bee6c382-608f-40d1-8057-cdaddb0a0c46",
+       "3fa462fa-7664-4160-a4e3-4b3e8e7abd47",
+       "f8293cc6-be33-4982-80ca-8a2c557bab9b"
+      ],
+      "read": [
+       {
+        "rows": 6,
+        "table": "parts",
+        "title": "Parts"
+       }
+      ],
+      "results": [
+       {
+        "columns": [
+         "subject",
+         "quantity",
+         "opening",
+         "opening_date",
+         "category",
+         "reorder_level"
+        ],
+        "rowCount": 1,
+        "rows": [
+         [
+          "brass bolts",
+          "18",
+          "20",
+          "2026-01-01",
+          null,
+          null
+         ]
+        ]
+       }
+      ]
+     },
+     "resultHash": "e47074abb6f00221139105e702617c96d062f5bcfa7905d59b8567e014460c94",
+     "resultIdentity": {},
+     "runID": "6d80d013-a3ec-4eb9-9871-0da0ffa06105",
+     "tool": "sql"
+    },
+    "created": "2026-11-24T03:52:51Z",
+    "id": "3355e838-48dd-439a-b0a8-3a8b36e76266",
+    "role": "tool",
+    "state": "complete"
+   },
+   {
+    "body": {
+     "arguments": {
+      "statements": [
+       "SELECT part, category, stock, reorder_level FROM parts ORDER BY part"
+      ]
+     },
+     "assistantText": "",
+     "callID": "call_8f22fac9-590f-4bf5-b276-dd3fdd8477f3",
+     "receiptID": "3eb407a6-6289-41b0-a0cc-840b09aa0fc7",
+     "receiptVersion": 1,
+     "result": {
+      "inputs": [
+       "76d8aaad-0f8e-4750-a2fd-a223f1505ff0",
+       "b9f708ea-23b9-4100-af77-eaae9a6663e7",
+       "983c4461-bc35-4df7-a85c-49abdb32320d",
+       "bee6c382-608f-40d1-8057-cdaddb0a0c46",
+       "3fa462fa-7664-4160-a4e3-4b3e8e7abd47",
+       "f8293cc6-be33-4982-80ca-8a2c557bab9b"
+      ],
+      "read": [
+       {
+        "rows": 6,
+        "table": "parts",
+        "title": "Parts"
+       }
+      ],
+      "results": [
+       {
+        "columns": [
+         "part",
+         "category",
+         "stock",
+         "reorder_level"
+        ],
+        "rowCount": 6,
+        "rows": [
+         [
+          "Brass bolts",
+          "Fasteners",
+          "18",
+          "12"
+         ],
+         [
+          "Hex key set",
+          "Tools",
+          "0",
+          "2"
+         ],
+         [
+          "Hex nuts",
+          "Fasteners",
+          "9",
+          "25"
+         ],
+         [
+          "Steel washers",
+          "Fasteners",
+          "240",
+          "40"
+         ],
+         [
+          "Torque wrench",
+          "Tools",
+          "2",
+          "1"
+         ],
+         [
+          "Wood screws",
+          "Fasteners",
+          "130",
+          "50"
+         ]
+        ]
+       }
+      ]
+     },
+     "resultHash": "669194b13422fc55d631ac8318cca60341a9996b366186ebdc0f68e3d48f020d",
+     "resultIdentity": {},
+     "runID": "6d80d013-a3ec-4eb9-9871-0da0ffa06105",
+     "tool": "sql"
+    },
+    "created": "2026-11-24T03:52:57Z",
+    "id": "6bfcd28f-9287-4766-a09e-0b9c56f9b42a",
+    "role": "tool",
+    "state": "complete"
+   },
+   {
+    "body": {
+     "arguments": {
+      "definition": {
+       "components": [
+        {
+         "datasetID": "parts",
+         "id": "stock_table",
+         "title": "Current Stock Levels",
+         "type": "table",
+         "x": "part",
+         "y": "stock"
+        }
+       ],
+       "version": 1
+      },
+      "title": "Stock Overview"
+     },
+     "assistantText": "",
+     "callID": "call_43809a5b-0bb4-4f09-8f99-9b3b39664184",
+     "receiptID": "e0b2b80b-7ce5-4576-bcee-c75dd5d6fd8c",
+     "receiptVersion": 1,
+     "result": {
+      "error": "Table not found.",
+      "receiptID": "e0b2b80b-7ce5-4576-bcee-c75dd5d6fd8c",
+      "retryInstruction": "The call did not finish successfully. Completed changes remain saved. Inspect the receipt and workbook state before retrying; do not claim no changes occurred. Fix the reported arguments when applicable."
+     },
+     "resultHash": "531a13b7dffed85e49fd0c98c3859ab70c94b6cea1d31a18c96cc72516daf7a9",
+     "resultIdentity": {},
+     "runID": "6d80d013-a3ec-4eb9-9871-0da0ffa06105",
+     "tool": "save_space"
+    },
+    "created": "2026-11-24T03:53:01Z",
+    "id": "17d0ec48-e13a-48e3-a65a-b8235b586913",
+    "role": "tool",
+    "state": "complete"
+   },
+   {
+    "body": {
+     "arguments": {
+      "statements": [
+       "SELECT name, id FROM tables WHERE name = 'parts'"
+      ]
+     },
+     "assistantText": "",
+     "callID": "call_9e3b0a01-377c-49d6-a831-cfa1cff180be",
+     "receiptID": "150d5f06-976b-487f-b1eb-61afc232f852",
+     "receiptVersion": 1,
+     "result": {
+      "inputs": [],
+      "read": [],
+      "results": [
+       {
+        "columns": [
+         "name",
+         "id"
+        ],
+        "rowCount": 1,
+        "rows": [
+         [
+          "parts",
+          "015f31f7-1f59-4bcb-8912-4b86f7d9078e"
+         ]
+        ]
+       }
+      ]
+     },
+     "resultHash": "7c4a340320043a21c3b3bdfaf1107eee667bed2a68db52f7907535de78a812f9",
+     "resultIdentity": {},
+     "runID": "6d80d013-a3ec-4eb9-9871-0da0ffa06105",
+     "tool": "sql"
+    },
+    "created": "2026-11-24T03:53:05Z",
+    "id": "02b1ceec-5adf-4825-aefd-56f2a3e16cfd",
+    "role": "tool",
+    "state": "complete"
+   },
+   {
+    "body": {
+     "arguments": {
+      "definition": {
+       "components": [
+        {
+         "datasetID": "015f31f7-1f59-4bcb-8912-4b86f7d9078e",
+         "id": "stock_table",
+         "title": "Current Stock Levels",
+         "type": "table",
+         "x": "part",
+         "y": "stock"
+        }
+       ],
+       "version": 1
+      },
+      "title": "Stock Overview"
+     },
+     "assistantText": "",
+     "callID": "call_4c482c9d-6e5f-4643-a9a9-6225b4c2f439",
+     "receiptID": "9b0f4b65-bbc4-4e2d-a9c3-b41d6a034197",
+     "receiptVersion": 1,
+     "result": {
+      "spaceID": "6d80d013-a3ec-4eb9-9871-0da0ffa06105-ee3996b45b7e13cf62f92103"
+     },
+     "resultHash": "c87de196ec153dcb667f0cdd8a9a4dd3c8ff84714f057a8cad0b1c9ccdcdbbbc",
+     "resultIdentity": {},
+     "runID": "6d80d013-a3ec-4eb9-9871-0da0ffa06105",
+     "tool": "save_space"
+    },
+    "created": "2026-11-24T03:53:10Z",
+    "id": "d4a69a52-dee2-48e8-9096-bd1c8b96bf81",
+    "role": "tool",
+    "state": "complete"
+   },
+   {
+    "body": "Saved space “Stock Overview”.",
+    "created": "2026-11-24T03:53:15Z",
+    "id": "e6f463cf-f526-495e-bac3-ca3a55e1034b",
+    "role": "assistant",
+    "state": "complete"
+   }
+  ]
+ },
+ "runs": [
+  {
+   "conversation_id": "649747da-2e65-4e41-bfc2-3f23a3bdbe7c",
+   "created": "2026-11-24T03:52:40Z",
+   "id": "6d80d013-a3ec-4eb9-9871-0da0ffa06105",
+   "metrics": [
+    {
+     "acceptedDraftTokens": 164,
+     "activations": "bf16",
+     "backend": "splash",
+     "beforeDispatchSeconds": 4.526092916668858,
+     "contextTokens": 65536,
+     "decodeSeconds": 3.846972,
+     "decodeTokens": 209,
+     "deduplicatedKVTokens": 0,
+     "diagnosticRequestCacheIsolation": false,
+     "draftedTokens": 357,
+     "engineSHA256": "ce771e5f51081a2fd60df0ee0083f982a278a863ffaeab29fd590f55e9e36e89",
+     "firstAnswerPreviewSeconds": null,
+     "firstTokenSeconds": 1.546492291643517,
+     "generatedTokens": 216,
+     "grammarSHA256": "5b96c275e9c1a2e618a54a4814a6d9c0de116285e8ffd0814aea01a5c8eecdf1",
+     "headerInputs": "ac3913d3a2793b1a34c4cc182f80fc64e2533ef66209c7096159ed7a680b66c4",
+     "headerRestarts": 0,
+     "headerResumed": true,
+     "headerTokens": 4357,
+     "helperStartSeconds": 4.519230083329603,
+     "hostPreparationSeconds": 5.625002086162567e-05,
+     "maintenanceRecommended": false,
+     "maintenanceThreshold": 49152,
+     "matchedPromptTokens": 4352,
+     "nextToolResultReserve": 3546,
+     "outputBudget": 1800,
+     "prefillSeconds": 1.521897,
+     "prefixPrimeMatchedTokens": 0,
+     "prefixPrimePrefillSeconds": 0,
+     "prefixPrimeSeconds": 0,
+     "prefixPrimeTokens": 0,
+     "promptTokens": 5075,
+     "reasoningBudget": 512,
+     "reasoningBudgetOverrun": 0,
+     "reasoningHistory": "within-request",
+     "reasoningTokens": 147,
+     "recoveryReserve": 256,
+     "replayBoundaryTokens": 5056,
+     "requestSeconds": 5.393475458316971,
+     "requestedContextTokens": 65536,
+     "requestedMemoryBytes": 12884901888,
+     "requestedOutputBudget": 1800,
+     "runtimeRelease": "1.6.1",
+     "scopePrefixTokens": 0,
+     "sessionSetupSeconds": 1.212194833351532,
+     "speculativeMethod": "DFlash2",
+     "stablePrefixTokens": 4357,
+     "templateIdentity": "aee46acfcba8e4e7aec7512126b926aa311bf7414d0d96ad3b13a86d5bdfe9d3",
+     "toolScope": "all"
+    },
+    {
+     "callID": "call_e13ed240-ce18-4a1f-b4a7-6b7eccde9d09",
+     "draft": null,
+     "kind": "reasoning",
+     "note": null,
+     "outcome": null,
+     "step": 1,
+     "text": "The user wants a stock overview. I should look at what tables are available for stock information. According to the context, there are read-only tables:\n- stock(subject TEXT, quantity REAL, opening REAL, opening_date TEXT) - current stock of each inventory item\n- stock_movements(subject TEXT, quantity REAL, effective TEXT) - movements counted in it\n- parts(part TEXT, category TEXT, stock REAL, reorder_level REAL) - 6 rows\n\nI should query the stock table to show the current stock levels, and perhaps also include parts information to show categories and reorder levels. Let me create a view that shows a stock overview.\n\nFirst, let me query the stock table to see what data is there.",
+     "tool": "sql"
+    },
+    {
+     "acceptedDraftTokens": 72,
+     "activations": "bf16",
+     "backend": "splash",
+     "beforeDispatchSeconds": 0.007830000016838312,
+     "contextTokens": 65536,
+     "decodeSeconds": 4.499256,
+     "decodeTokens": 94,
+     "deduplicatedKVTokens": 224,
+     "diagnosticRequestCacheIsolation": false,
+     "draftedTokens": 161,
+     "engineSHA256": "ce771e5f51081a2fd60df0ee0083f982a278a863ffaeab29fd590f55e9e36e89",
+     "firstAnswerPreviewSeconds": null,
+     "firstTokenSeconds": 1.1050367499992717,
+     "generatedTokens": 96,
+     "grammarSHA256": "5b96c275e9c1a2e618a54a4814a6d9c0de116285e8ffd0814aea01a5c8eecdf1",
+     "headerInputs": "ac3913d3a2793b1a34c4cc182f80fc64e2533ef66209c7096159ed7a680b66c4",
+     "headerRestarts": 0,
+     "headerResumed": true,
+     "headerTokens": 4357,
+     "helperStartSeconds": 1.1250085663050413e-06,
+     "hostPreparationSeconds": 6.983333150856197e-05,
+     "maintenanceRecommended": false,
+     "maintenanceThreshold": 49152,
+     "matchedPromptTokens": 5056,
+     "nextToolResultReserve": 3546,
+     "outputBudget": 1800,
+     "prefillSeconds": 1.100709,
+     "prefixPrimeMatchedTokens": 0,
+     "prefixPrimePrefillSeconds": 0,
+     "prefixPrimeSeconds": 0,
+     "prefixPrimeTokens": 0,
+     "promptTokens": 5407,
+     "reasoningBudget": 512,
+     "reasoningBudgetOverrun": 0,
+     "reasoningHistory": "within-request",
+     "reasoningTokens": 53,
+     "recoveryReserve": 256,
+     "replayBoundaryTokens": 5376,
+     "requestSeconds": 5.604291750001721,
+     "requestedContextTokens": 65536,
+     "requestedMemoryBytes": 12884901888,
+     "requestedOutputBudget": 1800,
+     "runtimeRelease": "1.6.1",
+     "scopePrefixTokens": 0,
+     "sessionSetupSeconds": 0,
+     "speculativeMethod": "DFlash2",
+     "stablePrefixTokens": 4357,
+     "templateIdentity": "aee46acfcba8e4e7aec7512126b926aa311bf7414d0d96ad3b13a86d5bdfe9d3",
+     "toolScope": "all"
+    },
+    {
+     "callID": "call_8f22fac9-590f-4bf5-b276-dd3fdd8477f3",
+     "draft": null,
+     "kind": "reasoning",
+     "note": null,
+     "outcome": null,
+     "step": 2,
+     "text": "The stock table only has one entry (brass bolts with 18 quantity), but the parts table has 6 rows. Let me query the parts table to see all the parts and their stock/reorder levels, then create a comprehensive stock overview view.",
+     "tool": "sql"
+    },
+    {
+     "acceptedDraftTokens": 109,
+     "activations": "bf16",
+     "backend": "splash",
+     "beforeDispatchSeconds": 0.00015337500371970236,
+     "contextTokens": 65536,
+     "decodeSeconds": 2.68663,
+     "decodeTokens": 143,
+     "deduplicatedKVTokens": 96,
+     "diagnosticRequestCacheIsolation": false,
+     "draftedTokens": 259,
+     "engineSHA256": "ce771e5f51081a2fd60df0ee0083f982a278a863ffaeab29fd590f55e9e36e89",
+     "firstAnswerPreviewSeconds": null,
+     "firstTokenSeconds": 1.5911403333302587,
+     "generatedTokens": 147,
+     "grammarSHA256": "5b96c275e9c1a2e618a54a4814a6d9c0de116285e8ffd0814aea01a5c8eecdf1",
+     "headerInputs": "ac3913d3a2793b1a34c4cc182f80fc64e2533ef66209c7096159ed7a680b66c4",
+     "headerRestarts": 0,
+     "headerResumed": true,
+     "headerTokens": 4357,
+     "helperStartSeconds": 7.916823960840702e-07,
+     "hostPreparationSeconds": 7.8541663242504e-05,
+     "maintenanceRecommended": false,
+     "maintenanceThreshold": 49152,
+     "matchedPromptTokens": 5376,
+     "nextToolResultReserve": 3546,
+     "outputBudget": 1800,
+     "prefillSeconds": 1.58709,
+     "prefixPrimeMatchedTokens": 0,
+     "prefixPrimePrefillSeconds": 0,
+     "prefixPrimeSeconds": 0,
+     "prefixPrimeTokens": 0,
+     "promptTokens": 5661,
+     "reasoningBudget": 512,
+     "reasoningBudgetOverrun": 0,
+     "reasoningHistory": "within-request",
+     "reasoningTokens": 60,
+     "recoveryReserve": 256,
+     "replayBoundaryTokens": 5632,
+     "requestSeconds": 4.277762916666688,
+     "requestedContextTokens": 65536,
+     "requestedMemoryBytes": 12884901888,
+     "requestedOutputBudget": 1800,
+     "runtimeRelease": "1.6.1",
+     "scopePrefixTokens": 0,
+     "sessionSetupSeconds": 0,
+     "speculativeMethod": "DFlash2",
+     "stablePrefixTokens": 4357,
+     "templateIdentity": "aee46acfcba8e4e7aec7512126b926aa311bf7414d0d96ad3b13a86d5bdfe9d3",
+     "toolScope": "all"
+    },
+    {
+     "callID": "call_43809a5b-0bb4-4f09-8f99-9b3b39664184",
+     "draft": null,
+     "kind": "reasoning",
+     "note": null,
+     "outcome": null,
+     "step": 3,
+     "text": "Now I have the parts data. Let me create a stock overview view that shows:\n- Part name\n- Category\n- Current stock quantity\n- Reorder level\n- Whether it's below reorder level (needs reorder)\n\nI'll create a view with a table showing this information.",
+     "tool": "save"
+    },
+    {
+     "acceptedDraftTokens": 111,
+     "activations": "bf16",
+     "backend": "splash",
+     "beforeDispatchSeconds": 0.00016845832578837872,
+     "contextTokens": 65536,
+     "decodeSeconds": 2.790626,
+     "decodeTokens": 150,
+     "deduplicatedKVTokens": 96,
+     "diagnosticRequestCacheIsolation": false,
+     "draftedTokens": 301,
+     "engineSHA256": "ce771e5f51081a2fd60df0ee0083f982a278a863ffaeab29fd590f55e9e36e89",
+     "firstAnswerPreviewSeconds": null,
+     "firstTokenSeconds": 1.120500416640425,
+     "generatedTokens": 155,
+     "grammarSHA256": "5b96c275e9c1a2e618a54a4814a6d9c0de116285e8ffd0814aea01a5c8eecdf1",
+     "headerInputs": "ac3913d3a2793b1a34c4cc182f80fc64e2533ef66209c7096159ed7a680b66c4",
+     "headerRestarts": 0,
+     "headerResumed": true,
+     "headerTokens": 4357,
+     "helperStartSeconds": 8.333299774676561e-07,
+     "hostPreparationSeconds": 9.024998871609569e-05,
+     "maintenanceRecommended": false,
+     "maintenanceThreshold": 49152,
+     "matchedPromptTokens": 5632,
+     "nextToolResultReserve": 3546,
+     "outputBudget": 1800,
+     "prefillSeconds": 1.116328,
+     "prefixPrimeMatchedTokens": 0,
+     "prefixPrimePrefillSeconds": 0,
+     "prefixPrimeSeconds": 0,
+     "prefixPrimeTokens": 0,
+     "promptTokens": 5903,
+     "reasoningBudget": 512,
+     "reasoningBudgetOverrun": 0,
+     "reasoningHistory": "within-request",
+     "reasoningTokens": 114,
+     "recoveryReserve": 256,
+     "replayBoundaryTokens": 5888,
+     "requestSeconds": 3.9111153333215043,
+     "requestedContextTokens": 65536,
+     "requestedMemoryBytes": 12884901888,
+     "requestedOutputBudget": 1800,
+     "runtimeRelease": "1.6.1",
+     "scopePrefixTokens": 0,
+     "sessionSetupSeconds": 0,
+     "speculativeMethod": "DFlash2",
+     "stablePrefixTokens": 4357,
+     "templateIdentity": "aee46acfcba8e4e7aec7512126b926aa311bf7414d0d96ad3b13a86d5bdfe9d3",
+     "toolScope": "all"
+    },
+    {
+     "callID": "call_9e3b0a01-377c-49d6-a831-cfa1cff180be",
+     "draft": null,
+     "kind": "reasoning",
+     "note": null,
+     "outcome": null,
+     "step": 4,
+     "text": "The error says \"Table not found\" - I need to use the correct datasetID. Looking at the parts table, I need to find its actual ID. Let me check what tables are available and get the correct ID for the parts table.\n\nActually, looking at the context again, the parts table has 6 rows and I can see it has columns: part, category, stock, reorder_level. But I need the actual table ID to use as datasetID.\n\nLet me try to query the tables to find the correct ID for the parts table.",
+     "tool": "sql"
+    },
+    {
+     "acceptedDraftTokens": 147,
+     "activations": "bf16",
+     "backend": "splash",
+     "beforeDispatchSeconds": 0.00017654168186709285,
+     "contextTokens": 65536,
+     "decodeSeconds": 3.357757,
+     "decodeTokens": 177,
+     "deduplicatedKVTokens": 160,
+     "diagnosticRequestCacheIsolation": false,
+     "draftedTokens": 231,
+     "engineSHA256": "ce771e5f51081a2fd60df0ee0083f982a278a863ffaeab29fd590f55e9e36e89",
+     "firstAnswerPreviewSeconds": null,
+     "firstTokenSeconds": 1.1044134583498817,
+     "generatedTokens": 181,
+     "grammarSHA256": "5b96c275e9c1a2e618a54a4814a6d9c0de116285e8ffd0814aea01a5c8eecdf1",
+     "headerInputs": "ac3913d3a2793b1a34c4cc182f80fc64e2533ef66209c7096159ed7a680b66c4",
+     "headerRestarts": 0,
+     "headerResumed": true,
+     "headerTokens": 4357,
+     "helperStartSeconds": 7.499766070395708e-07,
+     "hostPreparationSeconds": 0.00010475001181475818,
+     "maintenanceRecommended": false,
+     "maintenanceThreshold": 49152,
+     "matchedPromptTokens": 5888,
+     "nextToolResultReserve": 3546,
+     "outputBudget": 1800,
+     "prefillSeconds": 1.100126,
+     "prefixPrimeMatchedTokens": 0,
+     "prefixPrimePrefillSeconds": 0,
+     "prefixPrimeSeconds": 0,
+     "prefixPrimeTokens": 0,
+     "promptTokens": 6165,
+     "reasoningBudget": 512,
+     "reasoningBudgetOverrun": 0,
+     "reasoningHistory": "within-request",
+     "reasoningTokens": 60,
+     "recoveryReserve": 256,
+     "replayBoundaryTokens": 6144,
+     "requestSeconds": 4.462164374999702,
+     "requestedContextTokens": 65536,
+     "requestedMemoryBytes": 12884901888,
+     "requestedOutputBudget": 1800,
+     "runtimeRelease": "1.6.1",
+     "scopePrefixTokens": 0,
+     "sessionSetupSeconds": 0,
+     "speculativeMethod": "DFlash2",
+     "stablePrefixTokens": 4357,
+     "templateIdentity": "aee46acfcba8e4e7aec7512126b926aa311bf7414d0d96ad3b13a86d5bdfe9d3",
+     "toolScope": "all"
+    },
+    {
+     "callID": "call_4c482c9d-6e5f-4643-a9a9-6225b4c2f439",
+     "draft": null,
+     "kind": "reasoning",
+     "note": null,
+     "outcome": null,
+     "step": 5,
+     "text": "Now I have the correct table ID for parts: \"015f31f7-1f59-4bcb-8912-4b86f7d9078e\". Let me create the stock overview view with this datasetID.",
+     "tool": "save"
+    },
+    {
+     "acceptedDraftTokens": 119,
+     "activations": "bf16",
+     "backend": "splash",
+     "beforeDispatchSeconds": 0.00019133335445076227,
+     "contextTokens": 65536,
+     "decodeSeconds": 3.846083,
+     "decodeTokens": 163,
+     "deduplicatedKVTokens": 96,
+     "diagnosticRequestCacheIsolation": false,
+     "draftedTokens": 322,
+     "engineSHA256": "ce771e5f51081a2fd60df0ee0083f982a278a863ffaeab29fd590f55e9e36e89",
+     "firstAnswerPreviewSeconds": 2.6499453333381098,
+     "firstTokenSeconds": 1.2448452916869428,
+     "generatedTokens": 166,
+     "grammarSHA256": "5b96c275e9c1a2e618a54a4814a6d9c0de116285e8ffd0814aea01a5c8eecdf1",
+     "headerInputs": "ac3913d3a2793b1a34c4cc182f80fc64e2533ef66209c7096159ed7a680b66c4",
+     "headerRestarts": 0,
+     "headerResumed": true,
+     "headerTokens": 4357,
+     "helperStartSeconds": 8.333299774676561e-07,
+     "hostPreparationSeconds": 0.0001174166682176292,
+     "maintenanceRecommended": false,
+     "maintenanceThreshold": 49152,
+     "matchedPromptTokens": 6144,
+     "nextToolResultReserve": 3546,
+     "outputBudget": 1800,
+     "prefillSeconds": 1.239066,
+     "prefixPrimeMatchedTokens": 0,
+     "prefixPrimePrefillSeconds": 0,
+     "prefixPrimeSeconds": 0,
+     "prefixPrimeTokens": 0,
+     "promptTokens": 6443,
+     "reasoningBudget": 512,
+     "reasoningBudgetOverrun": 0,
+     "reasoningHistory": "within-request",
+     "reasoningTokens": 38,
+     "recoveryReserve": 256,
+     "replayBoundaryTokens": 6432,
+     "requestSeconds": 5.08936295832973,
+     "requestedContextTokens": 65536,
+     "requestedMemoryBytes": 12884901888,
+     "requestedOutputBudget": 1800,
+     "runtimeRelease": "1.6.1",
+     "scopePrefixTokens": 0,
+     "sessionSetupSeconds": 0,
+     "speculativeMethod": "DFlash2",
+     "stablePrefixTokens": 4357,
+     "templateIdentity": "aee46acfcba8e4e7aec7512126b926aa311bf7414d0d96ad3b13a86d5bdfe9d3",
+     "toolScope": "all"
+    },
+    {
+     "callID": "call_192c1a22-13ee-4a9e-8e45-d5a3ee5d86ca",
+     "draft": null,
+     "kind": "reasoning",
+     "note": null,
+     "outcome": null,
+     "step": 6,
+     "text": "The stock overview view has been saved. It shows a table with all parts, their stock levels, categories, and reorder levels. The view is now available for the user to access.",
+     "tool": "finish"
+    }
+   ],
+   "model": "Splash 1.6.1; d8af1054aab0f97de21d043e01aa98af3754f10e; Qwen3.6-35B-A3B-4bit + DFlash2; native Swift candidate; context 65536; memory 12884901888; activations bf16; KV int8; state fp32; ANE on; reasoning budget 512; within-request reasoning retained",
+   "request_message_id": "d19d0a86-2830-42ad-bf63-c86135a1b572",
+   "status": "complete",
+   "steps": 6,
+   "updated": "2026-11-24T03:53:15Z"
+  }
+ ],
+ "saved": {
+  "newSpaces": [
+   {
+    "title": "Stock Overview",
+    "version": 1,
+    "components": [
+     "table"
+    ]
+   }
+  ]
+ }
+}

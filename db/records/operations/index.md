@@ -2,12 +2,12 @@
 type: index
 scope: type-folder
 folder: records/operations
-updated: 2026-11-22T15:09:36Z
+updated: 2026-11-24T14:42:19.995658Z
 ---
 
 # records/operations
 
-- [[records/operations/agent-handoff]] — Native UI Catalog implemented and locally verified, with durable agent maintenance instructions and preserved product/model qualification limits.
+- [[records/operations/agent-handoff]] — Chat stops on lack of progress and chooses defaults instead of asking about choices; checked with the model, not yet packaged or installed.
 - [[records/operations/build-and-run]] — Current-checkout discovery, portable source installation and build paths, local AI setup, independent CLI use, verification and uninstall.
 - [[records/operations/implementation]] — Automatic local-model Excel conversion qualified across 10 generated apps and 89 independent originals, including five held-out states; no manual generated-code repairs.
 - [[records/operations/inference-context-execution]] — Splash 1.6.1 installed. A focused task comparison supports 64K on the 48 GiB test Mac with the existing 12 GiB engine budget.

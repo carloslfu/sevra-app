@@ -1,0 +1,170 @@
+{
+ "date": "2026-11-23T19:50:51Z",
+ "commit": "6f6aaba1ec9220e35ef24d7e81a7bffa45aa2141",
+ "workingTreeChanges": [
+  " M IntegrationTests/Agent/ConversationSurfaceChecks.swift",
+  " M IntegrationTests/Agent/main.swift",
+  " M Sources/SevraAI/GeneralTools.swift",
+  " M Sources/SevraAI/WorkbookAgent.swift",
+  " M Sources/SevraApp/AgentActivityView.swift",
+  " M Sources/SevraApp/Catalog/CatalogFixtures.swift",
+  " M Sources/SevraApp/Catalog/CatalogRegistry.swift",
+  " M Sources/SevraApp/ConversationViews.swift",
+  " M Sources/SevraApp/WorkspaceState.swift",
+  " M Sources/SevraCLI/CLI.swift",
+  " M Sources/SevraCore/ApplicationDefinitions.swift",
+  " M Sources/SevraCore/ChatOperations.swift",
+  " M Sources/SevraCore/ConversationSurface.swift",
+  " M Sources/SevraCore/DatasetQuery.swift",
+  " M Sources/SevraCore/DatasetQueryCompiler.swift",
+  " M Sources/SevraCore/RequestActivity.swift",
+  " M Sources/SevraCore/Tools.swift",
+  " M Sources/SevraCore/VisualChart.swift",
+  " M Sources/SevraCore/VisualDefinition.swift",
+  " M Sources/SevraCore/VisualDiagram.swift",
+  " M Sources/SevraCore/VisualText.swift",
+  " M Sources/SevraPreviewUI/ConversationInputView.swift",
+  " M db/index.md",
+  " M db/log.md",
+  " M db/records/index.md",
+  " M db/records/operations/agent-handoff.md",
+  " M db/records/operations/index.jsonl",
+  " M db/records/operations/index.md",
+  " M db/records/plans/general-chat-tools.md",
+  " M db/records/plans/index.jsonl",
+  " M db/records/plans/index.md",
+  " M db/records/plans/rich-native-visuals.md",
+  " M db/records/reviews/index.jsonl",
+  " M db/records/reviews/index.md",
+  " M db/records/specs/conversation-context.md",
+  " M db/records/specs/index.jsonl",
+  " M db/records/specs/index.md",
+  " M db/sources/index.md",
+  " M db/sources/notes/index.jsonl",
+  " M db/sources/notes/index.md",
+  " M scripts/check_chat_jobs.py"
+ ],
+ "cliSHA256": "e78899456d2fcf1b9e4bd2f161061bae2e14c65c0e0751e37a311212ef801c76",
+ "cliVersion": {
+  "engine": "splash-1.6.1",
+  "version": "0.1.0-dev"
+ },
+ "method": "scripts/check_chat_jobs.py: one `ask` per turn, in English, through the native preview CLI on each job's own temporary synthetic workbook, run once. A job of two turns asks both in one chat. Each CLI request loads the model and unloads it on exit, so wallSeconds includes a model start; modelSeconds is the engine time of the decisions alone. The CLI has no window, so it cannot ask a structured question or open a view. Class totals use each job's first run.",
+ "models": [
+  "Splash 1.6.1; d8af1054aab0f97de21d043e01aa98af3754f10e; Qwen3.6-35B-A3B-4bit + DFlash2; native Swift candidate; context 65536; memory 12884901888; activations bf16; KV int8; state fp32; ANE on; reasoning budget 512; within-request reasoning retained"
+ ],
+ "languages": [
+  "en"
+ ],
+ "summary": {
+  "defaults": {
+   "en": {
+    "passed": 0,
+    "failed": 1,
+    "steps": 9,
+    "modelCalls": 9,
+    "wallSeconds": 63.69
+   }
+  }
+ },
+ "totals": {
+  "jobs": 1,
+  "passed": 0,
+  "passedFirstRun": 0,
+  "steps": 9,
+  "modelCalls": 9,
+  "wallSeconds": 63.69
+ },
+ "promptHeader": {
+  "inputs": "6a7a8400d6772664023fa0281bf74effb0bb53be276c0a9567dfdbdacdb371a0",
+  "tokens": 4042,
+  "cacheName": "4da513908357e6bbd2f558a8ab1bad99"
+ },
+ "timedTurns": null,
+ "jobs": [
+  {
+   "attempt": 1,
+   "helperStopped": false,
+   "passed": false,
+   "failure": "Home shows no counter: [\"attention\", \"continue\", \"shortcuts\"]",
+   "state": "complete",
+   "model": "Splash 1.6.1; d8af1054aab0f97de21d043e01aa98af3754f10e; Qwen3.6-35B-A3B-4bit + DFlash2; native Swift candidate; context 65536; memory 12884901888; activations bf16; KV int8; state fp32; ANE on; reasoning budget 512; within-request reasoning retained",
+   "steps": 9,
+   "modelCalls": 9,
+   "wallSeconds": 63.69,
+   "modelSeconds": 57.13,
+   "promptTokens": [
+    4436,
+    4601,
+    5016,
+    5649,
+    6137,
+    6498,
+    6857,
+    7126,
+    7537
+   ],
+   "tools": [
+    "spaces",
+    "sql",
+    "sql",
+    "save_space (failed: A space titled Home already exists. Do not save it again. Use edit_space to change it, or continue with the remaining work.)",
+    "edit_space (failed: Unexpected replace fields: text. Allowed fields: component, componentID.)",
+    "edit_space (failed: Choose at:first, at:last, or beforeID for each move or insertion.)",
+    "edit_space (failed: Unexpected insert fields: text. Allowed fields: at, beforeID, component.)",
+    "edit_space (failed: Unexpected insert fields: text. Allowed fields: at, beforeID, component.)"
+   ],
+   "answer": "Couldn’t finish saving the space. A space titled Home already exists.\nCouldn’t finish saving the space. Unexpected replace fields: text. Allowed fields: component, componentID.\nCouldn’t finish saving the space. Choose at:first, at:last, or beforeID for each move or insertion.\nCouldn’t finish saving the space. Unexpected insert fields: text. Allowed fields: at, beforeID, component.\nCouldn’t finish saving the space. Unexpected insert fields: text. Allowed fields: at, beforeID, component.",
+   "citations": [],
+   "saved": {
+    "newTables": [
+     {
+      "title": "Items",
+      "columns": [
+       {
+        "id": "id",
+        "title": "Id",
+        "type": "decimal"
+       },
+       {
+        "id": "name",
+        "title": "Name",
+        "type": "text"
+       },
+       {
+        "id": "created_at",
+        "title": "Created at",
+        "type": "text"
+       }
+      ],
+      "rows": []
+     }
+    ],
+    "newItems": [
+     {
+      "category": "source",
+      "kind": "decision",
+      "status": "accepted",
+      "title": "Create table definition: Items",
+      "id": "397a523d-f5ac-463d-8845-5e4d5845d6b8"
+     },
+     {
+      "category": "source",
+      "kind": "rule",
+      "status": "accepted",
+      "title": "Chat table changes policy",
+      "id": "a3320c02-d990-4e97-9fc7-de4eb7296745"
+     }
+    ]
+   },
+   "transcript": "transcripts/defaults.home_counter.en.attempt1.json",
+   "job": "defaults.home_counter",
+   "group": "defaults",
+   "language": "en",
+   "expected": "In a new, empty workbook, Home shows a counter. Nothing is asked: the table, the title and the look are defaults the reply names. No example rows are added.",
+   "passedFirstRun": false,
+   "attempts": 1,
+   "retries": []
+  }
+ ]
+}

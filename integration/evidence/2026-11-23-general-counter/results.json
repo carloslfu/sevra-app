@@ -1,0 +1,213 @@
+{
+ "date": "2026-11-24T04:16:36Z",
+ "commit": "480c7c588daf68720f40ed506b61a1342807424d",
+ "workingTreeChanges": [
+  " M IntegrationTests/Agent/ActionConfirmationChecks.swift",
+  " M IntegrationTests/Agent/AnswerGroundingChecks.swift",
+  " M IntegrationTests/Agent/ConversationSurfaceChecks.swift",
+  " M IntegrationTests/Agent/SpaceActionChecks.swift",
+  " M IntegrationTests/Agent/main.swift",
+  " M IntegrationTests/Agent/tool-grammar-fixtures.json",
+  " M IntegrationTests/Agent/workbook-tools.json",
+  " M Sources/SevraAI/ActionConfirmations.swift",
+  " M Sources/SevraAI/GeneralTools.swift",
+  " M Sources/SevraAI/NativeTools.swift",
+  " M Sources/SevraAI/WorkbookAgent.swift",
+  " M Sources/SevraApp/AgentActivityView.swift",
+  " M Sources/SevraApp/Catalog/CatalogApp.swift",
+  " M Sources/SevraApp/Catalog/CatalogFixtures.swift",
+  " M Sources/SevraApp/Catalog/CatalogFlows.swift",
+  " M Sources/SevraApp/Catalog/CatalogRegistry.swift",
+  " M Sources/SevraApp/Catalog/CatalogSession.swift",
+  " M Sources/SevraApp/ContentViews.swift",
+  " M Sources/SevraApp/ConversationViews.swift",
+  " M Sources/SevraApp/WorkspaceState.swift",
+  " M Sources/SevraCLI/CLI.swift",
+  " M Sources/SevraCore/ApplicationDefinitions.swift",
+  " M Sources/SevraCore/ChatOperations.swift",
+  " M Sources/SevraCore/ChatSQL.swift",
+  " M Sources/SevraCore/ComponentData.swift",
+  " M Sources/SevraCore/ConversationSurface.swift",
+  " M Sources/SevraCore/DatasetQuery.swift",
+  " M Sources/SevraCore/DatasetQueryCompiler.swift",
+  " M Sources/SevraCore/DefinitionTool.swift",
+  " M Sources/SevraCore/RequestActivity.swift",
+  " M Sources/SevraCore/SpaceEditing.swift",
+  " M Sources/SevraCore/Spaces.swift",
+  " M Sources/SevraCore/Tools.swift",
+  " M Sources/SevraCore/VisualChart.swift",
+  " M Sources/SevraCore/VisualDefinition.swift",
+  " M Sources/SevraCore/VisualDiagram.swift",
+  " M Sources/SevraCore/VisualText.swift",
+  " M Sources/SevraCore/WorkVisual.swift",
+  " M Sources/SevraPreviewUI/ConversationInputView.swift",
+  " M Sources/SevraPreviewUI/ConversationPresentation.swift",
+  " M Sources/SevraSplashGrammar/ToolPolicy.swift",
+  " M Sources/SevraVisualUI/VisualChartView.swift",
+  " M Tests/SpaceEditingChecks.swift",
+  " M db/index.md",
+  " M db/log.md",
+  " M db/records/index.md",
+  " M db/records/operations/agent-handoff.md",
+  " M db/records/operations/index.jsonl",
+  " M db/records/operations/index.md",
+  " M db/records/plans/general-chat-tools.md",
+  " M db/records/plans/index.jsonl",
+  " M db/records/plans/index.md",
+  " M db/records/plans/rich-native-visuals.md",
+  " M db/records/reviews/index.jsonl",
+  " M db/records/reviews/index.md",
+  " M db/records/specs/conversation-context.md",
+  " M db/records/specs/index.jsonl",
+  " M db/records/specs/index.md",
+  " M db/sources/index.md",
+  " M db/sources/notes/index.jsonl",
+  " M db/sources/notes/index.md",
+  " M scripts/check_chat_jobs.py"
+ ],
+ "cliSHA256": "cda3e4203ae4f7f376d552efd0caed4de28405363a66ef83dcbef7d8f211cae6",
+ "cliVersion": {
+  "engine": "splash-1.6.1",
+  "version": "0.1.0-dev"
+ },
+ "method": "scripts/check_chat_jobs.py: one `ask` per turn, in English, through the native preview CLI on each job's own temporary synthetic workbook, run once. A job of two turns asks both in one chat. Each CLI request loads the model and unloads it on exit, so wallSeconds includes a model start; modelSeconds is the engine time of the decisions alone. The CLI has no window, so it cannot ask a structured question or open a view. Class totals use each job's first run.",
+ "models": [
+  "Splash 1.6.1; d8af1054aab0f97de21d043e01aa98af3754f10e; Qwen3.6-35B-A3B-4bit + DFlash2; native Swift candidate; context 65536; memory 12884901888; activations bf16; KV int8; state fp32; ANE on; reasoning budget 512; within-request reasoning retained"
+ ],
+ "languages": [
+  "en"
+ ],
+ "summary": {
+  "defaults": {
+   "en": {
+    "passed": 0,
+    "failed": 1,
+    "steps": 7,
+    "modelCalls": 7,
+    "wallSeconds": 43.87
+   }
+  }
+ },
+ "totals": {
+  "jobs": 1,
+  "passed": 0,
+  "passedFirstRun": 0,
+  "steps": 7,
+  "modelCalls": 7,
+  "wallSeconds": 43.87
+ },
+ "promptHeader": {
+  "inputs": "84872aa41263b6ba5af16d3a0e571796de0279c0a213756307419dfbbb9b185e",
+  "tokens": 4429,
+  "cacheName": "4da513908357e6bbd2f558a8ab1bad99"
+ },
+ "timedTurns": null,
+ "jobs": [
+  {
+   "attempt": 1,
+   "helperStopped": false,
+   "passed": false,
+   "failure": "Home shows no number: [\"button\", \"attention\", \"continue\", \"shortcuts\"]",
+   "state": "complete",
+   "model": "Splash 1.6.1; d8af1054aab0f97de21d043e01aa98af3754f10e; Qwen3.6-35B-A3B-4bit + DFlash2; native Swift candidate; context 65536; memory 12884901888; activations bf16; KV int8; state fp32; ANE on; reasoning budget 512; within-request reasoning retained",
+   "steps": 7,
+   "modelCalls": 7,
+   "wallSeconds": 43.87,
+   "modelSeconds": 37.64,
+   "promptTokens": [
+    4839,
+    4997,
+    5795,
+    6249,
+    6564,
+    6845,
+    7025
+   ],
+   "tools": [
+    "spaces",
+    "search",
+    "sql",
+    "save",
+    "edit_space",
+    "spaces"
+   ],
+   "answer": "Your Home view now shows a large Counter button at the top. When pressed, it increments a counter stored in the workbook.\n\nUpdated space “Home”.",
+   "citations": [],
+   "saved": {
+    "newTables": [
+     {
+      "title": "Counter",
+      "columns": [
+       {
+        "id": "id",
+        "title": "Id",
+        "type": "decimal"
+       },
+       {
+        "id": "count",
+        "title": "Count",
+        "type": "decimal"
+       }
+      ],
+      "rows": []
+     }
+    ],
+    "changedSpaces": [
+     {
+      "title": "Home",
+      "version": 2,
+      "components": [
+       "button",
+       "attention",
+       "continue",
+       "shortcuts"
+      ]
+     }
+    ],
+    "newItems": [
+     {
+      "category": "source",
+      "kind": "application_definition",
+      "status": "accepted",
+      "title": "Define increment_counter",
+      "id": "efa975c4-24b8-4f5a-965f-ebd0f2198a79"
+     },
+     {
+      "category": "source",
+      "kind": "rule",
+      "status": "accepted",
+      "title": "Chat table changes policy",
+      "id": "448bc5ef-1189-48cf-96af-ff8029df0117"
+     },
+     {
+      "category": "source",
+      "kind": "decision",
+      "status": "accepted",
+      "title": "Create table definition: Counter",
+      "id": "a3b4021c-4f65-415f-94bc-3c19ede364b7"
+     }
+    ],
+    "newDefinitions": [
+     {
+      "description": "Increments the counter by 1",
+      "id": "069f1341-251c-4832-885d-8b2d7825794a",
+      "is_current": 1,
+      "kind": "tool",
+      "logical_id": "bc76cef8-fa0d-51e9-92fd-1698958defed",
+      "source_id": "efa975c4-24b8-4f5a-965f-ebd0f2198a79",
+      "title": "increment_counter",
+      "version": 1
+     }
+    ]
+   },
+   "transcript": "transcripts/defaults.home_counter.en.attempt1.json",
+   "job": "defaults.home_counter",
+   "group": "defaults",
+   "language": "en",
+   "expected": "In a new, empty workbook, Home shows a large count and a button whose saved tool adds one to it. Nothing is asked: the table, the tool, the titles and the look are defaults the reply names. No example rows are added.",
+   "passedFirstRun": false,
+   "attempts": 1,
+   "retries": []
+  }
+ ]
+}

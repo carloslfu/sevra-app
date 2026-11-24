@@ -1,0 +1,746 @@
+{
+ "job": "defaults.home_counter",
+ "language": "en",
+ "attempt": 1,
+ "prompt": "Change my Home to show a big counter button",
+ "expected": "In a new, empty workbook, Home shows a counter. Nothing is asked: the table, the title and the look are defaults the reply names. No example rows are added.",
+ "failure": null,
+ "result": {
+  "answer": "Updated space “Home”.",
+  "chat": "b67b67db-40e9-42f4-962b-1555a11d823c",
+  "citations": [],
+  "state": "complete",
+  "steps": 6
+ },
+ "progress": [
+  "Reading request context",
+  "Checking local model files",
+  "Preparing local AI. The first start can take longer…",
+  "Preparing local AI · 0 of 11 steps",
+  "Preparing local AI · 1 of 11 steps",
+  "Preparing local AI · 2 of 11 steps",
+  "Preparing local AI · 3 of 11 steps",
+  "Preparing local AI · 4 of 11 steps",
+  "Preparing local AI · 5 of 11 steps",
+  "Preparing local AI · 6 of 11 steps",
+  "Preparing local AI · 7 of 11 steps",
+  "Preparing local AI · 8 of 11 steps",
+  "Preparing local AI · 9 of 11 steps",
+  "Preparing local AI · 10 of 11 steps",
+  "Preparing local AI · 11 of 11 steps",
+  "Reading the working context",
+  "Working through the request",
+  "Preparing a response",
+  "Reading an original…",
+  "Reviewing the saved result",
+  "Reading the working context",
+  "Working through the request",
+  "Preparing a response",
+  "Spaces…",
+  "Reviewing the saved result",
+  "Reading the working context",
+  "Working through the request",
+  "Preparing a response",
+  "Working with your tables…",
+  "Reviewing the saved result",
+  "Reading the working context",
+  "Working through the request",
+  "Preparing a response",
+  "Working with your tables…",
+  "Reviewing the saved result",
+  "Reading the working context",
+  "Working through the request",
+  "Preparing a response",
+  "Updating a space…",
+  "Reviewing the saved result",
+  "Reading the working context",
+  "Working through the request",
+  "Preparing a response"
+ ],
+ "messages": {
+  "b67b67db-40e9-42f4-962b-1555a11d823c": [
+   {
+    "body": "Change my Home to show a big counter button",
+    "created": "2026-11-23T20:23:10Z",
+    "id": "25b36f0c-2505-4898-9f83-db07f69a88bd",
+    "role": "user",
+    "state": "complete"
+   },
+   {
+    "body": {
+     "arguments": {
+      "id": "c49c66ec-33f6-4144-8bd2-e0c246b59cef"
+     },
+     "assistantText": "",
+     "callID": "call_70f377ba-6a45-41ee-b3ad-28e26863c153",
+     "receiptID": "b0b30128-8108-4b11-a95f-40e14a4cb3a5",
+     "receiptVersion": 1,
+     "result": {
+      "chunkPage": {
+       "count": 1,
+       "hasMore": false,
+       "nextOffset": null,
+       "offset": 0
+      },
+      "chunks": [
+       {
+        "body": "Change my Home to show a big counter button",
+        "id": 1,
+        "locator": "text; offset=0"
+       }
+      ],
+      "currentVersion": {
+       "id": "c49c66ec-33f6-4144-8bd2-e0c246b59cef",
+       "meaning": "plan",
+       "status": "accepted",
+       "title": "User request"
+      },
+      "documentCopies": {
+       "entries": [
+        {
+         "id": "copy:b0b30128-8108-4b11-a95f-40e14a4cb3a5:0:0:43",
+         "locator": "text; offset=0",
+         "sourceVersionID": "c49c66ec-33f6-4144-8bd2-e0c246b59cef",
+         "text": "Change my Home to show a big counter button"
+        }
+       ],
+       "hasMore": false,
+       "nextOffset": null,
+       "notice": "Exact original passages for draft parts. Use a passage ID as copy, without retyping its text. New prose uses text. These passages do not establish current acceptance or complete coverage. Use read with copyOffset for later passage candidates; source chunks may have partial first/last lines.",
+       "offset": 0
+      },
+      "extraction": {},
+      "isCurrentVersion": true,
+      "item": {
+       "category": "source",
+       "created": "2026-11-23T20:23:10Z",
+       "data": {
+        "context": "",
+        "conversationID": "b67b67db-40e9-42f4-962b-1555a11d823c",
+        "messageID": "25b36f0c-2505-4898-9f83-db07f69a88bd"
+       },
+       "id": "c49c66ec-33f6-4144-8bd2-e0c246b59cef",
+       "kind": "request",
+       "logicalID": "cd734f2c-6bf0-4cfe-bfb5-962069704c17",
+       "meaning": "plan",
+       "scenario": "actual",
+       "status": "accepted",
+       "text": "Change my Home to show a big counter button",
+       "title": "User request",
+       "version": 1
+      },
+      "notice": "The item is the exact requested version. When it is historical, read currentVersion.id for current facts or acceptance; do not present historical status as current. A null currentVersion means the latest head is outside this read scope, not that it is absent. For movements, data preserves original creation arguments: data.status is not the current status. Use item.status for this version and currentVersion.status for its latest head.",
+      "references": null,
+      "snapshotRevision": 4
+     },
+     "resultHash": "b599c6524f7453affc570052b89c0a5916b2d5860696c220754514778bb5b765",
+     "resultIdentity": {},
+     "runID": "e61c2b43-f8d3-4367-a6a6-675ffd962ca4",
+     "tool": "read"
+    },
+    "created": "2026-11-23T20:23:19Z",
+    "id": "bbb65c5b-434e-43cb-8af9-ae64fae19ffd",
+    "role": "tool",
+    "state": "complete"
+   },
+   {
+    "body": {
+     "arguments": {},
+     "assistantText": "",
+     "callID": "call_62ef5c52-6ea4-4f6f-b4cc-20f2b0eb18aa",
+     "receiptID": "1a2367d3-fafb-40c1-844a-83a98b3dce29",
+     "receiptVersion": 1,
+     "result": [
+      {
+       "definition": {
+        "components": [
+         {
+          "id": "attention",
+          "title": "Needs attention",
+          "type": "attention"
+         },
+         {
+          "id": "continue",
+          "title": "Continue working",
+          "type": "continue"
+         },
+         {
+          "id": "shortcuts",
+          "title": "Pinned spaces",
+          "type": "shortcuts"
+         }
+        ],
+        "version": 1
+       },
+       "id": "home",
+       "title": "Home",
+       "version": 1
+      }
+     ],
+     "resultHash": "0161a94b35902ffd38f567a07e9e7939e014f1eb5bc5e68fc55fc705d8fc2126",
+     "resultIdentity": {},
+     "runID": "e61c2b43-f8d3-4367-a6a6-675ffd962ca4",
+     "tool": "spaces"
+    },
+    "created": "2026-11-23T20:23:22Z",
+    "id": "42bf325e-ff57-4e9c-9123-8c6ffe2f5a95",
+    "role": "tool",
+    "state": "complete"
+   },
+   {
+    "body": {
+     "arguments": {
+      "draft": false,
+      "statements": [
+       "SELECT name, id FROM tables"
+      ]
+     },
+     "assistantText": "",
+     "callID": "call_9bec72bc-3c90-4add-ae7a-b0f1f15c5c97",
+     "receiptID": "cff76230-b3b0-4046-a94b-7f3ae1783072",
+     "receiptVersion": 1,
+     "result": {
+      "inputs": [],
+      "read": [],
+      "results": [
+       {
+        "columns": [
+         "name",
+         "id"
+        ],
+        "rowCount": 0,
+        "rows": []
+       }
+      ]
+     },
+     "resultHash": "6bf413ca73b98d7967774400b956234cb6bd310b011f14e08124a834750d6ba4",
+     "resultIdentity": {},
+     "runID": "e61c2b43-f8d3-4367-a6a6-675ffd962ca4",
+     "tool": "sql"
+    },
+    "created": "2026-11-23T20:23:26Z",
+    "id": "67219bc5-a94c-4090-9ea0-aa119921c15a",
+    "role": "tool",
+    "state": "complete"
+   },
+   {
+    "body": {
+     "arguments": {
+      "statements": [
+       "CREATE TABLE items (id INTEGER PRIMARY KEY, name TEXT, created_at TEXT)"
+      ]
+     },
+     "assistantText": "",
+     "callID": "call_4dca3797-29cc-4cdb-9ba4-fb637f969316",
+     "receiptID": "093178f8-077f-4712-90b4-d11b6eaeee97",
+     "receiptVersion": 1,
+     "result": {
+      "inputs": [],
+      "notice": "Saved. If the user asks to undo this, the undo action takes this result's undo value as its token.",
+      "read": [],
+      "results": [
+       {
+        "done": true
+       }
+      ],
+      "shape": [
+       {
+        "change": "created",
+        "columns": [
+         "Id",
+         "Name",
+         "Created at"
+        ],
+        "id": "6382d974-8954-4699-8c84-6a7d5f6e8159",
+        "rows": 0,
+        "table": "items",
+        "title": "Items"
+       }
+      ],
+      "undo": "sql-093178f8-077f-4712-90b4-d11b6eaeee97"
+     },
+     "resultHash": "8cfd3a8b04d577e8ede31ed3ce57d9e64ad9a946b55d19079d252fbf6a01113d",
+     "resultIdentity": {},
+     "runID": "e61c2b43-f8d3-4367-a6a6-675ffd962ca4",
+     "tool": "sql"
+    },
+    "created": "2026-11-23T20:23:30Z",
+    "id": "8085cf6a-c8b3-46ed-852f-8d06e18fa277",
+    "role": "tool",
+    "state": "complete"
+   },
+   {
+    "body": {
+     "arguments": {
+      "edits": [
+       {
+        "at": "first",
+        "component": {
+         "aggregation": "COUNT",
+         "datasetID": "6382d974-8954-4699-8c84-6a7d5f6e8159",
+         "id": "counter",
+         "title": "Total Items",
+         "type": "metric"
+        },
+        "operation": "insert"
+       }
+      ],
+      "expectedVersion": 1,
+      "id": "home"
+     },
+     "assistantText": "",
+     "callID": "call_92da2a1d-e121-42c4-b039-d7b97f73ea20",
+     "receiptID": "badf285e-ca3a-41d9-b1fc-3287d1590ead",
+     "receiptVersion": 1,
+     "result": {
+      "spaceID": "home",
+      "title": "Home",
+      "version": 2
+     },
+     "resultHash": "c60dfd834a6707f4b5843a0711610964fe8c2da26c2772436423f2e9d0a77725",
+     "resultIdentity": {},
+     "runID": "e61c2b43-f8d3-4367-a6a6-675ffd962ca4",
+     "tool": "edit_space"
+    },
+    "created": "2026-11-23T20:23:38Z",
+    "id": "289f8db7-7ffa-4b0c-915f-c1b49ce12b14",
+    "role": "tool",
+    "state": "complete"
+   },
+   {
+    "body": "Updated space “Home”.",
+    "created": "2026-11-23T20:23:44Z",
+    "id": "031a0b4c-15c8-48c4-9099-f9ae832348ea",
+    "role": "assistant",
+    "state": "complete"
+   }
+  ]
+ },
+ "runs": [
+  {
+   "conversation_id": "b67b67db-40e9-42f4-962b-1555a11d823c",
+   "created": "2026-11-23T20:23:10Z",
+   "id": "e61c2b43-f8d3-4367-a6a6-675ffd962ca4",
+   "metrics": [
+    {
+     "acceptedDraftTokens": 86,
+     "activations": "bf16",
+     "backend": "splash",
+     "beforeDispatchSeconds": 4.5505066250043456,
+     "contextTokens": 65536,
+     "decodeSeconds": 2.634925,
+     "deduplicatedKVTokens": 0,
+     "diagnosticRequestCacheIsolation": false,
+     "draftedTokens": 238,
+     "engineSHA256": "ce771e5f51081a2fd60df0ee0083f982a278a863ffaeab29fd590f55e9e36e89",
+     "firstAnswerPreviewSeconds": null,
+     "firstTokenSeconds": 1.3043805833440274,
+     "generatedTokens": 121,
+     "grammarSHA256": "5b96c275e9c1a2e618a54a4814a6d9c0de116285e8ffd0814aea01a5c8eecdf1",
+     "headerInputs": "d74a9910f6872d28979e5b1b98f67d664559a8dab1952b72171d8f713b32cad4",
+     "headerRestarts": 0,
+     "headerResumed": true,
+     "headerTokens": 4145,
+     "helperStartSeconds": 4.543802125001093,
+     "hostPreparationSeconds": 4.5666645746678114e-05,
+     "maintenanceRecommended": false,
+     "maintenanceThreshold": 49152,
+     "matchedPromptTokens": 4128,
+     "nextToolResultReserve": 3546,
+     "outputBudget": 1800,
+     "prefillSeconds": 1.279781,
+     "prefixPrimeMatchedTokens": 0,
+     "prefixPrimePrefillSeconds": 0,
+     "prefixPrimeSeconds": 0,
+     "prefixPrimeTokens": 0,
+     "promptTokens": 4535,
+     "reasoningBudget": 512,
+     "reasoningBudgetOverrun": 0,
+     "reasoningHistory": "within-request",
+     "reasoningTokens": 53,
+     "recoveryReserve": 256,
+     "replayBoundaryTokens": 4512,
+     "requestSeconds": 3.939313291659346,
+     "requestedContextTokens": 65536,
+     "requestedMemoryBytes": 12884901888,
+     "requestedOutputBudget": 1800,
+     "runtimeRelease": "1.6.1",
+     "scopePrefixTokens": 0,
+     "sessionSetupSeconds": 1.172627583349822,
+     "speculativeMethod": "DFlash2",
+     "stablePrefixTokens": 4145,
+     "templateIdentity": "aee46acfcba8e4e7aec7512126b926aa311bf7414d0d96ad3b13a86d5bdfe9d3",
+     "toolScope": "all"
+    },
+    {
+     "callID": "call_70f377ba-6a45-41ee-b3ad-28e26863c153",
+     "draft": null,
+     "kind": "reasoning",
+     "note": null,
+     "outcome": null,
+     "step": 1,
+     "text": "The user wants to modify their Home view to include a \"big counter button\". I need to first read the current Home view to see what's there, then add a counter/metric component to it.\n\nLet me start by reading the current Home view.",
+     "tool": "read"
+    },
+    {
+     "acceptedDraftTokens": 42,
+     "activations": "bf16",
+     "backend": "splash",
+     "beforeDispatchSeconds": 0.006354458339046687,
+     "contextTokens": 65536,
+     "decodeSeconds": 1.248542,
+     "deduplicatedKVTokens": 128,
+     "diagnosticRequestCacheIsolation": false,
+     "draftedTokens": 119,
+     "engineSHA256": "ce771e5f51081a2fd60df0ee0083f982a278a863ffaeab29fd590f55e9e36e89",
+     "firstAnswerPreviewSeconds": null,
+     "firstTokenSeconds": 1.4255808333400637,
+     "generatedTokens": 60,
+     "grammarSHA256": "5b96c275e9c1a2e618a54a4814a6d9c0de116285e8ffd0814aea01a5c8eecdf1",
+     "headerInputs": "d74a9910f6872d28979e5b1b98f67d664559a8dab1952b72171d8f713b32cad4",
+     "headerRestarts": 0,
+     "headerResumed": true,
+     "headerTokens": 4145,
+     "helperStartSeconds": 6.250047590583563e-07,
+     "hostPreparationSeconds": 5.87083341088146e-05,
+     "maintenanceRecommended": false,
+     "maintenanceThreshold": 49152,
+     "matchedPromptTokens": 4512,
+     "nextToolResultReserve": 3546,
+     "outputBudget": 1800,
+     "prefillSeconds": 1.421523,
+     "prefixPrimeMatchedTokens": 0,
+     "prefixPrimePrefillSeconds": 0,
+     "prefixPrimeSeconds": 0,
+     "prefixPrimeTokens": 0,
+     "promptTokens": 5259,
+     "reasoningBudget": 512,
+     "reasoningBudgetOverrun": 0,
+     "reasoningHistory": "within-request",
+     "reasoningTokens": 33,
+     "recoveryReserve": 256,
+     "replayBoundaryTokens": 5248,
+     "requestSeconds": 2.6741219166724477,
+     "requestedContextTokens": 65536,
+     "requestedMemoryBytes": 12884901888,
+     "requestedOutputBudget": 1800,
+     "runtimeRelease": "1.6.1",
+     "scopePrefixTokens": 0,
+     "sessionSetupSeconds": 0,
+     "speculativeMethod": "DFlash2",
+     "stablePrefixTokens": 4145,
+     "templateIdentity": "aee46acfcba8e4e7aec7512126b926aa311bf7414d0d96ad3b13a86d5bdfe9d3",
+     "toolScope": "all"
+    },
+    {
+     "callID": "call_62ef5c52-6ea4-4f6f-b4cc-20f2b0eb18aa",
+     "draft": null,
+     "kind": "reasoning",
+     "note": null,
+     "outcome": null,
+     "step": 2,
+     "text": "That was the request itself. I need to read the Home view, which should have id \"home\". Let me read the views to find the Home view.",
+     "tool": "read"
+    },
+    {
+     "acceptedDraftTokens": 130,
+     "activations": "bf16",
+     "backend": "splash",
+     "beforeDispatchSeconds": 0.00014633333194069564,
+     "contextTokens": 65536,
+     "decodeSeconds": 3.27181,
+     "deduplicatedKVTokens": 64,
+     "diagnosticRequestCacheIsolation": false,
+     "draftedTokens": 357,
+     "engineSHA256": "ce771e5f51081a2fd60df0ee0083f982a278a863ffaeab29fd590f55e9e36e89",
+     "firstAnswerPreviewSeconds": null,
+     "firstTokenSeconds": 0.6908851666667033,
+     "generatedTokens": 182,
+     "grammarSHA256": "5b96c275e9c1a2e618a54a4814a6d9c0de116285e8ffd0814aea01a5c8eecdf1",
+     "headerInputs": "d74a9910f6872d28979e5b1b98f67d664559a8dab1952b72171d8f713b32cad4",
+     "headerRestarts": 0,
+     "headerResumed": true,
+     "headerTokens": 4145,
+     "helperStartSeconds": 4.164758138358593e-08,
+     "hostPreparationSeconds": 7.008333341218531e-05,
+     "maintenanceRecommended": false,
+     "maintenanceThreshold": 49152,
+     "matchedPromptTokens": 5248,
+     "nextToolResultReserve": 3546,
+     "outputBudget": 1800,
+     "prefillSeconds": 0.686898,
+     "prefixPrimeMatchedTokens": 0,
+     "prefixPrimePrefillSeconds": 0,
+     "prefixPrimeSeconds": 0,
+     "prefixPrimeTokens": 0,
+     "promptTokens": 5399,
+     "reasoningBudget": 512,
+     "reasoningBudgetOverrun": 0,
+     "reasoningHistory": "within-request",
+     "reasoningTokens": 135,
+     "recoveryReserve": 256,
+     "replayBoundaryTokens": 5376,
+     "requestSeconds": 3.962686749990098,
+     "requestedContextTokens": 65536,
+     "requestedMemoryBytes": 12884901888,
+     "requestedOutputBudget": 1800,
+     "runtimeRelease": "1.6.1",
+     "scopePrefixTokens": 0,
+     "sessionSetupSeconds": 0,
+     "speculativeMethod": "DFlash2",
+     "stablePrefixTokens": 4145,
+     "templateIdentity": "aee46acfcba8e4e7aec7512126b926aa311bf7414d0d96ad3b13a86d5bdfe9d3",
+     "toolScope": "all"
+    },
+    {
+     "callID": "call_9bec72bc-3c90-4add-ae7a-b0f1f15c5c97",
+     "draft": null,
+     "kind": "reasoning",
+     "note": null,
+     "outcome": null,
+     "step": 3,
+     "text": "The Home view currently has three components: attention, continue, and shortcuts. The user wants to add a \"big counter button\". A counter button would be a metric component. But I need to know what to count - what table should it count rows from?\n\nSince the user hasn't specified what to count, and there are no tables in the workbook yet (based on the earlier context showing no tables), I should ask what they want to count. But wait - the instructions say \"Never ask about a choice\" and \"when the workbook has none for the task, create one.\"\n\nLet me check if there are any tables first by trying to query them.",
+     "tool": "sql"
+    },
+    {
+     "acceptedDraftTokens": 117,
+     "activations": "bf16",
+     "backend": "splash",
+     "beforeDispatchSeconds": 0.00016808335203677416,
+     "contextTokens": 65536,
+     "decodeSeconds": 2.905555,
+     "deduplicatedKVTokens": 192,
+     "diagnosticRequestCacheIsolation": false,
+     "draftedTokens": 315,
+     "engineSHA256": "ce771e5f51081a2fd60df0ee0083f982a278a863ffaeab29fd590f55e9e36e89",
+     "firstAnswerPreviewSeconds": null,
+     "firstTokenSeconds": 1.0189102916629054,
+     "generatedTokens": 163,
+     "grammarSHA256": "5b96c275e9c1a2e618a54a4814a6d9c0de116285e8ffd0814aea01a5c8eecdf1",
+     "headerInputs": "d74a9910f6872d28979e5b1b98f67d664559a8dab1952b72171d8f713b32cad4",
+     "headerRestarts": 0,
+     "headerResumed": true,
+     "headerTokens": 4145,
+     "helperStartSeconds": 5.833280738443136e-07,
+     "hostPreparationSeconds": 7.933334563858807e-05,
+     "maintenanceRecommended": false,
+     "maintenanceThreshold": 49152,
+     "matchedPromptTokens": 5376,
+     "nextToolResultReserve": 3546,
+     "outputBudget": 1800,
+     "prefillSeconds": 1.014869,
+     "prefixPrimeMatchedTokens": 0,
+     "prefixPrimePrefillSeconds": 0,
+     "prefixPrimeSeconds": 0,
+     "prefixPrimeTokens": 0,
+     "promptTokens": 5649,
+     "reasoningBudget": 512,
+     "reasoningBudgetOverrun": 0,
+     "reasoningHistory": "within-request",
+     "reasoningTokens": 118,
+     "recoveryReserve": 256,
+     "replayBoundaryTokens": 5632,
+     "requestSeconds": 3.9244617916701827,
+     "requestedContextTokens": 65536,
+     "requestedMemoryBytes": 12884901888,
+     "requestedOutputBudget": 1800,
+     "runtimeRelease": "1.6.1",
+     "scopePrefixTokens": 0,
+     "sessionSetupSeconds": 0,
+     "speculativeMethod": "DFlash2",
+     "stablePrefixTokens": 4145,
+     "templateIdentity": "aee46acfcba8e4e7aec7512126b926aa311bf7414d0d96ad3b13a86d5bdfe9d3",
+     "toolScope": "all"
+    },
+    {
+     "callID": "call_4dca3797-29cc-4cdb-9ba4-fb637f969316",
+     "draft": null,
+     "kind": "reasoning",
+     "note": null,
+     "outcome": null,
+     "step": 4,
+     "text": "There are no tables in the workbook. The user wants a \"big counter button\" on their Home. Since there are no tables, I need to create a table first, then add a metric (counter) to the Home view that counts rows from that table.\n\nLet me create a simple table and then add a metric component to the Home view. I'll create a generic table that could be used for various purposes, and add a counter that counts its rows.\n\nFirst, let me create a table. I'll call it something generic like \"items\" or \"records\".",
+     "tool": "sql"
+    },
+    {
+     "acceptedDraftTokens": 300,
+     "activations": "bf16",
+     "backend": "splash",
+     "beforeDispatchSeconds": 0.00016387499636039138,
+     "contextTokens": 65536,
+     "decodeSeconds": 7.129787,
+     "deduplicatedKVTokens": 160,
+     "diagnosticRequestCacheIsolation": false,
+     "draftedTokens": 525,
+     "engineSHA256": "ce771e5f51081a2fd60df0ee0083f982a278a863ffaeab29fd590f55e9e36e89",
+     "firstAnswerPreviewSeconds": null,
+     "firstTokenSeconds": 1.1783190416754223,
+     "generatedTokens": 376,
+     "grammarSHA256": "5b96c275e9c1a2e618a54a4814a6d9c0de116285e8ffd0814aea01a5c8eecdf1",
+     "headerInputs": "d74a9910f6872d28979e5b1b98f67d664559a8dab1952b72171d8f713b32cad4",
+     "headerRestarts": 0,
+     "headerResumed": true,
+     "headerTokens": 4145,
+     "helperStartSeconds": 5.00003807246685e-07,
+     "hostPreparationSeconds": 8.970833732746542e-05,
+     "maintenanceRecommended": false,
+     "maintenanceThreshold": 49152,
+     "matchedPromptTokens": 5632,
+     "nextToolResultReserve": 3546,
+     "outputBudget": 1800,
+     "prefillSeconds": 1.174136,
+     "prefixPrimeMatchedTokens": 0,
+     "prefixPrimePrefillSeconds": 0,
+     "prefixPrimeSeconds": 0,
+     "prefixPrimeTokens": 0,
+     "promptTokens": 6000,
+     "reasoningBudget": 512,
+     "reasoningBudgetOverrun": 0,
+     "reasoningHistory": "within-request",
+     "reasoningTokens": 237,
+     "recoveryReserve": 256,
+     "replayBoundaryTokens": 5984,
+     "requestSeconds": 8.308104208350414,
+     "requestedContextTokens": 65536,
+     "requestedMemoryBytes": 12884901888,
+     "requestedOutputBudget": 1800,
+     "runtimeRelease": "1.6.1",
+     "scopePrefixTokens": 0,
+     "sessionSetupSeconds": 0,
+     "speculativeMethod": "DFlash2",
+     "stablePrefixTokens": 4145,
+     "templateIdentity": "aee46acfcba8e4e7aec7512126b926aa311bf7414d0d96ad3b13a86d5bdfe9d3",
+     "toolScope": "all"
+    },
+    {
+     "callID": "call_92da2a1d-e121-42c4-b039-d7b97f73ea20",
+     "draft": null,
+     "kind": "reasoning",
+     "note": null,
+     "outcome": null,
+     "step": 5,
+     "text": "Good, I created the \"items\" table with id \"6382d974-8954-4699-8c84-6a7d5f6e8159\". Now I need to add a metric component to the Home view that counts the rows of this table.\n\nThe Home view has version 1. I need to use action view.edit with:\n- id: \"home\"\n- expectedVersion: 1\n- edits: [{operation: \"insert\", at: \"first\" or \"last\", component}]\n\nThe component should be a metric with:\n- id: something like \"counter\" or \"total_items\"\n- type: \"metric\"\n- title: something like \"Total Items\" or \"Count\"\n- aggregation: \"COUNT\"\n- datasetID: \"6382d974-8954-4699-8c84-6a7d5f6e8159\"\n\nLet me insert it at the first position to make it prominent as a \"big counter button\".",
+     "tool": "run"
+    },
+    {
+     "acceptedDraftTokens": 124,
+     "activations": "bf16",
+     "backend": "splash",
+     "beforeDispatchSeconds": 0.00018004167941398919,
+     "contextTokens": 65536,
+     "decodeSeconds": 3.839388,
+     "deduplicatedKVTokens": 256,
+     "diagnosticRequestCacheIsolation": false,
+     "draftedTokens": 364,
+     "engineSHA256": "ce771e5f51081a2fd60df0ee0083f982a278a863ffaeab29fd590f55e9e36e89",
+     "firstAnswerPreviewSeconds": 3.0279397916747257,
+     "firstTokenSeconds": 1.253894166671671,
+     "generatedTokens": 177,
+     "grammarSHA256": "5b96c275e9c1a2e618a54a4814a6d9c0de116285e8ffd0814aea01a5c8eecdf1",
+     "headerInputs": "d74a9910f6872d28979e5b1b98f67d664559a8dab1952b72171d8f713b32cad4",
+     "headerRestarts": 0,
+     "headerResumed": true,
+     "headerTokens": 4145,
+     "helperStartSeconds": 7.500057108700275e-07,
+     "hostPreparationSeconds": 0.00010166666470468044,
+     "maintenanceRecommended": false,
+     "maintenanceThreshold": 49152,
+     "matchedPromptTokens": 5984,
+     "nextToolResultReserve": 3546,
+     "outputBudget": 1800,
+     "prefillSeconds": 1.249355,
+     "prefixPrimeMatchedTokens": 0,
+     "prefixPrimePrefillSeconds": 0,
+     "prefixPrimeSeconds": 0,
+     "prefixPrimeTokens": 0,
+     "promptTokens": 6404,
+     "reasoningBudget": 512,
+     "reasoningBudgetOverrun": 0,
+     "reasoningHistory": "within-request",
+     "reasoningTokens": 68,
+     "recoveryReserve": 256,
+     "replayBoundaryTokens": 6368,
+     "requestSeconds": 5.093276791652897,
+     "requestedContextTokens": 65536,
+     "requestedMemoryBytes": 12884901888,
+     "requestedOutputBudget": 1800,
+     "runtimeRelease": "1.6.1",
+     "scopePrefixTokens": 0,
+     "sessionSetupSeconds": 0,
+     "speculativeMethod": "DFlash2",
+     "stablePrefixTokens": 4145,
+     "templateIdentity": "aee46acfcba8e4e7aec7512126b926aa311bf7414d0d96ad3b13a86d5bdfe9d3",
+     "toolScope": "all"
+    },
+    {
+     "callID": "call_cdfd45e5-d36c-4ad1-914f-0e3acc10b1a3",
+     "draft": null,
+     "kind": "reasoning",
+     "note": null,
+     "outcome": null,
+     "step": 6,
+     "text": "The Home view has been updated to version 2 with a new counter metric at the top. The counter will display the total count of items in the \"items\" table. Since the table is empty, it will show 0, but it will update as items are added.\n\nLet me confirm what I did for the user.",
+     "tool": "finish"
+    }
+   ],
+   "model": "Splash 1.6.1; d8af1054aab0f97de21d043e01aa98af3754f10e; Qwen3.6-35B-A3B-4bit + DFlash2; native Swift candidate; context 65536; memory 12884901888; activations bf16; KV int8; state fp32; ANE on; reasoning budget 512; within-request reasoning retained",
+   "request_message_id": "25b36f0c-2505-4898-9f83-db07f69a88bd",
+   "status": "complete",
+   "steps": 6,
+   "updated": "2026-11-23T20:23:44Z"
+  }
+ ],
+ "saved": {
+  "newTables": [
+   {
+    "title": "Items",
+    "columns": [
+     {
+      "id": "id",
+      "title": "Id",
+      "type": "decimal"
+     },
+     {
+      "id": "name",
+      "title": "Name",
+      "type": "text"
+     },
+     {
+      "id": "created_at",
+      "title": "Created at",
+      "type": "text"
+     }
+    ],
+    "rows": []
+   }
+  ],
+  "changedSpaces": [
+   {
+    "title": "Home",
+    "version": 2,
+    "components": [
+     "metric",
+     "attention",
+     "continue",
+     "shortcuts"
+    ]
+   }
+  ],
+  "newItems": [
+   {
+    "category": "source",
+    "kind": "rule",
+    "status": "accepted",
+    "title": "Chat table changes policy",
+    "id": "47c11b7e-9ec5-4e4f-ab7b-a458c078fd43"
+   },
+   {
+    "category": "source",
+    "kind": "decision",
+    "status": "accepted",
+    "title": "Create table definition: Items",
+    "id": "70dc7af6-090e-4473-8c54-57efe0c85312"
+   }
+  ]
+ }
+}

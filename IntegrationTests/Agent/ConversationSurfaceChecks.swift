@@ -152,10 +152,13 @@ private actor SurfaceModel: WorkbookInference {
   let declinedModel = SurfaceModel()
   _ = try await WorkbookAgent.run(
     "", workbook: book, model: declinedModel, conversationInput: true, inputAnswerID: declined)
-  try expectEqual(await declinedModel.offeredScope, .conversationAnswer)
+  // The skipped request may still do its work. It may not ask again.
+  try expectEqual(await declinedModel.offeredScope, .all)
   try expectEqual(await declinedModel.policy?.conversationInput, false)
   try expectEqual(
-    await declinedModel.policy?.content.contains("The person declined these inputs."), true)
+    await declinedModel.policy?.content.contains("The person skipped this question"), true)
+  // Skipping hands the choice over. It does not turn the task into a read-only one.
+  try expectEqual(try book.historyMessage(declined).body, "Skip this question. Go on without it.")
   try expectEqual(try book.pendingConversationInput(conversation: book.startChat), nil)
 
   var dateForm = arguments.object

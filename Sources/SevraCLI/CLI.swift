@@ -25,7 +25,7 @@ import SevraProduct
         try Value.object(["schemaVersion": .number(1), "ok": .bool(true), "result": result]).json())
     } catch {
       await ProductAI.shared.unload()
-      let e = error as? SevraError ?? SevraError("operation", error.localizedDescription)
+      let e = error as? SevraError ?? SevraError("operation", failureDescription(error))
       let result: Value = .object([
         "schemaVersion": .number(1), "ok": .bool(false),
         "error": .object(["code": .string(e.code), "message": .string(e.message)]),
@@ -759,6 +759,18 @@ import SevraProduct
       try Value.requireDepth(arg(3))
       let definition = try JSONDecoder().decode(SpaceDefinition.self, from: Data(arg(3).utf8))
       return .string(try book.saveSpace(title: arg(2), definition: definition))
+    case "metric":
+      // The number a view's metric shows, by the app's own rule.
+      guard let component = try book.space(arg(2)).definition.component(arg(3)),
+        component.type == "metric"
+      else { throw SevraError("view", "Choose a metric on a saved view.") }
+      return .string(try book.componentMetric(component, data: try book.componentData(component)))
+    case "press":
+      // A view's button, pressed as a person presses it: values fill the inputs it leaves open.
+      return try book.pressButton(
+        spaceID: arg(2), componentID: arg(3),
+        values: args.count > 4 ? Value.parseExact(args[4]).object : [:],
+        actor: .human("Sevra command line"))
     case "chats": return try encoded(book.chats())
     case "chat-new": return .string(try book.createChat())
     case "chat-rename":
@@ -941,6 +953,7 @@ import SevraProduct
     app-install WORKBOOK PACKAGE [SPACE_ID BASE_VERSION]
     app-export WORKBOOK SPACE_ID DESTINATION
     spaces WORKBOOK | space WORKBOOK TITLE DEFINITION_JSON | pin-space WORKBOOK SPACE_ID [TITLE]
+    press WORKBOOK SPACE_ID COMPONENT_ID [VALUES_JSON] | metric WORKBOOK SPACE_ID COMPONENT_ID
     space-edit WORKBOOK SPACE_ID BASE_VERSION EDITS_JSON [TOKEN]
     space-history WORKBOOK SPACE_ID [BEFORE_VERSION]
     space-restore WORKBOOK SPACE_ID SAVED_VERSION BASE_VERSION [TOKEN]

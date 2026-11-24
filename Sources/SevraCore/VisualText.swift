@@ -23,7 +23,7 @@ public struct VisualText: Codable, Equatable, Sendable {
         _ = try queryObject(run, keys: ["text", "strong", "sourceID"])
       }
     }
-    let text = try JSONDecoder().decode(Self.self, from: Data(value.json().utf8))
+    let text = try decodeDescriptor(Self.self, from: value, named: "text")
     try text.validate()
     return text
   }

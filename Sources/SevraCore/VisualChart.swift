@@ -73,6 +73,13 @@ public struct VisualChart: Codable, Equatable, Sendable {
         "title", "style", "query", "x", "y", "threshold", "series", "periods", "links",
         "annotations",
       ])
+    // All of them at once, where the decoder would name only the first.
+    let missing = ["title", "style", "query", "x", "y"].filter { value[$0] == .null }
+    try require(
+      missing.isEmpty, "visual_chart",
+      "chart needs " + missing.joined(separator: ", ")
+        + ". x and y are the ids of two fields the query selects. For one number with no grouping, put a metric component in a view instead."
+    )
     var descriptor = value.object
     var query = value["query"].object
     if query["limit"] == nil { query["limit"] = .number(100) }
@@ -85,8 +92,7 @@ public struct VisualChart: Codable, Equatable, Sendable {
       if !fields.isEmpty { query["groupBy"] = .array(fields) }
     }
     descriptor["query"] = .object(query)
-    let definition = try JSONDecoder().decode(
-      Self.self, from: Data(Value.object(descriptor).json().utf8))
+    let definition = try decodeDescriptor(Self.self, from: .object(descriptor), named: "chart")
     try definition.validate()
     return definition
   }

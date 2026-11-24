@@ -1,0 +1,272 @@
+{
+ "date": "2026-11-23T20:22:44Z",
+ "commit": "6f6aaba1ec9220e35ef24d7e81a7bffa45aa2141",
+ "workingTreeChanges": [
+  " M IntegrationTests/Agent/ActionConfirmationChecks.swift",
+  " M IntegrationTests/Agent/ConversationSurfaceChecks.swift",
+  " M IntegrationTests/Agent/SpaceActionChecks.swift",
+  " M IntegrationTests/Agent/main.swift",
+  " M Sources/SevraAI/ActionConfirmations.swift",
+  " M Sources/SevraAI/GeneralTools.swift",
+  " M Sources/SevraAI/WorkbookAgent.swift",
+  " M Sources/SevraApp/AgentActivityView.swift",
+  " M Sources/SevraApp/Catalog/CatalogFixtures.swift",
+  " M Sources/SevraApp/Catalog/CatalogRegistry.swift",
+  " M Sources/SevraApp/ConversationViews.swift",
+  " M Sources/SevraApp/WorkspaceState.swift",
+  " M Sources/SevraCLI/CLI.swift",
+  " M Sources/SevraCore/ApplicationDefinitions.swift",
+  " M Sources/SevraCore/ChatOperations.swift",
+  " M Sources/SevraCore/ConversationSurface.swift",
+  " M Sources/SevraCore/DatasetQuery.swift",
+  " M Sources/SevraCore/DatasetQueryCompiler.swift",
+  " M Sources/SevraCore/RequestActivity.swift",
+  " M Sources/SevraCore/SpaceEditing.swift",
+  " M Sources/SevraCore/Spaces.swift",
+  " M Sources/SevraCore/Tools.swift",
+  " M Sources/SevraCore/VisualChart.swift",
+  " M Sources/SevraCore/VisualDefinition.swift",
+  " M Sources/SevraCore/VisualDiagram.swift",
+  " M Sources/SevraCore/VisualText.swift",
+  " M Sources/SevraPreviewUI/ConversationInputView.swift",
+  " M Tests/SpaceEditingChecks.swift",
+  " M db/index.md",
+  " M db/log.md",
+  " M db/records/index.md",
+  " M db/records/operations/agent-handoff.md",
+  " M db/records/operations/index.jsonl",
+  " M db/records/operations/index.md",
+  " M db/records/plans/general-chat-tools.md",
+  " M db/records/plans/index.jsonl",
+  " M db/records/plans/index.md",
+  " M db/records/plans/rich-native-visuals.md",
+  " M db/records/reviews/index.jsonl",
+  " M db/records/reviews/index.md",
+  " M db/records/specs/conversation-context.md",
+  " M db/records/specs/index.jsonl",
+  " M db/records/specs/index.md",
+  " M db/sources/index.md",
+  " M db/sources/notes/index.jsonl",
+  " M db/sources/notes/index.md",
+  " M scripts/check_chat_jobs.py"
+ ],
+ "cliSHA256": "0ca19426084c289dc3c7076ab88d021bd5fa7fbee41a5f06e7994dc83b9e22bb",
+ "cliVersion": {
+  "engine": "splash-1.6.1",
+  "version": "0.1.0-dev"
+ },
+ "method": "scripts/check_chat_jobs.py: one `ask` per turn, in English, through the native preview CLI on each job's own temporary synthetic workbook, run once. A job of two turns asks both in one chat. Each CLI request loads the model and unloads it on exit, so wallSeconds includes a model start; modelSeconds is the engine time of the decisions alone. The CLI has no window, so it cannot ask a structured question or open a view. Class totals use each job's first run.",
+ "models": [
+  "Splash 1.6.1; d8af1054aab0f97de21d043e01aa98af3754f10e; Qwen3.6-35B-A3B-4bit + DFlash2; native Swift candidate; context 65536; memory 12884901888; activations bf16; KV int8; state fp32; ANE on; reasoning budget 512; within-request reasoning retained"
+ ],
+ "languages": [
+  "en"
+ ],
+ "summary": {
+  "build": {
+   "en": {
+    "passed": 1,
+    "failed": 0,
+    "steps": 4,
+    "modelCalls": 4,
+    "wallSeconds": 24.75
+   }
+  },
+  "defaults": {
+   "en": {
+    "passed": 1,
+    "failed": 0,
+    "steps": 6,
+    "modelCalls": 6,
+    "wallSeconds": 34.0
+   }
+  },
+  "conversation": {
+   "en": {
+    "passed": 1,
+    "failed": 0,
+    "steps": 1,
+    "modelCalls": 1,
+    "wallSeconds": 12.39
+   }
+  }
+ },
+ "totals": {
+  "jobs": 3,
+  "passed": 3,
+  "passedFirstRun": 3,
+  "steps": 11,
+  "modelCalls": 11,
+  "wallSeconds": 71.14
+ },
+ "promptHeader": {
+  "inputs": "d74a9910f6872d28979e5b1b98f67d664559a8dab1952b72171d8f713b32cad4",
+  "tokens": 4145,
+  "cacheName": "4da513908357e6bbd2f558a8ab1bad99"
+ },
+ "timedTurns": null,
+ "jobs": [
+  {
+   "attempt": 1,
+   "helperStopped": false,
+   "passed": true,
+   "failure": null,
+   "state": "complete",
+   "model": "Splash 1.6.1; d8af1054aab0f97de21d043e01aa98af3754f10e; Qwen3.6-35B-A3B-4bit + DFlash2; native Swift candidate; context 65536; memory 12884901888; activations bf16; KV int8; state fp32; ANE on; reasoning budget 512; within-request reasoning retained",
+   "steps": 4,
+   "modelCalls": 4,
+   "wallSeconds": 24.75,
+   "modelSeconds": 18.46,
+   "promptTokens": [
+    4842,
+    5040,
+    5208,
+    5697
+   ],
+   "tools": [
+    "sql",
+    "sql",
+    "save_space"
+   ],
+   "answer": "Saved space “Purchasing”.",
+   "citations": [],
+   "saved": {
+    "newSpaces": [
+     {
+      "title": "Purchasing",
+      "version": 1,
+      "components": [
+       "table",
+       "chart"
+      ]
+     }
+    ]
+   },
+   "transcript": "transcripts/build.view.en.attempt1.json",
+   "job": "build.view",
+   "group": "build",
+   "language": "en",
+   "expected": "A view named Purchasing exists with a table of Supplier comparison and a chart of total by supplier. No table is created or changed.",
+   "passedFirstRun": true,
+   "attempts": 1,
+   "retries": []
+  },
+  {
+   "attempt": 1,
+   "helperStopped": false,
+   "passed": true,
+   "failure": null,
+   "state": "complete",
+   "model": "Splash 1.6.1; d8af1054aab0f97de21d043e01aa98af3754f10e; Qwen3.6-35B-A3B-4bit + DFlash2; native Swift candidate; context 65536; memory 12884901888; activations bf16; KV int8; state fp32; ANE on; reasoning budget 512; within-request reasoning retained",
+   "steps": 6,
+   "modelCalls": 6,
+   "wallSeconds": 34.0,
+   "modelSeconds": 27.9,
+   "promptTokens": [
+    4535,
+    5259,
+    5399,
+    5649,
+    6000,
+    6404
+   ],
+   "tools": [
+    "read",
+    "spaces",
+    "sql",
+    "sql",
+    "edit_space"
+   ],
+   "answer": "Updated space “Home”.",
+   "citations": [],
+   "saved": {
+    "newTables": [
+     {
+      "title": "Items",
+      "columns": [
+       {
+        "id": "id",
+        "title": "Id",
+        "type": "decimal"
+       },
+       {
+        "id": "name",
+        "title": "Name",
+        "type": "text"
+       },
+       {
+        "id": "created_at",
+        "title": "Created at",
+        "type": "text"
+       }
+      ],
+      "rows": []
+     }
+    ],
+    "changedSpaces": [
+     {
+      "title": "Home",
+      "version": 2,
+      "components": [
+       "metric",
+       "attention",
+       "continue",
+       "shortcuts"
+      ]
+     }
+    ],
+    "newItems": [
+     {
+      "category": "source",
+      "kind": "rule",
+      "status": "accepted",
+      "title": "Chat table changes policy",
+      "id": "47c11b7e-9ec5-4e4f-ab7b-a458c078fd43"
+     },
+     {
+      "category": "source",
+      "kind": "decision",
+      "status": "accepted",
+      "title": "Create table definition: Items",
+      "id": "70dc7af6-090e-4473-8c54-57efe0c85312"
+     }
+    ]
+   },
+   "transcript": "transcripts/defaults.home_counter.en.attempt1.json",
+   "job": "defaults.home_counter",
+   "group": "defaults",
+   "language": "en",
+   "expected": "In a new, empty workbook, Home shows a counter. Nothing is asked: the table, the title and the look are defaults the reply names. No example rows are added.",
+   "passedFirstRun": true,
+   "attempts": 1,
+   "retries": []
+  },
+  {
+   "attempt": 1,
+   "helperStopped": false,
+   "passed": true,
+   "failure": null,
+   "state": "complete",
+   "model": "Splash 1.6.1; d8af1054aab0f97de21d043e01aa98af3754f10e; Qwen3.6-35B-A3B-4bit + DFlash2; native Swift candidate; context 65536; memory 12884901888; activations bf16; KV int8; state fp32; ANE on; reasoning budget 512; within-request reasoning retained",
+   "steps": 1,
+   "modelCalls": 1,
+   "wallSeconds": 12.39,
+   "modelSeconds": 6.44,
+   "promptTokens": [
+    4840
+   ],
+   "tools": [],
+   "answer": "To add a new supplier to the Supplier comparison table, I need the following details:\n\n1. **Supplier name** (text)\n2. **Quantity** (number)\n3. **Unit cost** (number)\n\nPlease provide these values so I can add the new supplier record.\"",
+   "citations": [],
+   "saved": {},
+   "transcript": "transcripts/conversation.clarify.en.attempt1.json",
+   "job": "conversation.clarify",
+   "group": "conversation",
+   "language": "en",
+   "expected": "The reply asks for the missing supplier and its values. Nothing is saved.",
+   "passedFirstRun": true,
+   "attempts": 1,
+   "retries": []
+  }
+ ]
+}

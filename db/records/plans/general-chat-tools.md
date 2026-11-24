@@ -2,7 +2,7 @@
 type: operational
 id: 01m7qrcqqzh4qqr92a8frch1ze
 created: 2026-11-18T16:38:43.199010+00:00
-updated: 2026-11-22T16:30:18+00:00
+updated: 2026-11-23T20:30:37+00:00
 summary: Seven general chat tools (SQL on a scratch copy, sandboxed code, workbook tools) and a prompt header made at build time. Built, looked at, and updated in the app between two headers.
 title: General chat tools and a pre-read prompt header
 ---
@@ -421,6 +421,15 @@ Built on November 18, 2026 under the `general` profile. Evidence: [the evals](..
 - **Resumed in the installed app.** The build of commit `4e309ee` was installed from `output/native`, and the installed app, extraction helper and command line tool have the package's Mach-O UUIDs. One "Hello" through the installed app's own command line, on its sealed header: `headerResumed` true with no restart, 3,808 of the header's 3,809 tokens matched in a 4,494-token prompt, 1.4 seconds of prefill and 3.9 seconds for the request, after a 4.4-second engine start.
 - **Not run:** `build.app` and `build.form`. The app pointer moved from the instructions to the `save` declaration.
 - **Checked without the model:** the prompt header, chat, surface, view action and `sql` checks, the default scripted groups, the grammar checks, and the command line's `sql` and `run` checks. The `sql` check still asserted that a `thread.start` action reaches the thread tool, which went with threads on November 21. That assertion is removed.
+
+**The instructions changed on November 23, 2026,** at the owner's word: [[sources/notes/2026/11/defaults-and-step-limit]]. The header is 4,429 tokens, from 3,809: the instructions are 1,028, from 702, and `save` is 1,170, from 875, after a button and a size in views ([[sources/notes/2026/11/view-button-and-size]]) and the general rework ([[sources/notes/2026/11/general-behavior-not-the-example]]). What the run that led to it showed: [[records/reviews/home-counter-run-2026-11-23]].
+
+- **A choice is not a business value.** The model chooses a default for looks, names, placement and what a new view, chart or counter shows, and says what it chose. Business values are still asked for. A table the workbook lacks is created empty with `sql`, not asked for.
+- **Home and one number are in the view description,** each shape in the order the grammar makes the model write it: Home is the view `home`, changed with `view.edit` and `{id, expectedVersion, edits: [{operation, at, component}]}`, and a count is a `metric` with `aggregation` before `datasetID`. The table list line says that no tables listed means the workbook has none. "Never create a table for a view" became "never create a table of totals for one", since the model read the old line as a ban on creating any table.
+- **`ask` is for business values only.**
+- **A new job, `defaults.home_counter`,** asks for a counter on Home in an empty workbook. It is not in the light set.
+- **Run with the model, each run once.** The light set and `defaults.home_counter` passed 12 of 12 on the final header, in 35 steps and 263 s: [the run](../../../integration/evidence/2026-11-23-button-light/results.json). The counter, a large count with a large button under it, is built in five steps, and the clarify request still asks for the supplier, the quantity and the cost.
+- **A saved or changed view keeps the model's summary above the host's line,** at the owner's word: [[sources/notes/2026/11/summary-above-confirmation]]. That run showed it on `build.view` and on the counter request, with no summary refused. Two earlier runs of the counter request failed, one on the order of an edit's fields and one on two instruction lines that disagreed; the review has both.
 
 **Jobs for comparing models, November 21, 2026:** at the owner's request, [[sources/notes/2026/11/model-swap-evals]], five jobs cover what the earlier ones missed, and two answer checks are stricter. The harness holds 30 jobs, and the light set is unchanged.
 

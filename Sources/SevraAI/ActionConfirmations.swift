@@ -57,6 +57,14 @@ package struct ActionConfirmations {
       {
         return true
       }
+      // A save refused because the view exists is settled once that view is edited: the
+      // model took the refusal's advice, and the edit is the outcome.
+      if entry["tool"].text == "save_space", saved["kind"].text == "space_edit",
+        entry["error"].text.contains(Self.repeatRefused),
+        entry["attempt"].text.caseInsensitiveCompare(saved["title"].text) == .orderedSame
+      {
+        return true
+      }
       if entry["nestedAppEnvelope"] == .bool(true) { return false }
       // A corrected outer envelope must preserve every supplied business input.
       // Adding its missing version must not settle a different transaction.
@@ -138,6 +146,58 @@ package struct ActionConfirmations {
     return arguments["content"]["title"].string
       ?? ["id", "title", "target", "subject", "datasetID", "templateReceiptID"].lazy
       .compactMap { arguments[$0].string }.first ?? ""
+  }
+  /// What a call set out to do, finely enough that a later success with the same intent did
+  /// that work: the same components put into the same view, the same tables written the same
+  /// way, the same tool saved or run. `attempt` is coarser on purpose, because it settles the
+  /// host's own lines, and the model's summary must not describe a part that failed. Empty
+  /// when the call's text does not say.
+  private static func intent(_ tool: String, _ arguments: Value) -> String {
+    func components(_ list: [Value]) -> String {
+      list.map { $0["type"].text }.joined(separator: " ")
+    }
+    switch tool {
+    case "sql":
+      if let name = arguments["tool"].string { return "run " + name }
+      return writes(arguments["statements"].array.map(\.text)).joined(separator: ", ")
+    case "edit_space":
+      let edits = arguments["edits"].array.map {
+        $0["operation"].text + " " + ($0["component"]["type"].string ?? $0["componentID"].text)
+      }
+      return edits.isEmpty ? "" : arguments["id"].text + ": " + edits.joined(separator: ", ")
+    case "save_space":
+      return arguments["title"].text.lowercased() + ": "
+        + components(arguments["definition"]["components"].array)
+    case "save":
+      return arguments["name"].string.map { arguments["kind"].text + " " + $0 } ?? ""
+    default:
+      return attempt(tool, arguments)
+    }
+  }
+  /// Each table a statement creates, alters, drops or changes rows of, with how, such as
+  /// "insert visits", in lower case. A quoted value is data, not a statement.
+  package static func writes(_ statements: [String]) -> [String] {
+    let name = #"\s+["`\[]?([A-Za-z_][A-Za-z0-9_]*)"#
+    let patterns = [
+      #"\b(INSERT|REPLACE)\s+(?:OR\s+[A-Z]+\s+)?INTO"# + name,
+      #"(?<!\bDO\s)\b(UPDATE)(?:\s+OR\s+[A-Z]+)?"# + name,
+      #"\b(DELETE)\s+FROM"# + name,
+      #"\b(CREATE|ALTER|DROP)\s+TABLE(?:\s+IF\s+(?:NOT\s+)?EXISTS)?"# + name,
+    ].map { try! NSRegularExpression(pattern: $0, options: .caseInsensitive) }
+    var found = Set<String>()
+    for statement in statements {
+      let text = statement.replacingOccurrences(
+        of: #"'(?:[^']|'')*'"#, with: "''", options: .regularExpression)
+      for pattern in patterns {
+        for match in pattern.matches(in: text, range: NSRange(text.startIndex..., in: text)) {
+          guard let verb = Range(match.range(at: 1), in: text),
+            let table = Range(match.range(at: 2), in: text)
+          else { continue }
+          found.insert((text[verb] + " " + text[table]).lowercased())
+        }
+      }
+    }
+    return found.sorted()
   }
   private static func retryGroup(_ arguments: Value) -> String {
     let inputs = arguments["arguments"]
@@ -337,6 +397,20 @@ package struct ActionConfirmations {
     case "prepare_workflow_answer": task = "preparing the answer"
     default:
       guard !WorkbookTools.readOnlyTools.contains(tool) else { return }
+      // A sql call that only reads changed nothing, so its failure is not a failed write. A
+      // call saves all of its changes or none, so a failed write saved nothing either, but a
+      // summary could still describe it, so that one is kept.
+      if tool == "sql", arguments["draft"] != .bool(true), arguments["tool"] == .null,
+        let statements = arguments["statements"].array.map({ $0.text }) as [String]?,
+        !statements.isEmpty,
+        statements.allSatisfy({ statement in
+          let text = statement.trimmingCharacters(in: .whitespacesAndNewlines).uppercased()
+          return (text.hasPrefix("SELECT") || text.hasPrefix("WITH"))
+            && text.range(
+              of: #"\b(?:INSERT|UPDATE|DELETE|REPLACE|CREATE|ALTER|DROP)\b"#,
+              options: .regularExpression) == nil
+        })
+      { return }
       task = "that action"
     }
     entries.append(
@@ -346,6 +420,7 @@ package struct ActionConfirmations {
         "error": result["error"] == .null
           ? .string(result["errors"].array.map(\.text).joined(separator: " ")) : result["error"],
         "attempt": .string(Self.attempt(tool, arguments)),
+        "intent": .string(Self.intent(tool, arguments)),
         "retryGroup": .string(Self.retryGroup(arguments)),
         "invocation": Self.invocation(tool, arguments),
         "appTarget": Self.appTarget(tool, arguments),
@@ -483,6 +558,7 @@ package struct ActionConfirmations {
         "receiptID": .string(receiptID), "tool": .string(tool), "kind": .string(kind),
         "targetID": .string(id), "title": .string(title), "qualifier": .string(qualifier),
         "attempt": .string(attempt),
+        "intent": .string(Self.intent(tool, arguments)),
         "retryGroup": .string(Self.retryGroup(arguments)),
         "invocation": Self.invocation(tool, arguments),
         "appTarget": Self.appTarget(tool, arguments),
@@ -499,9 +575,42 @@ package struct ActionConfirmations {
       ]))
   }
 
+  /// Anything the request saved carries choices the host's line cannot name, so the model's
+  /// summary stands above the host's lines, which stay as the proof. A request with a write
+  /// that failed, a change waiting for the person's approval, or an action the person
+  /// cancelled is told by the host alone. A failed call stops mattering once a later call of
+  /// the same tool succeeded with the same intent, such as the same tables written the same
+  /// way or the same components put into the same view: the model fixed its call and did the
+  /// work. A later success with another intent settles the host's own lines but not the
+  /// summary, which could describe the part that failed. A refused repeat, where the first
+  /// save stands, keeps the summary too.
+  package var keepsSummary: Bool {
+    var saved = false
+    for (index, entry) in entries.enumerated() {
+      switch entry["kind"].text {
+      case "failure":
+        let intent = entry["intent"].text
+        let redone =
+          !intent.isEmpty
+          && entries.dropFirst(index + 1).contains {
+            $0["kind"].text != "failure" && $0["tool"] == entry["tool"] && $0["intent"].text == intent
+          }
+        guard
+          redone
+            || (entry["error"].text.contains(Self.repeatRefused) && recoveredFailure(entry, at: index))
+        else { return false }
+      case "chat_approval", "cancelled": return false
+      case "settled": break
+      default: saved = true
+      }
+    }
+    return saved
+  }
+
   package var rendered: String? { rendered(excluding: nil) }
-  /// A receipt that already speaks for one call leaves that call out of the list.
-  package func rendered(excluding receiptID: String?) -> String? {
+  /// A receipt that already speaks for one call leaves that call out of the list. A brief
+  /// list follows an account that has already said why: it names each unfinished task once.
+  package func rendered(excluding receiptID: String?, brief: Bool = false) -> String? {
     var seen = Set<String>()
     let lines = entries.enumerated().compactMap { index, entry -> String? in
       let kind = entry["kind"].text
@@ -518,6 +627,10 @@ package struct ActionConfirmations {
         return "Saved reusable behavior “" + title
           + "”. Business acceptance is separate."
       case "failure":
+        if brief {
+          return seen.insert("unfinished:" + title).inserted
+            ? "Couldn’t finish " + title + "." : nil
+        }
         let reason = entry["error"].text.components(separatedBy: Self.repeatRefused)[0]
         return "Couldn’t finish " + title + ". " + reason
       case "draft": return "Saved draft [" + title + "](sevra://item/" + id + ")."

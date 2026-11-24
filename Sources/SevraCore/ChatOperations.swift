@@ -391,10 +391,11 @@ public enum ChatOperations {
         separator: ", ")
       throw SevraError(
         "arguments",
-        name + " was not invoked. Missing fields: "
-          + missing.joined(separator: ", ") + ". Unexpected fields: "
-          + unexpected.joined(separator: ", ") + ". Required arguments: {" + required
-          + "}. Optional arguments: {" + optional
+        name + " was not invoked."
+          + (missing.isEmpty ? "" : " Missing fields: " + missing.joined(separator: ", ") + ".")
+          + (unexpected.isEmpty
+            ? "" : " Unexpected fields: " + unexpected.joined(separator: ", ") + ".")
+          + " Required arguments: {" + required + "}. Optional arguments: {" + optional
           + "}. Read workspace_actions for this operation; preserve the user's values.")
     }
     for (key, value) in fields {
@@ -459,7 +460,7 @@ extension WorkbookTools {
         workbook.datasetDefinitions(string("id"), beforeVersion: a["beforeVersion"].int))
     case "table.edit_schema":
       let columns = try a.object["columns"].map {
-        try JSONDecoder().decode([Column].self, from: Data($0.json().utf8))
+        try decodeDescriptor([Column].self, from: $0, named: "columns")
       }
       if a.object["archived"] != nil {
         guard case .bool = a["archived"] else {
@@ -513,12 +514,9 @@ extension WorkbookTools {
       guard let mode = TableUpdateMode(rawValue: try string("mode")) else {
         throw SevraError("update_mode", "Choose append, replace or merge.")
       }
-      let mapping = try JSONDecoder().decode(
-        [IntakeColumnMapping].self, from: Data(a["mapping"].json().utf8))
-      let keys =
-        try a.object["keys"].map {
-          try JSONDecoder().decode([String].self, from: Data($0.json().utf8))
-        } ?? []
+      let mapping = try decodeDescriptor(
+        [IntakeColumnMapping].self, from: a["mapping"], named: "mapping")
+      let keys = try a.object["keys"].map { try decodeDescriptor([String].self, from: $0, named: "keys") } ?? []
       if name == "intake.preview_update" {
         return try encoded(
           workbook.previewTableUpdate(

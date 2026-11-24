@@ -89,6 +89,19 @@ private func checkRefusedRepeats() throws {
   try expectEqual(elsewhere.hasUnresolvedFailure, true)
   try expectEqual(
     elsewhere.rendered, "Couldn’t finish saving the space. A space titled Overview already exists.")
+  // After an account that already said why, each unfinished task is named once.
+  var twice = elsewhere
+  twice.recordFailure(
+    tool: "edit_space", arguments: .object(["id": .string("o")]),
+    result: .object(["error": .string("Unknown layout edit.")]), receiptID: "again")
+  try expectEqual(
+    twice.rendered(excluding: nil, brief: true), "Couldn’t finish saving the space.")
+  // Editing that view afterwards is the outcome, and it settles the refused save.
+  elsewhere.record(
+    tool: "edit_space", arguments: .object(["id": .string("o")]),
+    result: .object(["spaceID": .string("o"), "title": .string("Overview")]), receiptID: "next")
+  try expectEqual(elsewhere.hasUnresolvedFailure, false)
+  try expectEqual(elsewhere.rendered, "Updated space “Overview”.")
 
   // Every write can fail, and a later success on the same target settles it.
   let bad: Value = .object(["error": .string("Column total is missing.")])
@@ -124,6 +137,128 @@ private func checkRefusedRepeats() throws {
   try expectEqual(layout.hasUnresolvedFailure, false)
   try expectEqual(layout.rendered, "Updated space “Home”.")
   try expectEqual(layout.rendered(excluding: "h"), nil)
+  // Whatever saved keeps the model's summary, a view or a draft alike, and so does a refused
+  // repeat whose first save stands. A failed write, even one a later write of the same target
+  // settles for the host's lines, a change waiting for approval and a request that saved
+  // nothing do not.
+  try expectEqual(repeated.keepsSummary, true)
+  try expectEqual(elsewhere.keepsSummary, true)
+  try expectEqual(layout.keepsSummary, false)
+  try expectEqual(twice.keepsSummary, false)
+  try expectEqual(ActionConfirmations().keepsSummary, false)
+  var waiting = ActionConfirmations()
+  waiting.record(
+    tool: "workspace_action", arguments: .object(["action": .string("table.update")]),
+    result: .object([
+      "status": .string("confirmation_required"), "preview": .string("Change 2 rows."),
+    ]), receiptID: "approval")
+  try expectEqual(waiting.keepsSummary, false)
+  // A failed edit of Home that a later edit of Home settles for the host's own lines does not
+  // let the model's summary describe both: the failed part may be in it.
+  var partly = ActionConfirmations()
+  partly.recordFailure(
+    tool: "edit_space", arguments: edit, result: .object(["error": .string("No saved tool is named x.")]),
+    receiptID: "button")
+  partly.record(
+    tool: "edit_space", arguments: edit,
+    result: .object(["spaceID": .string("home"), "title": .string("Home")]), receiptID: "metric")
+  try expectEqual(partly.hasUnresolvedFailure, false)
+  try expectEqual(partly.keepsSummary, false)
+  // A failed call the model fixed and made again, with the same intent, keeps the summary: the
+  // same table created, the same kind of component put into the same view. The same tool with
+  // another intent, another table or another component, does not.
+  func sql(_ statements: String...) -> Value {
+    .object(["statements": .array(statements.map(Value.string))])
+  }
+  func insert(_ type: String) -> Value {
+    .object([
+      "id": .string("home"), "expectedVersion": .number(1),
+      "edits": .array([
+        .object([
+          "operation": .string("insert"), "at": .string("last"),
+          "component": .object(["id": .string(type + "1"), "type": .string(type)]),
+        ])
+      ]),
+    ])
+  }
+  let homeSaved: Value = .object(["spaceID": .string("home"), "title": .string("Home")])
+  let created: Value = .object([
+    "results": .array([.object(["done": .bool(true)])]),
+    "shape": .array([.object(["change": .string("created"), "table": .string("visits")])]),
+  ])
+  func summary(
+    failed: (String, Value), then: (String, Value), result: Value
+  ) -> Bool {
+    var confirmations = ActionConfirmations()
+    confirmations.recordFailure(
+      tool: failed.0, arguments: failed.1, result: .object(["error": .string("Refused.")]),
+      receiptID: "failed")
+    confirmations.record(tool: then.0, arguments: then.1, result: result, receiptID: "fixed")
+    confirmations.record(
+      tool: "edit_space", arguments: insert("button"), result: homeSaved, receiptID: "view")
+    return confirmations.keepsSummary
+  }
+  try expectEqual(
+    summary(
+      failed: ("sql", sql("CREATE TABLE visits (id INTEGER PRIMARY KEY AUTOINCREMENT, at TEXT)")),
+      then: ("sql", sql("create table \"Visits\" (id INTEGER PRIMARY KEY, at TEXT)")),
+      result: created), true)
+  try expectEqual(
+    summary(
+      failed: ("sql", sql("INSERT INTO visits (at) VALUES ('x')")),
+      then: ("sql", sql("CREATE TABLE visits (id INTEGER PRIMARY KEY, at TEXT)")),
+      result: created), false)
+  try expectEqual(
+    summary(failed: ("edit_space", insert("metric")), then: ("edit_space", insert("metric")), result: homeSaved),
+    true)
+  try expectEqual(
+    summary(failed: ("edit_space", insert("metric")), then: ("edit_space", insert("table")), result: homeSaved),
+    false)
+  // What a statement writes, read from its text: a quoted value and an upsert's own UPDATE are
+  // not writes of their own.
+  try expectEqual(
+    ActionConfirmations.writes([
+      "INSERT OR REPLACE INTO [Counts] (n) VALUES ('update visits set n = 1')",
+      "INSERT INTO totals (k, n) VALUES ('a', 1) ON CONFLICT(k) DO UPDATE SET n = n + 1",
+      "DELETE FROM old_rows WHERE 1", "drop table if exists scratch",
+    ]), ["delete old_rows", "drop scratch", "insert counts", "insert totals"])
+  // A failed read changed nothing, so it is not a failed write. A failed write, a WITH that
+  // writes, and a statement that cannot be read as a SELECT still are.
+  var read = ActionConfirmations()
+  read.recordFailure(
+    tool: "sql", arguments: .object(["statements": .array([.string("SELEC 1")])]),
+    result: .object(["error": .string("syntax error")]), receiptID: "typo")
+  try expectEqual(read.evidence.array.count, 1)
+  var lookup = ActionConfirmations()
+  lookup.recordFailure(
+    tool: "sql", arguments: .object(["statements": .array([.string("SELECT * FROM nowhere")])]),
+    result: .object(["error": .string("no such table")]), receiptID: "read")
+  lookup.recordFailure(
+    tool: "sql",
+    arguments: .object([
+      "statements": .array([.string("WITH t AS (SELECT 1) SELECT * FROM t")])
+    ]), result: .object(["error": .string("no such table")]), receiptID: "with")
+  try expectEqual(lookup.evidence.array.count, 0)
+  var writing = ActionConfirmations()
+  writing.recordFailure(
+    tool: "sql",
+    arguments: .object([
+      "statements": .array([.string("WITH t AS (SELECT 1) INSERT INTO items SELECT * FROM t")])
+    ]), result: .object(["error": .string("no such table")]), receiptID: "write")
+  try expectEqual(writing.evidence.array.count, 1)
+  // A claim about content is refused; an honest summary, "Perfect!" and all, is not.
+  for claim in [
+    "Saved every detail perfectly.", "I copied the clause verbatim.",
+    "All requested identifiers were preserved exactly; every condition was verified.",
+  ] {
+    try expectEqual(FidelityClaim.overstates(claim), true)
+  }
+  for honest in [
+    "Perfect! I added a large count to Home.", "Each press is recorded exactly once.",
+    "I placed it exactly where you asked.", "All values you type are checked against their types.",
+  ] {
+    try expectEqual(FidelityClaim.overstates(honest), false)
+  }
   var app = ActionConfirmations()
   for (tool, args) in [
     ("edit_space", Value.object(["id": .string("stock-id")])),
@@ -245,6 +380,86 @@ func checkActionConfirmations() async throws {
   print(
     "PASS receipt-based saved-artifact confirmations, idempotent rendering, failed-write exclusion and intact cited answers"
   )
+  // A changed view keeps the model's summary above the host's line, because only the summary
+  // says what was chosen. A summary the host refuses twice is dropped, and the request still
+  // completes on the host's line alone.
+  func addNote(_ answer: String, finishes: Int) -> ScriptedCalls {
+    let note: Value = .object([
+      "id": .string("note"), "type": .string("text"), "title": .string("Note"),
+      "text": .string("Hello"),
+    ])
+    let edit: Value = .object([
+      "operation": .string("insert"), "at": .string("last"), "component": note,
+    ])
+    return ScriptedCalls(
+      [
+        call(
+          "edit_space",
+          .object([
+            "id": .string("home"), "expectedVersion": .number(1), "edits": .array([edit]),
+          ]))
+      ] + (0..<finishes).map { _ in finish(answer, basis: "completed_action") })
+  }
+  let summary = "I added a Note card at the bottom of Home. Say where else you want it."
+  let summarized = try await WorkbookAgent.run(
+    "Add a note to my Home.",
+    workbook: try Workbook.create(
+      at: root.appendingPathComponent("summary.sevra"), title: "Summary"),
+    model: addNote(summary, finishes: 1))
+  try expectEqual(summarized.answer, summary + "\n\nUpdated space “Home”.")
+  let dropped = try await WorkbookAgent.run(
+    "Add a note to my Home.",
+    workbook: try Workbook.create(
+      at: root.appendingPathComponent("dropped.sevra"), title: "Dropped"),
+    model: addNote("I added a note that cost $1000.", finishes: 3))
+  try expectEqual(dropped.state, "complete")
+  try expectEqual(dropped.steps, 4)
+  try expectEqual(dropped.answer, "Updated space “Home”.")
+  // The same holds for every save, a draft too. A claim the receipt cannot prove, that the
+  // content is perfect, is sent back, and a summary that keeps making it is dropped.
+  func memo(_ answer: String, finishes: Int) -> ScriptedCalls {
+    ScriptedCalls(
+      [
+        call(
+          "draft",
+          .object(["title": .string("Memo"), "text": .string("Order more bolts."), "inputs": .array([])]))
+      ] + (0..<finishes).map { _ in finish(answer, basis: "completed_action") })
+  }
+  let drafted = try await WorkbookAgent.run(
+    "Draft a memo about bolts.",
+    workbook: try Workbook.create(at: root.appendingPathComponent("memo.sevra"), title: "Memo"),
+    model: memo("I drafted a short memo asking to order more bolts.", finishes: 1))
+  try expectEqual(drafted.answer.hasPrefix("I drafted a short memo asking to order more bolts.\n\nSaved draft [Memo]"), true)
+  let overclaimed = ScriptedCalls(
+    [
+      call(
+        "draft",
+        .object(["title": .string("Memo"), "text": .string("Order more bolts."), "inputs": .array([])])),
+      finish("I saved every detail perfectly.", basis: "completed_action"),
+      finish("I drafted the memo.", basis: "completed_action"),
+    ])
+  let corrected = try await WorkbookAgent.run(
+    "Draft a memo about bolts.",
+    workbook: try Workbook.create(at: root.appendingPathComponent("claim.sevra"), title: "Claim"),
+    model: overclaimed)
+  try expectEqual(await overclaimed.refusals.first?.contains("not how faithful its content is"), true)
+  try expectEqual(corrected.answer.hasPrefix("I drafted the memo.\n\nSaved draft [Memo]"), true)
+  // A summary states no number nothing gave: "42" was never read.
+  let counted = ScriptedCalls(
+    [
+      call(
+        "draft",
+        .object(["title": .string("Memo"), "text": .string("Order more bolts."), "inputs": .array([])])),
+      finish("I drafted a memo for the 42 open orders.", basis: "completed_action"),
+      finish("I drafted a memo about the open orders.", basis: "completed_action"),
+    ])
+  let grounded = try await WorkbookAgent.run(
+    "Draft a memo about bolts.",
+    workbook: try Workbook.create(at: root.appendingPathComponent("count.sevra"), title: "Count"),
+    model: counted)
+  try expectEqual(await counted.refusals.first?.contains("The summary states 42"), true)
+  try expectEqual(grounded.answer.hasPrefix("I drafted a memo about the open orders."), true)
+  print("PASS every save keeps the model's summary; unprovable claims and twice-refused summaries are dropped")
   for basis in ["general", "current_request", "unresolved", "completed_action", "evidence"] {
     let book = try Workbook.create(
       at: root.appendingPathComponent("failed-" + basis + ".sevra"), title: basis)

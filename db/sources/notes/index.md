@@ -2,11 +2,15 @@
 type: index
 scope: type-folder
 folder: sources/notes
-updated: 2026-11-23T02:09:19.766262Z
+updated: 2026-11-24T02:58:56.669647Z
 ---
 
 # sources/notes
 
+- [[sources/notes/2026/11/general-behavior-not-the-example]] — Carlos asks that the defaults and button work be general, built for real use cases, not fitted to his counter example, and reviewed several times.
+- [[sources/notes/2026/11/view-button-and-size]] — Carlos asks for a button and a size setting for views, after the Home counter request gave a small number and no button.
+- [[sources/notes/2026/11/summary-above-confirmation]] — Carlos approves showing the model's own summary above the host's confirmation line after a saved view change.
+- [[sources/notes/2026/11/defaults-and-step-limit]] — Carlos asks that chat use defaults instead of asking about choices and that no small step limit end a request, after a Home counter request failed.
 - [[sources/notes/2026/11/name-untitled-work]] — Carlos asks for untitled workbooks and chats to be named smartly; the local model names them after replies until the person names them.
 - [[sources/notes/2026/11/start-local-ai-with-window]] — Carlos asks for Local AI to start when the window opens and for a sent message, its progress and any failure to show in the chat at once.
 - [[sources/notes/2026/11/visible-reasoning]] — Carlos asks that people see the model's reasoning and the calls Sevra sends back, by default, collapsed under each request.

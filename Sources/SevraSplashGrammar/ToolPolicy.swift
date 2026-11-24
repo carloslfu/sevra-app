@@ -247,20 +247,30 @@ public final class SplashToolPolicy {
   /// Put identity/type fields before optional metadata so choosing `id` does
   /// not irreversibly exclude a later formula. The reference receives this same
   /// app-owned ordering; no grammar-library behavior is changed or weakened.
+  /// The order of a tool's own parameters in the grammar: by name, each one optional unless
+  /// required. Objects inside a parameter follow `propertyOrder` instead.
+  package static func parameterOrder(_ schema: [String: Any]) -> [String] {
+    ((schema["properties"] as? [String: Any]) ?? [:]).keys.sorted()
+  }
+  /// The order of an object schema's properties in the grammar.
+  package static func propertyOrder(_ object: [String: Any]) -> [String] {
+    guard let properties = object["properties"] as? [String: Any] else { return [] }
+    let required = (object["required"] as? [String] ?? []).filter { properties[$0] != nil }
+    // Select the component/bound behavior before its optional arguments.
+    // Fixed property order must not hide placement after componentID, or
+    // typed arguments after choosing a definitionBinding.
+    let selectors = ["componentID", "definitionBinding"].filter {
+      properties[$0] != nil && !required.contains($0)
+    }
+    let first = required + selectors
+    return first + properties.keys.filter { !first.contains($0) }.sorted()
+  }
   private static func nestedSchemaJSON(_ value: Any) throws -> String {
     if let object = value as? [String: Any] {
       let fields = try object.keys.sorted().map { key -> String in
         let body: String
         if key == "properties", let properties = object[key] as? [String: Any] {
-          let required = (object["required"] as? [String] ?? []).filter { properties[$0] != nil }
-          // Select the component/bound behavior before its optional arguments.
-          // Fixed property order must not hide placement after componentID, or
-          // typed arguments after choosing a definitionBinding.
-          let selectors = ["componentID", "definitionBinding"].filter {
-            properties[$0] != nil && !required.contains($0)
-          }
-          let first = required + selectors
-          let names = first + properties.keys.filter { !first.contains($0) }.sorted()
+          let names = propertyOrder(object)
           body =
             "{"
             + (try names.map { try quote($0) + ":" + nestedSchemaJSON(properties[$0]!) }).joined(
@@ -427,7 +437,7 @@ public final class SplashToolPolicy {
     let required = Set(schema["required"] as? [String] ?? [])
     var sequence: [String] = []
     var rules: [String] = []
-    for (index, name) in properties.keys.sorted().enumerated() {
+    for (index, name) in parameterOrder(schema).enumerated() {
       guard let value = properties[name] as? [String: Any] else {
         throw SplashError("Tool field schema needs explicit types")
       }

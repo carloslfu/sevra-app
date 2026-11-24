@@ -1,0 +1,135 @@
+{
+ "job": "conversation.greeting",
+ "language": "en",
+ "attempt": 1,
+ "prompt": "hey",
+ "expected": "A plain reply in one decision, with no citations. Nothing is saved.",
+ "failure": null,
+ "result": {
+  "answer": "Hello! How can I help you today?",
+  "chat": "b1df979b-1e05-45dc-94ec-4f876f90d483",
+  "citations": [],
+  "state": "complete",
+  "steps": 1
+ },
+ "progress": [
+  "Reading request context",
+  "Checking local model files",
+  "Preparing local AI. The first start can take longer…",
+  "Preparing local AI · 0 of 11 steps",
+  "Preparing local AI · 1 of 11 steps",
+  "Preparing local AI · 2 of 11 steps",
+  "Preparing local AI · 3 of 11 steps",
+  "Preparing local AI · 4 of 11 steps",
+  "Preparing local AI · 5 of 11 steps",
+  "Preparing local AI · 6 of 11 steps",
+  "Preparing local AI · 7 of 11 steps",
+  "Preparing local AI · 8 of 11 steps",
+  "Preparing local AI · 9 of 11 steps",
+  "Preparing local AI · 10 of 11 steps",
+  "Preparing local AI · 11 of 11 steps",
+  "Reading the working context",
+  "Working through the request",
+  "Preparing a response"
+ ],
+ "messages": {
+  "b1df979b-1e05-45dc-94ec-4f876f90d483": [
+   {
+    "body": "This example has supplier quotes and a delivery. Try ‘Why do we have 18 brass bolts?’ or ‘Compare the supplier costs and show the evidence.’",
+    "created": "2026-11-24T01:30:04Z",
+    "id": "0ba45835-3ca6-4bfa-969a-5642abb4336e",
+    "role": "assistant",
+    "state": "complete"
+   },
+   {
+    "body": "hey",
+    "created": "2026-11-24T01:30:04Z",
+    "id": "d15f4d37-cad0-4dd9-9739-bca294f3f50f",
+    "role": "user",
+    "state": "complete"
+   },
+   {
+    "body": "Hello! How can I help you today?",
+    "created": "2026-11-24T01:30:14Z",
+    "id": "baa6f135-a7bf-426c-bc97-f3250aeaff74",
+    "role": "assistant",
+    "state": "complete"
+   }
+  ]
+ },
+ "runs": [
+  {
+   "conversation_id": "b1df979b-1e05-45dc-94ec-4f876f90d483",
+   "created": "2026-11-24T01:30:04Z",
+   "id": "abb79c10-48c3-4122-be81-9b4c3beeb2d3",
+   "metrics": [
+    {
+     "acceptedDraftTokens": 60,
+     "activations": "bf16",
+     "backend": "splash",
+     "beforeDispatchSeconds": 4.647892000008142,
+     "contextTokens": 65536,
+     "decodeSeconds": 2.057261,
+     "deduplicatedKVTokens": 0,
+     "diagnosticRequestCacheIsolation": false,
+     "draftedTokens": 189,
+     "engineSHA256": "ce771e5f51081a2fd60df0ee0083f982a278a863ffaeab29fd590f55e9e36e89",
+     "firstAnswerPreviewSeconds": 7.321890374994837,
+     "firstTokenSeconds": 1.6538899166625924,
+     "generatedTokens": 88,
+     "grammarSHA256": "5b96c275e9c1a2e618a54a4814a6d9c0de116285e8ffd0814aea01a5c8eecdf1",
+     "headerInputs": "d74a9910f6872d28979e5b1b98f67d664559a8dab1952b72171d8f713b32cad4",
+     "headerRestarts": 0,
+     "headerResumed": true,
+     "headerTokens": 4145,
+     "helperStartSeconds": 4.639529541687807,
+     "hostPreparationSeconds": 7.016665767878294e-05,
+     "maintenanceRecommended": false,
+     "maintenanceThreshold": 49152,
+     "matchedPromptTokens": 4128,
+     "nextToolResultReserve": 3546,
+     "outputBudget": 1800,
+     "prefillSeconds": 1.625772,
+     "prefixPrimeMatchedTokens": 0,
+     "prefixPrimePrefillSeconds": 0,
+     "prefixPrimeSeconds": 0,
+     "prefixPrimeTokens": 0,
+     "promptTokens": 4823,
+     "reasoningBudget": 512,
+     "reasoningBudgetOverrun": 0,
+     "reasoningHistory": "within-request",
+     "reasoningTokens": 28,
+     "recoveryReserve": 256,
+     "replayBoundaryTokens": 4800,
+     "requestSeconds": 3.711161416664254,
+     "requestedContextTokens": 65536,
+     "requestedMemoryBytes": 12884901888,
+     "requestedOutputBudget": 1800,
+     "runtimeRelease": "1.6.1",
+     "scopePrefixTokens": 0,
+     "sessionSetupSeconds": 1.3106007083551958,
+     "speculativeMethod": "DFlash2",
+     "stablePrefixTokens": 4145,
+     "templateIdentity": "aee46acfcba8e4e7aec7512126b926aa311bf7414d0d96ad3b13a86d5bdfe9d3",
+     "toolScope": "all"
+    },
+    {
+     "callID": "call_f7a72a30-5174-48f9-acb4-cff9a8c15a09",
+     "draft": null,
+     "kind": "reasoning",
+     "note": null,
+     "outcome": null,
+     "step": 1,
+     "text": "The user said \"hey\". This is a greeting. I should respond briefly and politely, acknowledging them and asking how I can help.",
+     "tool": "finish"
+    }
+   ],
+   "model": "Splash 1.6.1; d8af1054aab0f97de21d043e01aa98af3754f10e; Qwen3.6-35B-A3B-4bit + DFlash2; native Swift candidate; context 65536; memory 12884901888; activations bf16; KV int8; state fp32; ANE on; reasoning budget 512; within-request reasoning retained",
+   "request_message_id": "d15f4d37-cad0-4dd9-9739-bca294f3f50f",
+   "status": "complete",
+   "steps": 1,
+   "updated": "2026-11-24T01:30:14Z"
+  }
+ ],
+ "saved": {}
+}

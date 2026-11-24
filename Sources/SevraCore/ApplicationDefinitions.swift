@@ -11,7 +11,12 @@ extension Workbook {
           "SELECT * FROM app_definitions WHERE id=? OR id=(SELECT definition_id FROM app_definition_heads WHERE logical_id=?) LIMIT 1",
           [.string(id), .string(id)]
         ).first
-      else { throw SevraError("definition_not_found", "The application definition was not found.") }
+      else {
+        throw SevraError(
+          "definition_not_found",
+          "No saved definition has that ID. A view such as Home is not a definition: views have their own list."
+        )
+      }
       return try ApplicationDefinition(row)
     }
   }

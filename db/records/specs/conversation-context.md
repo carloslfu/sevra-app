@@ -3,7 +3,7 @@ type: spec
 meta-type: conclusion
 id: 01m5x2pp178p3a4ay7hbfx7wdg
 created: 2026-10-26T21:43:43.399273+00:00
-updated: 2026-11-21T12:00:00+00:00
+updated: 2026-11-23T16:43:34.231655+00:00
 summary: Automatic compaction, preserved conversation history, authoritative continuation state and measured larger-context qualification.
 title: Continuing conversation and context management
 status: reviewed
@@ -603,9 +603,12 @@ source and nothing was relabeled:
 - A note in its message's exact words is marked verbatim by the host, so nothing has to fetch it
   again. The host compares the words; a model cannot claim this.
 
-Limits. Twelve steps still bound one request, so a job of more than about nine documents needs
-more than one request, and each follow-up reads again what it still needs. A request that reaches
-the limit says so and to ask again, and asking again continues from what it saved. A request far longer
+Limits. Since November 23, 2026 a count of steps no longer bounds a chat request
+([[sources/notes/2026/11/defaults-and-step-limit]]). A request closes when it stops getting
+anywhere: the same error from the same action three times, or five failed calls in a row. The
+model then says what it did, what is saved and what blocked the rest. Sixty-four steps remain as a
+backstop, and Excel conversion keeps twelve. Context is still the real bound on a long job, and
+each follow-up reads again what it still needs. Asking again continues from what was saved. A request far longer
 than 8 KB stays behind history_read. A model response can still end unfinished: this happened
 once in the real runs below and ended the request with a plain message and nothing saved wrongly.
 Asking again continues.

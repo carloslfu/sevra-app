@@ -81,8 +81,21 @@ public struct ToolActivity: Identifiable, Sendable {
     case "history_read": return "Read earlier conversation"
     case "datasets": return "Inspect tables"
     case "rows": return "Read table rows"
-    case "sql": return "Query tables"
-    case "run": return "Run a script"
+    case "sql":
+      // A call that makes or changes a table is not a query.
+      if let name = arguments["saved_tool"].string { return "Run “\(name)”" }
+      if let made = result?["shape"].array.first(where: { $0["change"] == .string("created") })?[
+        "title"
+      ].string {
+        return "Create table “\(made.prefix(120))”"
+      }
+      let start = arguments["statement"].text.trimmingCharacters(in: .whitespacesAndNewlines)
+        .lowercased()
+      return start.isEmpty || start.hasPrefix("select") || start.hasPrefix("with")
+        ? "Query tables" : "Change tables"
+    case "run":
+      return arguments["saved_tool"].string.map { "Run “\($0)”" } ?? "Run a script"
+    case "workspace_action": return Self.actionTitle(arguments["action"].text)
     case "calculate": return "Calculate"
     case "save_space": return "Save space"
     case "edit_space": return "Update space"
@@ -91,6 +104,23 @@ public struct ToolActivity: Identifiable, Sendable {
     case "tool_result": return "Read saved result"
     default: return tool.replacingOccurrences(of: "_", with: " ").capitalized
     }
+  }
+
+  /// An action by what it does, where "Workspace Action" said nothing.
+  static func actionTitle(_ action: String) -> String {
+    let known = [
+      "visual.schema": "Read the chart guide", "visual.evaluate": "Make a visual",
+      "visual.pin": "Add a visual to Home", "visual.app_capture": "Capture an app view",
+      "table.undo_sql": "Undo a table change", "file.export_table": "Export a table",
+      "app.inspect": "Look at an app", "app.run": "Run an app action",
+      "app.undo": "Undo an app change", "app.redo": "Redo an app change",
+    ]
+    if let title = known[action] { return title }
+    // "table.rename_column" reads as "Table: rename column".
+    let parts = action.split(separator: ".", maxSplits: 1).map(String.init)
+    guard parts.count == 2 else { return action.isEmpty ? "Run an action" : action }
+    return parts[0].prefix(1).uppercased() + parts[0].dropFirst() + ": "
+      + parts[1].replacingOccurrences(of: "_", with: " ")
   }
 
   public var detail: String {
@@ -113,7 +143,13 @@ public struct ToolActivity: Identifiable, Sendable {
         + (result["chunkPage"]["hasMore"] == .bool(true) ? "; more available." : ".")
     }
     if let title = result?["title"].string { return String(title.prefix(200)) }
-    return "Result saved"
+    // "Saved" is for a call that changed something. A read only finished.
+    if tool == "sql" || tool == "run", let result,
+      ["changes", "drafts", "shape", "actions"].contains(where: { !result[$0].array.isEmpty })
+    {
+      return "Saved"
+    }
+    return "Done"
   }
 }
 
@@ -139,7 +175,7 @@ extension Workbook {
       }
       return try runs.map { run in
         let calls = try db.execute(
-          "SELECT id,call_id,tool,state,substr(json_extract(arguments,'$.query'),1,160) AS query,CASE WHEN length(CAST(result AS BLOB))<=16384 THEN result ELSE NULL END AS small_result FROM tool_calls WHERE run_id=? ORDER BY rowid LIMIT 65",
+          "SELECT id,call_id,tool,state,substr(json_extract(arguments,'$.query'),1,160) AS query,json_extract(arguments,'$.action') AS action,substr(json_extract(arguments,'$.statements[0]'),1,24) AS statement,substr(json_extract(arguments,'$.tool'),1,120) AS saved_tool,CASE WHEN length(CAST(result AS BLOB))<=16384 THEN result ELSE NULL END AS small_result FROM tool_calls WHERE run_id=? ORDER BY rowid LIMIT 65",
           [run["id"]!])
         let steps = try calls.prefix(64).map { call in
           let text = call["small_result"]?.string
@@ -153,7 +189,12 @@ extension Workbook {
           return ToolActivity(
             id: call["id"]!.text, callID: call["call_id"]!.text, tool: call["tool"]!.text,
             state: call["state"]!.text,
-            arguments: .object(call["query"]?.string.map { ["query": .string($0)] } ?? [:]),
+            // Only what a step's title needs: a search's words, an action's name, how a sql
+            // call begins and the saved tool it ran.
+            arguments: .object(
+              ["query", "action", "statement", "saved_tool"].reduce(into: [String: Value]()) {
+                if let text = call[$1]?.string { $0[$1] = .string(text) }
+              }),
             result: result)
         }
         // One row per model call. DISTINCT drops a call's figures saved twice; two different

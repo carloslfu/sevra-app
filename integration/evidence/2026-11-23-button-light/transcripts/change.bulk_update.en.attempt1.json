@@ -1,0 +1,364 @@
+{
+ "job": "change.bulk_update",
+ "language": "en",
+ "attempt": 1,
+ "prompt": "Change the quantity to 20 for every supplier in the Supplier comparison table.",
+ "expected": "Both rows of Supplier comparison have quantity 20, so the totals are 48 and 55.",
+ "failure": null,
+ "result": {
+  "answer": "The quantity has been updated to 20 for all 2 suppliers in the Supplier comparison table.",
+  "chat": "670adf7a-f625-4e6d-b35e-f675912d064c",
+  "citations": [],
+  "state": "complete",
+  "steps": 2
+ },
+ "progress": [
+  "Reading request context",
+  "Checking local model files",
+  "Preparing local AI. The first start can take longer…",
+  "Preparing local AI · 0 of 11 steps",
+  "Preparing local AI · 1 of 11 steps",
+  "Preparing local AI · 2 of 11 steps",
+  "Preparing local AI · 3 of 11 steps",
+  "Preparing local AI · 4 of 11 steps",
+  "Preparing local AI · 5 of 11 steps",
+  "Preparing local AI · 6 of 11 steps",
+  "Preparing local AI · 7 of 11 steps",
+  "Preparing local AI · 8 of 11 steps",
+  "Preparing local AI · 9 of 11 steps",
+  "Preparing local AI · 10 of 11 steps",
+  "Preparing local AI · 11 of 11 steps",
+  "Reading the working context",
+  "Working through the request",
+  "Preparing a response",
+  "Working with your tables…",
+  "Reviewing the saved result",
+  "Reading the working context",
+  "Working through the request",
+  "Preparing a response"
+ ],
+ "messages": {
+  "670adf7a-f625-4e6d-b35e-f675912d064c": [
+   {
+    "body": "This example has supplier quotes and a delivery. Try ‘Why do we have 18 brass bolts?’ or ‘Compare the supplier costs and show the evidence.’",
+    "created": "2026-11-24T02:14:16Z",
+    "id": "af243aa5-484b-4c75-89b5-ba4586ac3b64",
+    "role": "assistant",
+    "state": "complete"
+   },
+   {
+    "body": "Change the quantity to 20 for every supplier in the Supplier comparison table.",
+    "created": "2026-11-24T02:14:16Z",
+    "id": "796ac31e-2c3c-42c2-8641-6965dd57594d",
+    "role": "user",
+    "state": "complete"
+   },
+   {
+    "body": {
+     "arguments": {
+      "draft": false,
+      "statements": [
+       "UPDATE supplier_comparison SET quantity = 20"
+      ]
+     },
+     "assistantText": "",
+     "callID": "call_9986f679-aeb6-46de-aba9-ee4aa40fadd9",
+     "receiptID": "2fd8be01-4849-4a55-a970-ebc8c5e2bb00",
+     "receiptVersion": 1,
+     "result": {
+      "changes": [
+       {
+        "deleted": 0,
+        "inserted": 0,
+        "table": "supplier_comparison",
+        "title": "Supplier comparison",
+        "updated": 2
+       }
+      ],
+      "inputs": [],
+      "notice": "Saved. If the user asks to undo this, the undo action takes this result's undo value as its token.",
+      "read": [
+       {
+        "rows": 2,
+        "table": "supplier_comparison",
+        "title": "Supplier comparison"
+       }
+      ],
+      "results": [
+       {
+        "changedRows": 2
+       }
+      ],
+      "undo": "sql-2fd8be01-4849-4a55-a970-ebc8c5e2bb00"
+     },
+     "resultHash": "3abf8b203f1c52d624ad527479db1af8ad8196dbc9ba10f0cc5643edd8f9c05e",
+     "resultIdentity": {},
+     "runID": "4e3705a1-dbe3-45a8-b187-11531e2a5753",
+     "tool": "sql"
+    },
+    "created": "2026-11-24T02:14:27Z",
+    "id": "37edcbd5-f20a-4605-9264-83f967fc1b18",
+    "role": "tool",
+    "state": "complete"
+   },
+   {
+    "body": "The quantity has been updated to 20 for all 2 suppliers in the Supplier comparison table.",
+    "created": "2026-11-24T02:14:32Z",
+    "id": "338b02b8-913f-4aa3-853b-79ccbfa6b63a",
+    "role": "assistant",
+    "state": "complete"
+   }
+  ]
+ },
+ "runs": [
+  {
+   "conversation_id": "670adf7a-f625-4e6d-b35e-f675912d064c",
+   "created": "2026-11-24T02:14:16Z",
+   "id": "4e3705a1-dbe3-45a8-b187-11531e2a5753",
+   "metrics": [
+    {
+     "acceptedDraftTokens": 108,
+     "activations": "bf16",
+     "backend": "splash",
+     "beforeDispatchSeconds": 4.610679208359215,
+     "contextTokens": 65536,
+     "decodeSeconds": 3.316284,
+     "deduplicatedKVTokens": 0,
+     "diagnosticRequestCacheIsolation": false,
+     "draftedTokens": 273,
+     "engineSHA256": "ce771e5f51081a2fd60df0ee0083f982a278a863ffaeab29fd590f55e9e36e89",
+     "firstAnswerPreviewSeconds": null,
+     "firstTokenSeconds": 1.563748916669283,
+     "generatedTokens": 148,
+     "grammarSHA256": "5b96c275e9c1a2e618a54a4814a6d9c0de116285e8ffd0814aea01a5c8eecdf1",
+     "headerInputs": "31d4baa437ac090cb81aa4eba1cefb75e4d7087e175ef7b33b1670ac4628209e",
+     "headerRestarts": 0,
+     "headerResumed": true,
+     "headerTokens": 4215,
+     "helperStartSeconds": 4.603278708353173,
+     "hostPreparationSeconds": 5.3750001825392246e-05,
+     "maintenanceRecommended": false,
+     "maintenanceThreshold": 49152,
+     "matchedPromptTokens": 4192,
+     "nextToolResultReserve": 3546,
+     "outputBudget": 1800,
+     "prefillSeconds": 1.538233,
+     "prefixPrimeMatchedTokens": 0,
+     "prefixPrimePrefillSeconds": 0,
+     "prefixPrimeSeconds": 0,
+     "prefixPrimeTokens": 0,
+     "promptTokens": 4913,
+     "reasoningBudget": 512,
+     "reasoningBudgetOverrun": 0,
+     "reasoningHistory": "within-request",
+     "reasoningTokens": 98,
+     "recoveryReserve": 256,
+     "replayBoundaryTokens": 4896,
+     "requestSeconds": 4.880043833341915,
+     "requestedContextTokens": 65536,
+     "requestedMemoryBytes": 12884901888,
+     "requestedOutputBudget": 1800,
+     "runtimeRelease": "1.6.1",
+     "scopePrefixTokens": 0,
+     "sessionSetupSeconds": 1.1913499166839756,
+     "speculativeMethod": "DFlash2",
+     "stablePrefixTokens": 4215,
+     "templateIdentity": "aee46acfcba8e4e7aec7512126b926aa311bf7414d0d96ad3b13a86d5bdfe9d3",
+     "toolScope": "all"
+    },
+    {
+     "callID": "call_9986f679-aeb6-46de-aba9-ee4aa40fadd9",
+     "draft": null,
+     "kind": "reasoning",
+     "note": null,
+     "outcome": null,
+     "step": 1,
+     "text": "The user wants to update the `quantity` column to 20 for all rows in the `supplier_comparison` table.\n\nLooking at the available tables:\n- `supplier_comparison(supplier TEXT, quantity REAL, unit_cost REAL, total REAL GENERATED)`\n\nI need to run an UPDATE statement on this table.\n\n```sql\nUPDATE supplier_comparison SET quantity = 20\n```\n\nThis will update every row in the table to have a quantity of 20.",
+     "tool": "sql"
+    },
+    {
+     "acceptedDraftTokens": 120,
+     "activations": "bf16",
+     "backend": "splash",
+     "beforeDispatchSeconds": 0.00015249999705702066,
+     "contextTokens": 65536,
+     "decodeSeconds": 3.516918,
+     "deduplicatedKVTokens": 160,
+     "diagnosticRequestCacheIsolation": false,
+     "draftedTokens": 273,
+     "engineSHA256": "ce771e5f51081a2fd60df0ee0083f982a278a863ffaeab29fd590f55e9e36e89",
+     "firstAnswerPreviewSeconds": 3.60617083334364,
+     "firstTokenSeconds": 1.2108408749918453,
+     "generatedTokens": 160,
+     "grammarSHA256": "5b96c275e9c1a2e618a54a4814a6d9c0de116285e8ffd0814aea01a5c8eecdf1",
+     "headerInputs": "31d4baa437ac090cb81aa4eba1cefb75e4d7087e175ef7b33b1670ac4628209e",
+     "headerRestarts": 0,
+     "headerResumed": true,
+     "headerTokens": 4215,
+     "helperStartSeconds": 9.166542440652847e-07,
+     "hostPreparationSeconds": 6.975000724196434e-05,
+     "maintenanceRecommended": false,
+     "maintenanceThreshold": 49152,
+     "matchedPromptTokens": 4896,
+     "nextToolResultReserve": 3546,
+     "outputBudget": 1800,
+     "prefillSeconds": 1.20674,
+     "prefixPrimeMatchedTokens": 0,
+     "prefixPrimePrefillSeconds": 0,
+     "prefixPrimeSeconds": 0,
+     "prefixPrimeTokens": 0,
+     "promptTokens": 5222,
+     "reasoningBudget": 512,
+     "reasoningBudgetOverrun": 0,
+     "reasoningHistory": "within-request",
+     "reasoningTokens": 88,
+     "recoveryReserve": 256,
+     "replayBoundaryTokens": 5216,
+     "requestSeconds": 4.727751541649923,
+     "requestedContextTokens": 65536,
+     "requestedMemoryBytes": 12884901888,
+     "requestedOutputBudget": 1800,
+     "runtimeRelease": "1.6.1",
+     "scopePrefixTokens": 0,
+     "sessionSetupSeconds": 0,
+     "speculativeMethod": "DFlash2",
+     "stablePrefixTokens": 4215,
+     "templateIdentity": "aee46acfcba8e4e7aec7512126b926aa311bf7414d0d96ad3b13a86d5bdfe9d3",
+     "toolScope": "all"
+    },
+    {
+     "callID": "call_818bd3d9-0603-4174-875f-cadd62a65133",
+     "draft": null,
+     "kind": "reasoning",
+     "note": null,
+     "outcome": null,
+     "step": 2,
+     "text": "The user asked to change the quantity to 20 for every supplier in the Supplier comparison table.\nI executed the SQL update: `UPDATE supplier_comparison SET quantity = 20`.\nThe result shows `changedRows: 2`, meaning 2 rows were updated.\nThe table `supplier_comparison` has 2 rows (as seen in the visible workbook location and confirmed by the result).\nThe task is complete.",
+     "tool": "finish"
+    }
+   ],
+   "model": "Splash 1.6.1; d8af1054aab0f97de21d043e01aa98af3754f10e; Qwen3.6-35B-A3B-4bit + DFlash2; native Swift candidate; context 65536; memory 12884901888; activations bf16; KV int8; state fp32; ANE on; reasoning budget 512; within-request reasoning retained",
+   "request_message_id": "796ac31e-2c3c-42c2-8641-6965dd57594d",
+   "status": "complete",
+   "steps": 2,
+   "updated": "2026-11-24T02:14:32Z"
+  }
+ ],
+ "saved": {
+  "changedTables": [
+   {
+    "title": "Supplier comparison",
+    "before": {
+     "title": "Supplier comparison",
+     "columns": [
+      {
+       "id": "supplier",
+       "title": "Supplier",
+       "type": "text"
+      },
+      {
+       "id": "quantity",
+       "title": "Quantity",
+       "type": "decimal"
+      },
+      {
+       "id": "unit_cost",
+       "title": "Unit cost",
+       "type": "decimal"
+      },
+      {
+       "id": "total",
+       "title": "Total",
+       "type": "decimal",
+       "formula": "quantity*unit_cost"
+      }
+     ],
+     "rows": [
+      {
+       "quantity": "10",
+       "supplier": "Oak Supply",
+       "total": "24",
+       "unit_cost": "2.40"
+      },
+      {
+       "quantity": "10",
+       "supplier": "Cedar Tools",
+       "total": "27.5",
+       "unit_cost": "2.75"
+      }
+     ]
+    },
+    "after": {
+     "title": "Supplier comparison",
+     "columns": [
+      {
+       "id": "supplier",
+       "title": "Supplier",
+       "type": "text"
+      },
+      {
+       "id": "quantity",
+       "title": "Quantity",
+       "type": "decimal"
+      },
+      {
+       "id": "unit_cost",
+       "title": "Unit cost",
+       "type": "decimal"
+      },
+      {
+       "id": "total",
+       "title": "Total",
+       "type": "decimal",
+       "formula": "quantity*unit_cost"
+      }
+     ],
+     "rows": [
+      {
+       "quantity": "20",
+       "supplier": "Oak Supply",
+       "total": "48",
+       "unit_cost": "2.40"
+      },
+      {
+       "quantity": "20",
+       "supplier": "Cedar Tools",
+       "total": "55",
+       "unit_cost": "2.75"
+      }
+     ]
+    }
+   }
+  ],
+  "newItems": [
+   {
+    "category": "source",
+    "kind": "observation",
+    "status": "accepted",
+    "title": "Supplier comparison update",
+    "id": "34a593d9-ffe6-4fed-8dc7-27565758f369"
+   },
+   {
+    "category": "source",
+    "kind": "correction",
+    "status": "accepted",
+    "title": "Edit Supplier comparison",
+    "id": "be4ec9b6-0cca-406b-9b46-533b08d28e5d"
+   },
+   {
+    "category": "source",
+    "kind": "rule",
+    "status": "accepted",
+    "title": "Chat table changes policy",
+    "id": "d2d85c42-b427-4476-9057-4f20cdf683f8"
+   },
+   {
+    "category": "source",
+    "kind": "correction",
+    "status": "accepted",
+    "title": "Edit Supplier comparison",
+    "id": "dab48870-1747-4403-9896-c2c6bdca86a3"
+   }
+  ]
+ }
+}

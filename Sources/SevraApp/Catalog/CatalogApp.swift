@@ -487,7 +487,11 @@ struct CatalogProductionView: View {
           .init(sourceID: item, title: "Quotes.csv", supportsTable: true, supportsUpdate: true)
         ]))
     } else if id.hasPrefix("home.component."), let c = session.component {
-      ScrollView { NativeComponent(component: c, state: state).padding(26) }
+      ScrollView {
+        NativeComponent(
+          component: c, state: state, owner: state.spaces.first { $0.id == "example" }
+        ).padding(26)
+      }
     } else if id == "main.voice" {
       VStack(alignment: .leading, spacing: 20) {
         VoiceButton(speech: state.speech, action: { state.voice() })

@@ -212,7 +212,11 @@ extension Workbook {
           inputs: Dictionary(uniqueKeysWithValues: inputs.map { ($0.name, Value.null) }),
           cancellation: cancellation)
         defer { rehearsal.close() }
-        _ = try rehearsal.rehearse(tool.statements)
+        // A tool keeps nothing between runs: what it counts or logs lives in a table.
+        try require(
+          !(try rehearsal.rehearse(tool.statements)).isEmpty, "tool",
+          "Tool \(name) reads and changes no table, so running it does nothing. What a tool records, such as a count or a log, goes in a table: make the table with sql, then save a tool that writes to it or reads it."
+        )
       }
       let existing = try savedTools(includeRetired: true).first { $0.name == name }
       return try saveApplicationDefinition(
@@ -234,7 +238,7 @@ extension Workbook {
       "undo": .object(["action": .string("tool.undo"), "id": .string(saved.id)]),
       "notice": .string(
         "Saved as " + signature
-          + ", and not run. This tool is complete: its inputs are the fields a form would have. Do not build a view, an app or a definition for it."
+          + ", and not run. This tool is complete: its inputs are the fields a form would have, so do not build a form, an app or a definition for it. A view's button can run it."
       ),
     ])
   }
@@ -300,11 +304,20 @@ extension Workbook {
 
   /// The values a tool's inputs take, checked against their types.
   func toolInputs(_ tool: SavedTool, _ values: [String: Value]) throws -> [String: Value] {
+    try toolValues(tool, values, complete: true)
+  }
+
+  /// Checks the values given for some or all of a tool's inputs. A view's button fixes some
+  /// inputs when it is saved and leaves the rest to the person who presses it.
+  func toolValues(_ tool: SavedTool, _ values: [String: Value], complete: Bool) throws
+    -> [String: Value]
+  {
+    let unknown = Set(values.keys).subtracting(tool.inputs.map(\.name)).sorted()
     try require(
-      Set(values.keys).isSubset(of: Set(tool.inputs.map(\.name))), "tool_inputs",
-      "\(tool.signature) takes only its own inputs.")
+      unknown.isEmpty, "tool_inputs",
+      "\(tool.signature) has no input named " + unknown.joined(separator: " or ") + ".")
     var bound: [String: Value] = [:]
-    for input in tool.inputs {
+    for input in tool.inputs where complete || values[input.name] != nil {
       let value = values[input.name] ?? .null
       try require(
         value != .null && !value.text.isEmpty, "tool_inputs",

@@ -1,0 +1,479 @@
+{
+ "job": "build.view",
+ "language": "en",
+ "attempt": 1,
+ "prompt": "Create a view named Purchasing that shows the Supplier comparison table and a chart of total by supplier.",
+ "expected": "A view named Purchasing exists with a table of Supplier comparison and a chart of total by supplier. No table is created or changed.",
+ "failure": null,
+ "result": {
+  "answer": "Saved space “Purchasing”.",
+  "chat": "a1067933-fa46-477e-b88f-26ed23303b92",
+  "citations": [],
+  "state": "complete",
+  "steps": 4
+ },
+ "progress": [
+  "Reading request context",
+  "Checking local model files",
+  "Preparing local AI. The first start can take longer…",
+  "Preparing local AI · 0 of 11 steps",
+  "Preparing local AI · 1 of 11 steps",
+  "Preparing local AI · 2 of 11 steps",
+  "Preparing local AI · 3 of 11 steps",
+  "Preparing local AI · 4 of 11 steps",
+  "Preparing local AI · 5 of 11 steps",
+  "Preparing local AI · 6 of 11 steps",
+  "Preparing local AI · 7 of 11 steps",
+  "Preparing local AI · 8 of 11 steps",
+  "Preparing local AI · 9 of 11 steps",
+  "Preparing local AI · 10 of 11 steps",
+  "Preparing local AI · 11 of 11 steps",
+  "Reading the working context",
+  "Working through the request",
+  "Preparing a response",
+  "Working with your tables…",
+  "Reviewing the saved result",
+  "Reading the working context",
+  "Working through the request",
+  "Preparing a response",
+  "Working with your tables…",
+  "Reviewing the saved result",
+  "Reading the working context",
+  "Working through the request",
+  "Preparing a response",
+  "Saving a space…",
+  "Reviewing the saved result",
+  "Reading the working context",
+  "Working through the request",
+  "Preparing a response"
+ ],
+ "messages": {
+  "a1067933-fa46-477e-b88f-26ed23303b92": [
+   {
+    "body": "This example has supplier quotes and a delivery. Try ‘Why do we have 18 brass bolts?’ or ‘Compare the supplier costs and show the evidence.’",
+    "created": "2026-11-23T20:22:44Z",
+    "id": "51da1c82-1e3e-4f7c-96d1-8a3ba4691df3",
+    "role": "assistant",
+    "state": "complete"
+   },
+   {
+    "body": "Create a view named Purchasing that shows the Supplier comparison table and a chart of total by supplier.",
+    "created": "2026-11-23T20:22:45Z",
+    "id": "9f906e37-46cd-4c65-b53f-8f2a26d5cc9f",
+    "role": "user",
+    "state": "complete"
+   },
+   {
+    "body": {
+     "arguments": {
+      "statements": [
+       "SELECT name, id FROM tables WHERE name = 'supplier_comparison'"
+      ]
+     },
+     "assistantText": "",
+     "callID": "call_8e8a3a75-a63a-4cf6-9ff3-22c5b2924562",
+     "receiptID": "5ec6f776-ce0b-471e-9ad0-6c119199d3af",
+     "receiptVersion": 1,
+     "result": {
+      "inputs": [],
+      "read": [],
+      "results": [
+       {
+        "columns": [
+         "name",
+         "id"
+        ],
+        "rowCount": 1,
+        "rows": [
+         [
+          "supplier_comparison",
+          "1f32e2d8-e15c-49d6-98d2-da49f14cd077"
+         ]
+        ]
+       }
+      ]
+     },
+     "resultHash": "a6d57e430a45482901fd54d2abcee7d0b823e1f9b5833ae2568e06aef3639fc1",
+     "resultIdentity": {},
+     "runID": "fe3d89ab-637c-495d-b690-3074bfd2923e",
+     "tool": "sql"
+    },
+    "created": "2026-11-23T20:22:54Z",
+    "id": "e0f0460d-ce19-4110-9ba0-2279647ab46b",
+    "role": "tool",
+    "state": "complete"
+   },
+   {
+    "body": {
+     "arguments": {
+      "statements": [
+       "SELECT table_name, name, id FROM columns WHERE table_name = 'supplier_comparison'"
+      ]
+     },
+     "assistantText": "",
+     "callID": "call_1ecaebad-531a-471f-87ff-e736c5f7c391",
+     "receiptID": "14a886be-2275-47dc-89e1-cd35f57ada82",
+     "receiptVersion": 1,
+     "result": {
+      "inputs": [],
+      "read": [],
+      "results": [
+       {
+        "columns": [
+         "table_name",
+         "name",
+         "id"
+        ],
+        "rowCount": 4,
+        "rows": [
+         [
+          "supplier_comparison",
+          "supplier",
+          "supplier"
+         ],
+         [
+          "supplier_comparison",
+          "quantity",
+          "quantity"
+         ],
+         [
+          "supplier_comparison",
+          "unit_cost",
+          "unit_cost"
+         ],
+         [
+          "supplier_comparison",
+          "total",
+          "total"
+         ]
+        ]
+       }
+      ]
+     },
+     "resultHash": "cb44cceeca636f45e7fb8e77ed648924944cb3e829e82fe7eb075f6f02361b28",
+     "resultIdentity": {},
+     "runID": "fe3d89ab-637c-495d-b690-3074bfd2923e",
+     "tool": "sql"
+    },
+    "created": "2026-11-23T20:22:56Z",
+    "id": "9a581754-18ac-4027-aa22-5892431fe420",
+    "role": "tool",
+    "state": "complete"
+   },
+   {
+    "body": {
+     "arguments": {
+      "definition": {
+       "components": [
+        {
+         "datasetID": "1f32e2d8-e15c-49d6-98d2-da49f14cd077",
+         "id": "table1",
+         "title": "Supplier Comparison",
+         "type": "table"
+        },
+        {
+         "datasetID": "1f32e2d8-e15c-49d6-98d2-da49f14cd077",
+         "id": "chart1",
+         "title": "Total by Supplier",
+         "type": "chart",
+         "x": "supplier",
+         "y": "total"
+        }
+       ],
+       "version": 1
+      },
+      "title": "Purchasing"
+     },
+     "assistantText": "",
+     "callID": "call_93ad160e-204c-4ae5-851f-91842071b93e",
+     "receiptID": "1a203597-c3a8-4416-ab25-aab600a4a6a5",
+     "receiptVersion": 1,
+     "result": {
+      "spaceID": "fe3d89ab-637c-495d-b690-3074bfd2923e-2dd58ba9dd5cb695cefbeeb5"
+     },
+     "resultHash": "5165b28ef118f58db305b00291feb30d6e72b8991b23bd224c0b096abd447c03",
+     "resultIdentity": {},
+     "runID": "fe3d89ab-637c-495d-b690-3074bfd2923e",
+     "tool": "save_space"
+    },
+    "created": "2026-11-23T20:23:04Z",
+    "id": "26b0777e-03a8-49f2-aca5-5759b5462af4",
+    "role": "tool",
+    "state": "complete"
+   },
+   {
+    "body": "Saved space “Purchasing”.",
+    "created": "2026-11-23T20:23:09Z",
+    "id": "092beee3-e103-4500-8d32-abe950a206e2",
+    "role": "assistant",
+    "state": "complete"
+   }
+  ]
+ },
+ "runs": [
+  {
+   "conversation_id": "a1067933-fa46-477e-b88f-26ed23303b92",
+   "created": "2026-11-23T20:22:45Z",
+   "id": "fe3d89ab-637c-495d-b690-3074bfd2923e",
+   "metrics": [
+    {
+     "acceptedDraftTokens": 68,
+     "activations": "bf16",
+     "backend": "splash",
+     "beforeDispatchSeconds": 4.73206375000882,
+     "contextTokens": 65536,
+     "decodeSeconds": 1.852079,
+     "deduplicatedKVTokens": 0,
+     "diagnosticRequestCacheIsolation": false,
+     "draftedTokens": 168,
+     "engineSHA256": "ce771e5f51081a2fd60df0ee0083f982a278a863ffaeab29fd590f55e9e36e89",
+     "firstAnswerPreviewSeconds": null,
+     "firstTokenSeconds": 1.524469500000123,
+     "generatedTokens": 93,
+     "grammarSHA256": "5b96c275e9c1a2e618a54a4814a6d9c0de116285e8ffd0814aea01a5c8eecdf1",
+     "headerInputs": "d74a9910f6872d28979e5b1b98f67d664559a8dab1952b72171d8f713b32cad4",
+     "headerRestarts": 0,
+     "headerResumed": true,
+     "headerTokens": 4145,
+     "helperStartSeconds": 4.725034041679464,
+     "hostPreparationSeconds": 6.129167741164565e-05,
+     "maintenanceRecommended": false,
+     "maintenanceThreshold": 49152,
+     "matchedPromptTokens": 4128,
+     "nextToolResultReserve": 3546,
+     "outputBudget": 1800,
+     "prefillSeconds": 1.50002,
+     "prefixPrimeMatchedTokens": 0,
+     "prefixPrimePrefillSeconds": 0,
+     "prefixPrimeSeconds": 0,
+     "prefixPrimeTokens": 0,
+     "promptTokens": 4842,
+     "reasoningBudget": 512,
+     "reasoningBudgetOverrun": 0,
+     "reasoningHistory": "within-request",
+     "reasoningTokens": 51,
+     "recoveryReserve": 256,
+     "replayBoundaryTokens": 4832,
+     "requestSeconds": 3.37655145835015,
+     "requestedContextTokens": 65536,
+     "requestedMemoryBytes": 12884901888,
+     "requestedOutputBudget": 1800,
+     "runtimeRelease": "1.6.1",
+     "scopePrefixTokens": 0,
+     "sessionSetupSeconds": 1.2391002916556317,
+     "speculativeMethod": "DFlash2",
+     "stablePrefixTokens": 4145,
+     "templateIdentity": "aee46acfcba8e4e7aec7512126b926aa311bf7414d0d96ad3b13a86d5bdfe9d3",
+     "toolScope": "all"
+    },
+    {
+     "callID": "call_8e8a3a75-a63a-4cf6-9ff3-22c5b2924562",
+     "draft": null,
+     "kind": "reasoning",
+     "note": null,
+     "outcome": null,
+     "step": 1,
+     "text": "The user wants me to create a view named \"Purchasing\" that shows:\n1. The Supplier comparison table\n2. A chart of total by supplier\n\nLet me first check what the supplier_comparison table looks like to understand its structure.",
+     "tool": "sql"
+    },
+    {
+     "acceptedDraftTokens": 46,
+     "activations": "bf16",
+     "backend": "splash",
+     "beforeDispatchSeconds": 0.0001428333343937993,
+     "contextTokens": 65536,
+     "decodeSeconds": 1.410655,
+     "deduplicatedKVTokens": 96,
+     "diagnosticRequestCacheIsolation": false,
+     "draftedTokens": 133,
+     "engineSHA256": "ce771e5f51081a2fd60df0ee0083f982a278a863ffaeab29fd590f55e9e36e89",
+     "firstAnswerPreviewSeconds": null,
+     "firstTokenSeconds": 0.9170443333277944,
+     "generatedTokens": 66,
+     "grammarSHA256": "5b96c275e9c1a2e618a54a4814a6d9c0de116285e8ffd0814aea01a5c8eecdf1",
+     "headerInputs": "d74a9910f6872d28979e5b1b98f67d664559a8dab1952b72171d8f713b32cad4",
+     "headerRestarts": 0,
+     "headerResumed": true,
+     "headerTokens": 4145,
+     "helperStartSeconds": 7.083290256559849e-07,
+     "hostPreparationSeconds": 5.962501745671034e-05,
+     "maintenanceRecommended": false,
+     "maintenanceThreshold": 49152,
+     "matchedPromptTokens": 4832,
+     "nextToolResultReserve": 3546,
+     "outputBudget": 1800,
+     "prefillSeconds": 0.913023,
+     "prefixPrimeMatchedTokens": 0,
+     "prefixPrimePrefillSeconds": 0,
+     "prefixPrimeSeconds": 0,
+     "prefixPrimeTokens": 0,
+     "promptTokens": 5040,
+     "reasoningBudget": 512,
+     "reasoningBudgetOverrun": 0,
+     "reasoningHistory": "within-request",
+     "reasoningTokens": 20,
+     "recoveryReserve": 256,
+     "replayBoundaryTokens": 5024,
+     "requestSeconds": 2.3276926249964163,
+     "requestedContextTokens": 65536,
+     "requestedMemoryBytes": 12884901888,
+     "requestedOutputBudget": 1800,
+     "runtimeRelease": "1.6.1",
+     "scopePrefixTokens": 0,
+     "sessionSetupSeconds": 0,
+     "speculativeMethod": "DFlash2",
+     "stablePrefixTokens": 4145,
+     "templateIdentity": "aee46acfcba8e4e7aec7512126b926aa311bf7414d0d96ad3b13a86d5bdfe9d3",
+     "toolScope": "all"
+    },
+    {
+     "callID": "call_1ecaebad-531a-471f-87ff-e736c5f7c391",
+     "draft": null,
+     "kind": "reasoning",
+     "note": null,
+     "outcome": null,
+     "step": 2,
+     "text": "Now I need to get the column information for the supplier_comparison table to create the view properly.",
+     "tool": "sql"
+    },
+    {
+     "acceptedDraftTokens": 318,
+     "activations": "bf16",
+     "backend": "splash",
+     "beforeDispatchSeconds": 0.00014645833289250731,
+     "contextTokens": 65536,
+     "decodeSeconds": 6.89513,
+     "deduplicatedKVTokens": 64,
+     "diagnosticRequestCacheIsolation": false,
+     "draftedTokens": 546,
+     "engineSHA256": "ce771e5f51081a2fd60df0ee0083f982a278a863ffaeab29fd590f55e9e36e89",
+     "firstAnswerPreviewSeconds": null,
+     "firstTokenSeconds": 0.9278198750107549,
+     "generatedTokens": 397,
+     "grammarSHA256": "5b96c275e9c1a2e618a54a4814a6d9c0de116285e8ffd0814aea01a5c8eecdf1",
+     "headerInputs": "d74a9910f6872d28979e5b1b98f67d664559a8dab1952b72171d8f713b32cad4",
+     "headerRestarts": 0,
+     "headerResumed": true,
+     "headerTokens": 4145,
+     "helperStartSeconds": 5.416804924607277e-07,
+     "hostPreparationSeconds": 7.345833000726998e-05,
+     "maintenanceRecommended": false,
+     "maintenanceThreshold": 49152,
+     "matchedPromptTokens": 5024,
+     "nextToolResultReserve": 3546,
+     "outputBudget": 1800,
+     "prefillSeconds": 0.923498,
+     "prefixPrimeMatchedTokens": 0,
+     "prefixPrimePrefillSeconds": 0,
+     "prefixPrimeSeconds": 0,
+     "prefixPrimeTokens": 0,
+     "promptTokens": 5208,
+     "reasoningBudget": 512,
+     "reasoningBudgetOverrun": 0,
+     "reasoningHistory": "within-request",
+     "reasoningTokens": 220,
+     "recoveryReserve": 256,
+     "replayBoundaryTokens": 5184,
+     "requestSeconds": 7.822951374982949,
+     "requestedContextTokens": 65536,
+     "requestedMemoryBytes": 12884901888,
+     "requestedOutputBudget": 1800,
+     "runtimeRelease": "1.6.1",
+     "scopePrefixTokens": 0,
+     "sessionSetupSeconds": 0,
+     "speculativeMethod": "DFlash2",
+     "stablePrefixTokens": 4145,
+     "templateIdentity": "aee46acfcba8e4e7aec7512126b926aa311bf7414d0d96ad3b13a86d5bdfe9d3",
+     "toolScope": "all"
+    },
+    {
+     "callID": "call_93ad160e-204c-4ae5-851f-91842071b93e",
+     "draft": null,
+     "kind": "reasoning",
+     "note": null,
+     "outcome": null,
+     "step": 3,
+     "text": "Now I have the column information:\n- supplier (TEXT)\n- quantity (REAL)\n- unit_cost (REAL)\n- total (REAL GENERATED)\n\nI need to create a view named \"Purchasing\" that shows:\n1. A table component showing the supplier_comparison table\n2. A chart component showing total by supplier\n\nFor the view, I need:\n- title: \"Purchasing\"\n- definition with version: 1\n- components array with:\n  - A table component with datasetID = \"1f32e2d8-e15c-49d6-98d2-da49f14cd077\" (supplier_comparison)\n  - A chart component that shows total by supplier\n\nFor the chart, I need to understand what columns to use. The chart should show total by supplier, so:\n- x would be \"supplier\" (the supplier column id)\n- y would be \"total\" (the total column id)\n\nLet me save this view.",
+     "tool": "save"
+    },
+    {
+     "acceptedDraftTokens": 92,
+     "activations": "bf16",
+     "backend": "splash",
+     "beforeDispatchSeconds": 0.00017133334768004715,
+     "contextTokens": 65536,
+     "decodeSeconds": 3.472709,
+     "deduplicatedKVTokens": 256,
+     "diagnosticRequestCacheIsolation": false,
+     "draftedTokens": 273,
+     "engineSHA256": "ce771e5f51081a2fd60df0ee0083f982a278a863ffaeab29fd590f55e9e36e89",
+     "firstAnswerPreviewSeconds": 3.6059399166842923,
+     "firstTokenSeconds": 1.4646712916728575,
+     "generatedTokens": 132,
+     "grammarSHA256": "5b96c275e9c1a2e618a54a4814a6d9c0de116285e8ffd0814aea01a5c8eecdf1",
+     "headerInputs": "d74a9910f6872d28979e5b1b98f67d664559a8dab1952b72171d8f713b32cad4",
+     "headerRestarts": 0,
+     "headerResumed": true,
+     "headerTokens": 4145,
+     "helperStartSeconds": 5.833280738443136e-07,
+     "hostPreparationSeconds": 8.862500544637442e-05,
+     "maintenanceRecommended": false,
+     "maintenanceThreshold": 49152,
+     "matchedPromptTokens": 5184,
+     "nextToolResultReserve": 3546,
+     "outputBudget": 1800,
+     "prefillSeconds": 1.460318,
+     "prefixPrimeMatchedTokens": 0,
+     "prefixPrimePrefillSeconds": 0,
+     "prefixPrimeSeconds": 0,
+     "prefixPrimeTokens": 0,
+     "promptTokens": 5697,
+     "reasoningBudget": 512,
+     "reasoningBudgetOverrun": 0,
+     "reasoningHistory": "within-request",
+     "reasoningTokens": 56,
+     "recoveryReserve": 256,
+     "replayBoundaryTokens": 5664,
+     "requestSeconds": 4.9373416250164155,
+     "requestedContextTokens": 65536,
+     "requestedMemoryBytes": 12884901888,
+     "requestedOutputBudget": 1800,
+     "runtimeRelease": "1.6.1",
+     "scopePrefixTokens": 0,
+     "sessionSetupSeconds": 0,
+     "speculativeMethod": "DFlash2",
+     "stablePrefixTokens": 4145,
+     "templateIdentity": "aee46acfcba8e4e7aec7512126b926aa311bf7414d0d96ad3b13a86d5bdfe9d3",
+     "toolScope": "all"
+    },
+    {
+     "callID": "call_90e607b6-d0ee-465c-a045-7ec0d1442d64",
+     "draft": null,
+     "kind": "reasoning",
+     "note": null,
+     "outcome": null,
+     "step": 4,
+     "text": "The view has been saved successfully. It contains:\n1. A table showing the Supplier Comparison data\n2. A chart showing total by supplier (using the supplier column for x-axis and total column for y-axis)\n\nThe view is now created and ready to use.",
+     "tool": "finish"
+    }
+   ],
+   "model": "Splash 1.6.1; d8af1054aab0f97de21d043e01aa98af3754f10e; Qwen3.6-35B-A3B-4bit + DFlash2; native Swift candidate; context 65536; memory 12884901888; activations bf16; KV int8; state fp32; ANE on; reasoning budget 512; within-request reasoning retained",
+   "request_message_id": "9f906e37-46cd-4c65-b53f-8f2a26d5cc9f",
+   "status": "complete",
+   "steps": 4,
+   "updated": "2026-11-23T20:23:09Z"
+  }
+ ],
+ "saved": {
+  "newSpaces": [
+   {
+    "title": "Purchasing",
+    "version": 1,
+    "components": [
+     "table",
+     "chart"
+    ]
+   }
+  ]
+ }
+}

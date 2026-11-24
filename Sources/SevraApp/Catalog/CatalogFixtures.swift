@@ -252,11 +252,11 @@ import SevraVoice
             }
           }
         }
-        if ["Answered", "Declined", "Cancelled"].contains(variant) || id == "chat.continuation" {
+        if ["Answered", "Skipped", "Cancelled"].contains(variant) || id == "chat.continuation" {
           _ = try b.submitConversationInput(
             input,
             response: variant == "Cancelled"
-              ? .cancel : variant == "Declined" ? .decline : .fields(["answer": answer]))
+              ? .cancel : variant == "Skipped" ? .decline : .fields(["answer": answer]))
         }
       }
     } else if variant != "Empty" || !id.hasPrefix("chat.") {

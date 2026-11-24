@@ -2,6 +2,20 @@ import Foundation
 import SevraCore
 
 package enum NativeTools {
+  /// The order the grammar makes the model write an object's fields in: the required fields
+  /// in the order the schema lists them, then componentID and definitionBinding, then the
+  /// rest by name. A field the model has passed cannot be written later, so every shape shown
+  /// to the model lists its fields in this order. `SplashToolPolicy.propertyOrder` is the grammar's
+  /// copy, and the agent checks hold the two equal.
+  package static func fieldOrder(_ schema: Value) -> [String] {
+    let properties = schema["properties"].object
+    let required = schema["required"].array.map(\.text).filter { properties[$0] != nil }
+    let selectors = ["componentID", "definitionBinding"].filter {
+      properties[$0] != nil && !required.contains($0)
+    }
+    let first = required + selectors
+    return first + properties.keys.filter { !first.contains($0) }.sorted()
+  }
   static func schema(_ type: String, _ description: String) -> Value {
     .object(["type": .string(type), "description": .string(description)])
   }
@@ -92,11 +106,11 @@ package enum NativeTools {
         "allowTextReply": .object(["type": .string("boolean"), "const": .bool(true)]),
       ], required: ["kind", "purpose", "question", "fields", "choices", "allowTextReply"]))
 
-  static func componentSchema(depth: Int) -> Value {
+  package static func componentSchema(depth: Int) -> Value {
     var types = [
       "table", "chart", "metric", "document", "asset", "search", "text", "input", "reviews",
       "shortcuts", "tables", "intake", "recent", "form", "calculation", "query", "app",
-      "attention", "continue", "image", "visual",
+      "attention", "continue", "image", "visual", "button",
     ]
     if depth < 3 { types.append("comparison") }
     var fields: [String: Value] = [
@@ -131,6 +145,10 @@ package enum NativeTools {
       "y": schema("string", "REQUIRED for chart. Existing numeric or calculated column ID."),
       "query": schema("string", "Search component query. Not used by charts."),
       "text": schema("string", "Text component content."),
+      "size": .object([
+        "type": .string("string"),
+        "enum": .array(["small", "medium", "large"].map(Value.string)),
+      ]),
     ]
     if depth < 3 {
       fields["children"] = .object([

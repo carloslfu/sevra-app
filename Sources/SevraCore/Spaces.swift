@@ -31,6 +31,9 @@ public struct Component: Codable, Identifiable, Equatable, Sendable {
   public var chartStyle: String?
   public var aggregation: String?
   public var unit: String?
+  /// How large a table, chart, metric, text or button draws: small, medium or large. Medium
+  /// when absent. See `SpaceDefinition.sizedTypes`.
+  public var size: String?
   public var children: [Component]?
   public var snapshot: ComponentSnapshot?
   public var searchSnapshot: ComponentSearchSnapshot?
@@ -45,7 +48,8 @@ public struct Component: Codable, Identifiable, Equatable, Sendable {
     searchSnapshot: ComponentSearchSnapshot? = nil, definitionBinding: Value? = nil,
     arguments: Value? = nil, evaluationSnapshot: DefinitionResultSnapshot? = nil,
     spaceID: String? = nil, visual: VisualDefinition? = nil, viewID: String? = nil,
-    viewVersion: Int? = nil, presentationID: String? = nil, visualOrigin: VisualOrigin? = nil
+    viewVersion: Int? = nil, presentationID: String? = nil, visualOrigin: VisualOrigin? = nil,
+    size: String? = nil
   ) {
     self.id = id
     self.type = type
@@ -65,6 +69,7 @@ public struct Component: Codable, Identifiable, Equatable, Sendable {
     self.chartStyle = chartStyle
     self.aggregation = aggregation
     self.unit = unit
+    self.size = size
     self.children = children
     self.snapshot = snapshot
     self.searchSnapshot = searchSnapshot
@@ -220,7 +225,11 @@ extension Workbook {
       try require(
         (c.viewID == nil && c.viewVersion == nil && c.presentationID == nil)
           || (c.type == "app" && c.viewID != nil && c.viewVersion != nil),
-        "visual", "A declared view requires an exact app version.")
+        "visual",
+        c.type == "app"
+          ? "A declared view requires an exact app version."
+          : "Only an app component takes viewID, viewVersion and presentationID. A \(c.type) does not: leave them out."
+      )
 
       if c.type == "app" {
         try require(
@@ -269,16 +278,38 @@ extension Workbook {
         }
         let target = try resolveDefinition(DefinitionBinding(binding))
         try require(target.kind == "form", "view", "Bind a form component to a form definition.")
+      } else if c.type == "button" {
+        // A button runs a saved tool when pressed. It shows no values, so there is nothing of
+        // it to freeze. One saved before buttons ran tools stays movable and removable; it
+        // says on screen that it names no tool.
+        try require(definition.pinnedAt == nil, "view", "A button cannot be frozen in a snapshot.")
+        if !unchanged.contains(c) {
+          try require(
+            c.datasetID == nil && c.itemID == nil && c.snapshot == nil && c.searchSnapshot == nil
+              && c.evaluationSnapshot == nil, "view",
+            "A button runs a saved tool: it takes definitionBinding, arguments and size.")
+          try checkButton(try ViewButton(c))
+        }
       } else {
         try require(
           c.definitionBinding == nil && c.arguments == nil && c.evaluationSnapshot == nil, "view",
-          "Only qualified forms and computation views take definition bindings.")
+          "Only buttons, qualified forms and computation views take definition bindings.")
       }
       if SpaceDefinition.sectionTypes.contains(c.type) {
         try require(
           definition.pinnedAt == nil && c.datasetID == nil && c.itemID == nil
             && c.snapshot == nil && c.searchSnapshot == nil, "view",
           "Workbook sections are live host views and cannot carry snapshot or data bindings.")
+      }
+      if let size = c.size {
+        try require(
+          SpaceDefinition.sizes.contains(size), "view", "size is small, medium or large.")
+        try require(
+          SpaceDefinition.sizedTypes.contains(c.type) && (c.type != "visual" || c.visual?.chart != nil),
+          "view",
+          "A \(c.type == "visual" ? "visual that is not a chart" : c.type) has no size. size changes a "
+            + SpaceDefinition.sizedTypes.dropLast().joined(separator: ", ") + " or "
+            + SpaceDefinition.sizedTypes.last! + ", and a visual only when it is a chart.")
       }
       if ["table", "chart", "metric"].contains(c.type) {
         guard let id = c.datasetID else {
@@ -291,7 +322,9 @@ extension Workbook {
         // A snapshot answers for the columns it saved, whatever the table has become.
         let columns =
           definition.pinnedAt == nil ? table.columns : c.snapshot?.columns ?? table.columns
-        if ["chart", "metric"].contains(c.type), !unchanged.contains(c) {
+        // A count is of rows, so it needs no column. Every other number is of one.
+        let countsRows = c.type == "metric" && c.aggregation == "COUNT" && c.y == nil
+        if ["chart", "metric"].contains(c.type), !unchanged.contains(c), !countsRows {
           try require(
             columns.contains { $0.id == c.y }, "view",
             "Set y to an existing dataset column ID, not a layout position. Inspect datasets for column IDs."

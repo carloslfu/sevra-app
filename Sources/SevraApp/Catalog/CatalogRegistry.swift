@@ -145,6 +145,7 @@ enum CatalogRegistry {
       ("customized", "Customized Home"), ("empty", "Explicitly empty Home"),
       ("embedded", "Embedded mini app"), ("layout", "Layout and history"),
       ("comparison", "Responsive comparison"), ("limits", "Composition limits"),
+      ("counter", "Count with a button"),
     ] {
       add(
         "home." + id, title, "Home & spaces", "Sources/SevraApp/HomeViews.swift",
@@ -191,7 +192,7 @@ enum CatalogRegistry {
       add(
         "chat.field." + type, type.capitalized + " input", "Chat",
         "Sources/SevraPreviewUI/ConversationInputView.swift",
-        ["Default", "Draft", "Conflict", "Answered", "Declined", "Cancelled"],
+        ["Default", "Draft", "Conflict", "Answered", "Skipped", "Cancelled"],
         "Typed input persists through the real conversation input lifecycle.", ["field." + type])
     }
     for kind in [

@@ -319,10 +319,10 @@ extension WorkbookTools {
       let schema: [String: Value] = [
         "version": .number(1),
         "aggregate": .string(
-          "For totals or counts by one category, call visual.evaluate with aggregate:{title,datasetID,definitionID,category,measure,reducer,style?}. category and measure are column IDs. Use reducer=sum for totals, countRows for record counts (omit measure), or average, min, max or count. Default style is bar. Default scope is accepted actual in scenario actual. To use a different scope supply scope:{meaning,status,scenario}."
+          "For totals or counts by one category, call visual.evaluate with aggregate:{title,datasetID,category,measure,reducer,style?}. datasetID is a table's id from SELECT name, id FROM tables. category and measure are column ids from SELECT table_name, name, id FROM columns. Use reducer=sum for totals, countRows for record counts (omit measure), or average, min, max or count. style is bar, horizontalBar or line, and bar when left out. Example: aggregate:{title:\"Orders by status\",datasetID:the table's id,category:\"status\",reducer:\"countRows\"}. An aggregate draws one mark for each category; for one number with no grouping, put a metric component in a view instead. Default scope is accepted actual in scenario actual. To use a different scope supply scope:{meaning,status,scenario}. Leave definitionID out to use the table as it is now."
         ),
         "chart": .string(
-          "For visual.evaluate or visual.pin, pass chart {title,style:bar|horizontalBar|stackedBar|line|area|scatter|donut|histogram|heatmap|metric|table|records,x,y,series?,threshold?,periods?,annotations?,dataBars?,query}. For metrics, periods declares current and optional baseline as {key,start,end,observedThrough?} with ISO dates and end exclusive. Supply either chart or sourceID, never both. x, y and optional series are output IDs. Series are supported on bars and lines; stackedBar requires series. query {sources:[{datasetID,definitionID,scope:{meaning,status,scenario}}],select:[{id,column:{source:0,column},aggregate?}],groupBy?:[{source,column}],sort?:[{field,descending}],filters?:[{column:{source,column},op,value}],limit:100}. Omit groupBy/aggregate for exact rows. Use sum/average/min/max/count/countRows, with no column for countRows. No partial results. For app views use [{table:alias,scope}] as sources."
+          "For visual.evaluate or visual.pin, pass chart {title,style:bar|horizontalBar|stackedBar|line|area|scatter|donut|histogram|heatmap|metric|table|records,x,y,series?,threshold?,periods?,annotations?,dataBars?,query}. For metrics, periods declares current and optional baseline as {key,start,end,observedThrough?} with ISO dates and end exclusive. Supply either chart or sourceID, never both. x, y and optional series are output IDs. Series are supported on bars and lines; stackedBar requires series. query {sources:[{datasetID,definitionID?,scope?:{meaning,status,scenario}}],select:[{id,column:{source:0,column},aggregate?}],groupBy?:[{source,column}],sort?:[{field,descending}],filters?:[{column:{source,column},op,value}],limit:100}. Omit groupBy/aggregate for exact rows. Use sum/average/min/max/count/countRows, with no column for countRows. No partial results. datasetID is a table's id from SELECT name, id FROM tables; leave definitionID out to use the table as it is now. For app views use [{table:alias,scope}] as sources."
         ),
         "queryExtensions": .string(
           "An Excel source may declare excelRows:{firstRow,lastRow,excludeRows:[row numbers]}. projections:[{column:{source,column},format:decimal|en-US|de-DE|isoDate|isoInstant|mdy|dmy|excel1900|excel1904,bucket?:day|week|month|year,timeZone?,binWidth?,binOrigin?}]. Supply bin settings as decimal strings. Histograms group by a numeric bin and countRows. Heatmaps use x and series as category dimensions. Grouped joins require joins:[{kind,left:{source,column},right,cardinality:manyToOne}]."
@@ -595,7 +595,9 @@ extension WorkbookTools {
         "visual", "Image captions and descriptions apply only to images.")
     }
     if let raw = a.object["aggregate"] { return try VisualDefinition(chart: aggregateChart(raw)) }
-    if let raw = a.object["chart"] { return try VisualDefinition(chart: VisualChart.parse(raw)) }
+    if let raw = a.object["chart"] {
+      return try VisualDefinition(chart: VisualChart.parse(currentSources(raw)))
+    }
     if let raw = a.object["work"] { return try VisualDefinition(work: WorkVisual.parse(raw)) }
     if let raw = a.object["diagram"] {
       return try VisualDefinition(diagram: VisualDiagram.parse(raw))
@@ -613,6 +615,24 @@ extension WorkbookTools {
       accessibilityDescription: a["accessibilityDescription"].string)
   }
 
+  /// A chart written in chat may leave a source's definitionID out, which means the table as
+  /// it is now. A saved chart always carries the one it was written against.
+  private func currentSources(_ chart: Value) throws -> Value {
+    guard case .object(var fields) = chart, case .object(var query) = fields["query"],
+      case .array(let sources) = query["sources"]
+    else { return chart }
+    query["sources"] = .array(
+      try sources.map { entry in
+        guard case .object(var source) = entry, source["definitionID"] == nil,
+          let dataset = source["datasetID"]?.string
+        else { return entry }
+        source["definitionID"] = .string(try workbook.datasetDefinition(dataset).id)
+        return .object(source)
+      })
+    fields["query"] = .object(query)
+    return .object(fields)
+  }
+
   private func aggregateChart(_ raw: Value) throws -> VisualChart {
     _ = try queryObject(
       raw,
@@ -623,13 +643,38 @@ extension WorkbookTools {
     let category = raw["category"].text
     let measure = raw["measure"].string
     let style = raw["style"].string.flatMap(VisualChart.Style.init(rawValue:)) ?? .bar
+    // One message for each thing that can be wrong. A single message for all of them sent
+    // the model after the category and the measure when only the style was at fault.
+    let reducers = ["sum", "countRows", "count", "average", "min", "max"]
+    let oneNumber = " For one number with no grouping, put a metric component in a view instead."
     try require(
-      ["sum", "countRows", "count", "average", "min", "max"].contains(reducer)
-        && [.bar, .horizontalBar, .line].contains(style)
-        && (raw["style"] == .null || raw["style"] == .string(style.rawValue))
-        && !category.isEmpty
-        && (reducer == "countRows" ? measure == nil : !(measure?.isEmpty ?? true)),
-      "visual_chart", "Use a category, compatible reducer, and measure unless counting rows.")
+      reducers.contains(reducer), "visual_chart",
+      "aggregate needs reducer, one of " + reducers.joined(separator: ", ") + ".")
+    try require(
+      [.bar, .horizontalBar, .line].contains(style)
+        && (raw["style"] == .null || raw["style"] == .string(style.rawValue)),
+      "visual_chart",
+      "An aggregate's style is bar, horizontalBar or line, and bar when left out. It draws one mark for each category."
+        + oneNumber)
+    try require(
+      !category.isEmpty, "visual_chart",
+      "aggregate needs category, the id of the column to group by." + oneNumber)
+    try require(
+      reducer != "countRows" || measure == nil, "visual_chart",
+      "Leave measure out with reducer countRows, which counts the rows of each category.")
+    try require(
+      reducer == "countRows" || !(measure?.isEmpty ?? true), "visual_chart",
+      "reducer " + reducer + " needs measure, the id of a column of the table.")
+    let dataset = raw["datasetID"].text
+    try require(
+      !dataset.isEmpty, "visual_chart",
+      "aggregate needs datasetID, a table's id from SELECT name, id FROM tables.")
+    // Left out, the definition is the table as it is now. The table's own id is not one.
+    let current = try workbook.datasetDefinition(dataset).id
+    try require(
+      raw["definitionID"] == .null || raw["definitionID"] == .string(current), "stale_schema",
+      "definitionID is not this table's current definition. Leave definitionID out to use the table as it is now."
+    )
     func ref(_ column: String) -> Value {
       .object(["source": .number(0), "column": .string(column)])
     }
@@ -644,7 +689,7 @@ extension WorkbookTools {
     let query: Value = .object([
       "sources": .array([
         .object([
-          "datasetID": raw["datasetID"], "definitionID": raw["definitionID"],
+          "datasetID": .string(dataset), "definitionID": .string(current),
           "scope": scope,
         ])
       ]),

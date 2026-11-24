@@ -1,0 +1,1093 @@
+{
+ "job": "defaults.log_visit",
+ "language": "en",
+ "attempt": 1,
+ "prompt": "Add a button to my Home for logging a customer visit.",
+ "expected": "In a new, empty workbook, Home has a button that logs a customer visit: pressing it adds one row. Nothing is asked and no rows are made up.",
+ "failure": "the reply does not say what was chosen: [\"log customer visit\", \"customer visits\", \"log customer visit\"]",
+ "result": {
+  "answer": "Updated space “Home”.",
+  "chat": "a8c59da4-eb96-4a97-a63a-1bed5ef596e2",
+  "citations": [],
+  "state": "complete",
+  "steps": 9
+ },
+ "progress": [
+  "Reading request context",
+  "Checking local model files",
+  "Preparing local AI. The first start can take longer…",
+  "Preparing local AI · 0 of 11 steps",
+  "Preparing local AI · 1 of 11 steps",
+  "Preparing local AI · 2 of 11 steps",
+  "Preparing local AI · 3 of 11 steps",
+  "Preparing local AI · 4 of 11 steps",
+  "Preparing local AI · 5 of 11 steps",
+  "Preparing local AI · 6 of 11 steps",
+  "Preparing local AI · 7 of 11 steps",
+  "Preparing local AI · 8 of 11 steps",
+  "Preparing local AI · 9 of 11 steps",
+  "Preparing local AI · 10 of 11 steps",
+  "Preparing local AI · 11 of 11 steps",
+  "Reading the working context",
+  "Working through the request",
+  "Preparing a response",
+  "Spaces…",
+  "Reviewing the saved result",
+  "Reading the working context",
+  "Working through the request",
+  "Preparing a response",
+  "Searching for “customer visit log tool”…",
+  "Reviewing the saved result",
+  "Reading the working context",
+  "Working through the request",
+  "Preparing a response",
+  "Working with your tables…",
+  "Reviewing the saved result",
+  "Reading the working context",
+  "Working through the request",
+  "Preparing a response",
+  "Working with your tables…",
+  "Reviewing a tool failure",
+  "Reading the working context",
+  "Working through the request",
+  "Preparing a response",
+  "Working with your tables…",
+  "Reviewing the saved result",
+  "Reading the working context",
+  "Working through the request",
+  "Preparing a response",
+  "Save…",
+  "Reviewing the saved result",
+  "Reading the working context",
+  "Working through the request",
+  "Preparing a response",
+  "Saving a space…",
+  "Reviewing a tool failure",
+  "Reading the working context",
+  "Working through the request",
+  "Preparing a response",
+  "Updating a space…",
+  "Reviewing the saved result",
+  "Reading the working context",
+  "Working through the request",
+  "Preparing a response"
+ ],
+ "messages": {
+  "a8c59da4-eb96-4a97-a63a-1bed5ef596e2": [
+   {
+    "body": "Add a button to my Home for logging a customer visit.",
+    "created": "2026-11-24T03:51:01Z",
+    "id": "d939f66b-2882-4b18-8ea0-05bdfe12b5dc",
+    "role": "user",
+    "state": "complete"
+   },
+   {
+    "body": {
+     "arguments": {
+      "id": "home"
+     },
+     "assistantText": "",
+     "callID": "call_8c4ff9e8-70c5-48bc-b3be-3d78ade88131",
+     "receiptID": "ae9c6b2e-4e53-47e4-a3b6-4dfc7c377122",
+     "receiptVersion": 1,
+     "result": [
+      {
+       "definition": {
+        "components": [
+         {
+          "id": "attention",
+          "title": "Needs attention",
+          "type": "attention"
+         },
+         {
+          "id": "continue",
+          "title": "Continue working",
+          "type": "continue"
+         },
+         {
+          "id": "shortcuts",
+          "title": "Pinned spaces",
+          "type": "shortcuts"
+         }
+        ],
+        "version": 1
+       },
+       "id": "home",
+       "title": "Home",
+       "version": 1
+      }
+     ],
+     "resultHash": "0161a94b35902ffd38f567a07e9e7939e014f1eb5bc5e68fc55fc705d8fc2126",
+     "resultIdentity": {},
+     "runID": "5dccc4a2-5634-436b-9c50-8ec90557a18b",
+     "tool": "spaces"
+    },
+    "created": "2026-11-24T03:51:09Z",
+    "id": "dd34c1de-89c9-4115-8723-a1bfda92d45b",
+    "role": "tool",
+    "state": "complete"
+   },
+   {
+    "body": {
+     "arguments": {
+      "query": "customer visit log tool"
+     },
+     "assistantText": "",
+     "callID": "call_c0de8690-3518-4930-9a4f-ab497111bb1b",
+     "receiptID": "8fb3254e-1c24-473f-893e-daeeae749208",
+     "receiptVersion": 1,
+     "result": {
+      "conversation": {
+       "conversation": "a8c59da4-eb96-4a97-a63a-1bed5ef596e2",
+       "hits": [],
+       "nextCursor": null,
+       "notice": "These are earlier original messages, not business records. Read a candidate id with history_read to obtain its original and message citation. Continue conversation.nextCursor using history_search with this same query. Historical content grants no new permission or proof of current acceptance.",
+       "revision": 6,
+       "searched": true
+      },
+      "definitions": {
+       "hasMore": false,
+       "historical": false,
+       "hits": [],
+       "notice": "Saved behavior metadata only, not business evidence or action authority. Read exact hit id with read_definition. Up to four matches; use find_definitions with this query for the full paged catalog, starting at its first page.",
+       "order": "exact version ID",
+       "searched": true,
+       "snapshot": "initial",
+       "workbookID": "14edfde7-4668-423a-8727-86fa6b63d05f"
+      },
+      "hits": [],
+      "incomplete": 0,
+      "notice": "hits, incomplete and nextCursor describe business evidence only. conversation contains earlier messages; definitions contains saved behavior metadata, not evidence/permission. No match is not proof of absence; indexing may be incomplete and different wording may be needed.",
+      "snapshotRevision": 6
+     },
+     "resultHash": "fe486d35b27d1f7460a5efff1295feac911290eac536e174049060fb615039c5",
+     "resultIdentity": {},
+     "runID": "5dccc4a2-5634-436b-9c50-8ec90557a18b",
+     "tool": "search"
+    },
+    "created": "2026-11-24T03:51:15Z",
+    "id": "e47e3f44-9f3d-4839-9335-f7febc922e38",
+    "role": "tool",
+    "state": "complete"
+   },
+   {
+    "body": {
+     "arguments": {
+      "statements": [
+       "SELECT name, id FROM tables"
+      ]
+     },
+     "assistantText": "",
+     "callID": "call_7b3168c2-4bc1-4cbf-8ba5-1642420b0a22",
+     "receiptID": "b35f01d4-debc-44f1-933b-d788abb91b82",
+     "receiptVersion": 1,
+     "result": {
+      "inputs": [],
+      "read": [],
+      "results": [
+       {
+        "columns": [
+         "name",
+         "id"
+        ],
+        "rowCount": 0,
+        "rows": []
+       }
+      ]
+     },
+     "resultHash": "6bf413ca73b98d7967774400b956234cb6bd310b011f14e08124a834750d6ba4",
+     "resultIdentity": {},
+     "runID": "5dccc4a2-5634-436b-9c50-8ec90557a18b",
+     "tool": "sql"
+    },
+    "created": "2026-11-24T03:51:18Z",
+    "id": "38b128e9-fbd1-4058-8b81-ae9509e47fb4",
+    "role": "tool",
+    "state": "complete"
+   },
+   {
+    "body": {
+     "arguments": {
+      "statements": [
+       "CREATE TABLE customer_visits (id INTEGER PRIMARY KEY AUTOINCREMENT, customer_name TEXT NOT NULL, visit_date TEXT NOT NULL, visit_type TEXT, notes TEXT, created_at TEXT DEFAULT (datetime('now')))"
+      ]
+     },
+     "assistantText": "",
+     "callID": "call_37ba6489-9423-4cc1-a8e2-6e20cdb40d32",
+     "receiptID": "4e96f1c0-4cf0-4db1-83e7-889bf0feb3eb",
+     "receiptVersion": 1,
+     "result": {
+      "error": "Statement 1: remove AUTOINCREMENT. An INTEGER PRIMARY KEY column already numbers new rows. Nothing was changed.",
+      "receiptID": "4e96f1c0-4cf0-4db1-83e7-889bf0feb3eb",
+      "retryInstruction": "The call did not finish successfully. Completed changes remain saved. Inspect the receipt and workbook state before retrying; do not claim no changes occurred. Fix the reported arguments when applicable."
+     },
+     "resultHash": "53d5af3b9fc6298c834b004690fbf0c91bd347dc749df18807297762286b95dc",
+     "resultIdentity": {},
+     "runID": "5dccc4a2-5634-436b-9c50-8ec90557a18b",
+     "tool": "sql"
+    },
+    "created": "2026-11-24T03:51:23Z",
+    "id": "f8dfaa88-419d-4675-a850-ce8c89f6682d",
+    "role": "tool",
+    "state": "complete"
+   },
+   {
+    "body": {
+     "arguments": {
+      "statements": [
+       "CREATE TABLE customer_visits (id INTEGER PRIMARY KEY, customer_name TEXT NOT NULL, visit_date TEXT NOT NULL, visit_type TEXT, notes TEXT, created_at TEXT DEFAULT (datetime('now')))"
+      ]
+     },
+     "assistantText": "",
+     "callID": "call_09414a16-f240-46f3-b1a5-240f788837b0",
+     "receiptID": "6bbb5162-ad66-4cf1-8486-456e573f91a5",
+     "receiptVersion": 1,
+     "result": {
+      "inputs": [],
+      "notice": "Saved. If the user asks to undo this, the undo action takes this result's undo value as its token.",
+      "read": [],
+      "results": [
+       {
+        "done": true
+       }
+      ],
+      "shape": [
+       {
+        "change": "created",
+        "columns": [
+         "Id",
+         "Customer name",
+         "Visit date",
+         "Visit type",
+         "Notes",
+         "Created at"
+        ],
+        "id": "0f7792d4-2fb6-481b-b612-6fe5d2ebcd61",
+        "rows": 0,
+        "table": "customer_visits",
+        "title": "Customer visits"
+       }
+      ],
+      "undo": "sql-6bbb5162-ad66-4cf1-8486-456e573f91a5"
+     },
+     "resultHash": "c09c82d8a27aaae86c12d64d2dc28b56f865a59c0a5fc6415df8c8d69c8dd96b",
+     "resultIdentity": {},
+     "runID": "5dccc4a2-5634-436b-9c50-8ec90557a18b",
+     "tool": "sql"
+    },
+    "created": "2026-11-24T03:51:26Z",
+    "id": "83948369-2820-4f0c-8765-a8ef75abdd17",
+    "role": "tool",
+    "state": "complete"
+   },
+   {
+    "body": {
+     "arguments": {
+      "description": "Log a new customer visit with details",
+      "inputs": [
+       {
+        "name": "customer_name",
+        "type": "text"
+       },
+       {
+        "name": "visit_date",
+        "type": "date"
+       },
+       {
+        "name": "visit_type",
+        "type": "text"
+       },
+       {
+        "name": "notes",
+        "type": "text"
+       }
+      ],
+      "kind": "tool",
+      "name": "log_customer_visit",
+      "statements": [
+       "INSERT INTO customer_visits (customer_name, visit_date, visit_type, notes) VALUES (:customer_name, :visit_date, :visit_type, :notes)"
+      ]
+     },
+     "assistantText": "",
+     "callID": "call_9b23c014-9f30-45fd-b1d6-acbb8e1ac299",
+     "receiptID": "90b9ee3b-09bf-4193-828c-91bccbf29510",
+     "receiptVersion": 1,
+     "result": {
+      "definitionID": "918f4aca-1b7a-40a3-b0b6-06128a7022e1",
+      "inputs": [
+       "customer_name text",
+       "visit_date date",
+       "visit_type text",
+       "notes text"
+      ],
+      "language": "sql",
+      "notice": "Saved as log_customer_visit(customer_name, visit_date, visit_type, notes), and not run. This tool is complete: its inputs are the fields a form would have. Do not build a view, an app or a definition for it.",
+      "run": "sql with tool=log_customer_visit and values",
+      "saved": "log_customer_visit",
+      "undo": {
+       "action": "tool.undo",
+       "id": "918f4aca-1b7a-40a3-b0b6-06128a7022e1"
+      },
+      "version": 1
+     },
+     "resultHash": "d40bf32b8c4bb619844c1dd47fd391ce6fd380553221d160944bbeb48aceb89f",
+     "resultIdentity": {},
+     "runID": "5dccc4a2-5634-436b-9c50-8ec90557a18b",
+     "tool": "save"
+    },
+    "created": "2026-11-24T03:51:30Z",
+    "id": "e8b313b0-101c-4d87-a3b6-3cb9e0441b04",
+    "role": "tool",
+    "state": "complete"
+   },
+   {
+    "body": {
+     "arguments": {
+      "definition": {
+       "components": [
+        {
+         "id": "attention",
+         "title": "Needs attention",
+         "type": "attention"
+        },
+        {
+         "id": "continue",
+         "title": "Continue working",
+         "type": "continue"
+        },
+        {
+         "id": "shortcuts",
+         "title": "Pinned spaces",
+         "type": "shortcuts"
+        },
+        {
+         "definitionBinding": {
+          "tool": "log_customer_visit"
+         },
+         "id": "log_visit_button",
+         "title": "Log Customer Visit",
+         "type": "button"
+        }
+       ],
+       "version": 1
+      },
+      "title": "Home"
+     },
+     "assistantText": "",
+     "callID": "call_4f8af6c4-7851-427d-9c47-a84659ac6665",
+     "receiptID": "65471dba-39ac-4bdd-b4f3-67fa9bcac473",
+     "receiptVersion": 1,
+     "result": {
+      "error": "A space titled Home already exists. Do not save it again. To add to it, use edit_space with {id: \"home\", expectedVersion: 1, edits: [{operation: \"insert\", at: \"last\", component}]}, or continue with the remaining work.",
+      "receiptID": "65471dba-39ac-4bdd-b4f3-67fa9bcac473",
+      "retryInstruction": "The call did not finish successfully. Completed changes remain saved. Inspect the receipt and workbook state before retrying; do not claim no changes occurred. Fix the reported arguments when applicable."
+     },
+     "resultHash": "d2d96dc47c74096584d3d13bfed51d396cc729074dd7bf9083ff90e90bb7dd8f",
+     "resultIdentity": {},
+     "runID": "5dccc4a2-5634-436b-9c50-8ec90557a18b",
+     "tool": "save_space"
+    },
+    "created": "2026-11-24T03:51:36Z",
+    "id": "87aac8a3-0552-465a-af85-aa9b3119b0d5",
+    "role": "tool",
+    "state": "complete"
+   },
+   {
+    "body": {
+     "arguments": {
+      "edits": [
+       {
+        "at": "last",
+        "component": {
+         "definitionBinding": {
+          "tool": "log_customer_visit"
+         },
+         "id": "log_visit_button",
+         "title": "Log Customer Visit",
+         "type": "button"
+        },
+        "operation": "insert"
+       }
+      ],
+      "expectedVersion": 1,
+      "id": "home"
+     },
+     "assistantText": "",
+     "callID": "call_8d256fc6-d932-4ee4-825f-1e641ac6afe0",
+     "receiptID": "acf8addb-8dc3-410d-863d-5c9c4caefed7",
+     "receiptVersion": 1,
+     "result": {
+      "spaceID": "home",
+      "title": "Home",
+      "version": 2
+     },
+     "resultHash": "c60dfd834a6707f4b5843a0711610964fe8c2da26c2772436423f2e9d0a77725",
+     "resultIdentity": {},
+     "runID": "5dccc4a2-5634-436b-9c50-8ec90557a18b",
+     "tool": "edit_space"
+    },
+    "created": "2026-11-24T03:51:39Z",
+    "id": "3db616de-2226-49be-9279-4b706233c6d4",
+    "role": "tool",
+    "state": "complete"
+   },
+   {
+    "body": "Updated space “Home”.",
+    "created": "2026-11-24T03:51:44Z",
+    "id": "46e14828-c45a-406c-b3e5-c15dd1d1799b",
+    "role": "assistant",
+    "state": "complete"
+   }
+  ]
+ },
+ "runs": [
+  {
+   "conversation_id": "a8c59da4-eb96-4a97-a63a-1bed5ef596e2",
+   "created": "2026-11-24T03:51:01Z",
+   "id": "5dccc4a2-5634-436b-9c50-8ec90557a18b",
+   "metrics": [
+    {
+     "acceptedDraftTokens": 64,
+     "activations": "bf16",
+     "backend": "splash",
+     "beforeDispatchSeconds": 4.500293791672448,
+     "contextTokens": 65536,
+     "decodeSeconds": 1.871914,
+     "decodeTokens": 88,
+     "deduplicatedKVTokens": 0,
+     "diagnosticRequestCacheIsolation": false,
+     "draftedTokens": 182,
+     "engineSHA256": "ce771e5f51081a2fd60df0ee0083f982a278a863ffaeab29fd590f55e9e36e89",
+     "firstAnswerPreviewSeconds": null,
+     "firstTokenSeconds": 1.2862189583247527,
+     "generatedTokens": 91,
+     "grammarSHA256": "5b96c275e9c1a2e618a54a4814a6d9c0de116285e8ffd0814aea01a5c8eecdf1",
+     "headerInputs": "ac3913d3a2793b1a34c4cc182f80fc64e2533ef66209c7096159ed7a680b66c4",
+     "headerRestarts": 0,
+     "headerResumed": true,
+     "headerTokens": 4357,
+     "helperStartSeconds": 4.493464041675907,
+     "hostPreparationSeconds": 5.5625016102567315e-05,
+     "maintenanceRecommended": false,
+     "maintenanceThreshold": 49152,
+     "matchedPromptTokens": 4352,
+     "nextToolResultReserve": 3546,
+     "outputBudget": 1800,
+     "prefillSeconds": 1.261986,
+     "prefixPrimeMatchedTokens": 0,
+     "prefixPrimePrefillSeconds": 0,
+     "prefixPrimeSeconds": 0,
+     "prefixPrimeTokens": 0,
+     "promptTokens": 4772,
+     "reasoningBudget": 512,
+     "reasoningBudgetOverrun": 0,
+     "reasoningHistory": "within-request",
+     "reasoningTokens": 52,
+     "recoveryReserve": 256,
+     "replayBoundaryTokens": 4736,
+     "requestSeconds": 3.158141333318781,
+     "requestedContextTokens": 65536,
+     "requestedMemoryBytes": 12884901888,
+     "requestedOutputBudget": 1800,
+     "runtimeRelease": "1.6.1",
+     "scopePrefixTokens": 0,
+     "sessionSetupSeconds": 1.2367621250159573,
+     "speculativeMethod": "DFlash2",
+     "stablePrefixTokens": 4357,
+     "templateIdentity": "aee46acfcba8e4e7aec7512126b926aa311bf7414d0d96ad3b13a86d5bdfe9d3",
+     "toolScope": "all"
+    },
+    {
+     "callID": "call_8c4ff9e8-70c5-48bc-b3be-3d78ade88131",
+     "draft": null,
+     "kind": "reasoning",
+     "note": null,
+     "outcome": null,
+     "step": 1,
+     "text": "The user wants to add a button to their Home view for logging a customer visit. I need to first read the current Home view to see its structure and version, then add a button component to it.\n\nLet me start by reading the Home view.",
+     "tool": "read"
+    },
+    {
+     "acceptedDraftTokens": 180,
+     "activations": "bf16",
+     "backend": "splash",
+     "beforeDispatchSeconds": 0.0001354999840259552,
+     "contextTokens": 65536,
+     "decodeSeconds": 4.57669,
+     "decodeTokens": 244,
+     "deduplicatedKVTokens": 96,
+     "diagnosticRequestCacheIsolation": false,
+     "draftedTokens": 490,
+     "engineSHA256": "ce771e5f51081a2fd60df0ee0083f982a278a863ffaeab29fd590f55e9e36e89",
+     "firstAnswerPreviewSeconds": null,
+     "firstTokenSeconds": 0.8390435833425727,
+     "generatedTokens": 251,
+     "grammarSHA256": "5b96c275e9c1a2e618a54a4814a6d9c0de116285e8ffd0814aea01a5c8eecdf1",
+     "headerInputs": "ac3913d3a2793b1a34c4cc182f80fc64e2533ef66209c7096159ed7a680b66c4",
+     "headerRestarts": 0,
+     "headerResumed": true,
+     "headerTokens": 4357,
+     "helperStartSeconds": 7.500057108700275e-07,
+     "hostPreparationSeconds": 5.3833326091989875e-05,
+     "maintenanceRecommended": false,
+     "maintenanceThreshold": 49152,
+     "matchedPromptTokens": 4736,
+     "nextToolResultReserve": 3546,
+     "outputBudget": 1800,
+     "prefillSeconds": 0.834997,
+     "prefixPrimeMatchedTokens": 0,
+     "prefixPrimePrefillSeconds": 0,
+     "prefixPrimeSeconds": 0,
+     "prefixPrimeTokens": 0,
+     "promptTokens": 4943,
+     "reasoningBudget": 512,
+     "reasoningBudgetOverrun": 0,
+     "reasoningHistory": "within-request",
+     "reasoningTokens": 210,
+     "recoveryReserve": 256,
+     "replayBoundaryTokens": 4928,
+     "requestSeconds": 5.415732041670708,
+     "requestedContextTokens": 65536,
+     "requestedMemoryBytes": 12884901888,
+     "requestedOutputBudget": 1800,
+     "runtimeRelease": "1.6.1",
+     "scopePrefixTokens": 0,
+     "sessionSetupSeconds": 0,
+     "speculativeMethod": "DFlash2",
+     "stablePrefixTokens": 4357,
+     "templateIdentity": "aee46acfcba8e4e7aec7512126b926aa311bf7414d0d96ad3b13a86d5bdfe9d3",
+     "toolScope": "all"
+    },
+    {
+     "callID": "call_c0de8690-3518-4930-9a4f-ab497111bb1b",
+     "draft": null,
+     "kind": "reasoning",
+     "note": null,
+     "outcome": null,
+     "step": 2,
+     "text": "Now I have the Home view with version 1. It has three components: attention, continue, and shortcuts. I need to add a button for logging a customer visit.\n\nFor a button, I need to specify:\n- id: something like \"log_visit\"\n- type: \"button\"\n- title: \"Log Customer Visit\"\n- definitionBinding: {tool: the tool's name}\n\nBut I need a tool to log a customer visit. The user hasn't specified one, and I don't see any existing tools for this. I should create a tool first, or ask if there's an existing one.\n\nActually, looking at the instructions more carefully: \"A tool is an action the user can run again, by name or from a view's button.\" The button runs a saved tool.\n\nI need to either:\n1. Find an existing tool for logging customer visits\n2. Create a new tool for logging customer visits\n\nLet me search for any existing tools related to customer visits.",
+     "tool": "search"
+    },
+    {
+     "acceptedDraftTokens": 85,
+     "activations": "bf16",
+     "backend": "splash",
+     "beforeDispatchSeconds": 0.00015949999215081334,
+     "contextTokens": 65536,
+     "decodeSeconds": 2.330047,
+     "decodeTokens": 117,
+     "deduplicatedKVTokens": 256,
+     "diagnosticRequestCacheIsolation": false,
+     "draftedTokens": 238,
+     "engineSHA256": "ce771e5f51081a2fd60df0ee0083f982a278a863ffaeab29fd590f55e9e36e89",
+     "firstAnswerPreviewSeconds": null,
+     "firstTokenSeconds": 1.2444593333348166,
+     "generatedTokens": 120,
+     "grammarSHA256": "5b96c275e9c1a2e618a54a4814a6d9c0de116285e8ffd0814aea01a5c8eecdf1",
+     "headerInputs": "ac3913d3a2793b1a34c4cc182f80fc64e2533ef66209c7096159ed7a680b66c4",
+     "headerRestarts": 0,
+     "headerResumed": true,
+     "headerTokens": 4357,
+     "helperStartSeconds": 9.583600331097841e-07,
+     "hostPreparationSeconds": 6.820831913501024e-05,
+     "maintenanceRecommended": false,
+     "maintenanceThreshold": 49152,
+     "matchedPromptTokens": 4928,
+     "nextToolResultReserve": 3546,
+     "outputBudget": 1800,
+     "prefillSeconds": 1.240077,
+     "prefixPrimeMatchedTokens": 0,
+     "prefixPrimePrefillSeconds": 0,
+     "prefixPrimeSeconds": 0,
+     "prefixPrimeTokens": 0,
+     "promptTokens": 5495,
+     "reasoningBudget": 512,
+     "reasoningBudgetOverrun": 0,
+     "reasoningHistory": "within-request",
+     "reasoningTokens": 85,
+     "recoveryReserve": 256,
+     "replayBoundaryTokens": 5472,
+     "requestSeconds": 3.5745027500088327,
+     "requestedContextTokens": 65536,
+     "requestedMemoryBytes": 12884901888,
+     "requestedOutputBudget": 1800,
+     "runtimeRelease": "1.6.1",
+     "scopePrefixTokens": 0,
+     "sessionSetupSeconds": 0,
+     "speculativeMethod": "DFlash2",
+     "stablePrefixTokens": 4357,
+     "templateIdentity": "aee46acfcba8e4e7aec7512126b926aa311bf7414d0d96ad3b13a86d5bdfe9d3",
+     "toolScope": "all"
+    },
+    {
+     "callID": "call_7b3168c2-4bc1-4cbf-8ba5-1642420b0a22",
+     "draft": null,
+     "kind": "reasoning",
+     "note": null,
+     "outcome": null,
+     "step": 3,
+     "text": "No existing tool found for logging customer visits. I need to create a tool first, then add a button to the Home view that uses that tool.\n\nFor a tool to log a customer visit, I would need:\n- A table to store customer visits (if one doesn't exist)\n- The tool itself with inputs for the visit details\n\nLet me search for any existing tables related to customers or visits.",
+     "tool": "sql"
+    },
+    {
+     "acceptedDraftTokens": 117,
+     "activations": "bf16",
+     "backend": "splash",
+     "beforeDispatchSeconds": 0.00016500000492669642,
+     "contextTokens": 65536,
+     "decodeSeconds": 3.146709,
+     "decodeTokens": 157,
+     "deduplicatedKVTokens": 128,
+     "diagnosticRequestCacheIsolation": false,
+     "draftedTokens": 301,
+     "engineSHA256": "ce771e5f51081a2fd60df0ee0083f982a278a863ffaeab29fd590f55e9e36e89",
+     "firstAnswerPreviewSeconds": null,
+     "firstTokenSeconds": 0.9029383749875706,
+     "generatedTokens": 161,
+     "grammarSHA256": "5b96c275e9c1a2e618a54a4814a6d9c0de116285e8ffd0814aea01a5c8eecdf1",
+     "headerInputs": "ac3913d3a2793b1a34c4cc182f80fc64e2533ef66209c7096159ed7a680b66c4",
+     "headerRestarts": 0,
+     "headerResumed": true,
+     "headerTokens": 4357,
+     "helperStartSeconds": 9.166833478957415e-07,
+     "hostPreparationSeconds": 8.304166840389371e-05,
+     "maintenanceRecommended": false,
+     "maintenanceThreshold": 49152,
+     "matchedPromptTokens": 5472,
+     "nextToolResultReserve": 3546,
+     "outputBudget": 1800,
+     "prefillSeconds": 0.898535,
+     "prefixPrimeMatchedTokens": 0,
+     "prefixPrimePrefillSeconds": 0,
+     "prefixPrimeSeconds": 0,
+     "prefixPrimeTokens": 0,
+     "promptTokens": 5683,
+     "reasoningBudget": 512,
+     "reasoningBudgetOverrun": 0,
+     "reasoningHistory": "within-request",
+     "reasoningTokens": 91,
+     "recoveryReserve": 256,
+     "replayBoundaryTokens": 5664,
+     "requestSeconds": 4.04964095831383,
+     "requestedContextTokens": 65536,
+     "requestedMemoryBytes": 12884901888,
+     "requestedOutputBudget": 1800,
+     "runtimeRelease": "1.6.1",
+     "scopePrefixTokens": 0,
+     "sessionSetupSeconds": 0,
+     "speculativeMethod": "DFlash2",
+     "stablePrefixTokens": 4357,
+     "templateIdentity": "aee46acfcba8e4e7aec7512126b926aa311bf7414d0d96ad3b13a86d5bdfe9d3",
+     "toolScope": "all"
+    },
+    {
+     "callID": "call_37ba6489-9423-4cc1-a8e2-6e20cdb40d32",
+     "draft": null,
+     "kind": "reasoning",
+     "note": null,
+     "outcome": null,
+     "step": 4,
+     "text": "There are no tables in the workbook yet. I need to:\n1. Create a table for customer visits\n2. Create a tool to log customer visits\n3. Add a button to the Home view that runs that tool\n\nLet me create a table for customer visits first. A customer visit would typically have:\n- Customer name\n- Visit date\n- Notes/purpose\n- Maybe a visit type\n\nLet me create the table.",
+     "tool": "sql"
+    },
+    {
+     "acceptedDraftTokens": 69,
+     "activations": "bf16",
+     "backend": "splash",
+     "beforeDispatchSeconds": 0.00017391666187904775,
+     "contextTokens": 65536,
+     "decodeSeconds": 1.907077,
+     "decodeTokens": 87,
+     "deduplicatedKVTokens": 160,
+     "diagnosticRequestCacheIsolation": false,
+     "draftedTokens": 140,
+     "engineSHA256": "ce771e5f51081a2fd60df0ee0083f982a278a863ffaeab29fd590f55e9e36e89",
+     "firstAnswerPreviewSeconds": null,
+     "firstTokenSeconds": 1.0600642499921378,
+     "generatedTokens": 90,
+     "grammarSHA256": "5b96c275e9c1a2e618a54a4814a6d9c0de116285e8ffd0814aea01a5c8eecdf1",
+     "headerInputs": "ac3913d3a2793b1a34c4cc182f80fc64e2533ef66209c7096159ed7a680b66c4",
+     "headerRestarts": 0,
+     "headerResumed": true,
+     "headerTokens": 4357,
+     "helperStartSeconds": 1.041655195876956e-06,
+     "hostPreparationSeconds": 9.241665247827768e-05,
+     "maintenanceRecommended": false,
+     "maintenanceThreshold": 49152,
+     "matchedPromptTokens": 5664,
+     "nextToolResultReserve": 3546,
+     "outputBudget": 1800,
+     "prefillSeconds": 1.056019,
+     "prefixPrimeMatchedTokens": 0,
+     "prefixPrimePrefillSeconds": 0,
+     "prefixPrimeSeconds": 0,
+     "prefixPrimeTokens": 0,
+     "promptTokens": 5959,
+     "reasoningBudget": 512,
+     "reasoningBudgetOverrun": 0,
+     "reasoningHistory": "within-request",
+     "reasoningTokens": 22,
+     "recoveryReserve": 256,
+     "replayBoundaryTokens": 5952,
+     "requestSeconds": 2.9671355000173207,
+     "requestedContextTokens": 65536,
+     "requestedMemoryBytes": 12884901888,
+     "requestedOutputBudget": 1800,
+     "runtimeRelease": "1.6.1",
+     "scopePrefixTokens": 0,
+     "sessionSetupSeconds": 0,
+     "speculativeMethod": "DFlash2",
+     "stablePrefixTokens": 4357,
+     "templateIdentity": "aee46acfcba8e4e7aec7512126b926aa311bf7414d0d96ad3b13a86d5bdfe9d3",
+     "toolScope": "all"
+    },
+    {
+     "callID": "call_09414a16-f240-46f3-b1a5-240f788837b0",
+     "draft": null,
+     "kind": "reasoning",
+     "note": null,
+     "outcome": null,
+     "step": 5,
+     "text": "I need to fix the CREATE TABLE statement - remove AUTOINCREMENT since INTEGER PRIMARY KEY already handles row numbering.",
+     "tool": "sql"
+    },
+    {
+     "acceptedDraftTokens": 158,
+     "activations": "bf16",
+     "backend": "splash",
+     "beforeDispatchSeconds": 0.00018112501129508018,
+     "contextTokens": 65536,
+     "decodeSeconds": 3.366778,
+     "decodeTokens": 189,
+     "deduplicatedKVTokens": 96,
+     "diagnosticRequestCacheIsolation": false,
+     "draftedTokens": 259,
+     "engineSHA256": "ce771e5f51081a2fd60df0ee0083f982a278a863ffaeab29fd590f55e9e36e89",
+     "firstAnswerPreviewSeconds": null,
+     "firstTokenSeconds": 1.1739123333245516,
+     "generatedTokens": 196,
+     "grammarSHA256": "5b96c275e9c1a2e618a54a4814a6d9c0de116285e8ffd0814aea01a5c8eecdf1",
+     "headerInputs": "ac3913d3a2793b1a34c4cc182f80fc64e2533ef66209c7096159ed7a680b66c4",
+     "headerRestarts": 0,
+     "headerResumed": true,
+     "headerTokens": 4357,
+     "helperStartSeconds": 8.333299774676561e-07,
+     "hostPreparationSeconds": 0.00010450000991113484,
+     "maintenanceRecommended": false,
+     "maintenanceThreshold": 49152,
+     "matchedPromptTokens": 5952,
+     "nextToolResultReserve": 3546,
+     "outputBudget": 1800,
+     "prefillSeconds": 1.16965,
+     "prefixPrimeMatchedTokens": 0,
+     "prefixPrimePrefillSeconds": 0,
+     "prefixPrimeSeconds": 0,
+     "prefixPrimeTokens": 0,
+     "promptTokens": 6243,
+     "reasoningBudget": 512,
+     "reasoningBudgetOverrun": 0,
+     "reasoningHistory": "within-request",
+     "reasoningTokens": 56,
+     "recoveryReserve": 256,
+     "replayBoundaryTokens": 6208,
+     "requestSeconds": 4.540685291663976,
+     "requestedContextTokens": 65536,
+     "requestedMemoryBytes": 12884901888,
+     "requestedOutputBudget": 1800,
+     "runtimeRelease": "1.6.1",
+     "scopePrefixTokens": 0,
+     "sessionSetupSeconds": 0,
+     "speculativeMethod": "DFlash2",
+     "stablePrefixTokens": 4357,
+     "templateIdentity": "aee46acfcba8e4e7aec7512126b926aa311bf7414d0d96ad3b13a86d5bdfe9d3",
+     "toolScope": "all"
+    },
+    {
+     "callID": "call_9b23c014-9f30-45fd-b1d6-acbb8e1ac299",
+     "draft": null,
+     "kind": "reasoning",
+     "note": null,
+     "outcome": null,
+     "step": 6,
+     "text": "Good, the table is created. Now I need to create a tool for logging customer visits. The tool should:\n- Take inputs: customer_name, visit_date, visit_type, notes\n- Insert a new row into customer_visits\n\nLet me create the tool.",
+     "tool": "save"
+    },
+    {
+     "acceptedDraftTokens": 194,
+     "activations": "bf16",
+     "backend": "splash",
+     "beforeDispatchSeconds": 0.00019187497673556209,
+     "contextTokens": 65536,
+     "decodeSeconds": 4.207088,
+     "decodeTokens": 238,
+     "deduplicatedKVTokens": 96,
+     "diagnosticRequestCacheIsolation": false,
+     "draftedTokens": 336,
+     "engineSHA256": "ce771e5f51081a2fd60df0ee0083f982a278a863ffaeab29fd590f55e9e36e89",
+     "firstAnswerPreviewSeconds": null,
+     "firstTokenSeconds": 1.249970791686792,
+     "generatedTokens": 243,
+     "grammarSHA256": "5b96c275e9c1a2e618a54a4814a6d9c0de116285e8ffd0814aea01a5c8eecdf1",
+     "headerInputs": "ac3913d3a2793b1a34c4cc182f80fc64e2533ef66209c7096159ed7a680b66c4",
+     "headerRestarts": 0,
+     "headerResumed": true,
+     "headerTokens": 4357,
+     "helperStartSeconds": 7.916532922536135e-07,
+     "hostPreparationSeconds": 0.00011704166536219418,
+     "maintenanceRecommended": false,
+     "maintenanceThreshold": 49152,
+     "matchedPromptTokens": 6208,
+     "nextToolResultReserve": 3546,
+     "outputBudget": 1800,
+     "prefillSeconds": 1.245908,
+     "prefixPrimeMatchedTokens": 0,
+     "prefixPrimePrefillSeconds": 0,
+     "prefixPrimeSeconds": 0,
+     "prefixPrimeTokens": 0,
+     "promptTokens": 6628,
+     "reasoningBudget": 512,
+     "reasoningBudgetOverrun": 0,
+     "reasoningHistory": "within-request",
+     "reasoningTokens": 103,
+     "recoveryReserve": 256,
+     "replayBoundaryTokens": 6592,
+     "requestSeconds": 5.457056333340006,
+     "requestedContextTokens": 65536,
+     "requestedMemoryBytes": 12884901888,
+     "requestedOutputBudget": 1800,
+     "runtimeRelease": "1.6.1",
+     "scopePrefixTokens": 0,
+     "sessionSetupSeconds": 0,
+     "speculativeMethod": "DFlash2",
+     "stablePrefixTokens": 4357,
+     "templateIdentity": "aee46acfcba8e4e7aec7512126b926aa311bf7414d0d96ad3b13a86d5bdfe9d3",
+     "toolScope": "all"
+    },
+    {
+     "callID": "call_4f8af6c4-7851-427d-9c47-a84659ac6665",
+     "draft": null,
+     "kind": "reasoning",
+     "note": null,
+     "outcome": null,
+     "step": 7,
+     "text": "Now I have the tool created. Now I need to add a button to the Home view that runs this tool. The button should:\n- id: \"log_visit_button\"\n- type: \"button\"\n- title: \"Log Customer Visit\"\n- definitionBinding: {tool: \"log_customer_visit\"}\n- arguments: The button will show fields for the inputs when pressed, so I don't need to pre-fill them.\n\nLet me update the Home view with this new button.",
+     "tool": "save"
+    },
+    {
+     "acceptedDraftTokens": 103,
+     "activations": "bf16",
+     "backend": "splash",
+     "beforeDispatchSeconds": 0.0002060833212453872,
+     "contextTokens": 65536,
+     "decodeSeconds": 2.410262,
+     "decodeTokens": 127,
+     "deduplicatedKVTokens": 128,
+     "diagnosticRequestCacheIsolation": false,
+     "draftedTokens": 189,
+     "engineSHA256": "ce771e5f51081a2fd60df0ee0083f982a278a863ffaeab29fd590f55e9e36e89",
+     "firstAnswerPreviewSeconds": null,
+     "firstTokenSeconds": 1.286417541676201,
+     "generatedTokens": 131,
+     "grammarSHA256": "5b96c275e9c1a2e618a54a4814a6d9c0de116285e8ffd0814aea01a5c8eecdf1",
+     "headerInputs": "ac3913d3a2793b1a34c4cc182f80fc64e2533ef66209c7096159ed7a680b66c4",
+     "headerRestarts": 0,
+     "headerResumed": true,
+     "headerTokens": 4357,
+     "helperStartSeconds": 1.0833318810909986e-06,
+     "hostPreparationSeconds": 0.00012912499369122088,
+     "maintenanceRecommended": false,
+     "maintenanceThreshold": 49152,
+     "matchedPromptTokens": 6592,
+     "nextToolResultReserve": 3546,
+     "outputBudget": 1800,
+     "prefillSeconds": 1.282271,
+     "prefixPrimeMatchedTokens": 0,
+     "prefixPrimePrefillSeconds": 0,
+     "prefixPrimeSeconds": 0,
+     "prefixPrimeTokens": 0,
+     "promptTokens": 7019,
+     "reasoningBudget": 512,
+     "reasoningBudgetOverrun": 0,
+     "reasoningHistory": "within-request",
+     "reasoningTokens": 26,
+     "recoveryReserve": 256,
+     "replayBoundaryTokens": 7008,
+     "requestSeconds": 3.696675208339002,
+     "requestedContextTokens": 65536,
+     "requestedMemoryBytes": 12884901888,
+     "requestedOutputBudget": 1800,
+     "runtimeRelease": "1.6.1",
+     "scopePrefixTokens": 0,
+     "sessionSetupSeconds": 0,
+     "speculativeMethod": "DFlash2",
+     "stablePrefixTokens": 4357,
+     "templateIdentity": "aee46acfcba8e4e7aec7512126b926aa311bf7414d0d96ad3b13a86d5bdfe9d3",
+     "toolScope": "all"
+    },
+    {
+     "callID": "call_8d256fc6-d932-4ee4-825f-1e641ac6afe0",
+     "draft": null,
+     "kind": "reasoning",
+     "note": null,
+     "outcome": null,
+     "step": 8,
+     "text": "I need to use view.edit to add the button to the existing Home view. Let me do that with the correct parameters.",
+     "tool": "run"
+    },
+    {
+     "acceptedDraftTokens": 121,
+     "activations": "bf16",
+     "backend": "splash",
+     "beforeDispatchSeconds": 0.00022666665608994663,
+     "contextTokens": 65536,
+     "decodeSeconds": 4.124696,
+     "decodeTokens": 168,
+     "deduplicatedKVTokens": 32,
+     "diagnosticRequestCacheIsolation": false,
+     "draftedTokens": 378,
+     "engineSHA256": "ce771e5f51081a2fd60df0ee0083f982a278a863ffaeab29fd590f55e9e36e89",
+     "firstAnswerPreviewSeconds": 3.162009166640928,
+     "firstTokenSeconds": 0.9482061666494701,
+     "generatedTokens": 176,
+     "grammarSHA256": "5b96c275e9c1a2e618a54a4814a6d9c0de116285e8ffd0814aea01a5c8eecdf1",
+     "headerInputs": "ac3913d3a2793b1a34c4cc182f80fc64e2533ef66209c7096159ed7a680b66c4",
+     "headerRestarts": 0,
+     "headerResumed": true,
+     "headerTokens": 4357,
+     "helperStartSeconds": 9.166542440652847e-07,
+     "hostPreparationSeconds": 0.00014337498578242958,
+     "maintenanceRecommended": false,
+     "maintenanceThreshold": 49152,
+     "matchedPromptTokens": 7008,
+     "nextToolResultReserve": 3546,
+     "outputBudget": 1800,
+     "prefillSeconds": 0.944135,
+     "prefixPrimeMatchedTokens": 0,
+     "prefixPrimePrefillSeconds": 0,
+     "prefixPrimeSeconds": 0,
+     "prefixPrimeTokens": 0,
+     "promptTokens": 7178,
+     "reasoningBudget": 512,
+     "reasoningBudgetOverrun": 0,
+     "reasoningHistory": "within-request",
+     "reasoningTokens": 78,
+     "recoveryReserve": 256,
+     "replayBoundaryTokens": 7168,
+     "requestSeconds": 5.0728926666488405,
+     "requestedContextTokens": 65536,
+     "requestedMemoryBytes": 12884901888,
+     "requestedOutputBudget": 1800,
+     "runtimeRelease": "1.6.1",
+     "scopePrefixTokens": 0,
+     "sessionSetupSeconds": 0,
+     "speculativeMethod": "DFlash2",
+     "stablePrefixTokens": 4357,
+     "templateIdentity": "aee46acfcba8e4e7aec7512126b926aa311bf7414d0d96ad3b13a86d5bdfe9d3",
+     "toolScope": "all"
+    },
+    {
+     "callID": "call_5dedf916-dea1-48be-948b-140d2d9df4ec",
+     "draft": null,
+     "kind": "reasoning",
+     "note": null,
+     "outcome": null,
+     "step": 9,
+     "text": "The button has been added to the Home view. The view is now version 2. The button \"Log Customer Visit\" will appear on the Home page and when pressed, it will show a form with fields for customer_name, visit_date, visit_type, and notes, then insert the visit into the customer_visits table.\n\nLet me summarize what was done for the user.",
+     "tool": "finish"
+    }
+   ],
+   "model": "Splash 1.6.1; d8af1054aab0f97de21d043e01aa98af3754f10e; Qwen3.6-35B-A3B-4bit + DFlash2; native Swift candidate; context 65536; memory 12884901888; activations bf16; KV int8; state fp32; ANE on; reasoning budget 512; within-request reasoning retained",
+   "request_message_id": "d939f66b-2882-4b18-8ea0-05bdfe12b5dc",
+   "status": "complete",
+   "steps": 9,
+   "updated": "2026-11-24T03:51:44Z"
+  }
+ ],
+ "saved": {
+  "newTables": [
+   {
+    "title": "Customer visits",
+    "columns": [
+     {
+      "id": "id",
+      "title": "Id",
+      "type": "decimal"
+     },
+     {
+      "id": "customer_name",
+      "title": "Customer name",
+      "type": "text"
+     },
+     {
+      "id": "visit_date",
+      "title": "Visit date",
+      "type": "text"
+     },
+     {
+      "id": "visit_type",
+      "title": "Visit type",
+      "type": "text"
+     },
+     {
+      "id": "notes",
+      "title": "Notes",
+      "type": "text"
+     },
+     {
+      "id": "created_at",
+      "title": "Created at",
+      "type": "text"
+     }
+    ],
+    "rows": []
+   }
+  ],
+  "changedSpaces": [
+   {
+    "title": "Home",
+    "version": 2,
+    "components": [
+     "attention",
+     "continue",
+     "shortcuts",
+     "button"
+    ]
+   }
+  ],
+  "newItems": [
+   {
+    "category": "source",
+    "kind": "application_definition",
+    "status": "accepted",
+    "title": "Define log_customer_visit",
+    "id": "e9a45bf2-4abc-4572-a2e3-b669558611f8"
+   },
+   {
+    "category": "source",
+    "kind": "decision",
+    "status": "accepted",
+    "title": "Create table definition: Customer visits",
+    "id": "1dba7b2e-467c-45c0-a1c6-ce40b59e5f17"
+   },
+   {
+    "category": "source",
+    "kind": "rule",
+    "status": "accepted",
+    "title": "Chat table changes policy",
+    "id": "fae49411-8f41-495d-a303-da9fe1cf1005"
+   }
+  ],
+  "newDefinitions": [
+   {
+    "description": "Log a new customer visit with details",
+    "id": "918f4aca-1b7a-40a3-b0b6-06128a7022e1",
+    "is_current": 1,
+    "kind": "tool",
+    "logical_id": "c840b545-b7c9-56cf-8921-c016e7ff8639",
+    "source_id": "e9a45bf2-4abc-4572-a2e3-b669558611f8",
+    "title": "log_customer_visit",
+    "version": 1
+   }
+  ]
+ }
+}

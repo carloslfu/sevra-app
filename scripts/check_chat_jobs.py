@@ -65,9 +65,10 @@ def cli(*args, timeout=120):
 class Book:
     """One temporary synthetic workbook, read and prepared only through the CLI."""
 
-    def __init__(self, path):
+    def __init__(self, path, empty=False):
         self.path = str(path)
-        cli('demo', self.path)
+        # A job about a new workbook starts with no tables, documents or views of its own.
+        cli('create', self.path, 'Untitled') if empty else cli('demo', self.path)
 
     def run(self, command, *args, timeout=120):
         return cli(command, self.path, *[a if isinstance(a, str) else json.dumps(a) for a in args],
@@ -315,10 +316,10 @@ def complete(run):
 
 class Job:
     def __init__(self, identifier, expected, prompt, check, setup=None, oracle=None,
-                 timeout=420, accept_drafts=False):
+                 timeout=420, accept_drafts=False, empty=False):
         self.id, self.expected, self.prompts = identifier, expected, {'en': prompt}
         self.check, self.setup, self.oracle = check, setup or (lambda book: {}), oracle
-        self.timeout, self.accept_drafts = timeout, accept_drafts
+        self.timeout, self.accept_drafts, self.empty = timeout, accept_drafts, empty
         self.group = identifier.split('.')[0]
 
 
@@ -555,6 +556,246 @@ def tool_check(run):
     return problems + (['the tool also lists ' + ', '.join(listed)] if listed else [])
 
 
+INVOICES = [('INV-101', 'Oak Supply', '240.00', 'open'), ('INV-102', 'Cedar Tools', '275.50', 'open'),
+            ('INV-103', 'Birch Metals', '96.00', 'open')]
+
+
+def invoices(book):
+    book.new_table('Invoices', [('number', 'Number', 'text'), ('customer', 'Customer', 'text'),
+                                ('amount', 'Amount', 'decimal'), ('status', 'Status', 'text')], INVOICES)
+    return {}
+
+
+def home_components(run):
+    """Every component on Home, side-by-side ones included."""
+    def flat(components):
+        for c in components:
+            yield c
+            yield from flat(c.get('children') or [])
+    home = next(s for s in run['book'].run('spaces') if s['id'] == 'home')
+    return list(flat(home['definition'].get('components', [])))
+
+
+def sql_name(title):
+    return re.sub(r'[^a-z0-9]+', '_', title.lower()).strip('_')
+
+
+def metric_value(book, metric):
+    """The number a metric on Home shows, by the app's own rule, or None when it shows none."""
+    try:
+        return Decimal(book.run('metric', 'home', metric['id']))
+    except (CLIError, InvalidOperation):
+        return None
+
+
+def says_choice(run, buttons):
+    """The reply names something it chose: a button, a new table or a new tool."""
+    words = [b.get('title', '') for b in buttons] + [t['title'] for t in run['saved'].get('newTables', [])]
+    words += [d.get('title', '') for d in run['saved'].get('newDefinitions', [])]
+    words = [w.replace('_', ' ').casefold() for w in words if w and w.casefold() != 'home']
+    answer = run['answer'].replace('_', ' ').casefold()
+    # Whole words: a button titled Add is not named by "I added".
+    named = any(re.search(r'\b' + re.escape(w) + r'\b', answer) for w in words)
+    return [] if named else ['the reply does not say what was chosen: ' + json.dumps(words)]
+
+
+def press(book, space, button, value):
+    """Presses a saved button as a person does, filling each input it leaves open with
+    value(name, type). Returns an error, or None."""
+    tool = next((t for t in book.run('tools')
+                 if t['name'] == (button.get('definitionBinding') or {}).get('tool')), None)
+    if tool is None:
+        return 'the button %s runs no saved tool' % button.get('id')
+    fixed = button.get('arguments') or {}
+    values = {}
+    for spec in tool['inputs']:
+        name, kind = spec.split(' ', 1)
+        if name not in fixed:
+            values[name] = value(name, kind)
+    try:
+        book.run('press', space, button['id'], values)
+    except CLIError as error:
+        return 'pressing %s failed: %s' % (button.get('id'), error.message)
+    return None
+
+
+def home_version(book):
+    return next(s for s in book.run('spaces') if s['id'] == 'home')['version']
+
+
+def plain_value(name, kind):
+    return {'decimal': '1', 'date': time.strftime('%Y-%m-%d'), 'boolean': True}.get(kind, 'Test')
+
+
+def row_counts(book):
+    return {t['id']: len(book.rows(t['id'])) for t in book.tables()}
+
+
+def starting_row(rows):
+    """One row whose numbers, apart from its key, are all 0, such as a count that starts at 0:
+    state a tool needs, not a business value."""
+    def number(value):
+        try:
+            return float(str(value))
+        except ValueError:
+            return None
+    if len(rows) != 1 or not isinstance(rows[0], dict):
+        return False
+    numbers = [number(v) for k, v in rows[0].items() if k != 'id' and number(v) is not None]
+    return bool(numbers) and all(n == 0 for n in numbers)
+
+
+def invented(run):
+    made = [t['title'] for t in run['saved'].get('newTables', [])
+            if t['rows'] and not starting_row(t['rows'])]
+    return ['example rows nobody asked for were added to ' + ', '.join(made)] if made else []
+
+
+def home_counter_check(run):
+    """The request names no table, no title and no style, and the workbook is empty. Those are
+    choices, so the work is done with defaults and nothing is asked. The button is general: it
+    runs a saved tool, and that tool adds to what the count counts."""
+    problems = complete(run) + invented(run)
+    components = home_components(run)
+    numbers = [c for c in components if c.get('type') == 'metric']
+    buttons = [c for c in components if c.get('type') == 'button']
+    if not numbers:
+        problems.append('Home shows no number: ' + json.dumps([c.get('type') for c in components]))
+    if not buttons:
+        problems.append('Home has no button')
+    if not any(c.get('size') == 'large' for c in numbers + buttons):
+        problems.append('nothing is large: ' + json.dumps([[c.get('type'), c.get('size')] for c in numbers + buttons]))
+    if numbers and buttons:
+        before = [metric_value(run['book'], m) for m in numbers]
+        error = press(run['book'], 'home', buttons[0], plain_value)
+        after = [metric_value(run['book'], m) for m in numbers]
+        if error:
+            problems.append(error)
+        elif not any(a is not None and b is not None and a > b for a, b in zip(after, before)):
+            problems.append('pressing the button does not raise the number on Home: %s then %s'
+                            % ([str(v) for v in before], [str(v) for v in after]))
+        problems += says_choice(run, buttons)
+    return problems
+
+
+def home_counter_oracle(book, context):
+    book.run('tool', 'sql', {'statements': ['CREATE TABLE items (name TEXT)']})
+    book.run('tool', 'save', {'tool': {'name': 'add_item', 'description': 'Adds an item.', 'inputs': [],
+                                       'statements': ['INSERT INTO items (name) VALUES (NULL)']}})
+    table = book.table('Items')['id']
+    book.run('tool', 'edit_space', {'id': 'home', 'expectedVersion': home_version(book), 'edits': [
+        {'operation': 'insert', 'at': 'first', 'component': {
+            'id': 'counter', 'type': 'metric', 'title': 'Items', 'aggregation': 'COUNT', 'datasetID': table,
+            'size': 'large'}},
+        {'operation': 'insert', 'component': {
+            'id': 'add', 'type': 'button', 'title': 'Add one', 'definitionBinding': {'tool': 'add_item'},
+            'size': 'large'}}]})
+    return {'answer': 'I added a large count of a new, empty Items table to Home, with an Add one button.'}
+
+
+def log_visit_check(run):
+    """A button that records something, in a workbook with nothing in it yet: the table, the
+    tool and the button are all defaults, and a press adds one record."""
+    problems = complete(run) + invented(run)
+    buttons = [c for c in home_components(run) if c.get('type') == 'button']
+    if not buttons:
+        return problems + ['Home has no button']
+    before = row_counts(run['book'])
+    error = press(run['book'], 'home', buttons[0], plain_value)
+    if error:
+        return problems + [error]
+    after = row_counts(run['book'])
+    grew = {t: after[t] - before.get(t, 0) for t in after if after[t] != before.get(t, 0)}
+    titles = {t['id']: t['title'] for t in run['book'].tables()}
+    if list(grew.values()) != [1] or 'visit' not in titles[next(iter(grew))].casefold():
+        problems.append('pressing the button did not add one row to a visits table: '
+                        + json.dumps({titles.get(t, t): n for t, n in grew.items()}))
+    return problems + says_choice(run, buttons)
+
+
+def log_visit_oracle(book, context):
+    book.run('tool', 'sql', {'statements': ['CREATE TABLE visits (customer TEXT, visited_on TEXT)']})
+    book.run('tool', 'save', {'tool': {
+        'name': 'log_visit', 'description': 'Logs a customer visit.',
+        'inputs': [{'name': 'customer', 'type': 'text'}],
+        'statements': ["INSERT INTO visits (customer, visited_on) VALUES (:customer, date('now'))"]}})
+    book.run('tool', 'edit_space', {'id': 'home', 'expectedVersion': home_version(book), 'edits': [
+        {'operation': 'insert', 'at': 'first', 'component': {
+            'id': 'visit', 'type': 'button', 'title': 'Log a visit', 'definitionBinding': {'tool': 'log_visit'}}}]})
+    return {'answer': 'I added a Log a visit button to Home. It asks for the customer and adds a row to a new Visits table.'}
+
+
+def mark_paid_check(run):
+    """A button that changes one existing record, chosen by the person when they press it."""
+    problems = complete(run)
+    book = run['book']
+    buttons = [c for c in home_components(run) if c.get('type') == 'button']
+    if not buttons:
+        return problems + ['Home has no button']
+
+    def rows():
+        # A column added for the change starts empty or false in every row; that is not a change.
+        return {r['values'].get('number'): {k: v for k, v in r['values'].items() if v not in (None, '', False)}
+                for r in book.rows(book.table('Invoices')['id'])}
+    before = rows()
+    if sorted(before) != [i[0] for i in INVOICES]:
+        problems.append('the Invoices table no longer holds just its three invoices: ' + json.dumps(sorted(before)))
+    error = press(book, 'home', buttons[0],
+                  lambda name, kind: {'decimal': '275.50', 'date': time.strftime('%Y-%m-%d'),
+                                      'boolean': True}.get(kind, 'INV-102'))
+    if error:
+        return problems + [error]
+    after = rows()
+    changed = sorted(n for n in after if after[n] != before.get(n))
+
+    def paid(row):
+        # A status that says paid, or a paid column that holds yes, true or a date.
+        return any((isinstance(v, str) and re.match(r'\s*paid\b', v, re.I))
+                   or ('paid' in k.casefold() and 'unpaid' not in k.casefold()
+                       and v not in (None, '', False, 0) and str(v).casefold() not in ('no', 'false', 'unpaid'))
+                   for k, v in row.items())
+    if changed != ['INV-102']:
+        problems.append('pressing the button changed %s, not INV-102 alone' % json.dumps(changed))
+    elif not paid(after['INV-102']):
+        problems.append('INV-102 is not marked paid: ' + json.dumps(after['INV-102']))
+    return problems + says_choice(run, buttons)
+
+
+def mark_paid_oracle(book, context):
+    book.run('tool', 'save', {'tool': {
+        'name': 'mark_paid', 'description': 'Marks an invoice as paid.',
+        'inputs': [{'name': 'invoice', 'type': 'text'}],
+        'statements': ["UPDATE invoices SET status = 'paid' WHERE number = :invoice"]}})
+    book.run('tool', 'edit_space', {'id': 'home', 'expectedVersion': home_version(book), 'edits': [
+        {'operation': 'insert', 'at': 'first', 'component': {
+            'id': 'paid', 'type': 'button', 'title': 'Mark paid', 'definitionBinding': {'tool': 'mark_paid'}}}]})
+    return {'answer': 'I added a Mark paid button to Home. Type the invoice number and press it.'}
+
+
+def stock_overview_check(run):
+    """An overview of an existing table: what it shows and how it looks are defaults."""
+    problems = complete(run)
+    parts_table = run['book'].table('Parts')['id']
+    shown = [s['title'] for s in run['saved'].get('newSpaces', []) + run['saved'].get('changedSpaces', [])]
+    bound = [s for s in run['book'].run('spaces')
+             if s['title'] in shown and parts_table in json.dumps(s['definition'])]
+    # An overview in the reply itself, naming the parts with their stock, is one too.
+    told = len([p for p in PARTS if p[0].casefold() in run['answer'].casefold()]) >= 3
+    if not bound and not told:
+        problems.append('no view shows the Parts table and the reply gives no overview: ' + json.dumps(shown))
+    if run['saved'].get('changedTables'):
+        problems.append('the Parts table changed while building the overview')
+    return problems
+
+
+def stock_overview_oracle(book, context):
+    table = book.table('Parts')['id']
+    book.run('space', 'Stock overview', {'version': 1, 'components': [
+        {'id': 'parts', 'type': 'table', 'title': 'Parts', 'datasetID': table},
+        {'id': 'stock', 'type': 'chart', 'title': 'Stock by part', 'datasetID': table, 'x': 'part', 'y': 'stock'}]})
+    return {'answer': 'I saved a Stock overview view with the Parts table and a chart of stock by part.'}
+
+
 def greeting_check(run):
     problems = complete(run) + unchanged(run)
     if run['steps'] != 1:
@@ -751,6 +992,18 @@ JOBS = [
     Job('build.saved_tool', 'A workbook tool named low_stock is saved, and calling it lists exactly Hex nuts and Hex key set.',
         'Save a tool named low_stock that lists the parts in the Parts table whose stock is below their reorder level.',
         tool_check, lambda book: parts(book) or {}, None),
+    Job('defaults.home_counter', 'In a new, empty workbook, Home shows a large count and a button whose saved tool adds one to it. Nothing is asked: the table, the tool, the titles and the look are defaults the reply names. No example rows are added.',
+        'Change my Home to show a big counter button',
+        home_counter_check, None, home_counter_oracle, empty=True),
+    Job('defaults.log_visit', 'In a new, empty workbook, Home has a button that logs a customer visit: pressing it adds one row. Nothing is asked and no rows are made up.',
+        'Add a button to my Home for logging a customer visit.',
+        log_visit_check, None, log_visit_oracle, empty=True),
+    Job('defaults.mark_paid', 'Home has a button that marks an invoice paid. Pressing it with INV-102 changes that invoice to paid and no other. Nothing is asked.',
+        'Put a button on my Home to mark an invoice as paid.',
+        mark_paid_check, invoices, mark_paid_oracle),
+    Job('defaults.stock_overview', 'A new or changed view shows the Parts table, chosen by default. Nothing is asked and no table changes.',
+        'Make me a stock overview.',
+        stock_overview_check, lambda book: parts(book) or {}, stock_overview_oracle),
     Job('conversation.greeting', 'A plain reply in one decision, with no citations. Nothing is saved.',
         'hey', greeting_check, None, answer('Hello. How can I help?')),
     Job('conversation.clarify', 'The reply asks for the missing supplier and its values. Nothing is saved.',
@@ -906,7 +1159,7 @@ def trace(book):
 
 def attempt(job, language, folder, number, redact, minimum, self_test=None, keep=False):
     """One request on a fresh workbook. `self_test` replaces the model with the job's oracle."""
-    book = Book(Path(folder) / ('%s.%s.%d.sevra' % (job.id, language, number)))
+    book = Book(Path(folder) / ('%s.%s.%d.sevra' % (job.id, language, number)), empty=job.empty)
     context = job.setup(book) or {}
     before = book.snapshot()
     record = {'attempt': number}

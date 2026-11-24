@@ -11,7 +11,19 @@ extension SpaceDefinition {
   }
   public static let contentTypes: Set<String> = [
     "table", "chart", "metric", "comparison", "document", "asset", "search", "text",
-    "form", "calculation", "query", "app", "image", "visual",
+    "form", "calculation", "query", "app", "image", "visual", "button",
+  ]
+  /// The components a size changes: how tall a table or chart is, how large a number or text
+  /// is drawn, and how large a button is. A visual takes it only when it is a chart. Medium
+  /// when absent.
+  public static let sizedTypes = ["table", "chart", "visual", "metric", "text", "button"]
+  public static let sizes = ["small", "medium", "large"]
+  /// The order a model writes a component's fields in, each only when its type uses it. It is
+  /// the grammar's order for the component schema, and the agent checks hold the two equal.
+  public static let componentFieldOrder = [
+    "id", "type", "title", "definitionBinding", "aggregation", "arguments", "chartStyle",
+    "children", "datasetID", "itemID", "presentationID", "query", "size", "spaceID", "text",
+    "unit", "viewID", "viewVersion", "visual", "x", "y",
   ]
   public static let sectionTypes: Set<String> = [
     "input", "reviews", "shortcuts", "tables", "intake", "recent", "attention", "continue",
@@ -211,7 +223,10 @@ extension Workbook {
           let index = try insertionIndex(edit, in: definition.components)
           definition.components.insert(component, at: index)
         } else {
-          guard let identity = edit.componentID,
+          // A replacement keeps the component's ID, so the component names its own target.
+          guard
+            let identity = edit.componentID
+              ?? (edit.operation == "replace" ? edit.component?.id : nil),
             try alterComponent(identity, in: &definition.components, edit: edit)
           else { throw SevraError("view", "The selected component no longer exists.") }
         }
@@ -222,12 +237,22 @@ extension Workbook {
     }
     return try JSONDecoder().decode(Space.self, from: Data(result.json().utf8))
   }
+  /// The order a model's grammar writes an edit's fields in. A model that writes the component
+  /// first cannot go back for the position, so an error names this order.
+  package static let editFieldOrder = [
+    "operation", "componentID", "at", "beforeID", "component", "text", "title",
+  ]
   private func validateSpaceEdit(_ edit: SpaceEdit) throws {
+    // After the component the grammar offers only text and title, and a model reaching for
+    // a field it already passed writes one of them empty. An empty one says nothing.
+    let emptyTitle = edit.title == "" && !["rename", "title"].contains(edit.operation)
+    let emptyText = edit.text == "" && edit.operation != "text"
     let fields: Set<String> = Set(
       [
         edit.componentID == nil ? nil : "componentID", edit.beforeID == nil ? nil : "beforeID",
         edit.at == nil ? nil : "at", edit.component == nil ? nil : "component",
-        edit.title == nil ? nil : "title", edit.text == nil ? nil : "text",
+        edit.title == nil || emptyTitle ? nil : "title",
+        edit.text == nil || emptyText ? nil : "text",
       ].compactMap { $0 })
     let allowed: Set<String>
     switch edit.operation {
@@ -245,8 +270,13 @@ extension Workbook {
       fields.isSubset(of: allowed), "view",
       "Unexpected " + edit.operation + " fields: "
         + fields.subtracting(allowed).sorted().joined(separator: ", ")
-        + ". Allowed fields: " + allowed.sorted().joined(separator: ", ") + ".")
-    if edit.operation == "move" || edit.operation == "insert" {
+        + ". Allowed fields: " + allowed.sorted().joined(separator: ", ")
+        + ". Write an edit's fields in this order: "
+        + Self.editFieldOrder.filter { $0 == "operation" || allowed.contains($0) }
+        .joined(separator: ", ") + ".")
+    // An insertion with no position goes last. A move has to say where.
+    let unplaced = edit.beforeID == nil && edit.at == nil
+    if edit.operation == "move" || (edit.operation == "insert" && !unplaced) {
       try require(
         (edit.beforeID != nil && edit.at == nil)
           || (edit.beforeID == nil && ["first", "last"].contains(edit.at ?? "")),
@@ -256,6 +286,7 @@ extension Workbook {
   private func insertionIndex(_ edit: SpaceEdit, in components: [Component]) throws -> Int {
     if edit.at == "first" { return 0 }
     if edit.at == "last" { return components.count }
+    if edit.operation == "insert", edit.beforeID == nil { return components.count }
     guard let before = edit.beforeID else {
       throw SevraError("view", "Choose an explicit layout position.")
     }
