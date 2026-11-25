@@ -11,6 +11,7 @@ package struct ActionConfirmations {
   package var evidence: Value { .array(entries) }
   private func recoveredFailure(_ entry: Value, at index: Int) -> Bool {
     guard entry["kind"].text == "failure" else { return false }
+    if movedPast(entry, at: index) { return true }
     // Refusing a repeat means the first save stands, so an earlier success settles it too.
     let later = entries.dropFirst(index + 1)
     return (entry["error"].text.contains(Self.repeatRefused) ? entries[...] : later).contains {
@@ -119,6 +120,16 @@ package struct ActionConfirmations {
       }
     }
   }
+  /// A refused change to a table's shape, such as a UNIQUE constraint or an index, saved
+  /// nothing and wrote no rows. Once a later call saved something, the model took another way,
+  /// and the refusal is a dead end of its own work, not an unfinished part of the request. A
+  /// failed row write is never this: a summary could claim the rows it did not write.
+  private func movedPast(_ entry: Value, at index: Int) -> Bool {
+    entry["shapeOnly"] == .bool(true)
+      && entries.dropFirst(index + 1).contains {
+        !["failure", "chat_approval", "cancelled"].contains($0["kind"].text)
+      }
+  }
   /// What a call acted on, so a later success can settle the failure before it.
   private static func attempt(_ tool: String, _ arguments: Value) -> String {
     if tool == "workspace_action" {
@@ -173,6 +184,24 @@ package struct ActionConfirmations {
     default:
       return attempt(tool, arguments)
     }
+  }
+  /// A plain sql call whose statements write no rows: each one creates, alters or drops a
+  /// table, or makes an index.
+  private static func shapeOnly(_ tool: String, _ arguments: Value) -> Bool {
+    guard tool == "sql", arguments["draft"] != .bool(true), arguments["tool"] == .null else {
+      return false
+    }
+    let statements = arguments["statements"].array.map(\.text)
+    return !statements.isEmpty
+      && statements.allSatisfy { statement in
+        let text = statement.trimmingCharacters(in: .whitespacesAndNewlines)
+        return text.range(
+          of: #"^(?i)(CREATE|ALTER|DROP)\s+(TABLE|(UNIQUE\s+)?INDEX)\b"#,
+          options: .regularExpression) != nil
+          && writes([statement]).allSatisfy {
+            ["create ", "alter ", "drop "].contains(where: $0.hasPrefix)
+          }
+      }
   }
   /// Each table a statement creates, alters, drops or changes rows of, with how, such as
   /// "insert visits", in lower case. A quoted value is data, not a statement.
@@ -447,6 +476,7 @@ package struct ActionConfirmations {
               arguments["action"].text, arguments: arguments["arguments"], readOnly: false)) == nil
         ),
         "appName": .string(tool == "save_native_app" ? arguments["package"]["name"].text : ""),
+        "shapeOnly": .bool(Self.shapeOnly(tool, arguments)),
         "action": tool == "workspace_action" ? arguments["action"] : .null,
         "argumentValues": .array(
           tool == "workspace_action"
@@ -596,7 +626,7 @@ package struct ActionConfirmations {
             $0["kind"].text != "failure" && $0["tool"] == entry["tool"] && $0["intent"].text == intent
           }
         guard
-          redone
+          redone || movedPast(entry, at: index)
             || (entry["error"].text.contains(Self.repeatRefused) && recoveredFailure(entry, at: index))
         else { return false }
       case "chat_approval", "cancelled": return false

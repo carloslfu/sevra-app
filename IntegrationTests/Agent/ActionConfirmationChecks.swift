@@ -208,6 +208,27 @@ private func checkRefusedRepeats() throws {
       failed: ("sql", sql("INSERT INTO visits (at) VALUES ('x')")),
       then: ("sql", sql("CREATE TABLE visits (id INTEGER PRIMARY KEY, at TEXT)")),
       result: created), false)
+  // A refused change to a table's shape that the model moved past is its own dead end: the
+  // summary stands and the refusal, written for the model, is not shown as the outcome.
+  var detour = ActionConfirmations()
+  detour.record(
+    tool: "sql", arguments: sql("CREATE TABLE counters (id INTEGER PRIMARY KEY, name TEXT)"),
+    result: created, receiptID: "table")
+  detour.recordFailure(
+    tool: "sql", arguments: sql("CREATE UNIQUE INDEX counter_names ON counters (name)"),
+    result: .object(["error": .string("Remove UNIQUE. Nothing was changed.")]),
+    receiptID: "unique")
+  try expectEqual(detour.hasUnresolvedFailure, true)
+  detour.record(
+    tool: "edit_space", arguments: insert("button"), result: homeSaved, receiptID: "view")
+  try expectEqual(detour.hasUnresolvedFailure, false)
+  try expectEqual(detour.keepsSummary, true)
+  try expectEqual(detour.rendered, "Updated space “Home”.")
+  try expectEqual(
+    summary(
+      failed: ("sql", sql("ALTER TABLE counters ADD COLUMN label TEXT UNIQUE")),
+      then: ("save", .object(["kind": .string("tool"), "name": .string("add_click")])),
+      result: .object([:])), true)
   try expectEqual(
     summary(failed: ("edit_space", insert("metric")), then: ("edit_space", insert("metric")), result: homeSaved),
     true)
