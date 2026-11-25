@@ -48,7 +48,7 @@ next message waits 11 to 15 s for a start, less what typing hides.
    `WorkbookInference.prewarm`. `WorkbookInference.loadedMemoryBytes()` reports a running
    engine's size, nil by default.
 2. `NativeWorkbookModel`: `atMost` caps a new session's chosen size; `loadedMemoryBytes` reads
-   the session on the worker queue.
+   the session's size under a lock, without waiting behind the worker queue (review finding 2).
 3. `ProductAI`: the pressure source adds `.normal` and routes it apart from warnings. Releases
    by pressure record the released size. A settle task, cancelled by any later pressure event,
    checks the conditions above and starts `atMost(released - 4 GiB)`. A host closure from the
