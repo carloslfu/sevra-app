@@ -49,8 +49,11 @@ private struct ItemDetails: Sendable {
   }
   var extraction = ""
   var links: [Link] = []
-  /// Removed from the workbook, and this is its current version.
-  var removed = false
+  /// Still in the workbook or gone: removed, withdrawn. Read for the thing as a whole, so an
+  /// older version open on screen says so too.
+  var presence: Presence?
+  /// This is the current version. Only the current version takes Accept, Undo or an edit.
+  var current = true
   /// Remove applies to it: a document or record the workbook does not keep for itself.
   var removable = false
   /// Saved by Restore. Withdraw or Undo here would hide it again without a removal on record.
@@ -79,7 +82,7 @@ private struct ItemDetails: Sendable {
   @State private var details = ItemDetails()
   private var classification: String {
     let status =
-      details.removed ? "Removed" : item.status == "rejected" ? "Withdrawn" : item.status.capitalized
+      removed ? "Removed" : item.status == "rejected" ? "Withdrawn" : item.status.capitalized
     return [item.category.capitalized, item.meaning.capitalized, status].joined(separator: " · ")
   }
   private var movementDirection: String? {
@@ -102,29 +105,28 @@ private struct ItemDetails: Sendable {
         Spacer()
         Button("Links", systemImage: "link") { state.referencePanel = .outgoing }
           .help("Links in this document and documents that mention it")
-        if item.status == "draft" {
+        if item.status == "draft" && details.current && !removed {
           Button("Accept") {
             if document.end() { state.review(document.current.id, accepting: true) }
           }.buttonStyle(.borderedProminent).disabled(state.busy)
         }
-        if details.removed {
-          Button("Restore") {
-            if document.end() { state.removeOrRestore(item.logicalID, removing: false) }
-          }.disabled(state.busy).help("Bring it back into the workbook as it was.")
-        } else if item.status == "draft" && item.supersedes != nil && !details.restored {
+        // A removed one shows the banner below, with Restore.
+        if !removed && item.status == "draft" && item.supersedes != nil && !details.restored
+          && details.current
+        {
           // A draft change to something already saved: declining keeps what was there.
           Button("Withdraw") {
             if document.end() { state.review(document.current.id, action: .withdraw) }
           }.disabled(state.busy).help(
             "Decline this change and keep the version before it. Undo can bring the change back.")
         }
-        if details.removable && !details.removed {
+        if details.removable && !removed {
           Button("Remove") {
             if document.end() { state.removeOrRestore(item.logicalID, removing: true) }
           }.disabled(state.busy).help(
             "Take it out of the workbook. History keeps it, and Restore brings it back.")
         }
-        if item.supersedes != nil && !details.removed && !details.restored {
+        if item.supersedes != nil && !removed && !details.restored && details.current {
           Button(isTableUpdateRedo ? "Redo" : "Undo") {
             if document.end() {
               state.review(document.current.id, action: isTableUpdateRedo ? .redo : .undo)
@@ -174,7 +176,7 @@ private struct ItemDetails: Sendable {
             }
           }
         }
-        if file == nil && document.editable && !details.removed {
+        if file == nil && document.editable && !removed && details.current {
           Button(document.editing ? "Done" : "Edit draft") {
             if document.editing { document.end() } else { document.begin() }
           }
@@ -193,10 +195,18 @@ private struct ItemDetails: Sendable {
         }.readingFont(.callout).padding(12).frame(maxWidth: .infinity, alignment: .leading)
         Divider()
       }
-      if let newer = document.newerVersionID, !document.dirty {
+      if let presence = details.presence, presence.gone, !document.dirty {
+        // However it left: a button, the menu, chat, Undo or another window.
+        GoneBanner(
+          presence: presence, noun: noun, workspace: state,
+          openCurrent: presence.state == "withdrawn" && !details.current
+            ? presence.currentVersion.map { version in { state.navigate(.item(version)) } } : nil)
+          .readingFont(.callout).padding(10)
+        Divider()
+      } else if let newer = document.newerVersionID, !document.dirty {
         HStack {
           Text("Viewing an earlier version.").foregroundStyle(.secondary)
-          Button("Open newer version") { state.navigate(.item(newer)) }
+          Button("Open current version") { state.navigate(.item(newer)) }
         }.readingFont(.callout).padding(10)
         Divider()
       }
@@ -493,6 +503,10 @@ private struct ItemDetails: Sendable {
   private func seekToLocator() {
     if let seconds = MediaFile.seconds(state.itemLocators[item.id]) { seek(seconds) }
   }
+  private var removed: Bool { details.presence?.state == "removed" }
+  private var noun: String {
+    item.kind == "document" ? "document" : item.category == "source" ? "file" : "record"
+  }
   private var isTableUpdateRedo: Bool {
     item.kind == "table-intake-update" && item.status == "rejected"
       && item.data["afterFingerprint"].string != nil
@@ -509,7 +523,8 @@ private struct ItemDetails: Sendable {
           return .init(
             id: link.text, target: target, title: (try? book.item(target).title) ?? target)
         },
-        removed: current && (try? book.isRemoved(logicalID)) == true,
+        presence: try? book.presence(id),
+        current: current,
         removable: current && (try? book.removalTarget(id))?.type == "item",
         restored: links.contains {
           $0["child"].text == id && $0["transformation"].text == "restore-v1"

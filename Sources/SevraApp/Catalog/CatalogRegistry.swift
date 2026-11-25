@@ -95,7 +95,7 @@ enum CatalogRegistry {
       ),
       (
         "document", "Document and provenance", "Viewers.swift",
-        ["Default", "Historical", "Removed", "Failure", "Long labels"]
+        ["Default", "Historical", "Removed", "Removed while open", "Failure", "Long labels"]
       ),
       ("intake", "Import and table update", "IntakeView.swift", ["Default", "Empty", "Failure"]),
       (

@@ -75,13 +75,16 @@ import SevraCore
       fileItems["historical"] = old.id
     }
     // A removed document shows Removed with Restore. The Removed list shows two.
-    if (id == "main.document" && variant == "Removed") || (id == "main.removed" && variant == "Default")
+    // "Removed while open" keeps the exact version opened before the removal, as when chat removes
+    // the document on screen.
+    if (id == "main.document" && ["Removed", "Removed while open"].contains(variant))
+      || (id == "main.removed" && variant == "Default")
     {
       let note = try b.addItem(
         category: "record", kind: "document", title: "Supplier summary draft",
         text: "Oak Supply is cheaper by 3.50 before delivery.", inputs: [source!.id])
       _ = try b.remove(note.id, actor: .human("Catalog.synthetic"))
-      fileItems["historical"] = note.logicalID
+      fileItems["historical"] = variant == "Removed while open" ? note.id : note.logicalID
       if id == "main.removed" {
         // The catalog's views chart its table, so the list's second entry is another document.
         let second = try b.addItem(

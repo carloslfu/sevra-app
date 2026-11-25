@@ -317,7 +317,7 @@ struct WorkbookView: View {
   }
   var routeTitle: String {
     switch state.route {
-    case .space(let id): return state.spaces.first { $0.id == id }?.title ?? "Space"
+    case .space(let id): return state.spaces.first { $0.id == id }?.title ?? (state.spaces.isEmpty ? "Space" : "Removed")
     case .item: return state.viewedItemTitle ?? "Document"
     case .table(let id): return state.dataset(id)?.title ?? "Table"
     case .tableUpdate: return "Review table update"
@@ -721,6 +721,9 @@ struct WorkbookView: View {
       case .space(let id):
         if let space = state.spaces.first(where: { $0.id == id }) {
           SpaceView(space: space, state: state).id(space.id)
+        } else if !state.spaces.isEmpty {
+          // Removed while open, from chat, a menu or another window.
+          GoneRouteView(id: id, noun: "view", workspace: state)
         }
       case .item(let id):
         ItemRouteView(id: id, workbook: book, state: state).id(
@@ -728,6 +731,8 @@ struct WorkbookView: View {
       case .table(let id):
         if let table = state.dataset(id) {
           DatasetView(table: table, state: state)
+        } else if state.workbook != nil {
+          GoneRouteView(id: id, noun: "table", workspace: state)
         }
       case .search: SearchView(state: state, results: state.searchResults)
       case .tableUpdate(let source, let job):

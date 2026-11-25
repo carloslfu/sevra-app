@@ -424,10 +424,17 @@ struct NativeComponent: View {
         WorkbookSection(type: component.type, state: state)
       case "app": HomeAppView(component: component, state: state)
       case "calculation", "query":
-        DefinitionComponentView(component: component, workspace: state).id(
-          state.interactionIdentity)
+        DefinitionPresenceGate(
+          binding: component.definitionBinding, noun: "calculation", workspace: state
+        ) {
+          DefinitionComponentView(component: component, workspace: state).id(
+            state.interactionIdentity)
+        }
       case "form":
-        FormComponentView(component: component, workspace: state).id(state.interactionIdentity)
+        DefinitionPresenceGate(binding: component.definitionBinding, noun: "form", workspace: state)
+        {
+          FormComponentView(component: component, workspace: state).id(state.interactionIdentity)
+        }
       case "text":
         Text(component.text ?? "").readingFont(sized(.callout, .body, .title2))
           .textSelection(.enabled).foregroundStyle(.secondary)

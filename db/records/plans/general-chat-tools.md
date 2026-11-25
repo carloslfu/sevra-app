@@ -564,6 +564,8 @@ Exit: the owner's answers are recorded as a source note, the `db/DB.md` line is 
 
 Exit: the baseline is retained as evidence, and `--conversation-surfaces` shows the `current` profile unchanged.
 
+**The screen follows a removal, November 24, 2026.** A document removed through chat stayed on screen as a live draft, because the viewer pins an exact version and judged "removed" only on the current one, and only a screen's own button navigated afterwards. The general fix is one core question, `Workbook.presence(id)`, that every screen asks after any change, and one banner, `GoneBanner`, that says removed, withdrawn or no longer here, with Restore when it applies. It covers documents and records (any version), views and apps, tables, automations, and forms and calculations shown in a view. Only the current version offers Accept, Edit, Undo or Withdraw. Confirmed removals and restores now say what happened in chat. Verified live in the installed app for a document and a view removed through chat while open.
+
 **Done on November 18, 2026.** Evidence: [the baseline](../../../integration/evidence/2026-11-18-chat-jobs-baseline/results.json).
 
 - **Profile.** The host reads `SEVRA_TOOL_PROFILE`. Unset means `current`, and an unknown name is refused. `sevra-agent-checks --conversation-surfaces` passes with `current` byte-identical to a build without a profile.

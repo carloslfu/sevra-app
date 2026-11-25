@@ -147,12 +147,24 @@ extension Workbook {
       error.map {
         "The confirmed change did not finish: " + $0 + " Inspect saved results before retrying."
       }
-        ?? "Your confirmed change is complete. "
-        + approval.title.components(separatedBy: "\n")[0].replacingOccurrences(of: "?", with: "."),
+        ?? Self.completion(approval, result: result),
       role: "event", conversation: conversation,
       payload: .object([
         "kind": .string("chat_approval_result"), "approvalID": .string(approval.id),
         "result": result, "error": error.map(Value.string) ?? .null,
       ]))
+  }
+
+  /// What the chat says once a confirmed change is saved: what happened, in words.
+  static func completion(_ approval: ChatApproval, result: Value) -> String {
+    let title = "“" + result["title"].text + "”"
+    switch result["status"].string {
+    case "removed": return "Removed " + title + ". History keeps it, and Restore brings it back."
+    case "restored":
+      return "Restored " + title + "." + (result["note"].string.map { " " + $0 } ?? "")
+    default:
+      return "Done. "
+        + approval.title.components(separatedBy: "\n")[0].replacingOccurrences(of: "?", with: ".")
+    }
   }
 }

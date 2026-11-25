@@ -239,4 +239,35 @@ func checkRemoval(at root: URL) {
     _ = try book.restore(workflow.logicalID, actor: person)
     _ = try book.verify()
   }
+
+  check("a screen reads whether its subject is still here, from any version, whoever removed it") {
+    let book = try book("Presence")
+    let story = try document(book, "The Clockmaker's Secret", "Elias repaired time.")
+    try expect(try book.presence(story.id) == .init(
+      state: "present", target: try book.removalTarget(story.id), currentVersion: story.id))
+    // The version open on screen predates the removal, and still answers "removed".
+    _ = try book.remove(story.logicalID, actor: person)
+    let opened = try book.presence(story.id)
+    try expect(opened.state == "removed" && opened.gone && opened.restorable)
+    try expect(opened.target?.id == story.logicalID && opened.currentVersion != story.id)
+    _ = try book.restore(story.id, actor: person)
+    try expect(try book.presence(story.id).state == "present")
+    // Undo elsewhere withdraws it: not removable back, but plainly gone.
+    _ = try book.undoItem(try book.item(story.logicalID).id, actor: person)
+    let undone = try book.presence(story.id)
+    try expect(undone.state == "withdrawn" && undone.gone && !undone.restorable)
+
+    let source = try book.addItem(category: "source", kind: "observation", title: "Costs")
+    try expect(try book.presence(source.id).state == "present")
+    let table = try book.createDataset(
+      title: "Costs", columns: [.init(id: "price", title: "Price", type: "decimal")],
+      rows: [["price": .string("2.10")]], sourceID: source.id)
+    _ = try book.remove(table.id, actor: person)
+    try expect(try book.presence(table.id).state == "removed")
+    let view = try book.saveSpace(title: "Purchasing", definition: SpaceDefinition(components: []))
+    _ = try book.remove(view, actor: person)
+    try expect(try book.presence(view).state == "removed")
+    try expect(try book.presence("home").state == "present")
+    try expect(try book.presence(identifier()).state == "missing")
+  }
 }

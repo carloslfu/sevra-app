@@ -8,9 +8,17 @@ struct AutomationFocusedView: View {
   @ObservedObject var workspace: WorkspaceState
   @State private var definition: ApplicationDefinition?
   @State private var failure: String?
+  @State private var presence: Presence?
   var body: some View {
     Group {
-      if let definition {
+      if let presence, presence.gone {
+        VStack(alignment: .leading, spacing: 16) {
+          GoneBanner(presence: presence, noun: "automation", workspace: workspace)
+          Button("All automations") { workspace.navigate(.automations) }
+          Spacer(minLength: 0)
+        }.padding(24).frame(maxWidth: 760, alignment: .leading)
+          .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
+      } else if let definition {
         AutomationScheduleDetail(
           definition: definition, workspace: workspace, onClose: { workspace.back() }
         )
@@ -23,7 +31,15 @@ struct AutomationFocusedView: View {
       } else {
         ProgressView("Reading saved automation")
       }
-    }.task(id: workspace.interactionIdentity.uuidString + definitionID) {
+    }
+    .task(id: definitionID + ":" + String(workspace.revision)) {
+      // Removed from chat or another window while open: say so here too.
+      guard let book = workspace.workbook else { return }
+      let found = await Task.detached { [definitionID] in try? book.presence(definitionID) }.value
+      guard !Task.isCancelled else { return }
+      presence = found
+    }
+    .task(id: workspace.interactionIdentity.uuidString + definitionID) {
       definition = nil
       failure = nil
       guard let book = workspace.workbook else { return }

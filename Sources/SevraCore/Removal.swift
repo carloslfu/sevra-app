@@ -25,6 +25,24 @@ public struct RemovalTarget: Codable, Equatable, Sendable {
   public let kind: String?
 }
 
+/// Whether a saved thing is still in the workbook, for a screen that shows it.
+public struct Presence: Equatable, Sendable {
+  /// present, removed, withdrawn, archived, retired or missing.
+  public let state: String
+  /// What the ID names, when it names something Remove applies to.
+  public let target: RemovalTarget?
+  /// For a document or record, its current version.
+  public let currentVersion: String?
+  public init(state: String, target: RemovalTarget?, currentVersion: String?) {
+    self.state = state
+    self.target = target
+    self.currentVersion = currentVersion
+  }
+  public var gone: Bool { state != "present" }
+  /// Restore brings it back.
+  public var restorable: Bool { state == "removed" || state == "retired" || state == "archived" }
+}
+
 extension Workbook {
   static let removalKind = "removal"
 
@@ -104,6 +122,48 @@ extension Workbook {
     // A marker is bookkeeping, not something to find by its words.
     try db.execute("UPDATE chunks SET is_current=0 WHERE item_id=?", [.string(marker)])
     return marker
+  }
+
+  /// Whether the thing an ID names is still in the workbook. A screen calls this after any change,
+  /// whoever made it, so a removal, undo or withdrawal elsewhere shows where the thing is open.
+  /// An exact older version answers for the thing as a whole.
+  public func presence(_ id: String) throws -> Presence {
+    let target: RemovalTarget
+    do {
+      target = try removalTarget(id)
+    } catch let error as SevraError where error.code == "not_found" {
+      return Presence(state: "missing", target: nil, currentVersion: nil)
+    } catch {
+      // Home, a Source, a row: never removed, but an item can still be withdrawn.
+      guard let found = try? item(id) else {
+        return Presence(state: "present", target: nil, currentVersion: nil)
+      }
+      let current = try item(found.logicalID)
+      return Presence(
+        state: current.status == "rejected" ? "withdrawn" : "present", target: nil,
+        currentVersion: current.id)
+    }
+    if try isRemoved(target.id) {
+      let current = target.type == "item" ? try item(target.id).id : nil
+      return Presence(state: "removed", target: target, currentVersion: current)
+    }
+    switch target.type {
+    case "item":
+      let current = try item(target.id)
+      return Presence(
+        state: current.status == "rejected" ? "withdrawn" : "present", target: target,
+        currentVersion: current.id)
+    case "table":
+      return Presence(
+        state: try dataset(target.id).archived ? "archived" : "present", target: target,
+        currentVersion: nil)
+    case "tool":
+      let retired = try DefinitionTool(DefinitionDescriptor(applicationDefinition(target.id).content))
+        .retired
+      return Presence(state: retired ? "retired" : "present", target: target, currentVersion: nil)
+    default:
+      return Presence(state: "present", target: target, currentVersion: nil)
+    }
   }
 
   /// Removes one thing. A person's decision: the chat asks them to confirm first.
