@@ -104,11 +104,23 @@ func checkPrewarm(book: Workbook) async throws {
   await stopping.letStartFinish()
   try await waitFor(stopping, "started")
 
-  // Memory: a start needs the engine's budget plus room for everything else.
+  // Memory: a start needs the engine's budget plus 4 GiB for everything else.
   let gigabyte: UInt64 = 1024 * 1024 * 1024
-  try expect(ProductAI.hasRoom(forEngineBytes: 12 * gigabyte, reclaimable: 18 * gigabyte), "Enough memory was refused.")
-  try expect(!ProductAI.hasRoom(forEngineBytes: 12 * gigabyte, reclaimable: 17 * gigabyte), "Too little memory was accepted.")
+  try expect(ProductAI.hasRoom(forEngineBytes: 12 * gigabyte, reclaimable: 16 * gigabyte), "Enough memory was refused.")
+  try expect(!ProductAI.hasRoom(forEngineBytes: 12 * gigabyte, reclaimable: 16 * gigabyte - 1), "Too little memory was accepted.")
   try expect(!ProductAI.hasRoom(forEngineBytes: 12 * gigabyte, reclaimable: nil), "Unknown memory was accepted.")
+
+  // The engine's size: the whole model on a 48 GiB Mac with 22 + 4 GiB free, else the streamed store.
+  let choices: [(physical: UInt64, reclaimable: UInt64?, expected: UInt64, case: String)] = [
+    (48 * gigabyte, 26 * gigabyte, EngineMemory.resident, "48 GiB Mac with room"),
+    (48 * gigabyte, 26 * gigabyte - 1, EngineMemory.streamed, "48 GiB Mac just short of room"),
+    (36 * gigabyte, 30 * gigabyte, EngineMemory.streamed, "36 GiB Mac"),
+    (48 * gigabyte, nil, EngineMemory.streamed, "unknown free memory"),
+  ]
+  for choice in choices {
+    let chosen = EngineMemory.choose(physicalMemory: choice.physical, reclaimable: choice.reclaimable)
+    try expect(chosen == choice.expected, "The \(choice.case) chose \(chosen / gigabyte) GiB.")
+  }
 
   let unloading = StartingModel()
   let other = ProductAI(qualifying: unloading)

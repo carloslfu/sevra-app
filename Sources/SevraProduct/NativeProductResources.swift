@@ -8,6 +8,32 @@ import SevraNativeAI
 import SevraSplash
 import SevraSplashText
 
+/// The engine's memory, chosen each time an engine starts: the whole model when this Mac has
+/// room for it beside everything else, otherwise a store of experts read from the SSD. Both sizes
+/// were measured on a 48 GiB Mac at 64K of context (records/plans/engine-memory-by-free-memory).
+package enum EngineMemory {
+  static let gibibyte: UInt64 = 1024 * 1024 * 1024
+  /// Keeps part of the experts in memory and reads the rest from the SSD.
+  package static let streamed = 12 * gibibyte
+  /// Holds every expert beside 64K of context.
+  package static let resident = 22 * gibibyte
+  /// What a start leaves for everything else on the Mac.
+  package static let headroom = 4 * gibibyte
+  /// The Macs that get 64K of context, the only setting the resident size was measured with.
+  package static let largeMac = 48 * gibibyte
+  static let rule = "12 or 22 GiB by free memory at start"
+  package static func choose(physicalMemory: UInt64, reclaimable: UInt64?) -> UInt64 {
+    guard physicalMemory >= largeMac, let reclaimable, reclaimable >= resident + headroom
+    else { return streamed }
+    return resident
+  }
+  @Sendable static func now() -> UInt64 {
+    choose(
+      physicalMemory: ProcessInfo.processInfo.physicalMemory,
+      reclaimable: ProductAI.reclaimableBytes())
+  }
+}
+
 enum NativeProductResources {
   private struct Manifest: Decodable {
     let schemaVersion: Int
@@ -43,12 +69,13 @@ enum NativeProductResources {
     let (manifest, engine, grammar) = try layout()
     // The two capacities were compared at the same engine budget on a 48 GiB Mac.
     let context: ContextBudget.Profile =
-      ProcessInfo.processInfo.physicalMemory >= 48 * 1024 * 1024 * 1024
+      ProcessInfo.processInfo.physicalMemory >= EngineMemory.largeMac
       ? .evaluation64K : .evaluation32K
     return .init(
       engine: engine, engineFiles: manifest.engineFiles, grammarLibrary: grammar,
       grammarSHA256: manifest.grammarSHA256, modelsRoot: modelsRoot,
-      memoryBytes: 12 * 1024 * 1024 * 1024,
+      memoryBytes: EngineMemory.streamed,
+      memoryChoice: .init(rule: EngineMemory.rule, choose: EngineMemory.now),
       contextBudget: .init(profile: context), reasoning: .bounded512,
       modelLayout: .installed, contextMaintenanceEnabled: true)
   }

@@ -14,8 +14,6 @@ public actor ProductAI {
   private var pressureSource: DispatchSourceMemoryPressure?
   private let observesSystemPressure: Bool
   private var prewarming: Task<Void, Never>?
-  /// The engine's memory budget, known once its configuration has been read.
-  private var engineBytes: UInt64?
   private var prewarmCancellation: Cancellation?
   /// Naming the work after a reply. Any request stops it first, so it never delays one.
   private var naming: Task<Bool, Never>?
@@ -134,14 +132,17 @@ public actor ProductAI {
           atPath: modelDirectory.appendingPathComponent(pack.name + "/model.json").path),
         let configuration = try? NativeProductResources.configuration(modelsRoot: modelDirectory)
       else { return }
-      engineBytes = configuration.memoryBytes
       model = NativeWorkbookModel(configuration: configuration)
     }
     guard let model else { return }
     // A loaded engine holds its memory already, so this can only decline a start that is not
-    // needed; a start after the idle release is checked like the first.
-    if observesSystemPressure, let engineBytes, !Self.hasRoom(forEngineBytes: engineBytes) {
-      return
+    // needed; a start after the idle release is checked like the first, for the size it would
+    // choose.
+    if observesSystemPressure {
+      let reclaimable = Self.reclaimableBytes()
+      let engine = EngineMemory.choose(
+        physicalMemory: ProcessInfo.processInfo.physicalMemory, reclaimable: reclaimable)
+      guard Self.hasRoom(forEngineBytes: engine, reclaimable: reclaimable) else { return }
     }
     observeMemoryPressure()
     let cancellation = Cancellation()
@@ -190,7 +191,7 @@ public actor ProductAI {
     forEngineBytes engine: UInt64, reclaimable: UInt64? = ProductAI.reclaimableBytes()
   ) -> Bool {
     guard let reclaimable else { return false }
-    return reclaimable >= engine + 6 * 1024 * 1024 * 1024
+    return reclaimable >= engine + EngineMemory.headroom
   }
   static func reclaimableBytes() -> UInt64? {
     var stats = vm_statistics64()
@@ -415,7 +416,6 @@ public actor ProductAI {
         let configuration = try ChatTiming.span("product.model_configuration") {
           try NativeProductResources.configuration(modelsRoot: modelDirectory)
         }
-        engineBytes = configuration.memoryBytes
         model = NativeWorkbookModel(configuration: configuration)
       }
       guard let model else { throw SevraError("model", "The local model is unavailable.") }

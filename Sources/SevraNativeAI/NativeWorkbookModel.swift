@@ -18,7 +18,22 @@ package actor NativeWorkbookModel: WorkbookInference {
     package let grammarLibrary: URL
     package let grammarSHA256: String
     package let modelsRoot: URL
-    package let memoryBytes: UInt64
+    /// The engine's memory budget. With `memoryChoice`, the size an engine started with: the
+    /// worker sets it on each new session's copy of the configuration.
+    package var memoryBytes: UInt64
+    /// Chooses the budget when an engine starts, never while one runs. The product's choice
+    /// rests on the memory free then; checks and harnesses leave it out and keep `memoryBytes`.
+    package struct MemoryChoice: Sendable {
+      /// Names the rule in the model identity, which must not change from one start to the next.
+      package let rule: String
+      package let choose: @Sendable () -> UInt64
+      package init(rule: String, choose: @escaping @Sendable () -> UInt64) {
+        self.rule = rule
+        self.choose = choose
+      }
+    }
+    package let memoryChoice: MemoryChoice?
+    var memoryText: String { memoryChoice?.rule ?? String(memoryBytes) }
     package let activations: Activations
     package let contextBudget: ContextBudget
     package let reasoning: NativeReasoning
@@ -46,6 +61,7 @@ package actor NativeWorkbookModel: WorkbookInference {
     package init(
       engine: URL, engineFiles: [String: String], grammarLibrary: URL,
       grammarSHA256: String, modelsRoot: URL, memoryBytes: UInt64,
+      memoryChoice: MemoryChoice? = nil,
       contextBudget: ContextBudget = .init(), reasoning: NativeReasoning = .off,
       modelLayout: ModelLayout = .localPack, contextMaintenanceEnabled: Bool = true,
       observeRequest: (@Sendable (Value) -> Void)? = nil,
@@ -65,6 +81,7 @@ package actor NativeWorkbookModel: WorkbookInference {
       self.grammarSHA256 = grammarSHA256
       self.modelsRoot = modelsRoot
       self.memoryBytes = memoryBytes
+      self.memoryChoice = memoryChoice
       self.activations = activations
       self.contextBudget = contextBudget
       self.reasoning = reasoning
@@ -90,7 +107,7 @@ package actor NativeWorkbookModel: WorkbookInference {
     contextMaintenanceEnabled = configuration.contextMaintenanceEnabled
     identity =
       "Splash 1.7.2; 2afc7337aacc044722fa95e4cb3da75c281a19a8; Qwen3.6-35B-A3B-4bit + DFlash2; native Swift candidate"
-      + "; context \(configuration.contextBudget.contextTokens); memory \(configuration.memoryBytes); activations \(configuration.activations.rawValue); KV int8; state fp32; ANE on"
+      + "; context \(configuration.contextBudget.contextTokens); memory \(configuration.memoryText); activations \(configuration.activations.rawValue); KV int8; state fp32; ANE on"
       + "; reasoning budget \(configuration.reasoning.rawValue); within-request reasoning retained"
   }
 
@@ -746,9 +763,14 @@ private final class NativeWorker: @unchecked Sendable {
               "The previous native helper has not stopped. Retry unloading it.")
             self.session = nil
             let setupStart = ProcessInfo.processInfo.systemUptime
+            // A new session starts a new engine, so its memory is chosen now.
+            var configuration = self.configuration
+            if let choice = configuration.memoryChoice {
+              configuration.memoryBytes = choice.choose()
+            }
             self.session = try ChatTiming.span("model.session_setup") {
               try Session(
-                directory: directory, configuration: self.configuration,
+                directory: directory, configuration: configuration,
                 cancellation: cancellation, progress: progress)
             }
             self.unreportedSessionSetup = ProcessInfo.processInfo.systemUptime - setupStart
@@ -1151,7 +1173,7 @@ private final class NativeWorker: @unchecked Sendable {
       "runtimeRelease": .string("1.7.2"),
       "activations": .string(configuration.activations.rawValue),
       "requestedContextTokens": .number(Double(budget.contextTokens)),
-      "requestedMemoryBytes": .number(Double(configuration.memoryBytes)),
+      "requestedMemoryBytes": .number(Double(session.configuration.memoryBytes)),
       "engineSHA256": .string(configuration.engineFiles["splash"] ?? ""),
       "grammarSHA256": .string(configuration.grammarSHA256),
       "templateIdentity": .string(prepared.templateIdentity),

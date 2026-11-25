@@ -2,11 +2,12 @@
 type: index
 scope: type-folder
 folder: sources/notes
-updated: 2026-11-25T03:07:34.306462Z
+updated: 2026-11-25T03:28:18.108229Z
 ---
 
 # sources/notes
 
+- [[sources/notes/2026/11/engine-memory-by-free-memory]] — Carlos asks for the engine's memory size to follow free memory: a concise plan, reviewed in detail and as a whole, then built in full.
 - [[sources/notes/2026/11/splash-1-7-2-upgrade-approval]] — Carlos asks for the Splash 1.7.2 upgrade and approves quitting Sevra for one real-model check run.
 - [[sources/notes/2026/11/steady-chat-layout]] — Carlos asks for less layout shift while a chat reply runs and when it finishes, a little more of the model's thoughts on screen, and a review of every detail of the chat UI.
 - [[sources/notes/2026/11/splash-1-7-1-upgrade-approval]] — Carlos approves the Splash 1.7.1 upgrade plan as written, with int8 cached states and the header-test run, and asks for its implementation.
