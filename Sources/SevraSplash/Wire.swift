@@ -15,7 +15,7 @@ func check(_ condition: Bool, _ message: String) throws {
   if !condition { throw SplashError(message) }
 }
 
-// Splash 1.7.1 protocol v15. Layout is pinned against upstream's byte fixtures.
+// Splash 1.7.2 protocol v15. Layout is pinned against upstream's byte fixtures.
 // This frontend initially submits text only. Images remain an explicit unsupported input.
 public enum SplashWire {
   public static let version: UInt16 = 15

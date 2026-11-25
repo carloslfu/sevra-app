@@ -18,12 +18,12 @@ package enum PromptHeader {
   package static func requiredFreeBytes(_ manifest: Manifest) -> UInt64 {
     (12 << 30) + UInt64(manifest.dataBytes)
   }
-  package static let release = "1.7.1"
-  package static let commit = "1988a72f26a6031127efc29f861bfb46d36286c4"
+  package static let release = "1.7.2"
+  package static let commit = "2afc7337aacc044722fa95e4cb3da75c281a19a8"
 
   /// The launch options the app starts the engine with. The context, memory and quota are not
   /// among them: a header made at 64K is taken back at 32K (phase H1).
-  /// The app runs one request at a time, so it asks for one lane: Splash 1.7.1 gives every
+  /// The app runs one request at a time, so it asks for one lane: Splash 1.7.2 gives every
   /// lane a 16-row verify arena, and one lane leaves the expert store more of the budget.
   package static func engineOptions(activations: String) -> [String] {
     [
@@ -35,7 +35,7 @@ package enum PromptHeader {
 
   /// Options that change neither what a restore point holds nor the numbers it was computed
   /// with: how many rows a decode cycle verifies, how many lanes serve, and whether an idle
-  /// engine sleeps. Splash 1.7.1's cache namespace leaves them out too, so a header made under
+  /// engine sleeps. Splash 1.7.2's cache namespace leaves them out too, so a header made under
   /// other values of them is taken back whole.
   package static let restoreNeutralOptions: Set<String> = [
     "--verify-rows", "--max-concurrent-requests", "--idle-sleep",

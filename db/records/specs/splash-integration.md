@@ -3,12 +3,14 @@ type: spec
 meta-type: conclusion
 id: 01m5wps1qcharh0qv8vq40wbjr
 created: 2026-10-26T18:15:17.996137+00:00
-updated: 2026-11-24T14:41:48.831174+00:00
+updated: 2026-11-25T03:08:08.668040+00:00
 summary: Python-free Swift integration of pinned upstream Splash, explicit behavior mapping, differential verification and measured adoption gates.
 title: Native Splash integration and upgrades
 status: reviewed
 ---
 # Native Splash integration and upgrades
+
+Revision 13, November 24, 2026. At the owner's word ([[sources/notes/2026/11/splash-1-7-2-upgrade-approval]]) the native preview pin moves to Splash 1.7.2, protocol 15 unchanged. See "Splash 1.7.2, November 24" below.
 
 Revision 12, November 24, 2026. The five follow-ups of the 1.7.1 upgrade landed the same day, at the owner's word: forced tokens (I14), literal control tokens as characters (I06), `head_tokens` for prompts without a prepared header and a header identity without restore-neutral options; `--verify-rows auto` was measured and not taken. See "Follow-ups" under "Splash 1.7.1, November 24".
 
@@ -25,8 +27,10 @@ owns the Swift product, workbook agent and integration. Do not port inference,
 attention, expert routing, speculative verification or GPU scheduling to Swift.
 No runtime Python interpreter, Python server, HTTP proxy or implicit cloud fallback.
 Upstream Python is allowed only in development/reference verification tools.
-I02. The native preview pin is Splash 1.7.1, commit
-`1988a72f26a6031127efc29f861bfb46d36286c4`, protocol 15 and status schema 8. The
+I02. The native preview pin is Splash 1.7.2, commit
+`2afc7337aacc044722fa95e4cb3da75c281a19a8`, protocol 15 and status schema 8. The
+1.7.1 pin at `1988a72f26a6031127efc29f861bfb46d36286c4` is preserved in
+`integration/splash-1.7.1-preserved.json`. The
 1.6.1 pin at `d8af1054aab0f97de21d043e01aa98af3754f10e` is preserved in
 `integration/splash-1.6.1-preserved.json`, and the initial 1.4.1 pin at
 `1744cfafee415fb463b289449cec59a864e768e9` separately. Pin source,
@@ -486,3 +490,13 @@ Follow-ups, the same day, at the owner's word, one run each:
 - **F5, literal control tokens as characters, U+0000 as U+FFFD** (I06). Every prompt now renders and splits one way. Fixing it found the character-based search difference in swift-transformers, which also changed ordinary text such as `❤️<b>`.
 
 Results: 32 text cases, 214 grammar steps (1,326 forced pairs) and 1,441 workbook tool masks (14,800 forced pairs) equal the reference; 39 Splash checks and the agent checks pass. The packaged header's inputs are unchanged (4,429 tokens). The eight header tests pass: with the comparison setting the first request carries `head_tokens` 4,429 and its first decision takes 2.16 s against 1.30 s from the restored header. The light set passes 11 of 11 on the first run. Evidence: `chat-timing-1.7.1-auto.jsonl`, `chat-timing-1.7.1-forced.jsonl`, `header-tests-followups.json` and `light-followups/` in the same folder.
+
+## Splash 1.7.2, November 24
+
+The pin moved from 1.7.1 to the tagged 1.7.2 (commit `2afc733`), at the owner's word ([[sources/notes/2026/11/splash-1-7-2-upgrade-approval]]). Protocol 15, status schema 8, the model, the model folder assembly (`install/*.py`), the protocol golden, `host-step.metallib`, the licenses and the third-party notices are unchanged. The engine and `splash.metallib` changed.
+
+Upstream's mapped Python surfaces changed only to add Inkling 2's chat format (JSON calls, framed answer text, a model that opens its own message); Qwen's values are the same. Regenerated from the 1.7.2 reference, all four fixture sets equal Sevra's byte for byte apart from the recorded commit: 32 text cases, the grammar masks, the 1,441 workbook tool masks and the output projections. One generator change: upstream's `_generation_prompt` now takes the chat format, and `generate_splash_text_fixtures.py` passes Qwen's. No host Swift behavior changed; only the release and commit constants did.
+
+What 1.7.2 changes for Sevra's MLX 4-bit Qwen: little. Its int8 Q8_0 prefill applies to GGUF only (MLX 4-bit already took int8 activations in 1.7.1), and Qwen decode is level. The cache fixes apply where the app runs: with `--persistent-cache on`, the header's state is now written to the SSD cache after its publication, and a long suspended reply resumes at its newest state. The MoE image gains an expert-scales section, so the persistent cache starts cold once after the upgrade. The app sends normal priority, so the background promotion does not apply.
+
+Results, one run each on a 48 GiB M5 Pro, with the installed app quit: 39 Splash checks and the text, grammar and agent checks pass; the packaged engine's digest equals the pin; the prompt header was remade (4,480 tokens; its inputs changed with the chat tools since the 1.7.1 run, not with the engine) and the engine took it back; the eight header tests pass; the light set passes 11 of 11 on the first run in 119 s of model jobs against 112 s on 1.7.1, the same 30 model calls. Evidence: `integration/evidence/2026-11-24-splash-1-7-2/`. Not run: the timing conversation, the 32K tier start and the broader qualification, which stays blocked for the reasons in `integration/splash.json`.

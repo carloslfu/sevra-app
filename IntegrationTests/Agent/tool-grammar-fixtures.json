@@ -1,7 +1,7 @@
 {
   "schemaVersion": 1,
   "nestedPropertyOrder": "required-then-component-and-definition-selectors",
-  "splashCommit": "1988a72f26a6031127efc29f861bfb46d36286c4",
+  "splashCommit": "2afc7337aacc044722fa95e4cb3da75c281a19a8",
   "toolsSHA256": "4b79c09a98a70769a0801fce09985a2396a4dc19e9d6b426cdd6a86b54ce4ee9",
   "cases": [
     {

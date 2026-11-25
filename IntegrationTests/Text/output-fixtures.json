@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "upstreamCommit": "1988a72f26a6031127efc29f861bfb46d36286c4",
+  "upstreamCommit": "2afc7337aacc044722fa95e4cb3da75c281a19a8",
   "tokenizers": "0.22.2",
   "transformers": "5.15.1",
   "decoders": [

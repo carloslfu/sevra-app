@@ -24,8 +24,8 @@ enum NativeProductResources {
     try require(data.count < 16384, "resources", "The native runtime manifest is oversized.")
     let manifest = try JSONDecoder().decode(Manifest.self, from: data)
     try require(
-      manifest.schemaVersion == 1 && manifest.release == "1.7.1"
-        && manifest.commit == "1988a72f26a6031127efc29f861bfb46d36286c4"
+      manifest.schemaVersion == 1 && manifest.release == "1.7.2"
+        && manifest.commit == "2afc7337aacc044722fa95e4cb3da75c281a19a8"
         && Set(manifest.engineFiles.keys) == ["splash", "splash.metallib", "host-step.metallib"],
       "resources", "The installed runtime does not match this version of Sevra.")
     let contents = SplashRuntimeResources.installedBundleContents

@@ -1,0 +1,8 @@
+header-tests: resumedNotComputed passed
+header-tests: faster passed
+header-tests: sameAnswers passed
+header-tests: nothingKeptAfterStop passed
+header-tests: recoversWithoutComputing passed
+header-tests: failsLoudly passed
+header-tests: headerOnlyAfterKill passed
+header-tests: anotherFolder passed

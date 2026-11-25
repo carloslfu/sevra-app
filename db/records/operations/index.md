@@ -2,13 +2,13 @@
 type: index
 scope: type-folder
 folder: records/operations
-updated: 2026-11-24T19:46:49.171803Z
+updated: 2026-11-25T03:08:08.668040Z
 ---
 
 # records/operations
 
-- [[records/operations/agent-handoff]] — Remove and restore work for every saved kind, in chat with confirmation and in the app with a Removed list; checked with the model and in the installed app, committed and pushed.
 - [[records/operations/implementation]] — Automatic local-model Excel conversion qualified across 10 generated apps and 89 independent originals, including five held-out states; no manual generated-code repairs.
+- [[records/operations/agent-handoff]] — Remove and restore work for every saved kind, in chat with confirmation and in the app with a Removed list; checked with the model and in the installed app, committed and pushed.
 - [[records/operations/inference-context-execution]] — The Splash 1.6.1 step: 64K on the 48 GiB test Mac with a 12 GiB engine budget. Splash 1.7.1 replaced the engine on November 24.
 - [[records/operations/build-and-run]] — Current-checkout discovery, portable source installation and build paths, local AI setup, independent CLI use, verification and uninstall.
 - [[records/operations/native-ui-catalog]] — Build, browse, reproduce and maintain the isolated native UI Catalog with real views, workbook/XPC semantics, controlled services and honest evidence.

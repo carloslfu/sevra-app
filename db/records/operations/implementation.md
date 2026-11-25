@@ -3,7 +3,7 @@ type: operational
 meta-type: conclusion
 id: 01m5rbxzcsjnewm0pwmb9a06cj
 created: 2026-10-25T01:48:47.385772+00:00
-updated: 2026-11-24T14:42:43.076299+00:00
+updated: 2026-11-25T03:08:08.668040+00:00
 summary: Automatic local-model Excel conversion qualified across 10 generated apps and 89 independent originals, including five held-out states; no manual generated-code repairs.
 title: Implementation and acceptance
 ---
@@ -7798,3 +7798,7 @@ Threads, chapters, bookmarks and the main conversation became one list of chats 
 
 ## Splash 1.7.1, November 24
 The native engine moved from Splash 1.6.1 to 1.7.1 under [[records/plans/splash-1-7-1-upgrade]], approved in [[sources/notes/2026/11/splash-1-7-1-upgrade-approval]]. Protocol 15, tree grammar masks equal to the reference, the upstream tool-grammar whitespace fix, one engine lane and a remade header. Model-free checks, both context tiers, the eight header tests and the light set (11 of 11) pass; the timing conversation decoded 92.9 tokens a second against 50.7. [[records/specs/splash-integration]] holds the contract.
+
+## Splash 1.7.2, November 24
+The native engine moved from Splash 1.7.1 to 1.7.2 at the owner's word ([[sources/notes/2026/11/splash-1-7-2-upgrade-approval]]). Protocol 15 and the model assembly are unchanged; every reference fixture regenerated from 1.7.2 equals Sevra's apart from the recorded commit. Model-free checks, the remade header, the eight header tests and the light set (11 of 11, first run) pass, one run each. [[records/specs/splash-integration]] holds the details and the limits.
+

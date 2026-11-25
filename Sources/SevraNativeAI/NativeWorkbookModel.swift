@@ -89,7 +89,7 @@ package actor NativeWorkbookModel: WorkbookInference {
     worker = NativeWorker(configuration)
     contextMaintenanceEnabled = configuration.contextMaintenanceEnabled
     identity =
-      "Splash 1.7.1; 1988a72f26a6031127efc29f861bfb46d36286c4; Qwen3.6-35B-A3B-4bit + DFlash2; native Swift candidate"
+      "Splash 1.7.2; 2afc7337aacc044722fa95e4cb3da75c281a19a8; Qwen3.6-35B-A3B-4bit + DFlash2; native Swift candidate"
       + "; context \(configuration.contextBudget.contextTokens); memory \(configuration.memoryBytes); activations \(configuration.activations.rawValue); KV int8; state fp32; ANE on"
       + "; reasoning budget \(configuration.reasoning.rawValue); within-request reasoning retained"
   }
@@ -407,7 +407,7 @@ private final class NativeWorker: @unchecked Sendable {
     }
     /// The head a request asks the engine to keep a state at (`head_tokens`): the shared
     /// prefix, or a large stable scope past it once the prefix has a state, when no earlier
-    /// request left one there. Splash 1.7.1 keeps it during the request's own prefill, so no
+    /// request left one there. Splash 1.7.2 keeps it during the request's own prefill, so no
     /// separate one-token request computes it first, as 1.6.1 needed.
     func headTokens(_ prompt: SplashTextFrontend.Prompt, common: Int, scope: Int) -> Int {
       guard common >= 2048, !configuration.diagnosticRequestCacheIsolation else { return 0 }
@@ -434,7 +434,7 @@ private final class NativeWorker: @unchecked Sendable {
     func observeResume(prompt: [UInt32], matched: Int) {
       // A live process can evict old KV pages under its memory budget. Ask for a missing
       // boundary on a later request instead of trusting the host's record indefinitely.
-      // Splash 1.7.1 checkpoints complete 32-token pages before the suffix.
+      // Splash 1.7.2 checkpoints complete 32-token pages before the suffix.
       checkpointPrefixes.removeAll { prefix in
         let lastCompletePage = ((prefix.count - 1) / 32) * 32
         return matched < lastCompletePage && prompt.starts(with: prefix)
@@ -1148,7 +1148,7 @@ private final class NativeWorker: @unchecked Sendable {
     try cancellation.check()
     let metrics: Value = .object([
       "backend": .string("splash"),
-      "runtimeRelease": .string("1.7.1"),
+      "runtimeRelease": .string("1.7.2"),
       "activations": .string(configuration.activations.rawValue),
       "requestedContextTokens": .number(Double(budget.contextTokens)),
       "requestedMemoryBytes": .number(Double(configuration.memoryBytes)),

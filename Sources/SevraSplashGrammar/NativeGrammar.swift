@@ -236,7 +236,7 @@ public final class SplashGrammarConstraint {
   }
 
   /// Row 0 is the grammar's mask after the committed tokens, and row i + 1 the mask after draft
-  /// token i's path: the tokens from the first along their parents to it. As Splash 1.7.1's
+  /// token i's path: the tokens from the first along their parents to it. As Splash 1.7.2's
   /// `TokenConstraint.masks`, the tree is walked depth first and only forward, on a copy of the
   /// committed matcher; a row with several children gives each but the last a copy of its own.
   /// No matcher takes a token back: LLGuidance 1.8.0 keeps its last mask keyed by the lexer state

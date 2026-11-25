@@ -36,7 +36,7 @@ public final class SplashTextFrontend {
   /// Splits a rendered prompt at every whole added token, the longest first, as the tokenizer does.
   private var addedSplit: NSRegularExpression?
   /// A text no request can hold, drawn when the frontend loads. `quote` sets it after the `<` of
-  /// an added token that begins in text the host did not write, as Splash 1.7.1's
+  /// an added token that begins in text the host did not write, as Splash 1.7.2's
   /// `PromptTokenizer.quote` does, so that token reaches the model as its characters.
   private let quoteMark = "__sevra_quoted_" + (0..<16).map { _ in
     String(format: "%02x", UInt8.random(in: 0...255))
@@ -328,7 +328,7 @@ public final class SplashTextFrontend {
       }
       return value
     }
-    // As Splash 1.7.1, every text the template is given is quoted, messages and tool
+    // As Splash 1.7.2, every text the template is given is quoted, messages and tool
     // definitions alike: an added token one spells reaches the model as its characters.
     let templateMessages = messages.map(quoteObject).map { $0.mapValues(templateValue) }
     let templateTools = tools?.map(quoteObject).map { $0.mapValues(templateValue) }
@@ -401,7 +401,7 @@ public final class SplashTextFrontend {
 
   /// `text` with each U+0000 as U+FFFD, and the mark after every `<` where an added token
   /// begins: one the text spells whole, or one its end cuts off, which what the template writes
-  /// next could complete (Splash 1.7.1's `PromptTokenizer.quote`). Scalars, not characters, as
+  /// next could complete (Splash 1.7.2's `PromptTokenizer.quote`). Scalars, not characters, as
   /// the tokenizer reads them: a combining mark after `>` must not hide a token.
   private func quote(_ text: String) -> String {
     guard text.unicodeScalars.contains(where: { $0 == "<" || $0 == "\u{0}" }) else { return text }

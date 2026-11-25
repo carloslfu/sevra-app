@@ -3,8 +3,8 @@ type: operational
 meta-type: conclusion
 id: 01m5rbxz8vn3x44zb6n5k97y8q
 created: 2026-10-25T01:48:47.259629+00:00
-updated: 2026-11-24T14:42:24.627697+00:00
-summary: Splash 1.7.1 with tree grammar masks and one engine lane, scoped accounting, continuity fixes and a context default selected by installed memory.
+updated: 2026-11-25T03:08:08.668040+00:00
+summary: Splash 1.7.2 with tree grammar masks and one engine lane, scoped accounting, continuity fixes and a context default selected by installed memory.
 title: Start here
 ---
 # Sevra app
@@ -23,7 +23,7 @@ for the secondary service. Website pricing/support does not apply to this app.
 
 ## Current preview and delivery order
 
-**Current engine, November 24:** Splash 1.7.1, protocol 15, with tree grammar masks and one engine lane; 64K at 48 GiB and above, 32K below, and a 12 GiB engine budget. See [[records/plans/splash-1-7-1-upgrade]].
+**Current engine, November 24:** Splash 1.7.2 (from 1.7.1, same protocol 15), with tree grammar masks and one engine lane; 64K at 48 GiB and above, 32K below, and a 12 GiB engine budget. See [[records/plans/splash-1-7-1-upgrade]] and [[records/specs/splash-integration]] ("Splash 1.7.2").
 
 **Earlier engine, November 16:** Splash 1.6.1 with 64K at 48 GiB and above, 32K below, and a 12 GiB engine budget. The matched comparison passed both shorter tasks and retrieved all three facts from the 42K-token audit at 64K. See [[records/operations/inference-context-execution]].
 
