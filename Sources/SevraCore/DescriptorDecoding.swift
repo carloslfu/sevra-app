@@ -33,8 +33,12 @@ public func describeDecodingFailure(_ error: DecodingError, of name: String) -> 
   case .typeMismatch(_, let context):
     return named(context.codingPath) + " has the wrong kind of value."
   case .dataCorrupted(let context):
+    let choices =
+      context.debugDescription.hasPrefix(acceptedValuesPrefix)
+      ? " " + context.debugDescription : ""
     return context.codingPath.isEmpty
-      ? named([]) + " is not valid." : named(context.codingPath) + " is not a value it accepts."
+      ? named([]) + " is not valid."
+      : named(context.codingPath) + " is not a value it accepts." + choices
   @unknown default:
     return name + " is not valid."
   }
@@ -44,4 +48,47 @@ public func describeDecodingFailure(_ error: DecodingError, of name: String) -> 
 public func failureDescription(_ error: Error) -> String {
   (error as? DecodingError).map { describeDecodingFailure($0, of: "") }
     ?? error.localizedDescription
+}
+
+let acceptedValuesPrefix = "Use one of: "
+
+/// A closed set of names a descriptor may use. An unknown name fails with the accepted ones, so
+/// whoever wrote it can pick one instead of guessing what else is wrong.
+public protocol AcceptedValues: RawRepresentable, CaseIterable, Decodable
+where RawValue == String {}
+extension AcceptedValues {
+  public init(from decoder: Decoder) throws {
+    let raw = try decoder.singleValueContainer().decode(String.self)
+    guard let value = Self(rawValue: raw) else {
+      throw DecodingError.dataCorrupted(
+        .init(
+          codingPath: decoder.codingPath,
+          debugDescription: acceptedValuesPrefix
+            + Self.allCases.map(\.rawValue).joined(separator: ", ") + "."))
+    }
+    self = value
+  }
+}
+
+/// Only visual and image components take a visual. One on another component would otherwise
+/// fail inside the visual's own fields, which says nothing about the real mistake.
+func refuseStrayVisuals(_ value: Value, path: String) throws {
+  switch value {
+  case .array(let items):
+    for (index, item) in items.enumerated() {
+      try refuseStrayVisuals(item, path: path + "[\(index)]")
+    }
+  case .object(let fields):
+    if let type = fields["type"]?.string, type != "visual", type != "image",
+      let visual = fields["visual"], visual != .null
+    {
+      throw SevraError(
+        "arguments",
+        "\(path) is a \(type), which does not take a visual. Leave visual out.")
+    }
+    for key in fields.keys.sorted() where key != "visual" {
+      try refuseStrayVisuals(fields[key]!, path: path.isEmpty ? key : path + "." + key)
+    }
+  default: break
+  }
 }

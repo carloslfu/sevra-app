@@ -521,6 +521,7 @@ public struct WorkbookTools {
       guard let version = a["expectedVersion"].int else {
         throw SevraError("arguments", "Read the current space version before editing.")
       }
+      try refuseStrayVisuals(a["edits"], path: "edits")
       let edits = try decodeDescriptor([SpaceEdit].self, from: a["edits"], named: "edits")
       let saved = try workbook.editSpace(
         string("id"), expectedVersion: version, edits: edits, token: token)
@@ -539,6 +540,7 @@ public struct WorkbookTools {
         "version": .number(Double(saved.version)),
       ])
     case "save_space":
+      try refuseStrayVisuals(a["definition"], path: "definition")
       let definition = try decodeDescriptor(
         SpaceDefinition.self, from: a["definition"], named: "definition")
       try require(

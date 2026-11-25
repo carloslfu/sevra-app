@@ -295,6 +295,37 @@ func checkSpaceEditing(at temp: URL) {
     try expect(try book.revision() == revision && book.item(note.id).text == "Keep me")
     try refuses("view_limit") { _ = try book.pinSpace("home") }
   }
+  check("a stray or unknown visual says what to change") {
+    let book = try fixture()
+    let tools = WorkbookTools(book)
+    func refusal(_ component: Value) -> String {
+      let arguments: Value = .object([
+        "title": .string("My Debt"),
+        "definition": .object(["version": .number(1), "components": .array([component])]),
+      ])
+      do { _ = try tools.execute("save_space", arguments) } catch {
+        return (error as? SevraError)?.message ?? "\(error)"
+      }
+      return "saved"
+    }
+    let button = refusal(
+      .object([
+        "id": .string("pay"), "type": .string("button"), "title": .string("Pay"),
+        "visual": .object(["version": .number(1), "kind": .string("button")]),
+      ]))
+    try expect(
+      button == "definition.components[0] is a button, which does not take a visual. Leave visual out.",
+      button)
+    let visual = refusal(
+      .object([
+        "id": .string("debt"), "type": .string("visual"), "title": .string("Debt"),
+        "visual": .object(["version": .number(1), "kind": .string("badge")]),
+      ]))
+    try expect(
+      visual.hasSuffix(
+        "visual.kind is not a value it accepts. Use one of: image, chart, work, diagram, overview, text."),
+      visual)
+  }
   check("agent layout tools preserve read-only authority and exact saved identities") {
     let book = try fixture()
     let run = try book.startAgentRequest(
