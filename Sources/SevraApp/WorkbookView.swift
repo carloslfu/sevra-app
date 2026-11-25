@@ -196,7 +196,8 @@ struct WorkbookView: View {
       }
       if state.error == nil, let status = state.terminalStatus {
         HStack(alignment: .top) {
-          Text(status).textSelection(.enabled)
+          // Dimmed while the next operation runs; that one's outcome replaces it.
+          Text(status).textSelection(.enabled).foregroundStyle(state.busy ? .secondary : .primary)
             .accessibilityFocused($readingFocus, equals: .status)
             .focusable().focused($keyboardPane, equals: .status)
           Spacer()
@@ -506,7 +507,7 @@ struct WorkbookView: View {
                       key: ConversationRowFrames.self,
                       value: ["sent:working": geometry.frame(in: .named("conversation-content"))])
                   })
-            } else if state.busy && state.liveActivity == nil {
+            } else if state.busy && state.liveActivity == nil && state.operationInChat {
               HStack {
                 ProgressView().controlSize(.small)
                 Text(state.status).readingFont(.callout).foregroundStyle(.secondary)

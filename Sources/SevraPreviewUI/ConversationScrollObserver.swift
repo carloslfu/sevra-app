@@ -41,6 +41,11 @@ public struct ConversationScrollObserver: NSViewRepresentable {
     public override var isFlipped: Bool { true }
     fileprivate var configuration: ConversationScrollObserver?
     private var token: NSObjectProtocol?
+    /// The clip and the document change size without any row moving: the window's bars come
+    /// and go, a working row is added. A reader at the newest message stays there.
+    private var resizeTokens: [NSObjectProtocol] = []
+    /// The clip's size when last seen: a change in it is a resize, not the reader scrolling.
+    private var clipSize: NSSize?
     private weak var scroll: NSScrollView?
     private var applied: UUID?
     private var previousFrames: [String: CGRect] = [:]
@@ -66,6 +71,8 @@ public struct ConversationScrollObserver: NSViewRepresentable {
     }
     fileprivate func detach() {
       if let token { NotificationCenter.default.removeObserver(token) }
+      resizeTokens.forEach(NotificationCenter.default.removeObserver)
+      resizeTokens = []
       token = nil
       scroll = nil
       configuration = nil
@@ -83,6 +90,15 @@ public struct ConversationScrollObserver: NSViewRepresentable {
           object: enclosing.contentView, queue: .main
         ) { [weak self] _ in
           MainActor.assumeIsolated { self?.report() }
+        }
+        resizeTokens.forEach(NotificationCenter.default.removeObserver)
+        resizeTokens = [enclosing.contentView, document].map { view in
+          view.postsFrameChangedNotifications = true
+          return NotificationCenter.default.addObserver(
+            forName: NSView.frameDidChangeNotification, object: view, queue: .main
+          ) { [weak self] _ in
+            MainActor.assumeIsolated { self?.keepLatest() }
+          }
         }
       }
       guard !config.frames.isEmpty else { return }
@@ -117,6 +133,20 @@ public struct ConversationScrollObserver: NSViewRepresentable {
       previousFrames = config.frames
       reportVisible(config, clip: clip, document: document)
     }
+    /// Back to the newest message after a resize, when that is where the reader is.
+    private func keepLatest() {
+      guard let config = configuration, applied == config.request,
+        config.position.message == nil, let scroll, let document = scroll.documentView
+      else { return }
+      let clip = scroll.contentView
+      clipSize = clip.bounds.size
+      let bottom = max(0, document.bounds.height - clip.bounds.height)
+      guard abs(clip.bounds.minY - bottom) > 0.5 else { return }
+      restoring = true
+      clip.scroll(to: NSPoint(x: clip.bounds.minX, y: bottom))
+      scroll.reflectScrolledClipView(clip)
+      restoring = false
+    }
     private func reportVisible(
       _ config: ConversationScrollObserver, clip: NSClipView, document: NSView
     ) {
@@ -132,6 +162,13 @@ public struct ConversationScrollObserver: NSViewRepresentable {
         let scroll, let document = scroll.documentView
       else { return }
       let clip = scroll.contentView
+      if let clipSize, clipSize != clip.bounds.size {
+        // The pane got taller or shorter. A reader at the newest message stays there.
+        self.clipSize = clip.bounds.size
+        if config.position.message == nil { keepLatest() }
+        return
+      }
+      clipSize = clip.bounds.size
       reportVisible(config, clip: clip, document: document)
       if config.canFollowLatest && document.bounds.height - clip.bounds.maxY < 8 {
         anchor = nil
@@ -145,6 +182,9 @@ public struct ConversationScrollObserver: NSViewRepresentable {
       anchor = (row.key, top - row.value.minY, row.value.width)
       config.changed(.init(message: row.key, fraction: fraction))
     }
-    deinit { if let token { NotificationCenter.default.removeObserver(token) } }
+    deinit {
+      if let token { NotificationCenter.default.removeObserver(token) }
+      resizeTokens.forEach(NotificationCenter.default.removeObserver)
+    }
   }
 }

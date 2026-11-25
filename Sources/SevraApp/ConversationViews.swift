@@ -427,7 +427,7 @@ private struct ConversationReversalView: View {
   }
 
   private func undo(_ token: String) async {
-    guard let (book, operation) = state.beginOperation("Undoing change") else { return }
+    guard let (book, operation) = state.beginOperation("Undoing change", inChat: true) else { return }
     busy = true
     var undone = false
     defer {
@@ -449,7 +449,8 @@ private struct ConversationReversalView: View {
   }
 
   private func reverse(_ receipt: ConversationAppReceipt, token: String, redo: Bool) async {
-    guard let (book, operation) = state.beginOperation(redo ? "Redoing change" : "Undoing change")
+    guard let (book, operation) = state.beginOperation(
+      redo ? "Redoing change" : "Undoing change", inChat: true)
     else { return }
     busy = true
     var done = false

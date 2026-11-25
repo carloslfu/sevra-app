@@ -478,7 +478,8 @@ extension WorkspaceState {
     _ expected: ChatApproval, book: Workbook, cancel: Bool, humanText: String
   ) {
     guard !changingConversation,
-      let (_, ticket) = beginOperation(cancel ? "Cancelling approval" : "Applying confirmed change")
+      let (_, ticket) = beginOperation(
+        cancel ? "Cancelling approval" : "Applying confirmed change", inChat: true)
     else { return }
     let chat = conversation
     Task {

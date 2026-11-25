@@ -714,14 +714,44 @@ struct FolderReview {
       } catch { report(error, for: ticket, in: book) }
     }
   }
-  func beginOperation(_ title: String) -> (Workbook, WorkspaceOperation)? {
-    guard interactionActive, let book = workbook, !busy, let ticket = operations.begin() else {
+  /// A short change from a control on screen, such as a view button: it takes the same turn as
+  /// any operation, so nothing else writes meanwhile, but leaves the window as it is. No busy
+  /// state, no working row in the chat, no status bar taken away and put back: a press that
+  /// lasts a moment would otherwise make the whole window change twice.
+  func beginQuietOperation() -> (Workbook, WorkspaceOperation)? {
+    guard interactionActive, let book = workbook, !busy, quietOperation == nil,
+      let ticket = operations.begin()
+    else { return nil }
+    quietOperation = ticket
+    return (book, ticket)
+  }
+  func finishQuietOperation(
+    _ ticket: WorkspaceOperation, in book: Workbook, status: String?
+  ) {
+    guard owns(ticket, in: book), operations.finish(ticket) else { return }
+    quietOperation = nil
+    if error == nil, let status, !status.isEmpty { terminalStatus = status }
+    // A message typed during the press waited in the queue.
+    queueAdvanceDue = !queue.isEmpty
+    refresh()
+  }
+  /// The quiet operation running now, if any.
+  private(set) var quietOperation: WorkspaceOperation?
+  /// The running operation belongs to the chat: a request, a confirmation, an Undo from a
+  /// message. Only then does the chat show a working row for it.
+  @Published private(set) var operationInChat = false
+  func beginOperation(_ title: String, inChat: Bool = false) -> (Workbook, WorkspaceOperation)? {
+    guard interactionActive, let book = workbook, !busy, quietOperation == nil,
+      let ticket = operations.begin()
+    else {
       return nil
     }
     busy = true
     status = title
     operationTitle = title
-    terminalStatus = nil
+    operationInChat = inChat
+    // The last outcome stays in its bar, dimmed, until this one ends: taking the bar away and
+    // putting it back moves the whole window twice.
     announcement = nil
     error = nil
     return (book, ticket)
@@ -1187,7 +1217,8 @@ struct FolderReview {
   /// While a reply runs, an ordinary message waits in the queue; Stop and other commands that
   /// are allowed during work still act at once.
   private func queues(_ input: String) -> Bool {
-    busy && !WorkspaceControlCommand.allowsSubmission(input, busy: true)
+    (busy || quietOperation != nil)
+      && !WorkspaceControlCommand.allowsSubmission(input, busy: true)
   }
   var canSend: Bool {
     conversationSession.ready && !changingConversation && !conversationSession.loading
@@ -1261,7 +1292,7 @@ struct FolderReview {
     readingRequest = UUID()
     if let target = WorkspaceControlCommand.captureURL(input) {
       unsent = (input, conversation, book)
-      guard let (_, ticket) = beginOperation("Capturing source") else {
+      guard let (_, ticket) = beginOperation("Capturing source", inChat: true) else {
         returnUnsent()
         return
       }
@@ -1359,7 +1390,7 @@ struct FolderReview {
     if inputAnswerID == nil { unsent = (input, conversation, book) }
     let timed = ChatTiming.beginTurn(
       origin: inputAnswerID == nil ? "app" : "app_reply", conversation: conversation)
-    guard let (_, ticket) = beginOperation("Preparing local AI") else {
+    guard let (_, ticket) = beginOperation("Preparing local AI", inChat: true) else {
       if timed { ChatTiming.endTurn(outcome: "not_started") }
       returnUnsent()
       return
@@ -1704,7 +1735,7 @@ struct FolderReview {
       }
       guard
         let (_, ticket) = beginOperation(
-          command == .preview ? "Preparing answer preview" : "Saving your answer")
+          command == .preview ? "Preparing answer preview" : "Saving your answer", inChat: true)
       else { return }
       let navigationID = itemPreviewIdentity
       let conversationOrigin = conversationNavigationIdentity

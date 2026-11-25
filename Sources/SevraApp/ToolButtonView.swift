@@ -14,6 +14,10 @@ struct ToolButtonView: View {
   @State private var text: [String: String] = [:]
   @State private var flags: [String: Bool] = [:]
   @State private var lastUndo: String?
+  /// This button's own press or Undo is running. Only this button shows it.
+  @State private var pressing = false
+  /// A press that lasts a moment shows nothing; a slow one shows a spinner after a beat.
+  @State private var slow = false
   /// Whether the press Undo takes back also ran a script's actions, which Undo does not cover.
   @State private var undoLeavesActions = false
   @State private var output: Value?
@@ -84,6 +88,13 @@ struct ToolButtonView: View {
           Button("Undo") { undo(lastUndo) }
             .disabled(state.busy).accessibilityLabel("Undo " + component.title)
         }
+        if slow {
+          ProgressView().controlSize(.small).accessibilityLabel("Running " + component.title)
+        }
+      }.task(id: pressing) {
+        guard pressing else { return slow = false }
+        try? await Task.sleep(for: .milliseconds(400))
+        if !Task.isCancelled { slow = pressing }
       }
       // What a press does: the tool's own description and the values the button sets.
       if let about = [tool?.description, fixedSummary].compactMap({ $0 }).filter({ !$0.isEmpty })
@@ -142,14 +153,18 @@ struct ToolButtonView: View {
   }
 
   private func press() {
-    guard canPress, let owner, let (book, operation) = state.beginOperation(component.title)
+    guard canPress, !pressing, let owner, let (book, operation) = state.beginQuietOperation()
     else { return }
+    pressing = true
     let spaceID = owner.id
     let componentID = component.id
     let submitted = values()
     Task {
       var status: String?
-      defer { state.finishOperation(operation, in: book, successStatus: status) }
+      defer {
+        pressing = false
+        state.finishQuietOperation(operation, in: book, status: status)
+      }
       do {
         let cancellation = operation.cancellation
         let result = try await Task.detached {
@@ -180,12 +195,14 @@ struct ToolButtonView: View {
   }
 
   private func undo(_ token: String) {
-    guard let (book, operation) = state.beginOperation("Undoing " + component.title) else {
-      return
-    }
+    guard !pressing, let (book, operation) = state.beginQuietOperation() else { return }
+    pressing = true
     Task {
       var status: String?
-      defer { state.finishOperation(operation, in: book, successStatus: status) }
+      defer {
+        pressing = false
+        state.finishQuietOperation(operation, in: book, status: status)
+      }
       do {
         let cancellation = operation.cancellation
         _ = try await Task.detached {
