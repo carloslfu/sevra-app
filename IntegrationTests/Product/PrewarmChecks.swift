@@ -10,11 +10,20 @@ private actor StartingModel: WorkbookInference {
   var supportsCompaction: Bool { false }
   private(set) var events: [String] = []
   private var finishStart = false
+  /// What `loadedMemoryBytes` reports while started; a check sets it.
+  var loaded: UInt64?
+  func setLoaded(_ bytes: UInt64?) { loaded = bytes }
+  func loadedMemoryBytes() -> UInt64? { loaded }
   func prewarm(
-    directory: URL, resizing: Bool, cancellation: Cancellation,
+    directory: URL, size: StartSize, cancellation: Cancellation,
     progress: @escaping @Sendable (String) -> Void
   ) async -> Bool {
-    events.append(resizing ? "resizing start" : "start")
+    switch size {
+    case .chosen: events.append("start")
+    case .growing: events.append("resizing start")
+    case .growingLoaded: events.append("grow only")
+    case .atMost(let limit): events.append("start at most \(limit / (1024 * 1024 * 1024)) GiB")
+    }
     progress("Preparing local AI · 2 of 5 steps")
     while !finishStart && !cancellation.isCancelled {
       try? await Task.sleep(nanoseconds: 5_000_000)
@@ -27,6 +36,7 @@ private actor StartingModel: WorkbookInference {
   func endRun() {}
   func releaseResources() -> Bool {
     events.append("release")
+    loaded = nil
     return true
   }
   func measureContext(
@@ -36,12 +46,16 @@ private actor StartingModel: WorkbookInference {
   ) throws -> ContextMeasurement {
     .init(promptTokens: 1000, capacity: 65536, templateIdentity: "prewarm-check")
   }
+  /// While set, a request stays in the model until the check clears it.
+  var holdRespond = false
+  func setHoldRespond(_ hold: Bool) { holdRespond = hold }
   func respond(
     messages: [InferenceMessage], directory: URL, cancellation: Cancellation,
     progress: @escaping @Sendable (String) -> Void, toolScope: InferenceToolScope,
     citationIDs: [String]
-  ) throws -> NativeReply {
+  ) async throws -> NativeReply {
     events.append("respond")
+    while holdRespond { try? await Task.sleep(nanoseconds: 5_000_000) }
     throw SevraError("check_stop", "The request reached the model.")
   }
 }
@@ -277,5 +291,118 @@ func checkNaming(at root: URL) async throws {
   try expect(WorkTitles.clean("brass bolt quotes") == "Brass bolt quotes", "Left a lowercase title.")
   print(
     "PASS naming: stand-in names after any reply, given names improved only in the first three replies, cleaned, and stopped at once by a request without renaming"
+  )
+}
+
+/// No model. After memory pressure releases a running engine, it starts again smaller once
+/// pressure eases, only while the owner is in the app, and at most once until the owner uses it.
+func checkPressureReload(book: Workbook) async throws {
+  let gib: UInt64 = 1024 * 1024 * 1024
+  let folder = FileManager.default.temporaryDirectory
+  func service(
+    loaded: UInt64?, host: (@Sendable () async -> URL?)?, settle: Double = 0
+  ) async -> (StartingModel, ProductAI) {
+    let model = StartingModel()
+    await model.letStartFinish()
+    await model.setLoaded(loaded)
+    let ai = ProductAI(qualifying: model, settleSeconds: settle)
+    await ai.setReloadHost(host)
+    return (model, ai)
+  }
+  func eased(_ ai: ProductAI, wait: UInt64 = 100_000_000) async throws {
+    await ai.handlePressureEased()
+    try await Task.sleep(nanoseconds: wait)
+  }
+  func reloads(_ model: StartingModel) async -> [String] {
+    await model.events.filter { $0 == "start" || $0.hasPrefix("start at most") }
+  }
+  let present: @Sendable () async -> URL? = { folder }
+
+  // A 20 GiB engine released by pressure starts again at most 16 GiB once pressure eases.
+  let (model, ai) = await service(loaded: 20 * gib, host: present)
+  _ = await ai.handleMemoryPressure(critical: false)
+  try await eased(ai)
+  var seen = await reloads(model)
+  try expect(seen == ["start at most 16 GiB"], "The reload after pressure was \(seen).")
+  // Pressure releasing that reload too waits for the owner instead of cycling.
+  await model.setLoaded(16 * gib)
+  _ = await ai.handleMemoryPressure(critical: false)
+  try await eased(ai)
+  seen = await reloads(model)
+  try expect(seen.count == 1, "A reload after pressure repeated without the owner: \(seen).")
+  // The owner's request allows the next one, smaller again.
+  _ = try? await ai.run("hi", workbook: book)
+  await model.setLoaded(16 * gib)
+  _ = await ai.handleMemoryPressure(critical: false)
+  try await eased(ai)
+  seen = await reloads(model)
+  try expect(
+    seen.last == "start at most 12 GiB" && seen.count == 2,
+    "After a request, the next reload was \(seen).")
+
+  // No reload: the owner away, no app (the CLI), the smallest engine, an Unload, an idle engine.
+  let cases: [(String, UInt64?, (@Sendable () async -> URL?)?, Bool)] = [
+    ("owner away", 20 * gib, { nil }, false), ("no app", 20 * gib, nil, false),
+    ("8 GiB engine", 8 * gib, present, false), ("Unload", 20 * gib, present, true),
+    ("no engine running", nil, present, false),
+  ]
+  for (name, loaded, host, unload) in cases {
+    let (model, ai) = await service(loaded: loaded, host: host)
+    if unload { _ = await ai.unload() } else { _ = await ai.handleMemoryPressure(critical: false) }
+    try await eased(ai)
+    let started = await reloads(model)
+    try expect(started.isEmpty, "\(name) still reloaded: \(started).")
+  }
+
+  // Pressure rising again before it has stayed normal cancels the reload.
+  let (rising, risingAI) = await service(loaded: 20 * gib, host: present, settle: 0.3)
+  _ = await risingAI.handleMemoryPressure(critical: false)
+  await risingAI.handlePressureEased()
+  try await Task.sleep(nanoseconds: 50_000_000)
+  _ = await risingAI.handleMemoryPressure(critical: false)
+  try await Task.sleep(nanoseconds: 500_000_000)
+  var risen = await reloads(rising)
+  try expect(risen.isEmpty, "A reload began although pressure rose again: \(risen).")
+  // It still waits, and the next ease that lasts starts it.
+  try await eased(risingAI, wait: 500_000_000)
+  risen = await reloads(rising)
+  try expect(risen == ["start at most 16 GiB"], "The reload after renewed pressure was \(risen).")
+  // Pressure that eases while a request holds the engine: the release after the request finds
+  // pressure normal already and still reloads.
+  let (busy, busyAI) = await service(loaded: 20 * gib, host: present)
+  await busy.setHoldRespond(true)
+  let held = Task { _ = try? await busyAI.run("hi", workbook: book) }
+  try await waitFor(busy, "respond")
+  let deferred = await busyAI.handleMemoryPressure(critical: false)
+  try expect(deferred == .deferred, "Pressure during a request was \(deferred).")
+  await busyAI.handlePressureEased()
+  await busy.setHoldRespond(false)
+  await held.value
+  try await Task.sleep(nanoseconds: 100_000_000)
+  let afterBusy = await reloads(busy)
+  try expect(
+    afterBusy == ["start at most 16 GiB"], "Pressure eased during a request reloaded \(afterBusy).")
+
+  // Pressure rising while the app is asked whether the owner is there stops the reload.
+  let (asked, askedAI) = await service(loaded: 20 * gib, host: nil)
+  await askedAI.setReloadHost { [askedAI] in
+    _ = await askedAI.handleMemoryPressure(critical: false)
+    return folder
+  }
+  _ = await askedAI.handleMemoryPressure(critical: false)
+  try await eased(askedAI)
+  let afterAsked = await reloads(asked)
+  try expect(afterAsked.isEmpty, "A reload began under renewed pressure: \(afterAsked).")
+
+  // After a reply, growing never starts an engine that pressure released.
+  let (replied, repliedAI) = await service(loaded: nil, host: present)
+  await repliedAI.growIfLoaded(modelDirectory: folder)
+  await replied.setLoaded(12 * gib)
+  await repliedAI.growIfLoaded(modelDirectory: folder)
+  try await Task.sleep(nanoseconds: 50_000_000)
+  let grown = await replied.events
+  try expect(grown == ["grow only", "started"], "Growing after a reply did \(grown).")
+  print(
+    "PASS pressure reload: once pressure eases, a released engine starts again smaller, only with the owner in the app, once until he uses it, and never after Unload or renewed pressure"
   )
 }

@@ -168,12 +168,13 @@ package actor NativeWorkbookModel: WorkbookInference {
   }
 
   package func releaseResources() async -> Bool { await unload() }
+  package func loadedMemoryBytes() async -> UInt64? { worker.loadedMemoryBytes() }
 
   /// Starts the engine before a request needs it, so Send does not wait for the model to load.
   /// Nothing is sent to the model. It holds the same lock as a run and leaves the engine on the
   /// ordinary idle timer. A failure is not reported here: the request that follows meets it.
   package func prewarm(
-    directory: URL, resizing: Bool = false, cancellation: Cancellation,
+    directory: URL, size: StartSize = .chosen, cancellation: Cancellation,
     progress: @escaping @Sendable (String) -> Void
   ) async -> Bool {
     guard !leased && !active else { return false }
@@ -181,7 +182,7 @@ package actor NativeWorkbookModel: WorkbookInference {
     active = true
     // The lock and `active` hold through a resize, so nothing comes between its stop and start.
     let started = await worker.prewarm(
-      directory: directory, resizing: resizing, cancellation: cancellation, progress: progress)
+      directory: directory, size: size, cancellation: cancellation, progress: progress)
     active = false
     await endRun()
     return started
@@ -364,7 +365,13 @@ package actor NativeWorkbookModel: WorkbookInference {
 private final class NativeWorker: @unchecked Sendable {
   private let queue = DispatchQueue(label: "app.sevra.native-inference", qos: .userInitiated)
   private let configuration: NativeWorkbookModel.Configuration
-  private var session: Session?
+  private var session: Session? {
+    didSet { loadedLock.withLock { loadedBytes = session?.configuration.memoryBytes } }
+  }
+  /// The size of the session's engine, readable without waiting behind the queue, so a memory
+  /// pressure release never waits for a start or a reply to learn what it frees.
+  private let loadedLock = NSLock()
+  private var loadedBytes: UInt64?
   init(_ configuration: NativeWorkbookModel.Configuration) { self.configuration = configuration }
   private final class Session {
     let directory: URL
@@ -695,14 +702,14 @@ private final class NativeWorker: @unchecked Sendable {
   }
 
   /// Creates the session and starts its engine, restoring the prepared header, without a request.
-  /// With `resizing`, an engine the memory free now lets grow stops first, in the same queue item,
+  /// With `growing`, an engine the memory free now lets grow stops first, in the same queue item,
   /// and the session that replaces it chooses its size once that memory is back.
   func prewarm(
-    directory: URL, resizing: Bool = false, cancellation: Cancellation,
+    directory: URL, size: StartSize = .chosen, cancellation: Cancellation,
     progress: @escaping @Sendable (String) -> Void
   ) async -> Bool {
     (try? await perform(
-      directory: directory, cancellation: cancellation, progress: progress, resizing: resizing
+      directory: directory, cancellation: cancellation, progress: progress, size: size
     ) {
       (session: Session) -> Void in
       _ = try session.start(cancellation: cancellation, progress: progress)
@@ -714,6 +721,8 @@ private final class NativeWorker: @unchecked Sendable {
   /// Seconds the last new session spent on its model files, tokenizer, grammar and header check.
   /// The next request reports them once, so a request that found a ready session reports zero.
   private var unreportedSessionSetup: Double = 0
+
+  func loadedMemoryBytes() -> UInt64? { loadedLock.withLock { loadedBytes } }
 
   func hasSession() async -> Bool {
     await withCheckedContinuation { continuation in
@@ -761,7 +770,7 @@ private final class NativeWorker: @unchecked Sendable {
   }
   private func perform<T>(
     directory: URL, cancellation: Cancellation,
-    progress: @escaping @Sendable (String) -> Void, resizing: Bool = false,
+    progress: @escaping @Sendable (String) -> Void, size: StartSize = .chosen,
     action: @escaping (Session) throws -> T
   ) async throws -> T {
     let queued = ChatTiming.now
@@ -771,13 +780,20 @@ private final class NativeWorker: @unchecked Sendable {
         do {
           try cancellation.check()
           let directory = directory.standardizedFileURL.resolvingSymlinksInPath()
-          if resizing, let session = self.session, session.directory == directory,
+          var grewFrom: UInt64?
+          if size == .growingLoaded, self.session?.helper?.isOpen != true {
+            throw SevraError("not_loaded", "No engine is running to grow.")
+          }
+          if size == .growing || size == .growingLoaded, let session = self.session, session.directory == directory,
             session.helper?.isOpen == true,
             let choice = session.configuration.memoryChoice,
             choice.grows(session.configuration.memoryBytes)
           {
             // A helper that does not stop keeps its session; the check below reports it.
-            if session.helper?.close() != false { self.session = nil }
+            if session.helper?.close() != false {
+              grewFrom = session.configuration.memoryBytes
+              self.session = nil
+            }
             try cancellation.check()
           }
           // A helper that died while idle is replaced here, so this request never meets it.
@@ -791,6 +807,11 @@ private final class NativeWorker: @unchecked Sendable {
             var configuration = self.configuration
             if let choice = configuration.memoryChoice {
               configuration.memoryBytes = choice.choose()
+              if case .atMost(let limit) = size {
+                configuration.memoryBytes = min(configuration.memoryBytes, limit)
+              }
+              // Memory another app took while the old engine stopped never makes it smaller.
+              if let grewFrom { configuration.memoryBytes = max(configuration.memoryBytes, grewFrom) }
             }
             self.session = try ChatTiming.span("model.session_setup") {
               try Session(

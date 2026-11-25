@@ -10,6 +10,8 @@ public actor ProductAI {
   private var active = false
   private var activeCancellation: Cancellation?
   private var releaseRequested = false
+  /// The pending release was asked for by memory pressure.
+  private var releaseByPressure = false
   private var model: (any WorkbookInference)?
   private var pressureSource: DispatchSourceMemoryPressure?
   private let observesSystemPressure: Bool
@@ -20,15 +22,32 @@ public actor ProductAI {
   private var namingCancellation: Cancellation?
   /// The start's progress, for a request that comes to wait for it.
   private let prewarmProgress = ProgressRelay()
+  /// The size of the engine memory pressure released, while a reload after pressure may follow.
+  private var pressureReleased: UInt64?
+  /// A reload after pressure has happened and the owner has not used Sevra since.
+  private var reloadSpent = false
+  /// Waits for pressure to stay normal before that reload. Any later pressure event cancels it.
+  private var easing: Task<Void, Never>?
+  /// Whether the last pressure event was a return to normal.
+  private var pressureEased = false
+  private var pressureGeneration = 0
+  /// The models folder while the owner is in the app, else nil. Only the app sets it.
+  private var reloadHost: (@Sendable () async -> URL?)?
+  private let settleNanoseconds: UInt64
 
   private init() {
     observesSystemPressure = true
+    settleNanoseconds = 20_000_000_000
   }
   /// Internal qualification seam, shared with the workbook agent's synthetic and native checks.
-  package init(qualifying model: any WorkbookInference) {
+  package init(qualifying model: any WorkbookInference, settleSeconds: Double = 0) {
     self.model = model
     observesSystemPressure = false
+    settleNanoseconds = UInt64(settleSeconds * 1_000_000_000)
   }
+
+  /// Lets the engine start again after memory pressure eases while the owner is in the app.
+  public func setReloadHost(_ host: (@Sendable () async -> URL?)?) { reloadHost = host }
 
   deinit {
     pressureSource?.cancel()
@@ -38,10 +57,14 @@ public actor ProductAI {
   private func observeMemoryPressure() {
     guard observesSystemPressure, pressureSource == nil else { return }
     let source = DispatchSource.makeMemoryPressureSource(
-      eventMask: [.warning, .critical], queue: .global(qos: .utility))
+      eventMask: [.normal, .warning, .critical], queue: .global(qos: .utility))
     source.setEventHandler { [weak self] in
-      let critical = source.data.contains(.critical)
-      Task { await self?.handleMemoryPressure(critical: critical) }
+      let level = source.data
+      if level.contains(.critical) || level.contains(.warning) {
+        Task { await self?.handleMemoryPressure(critical: level.contains(.critical)) }
+      } else if level.contains(.normal) {
+        Task { await self?.handlePressureEased() }
+      }
     }
     pressureSource = source
     source.resume()
@@ -129,23 +152,45 @@ public actor ProductAI {
   public func prewarm(
     modelDirectory: URL = ProductAI.defaultDirectory, resizing: Bool = false
   ) {
-    guard !active, prewarming == nil, naming == nil, !releaseRequested else { return }
+    ownerUsed()
+    _ = start(modelDirectory: modelDirectory, size: resizing ? .growing : .chosen)
+  }
+
+  /// The owner's own use ends any wait for a reload after pressure and allows the next one.
+  private func ownerUsed() {
+    disarmReload()
+    reloadSpent = false
+    releaseByPressure = false
+  }
+
+  /// After a reply, while the owner is in the app: a small engine still running grows if memory
+  /// now allows. It never starts an engine, so a reply that memory pressure released stays
+  /// released until the owner's next step or the reload after pressure.
+  public func growIfLoaded(modelDirectory: URL = ProductAI.defaultDirectory) async {
+    guard await model?.loadedMemoryBytes() != nil else { return }
+    _ = start(modelDirectory: modelDirectory, size: .growingLoaded)
+  }
+
+  /// Whether a background start began.
+  private func start(modelDirectory: URL, size: StartSize) -> Bool {
+    guard !active, prewarming == nil, naming == nil, !releaseRequested else { return false }
     if model == nil {
       guard let pack = try? SplashModelPack.selected(),
         FileManager.default.fileExists(
           atPath: modelDirectory.appendingPathComponent(pack.name + "/model.json").path),
         let configuration = try? NativeProductResources.configuration(modelsRoot: modelDirectory)
-      else { return }
+      else { return false }
       model = NativeWorkbookModel(configuration: configuration)
     }
-    guard let model else { return }
+    guard let model else { return false }
     // A loaded engine holds its memory already, so this can only decline a start that is not
     // needed; a start after the idle release is checked like the first, for the size it would
     // choose.
     if observesSystemPressure {
       let reclaimable = Self.reclaimableBytes()
-      let engine = EngineMemory.choose(reclaimable: reclaimable)
-      guard Self.hasRoom(forEngineBytes: engine, reclaimable: reclaimable) else { return }
+      var engine = EngineMemory.choose(reclaimable: reclaimable)
+      if case .atMost(let limit) = size { engine = min(engine, limit) }
+      guard Self.hasRoom(forEngineBytes: engine, reclaimable: reclaimable) else { return false }
     }
     observeMemoryPressure()
     let cancellation = Cancellation()
@@ -155,11 +200,12 @@ public actor ProductAI {
     ChatTiming.beginBackground("prewarm")
     prewarming = Task { [weak self] in
       let started = await model.prewarm(
-        directory: modelDirectory, resizing: resizing, cancellation: cancellation,
+        directory: modelDirectory, size: size, cancellation: cancellation,
         progress: relay.send)
       ChatTiming.endBackground("prewarm", outcome: started ? "started" : "not_started")
       await self?.prewarmEnded()
     }
+    return true
   }
   private func prewarmEnded() {
     prewarming = nil
@@ -215,14 +261,28 @@ public actor ProductAI {
 
   /// Ordinary user unload does not interrupt an active job. Exiting calls this too: the inference
   /// lock ends with the process, so the helper has to stop first or another process could load
-  /// the model while this one still holds the memory.
+  /// the model while this one still holds the memory. It ends any wait for a reload after
+  /// pressure.
   @discardableResult public func unload() async -> Bool {
+    disarmReload()
+    releaseByPressure = false
+    return await releaseEngine(byPressure: false)
+  }
+
+  /// Stops a start or naming under way, then the engine. A release by pressure records the
+  /// size it frees before freeing it, so a return to normal pressure that its own release
+  /// brings finds the reload ready.
+  private func releaseEngine(byPressure: Bool) async -> Bool {
     await settleNaming()
     await settlePrewarm(cancelling: true)
     guard !active else { return false }
     active = true
+    let before = pressureReleased
+    if byPressure { armReload(await model?.loadedMemoryBytes()) }
     let released = await model?.releaseResources() ?? true
     releaseRequested = !released
+    // Nothing was freed, so nothing should come back.
+    if !released { pressureReleased = before }
     active = false
     return released
   }
@@ -239,18 +299,89 @@ public actor ProductAI {
   /// Warnings defer release until the current transaction/job finishes. Critical
   /// pressure reaches the existing cancellation path, then releases after endRun.
   @discardableResult public func handleMemoryPressure(critical: Bool) async -> PressureResponse {
-    if active {
-      releaseRequested = true
-      if critical, let cancellation = activeCancellation {
-        cancellation.cancel(
-          reason:
-            "Local AI stopped because this Mac is low on memory. Completed workbook changes are saved. Close other apps and try again."
-        )
-        return .stopping
-      }
-      return .deferred
+    pressureChanged(eased: false)
+    if !active {
+      return await releaseEngine(byPressure: true) ? .released : deferOrPending(critical: critical)
     }
-    return await unload() ? .released : .releasePending
+    return deferOrPending(critical: critical)
+  }
+
+  /// A request holds the engine: release it after the request, or stop the request first when
+  /// pressure is critical.
+  private func deferOrPending(critical: Bool) -> PressureResponse {
+    guard active else { return .releasePending }
+    releaseRequested = true
+    releaseByPressure = true
+    if critical, let cancellation = activeCancellation {
+      cancellation.cancel(
+        reason:
+          "Local AI stopped because this Mac is low on memory. Completed workbook changes are saved. Close other apps and try again."
+      )
+      return .stopping
+    }
+    return .deferred
+  }
+
+  /// macOS reports pressure back to normal. After it stays so, the engine pressure released
+  /// starts again smaller, if the owner is in the app.
+  package func handlePressureEased() {
+    pressureChanged(eased: true)
+    scheduleReload()
+  }
+
+  /// Every pressure event and every use by the owner starts a new generation, which ends any
+  /// wait for a reload that began under the old one.
+  private func pressureChanged(eased: Bool) {
+    pressureGeneration &+= 1
+    pressureEased = eased
+    easing?.cancel()
+    easing = nil
+  }
+
+  /// A release by pressure of a running engine allows one reload once pressure eases, unless
+  /// the engine it released was itself such a reload. Pressure that eased before the release
+  /// was recorded starts the wait here.
+  private func armReload(_ loaded: UInt64?) {
+    guard let loaded, !reloadSpent else { return }
+    pressureReleased = loaded
+    scheduleReload()
+  }
+
+  private func disarmReload() {
+    pressureGeneration &+= 1
+    easing?.cancel()
+    easing = nil
+    pressureReleased = nil
+  }
+
+  private func scheduleReload() {
+    guard pressureEased, pressureReleased != nil, !reloadSpent, easing == nil else { return }
+    let generation = pressureGeneration
+    let wait = settleNanoseconds
+    easing = Task { [weak self] in
+      if wait > 0 {
+        do { try await Task.sleep(nanoseconds: wait) } catch { return }
+      }
+      await self?.reloadAfterPressure(generation)
+    }
+  }
+
+  private func reloadAfterPressure(_ generation: Int) async {
+    guard !Task.isCancelled, generation == pressureGeneration else { return }
+    easing = nil
+    guard let released = pressureReleased, !reloadSpent,
+      released >= EngineMemory.floor + EngineMemory.step, let host = reloadHost
+    else { return }
+    guard let directory = await host() else { return }
+    // Pressure may have risen, or the owner used Sevra, while the app answered.
+    guard generation == pressureGeneration, pressureEased, pressureReleased == released,
+      !reloadSpent
+    else { return }
+    guard start(modelDirectory: directory, size: .atMost(released - EngineMemory.step)) else {
+      return
+    }
+    pressureReleased = nil
+    reloadSpent = true
   }
 
   private func perform<T>(
@@ -263,6 +394,7 @@ public actor ProductAI {
     try require(!active, "busy", "Sevra is already using its local model.")
     active = true
     activeCancellation = cancellation
+    ownerUsed()
     observeMemoryPressure()
     // If the prior helper could not be reaped, no new operation may reuse it.
     if releaseRequested {
@@ -290,8 +422,11 @@ public actor ProductAI {
   private func finishOperation() async {
     activeCancellation = nil
     if releaseRequested {
+      let before = pressureReleased
+      if releaseByPressure { armReload(await model?.loadedMemoryBytes()) }
       let released = await model?.releaseResources() ?? true
       releaseRequested = !released
+      if released { releaseByPressure = false } else { pressureReleased = before }
     }
     active = false
   }

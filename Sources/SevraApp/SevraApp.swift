@@ -309,7 +309,15 @@ struct RecentWorkbookButtons: View {
     #endif
     NativeAutomationHost.shared.start()
     // The local engine starts with the first window, so a first message does not wait for it.
-    if !CommandLine.arguments.contains("--check-resources") { WorkspaceState.prewarmLocalAI() }
+    if !CommandLine.arguments.contains("--check-resources") {
+      WorkspaceState.prewarmLocalAI()
+      // After memory pressure released it, the engine starts again once pressure eases, but only
+      // while the owner is in the app.
+      if AppHost.allowsBackgroundServices {
+        let ai = AppHost.ai
+        Task { await ai.setReloadHost { [weak self] in await self?.reloadFolder() } }
+      }
+    }
     let events = NSAppleEventManager.shared()
     events.setEventHandler(
       self, andSelector: #selector(quitEvent(_:reply:)),
@@ -320,6 +328,13 @@ struct RecentWorkbookButtons: View {
     events.setEventHandler(
       self, andSelector: #selector(openEvent(_:reply:)),
       forEventClass: AEEventClass(kCoreEventClass), andEventID: AEEventID(kAEOpenDocuments))
+  }
+  /// The models folder while the owner is in the app, for a reload after memory pressure.
+  private func reloadFolder() -> URL? {
+    guard NSApp.isActive, !quitting, !WorkbookWindowRegistry.quitting else { return nil }
+    return UserDefaults.standard.string(forKey: ProductAI.preferenceKey).map {
+      URL(fileURLWithPath: $0)
+    } ?? ProductAI.defaultDirectory
   }
   /// Coming back after the idle timer released the engine starts it again before Send, and
   /// coming back after closing other apps lets a small engine grow.

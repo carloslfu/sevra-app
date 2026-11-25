@@ -181,6 +181,18 @@ package struct NativeReply: Sendable {
   }
 }
 
+/// How a background start sizes the engine.
+package enum StartSize: Sendable, Equatable {
+  /// A new engine takes the size free memory gives; a loaded one stays as it is.
+  case chosen
+  /// As `chosen`, and a small loaded engine that free memory now lets grow starts again larger.
+  case growing
+  /// Only grows a loaded engine, as `growing` does; never starts one.
+  case growingLoaded
+  /// A new engine takes the size free memory gives, but no more than this.
+  case atMost(UInt64)
+}
+
 package protocol WorkbookInference: Actor {
   var identity: String { get }
   var lastMetrics: Value { get }
@@ -202,12 +214,14 @@ package protocol WorkbookInference: Actor {
   func endRun() async
   func releaseResources() async -> Bool
   /// Loads the model ahead of a request. Models with nothing to load return false. Progress
-  /// reaches a request that comes to wait for this start. With `resizing`, a loaded engine that
-  /// memory now lets grow starts again larger, in the same step.
+  /// reaches a request that comes to wait for this start. `size` says how a new engine is sized
+  /// and whether a loaded one may start again larger.
   func prewarm(
-    directory: URL, resizing: Bool, cancellation: Cancellation,
+    directory: URL, size: StartSize, cancellation: Cancellation,
     progress: @escaping @Sendable (String) -> Void
   ) async -> Bool
+  /// The memory of the engine running now, or nil when none runs.
+  func loadedMemoryBytes() async -> UInt64?
   func interpret(
     request: Value, directory: URL, cancellation: Cancellation,
     progress: @escaping @Sendable (String) -> Void
@@ -257,9 +271,10 @@ extension WorkbookInference {
     messages: [InferenceMessage], directory: URL, cancellation: Cancellation
   ) async throws -> WorkTitlesReply? { nil }
   package func prewarm(
-    directory: URL, resizing: Bool, cancellation: Cancellation,
+    directory: URL, size: StartSize, cancellation: Cancellation,
     progress: @escaping @Sendable (String) -> Void
   ) async -> Bool { false }
+  package func loadedMemoryBytes() async -> UInt64? { nil }
   package func respondStreaming(
     messages: [InferenceMessage], directory: URL, cancellation: Cancellation,
     progress: @escaping @Sendable (String) -> Void, toolScope: InferenceToolScope,

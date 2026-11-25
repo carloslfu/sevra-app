@@ -2,11 +2,12 @@
 type: index
 scope: type-folder
 folder: sources/notes
-updated: 2026-11-25T12:36:31Z
+updated: 2026-11-25T18:00:00Z
 ---
 
 # sources/notes
 
+- [[sources/notes/2026/11/engine-reload-after-memory-pressure]] — Carlos asks Sevra to restart its engine smaller once memory pressure eases while he is in the app, built smoothly, with edge cases and an adversarial review.
 - [[sources/notes/2026/11/engine-memory-sliding-size]] — Carlos asks for engine memory sizes beyond 12 and 22 GiB, for different Macs, written as a plan and reviewed until it is ready to implement.
 - [[sources/notes/2026/11/engine-memory-by-free-memory]] — Carlos asks for the engine's memory size to follow free memory: a concise plan, reviewed in detail and as a whole, then built in full.
 - [[sources/notes/2026/11/splash-1-7-2-upgrade-approval]] — Carlos asks for the Splash 1.7.2 upgrade and approves quitting Sevra for one real-model check run.

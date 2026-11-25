@@ -1554,7 +1554,12 @@ struct FolderReview {
     let defaults = self.defaults
     Task {
       let named = await ai.nameWork(book, conversation: chat, modelDirectory: modelDirectory)
-      if NSApp.isActive { Self.prewarmLocalAI(ai, defaults: defaults, resizing: true) }
+      if NSApp.isActive, AppHost.allowsBackgroundServices {
+        let path =
+          defaults.string(forKey: ProductAI.preferenceKey).map { URL(fileURLWithPath: $0) }
+          ?? ProductAI.defaultDirectory
+        await ai.growIfLoaded(modelDirectory: path)
+      }
       guard named, workbook === book else { return }
       objectWillChange.send()
       refresh()

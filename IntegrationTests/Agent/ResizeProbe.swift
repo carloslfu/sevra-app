@@ -41,7 +41,7 @@ func runResizeProbe(configPath: String, output: String) async throws {
     let kept = await model.prewarm(directory: models, cancellation: .init(), progress: { _ in })
     let keptStarts = starts.value
     let resized = await model.prewarm(
-      directory: models, resizing: true, cancellation: .init(), progress: { _ in })
+      directory: models, size: .growing, cancellation: .init(), progress: { _ in })
     let path = root.appendingPathComponent("Inventory.sevra")
     _ = try Demo.create(at: path)
     let book = try Workbook(path)
