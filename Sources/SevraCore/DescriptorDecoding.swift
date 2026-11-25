@@ -71,24 +71,32 @@ extension AcceptedValues {
 }
 
 /// Only visual and image components take a visual. One on another component would otherwise
-/// fail inside the visual's own fields, which says nothing about the real mistake.
-func refuseStrayVisuals(_ value: Value, path: String) throws {
-  switch value {
-  case .array(let items):
-    for (index, item) in items.enumerated() {
-      try refuseStrayVisuals(item, path: path + "[\(index)]")
+/// fail inside the visual's own fields, which says nothing about the real mistake. Only
+/// component positions are read: a button's arguments may name inputs `type` and `visual`.
+func refuseStrayVisuals(definition: Value, path: String) throws {
+  try refuseStrayVisuals(components: definition.object["components"], path: path + ".components")
+}
+func refuseStrayVisuals(edits: Value, path: String) throws {
+  guard case .array(let items) = edits else { return }
+  for (index, edit) in items.enumerated() {
+    if let component = edit.object["component"] {
+      try refuseStrayVisual(component, path: path + "[\(index)].component")
     }
-  case .object(let fields):
-    if let type = fields["type"]?.string, type != "visual", type != "image",
-      let visual = fields["visual"], visual != .null
-    {
-      throw SevraError(
-        "arguments",
-        "\(path) is a \(type), which does not take a visual. Leave visual out.")
-    }
-    for key in fields.keys.sorted() where key != "visual" {
-      try refuseStrayVisuals(fields[key]!, path: path.isEmpty ? key : path + "." + key)
-    }
-  default: break
   }
+}
+private func refuseStrayVisuals(components: Value?, path: String) throws {
+  guard case .array(let items) = components else { return }
+  for (index, component) in items.enumerated() {
+    try refuseStrayVisual(component, path: path + "[\(index)]")
+  }
+}
+private func refuseStrayVisual(_ component: Value, path: String) throws {
+  let fields = component.object
+  if let type = fields["type"]?.string, type != "visual", type != "image",
+    let visual = fields["visual"], visual != .null
+  {
+    throw SevraError(
+      "arguments", "\(path) is a \(type), which does not take a visual. Leave visual out.")
+  }
+  try refuseStrayVisuals(components: fields["children"], path: path + ".children")
 }

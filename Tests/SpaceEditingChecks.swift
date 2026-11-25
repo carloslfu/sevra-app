@@ -325,6 +325,15 @@ func checkSpaceEditing(at temp: URL) {
       visual.hasSuffix(
         "visual.kind is not a value it accepts. Use one of: image, chart, work, diagram, overview, text."),
       visual)
+    // A button's arguments are its tool's inputs, which may be named type and visual. With no
+    // such tool saved the refusal is about the tool, not a stray visual.
+    let arguments = refusal(
+      .object([
+        "id": .string("tag"), "type": .string("button"), "title": .string("Tag"),
+        "definitionBinding": .object(["tool": .string("tag")]),
+        "arguments": .object(["type": .string("x"), "visual": .string("y")]),
+      ]))
+    try expect(!arguments.contains("does not take a visual"), arguments)
   }
   check("agent layout tools preserve read-only authority and exact saved identities") {
     let book = try fixture()

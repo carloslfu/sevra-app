@@ -98,6 +98,9 @@ public struct SpaceDefinition: Codable, Equatable, Sendable {
     var ids = Set<String>()
     func visit(_ component: Component, depth: Int) throws {
       try require(
+        !ids.contains(component.id), "view",
+        "Component id \(component.id) is used twice. Give each component its own id.")
+      try require(
         depth <= 3 && ids.count < 16 && ids.insert(component.id).inserted,
         "view", "Use at most 16 uniquely named components and three levels.")
       try require(
@@ -192,7 +195,8 @@ extension Workbook {
       try require(
         SpaceDefinition.contentTypes
           .union(SpaceDefinition.sectionTypes).contains(c.type), "view",
-        "Unknown native component: \(c.type)")
+        "Unknown component type \(c.type). Use one of: "
+          + SpaceDefinition.contentTypes.sorted().joined(separator: ", ") + ".")
       if c.type == "image" {
         guard let visual = c.visual, let image = visual.image else {
           throw SevraError("visual_image", "Choose an included image for this component.")
@@ -294,7 +298,7 @@ extension Workbook {
       } else {
         try require(
           c.definitionBinding == nil && c.arguments == nil && c.evaluationSnapshot == nil, "view",
-          "Only buttons, qualified forms and computation views take definition bindings.")
+          "\(c.id) is a \(c.type): only buttons, qualified forms and computation views take definitionBinding and arguments. Leave them out.")
       }
       if SpaceDefinition.sectionTypes.contains(c.type) {
         try require(
@@ -325,22 +329,24 @@ extension Workbook {
           definition.pinnedAt == nil ? table.columns : c.snapshot?.columns ?? table.columns
         // A count is of rows, so it needs no column. Every other number is of one.
         let countsRows = c.type == "metric" && c.aggregation == "COUNT" && c.y == nil
+        let columnIDs = columns.map(\.id).joined(separator: ", ")
         if ["chart", "metric"].contains(c.type), !unchanged.contains(c), !countsRows {
           try require(
             columns.contains { $0.id == c.y }, "view",
-            "Set y to an existing dataset column ID, not a layout position. Inspect datasets for column IDs."
-          )
+            "\(c.id): set y to a column id of its table: \(columnIDs).")
         }
         if c.type == "chart", !unchanged.contains(c) {
           try require(
-            columns.contains { $0.id == c.x }
-              && ["bar", "line"].contains(c.chartStyle ?? "bar"), "view",
-            "Set x to an existing dataset column ID, not a layout position; use bar or line style.")
+            columns.contains { $0.id == c.x }, "view",
+            "\(c.id): set x to a column id of its table: \(columnIDs).")
+          try require(
+            ["bar", "line"].contains(c.chartStyle ?? "bar"), "view",
+            "\(c.id): chartStyle is bar or line.")
         }
         if c.type == "metric" {
           try require(
             ["SUM", "AVERAGE", "MIN", "MAX", "COUNT"].contains(c.aggregation ?? "SUM"), "view",
-            "Choose a supported metric aggregation.")
+            "\(c.id): aggregation is one of SUM, AVERAGE, MIN, MAX or COUNT.")
         }
       }
       if ["document", "asset"].contains(c.type) {
@@ -380,7 +386,9 @@ extension Workbook {
           (2...3).contains(c.children?.count ?? 0), "view", "A comparison has two or three columns."
         )
       } else {
-        try require(c.children == nil, "view", "Only comparisons contain child components.")
+        try require(
+          c.children == nil, "view",
+          "\(c.id) is a \(c.type): only comparisons contain child components.")
       }
       try require(
         (c.text?.utf8.count ?? 0) <= 64_000 && (c.unit?.utf8.count ?? 0) <= 40, "view",
