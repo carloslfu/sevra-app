@@ -9,7 +9,8 @@ title: Engine memory that follows free memory
 # Engine memory that follows free memory
 
 Status: planned and reviewed on November 25, 2026, at the owner's request
-([[sources/notes/2026/11/engine-memory-sliding-size]]). Not built. It replaces the two sizes of
+([[sources/notes/2026/11/engine-memory-sliding-size]]). He then wrote "Yes, build it". Built,
+checked and installed the same day; see [Results](#results). It replaces the two sizes of
 [[records/plans/engine-memory-by-free-memory]].
 
 ## Why
@@ -25,6 +26,7 @@ the file cache:
 | 12 GiB | 94 to 106 tokens/s | 6.4 s, 20.8 s | 14.9 s |
 | 16 GiB | 132 to 164 tokens/s | 5.9 s, 19.0 s | 12.9 s |
 | 19 GiB | 179 to 213 tokens/s | 6.1 s, 21.3 s | 12.9 s |
+| 20 GiB, measured in the build | 187 to 229 tokens/s | 5.6 s, 18.6 s | 11.4 s |
 | 22 GiB | 208 to 216 tokens/s | 5.7 s, 20.2 s | 10.6 s |
 
 Every admitted task passed at every size, and the prepared header resumed at each. The start is
@@ -138,3 +140,24 @@ the start, which the machine's memory rules forbid without the owner's go. The n
 check covers the same path with a bounded choice.
 
 Done when these pass and the change is committed and pushed.
+
+## Results
+
+November 25, 2026, on the 48 GiB M5 Pro, one run each:
+
+- `sevra-product-checks` passes, with the six size choices, the five growth cases, the 12 GiB
+  room check, and a request waiting for a resizing start. The app and both check tools build.
+- 20 GiB: every admitted task passed, decode 187 to 229 tokens/s, above the 179 tokens/s bound.
+  The cap stays.
+- The resize check, `sevra-agent-checks --resize`, with 31.7 GiB reclaimable: a plain start at
+  8 GiB, a second plain start that kept it, a resizing start that moved it to 12 GiB, and a
+  request that answered 18 on the 12 GiB engine. The engine was stopped afterwards.
+- `scripts/install.sh` installed the app. The installed executable's UUID,
+  `0EFF511E-BD9D-3294-968F-7B4BE3E8970C`, equals `output/native`'s, and both binaries carry the
+  rule text.
+- The light set: 11 of 11 passed on the first run, 34 model calls in 93 s, every request under
+  the new identity.
+
+Before the model runs, Splash.app was found serving the same model with 7.1 GiB free; the runs
+waited until the owner quit it. Not run: a move up from real memory change in the installed app,
+and any Mac under 48 GiB.

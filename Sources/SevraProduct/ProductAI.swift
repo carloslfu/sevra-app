@@ -123,8 +123,12 @@ public actor ProductAI {
   /// it. Nothing is sent to the model. It does nothing while the model is in use, already
   /// starting, not set up, held by another process, or when this Mac lacks the memory to hold it
   /// with room to spare; the next request then starts it, or reports why it cannot. The engine
-  /// follows the ordinary idle timer and memory-pressure release.
-  public func prewarm(modelDirectory: URL = ProductAI.defaultDirectory) {
+  /// follows the ordinary idle timer and memory-pressure release. With `resizing`, while the
+  /// person is in the app, a small loaded engine the memory free now lets grow starts again
+  /// larger; a request that comes meanwhile waits for it, as for any start.
+  public func prewarm(
+    modelDirectory: URL = ProductAI.defaultDirectory, resizing: Bool = false
+  ) {
     guard !active, prewarming == nil, naming == nil, !releaseRequested else { return }
     if model == nil {
       guard let pack = try? SplashModelPack.selected(),
@@ -140,8 +144,7 @@ public actor ProductAI {
     // choose.
     if observesSystemPressure {
       let reclaimable = Self.reclaimableBytes()
-      let engine = EngineMemory.choose(
-        physicalMemory: ProcessInfo.processInfo.physicalMemory, reclaimable: reclaimable)
+      let engine = EngineMemory.choose(reclaimable: reclaimable)
       guard Self.hasRoom(forEngineBytes: engine, reclaimable: reclaimable) else { return }
     }
     observeMemoryPressure()
@@ -152,7 +155,8 @@ public actor ProductAI {
     ChatTiming.beginBackground("prewarm")
     prewarming = Task { [weak self] in
       let started = await model.prewarm(
-        directory: modelDirectory, cancellation: cancellation, progress: relay.send)
+        directory: modelDirectory, resizing: resizing, cancellation: cancellation,
+        progress: relay.send)
       ChatTiming.endBackground("prewarm", outcome: started ? "started" : "not_started")
       await self?.prewarmEnded()
     }

@@ -417,13 +417,16 @@ struct FolderReview {
   /// model to load. Nothing is sent to it, and the request that follows reports any failure.
   func prewarmLocalAI() { Self.prewarmLocalAI(ai, defaults: defaults) }
   /// Also for the start window and the app coming forward, which have no workbook yet.
-  static func prewarmLocalAI(_ ai: ProductAI? = nil, defaults: UserDefaults = .standard) {
+  /// `resizing` only while the person is in the app: coming forward, or after a reply.
+  static func prewarmLocalAI(
+    _ ai: ProductAI? = nil, defaults: UserDefaults = .standard, resizing: Bool = false
+  ) {
     guard AppHost.allowsBackgroundServices else { return }
     let ai = ai ?? AppHost.ai
     let path =
       defaults.string(forKey: ProductAI.preferenceKey).map { URL(fileURLWithPath: $0) }
       ?? ProductAI.defaultDirectory
-    Task { await ai.prewarm(modelDirectory: path) }
+    Task { await ai.prewarm(modelDirectory: path, resizing: resizing) }
   }
   init(
     ai: ProductAI? = nil, defaults: UserDefaults = .standard,
@@ -1544,13 +1547,15 @@ struct FolderReview {
     }
   }
   /// After a reply, while the engine is still running: Sevra names the chat and the workbook if
-  /// they are still its to name. Any new request stops this first.
+  /// they are still its to name. Any new request stops this first. Then, while the person is
+  /// in the app, an engine a short-memory request started small may grow.
   private func nameWork(_ book: Workbook, chat: String, modelDirectory: URL) {
     let ai = self.ai
+    let defaults = self.defaults
     Task {
-      guard await ai.nameWork(book, conversation: chat, modelDirectory: modelDirectory),
-        workbook === book
-      else { return }
+      let named = await ai.nameWork(book, conversation: chat, modelDirectory: modelDirectory)
+      if NSApp.isActive { Self.prewarmLocalAI(ai, defaults: defaults, resizing: true) }
+      guard named, workbook === book else { return }
       objectWillChange.send()
       refresh()
     }

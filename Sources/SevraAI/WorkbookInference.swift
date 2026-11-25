@@ -202,9 +202,11 @@ package protocol WorkbookInference: Actor {
   func endRun() async
   func releaseResources() async -> Bool
   /// Loads the model ahead of a request. Models with nothing to load return false. Progress
-  /// reaches a request that comes to wait for this start.
+  /// reaches a request that comes to wait for this start. With `resizing`, a loaded engine that
+  /// memory now lets grow starts again larger, in the same step.
   func prewarm(
-    directory: URL, cancellation: Cancellation, progress: @escaping @Sendable (String) -> Void
+    directory: URL, resizing: Bool, cancellation: Cancellation,
+    progress: @escaping @Sendable (String) -> Void
   ) async -> Bool
   func interpret(
     request: Value, directory: URL, cancellation: Cancellation,
@@ -255,7 +257,8 @@ extension WorkbookInference {
     messages: [InferenceMessage], directory: URL, cancellation: Cancellation
   ) async throws -> WorkTitlesReply? { nil }
   package func prewarm(
-    directory: URL, cancellation: Cancellation, progress: @escaping @Sendable (String) -> Void
+    directory: URL, resizing: Bool, cancellation: Cancellation,
+    progress: @escaping @Sendable (String) -> Void
   ) async -> Bool { false }
   package func respondStreaming(
     messages: [InferenceMessage], directory: URL, cancellation: Cancellation,

@@ -321,12 +321,13 @@ struct RecentWorkbookButtons: View {
       self, andSelector: #selector(openEvent(_:reply:)),
       forEventClass: AEEventClass(kCoreEventClass), andEventID: AEEventID(kAEOpenDocuments))
   }
-  /// Coming back after the idle timer released the engine starts it again before Send.
+  /// Coming back after the idle timer released the engine starts it again before Send, and
+  /// coming back after closing other apps lets a small engine grow.
   func applicationDidBecomeActive(_ notification: Notification) {
     guard !quitting, !WorkbookWindowRegistry.quitting,
       !CommandLine.arguments.contains("--check-resources")
     else { return }
-    WorkspaceState.prewarmLocalAI()
+    WorkspaceState.prewarmLocalAI(resizing: true)
   }
   func applicationShouldTerminate(_ sender: NSApplication) -> NSApplication.TerminateReply {
     guard DocumentDraftScope.flushAll() else { return .terminateCancel }

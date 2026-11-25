@@ -27,9 +27,16 @@ package actor NativeWorkbookModel: WorkbookInference {
       /// Names the rule in the model identity, which must not change from one start to the next.
       package let rule: String
       package let choose: @Sendable () -> UInt64
-      package init(rule: String, choose: @escaping @Sendable () -> UInt64) {
+      /// Whether an engine loaded at this size should start again larger, from the memory free
+      /// now. Asked only by a start that may resize.
+      package let grows: @Sendable (UInt64) -> Bool
+      package init(
+        rule: String, choose: @escaping @Sendable () -> UInt64,
+        grows: @escaping @Sendable (UInt64) -> Bool = { _ in false }
+      ) {
         self.rule = rule
         self.choose = choose
+        self.grows = grows
       }
     }
     package let memoryChoice: MemoryChoice?
@@ -166,13 +173,15 @@ package actor NativeWorkbookModel: WorkbookInference {
   /// Nothing is sent to the model. It holds the same lock as a run and leaves the engine on the
   /// ordinary idle timer. A failure is not reported here: the request that follows meets it.
   package func prewarm(
-    directory: URL, cancellation: Cancellation, progress: @escaping @Sendable (String) -> Void
+    directory: URL, resizing: Bool = false, cancellation: Cancellation,
+    progress: @escaping @Sendable (String) -> Void
   ) async -> Bool {
     guard !leased && !active else { return false }
     do { try beginRun() } catch { return false }
     active = true
+    // The lock and `active` hold through a resize, so nothing comes between its stop and start.
     let started = await worker.prewarm(
-      directory: directory, cancellation: cancellation, progress: progress)
+      directory: directory, resizing: resizing, cancellation: cancellation, progress: progress)
     active = false
     await endRun()
     return started
@@ -686,10 +695,15 @@ private final class NativeWorker: @unchecked Sendable {
   }
 
   /// Creates the session and starts its engine, restoring the prepared header, without a request.
+  /// With `resizing`, an engine the memory free now lets grow stops first, in the same queue item,
+  /// and the session that replaces it chooses its size once that memory is back.
   func prewarm(
-    directory: URL, cancellation: Cancellation, progress: @escaping @Sendable (String) -> Void
+    directory: URL, resizing: Bool = false, cancellation: Cancellation,
+    progress: @escaping @Sendable (String) -> Void
   ) async -> Bool {
-    (try? await perform(directory: directory, cancellation: cancellation, progress: progress) {
+    (try? await perform(
+      directory: directory, cancellation: cancellation, progress: progress, resizing: resizing
+    ) {
       (session: Session) -> Void in
       _ = try session.start(cancellation: cancellation, progress: progress)
       // Nobody waited for this setup, so no request reports it.
@@ -747,7 +761,8 @@ private final class NativeWorker: @unchecked Sendable {
   }
   private func perform<T>(
     directory: URL, cancellation: Cancellation,
-    progress: @escaping @Sendable (String) -> Void, action: @escaping (Session) throws -> T
+    progress: @escaping @Sendable (String) -> Void, resizing: Bool = false,
+    action: @escaping (Session) throws -> T
   ) async throws -> T {
     let queued = ChatTiming.now
     return try await withCheckedThrowingContinuation { continuation in
@@ -756,6 +771,15 @@ private final class NativeWorker: @unchecked Sendable {
         do {
           try cancellation.check()
           let directory = directory.standardizedFileURL.resolvingSymlinksInPath()
+          if resizing, let session = self.session, session.directory == directory,
+            session.helper?.isOpen == true,
+            let choice = session.configuration.memoryChoice,
+            choice.grows(session.configuration.memoryBytes)
+          {
+            // A helper that does not stop keeps its session; the check below reports it.
+            if session.helper?.close() != false { self.session = nil }
+            try cancellation.check()
+          }
           // A helper that died while idle is replaced here, so this request never meets it.
           if self.session?.directory != directory || self.session?.helper?.isOpen == false {
             try require(

@@ -8,30 +8,36 @@ import SevraNativeAI
 import SevraSplash
 import SevraSplashText
 
-/// The engine's memory, chosen each time an engine starts: the whole model when this Mac has
-/// room for it beside everything else, otherwise a store of experts read from the SSD. Both sizes
-/// were measured on a 48 GiB Mac at 64K of context (records/plans/engine-memory-by-free-memory).
+/// The engine's memory, chosen each time an engine starts from the memory free then: free less
+/// what everything else keeps, within 8 to 20 GiB. Writing speed grows with it up to about
+/// 19 GiB, measured on a 48 GiB Mac at 64K of context (records/plans/engine-memory-sliding-size).
 package enum EngineMemory {
   static let gibibyte: UInt64 = 1024 * 1024 * 1024
-  /// Keeps part of the experts in memory and reads the rest from the SSD.
-  package static let streamed = 12 * gibibyte
-  /// Holds every expert beside 64K of context.
-  package static let resident = 22 * gibibyte
+  /// The smallest engine: slow, but it answers.
+  package static let floor = 8 * gibibyte
+  /// Beyond this the speed hardly grows, and the memory serves other apps better.
+  package static let cap = 20 * gibibyte
   /// What a start leaves for everything else on the Mac.
   package static let headroom = 4 * gibibyte
-  /// The Macs that get 64K of context, the only setting the resident size was measured with.
+  /// The least growth worth a restart.
+  package static let step = 4 * gibibyte
+  /// The size for `sevra header make` and harnesses, and the largest engine that grows.
+  package static let fixed = 12 * gibibyte
+  /// The Macs that get 64K of context.
   package static let largeMac = 48 * gibibyte
-  static let rule = "12 or 22 GiB by free memory at start"
-  package static func choose(physicalMemory: UInt64, reclaimable: UInt64?) -> UInt64 {
-    guard physicalMemory >= largeMac, let reclaimable, reclaimable >= resident + headroom
-    else { return streamed }
-    return resident
+  static let rule = "free less 4 GiB, 8 to 20 GiB, at start"
+  package static func choose(reclaimable: UInt64?) -> UInt64 {
+    guard let reclaimable, reclaimable > headroom + floor else { return floor }
+    let whole = (reclaimable - headroom) / gibibyte * gibibyte
+    return min(cap, whole)
   }
-  @Sendable static func now() -> UInt64 {
-    choose(
-      physicalMemory: ProcessInfo.processInfo.physicalMemory,
-      reclaimable: ProductAI.reclaimableBytes())
+  /// Whether a loaded engine should start again larger: only a small one, and only by a step.
+  package static func grows(loaded: UInt64, chosen: UInt64) -> Bool {
+    loaded <= fixed && chosen >= loaded + step
   }
+  @Sendable static func now() -> UInt64 { choose(reclaimable: ProductAI.reclaimableBytes()) }
+  /// The loaded engine's memory is not free, so this reading is conservative.
+  @Sendable static func growsNow(loaded: UInt64) -> Bool { grows(loaded: loaded, chosen: now()) }
 }
 
 enum NativeProductResources {
@@ -67,15 +73,15 @@ enum NativeProductResources {
   static func configuration(modelsRoot: URL) throws -> NativeWorkbookModel.Configuration {
     try SplashModelSetup.checkHardware()
     let (manifest, engine, grammar) = try layout()
-    // The two capacities were compared at the same engine budget on a 48 GiB Mac.
     let context: ContextBudget.Profile =
       ProcessInfo.processInfo.physicalMemory >= EngineMemory.largeMac
       ? .evaluation64K : .evaluation32K
     return .init(
       engine: engine, engineFiles: manifest.engineFiles, grammarLibrary: grammar,
       grammarSHA256: manifest.grammarSHA256, modelsRoot: modelsRoot,
-      memoryBytes: EngineMemory.streamed,
-      memoryChoice: .init(rule: EngineMemory.rule, choose: EngineMemory.now),
+      memoryBytes: EngineMemory.fixed,
+      memoryChoice: .init(
+        rule: EngineMemory.rule, choose: EngineMemory.now, grows: EngineMemory.growsNow),
       contextBudget: .init(profile: context), reasoning: .bounded512,
       modelLayout: .installed, contextMaintenanceEnabled: true)
   }

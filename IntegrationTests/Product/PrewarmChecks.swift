@@ -11,9 +11,10 @@ private actor StartingModel: WorkbookInference {
   private(set) var events: [String] = []
   private var finishStart = false
   func prewarm(
-    directory: URL, cancellation: Cancellation, progress: @escaping @Sendable (String) -> Void
+    directory: URL, resizing: Bool, cancellation: Cancellation,
+    progress: @escaping @Sendable (String) -> Void
   ) async -> Bool {
-    events.append("start")
+    events.append(resizing ? "resizing start" : "start")
     progress("Preparing local AI · 2 of 5 steps")
     while !finishStart && !cancellation.isCancelled {
       try? await Task.sleep(nanoseconds: 5_000_000)
@@ -104,23 +105,51 @@ func checkPrewarm(book: Workbook) async throws {
   await stopping.letStartFinish()
   try await waitFor(stopping, "started")
 
-  // Memory: a start needs the engine's budget plus 4 GiB for everything else.
+  // Memory: a background start needs the smallest engine plus 4 GiB for everything else.
   let gigabyte: UInt64 = 1024 * 1024 * 1024
-  try expect(ProductAI.hasRoom(forEngineBytes: 12 * gigabyte, reclaimable: 16 * gigabyte), "Enough memory was refused.")
-  try expect(!ProductAI.hasRoom(forEngineBytes: 12 * gigabyte, reclaimable: 16 * gigabyte - 1), "Too little memory was accepted.")
-  try expect(!ProductAI.hasRoom(forEngineBytes: 12 * gigabyte, reclaimable: nil), "Unknown memory was accepted.")
+  func roomAt(_ reclaimable: UInt64?) -> Bool {
+    ProductAI.hasRoom(
+      forEngineBytes: EngineMemory.choose(reclaimable: reclaimable), reclaimable: reclaimable)
+  }
+  try expect(roomAt(12 * gigabyte), "Enough memory was refused.")
+  try expect(!roomAt(12 * gigabyte - 1), "Too little memory was accepted.")
+  try expect(!roomAt(nil), "Unknown memory was accepted.")
 
-  // The engine's size: the whole model on a 48 GiB Mac with 22 + 4 GiB free, else the streamed store.
-  let choices: [(physical: UInt64, reclaimable: UInt64?, expected: UInt64, case: String)] = [
-    (48 * gigabyte, 26 * gigabyte, EngineMemory.resident, "48 GiB Mac with room"),
-    (48 * gigabyte, 26 * gigabyte - 1, EngineMemory.streamed, "48 GiB Mac just short of room"),
-    (36 * gigabyte, 30 * gigabyte, EngineMemory.streamed, "36 GiB Mac"),
-    (48 * gigabyte, nil, EngineMemory.streamed, "unknown free memory"),
+  // The engine's size: free memory less 4 GiB, in whole GiB, from 8 to 20 GiB.
+  let choices: [(reclaimable: UInt64?, expected: UInt64)] = [
+    (nil, 8), (10 * gigabyte, 8), (16 * gigabyte + gigabyte / 2, 12),
+    (24 * gigabyte - 1, 19), (24 * gigabyte, 20), (40 * gigabyte, 20),
   ]
   for choice in choices {
-    let chosen = EngineMemory.choose(physicalMemory: choice.physical, reclaimable: choice.reclaimable)
-    try expect(chosen == choice.expected, "The \(choice.case) chose \(chosen / gigabyte) GiB.")
+    let chosen = EngineMemory.choose(reclaimable: choice.reclaimable)
+    try expect(
+      chosen == choice.expected * gigabyte,
+      "\(choice.reclaimable.map { String($0) } ?? "Unknown") bytes free chose \(chosen / gigabyte) GiB.")
   }
+  // Only a small engine grows, and only by a step that repays the restart.
+  let growth: [(loaded: UInt64, chosen: UInt64, grows: Bool)] = [
+    (8, 12, true), (12, 16, true), (12, 15, false), (16, 20, false), (20, 20, false),
+  ]
+  for case let (loaded, chosen, grows) in growth {
+    try expect(
+      EngineMemory.grows(loaded: loaded * gigabyte, chosen: chosen * gigabyte) == grows,
+      "\(loaded) to \(chosen) GiB should \(grows ? "" : "not ")grow.")
+  }
+  // A start resizes only when asked, and a request waits for it like any start.
+  let resizing = StartingModel()
+  let resizeService = ProductAI(qualifying: resizing)
+  await resizeService.prewarm(resizing: true)
+  try await waitFor(resizing, "resizing start")
+  let afterResize = Task { _ = try? await resizeService.run("hi", workbook: book) }
+  try await Task.sleep(nanoseconds: 50_000_000)
+  let resizeWaited = await !resizing.events.contains("run")
+  try expect(resizeWaited, "A request did not wait for a resizing start.")
+  await resizing.letStartFinish()
+  await afterResize.value
+  let resizeEvents = await resizing.events
+  try expect(
+    resizeEvents.prefix(4) == ["resizing start", "started", "run", "respond"],
+    "A resizing start and a request ran out of order: \(resizeEvents)")
 
   let unloading = StartingModel()
   let other = ProductAI(qualifying: unloading)

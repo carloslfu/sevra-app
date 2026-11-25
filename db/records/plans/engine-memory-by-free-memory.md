@@ -10,7 +10,8 @@ title: Engine memory chosen by free memory
 
 Status: asked for by the owner on November 24, 2026, to be planned, reviewed and built in full
 ([[sources/notes/2026/11/engine-memory-by-free-memory]]). Built, checked and installed the same
-day; see [Results](#results).
+day; see [Results](#results). Its two sizes were replaced on November 25 by a size that
+follows free memory from 8 to 20 GiB ([[records/plans/engine-memory-sliding-size]]).
 
 ## Why
 

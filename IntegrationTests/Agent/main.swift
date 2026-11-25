@@ -277,6 +277,10 @@ do {
       configPath: CommandLine.arguments[2], output: CommandLine.arguments[3])
     exit(0)
   }
+  if CommandLine.arguments.count == 4 && CommandLine.arguments[1] == "--resize" {
+    try await runResizeProbe(configPath: CommandLine.arguments[2], output: CommandLine.arguments[3])
+    exit(0)
+  }
   if CommandLine.arguments.count == 5 && CommandLine.arguments[1] == "--context-accounting" {
     try await runContextAccountingProbe(
       modelsRoot: CommandLine.arguments[2], library: CommandLine.arguments[3],
