@@ -21,9 +21,9 @@ extension SpaceDefinition {
   /// The order a model writes a component's fields in, each only when its type uses it. It is
   /// the grammar's order for the component schema, and the agent checks hold the two equal.
   public static let componentFieldOrder = [
-    "id", "type", "title", "definitionBinding", "aggregation", "arguments", "chartStyle",
-    "children", "datasetID", "itemID", "presentationID", "query", "size", "spaceID", "text",
-    "unit", "viewID", "viewVersion", "visual", "x", "y",
+    "id", "type", "title", "definitionBinding", "datasetID", "aggregation", "arguments",
+    "chartStyle", "children", "itemID", "presentationID", "query", "spaceID", "text", "unit",
+    "viewID", "viewVersion", "visual", "x", "y", "size",
   ]
   public static let sectionTypes: Set<String> = [
     "input", "reviews", "shortcuts", "tables", "intake", "recent", "attention", "continue",

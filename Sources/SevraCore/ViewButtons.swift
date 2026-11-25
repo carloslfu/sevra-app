@@ -131,3 +131,81 @@ extension Workbook {
     return sentence.prefix(1).uppercased() + sentence.dropFirst() + "."
   }
 }
+
+extension Workbook {
+  /// A note for whoever saved `definition` when a button's SQL tool changes a table that no
+  /// table, chart or metric on the view shows. A button shows only what its last press
+  /// returned, so a counter or a log with nothing beside it looks like it did nothing. A
+  /// script's tables are read from the SQL text it passes to sql(). nil when every such table
+  /// is in view.
+  func unshownButtonTablesNotice(_ definition: SpaceDefinition, spaceID: String, version: Int)
+    throws -> String?
+  {
+    func flatten(_ components: [Component]) -> [Component] {
+      components.flatMap { [$0] + flatten($0.children ?? []) }
+    }
+    let components = flatten(definition.components)
+    let buttons = components.filter { $0.type == "button" }.compactMap { try? ViewButton($0) }
+    guard !buttons.isEmpty else { return nil }
+    let shown = Set(
+      components.filter { ["table", "chart", "metric"].contains($0.type) }.compactMap(\.datasetID))
+    let tools = try savedTools()
+    let tables = SQLScratch.named(try datasets(), ledger: false)
+    var missing: [(tool: String, dataset: Dataset, onlyInserts: Bool)] = []
+    for button in buttons {
+      guard let tool = tools.first(where: { $0.name == button.tool }) else { continue }
+      let text = tool.language == "sql" ? tool.statements : [tool.source]
+      let onlyInserts = text.allSatisfy {
+        $0.range(of: #"(?i)\b(update|delete)\b"#, options: .regularExpression) == nil
+      }
+      for name in Self.writtenTables(text) {
+        guard let table = tables.first(where: { $0.name == name }),
+          !shown.contains(table.dataset.id),
+          !missing.contains(where: { $0.dataset.id == table.dataset.id })
+        else { continue }
+        missing.append((tool.name, table.dataset, onlyInserts))
+      }
+    }
+    guard let first = missing.first else { return nil }
+    let list = missing.map { "\($0.dataset.title), which \($0.tool) changes" }
+      .joined(separator: "; ")
+    return
+      "Saved. Nothing on this view shows \(list). A button shows only what its last press returned, so the person cannot see what pressing it records. Unless they asked for the button alone, run view.edit {id: \"\(spaceID)\", expectedVersion: \(version), edits: [{operation: \"insert\", at: \"first\", component: \(Self.suggestedComponent(first.dataset, onlyInserts: first.onlyInserts))}]}, with that component as written, and say in the reply what you added."
+  }
+
+  /// A component that shows what a button records in `dataset`: the count of its rows when a
+  /// press only adds rows, the total of its one number column when a press changes a value,
+  /// and otherwise the table itself. Its fields are in the grammar's order.
+  static func suggestedComponent(_ dataset: Dataset, onlyInserts: Bool) -> String {
+    func quoted(_ text: String) -> String {
+      String(decoding: (try? JSONEncoder().encode(text)) ?? Data("\"\"".utf8), as: UTF8.self)
+    }
+    let numbers = dataset.columns.filter { $0.type == "decimal" && $0.id.lowercased() != "id" }
+    let head =
+      "{id: \"shown_total\", type: \"metric\", title: \(quoted(dataset.title)), datasetID: \(quoted(dataset.id)), "
+    if onlyInserts { return head + "aggregation: \"COUNT\", size: \"large\"}" }
+    if numbers.count == 1 {
+      return head + "aggregation: \"SUM\", y: \(quoted(numbers[0].id)), size: \"large\"}"
+    }
+    return
+      "{id: \"shown_table\", type: \"table\", title: \(quoted(dataset.title)), datasetID: \(quoted(dataset.id))}"
+  }
+
+  /// The tables SQL text inserts into, updates or deletes from, by their sql names.
+  static func writtenTables(_ statements: [String]) -> [String] {
+    let pattern =
+      #"(?i)\b(?:insert(?:\s+or\s+\w+)?\s+into|replace\s+into|update(?:\s+or\s+\w+)?|delete\s+from)\s+["`\[]?([A-Za-z_][A-Za-z0-9_]*)"#
+    guard let regex = try? NSRegularExpression(pattern: pattern) else { return [] }
+    var names: [String] = []
+    for statement in statements {
+      let range = NSRange(statement.startIndex..., in: statement)
+      for match in regex.matches(in: statement, range: range) {
+        if let r = Range(match.range(at: 1), in: statement) {
+          let name = statement[r].lowercased()
+          if !names.contains(name) { names.append(name) }
+        }
+      }
+    }
+    return names
+  }
+}

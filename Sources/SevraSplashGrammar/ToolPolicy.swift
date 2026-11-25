@@ -260,13 +260,17 @@ public final class SplashToolPolicy {
     guard let properties = object["properties"] as? [String: Any] else { return [] }
     let required = (object["required"] as? [String] ?? []).filter { properties[$0] != nil }
     // Select the component/bound behavior before its optional arguments.
-    // Fixed property order must not hide placement after componentID, or
-    // typed arguments after choosing a definitionBinding.
-    let selectors = ["componentID", "definitionBinding"].filter {
+    // Fixed property order must not hide placement after componentID, typed
+    // arguments after choosing a definitionBinding, or a component's table
+    // after its other fields. A model writes size last, so it comes last: a
+    // size written early would close off every field sorted after it.
+    let selectors = ["componentID", "definitionBinding", "datasetID"].filter {
       properties[$0] != nil && !required.contains($0)
     }
+    let last = ["size"].filter { properties[$0] != nil && !required.contains($0) }
     let first = required + selectors
-    return first + properties.keys.filter { !first.contains($0) }.sorted()
+    return first + properties.keys.filter { !first.contains($0) && !last.contains($0) }.sorted()
+      + last
   }
   private static func nestedSchemaJSON(_ value: Any) throws -> String {
     if let object = value as? [String: Any] {

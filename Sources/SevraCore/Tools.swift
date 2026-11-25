@@ -32,8 +32,8 @@ public struct WorkbookTools {
       A view is a saved page of up to 16 components. save with view: {title, definition: {version: 1, components}}. Every component has a short id of its own, a type and a visible title, and the fields its type uses. Saving a view does not open it.
       A component's fields are written in this order, each only when its type uses it: \(SpaceDefinition.componentFieldOrder.joined(separator: ", ")). A field you have passed cannot be written later.
       table: datasetID, a table's id from SELECT name, id FROM tables.
-      chart: chartStyle, datasetID, x and y, in that order. chartStyle is bar or line, and bar when left out. x and y are column ids of that table from SELECT table_name, name, id FROM columns: x the categories, y a number. The chart adds up y for each x itself.
-      metric: one number from a table, such as a count or a total: aggregation, datasetID, unit and y, in that order. aggregation is SUM, AVERAGE, MIN, MAX or COUNT, and SUM when left out. unit only when the request or the evidence states one. y is the column it reads; COUNT counts the rows and needs no y.
+      chart: datasetID, chartStyle, x and y, in that order. chartStyle is bar or line, and bar when left out. x and y are column ids of that table from SELECT table_name, name, id FROM columns: x the categories, y a number. The chart adds up y for each x itself.
+      metric: one number from a table, such as a count or a total: datasetID, aggregation, unit and y, in that order. aggregation is SUM, AVERAGE, MIN, MAX or COUNT, and SUM when left out. unit only when the request or the evidence states one. y is the column it reads; COUNT counts the rows and needs no y.
       button: runs a saved tool when pressed: definitionBinding, arguments and size, in that order. definitionBinding is {tool: the tool's name}. arguments holds the values of inputs the button always uses; leave out each input the person picks when pressing, such as which invoice or which customer, and the button shows a field for it. One button serves the whole view, not one per row. Save the tool first: its statements are what a press does, such as an INSERT, an UPDATE or a DELETE. A button shows only what its last press returned: to keep what its tool records in view, such as a count or a total, add a metric or a table of that table.
       size: small, medium or large, and medium when left out. It sets how large a \(SpaceDefinition.sizedTypes.dropLast().joined(separator: ", ")) or \(SpaceDefinition.sizedTypes.last!) is drawn; a visual takes it only when it is a chart.
       document, asset: itemID, the exact ID of that document or file.
@@ -525,10 +525,16 @@ public struct WorkbookTools {
       let edits = try decodeDescriptor([SpaceEdit].self, from: a["edits"], named: "edits")
       let saved = try workbook.editSpace(
         string("id"), expectedVersion: version, edits: edits, token: token)
-      return .object([
+      var result: [String: Value] = [
         "spaceID": .string(saved.id), "title": .string(saved.title),
         "version": .number(Double(saved.version)),
-      ])
+      ]
+      if let notice = try workbook.unshownButtonTablesNotice(
+        saved.definition, spaceID: saved.id, version: saved.version)
+      {
+        result["notice"] = .string(notice)
+      }
+      return .object(result)
     case "restore_space":
       guard let version = a["version"].int, let expected = a["expectedVersion"].int else {
         throw SevraError("arguments", "Choose an exact saved version and current base.")
@@ -560,10 +566,15 @@ public struct WorkbookTools {
               : "This is a programmable app. Use read_native_app with its exact name, then save_native_app with its ID and current version to change it.")
         )
       }
-      return .object([
-        "spaceID": .string(
-          try workbook.saveSpace(id: token, title: title, definition: definition, token: token))
-      ])
+      let spaceID = try workbook.saveSpace(
+        id: token, title: title, definition: definition, token: token)
+      var result: [String: Value] = ["spaceID": .string(spaceID)]
+      if let notice = try workbook.unshownButtonTablesNotice(
+        definition, spaceID: spaceID, version: 1)
+      {
+        result["notice"] = .string(notice)
+      }
+      return .object(result)
     case "draft", "propose_record":
       // A late correction or retry would otherwise leave two drafts for one request to review.
       if tool == "draft" {

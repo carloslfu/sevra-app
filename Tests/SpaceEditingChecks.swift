@@ -335,6 +335,60 @@ func checkSpaceEditing(at temp: URL) {
       ]))
     try expect(!arguments.contains("does not take a visual"), arguments)
   }
+  check("a button whose table nothing shows says to add it") {
+    let book = try fixture()
+    let tools = WorkbookTools(book)
+    _ = try tools.execute(
+      "sql", .object(["statements": .array([.string("CREATE TABLE clicks (at TEXT)")])]))
+    _ = try tools.execute(
+      "save",
+      .object([
+        "kind": .string("tool"), "name": .string("add_click"),
+        "description": .string("Adds a click."), "inputs": .array([]),
+        "statements": .array([.string("INSERT INTO clicks (at) VALUES (datetime('now'))")]),
+      ]))
+    let table = try book.datasets().first { $0.title == "Clicks" }!.id
+    let button: Value = .object([
+      "id": .string("b"), "type": .string("button"), "title": .string("Click"),
+      "definitionBinding": .object(["tool": .string("add_click")]),
+    ])
+    func save(_ title: String, _ components: [Value]) throws -> Value {
+      try tools.execute(
+        "save_space",
+        .object([
+          "title": .string(title),
+          "definition": .object(["version": .number(1), "components": .array(components)]),
+        ]))
+    }
+    let alone = try save("Alone", [button])
+    try expect(alone["notice"].text.contains("Nothing on this view shows Clicks"), alone["notice"].text)
+    let counted = try save(
+      "Counted",
+      [
+        .object([
+          "id": .string("n"), "type": .string("metric"), "title": .string("Clicks"),
+          "datasetID": .string(table), "aggregation": .string("COUNT"),
+        ]), button,
+      ])
+    try expect(counted["notice"] == .null, counted["notice"].text)
+    // A script names its tables in the SQL it runs.
+    _ = try tools.execute(
+      "save",
+      .object([
+        "kind": .string("tool"), "name": .string("add_click_script"),
+        "description": .string("Adds a click."), "inputs": .array([]),
+        "source": .string("await sql(\"INSERT INTO clicks (at) VALUES ('now')\")"),
+      ]))
+    let script = try save(
+      "Script",
+      [
+        .object([
+          "id": .string("s"), "type": .string("button"), "title": .string("Click"),
+          "definitionBinding": .object(["tool": .string("add_click_script")]),
+        ])
+      ])
+    try expect(script["notice"].text.contains("which add_click_script changes"), script["notice"].text)
+  }
   check("agent layout tools preserve read-only authority and exact saved identities") {
     let book = try fixture()
     let run = try book.startAgentRequest(
