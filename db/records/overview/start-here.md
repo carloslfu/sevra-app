@@ -9,8 +9,23 @@ title: Start here
 ---
 # Sevra app
 
-Sevra rethinks the work people do with spreadsheets: gathering messy information,
-checking it, calculating, deciding, and explaining. The first audience hypothesis
+Sevra is a spreadsheet you run through chat, with a local model
+([[sources/notes/2026/11/chat-and-spaces-product]]):
+
+- **Chat is the input.** People ask; the model reads, queries and changes the
+  workbook through the general chat tools ([[records/plans/general-chat-tools]]),
+  and every action is reachable from chat ([[records/specs/chat-primary-operation]]).
+- **The workbook keeps the database.** Data lives in typed SQLite tables with
+  history and Undo. Numbers come from SQL over them, and answers cite the rows and
+  documents they used.
+- **Spaces are the output.** Home and saved views show tables, charts, metrics,
+  buttons, forms and live mini apps, built and rearranged through chat
+  ([[records/plans/home-working-overview]]). Native screens are optional controls
+  over the same state.
+
+Supplier quotes, Excel import, mini apps and inventory are uses of that loop, not
+its definition. Records that frame Sevra around evidence review or built-in
+inventory operations describe earlier stages. The first audience hypothesis
 is a small-business owner reconciling supplier quotes, purchases and inventory.
 Mac-first is an implementation choice, not evidence that all such owners use Macs.
 The success measure is a completed, explainable job with user-owned evidence.

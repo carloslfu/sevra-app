@@ -2,7 +2,7 @@
 type: review
 id: 01m7n8kn1nwzztkxwcmb4fzda9
 created: 2026-11-17T17:24:23.733361+00:00
-updated: 2026-11-17T17:27:44.658044+00:00
+updated: 2026-11-25T23:03:00.124699+00:00
 summary: 'Four-pass README review: natural launch copy, local AI and workbook differentiation, factual limits and preserved setup links.'
 title: README launch copy review
 ---
@@ -34,3 +34,7 @@ The README and current installation/walkthrough headings use the new wording. Hi
 
 
 Local acceptance passed: repository Markdown links, 24 README local links and anchors, both new and compatibility fragment names, unchanged installation commands and zero visible MVP labels. Chrome inspection covered desktop and 375px rendering with no horizontal page overflow. Candidate-store validation reports zero errors and warnings. The image is unchanged. Public GitHub bytes and fragment behavior are verified after publication; this documentation checkpoint does not qualify a new app build.
+
+## November 25 framing change
+
+[[sources/notes/2026/11/chat-and-spaces-product]] replaces the lead. The README now opens with the product loop: chat in, a database the workbook keeps, and views and Home out. The four distinctions become "How it works": ask in chat, see it in views, Sevra keeps the database, local AI, and a workbook you own. Example requests come from the tested chat jobs. The claim limits above still apply: the AI can misunderstand or miss a document, generated apps need the user's own testing, and the preview is built from source. The setup section, install commands and image are unchanged, and a hidden `build-a-native-mini-app` anchor keeps the renamed "Build small apps" link working. The website copy in the parent repository still uses the older lead, so the README no longer matches it word for word until that copy is revised.

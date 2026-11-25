@@ -1,10 +1,11 @@
 # Sevra
 
-**A local AI workbook for your business.**
+**A spreadsheet you run by talking to it, with AI on your Mac.**
 
-Sevra brings your documents, working tables and local AI into one Mac app.
-Compare supplier costs, find answers in your files and build small native apps
-for work you do regularly. Your files and the AI stay on your Mac.
+Tell Sevra what you need in chat. It keeps your business data in real tables,
+makes the changes you ask for and builds the views you use to see and work with
+it: tables, charts, totals, buttons and small apps, on your Home and in views
+you come back to. The AI runs on your Mac, and your files stay there.
 
 [Website](https://www.sevrahq.com) ·
 [Get started](#try-sevra-on-your-mac) ·
@@ -17,23 +18,40 @@ is built from source. A notarized installer is not yet available.
 
 *Inside Sevra. Sample data shown.*
 
-## Why Sevra
+## How it works
 
+- **Ask in chat.** Add or fix rows, create a table from a list, total by
+  category, or bring in a CSV, PDF or Excel file. Each change is saved with
+  history and can be undone.
+- **See it in views.** Ask for a view and Sevra builds it from your tables:
+  tables, bar and line charts, totals and counts, buttons that run a saved
+  action, forms and small native apps. Home is your own working overview, and
+  you change it the same way, by asking.
+- **Sevra keeps the database.** Your data lives in typed tables in the
+  workbook. Numbers come from queries over those tables, not from the AI's
+  guess, and answers cite the rows and documents they used.
 - **Local AI, including offline.** The model runs on your Mac. Your documents
   are not sent to a hosted AI model, and you can work offline after setup and
   the model download. The app has no telemetry.
-- **Answers you can inspect.** Follow citations back to the source documents
-  and check the inputs behind a calculation. Change an input and see how it
-  affects the result.
-- **Tools you can keep using.** Save tables, charts and small native apps for
-  recurring jobs. Use an app's controls or ask Sevra to run its actions in chat.
-  The native controls on enabled apps work without the AI model running.
-- **A workbook you own.** Included files, business records, saved results and
-  app code stay together in a workbook you can copy or export. Permission to
-  run an app is approved on each Mac and does not travel with the copy.
+- **A workbook you own.** Included files, tables, views, saved tools and app
+  code stay together in a workbook you can copy or export. Permission to run an
+  app is approved on each Mac and does not travel with the copy.
 
-Start with a practical job: bring two supplier quotes, compare the totals
-including shipping, inspect the evidence and keep the comparison for your next order.
+Things you can ask, from the requests Sevra is tested on:
+
+- “cedar tools is 2.50 a unit now, fix it”
+- “Create a table named Reorder levels with the columns Item and Level from
+  this list: Brass bolts, 12 / Steel washers, 40 / Hex nuts, 25”
+- “Total the line items of invoice 7781 by category and save the totals as a
+  table named Invoice 7781 totals.”
+- “Create a view named Purchasing that shows the Supplier comparison table and
+  a chart of total by supplier.”
+- “Add a button to my Home for logging a customer visit.”
+- “Do not change anything. What would the Cedar Tools total be if its unit cost
+  were 2.60 instead of 2.75?”
+
+The AI can misunderstand a request or miss a document, so check the views and
+answers it makes, especially before acting on them.
 
 <a id="try-the-native-mvp-preview"></a>
 
@@ -100,17 +118,20 @@ saved results also work without setting up AI.
 1. Choose **Add files** on the start window and select the
    [sample CSV and PDF](examples). Sevra makes the workbook in `~/Sevra Workbooks`.
    The files are included and indexed.
-2. Open the quotation and ask for a cited summary. Compare goods plus shipping,
-   checking the source and inputs. Keep missing tax information marked as unknown.
-3. Keep a working table or chart, edit an input and check the recalculated result.
-   Try Undo, then close and reopen the workbook.
-4. Export and reopen a portable copy to keep the evidence and work together.
+2. Ask Sevra to compare the quotes, including shipping. Open the cited quotation
+   to check the source and inputs. Missing tax information stays marked as unknown.
+3. Ask for a view that shows the comparison table and a chart of the totals.
+4. Change a quantity or price in chat and watch the view update. Try Undo, then
+   close and reopen the workbook.
+5. Export and reopen a portable copy to keep the files, tables and views together.
 
 The [supplier comparison walkthrough](db/records/operations/build-and-run.md#supplier-comparison-walkthrough)
-has the exact steps. Focused questions work best. AI can miss a document or
-misunderstand a request, so check important answers against the original files.
+has the exact steps. Focused requests work best.
 
-## Build a native mini app
+## Build small apps
+
+<a id="build-a-native-mini-app"></a>
+
 
 Add an **.xlsx or .xlsm** file and describe how you use it. Sevra keeps the
 original and can use its tables and supported calculations to build a small

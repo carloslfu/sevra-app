@@ -2,14 +2,14 @@
 type: index
 scope: type-folder
 folder: records/reviews
-updated: 2026-11-24T04:18:36.217043Z
+updated: 2026-11-25T23:03:00.124699Z
 ---
 
 # records/reviews
 
+- [[records/reviews/readme-launch-copy]] — Four-pass README review: natural launch copy, local AI and workbook differentiation, factual limits and preserved setup links.
 - [[records/reviews/home-counter-run-2026-11-23]] — A Home counter request asked, refused and hit the step limit. Its causes were fixed and made general: buttons run saved tools, choices get defaults. Real requests pass 3 of 4.
 - [[records/reviews/native-ui-catalog]] — Implemented native catalog: 176 stories, real workbook/XPC paths, isolated services, ten compositions, native capture and scoped acceptance.
-- [[records/reviews/readme-launch-copy]] — Four-pass README review: natural launch copy, local AI and workbook differentiation, factual limits and preserved setup links.
 - [[records/reviews/rich-native-visuals-recent-changes]] — Revision 16 accounts for all three recent inference commits, 95 changed files, token/receipt and human-answer contracts; 53 CPU agent groups pass.
 - [[records/reviews/rich-native-visuals-end-to-end-audit]] — Three-pass code and plan audit closes eight handoff gaps; 28 SDK, 20 signed native and 21 preview groups pass within existing scope.
 - [[records/reviews/image-support-and-plan-readiness]] — Three-pass image audit: mini apps and embedded Home support images; inline chat and standalone Home need the new P1-image increment.
