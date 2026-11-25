@@ -2,11 +2,12 @@
 type: index
 scope: type-folder
 folder: records/plans
-updated: 2026-11-25T03:28:35.687407Z
+updated: 2026-11-25T12:36:31Z
 ---
 
 # records/plans
 
+- [[records/plans/engine-memory-sliding-size]] — The engine takes free memory less 4 GiB, from 8 to 20 GiB, at each start, and restarts larger when the app comes forward with at least 4 GiB more room.
 - [[records/plans/engine-memory-by-free-memory]] — The engine's memory is chosen at each start: 22 GiB, the whole model, when a 48 GiB Mac has room for it with 4 GiB to spare, else 12 GiB.
 - [[records/plans/splash-1-7-1-upgrade]] — Move the pinned engine from Splash 1.6.1 to 1.7.1: wire protocol 15, tree grammar masks, the tool grammar fix and a new prompt header, within the light testing rules.
 - [[records/plans/general-chat-tools]] — Seven general chat tools (SQL on a scratch copy, sandboxed code, workbook tools) and a prompt header made at build time. Built, looked at, and updated in the app between two headers.

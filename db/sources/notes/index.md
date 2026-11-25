@@ -2,11 +2,12 @@
 type: index
 scope: type-folder
 folder: sources/notes
-updated: 2026-11-25T03:28:18.108229Z
+updated: 2026-11-25T12:36:31Z
 ---
 
 # sources/notes
 
+- [[sources/notes/2026/11/engine-memory-sliding-size]] — Carlos asks for engine memory sizes beyond 12 and 22 GiB, for different Macs, written as a plan and reviewed until it is ready to implement.
 - [[sources/notes/2026/11/engine-memory-by-free-memory]] — Carlos asks for the engine's memory size to follow free memory: a concise plan, reviewed in detail and as a whole, then built in full.
 - [[sources/notes/2026/11/splash-1-7-2-upgrade-approval]] — Carlos asks for the Splash 1.7.2 upgrade and approves quitting Sevra for one real-model check run.
 - [[sources/notes/2026/11/steady-chat-layout]] — Carlos asks for less layout shift while a chat reply runs and when it finishes, a little more of the model's thoughts on screen, and a review of every detail of the chat UI.
