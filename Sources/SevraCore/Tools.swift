@@ -378,10 +378,13 @@ public struct WorkbookTools {
             ? "This request cannot change the workbook." : "Send undo alone.")
         return try workbook.chatSQLUndo(undo, cancellation: cancellation)
       }
-      if let name = a["tool"].string {
+      // A model can fill an unused tool field with an empty or placeholder name.
+      if let name = a["tool"].string,
+        !["", "none", "null", "nil"].contains(name.trimmingCharacters(in: .whitespaces).lowercased())
+      {
         try require(
           a.object["statements"] == nil && a["draft"] != .bool(true), "arguments",
-          "Send either statements or a saved tool with its values.")
+          "Send either statements, with draft true only when the user asks to review first, or a saved tool with its values.")
         return try workbook.chatRunTool(
           name: name, values: a["values"].object, readOnly: readOnly || inspectionOnly,
           token: "sql-" + (receiptID ?? token), requestSourceID: requestSourceID,

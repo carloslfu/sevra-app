@@ -469,7 +469,7 @@ private actor SpaceActionModel: WorkbookInference {
     } catch let error as SevraError where error.code == "nothing_changed" {
       try expectEqual(
         error.message,
-        "Nothing changed: counter already has these values. To change it, include the field that changes, for example aggregation.")
+        "Nothing changed: counter already has these values. It already shows aggregation COUNT, size large. If the user asked for what it already shows, say so. To change it, include the field that changes, for example aggregation. To add something beside it, such as a total, insert a new component, such as a metric.")
     }
   }
   try expectEqual(try homeBook.space("home").version, before.version)

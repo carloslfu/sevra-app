@@ -394,8 +394,19 @@ extension Workbook {
     case nil: example = "title"
     }
     let subject = target.map(\.id) ?? space.id
+    // What it already shows, so the model can tell the person when the request is already true,
+    // such as a chart that already draws bars.
+    var current: [String] = []
+    if let target {
+      if target.type == "chart" { current.append("chartStyle " + (target.chartStyle ?? "bar")) }
+      if let aggregation = target.aggregation { current.append("aggregation " + aggregation) }
+      if let x = target.x { current.append("x " + x) }
+      if let y = target.y { current.append("y " + y) }
+      if let size = target.size { current.append("size " + size) }
+    }
+    let shows = current.isEmpty ? "" : " It already shows " + current.joined(separator: ", ") + "."
     return
-      "Nothing changed: \(subject) already has these values. To change \(target == nil ? "the view" : "it"), include the field that changes, for example \(example)."
+      "Nothing changed: \(subject) already has these values.\(shows) If the user asked for what it already shows, say so. To change \(target == nil ? "the view" : "it"), include the field that changes, for example \(example). To add something beside it, such as a total, insert a new component, such as a metric."
   }
   /// The order a model's grammar writes an edit's fields in. A model that writes the component
   /// first cannot go back for the position, so an error names this order.
