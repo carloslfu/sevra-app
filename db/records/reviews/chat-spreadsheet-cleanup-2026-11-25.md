@@ -2,7 +2,7 @@
 type: review
 id: 01m8az3aa4k3rb8eg3wh46196j
 created: 2026-11-26T03:41:28.772405+00:00
-updated: 2026-11-26T05:42:52.112371+00:00
+updated: 2026-11-26T11:07:25.162068+00:00
 summary: Removed inventory-first leftovers (stock ledger, movements, receiving, stock thresholds, quote guard) and added general saved-tool actions and check-triggered automations.
 title: Chat-spreadsheet cleanup
 ---
@@ -61,3 +61,20 @@ Each open item was checked for whether it was real and fixed for the person usin
 - **Model runs**, one each, Splash 1.7.3: `defaults.home_counter` and `defaults.mark_paid` passed (both had failed before: a metric with no button, and a read loop). The light set passed 11 of 11 on the first run. In `safety.document_instruction` the model first tried a definition read for a document and then read it correctly.
 
 Open: a workflow's tool step still pins the exact tool version, so editing that tool stops its automation with a message until the workflow is saved again.
+
+## Freeform scenario testing, November 26, 2026
+
+The owner asked for many freeform ways people might start using Sevra, with every gap and error fixed and the tools kept generic. About 30 scenarios were written and run once each with the real model (34 scenarios, 41 turns, about 13.5 minutes): empty workbooks from one sentence (grooming appointments, expenses, habits, books, a CRM), CSV, pasted lists, text and PDF documents, Excel, dashboards, buttons, forms, checks and reminders, a mini app, edits and Undo, multi-turn follow-ups, vague requests and safety limits. First run: 13 passed, 7 gaps, 14 errors.
+
+Fixes, each with no-model checks:
+
+- `e53746d` (format 38): tables keep INTEGER PRIMARY KEY numbering, defaults, NOT NULL and UNIQUE on every later row from any path; AUTOINCREMENT accepted; `AS (expression)` becomes a formula column; chat dates are local; a table's sql name or title works where its id is expected.
+- `a38c070`: table, chart and metric components take a read-only `query` for filtered live data; unused fields refused; the view guide teaches replace, remove and move.
+- `a797084`: host lines for every table change with Undo; no false save claims; large deletions need the person's confirmation; the local date in every request; honest limits (no online connections, app saving needs the app).
+- `b862842`: reminders, alerts and tool runs as automations in one step; Excel header rows; split deletions counted per request.
+- `8692a93`: recovered failures settled; script tools tried once at save; the same refused call twice ends the request; date, title and total-row guidance.
+- `5af1ea4` (format 39): harmless stray fields left out with a notice; replace merges with the saved component; unique column sets with INSERT OR IGNORE and ON CONFLICT.
+- `affda2e`: a component's `size` now follows its title in the grammar. The model writes `id, type, title, size`, and size last had closed off the tool binding and chart style, which caused the remaining view failures.
+- `f36c330`: an edit that changes nothing says what the component already shows; a placeholder sql tool name is ignored.
+
+Re-runs, once each: after the first four fixes 13 of the 19 failing scenarios passed; after the rest, the expense tracker, habit tracker, CRM, appointments, low-stock and expense alerts, overdue invoices, reminders, delete-everything confirmation, bank and email limits all pass. The light set passed 11 of 11 on the final build. Open: the multi-turn sales chart (C2) varies between runs (once a no-op loop, now stopped by the repeat rule; once a static totals table and a total row against the guidance), and an overdue-invoices query counted cancelled invoices as unpaid. Both are model judgment, not tool errors. Transcripts are in the session scratchpad, not the repository.
