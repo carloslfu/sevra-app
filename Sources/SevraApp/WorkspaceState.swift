@@ -107,6 +107,9 @@ struct FolderReview {
   @Published var pendingInputs: [ConversationInputReference] = []
   @Published var pendingInput: ConversationSurface?
   @Published var replyInputID: String?
+  /// The person chose to send the composer's text as a new message, not as the answer to the
+  /// open question.
+  @Published var replyDetached = false
   @Published var imageInspection: ConversationImageInspection?
   @Published var visualInspection: ConversationVisualInspection?
   @Published var conversationVisuals: [String: [VisualResult]] = [:]
@@ -562,6 +565,8 @@ struct FolderReview {
         self.datasetSnapshot = snapshot.datasetSnapshot
         self.presentationSnapshot = snapshot.presentationSnapshot
         self.chatApproval = snapshot.chatApproval
+        // A new question takes the composer back from "send as a new message".
+        if snapshot.pendingInput?.id != self.pendingInput?.id { self.replyDetached = false }
         self.pendingInputs = snapshot.pendingInputs
         self.pendingInput = snapshot.pendingInput
         if let replyInputID = self.replyInputID,
@@ -1287,6 +1292,12 @@ struct FolderReview {
       refresh()
       return
     }
+    // The composer is where a question is answered in words. A plain message replies to the
+    // open question, unless the person chose to send it as a new message.
+    if let surface = composerReplyTarget {
+      if submitInput(surface, response: .text(input)) { clearComposer() }
+      return
+    }
     guard documentDrafts.flush() else { return }
     clearComposer()
     error = nil
@@ -1332,9 +1343,18 @@ struct FolderReview {
     runChat(input, book: book, selection: selection)
   }
 
+  /// The question a plain message from the composer answers: the open question shown in this
+  /// chat, unless the person chose to send a new message instead.
+  var composerReplyTarget: ConversationSurface? {
+    guard !replyDetached, let pendingInput, pendingInput.conversation == conversation,
+      pendingInput.input?.allowTextReply == true
+    else { return nil }
+    return pendingInput
+  }
+
   private func exactReplyInput() -> ConversationSurface? {
     if let pendingInput, pendingInput.conversation == conversation,
-      pendingInput.id == replyInputID || (replyInputID == nil && pendingInputs.count == 1)
+      pendingInput.id == replyInputID || replyInputID == nil
     {
       return pendingInput
     }
@@ -1348,6 +1368,7 @@ struct FolderReview {
   func targetInput(_ surface: ConversationInputReference) {
     guard pendingInputs.contains(where: { $0.id == surface.id }) else { return }
     replyInputID = surface.id
+    replyDetached = false
     changeConversation(conversation, anchor: surface.id)
   }
 
@@ -1356,6 +1377,9 @@ struct FolderReview {
     refresh()
   }
 
+  /// Send what is typed as a new message, or go back to answering the open question.
+  func setReplyDetached(_ detached: Bool) { replyDetached = detached }
+
   @discardableResult func submitInput(
     _ surface: ConversationSurface, response: ConversationInputResponse, draftRevision: Int? = nil
   ) -> Bool {
@@ -1363,8 +1387,11 @@ struct FolderReview {
       surface.conversation == conversation
     else { return false }
     do {
+      // The transcript has no fields to save, so a draft left by an earlier build is answered
+      // over rather than blocking the reply.
+      let revision = try draftRevision ?? book.conversationInputDraft(surface)?.revision
       let answer = try book.submitConversationInput(
-        surface, response: response, draftRevision: draftRevision)
+        surface, response: response, draftRevision: revision)
       pendingInputs.removeAll { $0.id == surface.id }
       if pendingInput?.id == surface.id { pendingInput = nil }
       if replyInputID == surface.id { replyInputID = nil }

@@ -198,11 +198,12 @@ enum CatalogRegistry {
       add(
         "chat.field." + type, type.capitalized + " input", "Chat",
         "Sources/SevraPreviewUI/ConversationInputView.swift",
-        ["Default", "Draft", "Conflict", "Answered", "Skipped", "Cancelled"],
-        "Typed input persists through the real conversation input lifecycle.", ["field." + type])
+        ["Default", "Answered", "Skipped", "Cancelled"],
+        "A question with this field: one-tap buttons for yes-or-no and record fields, a reply in the composer for the rest.",
+        ["field." + type])
     }
     for kind in [
-      "messages", "composer", "activity", "choices", "multiple-pending", "draft-conflict",
+      "messages", "composer", "activity", "choices", "multiple-pending",
       "continuation", "approval", "undo-redo", "visuals", "history", "chats", "context",
     ] {
       add(

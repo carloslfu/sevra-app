@@ -105,7 +105,7 @@ private actor SurfaceModel: WorkbookInference {
   _ = try await WorkbookAgent.run(
     "", workbook: book, model: model, conversationInput: true, inputAnswerID: id)
   try expectEqual(await model.offeredScope, .conversationAnswer)
-  try expectEqual(await model.request?.content, "Include delivery\nDelivery: true")
+  try expectEqual(await model.request?.content, "Include delivery\nDelivery: Yes")
   try expectEqual(await model.policy?.content.contains("Compare the amounts."), true)
   try expectEqual(try book.resumableConversationAnswer(conversation: book.startChat), nil)
   try expectEqual(try book.requestRunStatus(id), "complete")

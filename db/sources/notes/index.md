@@ -2,11 +2,12 @@
 type: index
 scope: type-folder
 folder: sources/notes
-updated: 2026-11-26T03:41:28.738373Z
+updated: 2026-11-26T04:06:15.874135Z
 ---
 
 # sources/notes
 
+- [[sources/notes/2026/11/composer-is-the-only-input]] — Carlos directs that chat questions offer only one-tap answers and that every typed answer goes through the composer.
 - [[sources/notes/2026/11/chat-spreadsheet-cleanup]] — Carlos asks for a full code and docs cleanup to the chat-spreadsheet product: remove inventory-first leftovers and make everything general.
 - [[sources/notes/2026/11/splash-1-7-3-upgrade-approval]] — Carlos asks for the Splash 1.7.3 upgrade through the update-splash skill.
 - [[sources/notes/2026/11/chat-and-spaces-product]] — Carlos states Sevra as a spreadsheet run through chat with a local model: chat in, a maintained database, spaces out; he asks for the README and records to say so.

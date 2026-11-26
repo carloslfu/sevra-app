@@ -1,20 +1,15 @@
 import SevraCore
 import SwiftUI
 
-/// Compact native inputs embedded in the transcript. Only the workspace host
-/// may submit an answer and start the corresponding request.
+/// The one-tap answers of a question in the transcript. Typed answers go through the chat
+/// composer, which replies to the open question, so this view never shows a text field.
+/// Only the workspace host may submit an answer and start the corresponding request.
 public struct ConversationInputView: View {
   let input: ConversationSurface.Input
   let surface: ConversationSurface
   let book: Workbook
   let submit: (ConversationInputResponse, Int) -> Void
-  @State private var values: [String: Value] = [:]
-  @State private var editing = false
-  @State private var saved: ConversationInputDraft?
-  @State private var persistenceError: String?
-  @State private var ready = false
-  @State private var saving = false
-  @FocusState private var focusedField: String?
+  @State private var revision = 0
 
   public init(
     input: ConversationSurface.Input, surface: ConversationSurface, book: Workbook,
@@ -26,140 +21,104 @@ public struct ConversationInputView: View {
     self.submit = submit
   }
 
+  /// The buttons that answer the question in one tap: the model's choices, or the options of
+  /// a single yes-or-no or record field. Empty when the answer has to be typed.
+  public static func options(_ input: ConversationSurface.Input) -> [(
+    label: String, response: ConversationInputResponse
+  )] {
+    if !input.choices.isEmpty {
+      return input.choices.map { ($0.label, .choice($0.id)) }
+    }
+    guard input.fields.count == 1, let field = input.fields.first else { return [] }
+    if field.type == .boolean {
+      return [("Yes", .fields([field.id: .bool(true)])), ("No", .fields([field.id: .bool(false)]))]
+    }
+    if let records = field.records {
+      return records.rowIDs.map { (records.labels?[$0] ?? $0, .fields([field.id: .string($0)])) }
+    }
+    return []
+  }
+
   public var body: some View {
-    VStack(alignment: .leading, spacing: 10) {
-      if !editing {
-        ForEach(input.choices) { choice in
-          Button(choice.label) { submit(.choice(choice.id), saved?.revision ?? 0) }
-            .controlSize(.regular).disabled(saving)
+    let options = Self.options(input)
+    VStack(alignment: .leading, spacing: 8) {
+      if !options.isEmpty {
+        FlowButtons(count: options.count) { index in
+          Button(options[index].label) { submit(options[index].response, revision) }
+            .controlSize(.regular)
         }
       }
-      if editing || input.choices.isEmpty {
-        ForEach(input.fields) { field in fieldControl(field) }
-      }
-      ViewThatFits(in: .horizontal) {
-        HStack { formActions }.fixedSize(horizontal: true, vertical: false)
-        VStack(alignment: .leading, spacing: 8) { formActions }
-      }
-      if let persistenceError {
-        Text(persistenceError).font(.callout).foregroundStyle(.secondary)
-        Button("Load saved fields") { Task { await restoreDraft() } }.buttonStyle(.link)
+      HStack(spacing: 12) {
+        Text(options.isEmpty ? "Reply in the message box." : "Or reply in the message box.")
+          .font(.caption).foregroundStyle(.secondary)
+        Button("Skip") { submit(.decline, revision) }.buttonStyle(.link).font(.caption)
+          .help("Sevra goes on without it and does not make it up")
+        Button("Cancel question") { submit(.cancel, revision) }.buttonStyle(.link).font(.caption)
       }
     }
-    .disabled(!ready)
-    .task {
-      do {
-        let draft = try await Task.detached { try book.conversationInputDraft(surface) }.value
-        try Task.checkCancellation()
-        saved = draft
-        values = draft?.values ?? [:]
-        editing = !values.isEmpty
-        ready = true
-      } catch {
-        if !Task.isCancelled { persistenceError = error.localizedDescription }
-      }
-    }
-    .onChange(of: values) { _, newValues in
-      guard ready, !saving, (saved?.values ?? [:]) != newValues else { return }
-      saving = true
-      Task {
-        defer { saving = false }
-        do {
-          while (saved?.values ?? [:]) != values {
-            let draftValues = values
-            let revision = saved?.revision ?? 0
-            saved = try await Task.detached {
-              try book.saveConversationInputDraft(
-                surface, values: draftValues, expectedRevision: revision)
-            }.value
-          }
-          persistenceError = nil
-        } catch {
-          persistenceError = error.localizedDescription
-        }
-      }
-    }
-    .padding(12)
     .frame(maxWidth: .infinity, alignment: .leading)
-    .background(.quaternary.opacity(0.35), in: RoundedRectangle(cornerRadius: 10))
     .accessibilityElement(children: .contain)
     .accessibilityLabel(input.purpose)
-  }
-
-  @ViewBuilder private var formActions: some View {
-    if editing || input.choices.isEmpty {
-      Button("Send answer") { submit(.fields(values), saved?.revision ?? 0) }
-        .buttonStyle(.borderedProminent)
-        .disabled(
-          saving || input.fields.contains { $0.required && values[$0.id] == nil }
-            || values.isEmpty)
-    } else {
-      Button("Enter an answer") {
-        editing = true
-        focusedField = input.fields.first { ![.boolean, .record].contains($0.type) }?.id
-      }
-    }
-    if !values.isEmpty { Button("Clear fields") { values = [:] }.buttonStyle(.link) }
-    Button("Skip") { submit(.decline, saved?.revision ?? 0) }.buttonStyle(.link)
-      .disabled(saving)
-      .help("Sevra goes on without it and does not make it up")
-    Button("Cancel question") { submit(.cancel, saved?.revision ?? 0) }.buttonStyle(.link)
-      .disabled(saving)
-  }
-
-  private func restoreDraft() async {
-    do {
-      let draft = try await Task.detached { try book.conversationInputDraft(surface) }.value
-      saved = draft
-      values = draft?.values ?? [:]
-      persistenceError = nil
-    } catch {
-      persistenceError = error.localizedDescription
+    .task(id: surface.id) {
+      // A question answered by an earlier build may carry saved fields. Answer against them
+      // so the saved revision does not block a tap.
+      let draft = try? await Task.detached { try book.conversationInputDraft(surface) }.value
+      revision = draft?.revision ?? 0
     }
   }
+}
 
-  @ViewBuilder private func fieldControl(_ field: ConversationSurface.Field) -> some View {
-    if field.type == .boolean {
-      Picker(
-        field.label,
-        selection: Binding<Bool?>(
-          get: {
-            if case .bool(let flag) = values[field.id] { return flag }
-            return nil
-          },
-          set: { values[field.id] = $0.map(Value.bool) })
-      ) {
-        Text("Choose").tag(nil as Bool?)
-        Text("Yes").tag(true as Bool?)
-        Text("No").tag(false as Bool?)
-      }
-      .pickerStyle(.menu)
-    } else if let records = field.records {
-      Picker(
-        field.label,
-        selection: Binding(
-          get: { values[field.id]?.string ?? "" },
-          set: { values[field.id] = $0.isEmpty ? nil : .string($0) })
-      ) {
-        Text("Choose a record").tag("")
-        ForEach(records.rowIDs, id: \.self) { id in
-          Text(records.labels?[id] ?? id).tag(id)
-        }
-      }
-    } else {
-      VStack(alignment: .leading, spacing: 4) {
-        Text(field.label).font(.callout)
-        TextField(
-          field.type == .date ? "YYYY-MM-DD" : field.label,
-          text: Binding(
-            get: { values[field.id]?.text ?? "" },
-            set: { values[field.id] = $0.isEmpty ? nil : .string($0) })
-        )
-        .textFieldStyle(.roundedBorder)
-        .accessibilityLabel(field.label)
-        .focused($focusedField, equals: field.id)
-      }
+/// Buttons that wrap onto more lines when the row is narrow.
+private struct FlowButtons<Content: View>: View {
+  let count: Int
+  @ViewBuilder let content: (Int) -> Content
+  var body: some View {
+    FlowLayout(spacing: 8) {
+      ForEach(0..<count, id: \.self) { content($0) }
     }
   }
+}
 
+private struct FlowLayout: Layout {
+  var spacing: CGFloat
+  func sizeThatFits(proposal: ProposedViewSize, subviews: Subviews, cache: inout ()) -> CGSize {
+    let rows = arrange(width: proposal.width ?? .infinity, subviews: subviews)
+    let width = rows.map(\.width).max() ?? 0
+    let height = rows.map(\.height).reduce(0, +) + spacing * CGFloat(max(rows.count - 1, 0))
+    return CGSize(width: width, height: height)
+  }
+  func placeSubviews(
+    in bounds: CGRect, proposal: ProposedViewSize, subviews: Subviews, cache: inout ()
+  ) {
+    var y = bounds.minY
+    for row in arrange(width: bounds.width, subviews: subviews) {
+      var x = bounds.minX
+      for index in row.indices {
+        let size = subviews[index].sizeThatFits(.unspecified)
+        subviews[index].place(at: CGPoint(x: x, y: y), proposal: .init(size))
+        x += size.width + spacing
+      }
+      y += row.height + spacing
+    }
+  }
+  private struct Row {
+    var indices: [Int] = []
+    var width: CGFloat = 0
+    var height: CGFloat = 0
+  }
+  private func arrange(width: CGFloat, subviews: Subviews) -> [Row] {
+    var rows: [Row] = [Row()]
+    for index in subviews.indices {
+      let size = subviews[index].sizeThatFits(.unspecified)
+      let needed = rows[rows.count - 1].indices.isEmpty ? size.width : size.width + spacing
+      if rows[rows.count - 1].width + needed > width, !rows[rows.count - 1].indices.isEmpty {
+        rows.append(Row())
+      }
+      let added = rows[rows.count - 1].indices.isEmpty ? size.width : size.width + spacing
+      rows[rows.count - 1].indices.append(index)
+      rows[rows.count - 1].width += added
+      rows[rows.count - 1].height = max(rows[rows.count - 1].height, size.height)
+    }
+    return rows.filter { !$0.indices.isEmpty }
+  }
 }

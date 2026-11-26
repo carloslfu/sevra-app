@@ -661,21 +661,7 @@ struct WorkbookView: View {
           }
         }
       }
-      if !state.pendingInputs.isEmpty {
-        HStack(alignment: .firstTextBaseline, spacing: 8) {
-          Menu("Pending questions (\(state.pendingInputs.count))") {
-            ForEach(state.pendingInputs) { surface in
-              Button(surface.purpose) { state.targetInput(surface) }
-            }
-          }
-          if let selected = state.pendingInputs.first(where: { $0.id == state.replyInputID }) {
-            Text("Answering \(selected.purpose)")
-              .readingFont(.caption).foregroundStyle(.secondary).lineLimit(1)
-            Button("Clear reply target", action: state.clearReplyTarget)
-              .buttonStyle(.link)
-          }
-        }
-      }
+      ComposerReplyRow(state: state)
       if !state.queue.isEmpty {
         QueuedMessagesView(state: state)
       }
@@ -693,7 +679,9 @@ struct WorkbookView: View {
           .help("Ask without this selection").accessibilityLabel("Remove selection from message")
         }
       }
-      TextField("Ask, change, or run something…", text: $state.prompt, axis: .vertical)
+      TextField(
+        state.composerReplyTarget == nil ? "Ask, change, or run something…" : "Type your answer…",
+        text: $state.prompt, axis: .vertical)
         .textFieldStyle(.plain)
         .focused($composerFocused).lineLimit(2...7).onSubmit { state.send() }.accessibilityLabel(
           "Message Sevra"
@@ -915,5 +903,38 @@ private struct SentMessageView: View {
         .accessibilityElement(children: .contain).accessibilityLabel("Message not sent")
       }
     }
+  }
+}
+
+/// Above the composer while a question is open: what a typed message will do, and the switch
+/// between answering the question and sending a new message.
+private struct ComposerReplyRow: View {
+  @ObservedObject var state: WorkspaceState
+  var body: some View {
+    if let question = state.pendingInput, question.conversation == state.conversation {
+      HStack(alignment: .firstTextBaseline, spacing: 8) {
+        if state.pendingInputs.count > 1 { questionsMenu }
+        if state.composerReplyTarget != nil {
+          Label("Replying to: " + (question.input?.purpose ?? "the question"), systemImage: "arrowshape.turn.up.left")
+            .readingFont(.caption).foregroundStyle(.secondary).lineLimit(1)
+          Spacer(minLength: 0)
+          Button("Send as a new message") { state.setReplyDetached(true) }
+            .buttonStyle(.link).readingFont(.caption)
+        } else {
+          Text("New message. The question stays open.")
+            .readingFont(.caption).foregroundStyle(.secondary).lineLimit(1)
+          Spacer(minLength: 0)
+          Button("Reply to the question") { state.setReplyDetached(false) }
+            .buttonStyle(.link).readingFont(.caption)
+        }
+      }
+    }
+  }
+  private var questionsMenu: some View {
+    Menu("Questions (\(state.pendingInputs.count))") {
+      ForEach(state.pendingInputs) { surface in
+        Button(surface.purpose) { state.targetInput(surface) }
+      }
+    }.fixedSize()
   }
 }

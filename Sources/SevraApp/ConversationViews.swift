@@ -133,10 +133,6 @@ struct ConversationMessageRow: View, Equatable {
       VStack(alignment: .leading, spacing: 10) {
         if let input = inputSurface?.input {
           Text(input.question).textSelection(.enabled).lineSpacing(4)
-          if input.allowTextReply {
-            Text("You can also type Answer: followed by your response.")
-              .font(.caption).foregroundStyle(.secondary)
-          }
         } else {
           bodyBlocks
         }

@@ -523,7 +523,13 @@ extension Workbook {
     -> String
   {
     input.fields.compactMap { field in
-      values[field.id].map { field.label + ": " + (field.records?.labels?[$0.text] ?? $0.text) }
+      values[field.id].map { value in
+        let text: String
+        if case .bool(let flag) = value { text = flag ? "Yes" : "No" } else {
+          text = field.records?.labels?[value.text] ?? value.text
+        }
+        return field.label + ": " + text
+      }
     }.joined(separator: "\n")
   }
 

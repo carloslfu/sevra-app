@@ -222,7 +222,7 @@ import SevraVoice
     let wantsInput =
       id.hasPrefix("chat.field.")
       || [
-        "chat.choices", "chat.multiple-pending", "chat.draft-conflict", "chat.continuation",
+        "chat.choices", "chat.multiple-pending", "chat.continuation",
         "composition.interrupted", "composition.supplier",
       ].contains(id)
     if wantsInput {
@@ -272,20 +272,6 @@ import SevraVoice
       }
       input = try b.pendingConversationInput(conversation: b.chats()[0].id)
       if let input {
-        if ["Draft", "Conflict"].contains(variant) || id.contains("draft-conflict") {
-          _ = try b.saveConversationInputDraft(
-            input, values: ["answer": answer], expectedRevision: 0)
-          if variant == "Conflict" || id.contains("draft-conflict") {
-            let other = try Workbook(b.url)
-            do {
-              _ = try other.saveConversationInputDraft(
-                input, values: ["answer": .string("Conflicting draft")], expectedRevision: 0)
-            } catch {
-              events.append(
-                "Competing connection refused stale draft: " + error.localizedDescription)
-            }
-          }
-        }
         if ["Answered", "Skipped", "Cancelled"].contains(variant) || id == "chat.continuation" {
           _ = try b.submitConversationInput(
             input,
