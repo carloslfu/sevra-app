@@ -59,6 +59,7 @@ package struct ActionConfirmations {
       {
         return true
       }
+      if Self.sameTarget(entry, settledBy: saved) { return true }
       // A save refused because the view exists is settled once that view is edited: the
       // model took the refusal's advice, and the edit is the outcome.
       if entry["tool"].text == "save_space", saved["kind"].text == "space_edit",
@@ -139,6 +140,47 @@ package struct ActionConfirmations {
     else { return false }
     let removed = Set(saved["removed"].array.map { $0.text.lowercased() })
     return failure["argumentValues"].array.contains { removed.contains($0.text.lowercased()) }
+  }
+  /// A failed save of a view or a definition is settled by a later save of the same thing, even
+  /// with other arguments: the same view, by title or id, saved or edited; the same definition,
+  /// by its kind and title, or, when the failed call named neither, by the very payload that was
+  /// then saved. What stands is what the later save saved, and its own line says so.
+  private static func sameTarget(_ failure: Value, settledBy saved: Value) -> Bool {
+    guard failure["kind"].text == "failure", saved["kind"].text != "failure" else { return false }
+    let attempt = failure["attempt"].text
+    if ["save_space", "edit_space"].contains(failure["tool"].text),
+      ["space", "space_edit"].contains(saved["kind"].text), !attempt.isEmpty
+    {
+      return attempt.caseInsensitiveCompare(saved["title"].text) == .orderedSame
+        || attempt == saved["targetID"].text
+    }
+    guard ["save_definition", "save_template"].contains(failure["tool"].text),
+      saved["tool"] == failure["tool"], saved["kind"].text == "definition"
+    else { return false }
+    let tried = failure["definitionKey"]
+    let made = saved["definitionKey"]
+    if let kind = tried["kind"].string, let other = made["kind"].string, kind != other {
+      return false
+    }
+    if let title = tried["title"].string {
+      return title.caseInsensitiveCompare(made["title"].text) == .orderedSame
+    }
+    return tried["payload"].string != nil && tried["payload"] == made["payload"]
+  }
+  /// The kind, title and payload digest of a definition a call saves, so a later save of the
+  /// same one can settle an earlier failure of it.
+  private static func definitionKey(_ tool: String, _ arguments: Value) -> Value {
+    guard ["save_definition", "save_template"].contains(tool) else { return .null }
+    let content = arguments["content"]
+    var fields: [String: Value] = [:]
+    if let kind = content["kind"].string, !kind.isEmpty { fields["kind"] = .string(kind) }
+    if let title = (content["title"].string ?? arguments["title"].string), !title.isEmpty {
+      fields["title"] = .string(title)
+    }
+    if content["payload"] != .null, let json = try? content["payload"].json() {
+      fields["payload"] = .string(digest(json))
+    }
+    return .object(fields)
   }
   /// What a call acted on, so a later success can settle the failure before it.
   private static func attempt(_ tool: String, _ arguments: Value) -> String {
@@ -489,6 +531,7 @@ package struct ActionConfirmations {
         ),
         "appName": .string(tool == "save_native_app" ? arguments["package"]["name"].text : ""),
         "shapeOnly": .bool(Self.shapeOnly(tool, arguments)),
+        "definitionKey": Self.definitionKey(tool, arguments),
         "action": tool == "workspace_action" ? arguments["action"] : .null,
         "argumentValues": .array(
           tool == "workspace_action"
@@ -650,6 +693,7 @@ package struct ActionConfirmations {
         "inputDigests": Self.inputDigests(arguments["arguments"]["inputs"]),
         "action": tool == "workspace_action" ? arguments["action"] : .null,
         "inputID": tool == "workspace_action" ? arguments["arguments"]["id"] : .null,
+        "definitionKey": Self.definitionKey(tool, arguments),
       ]))
   }
 
@@ -673,7 +717,13 @@ package struct ActionConfirmations {
           && entries.dropFirst(index + 1).contains {
             $0["kind"].text != "failure" && $0["tool"] == entry["tool"] && $0["intent"].text == intent
           }
-          || entries.dropFirst(index + 1).contains { Self.removal(entry, settledBy: $0) }
+          || entries.dropFirst(index + 1).contains {
+            // A whole save that failed, then the same view or definition saved: what the
+            // summary describes is what was saved. A failed edit is only part of a view, and
+            // the summary could still describe that part, so it keeps the finer rule above.
+            Self.removal(entry, settledBy: $0)
+              || (entry["tool"].text != "edit_space" && Self.sameTarget(entry, settledBy: $0))
+          }
         guard
           redone || movedPast(entry, at: index)
             || (entry["error"].text.contains(Self.repeatRefused) && recoveredFailure(entry, at: index))

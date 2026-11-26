@@ -191,6 +191,36 @@ extension Workbook {
       try require(
         ISO8601DateFormatter().date(from: captured) != nil, "view", "Invalid pinned time.")
     }
+    // Every field a new or changed component lacks, in one error. A retry that answers one
+    // error by dropping other fields is told about those too, not one field per call.
+    if definition.pinnedAt == nil {
+      let missing = flatten(definition.components).filter { !unchanged.contains($0) }.compactMap {
+        c -> (String, Int)? in
+        var fields: [String] = []
+        if ["table", "chart", "metric"].contains(c.type), c.datasetID == nil, c.query == nil {
+          fields.append("datasetID or query")
+        }
+        if c.type == "chart", c.x == nil { fields.append("x") }
+        if ["chart", "metric"].contains(c.type), c.y == nil,
+          !(c.type == "metric" && c.aggregation == "COUNT")
+        {
+          fields.append("y")
+        }
+        if c.type == "button", c.definitionBinding == nil { fields.append("definitionBinding") }
+        guard !fields.isEmpty else { return nil }
+        let named =
+          fields.count == 1
+          ? fields[0] : fields.dropLast().joined(separator: ", ") + " and " + fields.last!
+        return ("\(c.id) (\(c.type)) needs " + named, fields.count)
+      }
+      if missing.map(\.1).reduce(0, +) >= 2 {
+        throw SevraError(
+          "view",
+          "Components lack fields they need: " + missing.map(\.0).joined(separator: "; ")
+            + ". Send every field of each component each time: datasetID is a table's id from SELECT name, id FROM tables, or give query, one SELECT, instead; a chart names x and y, a metric names y unless it is a COUNT, and a button names definitionBinding: {tool: \"name\"}."
+        )
+      }
+    }
     func validate(_ c: Component, depth: Int) throws {
       try require(
         SpaceDefinition.contentTypes
@@ -294,7 +324,19 @@ extension Workbook {
             c.datasetID == nil && c.itemID == nil && c.snapshot == nil && c.searchSnapshot == nil
               && c.evaluationSnapshot == nil, "view",
             "A button runs a saved tool: it takes definitionBinding, arguments and size.")
-          try checkButton(try ViewButton(c))
+          do {
+            try checkButton(try ViewButton(c))
+          } catch let error as SevraError where c.definitionBinding == nil {
+            // The shape with the tools it can name, so the next call has nothing to guess.
+            let names = try savedTools().map(\.name)
+            throw SevraError(
+              error.code,
+              error.message
+                + (names.isEmpty
+                  ? " No tool is saved yet: save it first with save {tool}, then add the button."
+                  : " Saved tools: " + names.map { "{tool: \"\($0)\"}" }.joined(separator: ", ")
+                    + "."))
+          }
         }
       } else {
         try require(

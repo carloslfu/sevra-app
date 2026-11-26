@@ -561,6 +561,13 @@ final class ChatSQLSession {
   private let workbook: Workbook
   private let cancellation: Cancellation
   private var filled = Set<String>()
+  /// Statements a script sends, which take their values from sql(text, values).
+  var script = false {
+    didSet {
+      scratch.script = script
+      rehearsal.script = script
+    }
+  }
 
   /// `now` is the one time the call's date functions and defaults read.
   init(
@@ -696,6 +703,8 @@ final class SQLScratch {
   var shownBytes = SQLScratch.shownBytes
   /// A script gets numbers as numbers. A model is shown them as exact decimal text.
   var numbers = false
+  /// A script's statement takes its values from sql(text, values), not from a tool's inputs.
+  var script = false
   private var filledRows = 0
   private let cancellation: Cancellation
   private var guarded = false
@@ -1514,16 +1523,22 @@ final class SQLScratch {
     let parameters = sqlite3_bind_parameter_count(statement)
     if parameters > 0 {
       for position in 1...parameters {
-        let name = sqlite3_bind_parameter_name(statement, position).map {
-          String(String(cString: $0).dropFirst())
-        }
+        // A ? takes the value at its position in a script's list of values.
+        let name =
+          sqlite3_bind_parameter_name(statement, position).map {
+            String(String(cString: $0).dropFirst())
+          } ?? (script ? String(position) : nil)
         guard let inputs, let name, let value = inputs[name] else {
           throw SevraError(
             "sql",
             inputs == nil
               ? "Write values into the statement. Only a saved tool's statements take :name inputs."
-              : "Statement \(index + 1) uses an input the tool does not declare"
-                + (name.map { ": " + $0 } ?? "") + ". Write each input as :name.")
+              : script
+                ? "Statement \(index + 1) has no value for "
+                  + (name.map { Int($0) == nil ? ":" + $0 : "? number " + $0 } ?? "a parameter")
+                  + ". Pass values with the statement, as sql(text, {name: value}) with :name in the text, or sql(text, [value]) for each ?."
+                : "Statement \(index + 1) uses an input the tool does not declare"
+                  + (name.map { ": " + $0 } ?? "") + ". Write each input as :name.")
         }
         bind(statement, position, value)
       }

@@ -323,6 +323,14 @@ extension Workbook {
     case "replace": allowed = ["componentID", "component"]
     default: throw SevraError("view", "Unknown layout edit.")
     }
+    // componentID names a component already on the view, so an insert, which adds a new
+    // one, places it by at or beforeID instead.
+    if edit.operation == "insert", fields.contains("componentID") {
+      throw SevraError(
+        "view",
+        "An insert has no componentID: it adds a new component, placed with at: \"first\" or \"last\", or with beforeID: the id of the component it goes before. Leave both out to add it last. componentID is for replace, remove, move, title and text. Write an insert's fields in this order: operation, at or beforeID, component, and keep every field of the component."
+      )
+    }
     try require(
       fields.isSubset(of: allowed), "view",
       "Unexpected " + edit.operation + " fields: "

@@ -201,7 +201,8 @@ func checkWorkflowTools(at root: URL) {
           "content": content, "expectedDefinitionID": saved["logicalID"],
         ]))
     }
-    for invalid in [Value.null, .number(1), .string("")] {
+    // An empty string is a new definition, as when the field is left out, so it is not here.
+    for invalid in [Value.null, .number(1)] {
       try refuses("arguments") {
         _ = try tools.execute(
           "save_definition",

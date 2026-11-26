@@ -17,7 +17,7 @@ public struct ViewButton: Sendable, Equatable {
     else {
       throw SevraError(
         "view",
-        "Component \(component.id) (button) needs definitionBinding: {tool: the name of a saved tool}. Write a button's fields in this order: id, type, title, definitionBinding, arguments, size. A field you have passed cannot be written later."
+        "Component \(component.id) (button) needs definitionBinding: {tool: \"name\"}, with the name of the saved tool it runs. Write a button's fields in this order: id, type, title, definitionBinding, arguments, size. A field you have passed cannot be written later."
       )
     }
     switch component.arguments {
@@ -45,9 +45,9 @@ extension Workbook {
     guard let tool = tools.first(where: { $0.name == button.tool }) else {
       throw SevraError(
         "view",
-        "No saved tool is named \(button.tool)."
+        "No saved tool is named \(button.tool). Save the tool first with save {tool}, then add the button."
           + (tools.isEmpty
-            ? " Save the tool first with save tool, then the view."
+            ? ""
             : " Saved tools: " + tools.map(\.signature).joined(separator: ", ") + "."))
     }
     // arguments holds values the button always uses. An input the person picks each time is

@@ -228,8 +228,17 @@ public enum NativeAppAuthoring {
     do {
       return try NativeAppPackage.decode(Data(arguments["package"].json().utf8))
     } catch DecodingError.keyNotFound(let key, let context) {
-      let path = (context.codingPath.map(\.stringValue) + [key.stringValue]).joined(separator: ".")
-      throw SevraError("app_package", "Missing package field: " + path)
+      let parents = context.codingPath.map(\.stringValue)
+      let path = (parents + [key.stringValue]).joined(separator: ".")
+      // Say where the field goes, not only its path: a view written as a space definition
+      // has its version one level too deep, and the path alone does not say so.
+      let place =
+        parents.first == "views"
+        ? " Each entry of views is a visual from visual.schema, {version: 1, kind, and the field its kind names, such as chart}, not a space definition. Leave views out unless the source shows one with View."
+        : parents.isEmpty
+          ? " Add \(key.stringValue) to package itself."
+          : " Add \(key.stringValue) directly inside package." + parents.joined(separator: ".") + "."
+      throw SevraError("app_package", "Missing package field: " + path + "." + place)
     } catch DecodingError.typeMismatch(_, let context) {
       throw SevraError(
         "app_package",

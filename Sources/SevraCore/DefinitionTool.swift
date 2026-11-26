@@ -180,7 +180,7 @@ extension Workbook {
   // MARK: Saving, removing and running
 
   /// Saves a tool, or a new version of the tool with that name, after rehearsing its
-  /// statements with empty inputs or checking its script's syntax. Saving it here grants it.
+  /// statements with empty inputs, or its script once with sample inputs. Saving it here grants it.
   public func chatSaveTool(
     name: String, description: String, inputs: [(name: String, type: String)],
     optional: Set<String> = [], statements: [String], source: String?, token: String,
@@ -209,6 +209,12 @@ extension Workbook {
     let tool = try DefinitionTool(DefinitionDescriptor(content))
     if let source {
       try checkChatScript(source, cancellation: cancellation)
+      // A script that fails on its first press fails at save instead.
+      if let refusal = try rehearseChatScript(
+        source, inputs: inputs, optional: optional, cancellation: cancellation)
+      {
+        throw SevraError("tool", refusal)
+      }
     }
     let saved = try synchronized(cancellation: cancellation) { () throws -> ApplicationDefinition in
       if source == nil {

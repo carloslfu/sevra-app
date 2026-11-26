@@ -25,7 +25,7 @@ extension NativeTools {
   package static let runDefinition = WorkbookToolDefinition(
     name: "run",
     description:
-      "Run JavaScript for work one SQL statement cannot do: several dependent steps, a loop, or logic over rows. Write the body of an async function and return the result. Inside it: await sql(statement, {name: value}) returns a SELECT's rows as objects with numbers as numbers, or {changedRows} for a change, and :name in the statement takes the value; await tool(name, {input: value}) runs a saved SQL tool the same way; await search(words); await read(id); today is the date as YYYY-MM-DD. Table changes are saved together when the script returns, with one Undo. A script that throws changes nothing. Or send tool and values to run a saved tool.",
+      "Run JavaScript for work one SQL statement cannot do: several dependent steps, a loop, or logic over rows. Write the body of an async function and return the result. Inside it: await sql(statement, {name: value}) returns a SELECT's rows as objects with numbers as numbers, or {changedRows} for a change, and :name in the statement takes the value, never a value joined into its text; await tool(name, {input: value}) runs a saved SQL tool the same way; await search(words); await read(id); today is the date as YYYY-MM-DD. Table changes are saved together when the script returns, with one Undo. A script that throws changes nothing. Or send tool and values to run a saved tool.",
     parameters: object(
       [
         "code": schema(

@@ -344,6 +344,7 @@ private func checkRefusedRepeats() throws {
 
 func checkActionConfirmations() async throws {
   try await checkReplyTruth()
+  try await checkRunFollowups()
   try checkRefusedRepeats()
   try await checkRecordMeaningRefusal()
   try checkNestedActionRecovery()

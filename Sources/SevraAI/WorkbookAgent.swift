@@ -1281,6 +1281,9 @@ public enum WorkbookAgent {
           var nativeAppCheck: Value?
           if tool == "save_native_app" {
             try require(!tools.readOnly, "read_only_request", "This request forbids changes.")
+            // Without the app there is no check to pass, so the package's shape is beside the
+            // point: say that first, instead of shape errors no fix can get past.
+            try NativeAppCheck.requireCheckService()
             progress("Checking the native app in isolation")
             let checkedArguments = try NativeAppAuthoring.arguments(a, tools: tools)
             let candidate = try NativeAppAuthoring.package(checkedArguments)
@@ -1548,6 +1551,9 @@ public enum WorkbookAgent {
           {
             navigationFailure = failure.localizedDescription
           }
+          // Opening a view only shows it. When this request saved something, that is what the
+          // answer is about, so the model finishes with its own account of it.
+          let openOnly = navigationFailure != nil && actionConfirmations.savedAnything
           if (error as? SevraError)?.code == "excel_behavior_result" {
             excelBehaviorDraft = nil
             retainedSaveComparison = nil
@@ -1559,6 +1565,11 @@ public enum WorkbookAgent {
               "The call did not finish successfully. Completed changes remain saved. Inspect the receipt and workbook state before retrying; do not claim no changes occurred. Fix the reported arguments when applicable."
             ),
           ]
+          if openOnly {
+            failureResult["retryInstruction"] = .string(
+              "Nothing else failed: what this request saved stays saved, and the user can open it from the sidebar. Do not open it again. Call finish now and say what you made."
+            )
+          }
           if (appRoutingFailure as? SevraError)?.code == "space_not_found" {
             // This target failed exact lookup BEFORE replay or worker dispatch.
             failureResult["dispatch"] = .string("app_target_not_found")
@@ -1616,16 +1627,20 @@ public enum WorkbookAgent {
           sameFailures[key, default: 0] += 1
           consecutiveFailures += 1
           let same = sameFailures[key, default: 0]
-          if same >= 3 || consecutiveFailures >= 5 {
+          // The very same call refused a second time will be refused every time after.
+          let resent = rejectedActions[try action.json(), default: 0] + 1 >= 2
+          if same >= 3 || consecutiveFailures >= 5 || resent {
             if wrapUp == nil {
               wrapUp =
-                same >= 3
-                ? "The same error came back three times, so trying again will not help."
-                : "Five calls in a row failed."
+                resent
+                ? "The same call was refused twice, so sending it again will not help."
+                : same >= 3
+                  ? "The same error came back three times, so trying again will not help."
+                  : "Five calls in a row failed."
               metrics.append(
                 .object([
                   "host": .string("wrap_up"),
-                  "reason": .string(same >= 3 ? "same_error" : "failures"),
+                  "reason": .string(resent ? "same_call" : same >= 3 ? "same_error" : "failures"),
                 ]))
             }
             fields["retryInstruction"] = .string(
@@ -1746,8 +1761,12 @@ public enum WorkbookAgent {
           messages[0].nativeAppAuthoring = true
           maintenance?.enableNativeAppAuthoring()
         }
-        if let navigationFailure { return try conclude(navigationFailure, step: step) }
-        if callFailed {
+        if let navigationFailure {
+          guard actionConfirmations.savedAnything else {
+            return try conclude(navigationFailure, step: step)
+          }
+          nextToolScope = .finish
+        } else if callFailed {
           if !nothingFailed {
             actionConfirmations.recordFailure(
               tool: tool, arguments: a, result: result, receiptID: receiptID,
@@ -1790,10 +1809,20 @@ public enum WorkbookAgent {
           }
           // A chat request that is closing gets to say what happened. Excel conversion and
           // app building, which never close this way, still stop here.
-          try require(
-            rejectedActions[key, default: 0] <= 2 || wrapUp != nil, "repeated_action",
-            "The model repeated an unsuccessful action. Completed changes and receipts are saved; inspect them before continuing."
-          )
+          if rejectedActions[key, default: 0] > 2 && wrapUp == nil {
+            // A chat request still gets a reply: what it changed, and that it stopped.
+            if excelConversion == nil {
+              metrics.append(
+                .object(["host": .string("wrap_up"), "reason": .string("repeated_action")]))
+              return try conclude(
+                "I stopped because the same call kept failing, so trying again would not help.",
+                step: step)
+            }
+            throw SevraError(
+              "repeated_action",
+              "The model repeated an unsuccessful action. Completed changes and receipts are saved; inspect them before continuing."
+            )
+          }
         } else {
           if [
             "search", "history_search", "datasets", "rows", "count_records", "references", "sql",

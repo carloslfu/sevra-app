@@ -42,6 +42,9 @@ public struct WorkbookTools {
       change a component: {operation: "replace", componentID, component}, the whole new component with the same id. Never insert a component again to change it.
       take one out: {operation: "remove", componentID}. Move: {operation: "move", componentID, at or beforeID}. Relabel one: {operation: "title", componentID, title}. Change a text component's text: {operation: "text", componentID, text}. Rename the view: {operation: "rename", title}.
       Name tables by their title, such as Invoices, in component titles and the answer, never by their sql names.
+      A title says exactly what its component shows. For a period, such as Total this month, give the component a query that keeps only that period. A metric of a quantity, such as glasses, hours or amount, is the SUM of that column, not a COUNT of rows.
+      A saved query stays current: write today as date('now') and this month as strftime('%Y-%m', 'now'), never as a date written out.
+      Never add a total or summary row to a table's rows: show a total with a metric.
       A screen with its own logic, beyond tables, charts and buttons, is an app: read kind=app_guide.
       """,
   ]

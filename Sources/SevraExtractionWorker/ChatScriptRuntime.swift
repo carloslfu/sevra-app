@@ -96,7 +96,7 @@ enum ChatScriptRuntime {
       \(source)
       })().then(
         value=>{__state={done:true,value:value===undefined?null:value};},
-        error=>{__state={done:true,error:String((error&&error.message)||error)};});
+        error=>{__state={done:true,error:String((error&&error.message)||error),errorName:String((error&&error.name)||'')};});
       globalThis.Sevra=Object.freeze({__flush:()=>({...__state,calls:__calls,requests:__requests,log:__log})});
       """
     guard let output = script.withCString({ sevra_js_eval(engine, $0, script.utf8.count, 1_000) })
