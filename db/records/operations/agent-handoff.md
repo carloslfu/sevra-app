@@ -3,7 +3,7 @@ type: operational
 meta-type: operational
 id: 01m659x4nd2q89tkpzzsssd7yr
 created: 2026-10-30T02:23:30.477380+00:00
-updated: 2026-11-24T19:46:49.171803+00:00
+updated: 2026-11-26T03:41:49.584708+00:00
 summary: Remove and restore work for every saved kind, in chat with confirmation and in the app with a Removed list; checked with the model and in the installed app, committed and pushed.
 title: Minimum-feature continuation handoff
 ---
@@ -438,3 +438,8 @@ The latest native prompt layout, KV checkpoint behavior, bounded idle lifetime a
 
 ## First request latency, November 21
 Opening a workbook now starts the local engine before Send, every chat scope shares one prepared header of 5,234 tokens with the scope instructions inside it, and the grammar lets `read` name only messages and items the context shows. A "hi" in a new thread went from 14 s to 3.7 s after Send. Work, causes, measurements and what is left: [[records/plans/first-request-latency]]. The header changed, so a source build needs the install command again.
+
+
+## Chat-spreadsheet cleanup, November 25, 2026
+
+Stock movements, balances, receiving, stock threshold automations and the supplier-quote guard were removed, and saved-tool actions (`tools.run`) and check-triggered automations (`check-drafts-v1`) were added, in commits `c80143d`, `08d56be` and `f2cae08` (workbook formats 34 to 36). The chat tools lost `stock.move`, `stock.balance`, `template.receiving`, `template.rule`, `rule_guide` and `receiving_guide`; `action.preview` and `action.prepare` now run saved tools. No-model checks pass; the light model run was not done because the installed app held the model. Details, verification and limits: [[records/reviews/chat-spreadsheet-cleanup-2026-11-25]].

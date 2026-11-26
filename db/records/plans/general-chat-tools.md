@@ -2,7 +2,7 @@
 type: operational
 id: 01m7qrcqqzh4qqr92a8frch1ze
 created: 2026-11-18T16:38:43.199010+00:00
-updated: 2026-11-23T20:30:37+00:00
+updated: 2026-11-26T03:41:49.553018+00:00
 summary: Seven general chat tools (SQL on a scratch copy, sandboxed code, workbook tools) and a prompt header made at build time. Built, looked at, and updated in the app between two headers.
 title: General chat tools and a pre-read prompt header
 ---
@@ -854,3 +854,8 @@ Each specification is updated in the phase that makes its new rule true: managed
 15. The build itself, November 18, 2026. Each failed real-model job was read from its transcript. They showed that the local model needs strict shapes, which reshaped `save` and `run`, and that a bare ID as a result makes it repeat a save.
 16. The owner's review of the testing, November 19, 2026. He had not asked for Spanish, reruns or repeated timings, and wanted model testing that takes minutes. The test section was rewritten around a light set of eleven jobs, and the harness now refuses a long run.
 17. The owner made the seven tools the only chat tools, November 19, 2026. Moving every scripted check to them found two faults the profile had hidden: a query that only read counted as a change, and the shown tool text differed by scope, which split the cached header. Both are fixed, and recorded under The build so far.
+
+
+## Chat-spreadsheet cleanup, November 25, 2026
+
+Stock movements, balances, receiving, stock threshold automations and the supplier-quote guard were removed, and saved-tool actions (`tools.run`) and check-triggered automations (`check-drafts-v1`) were added, in commits `c80143d`, `08d56be` and `f2cae08` (workbook formats 34 to 36). The chat tools lost `stock.move`, `stock.balance`, `template.receiving`, `template.rule`, `rule_guide` and `receiving_guide`; `action.preview` and `action.prepare` now run saved tools. No-model checks pass; the light model run was not done because the installed app held the model. Details, verification and limits: [[records/reviews/chat-spreadsheet-cleanup-2026-11-25]].

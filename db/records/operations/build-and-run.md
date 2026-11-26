@@ -197,7 +197,6 @@ bounded to 4 MB text and 100,000 cells. Select less or export CSV for larger dat
 sevra demo "$HOME/Documents/Willow.sevra"
 sevra inspect "$HOME/Documents/Willow.sevra"
 sevra search "$HOME/Documents/Willow.sevra" "brass bolts"
-sevra balance "$HOME/Documents/Willow.sevra" "brass bolts"
 sevra verify "$HOME/Documents/Willow.sevra"
 ~~~
 
@@ -205,7 +204,6 @@ Use a new path for each create/demo command. Existing workbooks are never replac
 Open the package using the app's Open command. Included files, search, tables,
 formulas and export work without model setup.
 
-`balance WORKBOOK SUBJECT [AS_OF]` stops at now by default and names what it left out.
 `verify` exits 1 with `asset_issues` when a file fails, and `capture-url` exits 1 with
 `capture_failed`, naming the saved record. `edit-row` changes only the columns it names,
 and an explicit null clears one. `add` refuses kinds Sevra writes itself with
@@ -1625,6 +1623,8 @@ preserved unsupported; create selected fresh synthetic fixtures for schema14.
 
 ## Registered draft actions and native receiving form
 
+Removed November 25, 2026: the receiving template, receiving form and movement action are gone. Saved tools now run as actions (`tools.run`). See [[records/reviews/chat-spreadsheet-cleanup-2026-11-25]]. The text below is history.
+
 Use current schema14 fixtures. `action-registry` exposes trusted native primitive
 versions, typed inputs/results, effect/capability, deadline and retry semantics.
 `receiving-template` and `form-template` return ordinary definitions for versioned
@@ -1829,6 +1829,8 @@ This implementation currently runs automatic work only while Sevra is active wit
 Focused checks: `swift build --product sevra-automation-ui-checks -j 4` then `.build/debug/sevra-automation-ui-checks`. They create synthetic workbooks and private temporary registries, run six independent registration workers and kill only owned fixture processes at two registry publication barriers. An injected deterministic runner checks controller behavior without loading a model or simulating proof of real OS notifications. The checks also run in scripts/check.sh and CI. Contract/evidence: [[records/specs/native-automation-owner]].
 
 ## Inert condition transition preview
+
+Removed November 25, 2026 with stock threshold automations. See [[records/reviews/chat-spreadsheet-cleanup-2026-11-25]]. The text below is history.
 
 `condition-preview RULE_JSON_OR_@FILE OBSERVATIONS_JSON_OR_@FILE` previews supplied numeric observations without opening a workbook or enabling anything. Example:
 

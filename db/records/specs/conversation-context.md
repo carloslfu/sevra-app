@@ -10,6 +10,8 @@ status: reviewed
 ---
 # Continuing conversation and context management
 
+**November 25, 2026:** stock movements, balances, receiving and stock threshold conditions were removed, and saved-tool actions and check-triggered automations were added. Sections below that describe the removed parts are history. See [[records/reviews/chat-spreadsheet-cleanup-2026-11-25]].
+
 Revision 3, November 16, 2026. The native preview keeps automatic context maintenance and exact input accounting. At 48 GiB and above the preview chooses 64K at startup. Below that tier it chooses 32K. Both use a 12 GiB engine allowance. See [[records/operations/inference-context-execution]] for the comparison and hardware scope.
 
 ## Reconstruction and saved history

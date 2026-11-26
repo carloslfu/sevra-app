@@ -10,6 +10,8 @@ status: implemented
 ---
 # Programmable native spaces, SDK 1
 
+**November 25, 2026:** stock movements, balances, receiving and stock threshold conditions were removed, and saved-tool actions and check-triggered automations were added. Sections below that describe the removed parts are history. See [[records/reviews/chat-spreadsheet-cleanup-2026-11-25]].
+
 A programmable space is a portable JavaScript program over native macOS controls and shared workbook data. It runs only after the user enables the exact saved version on this physical workbook. No WebKit, DOM, HTML, CSS, Node runtime or hosted service participates. The reviewed plan and acceptance evidence are in [[records/plans/programmable-native-engine]]. This implements a bounded first SDK, not unlimited macOS access or full Excel compatibility.
 
 ## Architecture

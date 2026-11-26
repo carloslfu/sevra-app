@@ -9,6 +9,8 @@ status: implemented
 ---
 # Automatic derivation ancestry
 
+**November 25, 2026:** stock movements, balances, receiving and stock threshold conditions were removed, and saved-tool actions and check-triggered automations were added. Sections below that describe the removed parts are history. See [[records/reviews/chat-spreadsheet-cleanup-2026-11-25]].
+
 This is the next reviewed foundation for condition dispatch, after [[records/specs/inventory-condition-consumers]]. It inspects existing exact derivation links and automatic workflow bindings. It does not grant execution, choose a dispatch root, calculate a minimal causal slice, enforce cascade budgets or complete E4. The inspector must remain read-only and inert.
 
 ## Meaning and user behavior

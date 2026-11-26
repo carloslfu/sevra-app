@@ -2,12 +2,14 @@
 type: spec
 id: 01m63qzvdy3wsnm72v7xvtezs7
 created: 2026-10-29T11:51:10.526544+00:00
-updated: 2026-11-01T08:40:00.000000+00:00
-summary: 'Reviewed historical inventory adapter: exact committed cutoff and explicit effective time, retained basis and settled effects, bounded read-only reconciliation, no condition execution.'
+updated: 2026-11-26T03:41:43.800392+00:00
+summary: 'Retired November 25, 2026: inventory state at business batches, removed with stock movements and stock threshold automations.'
 title: Inventory state at a retained business batch
 status: implemented
 ---
 # Inventory state at a retained business batch
+
+**Retired November 25, 2026.** This system was removed with stock threshold automations and stock movements. Automations now use schedules or saved checks. See [[records/reviews/chat-spreadsheet-cleanup-2026-11-25]]. The text below is history.
 
 Reviewed next condition foundation over [[records/specs/business-events]]. Provide a read-only exact historical inventory adapter as a baseline/reconciliation oracle, not a per-poll history rescan or condition executor. Persistent consumers, incremental state, occurrence decisions and causal/backpressure controls remain required under [[records/specs/condition-transitions]]. No new schema or authority follows from this adapter.
 

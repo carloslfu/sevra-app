@@ -10,6 +10,8 @@ status: proposed
 ---
 # Customizable native workbook application engine
 
+**November 25, 2026:** stock movements, balances, receiving and stock threshold conditions were removed, and saved-tool actions and check-triggered automations were added. Sections below that describe the removed parts are history. See [[records/reviews/chat-spreadsheet-cleanup-2026-11-25]].
+
 October 28, 2026. Owner direction is adopted from
 [[sources/notes/2026/10/native-app-engine-direction]]. Detailed runtime choices
 below are the proposed engineering design. This is a specification, not evidence

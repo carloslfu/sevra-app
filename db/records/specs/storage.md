@@ -10,6 +10,8 @@ status: reviewed
 ---
 # Storage and domain model
 
+**November 25, 2026:** stock movements, balances, receiving and stock threshold conditions were removed, and saved-tool actions and check-triggered automations were added. Sections below that describe the removed parts are history. See [[records/reviews/chat-spreadsheet-cleanup-2026-11-25]].
+
 ## Persistence readiness requirement
 
 The adopted [[records/specs/persistence-readiness]] contract F01-F08 and FJ01-FJ06

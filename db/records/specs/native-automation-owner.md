@@ -10,6 +10,8 @@ status: reviewed
 ---
 # Native automation owner
 
+**November 25, 2026:** stock movements, balances, receiving and stock threshold conditions were removed, and saved-tool actions and check-triggered automations were added. Sections below that describe the removed parts are history. See [[records/reviews/chat-spreadsheet-cleanup-2026-11-25]].
+
 Status: reviewed implementation contract. This slice implements native schedule configuration, persistent device-local grants and a conservative foreground driver over schema21. Full E4/E5/release acceptance remains open. See [[records/specs/native-app-engine]], [[records/specs/automation-execution]] and [[records/operations/implementation]].
 
 ## User experience

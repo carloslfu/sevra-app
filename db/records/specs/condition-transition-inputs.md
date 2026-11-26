@@ -2,12 +2,14 @@
 type: spec
 id: 01m63zpzv9f62m9b8qzm1d360d
 created: 2026-10-29T14:06:08.745428+00:00
-updated: 2026-11-01T08:40:00.000000+00:00
-summary: Exact retained condition inputs now support bounded historical producer resolution. Complete windows, real limits and native CLI checks pass; independent roots and dispatch remain open.
+updated: 2026-11-26T03:41:43.783241+00:00
+summary: 'Retired November 25, 2026: durable observation inputs for stock condition transitions, removed with stock threshold automations.'
 title: Exact condition transition change inputs
 status: implemented
 ---
 # Exact condition transition change inputs
+
+**Retired November 25, 2026.** This system was removed with stock threshold automations and stock movements. Automations now use schedules or saved checks. See [[records/reviews/chat-spreadsheet-cleanup-2026-11-25]]. The text below is history.
 
 This E4 extension follows [[records/specs/inventory-condition-consumers]] and [[records/specs/automation-causality]]. It retains exact scope-relevant changes between complete condition observations. The later bounded condition-origins inspector now resolves historical business producers from complete windows; independent roots and actual dispatch remain separate. It is not a minimal cause set, a complete list of unchanged numeric contributors, an independent-business-root decision or execution authority.
 

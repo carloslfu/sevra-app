@@ -9,6 +9,8 @@ status: reviewed
 ---
 # Source-bound document composition
 
+**November 25, 2026:** stock movements, balances, receiving and stock threshold conditions were removed, and saved-tool actions and check-triggered automations were added. Sections below that describe the removed parts are history. See [[records/reviews/chat-spreadsheet-cleanup-2026-11-25]].
+
 ## Problem and decision
 
 The eight-report native job saved a draft but renamed every requested X-CHECK

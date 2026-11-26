@@ -3,11 +3,13 @@ type: spec
 id: 01m63sd9zxhrxzv360z74w3pyn
 created: 2026-10-29T12:15:59.997610+00:00
 updated: 2026-11-01T08:40:00.000000+00:00
-summary: Schema 23 inventory conditions with saved baselines, pages and clocks, exact observations, inert candidates and backpressure; automatic dispatch remains unqualified.
+summary: 'Retired November 25, 2026: Schema 23 inventory conditions with saved baselines, pages and clocks, exact observations, inert candidates and backpressure; automatic dispatch remains unqualified.'
 title: Durable inventory condition consumers
 status: implemented
 ---
 # Durable inventory condition consumers
+
+**Retired November 25, 2026.** This system was removed with stock threshold automations and stock movements. Automations now use schedules or saved checks. See [[records/reviews/chat-spreadsheet-cleanup-2026-11-25]]. The text below is history.
 
 This implements bounded incremental condition tracking over [[records/specs/business-events]], checked against [[records/specs/inventory-event-state]]. It retains observations and candidate requests without executing workflows or granting authority. Complete E4 still requires causality-aware dispatch, physical-file permission integration and native/conversational authoring.
 

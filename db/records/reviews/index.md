@@ -2,11 +2,12 @@
 type: index
 scope: type-folder
 folder: records/reviews
-updated: 2026-11-25T23:03:00.124699Z
+updated: 2026-11-26T03:41:28.772405Z
 ---
 
 # records/reviews
 
+- [[records/reviews/chat-spreadsheet-cleanup-2026-11-25]] — Removed inventory-first leftovers (stock ledger, movements, receiving, stock thresholds, quote guard) and added general saved-tool actions and check-triggered automations.
 - [[records/reviews/readme-launch-copy]] — Four-pass README review: natural launch copy, local AI and workbook differentiation, factual limits and preserved setup links.
 - [[records/reviews/home-counter-run-2026-11-23]] — A Home counter request asked, refused and hit the step limit. Its causes were fixed and made general: buttons run saved tools, choices get defaults. Real requests pass 3 of 4.
 - [[records/reviews/native-ui-catalog]] — Implemented native catalog: 176 stories, real workbook/XPC paths, isolated services, ten compositions, native capture and scoped acceptance.

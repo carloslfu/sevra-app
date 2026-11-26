@@ -2,16 +2,16 @@
 type: index
 scope: type-folder
 folder: records/plans
-updated: 2026-11-25T18:00:00Z
+updated: 2026-11-26T03:41:49.553018Z
 ---
 
 # records/plans
 
+- [[records/plans/general-chat-tools]] — Seven general chat tools (SQL on a scratch copy, sandboxed code, workbook tools) and a prompt header made at build time. Built, looked at, and updated in the app between two headers.
 - [[records/plans/engine-reload-after-memory-pressure]] — After memory pressure releases the engine, Sevra starts it again smaller once pressure has stayed normal for 20 s, only while the owner is in the app, at most once until he uses it.
 - [[records/plans/engine-memory-sliding-size]] — The engine takes free memory less 4 GiB, from 8 to 20 GiB, at each start, and restarts larger when the app comes forward with at least 4 GiB more room.
 - [[records/plans/engine-memory-by-free-memory]] — The engine's memory is chosen at each start: 22 GiB, the whole model, when a 48 GiB Mac has room for it with 4 GiB to spare, else 12 GiB.
 - [[records/plans/splash-1-7-1-upgrade]] — Move the pinned engine from Splash 1.6.1 to 1.7.1: wire protocol 15, tree grammar masks, the tool grammar fix and a new prompt header, within the light testing rules.
-- [[records/plans/general-chat-tools]] — Seven general chat tools (SQL on a scratch copy, sandboxed code, workbook tools) and a prompt header made at build time. Built, looked at, and updated in the app between two headers.
 - [[records/plans/rich-native-visuals]] — Native chat inputs, images, charts and work views implemented in source. The document records focused evidence and remaining visual and release work.
 - [[records/plans/chat-response-time]] — Debug-mode chat timing and one measured five-message conversation: 96% of reply time is the engine, and the number of model calls per message decides it.
 - [[records/plans/simple-chats]] — Threads, chapters, bookmarks and the main conversation became one plain list of chats per workbook, in format 33 with no conversion. Built, reviewed twice and checked; light set 11 of 11.

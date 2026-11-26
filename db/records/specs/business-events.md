@@ -9,6 +9,8 @@ status: implemented
 ---
 # Committed business-event delivery
 
+**November 25, 2026:** stock movements, balances, receiving and stock threshold conditions were removed, and saved-tool actions and check-triggered automations were added. Sections below that describe the removed parts are history. See [[records/reviews/chat-spreadsheet-cleanup-2026-11-25]].
+
 Status: reviewed E4 implementation contract. This is the durable semantic feed needed by [[records/specs/condition-transitions]], rather than a polling shortcut over the latest state. It adds no execution permission and does not complete condition dispatch or E4. See [[records/specs/native-app-engine]], [[records/specs/persistence-readiness]] and [[records/operations/implementation]].
 
 ## Meaning and atomicity

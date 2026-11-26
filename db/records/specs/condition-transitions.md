@@ -3,11 +3,13 @@ type: spec
 id: 01m63mskyw17ghqe41k3rhh631
 created: 2026-10-29T10:55:20.540673+00:00
 updated: 2026-10-29T13:12:33.361573+00:00
-summary: Reviewed inert numeric transition preview and remaining committed-business-event/cursor/causality integration; no execution or authority from supplied observations.
+summary: 'Retired November 25, 2026: Reviewed inert numeric transition preview and remaining committed-business-event/cursor/causality integration; no execution or authority from supplied observations.'
 title: Condition transitions
 status: reviewed
 ---
 # Condition transitions
+
+**Retired November 25, 2026.** This system was removed with stock threshold automations and stock movements. Automations now use schedules or saved checks. See [[records/reviews/chat-spreadsheet-cleanup-2026-11-25]]. The text below is history.
 
 Status: reviewed staged E4 contract. The first slice is a pure deterministic preview of supplied numeric observations. It creates no workbook state, Source, definition, occurrence, permission or workflow. Real committed-event integration and native authoring remain required. See [[records/specs/native-app-engine]], [[records/specs/native-automation-owner]] and [[records/operations/implementation]].
 

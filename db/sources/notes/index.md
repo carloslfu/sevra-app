@@ -2,11 +2,12 @@
 type: index
 scope: type-folder
 folder: sources/notes
-updated: 2026-11-26T00:12:05.203031Z
+updated: 2026-11-26T03:41:28.738373Z
 ---
 
 # sources/notes
 
+- [[sources/notes/2026/11/chat-spreadsheet-cleanup]] — Carlos asks for a full code and docs cleanup to the chat-spreadsheet product: remove inventory-first leftovers and make everything general.
 - [[sources/notes/2026/11/splash-1-7-3-upgrade-approval]] — Carlos asks for the Splash 1.7.3 upgrade through the update-splash skill.
 - [[sources/notes/2026/11/chat-and-spaces-product]] — Carlos states Sevra as a spreadsheet run through chat with a local model: chat in, a maintained database, spaces out; he asks for the README and records to say so.
 - [[sources/notes/2026/11/engine-reload-after-memory-pressure]] — Carlos asks Sevra to restart its engine smaller once memory pressure eases while he is in the app, built smoothly, with edge cases and an adversarial review.

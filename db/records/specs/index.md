@@ -2,11 +2,13 @@
 type: index
 scope: type-folder
 folder: records/specs
-updated: 2026-11-26T00:00:55Z
+updated: 2026-11-26T03:41:43.800392Z
 ---
 
 # records/specs
 
+- [[records/specs/inventory-event-state]] — Retired November 25, 2026: inventory state at business batches, removed with stock movements and stock threshold automations.
+- [[records/specs/condition-transition-inputs]] — Retired November 25, 2026: durable observation inputs for stock condition transitions, removed with stock threshold automations.
 - [[records/specs/intelligence]] — Native Splash engine and Swift adapter; the model works through seven general tools that read and change the workbook with Undo; on-device voice and declarative spaces.
 - [[records/specs/product]] — Product loop (chat in, a kept database, spaces out) and the native two-pane workbook UX, conversation, viewers, intake and application engine that serve it.
 - [[records/specs/splash-integration]] — Python-free Swift integration of pinned upstream Splash, explicit behavior mapping, differential verification and measured adoption gates.
@@ -33,14 +35,12 @@ updated: 2026-11-26T00:00:55Z
 - [[records/specs/automation-schedules]] — Reviewed native calendar preview contract: explicit zones, recurrence, DST, bounded coverage and no execution authority. First E4 slice; runtime open.
 - [[records/specs/business-events]] — Reviewed schema22 semantic outbox over captured history: atomic settled versions, inventory basis and dataset membership/schema events, bounded indexed delivery and no execution authority.
 - [[records/specs/business-provenance]] — Schema29 shared input roots and persisted admission budgets have scoped core/native CLI proof. Actual condition-candidate binding/current-grant dispatch remains next.
-- [[records/specs/condition-dispatch]] — "Schema30 dispatch and conversational rule saving/native handoff have scoped proof. Text/voice Enable, model workflow/restart, dataset adapters and release remain open."
-- [[records/specs/condition-transition-inputs]] — Exact retained condition inputs now support bounded historical producer resolution. Complete windows, real limits and native CLI checks pass; independent roots and dispatch remain open.
-- [[records/specs/inventory-condition-consumers]] — Schema 23 inventory conditions with saved baselines, pages and clocks, exact observations, inert candidates and backpressure; automatic dispatch remains unqualified.
-- [[records/specs/inventory-event-state]] — Reviewed historical inventory adapter: exact committed cutoff and explicit effective time, retained basis and settled effects, bounded read-only reconciliation, no condition execution.
+- [[records/specs/condition-dispatch]] — Retired November 25, 2026: Schema30 dispatch and conversational rule saving/native handoff have scoped proof. Text/voice Enable, model workflow/restart, dataset adapters and release remain open.
+- [[records/specs/inventory-condition-consumers]] — Retired November 25, 2026: Schema 23 inventory conditions with saved baselines, pages and clocks, exact observations, inert candidates and backpressure; automatic dispatch remains unqualified.
 - [[records/specs/manual-workflows]] — Manual durable workflow contract and scoped implementation sequence; full E3 remains open.
 - [[records/specs/references-and-relationships]] — Adopted inline references, backlinks and bounded traversal with stable identities, versioned evidence and separate relationship claims.
 - [[records/specs/search]] — FTS5, structured and filename indexes, bounded extraction, exact citations, agent query refinement and measured scalability.
 - [[records/specs/agent-activity]] — Native live agent activity with shimmer, exact tool receipts, cancellation, bounded inspection and durable history.
 - [[records/specs/automatic-ancestry]] — Schema 24 indexed workflow source identities and bounded automatic ancestry; synthetic acceptance preserves origin. Exact trigger causes and persisted dispatch admission remain required.
-- [[records/specs/condition-transitions]] — Reviewed inert numeric transition preview and remaining committed-business-event/cursor/causality integration; no execution or authority from supplied observations.
+- [[records/specs/condition-transitions]] — Retired November 25, 2026: Reviewed inert numeric transition preview and remaining committed-business-event/cursor/causality integration; no execution or authority from supplied observations.
 - [[records/specs/automation-definitions]] — Inert exact-bound calendar automation definitions over shared immutable versions, typed evidence lineage and capture. Activation and dispatch remain separate.

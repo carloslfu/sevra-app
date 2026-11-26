@@ -3,7 +3,7 @@ type: operational
 meta-type: conclusion
 id: 01m5rbxzcsjnewm0pwmb9a06cj
 created: 2026-10-25T01:48:47.385772+00:00
-updated: 2026-11-25T03:08:08.668040+00:00
+updated: 2026-11-26T03:41:49.569832+00:00
 summary: Automatic local-model Excel conversion qualified across 10 generated apps and 89 independent originals, including five held-out states; no manual generated-code repairs.
 title: Implementation and acceptance
 ---
@@ -7805,3 +7805,8 @@ The native engine moved from Splash 1.7.1 to 1.7.2 at the owner's word ([[source
 
 ## Splash 1.7.3, November 25
 The native engine moved from Splash 1.7.2 to 1.7.3 at the owner's word ([[sources/notes/2026/11/splash-1-7-3-upgrade-approval]]), for its one-lane start fix on M5 GPUs of 8 to 14 cores. Protocol 16; Sevra sends no images, so only the version moved, and every reference fixture regenerated from 1.7.3 equals Sevra's apart from the recorded commit. 1.7.3 plans 15 tokens short of 64K at the 8 GiB memory floor, so the floor is now 8 GiB and 64 MiB. Model-free checks pass; the header tests pass 7 of 8 (`sameAnswers`, citation order) and the light set 10 of 11 (the floor start, since fixed), one run each. [[records/specs/splash-integration]] holds the details and the limits.
+
+
+## Chat-spreadsheet cleanup, November 25, 2026
+
+Stock movements, balances, receiving, stock threshold automations and the supplier-quote guard were removed, and saved-tool actions (`tools.run`) and check-triggered automations (`check-drafts-v1`) were added, in commits `c80143d`, `08d56be` and `f2cae08` (workbook formats 34 to 36). The chat tools lost `stock.move`, `stock.balance`, `template.receiving`, `template.rule`, `rule_guide` and `receiving_guide`; `action.preview` and `action.prepare` now run saved tools. No-model checks pass; the light model run was not done because the installed app held the model. Details, verification and limits: [[records/reviews/chat-spreadsheet-cleanup-2026-11-25]].

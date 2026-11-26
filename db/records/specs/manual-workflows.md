@@ -9,6 +9,8 @@ status: reviewed
 ---
 # Manual durable workflows
 
+**November 25, 2026:** stock movements, balances, receiving and stock threshold conditions were removed, and saved-tool actions and check-triggered automations were added. Sections below that describe the removed parts are history. See [[records/reviews/chat-spreadsheet-cleanup-2026-11-25]].
+
 This elaborates E3 in [[records/specs/native-app-engine]] and reuses
 [[records/specs/application-definitions]] and [[records/specs/persistence-readiness]].
 It is an implementation contract. Full E3 and EJ06-EJ08 remain open.

@@ -9,6 +9,8 @@ status: implemented
 ---
 # Durable automatic-run origins and admission
 
+**November 25, 2026:** stock movements, balances, receiving and stock threshold conditions were removed, and saved-tool actions and check-triggered automations were added. Sections below that describe the removed parts are history. See [[records/reviews/chat-spreadsheet-cleanup-2026-11-25]].
+
 This reviewed E4 foundation follows [[records/specs/automatic-ancestry]]. It retains automatic run origins and bounded inherited admissions through the existing captured workbook ledger. It does not itself select the business causes of an inventory transition or enable condition dispatch. Calendar execution keeps its existing live device/session fences and separate business review.
 
 ## Meaning and useful behavior

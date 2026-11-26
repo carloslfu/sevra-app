@@ -9,6 +9,8 @@ status: reviewed
 ---
 # Business contribution and control provenance
 
+**November 25, 2026:** stock movements, balances, receiving and stock threshold conditions were removed, and saved-tool actions and check-triggered automations were added. Sections below that describe the removed parts are history. See [[records/reviews/chat-spreadsheet-cleanup-2026-11-25]].
+
 This adopted E4 contract extends [[records/specs/condition-transition-inputs]], [[records/specs/automatic-ancestry]] and [[records/specs/automation-causality]]. The schema26 checkpoint retains exact changed versions, events and activation times. Schema27 implements role/seal capture, audited producer classifications and the qualified bounded business-origin inspector below. Exact condition-window origin resolution and schema28 explicit original-input declarations/shared cause identities are qualified below. Schema29 now qualifies persisted shared business-root budgets in the trusted admission primitive. Actual condition selection/binding/current-grant dispatch remains pending. The existing broad lineage graph deliberately includes both data and configuration. Before actual candidate dispatch, the core must distinguish those relationships and prove complete retained input coverage. Do not use actor labels, model guesses or a missing edge as evidence of independent business origin.
 
 ## First-principles distinctions

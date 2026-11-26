@@ -9,6 +9,8 @@ status: reviewed
 ---
 # Shared application definitions and actions
 
+**November 25, 2026:** stock movements, balances, receiving and stock threshold conditions were removed, and saved-tool actions and check-triggered automations were added. Sections below that describe the removed parts are history. See [[records/reviews/chat-spreadsheet-cleanup-2026-11-25]].
+
 This elaborates E2 in [[records/specs/native-app-engine]]. It is an implementation
 contract, not a statement of whole-feature completion. E1 is captured at cd5f854.
 The current schema18 catalog retains scoped core/CLI registered inventory actions and

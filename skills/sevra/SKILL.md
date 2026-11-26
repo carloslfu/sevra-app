@@ -13,10 +13,10 @@ is a user document, not this repository's db.md knowledge store.
 2. Search with `sevra search PATH QUERY`. Read matching version IDs with
    `sevra read PATH ID`. Use `lineage` and paginated `rows` to investigate further.
 3. Cite exact returned IDs. Report partial indexing and inaccessible originals.
-4. Use `calculate` for arithmetic and `balance` for accepted inventory state.
+4. Use `calculate` or sql over tables for arithmetic.
 5. Import files only within the user's request. Include copies by default; `--link`
    is an explicit external dependency. Preserve original files.
-6. Use `add`/`movement` to create proposals. Do not set accepted status or call
+6. Use `add` to create proposals. Do not set accepted status or call
    `accept` unless the user authorized that business interpretation. A forecast's
    meaning remains estimate when accepted. Reuse operation tokens on retries.
 7. `space` or `tool ... save_space` creates a new native space. Read `spaces` before
@@ -51,18 +51,6 @@ are not proof of independence or truth; conservative query populations are not
 minimal causes. Missing/corrupt provenance, unsupported producer metadata, cycles
 or limits refuse the whole inspection. The business inspector bounds 1,024 visited
 items, 4,096 inspected edges, depth 128, 8 MiB and a three-second cancellable snapshot.
-`condition-origins PATH OBSERVATION_ID` resolves an exact complete condition
-change window through the same bounded graph. It validates every member across
-100-entry pages and returns an input-set digest; `condition-inputs` retains the
-detailed event/version/time pages. Baseline, unknown-gap or overflow coverage
-refuses. Large graphs also refuse while numeric state and input pages remain
-available. This establishes historical dependencies.
-`condition-causes PATH OBSERVATION_ID` additionally resolves declared business
-roots and inherited automatic roots, or returns blocked with unresolved reasons.
-An automatic producer accounts for its output's existing inputs; later independent
-observations can add their own root. Roots belong to original atomic input capture
-and are shared across consumers, reused records and effective-time wakeups. These
-are historical identities; budget enforcement and candidate dispatch remain disabled.
 
 `observe PATH OBSERVATION_JSON` captures an explicitly new independent observation.
 Fields are title, optional text/data and a stable retry token. Use it only when the
@@ -125,12 +113,19 @@ The in-app model also uses bounded discovery, inspection and pure evaluation;
 catalog metadata and aggregates are not proof of complete business evidence.
 Technical requests/annotations, definition/invocation and automation/worker-authorization Sources stay out of default
 business search and Recent work. Use the catalog and exact owner inspection for
-technical history. Their text cannot establish original inventory direction.
+technical history.
 
 ## Foreground automation
 
 An automation is saved intent, separate from permission to execute. Its content has
-kind `automation`, empty parameters and payload `{policy:"calendar-drafts-v1",workflow:{mode:"exact",versionID:"UUID"},arguments:{...},schedule:{...}}`.
+kind `automation`, empty parameters and one of two triggers. On a schedule:
+payload `{policy:"calendar-drafts-v1",workflow:{mode:"exact",versionID:"UUID"},arguments:{...},schedule:{...}}`.
+When a saved check finds rows: payload `{policy:"check-drafts-v1",check:{mode:"exact",versionID:"UUID"},workflow,arguments}`,
+or `{policy,check,alert:"one sentence"}` to draft an alert for review instead of a
+workflow. A check is a saved sql tool with no inputs whose last statement is a
+SELECT; a check that writes or takes inputs is refused. It fires when the check goes
+from no rows to some rows, and again only after it has returned none. It runs only
+while the app is open; `automation-run-once` runs the check and then dispatches.
 Inspect `automation-preview PATH EXACT_DEFINITION_ID AFTER_ISO [COUNT] [HORIZON_DAYS]`
 before activation. A native schedule uses policy `native-calendar-v1`, named timeZone,
 hour/minute and recurrence, for example `{kind:"daily"}`. Preview/definition save never
@@ -183,7 +178,7 @@ Inspect and repair the catalog, then explicitly retry the same run. Completed
 preparation/model steps are retained. A completed match keeps its exact selected
 row versions and query definition even after catalog edits, including their
 meaning/scenario and transitive action lineage. It cannot promote an estimate
-into actual stock. This does not provide fuzzy matching or inline human answers.
+into an actual. This does not provide fuzzy matching or inline human answers.
 
 `workflow-start PATH EXACT_DEFINITION_ID ARGUMENTS_JSON TOKEN` saves a queued
 manual run. `workflow-continue PATH RUN_ID [MODEL_DIRECTORY]` explicitly executes at most16 steps
@@ -240,7 +235,7 @@ step binds the exact definition and needs one later `review` step. The input is
 an exact included business-file Source, not a path. Native/CLI Continue prepares
 one draft; inspect its counts and exact mapped values before approved acceptance.
 Existing row meanings stay unchanged; new rows use the declared meaning/scenario.
-This does not create inventory effects. Bounds: 1,000 incoming rows, 10,000 target
+Bounds: 1,000 incoming rows, 10,000 target
 rows, 16 MB target content and 8 MB mapped values. Exceeding a limit refuses the
 whole update. Changed originals/schema/rows need fresh review. Completed steps
 reconstruct inertly. XLSX updates remain unqualified; do not simulate them with
@@ -308,67 +303,46 @@ accept it or prove its inputs describe all real business activity.
 ## Registered actions and recoverable forms
 
 Inspect `action-registry PATH` before authoring an action. Registered version 1
-primitives create local draft inventory movements or documents. They never accept business
-information, execute scripts or perform external effects. `records.draftDocument`
-requires title, body, one exact business evidence item, meaning and scenario.
-Body is bounded new prose up to 16,384 UTF-8 bytes, not an exact original copy.
-Use source-bound composition when original-byte fidelity is required. Native
-forms, CLI and explicit workflow continuation share the same atomic action and
-review path. An actual document cannot promote mapped estimates or another
-scenario. Accepting an estimate preserves its meaning and never changes stock.
-The in-app model can author/queue these workflows and preview document actions;
-direct document-action submission remains closed pending qualification. The
-ordinary draft tool remains a separate prose creation surface.
-`inventory.receiveDelivery`
-requires an explicit delivery identity, effective date, exact evidence item and 1 to
-50 lines. Each line has line, subject and quantity. Line identities must be distinct;
-quantities are positive whole-number Decimal strings measured in discrete items.
-Ask when the receipt/current request does not establish that our stock received the
-items, the relevant date, delivery identity, counts or evidence. Do not invent new
-identities to bypass a duplicate refusal. Physical-unit conversion is unsupported.
+primitives are `records.draftDocument` and `tools.run`. Neither accepts business
+information or performs external effects.
 
-`receiving-template PATH` returns the ordinary action definition. Save it through
-`definition-save`. `form-template PATH TARGET_ID` returns a form referencing a current
-action or workflow live, with its identical parameter signature. Save it through the
-same versioned definition API. A form payload declares exactly one action/workflow
-binding plus presentation fields; it cannot add independent effects. Native layout editing can add the receiving
-starter directly. A component uses type form and definitionBinding with a live logical
-ID or exact version ID. Forms cannot be frozen as result snapshots.
+`tools.run` runs a saved tool: its payload names the tool as
+`{tool:{mode:"live",logicalID}}` or `{tool:{mode:"exact",versionID}}`, and its
+parameters are that tool's declared inputs. It runs through the same recorded,
+undoable path as a view's button, and its receipt carries the undo token. A changed
+tool makes an earlier preview stale. In a workflow, a tool step runs without a
+review step; workflows with a tool step cannot be automated.
+
+`records.draftDocument` requires title, body, one exact business evidence item,
+meaning and scenario. Body is bounded new prose up to 16,384 UTF-8 bytes, not an
+exact original copy. Use source-bound composition when original-byte fidelity is
+required. An actual document cannot promote mapped estimates or another scenario.
+
+`form-template PATH TARGET_ID` returns a form referencing a current action or
+workflow live, with its identical parameter signature. Save it through
+`definition-save`. A form payload declares exactly one action/workflow binding plus
+presentation fields; it cannot add independent effects. A component uses type form
+and definitionBinding with a live logical ID or exact version ID. Forms cannot be
+frozen as result snapshots. A form on a tool action runs the tool, then offers Undo.
 
 In-app authoring uses separate `save_definition` (required custom content) and
 `save_template` (required current-run template receipt, optional title). New saves
 omit expectedDefinitionID; edits supply only that exact inspected version. The
-host derives logical identity; logicalID is not an in-app save argument. The CLI
-uses the ordinary content returned above. In-app `prepare_action(id,arguments)`
-performs the requested draft preparation in one call. Its host journals a fresh
-preview, independently checks every inventory direction against the current request
-and bounded originals, then commits that exact active-run plan atomically. In-app
-`preview_action` only shows an unsaved plan and cannot establish saved proposals.
-Do not present this semantic review as automatic acceptance or a correctness
-guarantee. CLI/skill callers must still establish the direction from evidence.
-
-Example receiving arguments:
-
-```json
-{"delivery":"receipt-001","effective":"2026-10-28","evidence":"EXACT_LOCAL_ITEM_ID","lines":[{"line":"1","subject":"bolts","quantity":"5"}]}
-```
+host derives logical identity; logicalID is not an in-app save argument. In-app
+`preview_action` shows an unsaved plan, and `prepare_action(id,arguments)` runs a
+tool action from it. Document actions are not submitted from chat.
 
 Call `definition-input-issues PATH ID ARGUMENTS_JSON` for bounded field-path errors.
 `action-preview PATH ACTION_OR_FORM_ID ARGUMENTS_JSON` validates and returns a
-read-only plan with exact definitions, normalized inputs, draft movements and a
-fingerprint. Keep that exact JSON for `action-invoke PATH ID ARGUMENTS_JSON
+read-only plan with exact definitions, normalized inputs and a fingerprint. Keep that exact JSON for `action-invoke PATH ID ARGUMENTS_JSON
 PREVIEW_JSON TOKEN`. Invocation is a change and needs the current user's authority.
 Reusing the exact token and arguments returns the original receipt after later edits.
-Changed definitions refuse a stale preview; a new token cannot duplicate a delivery
-line. All lines, invocation Source and receipt commit atomically. Report saved draft
-proposals, never accepted stock or the semantic accuracy of interpreted evidence.
+Changed definitions refuse a stale preview. Report what the action saved or
+changed, never the semantic accuracy of interpreted evidence.
 
 Actions declare primitive {id,version} and explicit argument mappings. A mapping is
 a parameter, a literal with the target unit, or {function:BINDING,arguments:MAPPINGS}
 for a qualified pure Decimal function. Function output units must match the target.
-`inventory.proposeMovement` supports a signed nonzero whole item count, explicit
-occurrence/evidence/date/subject, meaning and optional exact corrected movement.
-Direction, correction identity and review rules are the same as direct movements.
 
 Form drafts are incomplete presentation state, outside business search/history.
 Use `form-draft-new PATH FORM_ID`, then `form-draft-save PATH KEY STATE_JSON
@@ -379,7 +353,7 @@ changed live action/function. A conflict retains both inputs only through explic
 `--keep-both`, with at most eight alternatives. Never forge lastReceipt: it must
 match the saved invocation token, exact form and exact arguments. Submit the saved
 state and exact preview with `form-draft-submit PATH STATE_JSON PREVIEW_JSON`.
-Action forms create draft proposals. Workflow forms create one queued run and return
+Document action forms create draft proposals; tool action forms run the tool. Workflow forms create one queued run and return
 workflowRunID; preview only checks definitions/inputs and does not run steps.
 Deliberately continue that run through workflow-continue. A workflow action step
 cannot target another workflow through a form. Native Start workflow explicitly
@@ -538,8 +512,7 @@ plus explicit `newRowMeaning`, `newRowScenario`, the preview's `expectedRevision
 and `expectedFingerprint`, a retry `token`, and optional pending update `intakeID`.
 It saves a draft, without applying rows. Use the user's requested meaning/scenario;
 matched rows preserve theirs. Append keeps duplicates; replacement removes every
-current row; merge refuses empty/duplicate keys. These are value updates, not
-inventory or financial postings. Do not create this proposal through generic `add`.
+current row; merge refuses empty/duplicate keys. These are value updates. Do not create this proposal through generic `add`.
 When authorized, `accept PATH PROPOSAL_ID TOKEN` applies atomically. `undo PATH
 ACCEPTED_VERSION_ID TOKEN` restores exact prior values, identities and order;
 undoing that returned version redoes the update through compensating history.
@@ -553,27 +526,12 @@ activity. Follow its nextCursor with a cursor argument. Requests and table rows
 are excluded; table changes appear as proposals. A changed draft list invalidates
 old pages, so restart discovery. Read the returned exact version before acting.
 When the user declines a draft, `withdraw PATH ID [TOKEN]` preserves its history
-without applying its proposed effect. For an inventory correction, the prior
-accepted version is restored as the current head and its effect stays unchanged.
+without applying its proposed change.
 `undo PATH WITHDRAWAL_RESULT_ID` restores the declined draft for review; it does
 not accept the draft. Only current drafts can be withdrawn. Inspect a stale-version
 refusal instead of silently targeting a newer version. `open_reviews` and
 `open_space` need an owning live app window to confirm visible navigation; a CLI
 resolution is not proof that anything opened on screen.
-
-For inventory proposals, positive quantities enter our stock and negative quantities
-leave it. The app and `ask` check a proposed direction in a separate local
-model call using only the current request and a bounded original-source excerpt.
-An unclear or conflicting result asks for direction without saving the movement.
-This is a fallible semantic check, not proof; direct CLI tools still require your
-own evidence review. An exact duplicate refusal ends that app/ask attempt, rather
-than allowing an occurrence rename and retry in the same run. A receipt or handover alone does not establish direction; ask when the
-source and current request leave that unclear. To correct a movement, read its
-current version and use `tool PATH propose_movement JSON` with that exact ID as
-`supersedes`, preserving its subject and occurrence. Never invent a different
-occurrence to bypass duplicate detection. The correction remains a draft. Undo of
-an accepted correction restores the prior accepted effect instead of cancelling
-the whole occurrence.
 
 For a requested text-document revision, read the exact version and write the new
 body to a UTF-8 file. Use `edit-document PATH VERSION_ID UTF8_FILE --token TOKEN`.

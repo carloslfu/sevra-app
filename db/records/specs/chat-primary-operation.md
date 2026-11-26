@@ -9,6 +9,8 @@ status: implemented
 ---
 # Chat as the primary operator
 
+**November 25, 2026:** stock movements, balances, receiving and stock threshold conditions were removed, and saved-tool actions and check-triggered automations were added. Sections below that describe the removed parts are history. See [[records/reviews/chat-spreadsheet-cleanup-2026-11-25]].
+
 Owner direction: [[sources/notes/2026/11/chat-primary-operation]]. Implementation and measured checks: [[records/plans/chat-primary-operation]]. The runtime remains [[records/specs/programmable-native-engine]]; local authoring remains [[records/specs/local-model-native-apps]].
 
 ## Interaction contract
