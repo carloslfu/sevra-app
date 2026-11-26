@@ -31,7 +31,7 @@ Commit `f2cae08`, format 36.
 
 No-model checks: all default `sevra-checks` groups (572 passed), `sevra-agent-checks` with field-order, space-action, prompt-header, chat, sql-tool, action-confirmation and saved-action groups, `sevra-automation-ui-checks` (21), `sevra-preview-checks`, the Splash grammar check and the version-asserting scripts. New groups: `--tool-actions` (6) and `--check-automations` (5). The automation editor was reviewed in the UI Catalog in both trigger states, including the empty state with no saved checks.
 
-Not run: a model run of the light chat jobs, because the installed app had its model loaded and a second model would break the one-heavy-process rule; the installed app has not been rebuilt.
+Model run, after the installed app released its model: the light set (11 jobs, Splash 1.7.3, one run each, 156 seconds) passed 11 of 11 on the first run with the cleanup's release CLI. One passing answer was wrong: read.supplier_comparison said Cedar Tools has the lower total at 24, when Oak Supply is 24 and Cedar Tools 27.5. The difference and percentage were right, and the job only checks that Oak Supply is named. The installed app has not been rebuilt.
 
 ## Known limits
 
