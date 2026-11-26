@@ -421,9 +421,6 @@ import SevraProduct
     case "action-registry":
       try require(args.count == 2, "usage", "action-registry WORKBOOK")
       return ActionRegistry.actions()
-    case "receiving-template":
-      try require(args.count == 2, "usage", "receiving-template WORKBOOK")
-      return ActionRegistry.receivingDefinition()
     case "action-preview":
       try require(args.count == 4, "usage", "action-preview WORKBOOK ID ARGUMENTS_JSON")
       return try book.previewApplicationAction(
@@ -694,25 +691,6 @@ import SevraProduct
           arg(2), token: args.count > 3 ? args[3] : identifier(), cancellation: cancellation))
     case "withdraw":
       return try encoded(book.withdrawDraft(arg(2), token: args.count > 3 ? args[3] : identifier()))
-    case "balance": return try book.balance(subject: arg(2), asOf: args.count > 3 ? args[3] : nil)
-    case "opening":
-      try book.setOpeningBalance(
-        subject: arg(2), quantity: arg(3), effective: arg(4), sourceID: arg(5))
-      return .bool(true)
-    case "movement":
-      let a = try Value.parseExact(arg(2))
-      try checkFields(
-        a,
-        text: [
-          "subject", "quantity", "occurrence", "effective", "input", "meaning", "status",
-          "supersedes", "token",
-        ])
-      return try encoded(
-        book.movement(
-          subject: a["subject"].text, quantity: a["quantity"].text,
-          occurrence: a["occurrence"].text, effective: a["effective"].text, input: a["input"].text,
-          meaning: a["meaning"].string ?? "actual", status: a["status"].string ?? "draft",
-          supersedes: a["supersedes"].string, token: a["token"].string ?? identifier()))
     case "lineage": return .array(try book.lineage(arg(2)))
     case "app-install":
       try require(
@@ -886,7 +864,7 @@ import SevraProduct
     "capture-url": 3...3, "link-url": 3...4, "transcribe": 3...3, "archive-members": 3...3,
     "include-members": 4...4, "include": 3...3, "relink": 4...4, "search": 3...4, "read": 3...3,
     "records": 2...3, "rows": 3...4, "add": 3...3, "edit-row": 4...5, "accept": 3...4,
-    "undo": 3...4, "withdraw": 3...4, "balance": 3...4, "opening": 6...6, "movement": 3...3,
+    "undo": 3...4, "withdraw": 3...4,
     "lineage": 3...3, "spaces": 2...2, "space-history": 3...4, "space-edit": 5...6,
     "space-restore": 5...6, "space": 4...4, "conversation": 2...3, "history": 2...4,
     "history-search": 4...5, "history-read": 4...4, "unresolved-calls": 2...3,
@@ -924,8 +902,7 @@ import SevraProduct
     file-reference-region WORKBOOK VERSION_ID JSON | annotate-file-references WORKBOOK VERSION_ID JSON
     index-references WORKBOOK VERSION_ID | index-reference-bodies WORKBOOK [OPTIONS_JSON] | rebuild-references WORKBOOK
     accept WORKBOOK ID [TOKEN] | withdraw WORKBOOK ID [TOKEN] | undo WORKBOOK ID [TOKEN] | lineage WORKBOOK ID
-    opening WORKBOOK SUBJECT QUANTITY ISO_DATE SOURCE_ID | movement WORKBOOK JSON
-    balance WORKBOOK SUBJECT [AS_OF] | calculate EXPRESSION [VALUES_JSON]
+    calculate EXPRESSION [VALUES_JSON]
     schedule-preview SCHEDULE_JSON_OR_@FILE AFTER_ISO [COUNT] [HORIZON_DAYS]
     automation-preview WORKBOOK EXACT_DEFINITION_ID AFTER_ISO [COUNT] [HORIZON_DAYS]
     automation-activation WORKBOOK ACTIVATION_ID
@@ -971,7 +948,6 @@ import SevraProduct
     form-draft-save WORKBOOK DRAFT_KEY STATE_JSON EXPECTED_JSON [--keep-both]
     form-draft-preview WORKBOOK STATE_JSON
     action-registry WORKBOOK
-    receiving-template WORKBOOK
     action-preview WORKBOOK ACTION_OR_FORM_ID ARGUMENTS_JSON
     action-invoke WORKBOOK ACTION_OR_FORM_ID ARGUMENTS_JSON PREVIEW_JSON TOKEN
     definition-save WORKBOOK LOGICAL_ID CONTENT_JSON BASE_ID_OR_NEW TOKEN [INPUTS_JSON]

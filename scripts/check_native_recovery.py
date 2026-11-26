@@ -85,7 +85,7 @@ def main():
             invoke("demo", book)
             original_items = invoke("records", book)
             original_spaces = invoke("spaces", book)
-            prompt = "What is the current stock of brass bolts? Use the balance tool and cite the evidence. Do not change the workbook."
+            prompt = "What is the Cedar Tools total in the supplier comparison? Cite the evidence. Do not change the workbook."
             process = subprocess.Popen([str(cli), "ask", str(book), prompt, str(models)],
                                        stdout=subprocess.PIPE, stderr=subprocess.PIPE, bufsize=0)
             deadline = time.monotonic() + 120

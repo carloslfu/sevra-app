@@ -44,7 +44,7 @@ private actor CopyDraftModel: WorkbookInference {
           choices: []))
       args = .object([
         "document": .object([
-          "title": .string("Receiving memo"), "inputs": .array([.string(source.id)]),
+          "title": .string("Quote memo"), "inputs": .array([.string(source.id)]),
           paraphrase ? "text" : "parts": paraphrase
             ? .string("The batch needs another inspection.")
             : .array([

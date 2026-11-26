@@ -183,12 +183,12 @@ func checkDerivationRoles(at root: URL) {
   }
   check("derivation metadata and named roles reconstruct inertly without changing data meaning") {
     let (book, source) = try businessFixture(root, "RoleRebuild")
-    let movement = try book.movement(
-      subject: "parts", quantity: "-2", occurrence: "delivery", effective: "2026-01-02",
-      input: source.id, status: "accepted")
+    let record = try book.addItem(
+      category: "record", kind: "analysis", title: "Delivery", status: "accepted",
+      inputs: [source.id])
     let copy = try book.reconstruct(to: root.appendingPathComponent("RoleReconstructed.sevra"))
-    try expect(try derivationRow(copy, movement.id) == derivationRow(book, movement.id))
-    try expect(try copy.lineage(movement.id) == book.lineage(movement.id))
+    try expect(try derivationRow(copy, record.id) == derivationRow(book, record.id))
+    try expect(try copy.lineage(record.id) == book.lineage(record.id))
     _ = try copy.verify()
   }
   check("a rejected publication rolls back item, input roles and seal before retry") {
@@ -271,13 +271,12 @@ func checkDerivationRoles(at root: URL) {
         try book.db.scalar("SELECT count(*) FROM lineage WHERE child=? AND roles<>2", [row["id"]!])
           .int == 0)
     }
-    let movement = try book.item(data["acceptedID"].text)
-    let correction = try book.movement(
-      subject: "parts", quantity: "6", occurrence: movement.data["occurrence"].text,
-      effective: movement.data["effective"].text, input: data["sourceID"].text,
-      supersedes: movement.id)
+    let accepted = try book.item(data["acceptedID"].text)
+    let correction = try book.addItem(
+      category: "record", kind: accepted.kind, title: accepted.title, text: "Corrected summary.",
+      inputs: [data["sourceID"].text], supersedes: accepted.id)
     try expectInputRole(
-      book, child: correction.id, parent: movement.id, roles: 8, relation: "supersedes")
+      book, child: correction.id, parent: accepted.id, roles: 8, relation: "supersedes")
     _ = try book.verify()
   }
 }

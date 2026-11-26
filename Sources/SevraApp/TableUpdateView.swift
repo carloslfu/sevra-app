@@ -226,7 +226,7 @@ struct TableUpdateView: View {
         }
         TextField("New row scenario, for example actual or forecast", text: $form.scenario)
         Text(
-          "Matching rows keep their current meaning and scenario. Updating values does not post inventory or financial transactions."
+          "Matching rows keep their current meaning and scenario. Updating values changes only this table."
         )
         .readingFont(.caption).foregroundStyle(.secondary)
       } else if state.datasets.isEmpty {

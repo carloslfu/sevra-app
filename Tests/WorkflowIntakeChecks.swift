@@ -14,8 +14,6 @@ func checkWorkflowIntakes(at root: URL) {
     let book = try Workbook.create(
       at: root.appendingPathComponent("WorkflowIntake-" + name + ".sevra"), title: name)
     let basis = try book.addItem(category: "source", kind: "observation", title: "Starting values")
-    try book.setOpeningBalance(
-      subject: "stock", quantity: "20", effective: "2026-01-01", sourceID: basis.id)
     let table = try book.createDataset(
       title: "Parts",
       columns: [
@@ -135,7 +133,6 @@ func checkWorkflowIntakes(at root: URL) {
       })
     let done = try book.advanceWorkflow(session, owner: "review")
     try expect(done["state"] == .string("completed"))
-    try expect(try book.balance(subject: "stock")["quantity"] == .string("20"))
     try expect(try book.workflowAcceptedVersion(draft, accepted))
     let copy = try book.reconstruct(to: root.appendingPathComponent("WorkflowIntake-Done.sevra"))
     try expect(

@@ -77,7 +77,7 @@ enum ChangeFormat {
   // Every ordinary canonical table must be classified. Schema changes fail
   // opening until the new durable family has a declared capture policy.
   static let tables: Set<String> = [
-    "meta", "assets", "items", "heads", "lineage", "chunks", "extraction", "effects", "bases",
+    "meta", "assets", "items", "heads", "lineage", "chunks", "extraction",
     "datasets", "dataset_rows", "table_changes", "column_versions", "operations", "agent_runs",
     "conversations", "messages", "spaces", "space_versions",
     "context_checkpoints", "checkpoint_inputs", "run_requests", "message_payloads", "tool_calls",

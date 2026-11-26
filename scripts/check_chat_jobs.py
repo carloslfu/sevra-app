@@ -310,20 +310,6 @@ class Job:
         self.group = identifier.split('.')[0]
 
 
-def stock_setup(book):
-    balance = book.run('balance', 'brass bolts', '2099-12-31')
-    return {'citations': [balance['basis']] + [e['item_id'] for e in balance['effects']]}
-
-
-def stock_check(run):
-    problems = complete(run) + unchanged(run)
-    if not has(run['answer'], 18):
-        problems.append('the answer does not give 18')
-    if not set(run['context']['citations']) <= set(run['citations']):
-        problems.append('the opening balance and the movement are not both cited')
-    return problems
-
-
 def comparison_check(run):
     problems = complete(run) + unchanged(run)
     problems += ['the answer does not name ' + n for n in names(run['answer'], 'Oak')]
@@ -895,8 +881,6 @@ def answer(text, citations=()):
 
 
 JOBS = [
-    Job('read.stock', 'The answer gives 18 (opening 20, movement -2) and cites the opening balance and the movement. Nothing is saved.',
-        'How many brass bolts do we have?', stock_check, stock_setup, answer('We have 18 brass bolts.')),
     Job('read.supplier_comparison', 'The answer names Oak Supply, the difference 3.50 (24 against 27.5) and 12.73 percent, and cites at least one row. Nothing is saved.',
         'In the Supplier comparison table, which supplier has the lower total, by how much, and what percentage lower is it than the other supplier\'s total?',
         comparison_check, lambda book: {'citations': [book.rows(book.table(SUPPLIERS)['id'])[0]['id']]},
@@ -1253,12 +1237,12 @@ def self_test(selected, languages):
 
 
 def timed_turns(count, folder, redact, minimum):
-    """A cold first turn, a warm greeting and the warm stock question, each the median of
+    """A cold first turn, a warm greeting and a warm table question, each the median of
     `count` runs. One model process per run, through the follow-up trace in the agent checks."""
     checks = Path(os.environ.get('SEVRA_AGENT_CHECKS', ROOT / '.build/debug/sevra-agent-checks'))
     models = MODEL_DIRECTORY or str(Path.home() / 'Library/Application Support/Sevra/Models')
-    prompts = ['hello', 'hey', 'How many brass bolts do we have?']
-    names_ = ['coldFirstTurn', 'warmGreeting', 'warmStockQuestion']
+    prompts = ['hello', 'hey', 'Which supplier is cheaper?']
+    names_ = ['coldFirstTurn', 'warmGreeting', 'warmTableQuestion']
     runs = []
     for index in range(count):
         admit(minimum)
@@ -1289,8 +1273,8 @@ def timed_turns(count, folder, redact, minimum):
             'medianWallSeconds': statistics.median(r[position]['wallSeconds'] for r in runs),
             'wallSeconds': [r[position]['wallSeconds'] for r in runs],
             'steps': [r[position]['steps'] for r in runs]}
-    if not all(has(r[2]['answer'], 18) for r in runs):
-        summary['warmStockQuestion']['note'] = 'not every run answered 18'
+    if not all('Oak' in r[2]['answer'] for r in runs):
+        summary['warmTableQuestion']['note'] = 'not every run named Oak Supply'
     return {'method': 'sevra-agent-checks --conversation-followup-trace: a new model process and a fresh demo '
                       'workbook per run, the three prompts as one conversation with the visible Home context, '
                       '15 seconds apart. The cold turn includes starting the engine helper. Weights were already '

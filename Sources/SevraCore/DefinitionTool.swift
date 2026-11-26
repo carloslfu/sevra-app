@@ -208,7 +208,7 @@ extension Workbook {
     let saved = try synchronized(cancellation: cancellation) { () throws -> ApplicationDefinition in
       if source == nil {
         let rehearsal = try SQLScratch(
-          tables: datasets(), ledger: hasStockLedger(), readOnly: false, draft: false,
+          tables: datasets(), readOnly: false, draft: false,
           inputs: Dictionary(uniqueKeysWithValues: inputs.map { ($0.name, Value.null) }),
           cancellation: cancellation)
         defer { rehearsal.close() }

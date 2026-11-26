@@ -571,21 +571,21 @@ func checkRunningCompaction() async throws {
   let progress = try ContextMaintenance.withProgress(
     retained,
     state: .object([
-      "savedSpaces": .array([.object(["savedTitle": .string("Receiving review")])]),
+      "savedSpaces": .array([.object(["savedTitle": .string("Quote review")])]),
       "calls": state["calls"],
     ]))
   try expectEqual(progress.count, 2)
   try expectEqual(progress[1].toolCallId, "call")
   try expectEqual(
     try Value.parse(progress[1].content)["hostProgress"].text,
-    "Already finished, do not repeat: saved space Receiving review. 1 read so far. Read again only what you must cite. Continue with what remains."
+    "Already finished, do not repeat: saved space Quote review. 1 read so far. Read again only what you must cite. Continue with what remains."
   )
   try expectEqual(
     try ContextMaintenance.withProgress(retained, state: .object([:]))[1].content, #"{"chunks":[]}"#
   )
   // What a stopped request saved is finished too, once this request has read that request.
   let stoppedSaves: [Value] = [
-    .object(["tool": .string("save_space"), "title": .string("Receiving review")]),
+    .object(["tool": .string("save_space"), "title": .string("Quote review")]),
     .object(["tool": .string("restore_space"), "title": .null]),
   ]
   try expectEqual(
@@ -597,7 +597,7 @@ func checkRunningCompaction() async throws {
             "saved": .array(stoppedSaves), "readByThisRequest": .bool(true),
           ])
         ]))[1].content)["hostProgress"].text,
-    "Already finished, do not repeat: saved Receiving review, completed restore_space. Continue with what remains."
+    "Already finished, do not repeat: saved Quote review, completed restore_space. Continue with what remains."
   )
   // An unrelated request is not told what not to repeat, and reads alone forbid nothing.
   try expectEqual(

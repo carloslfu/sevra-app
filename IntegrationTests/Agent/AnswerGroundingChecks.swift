@@ -228,27 +228,6 @@ func checkAttachedCalculationInputs() async throws {
   let saved = try expectValue(book.messages().last { $0.role == "assistant" })
   try expectEqual(try book.messagePayload(saved.id)["calculationInputs"]["attached"].int, 1)
 
-  let count = try book.addItem(
-    category: "source", kind: "note", title: "Count", text: "Opening count: 20 brass bolts.",
-    status: "accepted")
-  try book.setOpeningBalance(
-    subject: "brass bolts", quantity: "20", effective: "2026-01-01T00:00:00Z", sourceID: count.id)
-  for index in 0..<70 {
-    let movement = try book.movement(
-      subject: "brass bolts", quantity: "1", occurrence: "delivery-\(index)",
-      effective: String(format: "2026-02-01T10:%02d:00Z", index % 60), input: count.id)
-    _ = try book.accept(movement.id)
-  }
-  let stocked = ScriptedCalls([
-    call("balance", .object(["subject": .string("brass bolts")])),
-    finish("Stock is 90 brass bolts.", basis: "evidence"),
-  ])
-  let stock = try await WorkbookAgent.run(
-    "What is the brass bolt stock?", workbook: book, model: stocked)
-  try expectEqual(stock.state, "complete")
-  try expectEqual(stock.citations.count, 71)
-  try expectEqual(stock.answer.contains("[71 calculation inputs](sevra://item/\(count.id))"), true)
-
   // A small receipt stays citable by name, and what the model does cite is not repeated.
   let short = try table("Short quotes", rows: 3)
   let rows = try book.rows(short.id).map(\.id)

@@ -423,7 +423,7 @@ public final class Workbook: @unchecked Sendable {
       !Item.hostOwnedKinds.contains(kind)
         || (category == "source" && ["request", "annotation"].contains(kind)),
       "proposal_tool",
-      "Sevra writes this kind itself. Use sql for table rows, propose_movement for stock or publish_result for a result, or name a domain kind such as forecast or analysis."
+      "Sevra writes this kind itself. Use sql for table rows or publish_result for a result, or name a domain kind such as forecast or analysis."
     )
     // The table's own check would refuse it too, but in words a model cannot act on.
     try require(

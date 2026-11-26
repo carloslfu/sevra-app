@@ -12,7 +12,7 @@ enum WorkflowDocumentDurability {
       "run": try book.workflowRun(runID), "counts": try book.counts(),
       "documents": .array(
         try book.items().filter { $0.kind == "document" }.map { try encoded($0) }),
-      "reportHits": .number(Double(try book.search("ReceivingSummary").hits.count)),
+      "reportHits": .number(Double(try book.search("QuoteSummary").hits.count)),
       "events": try book.workflowEvents(limit: 50), "integrity": try book.verify(),
     ])
   }
@@ -66,8 +66,8 @@ enum WorkflowDocumentDurability {
       let run = try book.startWorkflow(
         workflow.id,
         arguments: .object([
-          "title": .string("Receiving report"),
-          "body": .string("ReceivingSummary: five bolts reported."),
+          "title": .string("Quote report"),
+          "body": .string("QuoteSummary: five bolts reported."),
           "evidence": .string(source.id), "meaning": .string("estimate"),
           "scenario": .string("actual"),
         ]), token: "start")

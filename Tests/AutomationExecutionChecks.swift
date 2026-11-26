@@ -185,45 +185,32 @@ func checkAutomationExecution(at root: URL) {
     try expect(dispatched["runID"].text != runID && book.workflowRuns().count == 2)
     _ = try book.verify()
   }
-  check("scheduled business actions wait for exact review and retain domain occurrence identities")
-  {
+  check("scheduled actions wait for exact review before they complete") {
     let book = try Workbook.create(
-      at: root.appendingPathComponent("Execute-review.sevra"), title: "Scheduled receiving")
+      at: root.appendingPathComponent("Execute-review.sevra"), title: "Scheduled note")
     let source = try book.addItem(
-      category: "source", kind: "observation", title: "Synthetic delivery", status: "accepted")
-    try book.setOpeningBalance(
-      subject: "bolts", quantity: "20", effective: "2026-01-01", sourceID: source.id)
-    let action = try book.saveApplicationDefinition(
-      logicalID: identifier(), content: ActionRegistry.receivingDefinition())
+      category: "source", kind: "observation", title: "Synthetic quote", status: "accepted")
+    let action = try noteAction(book)
     let workflow = try book.saveApplicationDefinition(
       logicalID: identifier(), content: book.workflowTemplate(action.id))
-    let arguments: Value = .object([
-      "delivery": .string("delivery-one"), "effective": .string("2026-10-01"),
-      "evidence": .string(source.id),
-      "lines": .array([
-        .object(["line": .string("one"), "subject": .string("bolts"), "quantity": .string("5")])
-      ]),
-    ])
+    let arguments = noteArguments(source.id, title: "Morning note")
     let definition = try executionAutomation(book, workflow: workflow, arguments: arguments)
     let session = try book.authorizeAutomationExecution(
       definition.id, expectedGeneration: 0, after: start, token: "authorize")
     let id = try dispatch(book, session)["runID"].text
     let worker = try book.authorizeAutomationWorkflowExecution(session, runID: id)
     let waiting = try book.continueWorkflow(worker, owner: "scheduled")
-    try expect(
-      waiting["state"].text == "waiting_review"
-        && book.balance(subject: "bolts")["quantity"].text == "20")
+    try expect(waiting["state"].text == "waiting_review")
     let blocked = try book.dispatchAutomationOccurrence(
       session, observedAt: due, token: "blocked-review")
     try expect(blocked["status"].text == "active" && blocked["run"]["id"].text == id)
     let proposals = waiting["steps"].array[0]["output"]["value"]["proposals"].array
-    try expect(proposals.count == 1)
+    try expect(proposals.count == 1 && book.item(proposals[0].text).status == "draft")
     _ = try book.accept(proposals[0].text, actor: .human("synthetic exact review"))
     let completed = try book.continueWorkflow(worker, owner: "reviewed")
     try expect(
       completed["state"].text == "completed"
-        && book.balance(subject: "bolts")["quantity"].text == "25")
-    try expect(try book.balance(subject: "bolts")["effects"].array.count == 1)
+        && book.item(try book.item(proposals[0].text).logicalID).status == "accepted")
     _ = try book.verify()
   }
   check(

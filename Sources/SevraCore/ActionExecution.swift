@@ -61,7 +61,7 @@ extension Workbook {
       let source = try self.item(requestSourceID)
       try require(
         source.id == requestSourceID && source.category == "source" && source.kind == "request",
-        "movement_request", "Use the captured current request Source.")
+        "action_request", "Use the captured current request Source.")
     }
     let definitionInputs = plan["resolvedDefinitions"].array.map { $0["sourceID"].text }
     let invocation = try self.insertItem(
@@ -82,13 +82,6 @@ extension Workbook {
       controlInputs: definitionInputs + controlInputs,
       producerInputs: producerInputs)
     var proposals: [Value] = []
-    for raw in plan["movements"].array {
-      try cancellation.check()
-      var movement = raw.object
-      if let requestSourceID { movement["requestSourceID"] = .string(requestSourceID) }
-      let proposal = try self.insertMovement(.object(movement), producerInputs: [invocation])
-      proposals.append(.string(proposal))
-    }
     for document in plan["documents"].array {
       try cancellation.check()
       let proposal = try self.insertItem(
@@ -107,7 +100,7 @@ extension Workbook {
     return .object([
       "workbookID": .string(self.id), "definitionID": plan["definitionID"],
       "sourceID": .string(invocation), "proposals": .array(proposals),
-      "state": .string("draft"), "acceptedBalanceChanged": .bool(false),
+      "state": .string("draft"),
       "resolvedDefinitions": plan["resolvedDefinitions"], "fingerprint": plan["fingerprint"],
     ])
   }
@@ -139,19 +132,8 @@ extension Workbook {
     let mapped = try validateActionMapping(
       primitive, caller: actionDescriptor, state: state,
       arguments: supplied, depth: root.kind == "form" ? 1 : 0)
-    let documents =
-      try primitive.primitiveID == ActionRegistry.documentID ? proposedDocuments(mapped) : []
-    let movements =
-      try primitive.primitiveID == ActionRegistry.documentID
-      ? []
-      : primitive.primitiveID == ActionRegistry.receivingID
-        ? receivingMovements(mapped) : proposedMovements(mapped)
-    for movement in movements {
-      try cancellation.check()
-      try validateMovement(movement)
-    }
-    let meanings = Set(movements.map { $0["meaning"].text }).sorted().joined(separator: ", ")
-    let proposalLabel = movements.count == 1 ? "proposal" : "proposals"
+    try cancellation.check()
+    let documents = try proposedDocuments(mapped)
     var plan: [String: Value] = [
       "workbookID": .string(self.id), "requestedID": .string(id), "definitionID": .string(root.id),
       "actionID": .string(action.id), "title": .string(root.title), "arguments": .object(supplied),
@@ -167,13 +149,11 @@ extension Workbook {
             "sourceID": .string($0.sourceID),
           ])
         }),
-      "movements": .array(movements), "documents": .array(documents), "readOnly": .bool(true),
+      "documents": .array(documents), "readOnly": .bool(true),
       "effect": .string(
-        documents.isEmpty
-          ? "Save \(movements.count) draft inventory \(proposalLabel) (\(meanings)). No accepted balance changes in this step. Review drafts separately."
-          : "Save one draft document (\(documents[0]["meaning"].text), scenario \(documents[0]["scenario"].text)). New prose with evidence lineage; verify its claims separately. No acceptance or stock change."
+        "Save one draft document (\(documents[0]["meaning"].text), scenario \(documents[0]["scenario"].text)). New prose with evidence lineage; verify its claims separately. Nothing is accepted in this step."
       ),
-      "units": .string(documents.isEmpty ? "discrete items" : "new prose"),
+      "units": .string("new prose"),
     ]
     plan["fingerprint"] = .string(ChangeFormat.hash(try Value.object(plan).json()))
     return .object(plan)
@@ -200,75 +180,5 @@ extension Workbook {
         "Actual documents cannot promote estimates or change their evidence scenario.")
     }
     return [.object(arguments)]
-  }
-
-  private func proposedMovements(_ arguments: [String: Value]) throws -> [Value] {
-    let quantity = try Numbers.decimal(arguments["quantity"]!.text)
-    var original = quantity
-    var rounded = Decimal()
-    NSDecimalRound(&rounded, &original, 0, .plain)
-    try require(
-      quantity != 0 && quantity == rounded, "action_input",
-      "A signed item count must be a nonzero whole number.")
-    try require(
-      arguments["subject"]!.text.utf8.count <= 512
-        && arguments["occurrence"]!.text.utf8.count <= 512,
-      "action_input", "Inventory subject and occurrence must be at most 512 bytes.")
-    return [
-      try movementRequest(
-        subject: arguments["subject"]!.text, quantity: Numbers.string(quantity),
-        occurrence: arguments["occurrence"]!.text, effective: arguments["effective"]!.text,
-        input: arguments["evidence"]!.text, meaning: arguments["meaning"]!.text,
-        supersedes: arguments["supersedes"]?.string)
-    ]
-  }
-
-  private func receivingMovements(_ arguments: [String: Value]) throws -> [Value] {
-    let delivery = arguments["delivery"]!.text.precomposedStringWithCanonicalMapping
-    try require(
-      !delivery.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
-        && delivery.utf8.count <= 512,
-      "action_input", "Enter a delivery identity of at most 512 bytes from your business evidence.")
-    let evidence = arguments["evidence"]!.text
-    let effective = arguments["effective"]!.text
-    var lines = Set<String>()
-    var movements: [Value] = []
-    for row in arguments["lines"]!.array {
-      let line = row["line"].text.precomposedStringWithCanonicalMapping
-      let subject = row["subject"].text.precomposedStringWithCanonicalMapping
-      let quantity = try Numbers.decimal(row["quantity"].text)
-      var original = quantity
-      var rounded = Decimal()
-      NSDecimalRound(&rounded, &original, 0, .plain)
-      try require(
-        quantity > 0 && quantity == rounded, "action_input",
-        "A received item count must be a positive whole number.")
-      try require(
-        !line.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty && line.utf8.count <= 256
-          && lines.insert(line).inserted,
-        "action_input",
-        "Each delivery needs distinct nonempty line identities of at most 256 bytes.")
-      try require(
-        !subject.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
-          && subject.utf8.count <= 512,
-        "action_input", "Enter an inventory subject of at most 512 bytes.")
-      let occurrence =
-        "delivery:" + ChangeFormat.hash(try Value.array([.string(delivery), .string(line)]).json())
-      // A delivery-line identity is unique across subjects. Editing the SKU cannot duplicate a line.
-      let heads = try db.execute(
-        "SELECT DISTINCT h.item_id FROM effects e JOIN items i ON i.id=e.item_id JOIN heads h ON h.logical_id=i.logical_id WHERE e.occurrence=? AND e.kind='inventory'",
-        [.string(occurrence)]
-      ).map { try item($0["item_id"]!.text) }
-      try require(
-        heads.allSatisfy { $0.status == "rejected" }, "duplicate_effect",
-        "This delivery line already has a proposal. Review or correct its existing record.")
-      // A withdrawn line can be received again, as the next version of that same record.
-      movements.append(
-        try movementRequest(
-          subject: subject, quantity: Numbers.string(quantity),
-          occurrence: occurrence, effective: effective, input: evidence,
-          supersedes: heads.first { $0.data["subject"].text == subject }?.id))
-    }
-    return movements
   }
 }

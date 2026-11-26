@@ -12,11 +12,9 @@ func checkPersistence(at root: URL) {
     let original = try book.addItem(
       category: "source", kind: "observation", title: "Opening", text: "20 parts",
       status: "accepted")
-    try book.setOpeningBalance(
-      subject: "parts", quantity: "20", effective: "2026-01-01", sourceID: original.id)
-    let proposed = try book.movement(
-      subject: "parts", quantity: "-2", occurrence: "unique-sale", effective: "2026-01-02",
-      input: original.id)
+    let proposed = try book.addItem(
+      category: "record", kind: "analysis", title: "Sale", text: "Two parts sold",
+      inputs: [original.id])
     let accepted = try book.accept(proposed.id, actor: .human("fixture.review"))
     let undone = try book.undoItem(accepted.id, actor: .human("fixture.review"))
     _ = try book.undoItem(undone.id, actor: .human("fixture.review"))
@@ -109,9 +107,7 @@ func checkPersistence(at root: URL) {
     try FileManager.default.removeItem(at: file)
     let restored = try book.reconstruct(to: root.appendingPathComponent("Reconstructed.sevra"))
     try expect(restored.id == book.id && restored.revision() == book.revision())
-    try expect(
-      try restored.balance(subject: "parts", asOf: "2099-12-31")
-        == book.balance(subject: "parts", asOf: "2099-12-31"))
+    try expect(try restored.item(proposed.logicalID) == book.item(proposed.logicalID))
     try expect(try restored.rows(table.id)[0].data == book.rows(table.id)[0].data)
     try expect(try restored.item(report.id) == book.item(report.id))
     try expect(
@@ -254,11 +250,7 @@ func checkPersistence(at root: URL) {
     }
     try refuses("operation_token") { _ = try book.accept(draft.id, token: "") }
     try refuses("operation_token") { _ = try book.withdrawDraft(draft.id, token: "") }
-    try refuses("operation_token") {
-      _ = try book.movement(
-        subject: "bolts", quantity: "1", occurrence: "one", effective: "2026-01-01",
-        input: source.id, token: "")
-    }
+    try refuses("operation_token") { _ = try book.undoItem(draft.id, token: "") }
     try expect(try book.revision() == revision)
     _ = try book.accept(draft.id, token: "real-token")
     try expect(try book.verify()["ok"] == .bool(true))

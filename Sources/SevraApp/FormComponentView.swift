@@ -92,10 +92,6 @@ private struct NativeFormEditor: View {
               Text(document["title"].text).readingFont(.headline).accessibilityAddTraits(.isHeader)
               Text(document["body"].text).textSelection(.enabled)
             }
-            ForEach(Array(preview["movements"].array.enumerated()), id: \.offset) { _, movement in
-              Text(movement["quantity"].text + " items · " + movement["subject"].text)
-                .textSelection(.enabled)
-            }
             ForEach(Array(preview["steps"].array.enumerated()), id: \.offset) { index, step in
               Text("\(index + 1). " + step["title"].text).readingFont(.callout)
             }

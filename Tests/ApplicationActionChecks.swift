@@ -8,8 +8,8 @@ func checkApplicationActions(at root: URL) {
   }
   func evidence(_ b: Workbook) throws -> Item {
     try b.addItem(
-      category: "source", kind: "observation", title: "Delivery receipt",
-      text: "Received five bolts and two nuts.", status: "accepted")
+      category: "source", kind: "observation", title: "Supplier quote",
+      text: "Oak Supply quoted 2.40 each for ten bolts.", status: "accepted")
   }
   func save(_ b: Workbook, _ value: Value, logical: String = identifier(), base: String? = nil)
     throws -> ApplicationDefinition
@@ -17,7 +17,10 @@ func checkApplicationActions(at root: URL) {
     try b.saveApplicationDefinition(logicalID: logical, content: value, expectedDefinitionID: base)
   }
   func action(_ b: Workbook) throws -> ApplicationDefinition {
-    try save(b, ActionRegistry.receivingDefinition())
+    try save(
+      b,
+      ActionRegistry.documentDefinition(
+        title: "Draft a supplier note", description: "Draft a note from a quote"))
   }
   func form(_ b: Workbook, _ action: ApplicationDefinition, live: Bool = true) throws
     -> ApplicationDefinition
@@ -25,8 +28,8 @@ func checkApplicationActions(at root: URL) {
     try save(
       b,
       .object([
-        "kind": .string("form"), "title": .string("Receive delivery form"),
-        "description": .string("Native receiving"),
+        "kind": .string("form"), "title": .string("Supplier note form"),
+        "description": .string("Native note"),
         "parameters": action.parameters,
         "payload": .object([
           "action": .object([
@@ -37,99 +40,41 @@ func checkApplicationActions(at root: URL) {
         ]),
       ]))
   }
-  func args(_ source: Item, delivery: String = "receipt-001", quantities: [String] = ["5", "2"])
-    -> Value
-  {
+  func args(_ source: Item, title: String = "Oak quote", meaning: String = "actual") -> Value {
     .object([
-      "delivery": .string(delivery), "effective": .string("2026-10-28"),
-      "evidence": .string(source.id),
-      "lines": .array(
-        quantities.enumerated().map { index, quantity in
-          .object([
-            "line": .string("line-\(index + 1)"), "subject": .string(index == 0 ? "bolts" : "nuts"),
-            "quantity": .string(quantity),
-          ])
-        }),
+      "title": .string(title), "body": .string("Oak Supply quotes 2.40 each."),
+      "evidence": .string(source.id), "meaning": .string(meaning), "scenario": .string("actual"),
     ])
   }
-  check("receiving preview is read-only and form/CLI/core share exact draft execution") {
-    let b = try book("Receiving")
+  check("a preview is read-only, its forecast evidence cannot become actual, and form and core share one draft") {
+    let b = try book("Preview")
     let s = try evidence(b)
     let a = try action(b)
     let f = try form(b, a)
-    try b.setOpeningBalance(
-      subject: "bolts", quantity: "20", effective: "2026-01-01", sourceID: s.id)
     let revision = try b.revision()
     let history = try b.committedHistory()
     let input = args(s)
     let preview = try b.previewApplicationAction(f.logicalID, arguments: input)
     try expect(
-      preview["movements"].array.count == 2 && preview["resolvedDefinitions"].array.count == 2)
+      preview["documents"].array.count == 1 && preview["resolvedDefinitions"].array.count == 2)
     try expect(try b.revision() == revision && b.committedHistory() == history)
     let result = try b.invokeApplicationAction(
-      f.logicalID, arguments: input, preview: preview, token: "receive", actor: .human("test-form"))
-    try expect(result["state"] == .string("draft") && result["proposals"].array.count == 2)
-    try expect(try b.balance(subject: "bolts")["quantity"] == .string("20"))
+      f.logicalID, arguments: input, preview: preview, token: "note", actor: .human("test-form"))
+    try expect(result["state"] == .string("draft") && result["proposals"].array.count == 1)
     let saved = try b.item(result["proposals"].array[0].text)
-    try expect(saved.status == "draft" && saved.meaning == "actual")
-    try expect(try b.lineage(saved.id).contains { $0["parent"] == result["sourceID"] })
+    try expect(saved.status == "draft" && saved.kind == "document" && saved.meaning == "actual")
     let invocation = try b.item(result["sourceID"].text)
     try expect(invocation.data["actor"]["kind"] == .string("human"))
-    try expectInputRole(b, child: saved.id, parent: invocation.id, roles: 4)
-    try expectInputRole(b, child: saved.id, parent: s.id, roles: 1)
-    try expectInputRole(b, child: invocation.id, parent: s.id, roles: 1)
-    for definition in [a, f] {
-      try expectInputRole(b, child: invocation.id, parent: definition.sourceID, roles: 2)
-    }
-    _ = try b.accept(saved.id)
-    try expect(try b.balance(subject: "bolts")["quantity"] == .string("25"))
-    _ = try b.verify()
-  }
-  check("a withdrawn delivery line can be received again, and forecast evidence never can") {
-    let b = try book("ReceiveAgain")
-    let s = try evidence(b)
-    let a = try action(b)
-    try b.setOpeningBalance(
-      subject: "bolts", quantity: "20", effective: "2026-01-01", sourceID: s.id)
-    func receive(_ input: Value) throws -> [String] {
-      let preview = try b.previewApplicationAction(a.logicalID, arguments: input)
-      return try b.invokeApplicationAction(
-        a.logicalID, arguments: input, preview: preview, token: identifier()
-      )["proposals"].array.map(\.text)
-    }
-    let first = try receive(args(s, quantities: ["50"]))[0]
-    try refuses("duplicate_effect") { _ = try receive(args(s, quantities: ["5"])) }
-    let withdrawn = try b.withdrawDraft(first)
-    let second = try b.item(try receive(args(s, quantities: ["5"]))[0])
-    try expect(second.logicalID == withdrawn.logicalID && second.supersedes == withdrawn.id)
-    try refuses("duplicate_effect") { _ = try receive(args(s, quantities: ["6"])) }
-    let accepted = try b.accept(second.id)
-    try expect(try b.balance(subject: "bolts")["quantity"] == .string("25"))
-    try refuses("duplicate_effect") { _ = try receive(args(s, quantities: ["6"])) }
-    let undone = try b.undoItem(accepted.id)
-    try expect(undone.status == "rejected" && b.balance(subject: "bolts")["quantity"].text == "20")
-    // Withdrawing a wrong SKU frees the delivery line for the right one.
-    var other = args(s, delivery: "receipt-002", quantities: ["7"]).object
-    let line = try b.withdrawDraft(try receive(.object(other))[0])
-    other["lines"] = .array([
-      .object([
-        "line": .string("line-1"), "subject": .string("washers"), "quantity": .string("7"),
-      ])
-    ])
-    let moved = try b.item(try receive(.object(other))[0])
-    try expect(moved.logicalID != line.logicalID && moved.supersedes == nil)
+    try expect(try b.accept(saved.id).status == "accepted")
     let forecast = try b.addItem(
       category: "record", kind: "forecast", title: "Expected", meaning: "estimate",
       status: "accepted", scenario: "forecast", inputs: [s.id])
     try refuses("interpretation_meaning") {
-      _ = try b.previewApplicationAction(
-        a.logicalID, arguments: args(forecast, delivery: "expected"))
+      _ = try b.previewApplicationAction(a.logicalID, arguments: args(forecast))
     }
     _ = try b.verify()
   }
-  check(
-    "exact receiving retries survive later definitions; new tokens cannot duplicate delivery lines"
-  ) {
+  check("an exact retry survives a later definition and a new token saves a separate draft") {
     let b = try book("Retries")
     let s = try evidence(b)
     let a = try action(b)
@@ -138,27 +83,22 @@ func checkApplicationActions(at root: URL) {
     let result = try b.invokeApplicationAction(
       a.logicalID, arguments: input, preview: preview, token: "once")
     var updated = a.content.object
-    updated["title"] = .string("Receive stock")
+    updated["title"] = .string("Draft a quote note")
     _ = try save(b, .object(updated), logical: a.logicalID, base: a.id)
     let revision = try b.revision()
     try expect(
       try b.invokeApplicationAction(a.logicalID, arguments: input, preview: preview, token: "once")
         == result)
     try expect(try b.revision() == revision)
-    try refuses("duplicate_effect") {
+    try refuses("stale_action_preview") {
       _ = try b.invokeApplicationAction(
         a.logicalID, arguments: input, preview: preview, token: "twice")
     }
-    var changed = input.object
-    var rows = input["lines"].array
-    var first = rows[0].object
-    first["subject"] = .string("different SKU")
-    rows[0] = .object(first)
-    changed["lines"] = .array(rows)
-    try refuses("duplicate_effect") {
-      _ = try b.previewApplicationAction(a.id, arguments: .object(changed))
-    }
     try expect(try b.revision() == revision)
+    let fresh = try b.previewApplicationAction(a.logicalID, arguments: input)
+    let twice = try b.invokeApplicationAction(
+      a.logicalID, arguments: input, preview: fresh, token: "twice")
+    try expect(twice["proposals"] != result["proposals"] && b.revision() > revision)
     _ = try b.verify()
   }
   check("changed live action invalidates preview; pinned action keeps its exact version") {
@@ -188,20 +128,16 @@ func checkApplicationActions(at root: URL) {
     let a = try action(b)
     let f = try form(b, a)
     let revision = try b.revision()
-    for quantities in [["0"], ["-1"], ["1.5"], Array(repeating: "1", count: 51)] {
-      try refuses {
-        _ = try b.previewApplicationAction(f.id, arguments: args(s, quantities: quantities))
-      }
+    for title in ["", " ", String(repeating: "x", count: 2049)] {
+      try refuses { _ = try b.previewApplicationAction(f.id, arguments: args(s, title: title)) }
     }
     var bad = args(s).object
     bad["execute"] = .string("accept everything")
     try refuses("definition_input") {
       _ = try b.previewApplicationAction(f.id, arguments: .object(bad))
     }
-    var row = args(s)["lines"].array[0].object
-    row["quantity"] = .number(5)
     bad = args(s).object
-    bad["lines"] = .array([.object(row)])
+    bad["title"] = .number(5)
     try refuses("definition_input") {
       _ = try b.previewApplicationAction(f.id, arguments: .object(bad))
     }
@@ -225,7 +161,7 @@ func checkApplicationActions(at root: URL) {
     try refuses("action_primitive") { _ = try save(b, .object(content)) }
     try expect(try b.revision() == revision)
   }
-  check("receiving batch publication fault and cancellation leave no partial proposals") {
+  check("a publication fault and cancellation leave no partial proposals") {
     let b = try book("Fault")
     let s = try evidence(b)
     let a = try action(b)
@@ -252,83 +188,6 @@ func checkApplicationActions(at root: URL) {
     _ = try b.invokeApplicationAction(a.id, arguments: input, preview: preview, token: "fault")
     _ = try b.verify()
   }
-  check("computed action argument uses pure Decimal function with exact version lineage") {
-    let b = try book("Computed")
-    let s = try evidence(b)
-    let parameter: Value = .object([
-      "id": .string("cases"), "label": .string("Cases"), "type": .string("decimal"),
-      "required": .bool(true), "unit": .string("cases"),
-    ])
-    let function = try save(
-      b,
-      .object([
-        "kind": .string("function"), "title": .string("Items per case"),
-        "description": .string("Explicit pack size"), "parameters": .array([parameter]),
-        "payload": .object(["expression": .string("cases*12"), "unit": .string("items")]),
-      ]))
-    let params =
-      ActionRegistry.movementParameters.filter { $0["id"].text != "quantity" } + [parameter]
-    var mappings = Dictionary(
-      uniqueKeysWithValues: params.filter { $0["id"].text != "cases" }.map {
-        ($0["id"].text, Value.object(["parameter": $0["id"]]))
-      })
-    mappings["quantity"] = .object([
-      "function": .object(["mode": .string("live"), "logicalID": .string(function.logicalID)]),
-      "arguments": .object(["cases": .object(["parameter": .string("cases")])]),
-    ])
-    let a = try save(
-      b,
-      .object([
-        "kind": .string("action"), "title": .string("Receive cases"),
-        "description": .string("Propose items"), "parameters": .array(params),
-        "payload": .object([
-          "primitive": .object(["id": .string(ActionRegistry.movementID), "version": .number(1)]),
-          "arguments": .object(mappings),
-        ]),
-      ]))
-    let input: Value = .object([
-      "subject": .string("bolts"), "cases": .string("3"), "occurrence": .string("cases-1"),
-      "effective": .string("2026-10-28"), "evidence": .string(s.id),
-    ])
-    let preview = try b.previewApplicationAction(a.id, arguments: input)
-    try expect(preview["movements"].array[0]["quantity"] == .string("36"))
-    try expect(preview["resolvedDefinitions"].array.contains { $0["id"] == .string(function.id) })
-    try expect(preview["effect"].text.contains("1 draft inventory proposal (actual)"))
-    var estimateInput = input.object
-    estimateInput["meaning"] = .string("estimate")
-    estimateInput["occurrence"] = .string("cases-estimate")
-    let estimate = try b.previewApplicationAction(a.id, arguments: .object(estimateInput))
-    try expect(estimate["movements"].array[0]["meaning"] == .string("estimate"))
-    try expect(estimate["effect"].text.contains("1 draft inventory proposal (estimate)"))
-    try expect(!estimate["effect"].text.contains("actual"))
-    let result = try b.invokeApplicationAction(
-      a.id, arguments: input, preview: preview, token: "cases")
-    try expectInputRole(b, child: result["sourceID"].text, parent: function.sourceID, roles: 2)
-    try expectInputRole(b, child: result["sourceID"].text, parent: s.id, roles: 1)
-    _ = try b.verify()
-  }
-  check("receiving maximum batch is atomic and field diagnostics preserve nested input paths") {
-    let b = try book("Maximum")
-    let s = try evidence(b)
-    let a = try action(b)
-    var input = args(s, quantities: Array(repeating: "1", count: 50)).object
-    let plan = try b.previewApplicationAction(a.id, arguments: .object(input))
-    let result = try b.invokeApplicationAction(
-      a.id, arguments: .object(input), preview: plan, token: "maximum")
-    try expect(result["proposals"].array.count == 50)
-    try expect(try b.items(kind: "movement", limit: 100).count == 50)
-    input["delivery"] = .null
-    var rows = input["lines"]!.array
-    var row = rows[0].object
-    row["quantity"] = .number(1)
-    rows[0] = .object(row)
-    input["lines"] = .array(rows)
-    let issues = try b.applicationInputIssues(a.id, arguments: .object(input))
-    try expect(issues.contains { $0["path"] == .array([.string("delivery")]) })
-    try expect(
-      issues.contains { $0["path"] == .array([.string("lines"), .number(0), .string("quantity")]) })
-    _ = try b.verify()
-  }
   check(
     "form components retain exact definitions, refuse snapshots and preserve incomplete checkpoints"
   ) {
@@ -336,7 +195,7 @@ func checkApplicationActions(at root: URL) {
     let a = try action(b)
     let f = try form(b, a)
     let component = Component(
-      id: "receiving", type: "form", title: "Receive delivery",
+      id: "note", type: "form", title: "Supplier note",
       definitionBinding: .object(["mode": .string("live"), "logicalID": .string(f.logicalID)]))
     let home = try b.space("home")
     _ = try b.editSpace(
@@ -346,12 +205,12 @@ func checkApplicationActions(at root: URL) {
     try refuses("view_limit") { _ = try b.pinSpace("home") }
     let state = try b.newFormDraft(f.id)
     var incomplete = state
-    incomplete.arguments = .object(["delivery": .string("unfinished 日本語")])
+    incomplete.arguments = .object(["title": .string("unfinished 日本語")])
     let revision = try b.revision()
-    let saved = try b.saveFormDraft("Home:receiving", state: incomplete, expected: nil)
-    try expect(try b.revision() == revision && b.formDraft("Home:receiving") == saved)
+    let saved = try b.saveFormDraft("Home:note", state: incomplete, expected: nil)
+    try expect(try b.revision() == revision && b.formDraft("Home:note") == saved)
     let copy = try b.reconstruct(to: root.appendingPathComponent("FormCheckpoint.sevra"))
-    try expect(try copy.formDraft("Home:receiving") == saved && copy.revision() == revision)
+    try expect(try copy.formDraft("Home:note") == saved && copy.revision() == revision)
     _ = try copy.verify()
     // A window whose empty draft gave up its slot in a full workbook just saves again.
     let spare = try b.saveFormDraft("spare", state: state, expected: nil)
@@ -361,7 +220,7 @@ func checkApplicationActions(at root: URL) {
     _ = try b.saveFormDraft("newest", state: state, expected: nil)
     try expect(try b.formDraft("spare") == nil)
     var typed = spare
-    typed.arguments = .object(["delivery": .string("typed later")])
+    typed.arguments = .object(["title": .string("typed later")])
     try expect(try b.saveFormDraft("spare", state: typed, expected: spare) == typed)
   }
   check("action/form history, dependency search and reconstruction remain inert and complete") {
@@ -373,7 +232,7 @@ func checkApplicationActions(at root: URL) {
     let receipt = try b.invokeApplicationAction(
       f.id, arguments: args(s), preview: preview, token: "replay")
     try expect(
-      try b.searchApplicationDefinitions("Delivery", kind: "form")["hits"].array.count == 1)
+      try b.searchApplicationDefinitions("Supplier", kind: "form")["hits"].array.count == 1)
     let revision = try b.revision()
     let restored = try b.reconstruct(to: root.appendingPathComponent("Actions-Reconstructed.sevra"))
     try expect(try restored.revision() == revision)

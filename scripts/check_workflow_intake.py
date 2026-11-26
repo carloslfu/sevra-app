@@ -62,7 +62,6 @@ try:
     initial = call('import', book, base, '--role', 'values', '--token', 'starting')
     dataset = initial['intake']['datasetIDs'][0]
     schema = call('table-schema', book, dataset)
-    call('opening', book, 'stock', '20', '2026-10-01', initial['source']['id'])
     incoming = root / 'Incoming.tsv'
     incoming.write_text('code\tamount\tignore\n0012\t7\tnote\n0013\t5\tnote\n0014\t2\tnote\n')
     source = call('import', book, incoming, '--role', 'reference', '--token', 'incoming')['source']['id']
@@ -143,7 +142,6 @@ try:
     assert [r['data'] for r in rows] == [{'sku': '0012', 'quantity': '7'},
         {'sku': '0013', 'quantity': '5'}, {'sku': '0014', 'quantity': '2'}]
     assert [r['meaning'] for r in rows] == ['actual', 'actual', 'estimate']
-    assert call('balance', book, 'stock')['quantity'] == '20'
     completed = call('workflow-continue', book, run_id, root / 'absent-model')
     if args.model_root:
         assert completed['state'] == 'waiting_review'

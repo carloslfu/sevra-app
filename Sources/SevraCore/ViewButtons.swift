@@ -150,7 +150,7 @@ extension Workbook {
     let shown = Set(
       components.filter { ["table", "chart", "metric"].contains($0.type) }.compactMap(\.datasetID))
     let tools = try savedTools()
-    let tables = SQLScratch.named(try datasets(), ledger: false)
+    let tables = SQLScratch.named(try datasets())
     var missing: [(tool: String, dataset: Dataset, onlyInserts: Bool)] = []
     for button in buttons {
       guard let tool = tools.first(where: { $0.name == button.tool }) else { continue }

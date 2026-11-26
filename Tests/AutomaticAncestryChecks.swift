@@ -2,21 +2,31 @@ import Foundation
 
 @testable import SevraCore
 
+/// A saved action that drafts one document: the general vehicle for action, workflow and
+/// automation checks.
+func noteAction(_ book: Workbook, title: String = "Draft a note") throws -> ApplicationDefinition {
+  try book.saveApplicationDefinition(
+    logicalID: identifier(),
+    content: ActionRegistry.documentDefinition(title: title, description: "Synthetic draft note"))
+}
+func noteArguments(
+  _ evidenceID: String, title: String = "Synthetic note", body: String = "Synthetic summary.",
+  meaning: String = "actual"
+) -> Value {
+  .object([
+    "title": .string(title), "body": .string(body), "evidence": .string(evidenceID),
+    "meaning": .string(meaning), "scenario": .string("actual"),
+  ])
+}
+
 func createAutomaticAncestryFixture(at url: URL) throws -> Value {
   let book = try Workbook.create(at: url, title: "Synthetic automatic ancestry")
   let source = try book.addItem(
-    category: "source", kind: "observation", title: "Synthetic delivery", status: "accepted")
-  let action = try book.saveApplicationDefinition(
-    logicalID: identifier(), content: ActionRegistry.receivingDefinition())
+    category: "source", kind: "observation", title: "Synthetic observation", status: "accepted")
+  let action = try noteAction(book)
   let workflow = try book.saveApplicationDefinition(
     logicalID: identifier(), content: book.workflowTemplate(action.id))
-  let arguments: Value = .object([
-    "delivery": .string("ancestry-delivery"), "effective": .string("2026-10-01"),
-    "evidence": .string(source.id),
-    "lines": .array([
-      .object(["line": .string("one"), "subject": .string("parts"), "quantity": .string("5")])
-    ]),
-  ])
+  let arguments = noteArguments(source.id, title: "Ancestry note")
   let automation = try executionAutomation(book, workflow: workflow, arguments: arguments)
   let session = try book.authorizeAutomationExecution(
     automation.id, expectedGeneration: 0, after: automationDate("2026-10-01T08:00:00Z"),
@@ -54,9 +64,7 @@ func checkAutomaticAncestry(at root: URL) {
   check("automatic ancestry survives the real registered action and human acceptance") {
     let (book, data) = try fixture("Acceptance")
     let proposal = data["proposalID"].text
-    let action = try book.db.scalar(
-      "SELECT parent FROM lineage WHERE child=? AND roles=4", [.string(proposal)]
-    ).text
+    let action = try book.item(proposal).data["invocationSourceID"].text
     try expectInputRole(book, child: proposal, parent: action, roles: 4)
     try expectInputRole(book, child: action, parent: data["invocationID"].text, roles: 4)
     try expectInputRole(book, child: action, parent: data["sourceID"].text, roles: 1)

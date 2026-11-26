@@ -36,7 +36,7 @@ extension Workbook {
     }
   }
 
-  /// The user's words as the host received them. A movement can rest on these alone, so
+  /// The user's words as the host received them. A proposal can rest on these alone, so
   /// they start a business origin. A `request` Source any other writer saves does not.
   package func captureUserRequest(
     _ text: String, data: Value, token: String, cancellation: Cancellation = .init()

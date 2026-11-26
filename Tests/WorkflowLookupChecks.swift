@@ -11,12 +11,10 @@ func checkWorkflowLookups(at root: URL) {
     let evidence = try book.addItem(
       category: "source", kind: "observation", title: "Delivery", text: "Received 2 bolts.",
       status: "accepted")
-    try book.setOpeningBalance(
-      subject: "bolts", quantity: "20", effective: "2026-10-01", sourceID: evidence.id)
     let table = try book.createDataset(
       title: "Catalog",
       columns: [
-        .init(id: "code", title: "Supplier code"), .init(id: "subject", title: "Stock subject"),
+        .init(id: "code", title: "Supplier code"), .init(id: "subject", title: "Product"),
         .init(id: "count", title: "Count", type: "decimal", unit: "items"),
         .init(id: "enabled", title: "Enabled", type: "boolean"),
       ],
@@ -54,21 +52,7 @@ func checkWorkflowLookups(at root: URL) {
           ]),
         ]),
       ]))
-    let action = try book.saveApplicationDefinition(
-      logicalID: identifier(),
-      content: .object([
-        "kind": .string("action"), "title": .string("Receive matched product"),
-        "description": .string("Draft only"),
-        "parameters": .array(ActionRegistry.movementParameters),
-        "payload": .object([
-          "primitive": .object(["id": .string(ActionRegistry.movementID), "version": .number(1)]),
-          "arguments": .object(
-            Dictionary(
-              uniqueKeysWithValues: ActionRegistry.movementParameters.map {
-                ($0["id"].text, .object(["parameter": $0["id"]]))
-              })),
-        ]),
-      ]))
+    let action = try noteAction(book, title: "Note the matched product")
     func field(_ name: String, unit: String? = nil) -> Value {
       var m: [String: Value] = ["step": .string("match"), "field": .string(name)]
       if let unit { m["unit"] = .string(unit) }
@@ -109,14 +93,11 @@ func checkWorkflowLookups(at root: URL) {
         "id": .string("propose"), "kind": .string("action"),
         "binding": .object(["mode": .string("exact"), "versionID": .string(action.id)]),
         "arguments": .object([
-          "subject": field("subject"),
-          "quantity": calculation
-            ? .object(["step": .string("calculate"), "unit": .string("items")])
-            : .object(["literal": .string("2"), "unit": .string("items")]),
-          "occurrence": .object(["literal": .string("delivery-" + name)]),
-          "effective": .object(["literal": .string("2026-10-29")]),
+          "title": field("subject"),
+          "body": .object(["literal": .string("Matched by supplier code.")]),
           "evidence": .object(["parameter": .string("evidence")]),
           "meaning": .object(["literal": .string("actual")]),
+          "scenario": .object(["literal": .string("actual")]),
         ]),
       ]))
     steps.append(
@@ -124,7 +105,7 @@ func checkWorkflowLookups(at root: URL) {
     let workflow = try book.saveApplicationDefinition(
       logicalID: identifier(),
       content: .object([
-        "kind": .string("workflow"), "title": .string("Receive by supplier code"),
+        "kind": .string("workflow"), "title": .string("Note by supplier code"),
         "description": .string("Explicit catalog lookup and review"),
         "parameters": .array([
           ActionRegistry.field("code", "Supplier code", "text"),
@@ -144,7 +125,7 @@ func checkWorkflowLookups(at root: URL) {
     return try book.authorizeWorkflowExecution(run["id"].text)
   }
   check(
-    "workflow lookup selects one exact product, retains lineage and reviews its stock effect once"
+    "workflow lookup selects one exact product, retains lineage and reviews its draft once"
   ) {
     let (book, table, query, workflow, args) = try fixture("Matched")
     let row = try book.rows(table.id)[0]
@@ -159,7 +140,7 @@ func checkWorkflowLookups(at root: URL) {
           id: row.id,
           values: row.data.object.merging(["subject": .string("nuts")]) { _, fresh in fresh })
       ])
-    let waiting = try book.continueWorkflow(session, owner: "receive")
+    let waiting = try book.continueWorkflow(session, owner: "note")
     try expect(waiting["state"] == .string("waiting_review"))
     let action = waiting["steps"].array[1]["output"]["value"]
     let parents = try book.lineage(action["sourceID"].text).map { $0["parent"].text }
@@ -172,14 +153,14 @@ func checkWorkflowLookups(at root: URL) {
     try expectInputRole(
       book, child: action["sourceID"].text,
       parent: book.workflowRun(session.runID)["source_id"].text, roles: 4)
-    try expect(try book.balance(subject: "bolts")["quantity"] == .string("20"))
-    _ = try book.accept(action["proposals"].array[0].text, actor: .human("test-review"))
+    let proposal = try book.item(action["proposals"].array[0].text)
+    try expect(proposal.status == "draft" && proposal.title == "bolts")
+    let accepted = try book.accept(proposal.id, actor: .human("test-review"))
     let done = try book.continueWorkflow(session, owner: "finish")
     try expect(done["state"] == .string("completed"))
-    try expect(try book.balance(subject: "bolts")["quantity"] == .string("22"))
     let copy = try book.reconstruct(to: root.appendingPathComponent("Lookup-MatchedCopy.sevra"))
     try expect(try copy.workflowRun(session.runID) == done)
-    try expect(try copy.balance(subject: "bolts")["quantity"] == .string("22"))
+    try expect(try copy.item(accepted.logicalID) == book.item(accepted.logicalID))
     try expect(try book.verify()["ok"] == .bool(true) && copy.verify()["ok"] == .bool(true))
   }
   check("a retained scheduled run verifies after a table edit, and new authority reads the edit") {
@@ -203,28 +184,6 @@ func checkWorkflowLookups(at root: URL) {
         automation.id, expectedGeneration: 1, after: automationDate("2026-10-02T08:00:00Z"),
         token: "authorize-again", actor: .human("synthetic"))
     }
-  }
-  check("selected catalog values retain data provenance through an intervening scalar function") {
-    let (book, table, query, workflow, args) = try fixture("ScalarRoles", calculation: true)
-    let row = try book.rows(table.id)[0]
-    let session = try start(book, workflow, args)
-    let waiting = try book.continueWorkflow(session, owner: "scalar-roles")
-    try expect(waiting["state"] == .string("waiting_review"))
-    let action = waiting["steps"].array[2]["output"]["value"]
-    let calculation = waiting["steps"].array[1]["output"]["value"]
-    try expectInputRole(book, child: action["sourceID"].text, parent: row.id, roles: 1)
-    try expectInputRole(book, child: action["sourceID"].text, parent: query.sourceID, roles: 2)
-    try expectInputRole(
-      book, child: action["sourceID"].text,
-      parent: book.applicationDefinition(calculation["definitionID"].text).sourceID, roles: 2)
-    let proposal = try book.item(action["proposals"].array[0].text)
-    try expect(proposal.data["quantity"] == .string("2"))
-    try expectInputRole(book, child: proposal.id, parent: action["sourceID"].text, roles: 4)
-    let origins = try book.businessOrigins(inputs: [proposal.id])
-    try expect(origins["items"].array.contains { $0["id"] == .string(row.id) })
-    try expect(!origins["items"].array.contains { $0["id"] == .string(query.sourceID) })
-    try expect(origins["automaticProducers"].array.isEmpty)
-    _ = try book.verify()
   }
   check("lookup checkpoint faults and cancellation preserve history before exact retry") {
     let (book, _, _, workflow, args) = try fixture("Checkpoint")
@@ -267,7 +226,7 @@ func checkWorkflowLookups(at root: URL) {
       try expect(
         failed["state"] == .string("needs_attention") && failed["steps"].array[0]["output"] == .null
       )
-      try expect(try book.items().filter { $0.kind == "movement" }.isEmpty)
+      try expect(try book.items(kind: "document").isEmpty)
       let rows = try book.rows(table.id)
       _ = try book.editRows(
         table.id,
@@ -282,17 +241,16 @@ func checkWorkflowLookups(at root: URL) {
       let waiting = try book.continueWorkflow(session, owner: "repaired")
       try expect(waiting["state"] == .string("waiting_review"))
       try expect(waiting["steps"].array[0]["output"]["value"]["result"]["rows"].array.count == 1)
-      try expect(try book.balance(subject: "bolts")["quantity"] == .string("20"))
       try expect(try book.verify()["ok"] == .bool(true))
     }
   }
   check(
-    "lookup meanings survive calculations and cannot promote estimates or other scenarios into actual stock"
+    "lookup meanings cannot promote estimates or other scenarios into an actual document"
   ) {
     for (name, meaning, scenario) in [
       ("Estimate", "estimate", "actual"), ("Scenario", "actual", "planned"),
     ] {
-      let (book, table, _, workflow, args) = try fixture(name, calculation: true)
+      let (book, table, _, workflow, args) = try fixture(name)
       let old = try book.rows(table.id)[0]
       let row = try book.addHostOwnedItem(
         category: "record", kind: "row", title: old.title, data: old.data,
@@ -300,12 +258,10 @@ func checkWorkflowLookups(at root: URL) {
         supersedes: old.id)
       let session = try start(book, workflow, args)
       _ = try book.advanceWorkflow(session, owner: "lookup")
-      _ = try book.advanceWorkflow(session, owner: "calculate")
       try refuses("interpretation_meaning") {
         _ = try book.advanceWorkflow(session, owner: "action")
       }
-      try expect(try book.items().filter { $0.kind == "movement" }.isEmpty)
-      try expect(try book.balance(subject: "bolts")["quantity"] == .string("20"))
+      try expect(try book.items(kind: "document").isEmpty)
       try expect(
         try book.workflowRun(session.runID)["steps"].array[0]["output"]["value"]["result"]["rows"]
           .array[0]["inputs"].array[0]["versionID"] == .string(row.id))
@@ -374,7 +330,7 @@ func checkWorkflowLookups(at root: URL) {
       var steps = workflow.payload["steps"].array
       var action = steps[1].object
       var args = action["arguments"]!.object
-      args["subject"] = .object(["step": .string("match"), "field": .string(field)])
+      args["title"] = .object(["step": .string("match"), "field": .string(field)])
       action["arguments"] = .object(args)
       steps[1] = .object(action)
       content["payload"] = .object([

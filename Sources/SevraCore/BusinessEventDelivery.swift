@@ -10,16 +10,14 @@ extension Workbook {
     try require((1...50).contains(limit), "business_limit", "Choose 1 to 50 business batches.")
     try require(
       (scopeKind == nil && scopeKey == nil)
-        || (["record", "inventory", "dataset"].contains(scopeKind ?? "") && scopeKey != nil),
+        || (["record", "dataset"].contains(scopeKind ?? "") && scopeKey != nil),
       "business_scope", "Choose both an exact scope kind and key, or neither.")
-    let scopeKey =
-      scopeKind == "inventory" ? scopeKey?.precomposedStringWithCanonicalMapping : scopeKey
     return try readBusinessFeed(cancellation: cancellation) {
       let position = try businessCursor(cursor)
       let tail = try businessTail()
       let candidates: [[String: Value]]
       if scopeKind == "record", let scopeKey {
-        // A movement is scoped to its subject, so a record is found by its identity instead.
+        // A record is found by its identity.
         candidates = try db.execute(
           "SELECT CAST(batch_position AS TEXT) AS position,batch_id AS id FROM business_events WHERE logical_id=? AND family='record-settled' AND batch_position>CAST(? AS INTEGER) GROUP BY batch_position ORDER BY batch_position LIMIT ?",
           [.string(scopeKey), .string(position), .number(Double(limit + 1))],

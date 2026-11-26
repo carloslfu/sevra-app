@@ -77,8 +77,6 @@ extension NativeTools {
   ) throws
     -> [WorkbookToolDefinition]
   {
-    if toolScope == .movementDirection { return [MovementDirectionReview.definition] }
-    if toolScope == .actionDirection { return [ActionDirectionReview.definition] }
     if toolScope == .nativeAppReview { return [NativeAppReview.definition] }
     if toolScope == .nativeActionReview {
       return [NativeAppReview.actionDefinition(reviewContract)]

@@ -275,7 +275,7 @@ package enum NativeTools {
             ),
             "kind": schema(
               "string",
-              "Optional domain kind such as document, note, row, movement. Not actual/estimate."),
+              "Optional domain kind such as document, note or row. Not actual/estimate."),
             "meaning": schema(
               "string", "Optional actual, estimate, plan, commitment, rule or assumption."),
             "status": schema("string", "Optional draft, accepted or rejected."),
@@ -328,7 +328,7 @@ package enum NativeTools {
               "type": .string("string"), "enum": .array([.string("source"), .string("record")]),
             ]),
             "kind": schema(
-              "string", "Optional exact domain kind, such as movement. Omit to include every kind."),
+              "string", "Optional exact domain kind, such as document. Omit to include every kind."),
             "meaning": schema("string", "Optional exact meaning; omit to include every meaning."),
             "status": schema("string", "Optional exact status; omit to include every status."),
             "scenario": schema(
@@ -421,12 +421,6 @@ package enum NativeTools {
               "type": .string("object"), "description": .string("Named decimal string inputs."),
             ]),
           ], required: ["expression"])),
-      .init(
-        name: "balance",
-        description: "Calculate accepted actual stock from an opening basis and unique events.",
-        parameters: object(
-          ["subject": schema("string", "Exact inventory subject, such as brass bolts.")],
-          required: ["subject"])),
       .init(
         name: "spaces", description: "List saved native spaces.",
         parameters: object([:], required: [])),
@@ -540,26 +534,6 @@ package enum NativeTools {
             "inputs": evidenceList, "data": .object(["type": .string("object")]),
           ], required: ["title", "text", "kind", "meaning", "inputs"])),
       .init(
-        name: "propose_movement",
-        description:
-          "Draft direction relative to our stock only from evidence/request. Receipt/delivery/handover alone is ambiguous: ask. Acceptance separate.",
-        parameters: object(
-          [
-            "subject": schema("string", "Inventory subject."),
-            "quantity": schema(
-              "string", "Signed decimal: positive adds to our stock; negative leaves our stock."),
-            "occurrence": schema(
-              "string", "Business occurrence ID; reusing it cannot duplicate its effect."),
-            "effective": schema("string", "ISO 8601 date/time."),
-            "input": schema("string", "Exact supporting evidence item ID."),
-            "meaning": schema(
-              "string", "actual for observed facts; estimate or plan for future scenarios."),
-            "supersedes": schema(
-              "string",
-              "Correction: exact current movement version. Keep subject/occurrence; never bypass duplicates with a new occurrence."
-            ),
-          ], required: ["subject", "quantity", "occurrence", "effective", "input"])),
-      .init(
         name: "finish",
         description:
           "Answer+basis. Cite inspected business/history facts, including host state/summaries. Explain missing evidence and failures.",
@@ -570,7 +544,7 @@ package enum NativeTools {
               "type": .string("array"), "maxItems": .number(4),
               "items": schema(
                 "string",
-                "Requested entry counts: current-run count_records receipts only. Never inventory/calculation/search/history. Host renders scope."
+                "Requested entry counts: current-run count_records receipts only. Never calculation/search/history. Host renders scope."
               ),
             ]),
             "basis": .object([

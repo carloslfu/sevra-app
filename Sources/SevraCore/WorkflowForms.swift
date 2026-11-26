@@ -38,7 +38,6 @@ extension Workbook {
         "kind": .string("workflow"), "workbookID": .string(self.id),
         "definitionID": .string(definition.id), "workflowDefinitionID": plan["workflowID"],
         "workflowRunID": run["id"], "sourceID": run["source_id"], "state": .string("queued"),
-        "acceptedBalanceChanged": .bool(false),
       ])
     }
     WorkflowPublicationProbe.observer?(.committed, receipt["workflowRunID"].text)

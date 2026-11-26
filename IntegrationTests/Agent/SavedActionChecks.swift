@@ -2,8 +2,8 @@ import Foundation
 import SevraAI
 import SevraCore
 
-/// Prepares the sample workbook's saved movement action, then answers its direction review.
-private actor SavedMovementModel: WorkbookInference {
+/// Asks chat to prepare a saved action, then finishes.
+private actor SavedActionModel: WorkbookInference {
   let identity = "Synthetic saved action"
   let lastMetrics: Value = .null
   let actionID: String
@@ -21,23 +21,7 @@ private actor SavedMovementModel: WorkbookInference {
     citationIDs: [String]
   ) async throws -> NativeReply {
     scopes.append(toolScope)
-    if toolScope == .actionDirection {
-      return .init(
-        text: "",
-        calls: [
-          .init(
-            id: identifier(), name: "review_action_directions",
-            inputJSON: try Value.object([
-              "directions": .array([
-                .object([
-                  "index": .number(0), "direction": .string("outgoing"),
-                  "basis": .string("request"), "quote": .string("Two brass bolts left our stock"),
-                ])
-              ])
-            ]).json())
-        ])
-    }
-    if scopes.filter({ $0 != .actionDirection }).count == 1 {
+    if scopes.count == 1 {
       return .init(
         text: "",
         calls: [
@@ -49,9 +33,9 @@ private actor SavedMovementModel: WorkbookInference {
                 "arguments": .object([
                   "id": .string(actionID),
                   "arguments": .object([
-                    "subject": .string("brass bolts"), "quantity": .string("-2"),
-                    "occurrence": .string("sale-7"), "effective": .string("2026-01-03"),
+                    "title": .string("Oak quote"), "body": .string("Oak Supply quotes 2.40 each."),
                     "evidence": .string(evidenceID), "meaning": .string("actual"),
+                    "scenario": .string("actual"),
                   ]),
                 ]),
               ])
@@ -64,18 +48,17 @@ private actor SavedMovementModel: WorkbookInference {
         .init(
           id: identifier(), name: "finish",
           inputJSON: try Value.object([
-            "answer": .string("The movement is drafted for your review."),
-            "basis": .string("completed_action"), "citations": .array([]),
+            "answer": .string("I could not draft that note from chat."),
+            "basis": .string("unresolved"), "citations": .array([]),
           ]).json())
       ])
   }
 }
 
-/// No model. Phase 5's stock exit: a movement made through the sample workbook's saved action
-/// goes through the same direction review as one proposed directly, saves a draft only, and the
-/// stock read through sql agrees with the core's balance. The README's supplier comparison is
-/// reproduced with sql over the comparison table.
-func checkSavedMovementAction() async throws {
+/// No model. A saved document action prepared from chat is refused before anything is saved,
+/// because document drafts go through their form or workflow. The README's supplier comparison
+/// is reproduced with sql over the comparison table.
+func checkSavedActions() async throws {
   let root = FileManager.default.temporaryDirectory.appendingPathComponent(
     "saved-action-" + identifier())
   defer { try? FileManager.default.removeItem(at: root) }
@@ -83,39 +66,22 @@ func checkSavedMovementAction() async throws {
   try FileManager.default.createDirectory(at: root, withIntermediateDirectories: true)
   _ = try Demo.create(at: url)
   let book = try Workbook(url)
-  let action = try book.searchApplicationDefinitions("stock movement", kind: "action")["hits"]
-    .array.first
-  let actionID = try expectValue(action?["id"].string)
+  let action = try book.saveApplicationDefinition(
+    logicalID: identifier(),
+    content: ActionRegistry.documentDefinition(
+      title: "Draft a supplier note", description: "A note from a quote"))
   let evidence = try book.addItem(
-    category: "source", kind: "observation", title: "Counter sale",
-    text: "Two brass bolts left our stock for a counter sale.", status: "accepted")
-  let model = SavedMovementModel(actionID: actionID, evidenceID: evidence.id)
-  let result = try await WorkbookAgent.run(
-    "Two brass bolts left our stock in a counter sale on January 3. Record it with the saved action.",
-    workbook: book, model: model)
-  try expectEqual(await model.scopes.contains(.actionDirection), true)
-  try expectEqual(result.state, "needs_review")
-  let movements = try book.items(kind: "movement").filter { $0.status == "draft" }
-  try expectEqual(movements.count, 1)
-  try expectEqual(movements[0].data["quantity"].text, "-2")
+    category: "source", kind: "observation", title: "Oak quote",
+    text: "Oak Supply quotes 2.40 each.", status: "accepted")
+  let model = SavedActionModel(actionID: action.id, evidenceID: evidence.id)
+  let before = try book.items(kind: "document").count
+  _ = try await WorkbookAgent.run(
+    "Draft a note about the Oak quote with the saved action.", workbook: book, model: model)
+  try expectEqual(try book.items(kind: "document").count, before)
   let receipts = try book.messages().filter { $0.role == "tool" }.map { try Value.parse($0.body) }
   try expectEqual(
-    receipts.contains { $0["result"]["directionReview"]["matches"] == .bool(true) }, true)
-  // The draft does not count until it is accepted; sql's stock and the core agree before and after.
-  func sqlStock() throws -> String {
-    let read = try book.chatSQL(
-      statements: ["SELECT quantity FROM stock WHERE subject = 'brass bolts'"], readOnly: true,
-      token: identifier(), requestSourceID: nil)
-    guard let cell = read["results"].array.first?["rows"].array.first?.array.first else {
-      return ""
-    }
-    return Numbers.string(try Numbers.decimal(cell.text))
-  }
-  try expectEqual(try sqlStock(), "18")
-  try expectEqual(try book.balance(subject: "brass bolts")["quantity"].text, "18")
-  _ = try book.accept(movements[0].id)
-  try expectEqual(try sqlStock(), try book.balance(subject: "brass bolts")["quantity"].text)
-  try expectEqual(try sqlStock(), "16")
+    receipts.contains { $0["result"]["error"].text.contains("workspace_action form.submit") },
+    true)
   let comparison = try book.chatSQL(
     statements: ["SELECT supplier, round(total, 2) FROM supplier_comparison ORDER BY total"],
     readOnly: true, token: identifier(), requestSourceID: nil)
@@ -124,6 +90,6 @@ func checkSavedMovementAction() async throws {
     [["Oak Supply", "24"], ["Cedar Tools", "27.5"]])
   try expectEqual(try book.verify()["ok"], .bool(true))
   print(
-    "PASS a stock movement through the sample's saved action: direction review, draft only, sql stock equal to the core balance, and the supplier comparison through sql"
+    "PASS chat cannot submit a saved document action and saves nothing, and the supplier comparison runs through sql"
   )
 }

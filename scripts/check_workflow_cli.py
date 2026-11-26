@@ -31,6 +31,10 @@ def call(*values, error=None):
     return reply['result']
 
 
+def accepted(book):
+    return sum(d['status'] == 'accepted' for d in call('records', book, 'document'))
+
+
 try:
     with tempfile.TemporaryDirectory(prefix='sevra-workflow-cli-') as directory:
         root = Path(directory)
@@ -41,10 +45,10 @@ try:
         run_id = baseline['run']['id']
         run = call('workflow-read', book, run_id)
         assert run == baseline['run']
-        assert call('definition-search', book, 'Receive', j({'kind': 'workflow'}))['hits'][0]['id'] == run['definition_id']
+        assert call('definition-search', book, 'Note', j({'kind': 'workflow'}))['hits'][0]['id'] == run['definition_id']
         assert call('workflow-list', book, 'queued')[0]['id'] == run_id
         assert call('workflow-activity', book)['runs'][0]['id'] == run_id
-        assert call('workflow-inspect', book, run_id)['definition']['title'] == 'Receive evidence'
+        assert call('workflow-inspect', book, run_id)['definition']['title'] == 'Note evidence'
         claim = call('workflow-claim', book, run_id, 'cli-test', 30, 'claim')
         call('workflow-claim', book, run_id, 'competitor', 30, 'competing', error='workflow_busy')
         call('workflow-heartbeat', book, run_id, j(claim), 30, 'heartbeat')
@@ -56,29 +60,20 @@ try:
         proposal = proposed['steps'][1]['output']['value']['proposals'][0]
         call('accept', book, proposal)
         assert call('workflow-continue', book, run_id)['state'] == 'completed'
-        assert call('balance', book, 'bolts')['quantity'] == '25'
-        # Delivery occurrence identity still matters across different workflow runs.
-        duplicate = call('workflow-start', book, run['definition_id'], j(run['arguments']), 'duplicate')
-        call('workflow-advance', book, duplicate['id'])
-        call('workflow-advance', book, duplicate['id'], error='duplicate_effect')
-        assert call('workflow-read', book, duplicate['id'])['state'] == 'needs_attention'
-        call('workflow-retry', book, duplicate['id'], 'retry')
-        call('workflow-advance', book, duplicate['id'], error='duplicate_effect')
-        call('workflow-cancel', book, duplicate['id'], 'cancel')
-        assert call('balance', book, 'bolts')['quantity'] == '25'
-        different = dict(run['arguments'], delivery='delivery-two')
+        assert accepted(book) == 1
+        different = dict(run['arguments'], title='Second note')
         second = call('workflow-start', book, run['definition_id'], j(different), 'second')
         call('workflow-advance', book, second['id'])
         second = call('workflow-advance', book, second['id'])
         call('accept', book, second['steps'][1]['output']['value']['proposals'][0])
         assert call('workflow-advance', book, second['id'])['state'] == 'completed'
-        assert call('balance', book, 'bolts')['quantity'] == '30'
-        third = call('workflow-start', book, run['definition_id'], j(dict(different, delivery='delivery-three')), 'third')
+        assert accepted(book) == 2
+        third = call('workflow-start', book, run['definition_id'], j(dict(different, title='Third note')), 'third')
         stale = call('workflow-claim', book, third['id'], 'stopped-worker', 30, 'third-claim')
         cancelled = call('workflow-cancel', book, third['id'], 'stop')
         call('workflow-finish', book, third['id'], j(stale), error='workflow_fenced')
         assert cancelled['state'] == 'cancelled'
-        assert call('balance', book, 'bolts')['quantity'] == '30'
+        assert accepted(book) == 2
         assert call('verify', book)['ok']
         events = call('workflow-events', book)
         assert events['events'] and isinstance(events['after'], int)
@@ -88,7 +83,7 @@ try:
         assert template['payload']['workflow']['mode'] == 'live'
         form = call('definition-save', book, str(uuid.uuid4()), j(template), 'new', 'workflow-form')
         state = call('form-draft-new', book, form['id'])
-        state['arguments'] = dict(run['arguments'], delivery='delivery-form')
+        state['arguments'] = dict(run['arguments'], title='Form note')
         state = call('form-draft-save', book, 'workflow-form', j(state), 'null')
         preview = call('form-draft-preview', book, j(state))
         assert preview['kind'] == 'workflow' and len(preview['steps']) == 3
@@ -102,10 +97,10 @@ try:
         assert call('form-draft-read', book, 'workflow-form')['lastReceipt'] == receipt
         form_waiting = call('workflow-continue', book, form_run)
         assert form_waiting['state'] == 'waiting_review'
-        assert call('balance', book, 'bolts')['quantity'] == '30'
+        assert accepted(book) == 2
         call('accept', book, form_waiting['steps'][1]['output']['value']['proposals'][0])
         assert call('workflow-continue', book, form_run)['state'] == 'completed'
-        assert call('balance', book, 'bolts')['quantity'] == '35'
+        assert accepted(book) == 3
         restored = root / 'FormReconstructed.sevra'
         call('reconstruct', book, restored)
         assert call('form-draft-read', restored, 'workflow-form')['lastReceipt'] == receipt
@@ -113,8 +108,8 @@ try:
         assert call('verify', restored)['ok']
         result['checks'] = ['CLI claim/heartbeat/fenced finish and exact retries',
                             'review wait and canonical business acceptance',
-                            'duplicate evidence versus two genuine deliveries',
-                            'explicit retry and cancellation preserve completed effects',
+                            'separate runs review their own drafts',
+                            'cancellation preserves completed effects',
                             'bounded discovery, events and validation',
                             'workflow form submission, retry, review and inert reconstruction']
         result['ok'] = True

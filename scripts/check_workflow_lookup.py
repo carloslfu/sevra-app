@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Qualify exact catalog lookup, repair and reviewed receiving in independent CLI processes."""
+"""Qualify exact catalog lookup, repair and a reviewed matched note in independent CLI processes."""
 import argparse
 import datetime
 import hashlib
@@ -81,14 +81,13 @@ def step(run, name):
 
 try:
     result['productVersion'] = call('version')
-    book = root / 'Receiving.sevra'
-    call('create', book, 'Synthetic catalog receiving')
+    book = root / 'Lookup.sevra'
+    call('create', book, 'Synthetic catalog lookup')
     catalog = root / 'Catalog.csv'
     catalog.write_text('code,subject\nunmapped,bolts\n')
     imported = call('import', book, catalog, '--role', 'values', '--token', 'catalog')
     dataset = imported['intake']['datasetIDs'][0]
     schema = call('table-schema', book, dataset)
-    call('opening', book, 'bolts', '20', '2026-10-01', imported['source']['id'])
     delivery = root / 'Delivery.txt'
     delivery.write_text('Delivery D7 on 2026-10-29: received 5 units of supplier code 0007.\n')
     evidence = call('import', book, delivery, '--role', 'reference', '--token', 'delivery')['source']['id']
@@ -102,16 +101,15 @@ try:
             'filters': [{'column': {'source': 0, 'column': 'code'}, 'op': 'eq',
                          'value': {'parameter': 'code'}}], 'limit': 10}}}, 'query')
     registry = call('action-registry', book)
-    movement = action(book, registry, 'inventory.proposeMovement', 'Draft matched receipt')
+    matched = action(book, registry, 'records.draftDocument', 'Note the matched product')
     steps = [{'id': 'match', 'kind': 'evaluate', 'binding': {'mode': 'exact', 'versionID': query['id']},
               'arguments': {'code': {'literal': '0007'}}},
-             {'id': 'stock', 'kind': 'action', 'binding': {'mode': 'exact', 'versionID': movement['id']},
-              'arguments': {'subject': {'step': 'match', 'field': 'subject'},
-                            'quantity': {'literal': '5', 'unit': 'items'},
-                            'occurrence': {'literal': 'delivery-d7'},
-                            'effective': {'literal': '2026-10-29'},
-                            'evidence': {'parameter': 'file'}, 'meaning': {'literal': 'actual'}}},
-             {'id': 'stock_review', 'kind': 'review', 'review': 'stock'}]
+             {'id': 'note', 'kind': 'action', 'binding': {'mode': 'exact', 'versionID': matched['id']},
+              'arguments': {'title': {'step': 'match', 'field': 'subject'},
+                            'body': {'literal': 'Delivery D7 matched supplier code 0007.'},
+                            'evidence': {'parameter': 'file'}, 'meaning': {'literal': 'actual'},
+                            'scenario': {'literal': 'actual'}}},
+             {'id': 'note_review', 'kind': 'review', 'review': 'note'}]
     if args.model_root:
         extraction = definition(book, {'kind': 'extraction', 'title': 'Prepare delivery',
             'description': 'Bounded included original.', 'parameters': [parameter],
@@ -121,28 +119,27 @@ try:
             'payload': {'instruction': 'Extract the exact supplier code as text, preserving every leading zero. '
                 'Extract the explicitly received unit count as a decimal string containing digits only. '
                 'Write one short summary preserving that code and count. Quote exact source text for each output. '
-                'If anything is missing or ambiguous return needs_input. Do not select a catalog product or accept stock.',
+                'If anything is missing or ambiguous return needs_input. Do not select a catalog product or accept anything.',
                 'evidence': ['file'], 'outputs': [
                     {'id': 'code', 'label': 'Supplier code', 'type': 'text', 'required': True},
                     {'id': 'quantity', 'label': 'Received count', 'type': 'decimal', 'unit': 'items', 'required': True},
                     {'id': 'summary', 'label': 'Summary', 'type': 'text', 'required': True}],
                 'meaning': 'actual', 'scenario': 'actual'}}, 'read')
         steps[0]['arguments']['code'] = {'step': 'read', 'field': 'code'}
-        steps[1]['arguments']['quantity'] = {'step': 'read', 'field': 'quantity', 'unit': 'items'}
         steps[:0] = [{'id': 'prepare', 'kind': 'extract',
                      'binding': {'mode': 'exact', 'versionID': extraction['id']},
                      'arguments': {'file': {'parameter': 'file'}}},
                     {'id': 'read', 'kind': 'interpret',
                      'binding': {'mode': 'exact', 'versionID': interpretation['id']},
                      'arguments': {'file': {'step': 'prepare', 'field': 'item'}}}]
-        report = action(book, registry, 'records.draftDocument', 'Draft receiving report')
+        report = action(book, registry, 'records.draftDocument', 'Draft delivery report')
         steps.extend([{'id': 'report', 'kind': 'action',
             'binding': {'mode': 'exact', 'versionID': report['id']}, 'arguments': {
-                'title': {'literal': 'Delivery receiving report'}, 'body': {'step': 'read', 'field': 'summary'},
+                'title': {'literal': 'Delivery report'}, 'body': {'step': 'read', 'field': 'summary'},
                 'evidence': {'parameter': 'file'}, 'meaning': {'literal': 'estimate'},
                 'scenario': {'literal': 'actual'}}},
             {'id': 'report_review', 'kind': 'review', 'review': 'report'}])
-    workflow = definition(book, {'kind': 'workflow', 'title': 'Receive by supplier code',
+    workflow = definition(book, {'kind': 'workflow', 'title': 'Note by supplier code',
         'description': 'Prepare, match, repair if needed, propose and explicitly review.',
         'parameters': [parameter], 'payload': {'readPolicy': 'latest-at-step', 'steps': steps}}, 'workflow')
     queued = call('workflow-start', book, workflow['id'], j({'file': evidence}), 'start')
@@ -151,8 +148,7 @@ try:
     call('workflow-continue', book, run_id, args.model_root or root / 'absent-model', error='workflow_lookup')
     paused = call('workflow-read', book, run_id)
     assert paused['state'] == 'needs_attention' and step(paused, 'match')['output'] is None
-    assert step(paused, 'stock')['output'] is None
-    assert call('balance', book, 'bolts')['quantity'] == '20'
+    assert step(paused, 'note')['output'] is None
     if args.model_root:
         interpreted = step(paused, 'read')['output']['value']
         assert interpreted['response']['values']['code'] == '0007'
@@ -173,15 +169,15 @@ try:
     assert len(match['result']['rows']) == 1
     assert match['result']['rows'][0]['values']['subject'] == 'bolts'
     assert match['result']['rows'][0]['inputs'][0]['versionID'] == repaired['id']
-    stock = step(waiting, 'stock')['output']['value']
-    parents = {edge['parent'] for edge in call('lineage', book, stock['sourceID'])}
+    note = step(waiting, 'note')['output']['value']
+    parents = {edge['parent'] for edge in call('lineage', book, note['sourceID'])}
     assert {query['sourceID'], repaired['id']}.issubset(parents)
-    proposal = stock['proposals'][0]
-    assert call('read', book, proposal)['item']['status'] == 'draft'
-    assert call('balance', book, 'bolts')['quantity'] == '20'
-    accepted = call('accept', book, proposal, 'explicit-synthetic-stock-review')
-    assert call('accept', book, proposal, 'explicit-synthetic-stock-review') == accepted
-    assert call('balance', book, 'bolts')['quantity'] == '25'
+    proposal = note['proposals'][0]
+    draft = call('read', book, proposal)['item']
+    assert draft['status'] == 'draft' and draft['title'] == 'bolts'
+    accepted = call('accept', book, proposal, 'explicit-synthetic-note-review')
+    assert call('accept', book, proposal, 'explicit-synthetic-note-review') == accepted
+    assert accepted['status'] == 'accepted'
     completed = call('workflow-continue', book, run_id, root / 'absent-model')
     if args.model_root:
         assert completed['state'] == 'waiting_review'
@@ -190,20 +186,19 @@ try:
         assert report_item['text'] == interpreted['response']['values']['summary']
         assert report_item['meaning'] == 'estimate'
         call('accept', book, report_id, 'explicit-synthetic-report-review')
-        assert call('balance', book, 'bolts')['quantity'] == '25'
         completed = call('workflow-continue', book, run_id, root / 'absent-model')
     assert completed['state'] == 'completed'
     assert call('workflow-continue', book, run_id, root / 'absent-model') == completed
     copy = root / 'Reconstructed.sevra'
     assert call('reconstruct', book, copy)['execution'] == 'inert'
     assert call('workflow-read', copy, run_id) == completed
-    assert call('balance', copy, 'bolts')['quantity'] == '25'
+    assert call('read', copy, accepted['id'])['item']['status'] == 'accepted'
     assert call('verify', copy)['ok'] and call('verify', book)['ok']
     result.update(ok=True, actualModel=bool(args.model_root), paused=paused, waitingReview=waiting,
                   completed=completed, checks=['zero-match attention before query checkpoint',
                     'catalog repair and explicit same-run retry', 'completed extraction/AI prefix preserved',
                     'lexical leading-zero code', 'exact query and selected row lineage',
-                    'stock20 before review and25 after exact review once', 'report preserves estimate meaning',
+                    'note draft before review and accepted once after exact review', 'report preserves estimate meaning',
                     'completed retry stable', 'inert reconstruction', 'original/copy integrity'])
     save()
     print(j({'ok': True, 'actualModel': result['actualModel'], 'calls': len(result['calls']), 'output': str(args.output or '')}))

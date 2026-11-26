@@ -134,14 +134,6 @@ extension Workbook {
           cancellation: cancellation)
         let interpretationInputs = try self.workflowValueInputs(
           step, workflow: workflow, outputs: outputs)
-        for movement in plan["movements"].array where movement["meaning"] == .string("actual") {
-          try require(
-            interpretationInputs.data.allSatisfy {
-              $0.meaning == "actual" && $0.scenario == "actual"
-            }, "interpretation_meaning",
-            "Actual proposals cannot promote a mapped estimate, plan or another scenario into actuals."
-          )
-        }
         for document in plan["documents"].array where document["meaning"] == .string("actual") {
           try require(
             interpretationInputs.data.allSatisfy {
@@ -283,7 +275,7 @@ extension Workbook {
 
   func workflowAcceptedVersion(_ proposal: Item, _ accepted: Item) throws -> Bool {
     guard
-      ["movement", "document", "table-intake-update"].contains(proposal.kind)
+      ["document", "table-intake-update"].contains(proposal.kind)
         && proposal.status == "draft"
         && accepted.supersedes == proposal.id && accepted.status == "accepted"
         && accepted.kind == proposal.kind && accepted.category == proposal.category
@@ -320,7 +312,7 @@ extension Workbook {
 
   /// A table application adds canonical row-result metadata. Require the exact
   /// original plan and the trusted acceptance receipt, without weakening the
-  /// unchanged-data rule used for documents and inventory movements.
+  /// unchanged-data rule used for documents.
   func workflowAcceptedTableIntake(_ proposal: Item, _ accepted: Item, decision: Item) throws
     -> Bool
   {

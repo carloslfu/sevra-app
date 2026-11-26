@@ -12,11 +12,11 @@ package enum SearchCoverage {
     .replacingOccurrences(of: "’", with: "'")
     let patterns = [
       #"\bthere (?:are|is|were|was) (?:no|zero|not any) (?!matches\b|results\b|hits\b)"#,
-      #"\b(?:workbook|database|records?|files?|documents?|inventory) (?:has|have|contains?|includes?) (?:no|zero|none)\b"#,
-      #"\b(?:does not|doesn't|do not|don't) (?:contain|include|have) (?:any )?(?:\w+\s+){0,3}(?:records?|movements?|documents?|files?|contracts?|invoices?|payments?|orders?|assets?)\b"#,
+      #"\b(?:workbook|database|records?|files?|documents?) (?:has|have|contains?|includes?) (?:no|zero|none)\b"#,
+      #"\b(?:does not|doesn't|do not|don't) (?:contain|include|have) (?:any )?(?:\w+\s+){0,3}(?:records?|documents?|files?|contracts?|invoices?|payments?|orders?|assets?)\b"#,
       #"\bno (?:\w+[ -]){0,6}(?:exist|exists|occurred|happened|recorded|registered|present|available)\b"#,
-      #"\bno (?:\w+[ -]){0,4}(?:records?|movements?|documents?|files?|contracts?|invoices?|payments?|orders?|assets?)\b"#,
-      #"\b(?:zero|0) (?:\w+[ -]){0,4}(?:records?|movements?|documents?|files?|contracts?|invoices?|payments?|orders?|assets?)\b"#,
+      #"\bno (?:\w+[ -]){0,4}(?:records?|documents?|files?|contracts?|invoices?|payments?|orders?|assets?)\b"#,
+      #"\b(?:zero|0) (?:\w+[ -]){0,4}(?:records?|documents?|files?|contracts?|invoices?|payments?|orders?|assets?)\b"#,
       #"\b(?:nothing|none) (?:else )?(?:exists|is recorded|was recorded|is present|is available)\b"#,
       #"\b(?:searched|checked|reviewed|examined|scanned|covered) (?:absolutely )?(?:all|every|the entire|the whole|everything)\b"#,
       #"\b(?:all|every|entire|whole) (?:\w+[ -]){0,5}(?:searched|checked|reviewed|examined|scanned)\b"#,

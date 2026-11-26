@@ -78,8 +78,9 @@ let prompts = [
     "Compare the supplier quotes. Which supplier is cheaper, by how much and by what percentage? Create a Purchasing space with a table and a cost chart. Cite the supporting rows.",
   "formula_review":
     "Create a planning table named Workshop plan with one row: item Washers, quantity 3, unit_cost 2.50, and a total formula quantity*unit_cost. Leave it as a proposal for my review.",
+  // The id is the benchmark's historical name; the job reads a total from the supplier table.
   "inventory_evidence":
-    "What is the current stock of brass bolts? Use the balance tool and cite the evidence. Do not change the workbook.",
+    "What is the Cedar Tools total in the supplier comparison? Cite the evidence. Do not change the workbook.",
   "missing_evidence":
     "Find the signed Lakehouse contract and its renewal price. If the evidence is missing or cannot be searched, say so clearly and do not guess.",
   "prime": "Reply with the word Ready. Do not change the workbook.",
@@ -109,9 +110,6 @@ func performJob(
     let originalSpaces = try book.spaces()
     let startingState = try encoded(original)
     let prompt = promptOverride ?? prompts[name]!
-    let originalBalance =
-      name == "inventory_evidence"
-      ? try book.balance(subject: "brass bolts", asOf: "2099-12-31") : .null
     await model.reset()
     let began = clockNow()
     var result: AgentResult?
@@ -145,13 +143,9 @@ func performJob(
         check(
           result.answer == "Ready" && result.state == "complete", "Priming did not answer Ready")
       case "inventory_evidence":
-        let required = Set(
-          [originalBalance["basis"].text]
-            + originalBalance["effects"].array.map { $0["item_id"].text })
         check(
-          result.state == "complete" && result.answer.contains("18")
-            && Set(result.citations).isSuperset(of: required),
-          "Stock answer or evidence is incomplete")
+          result.state == "complete" && result.answer.contains("27.5"),
+          "Table answer is incomplete")
       case "supplier_space":
         check(
           result.state == "complete" && result.answer.contains("Oak")
@@ -188,11 +182,6 @@ func performJob(
       }
     }
     let newItems = items.filter { !originalIDs.contains($0.id) }
-    if name == "inventory_evidence" {
-      check(
-        try book.balance(subject: "brass bolts", asOf: "2099-12-31") == originalBalance,
-        "Stock balance changed")
-    }
     check(
       newItems.filter { $0.category == "source" && $0.kind == "request" }.count == 1,
       "Expected exactly one preserved user request")

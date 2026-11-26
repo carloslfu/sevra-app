@@ -462,11 +462,9 @@ The native adapter validates runtime/Metal digests and selected model preparatio
 launch. Production packaging, full clean-download qualification and wider application acceptance
 remain open.
 
-For the focused inventory regression, replace --autonomous with --inventory in
-the same command. It checks that a computed stock answer cites exactly the opening
-basis and accepted movement versions and leaves inventory unchanged. The actor
-fixture also proves that those references are eligible immediately after balance,
-without requiring a redundant read of each version.
+For the focused table regression, replace --autonomous with --table in the same
+command. It checks that an answer read from the sample supplier table cites the rows
+the query read and leaves the workbook unchanged.
 
 ## Candidate context profiles
 
@@ -867,21 +865,7 @@ Every prime, warmup and measured job must succeed. The report compares exact req
 The root summary compares all four workloads; raw receipts and prompt/memory traces live in the workload subdirectories. Export the root and each workload directory explicitly because the evidence exporter does not recurse. Keep any failed development checks alongside the final receipt. W1 mixed-workload failures remain separate evidence.
 
 ## Balance evidence recovery
-The I1 inventory seed-2 job exposed a shared application problem: treating an opening-source reference as a conversation message and repeatedly searching history. A separate functional probe replays the same Ready/warmup/measured schedule on both frontends after changing the calculation evidence contract.
-
-```sh
-swift build -c release --product sevra-workflow-performance -j 4
-.build/release/sevra-workflow-performance --self-check
-python3 scripts/probe_balance_evidence.py \
-  --baseline .build/workflow-performance/isolation1/inventory_evidence \
-  --output .build/workflow-performance/balance-evidence-new
-```
-
-The baseline must have the original I1 source/configuration identity. The probe permits only the declared Tools.swift and WorkbookAgent.swift changes and rebuilt worker, verifies the helper/grammar identities, freezes its measured sources and preserves all failures. Other future source changes require a newly reviewed protocol or baseline, not removal of the identity check. Both frontends run sequentially under the actual inference lease. No overlapping build, inference or download is permitted.
-
-Acceptance requires all original stock/citation/business-state assertions, no rejected finishes or history/count detours, complete process sampling/cleanup and valid power/thermal conditions. Timings are observations, not a performance gate. The first typed-reference-only attempt fixed the history detour but retained one formatting correction on each measured job, so its strict recovery report remains failed. Native citation rendering is evaluated in a separate later attempt. Preserve both versions and their exact loaded sources.
-
-The `scripts/check_model.py` inventory and missing-evidence checks recorded here were removed on November 19, 2026. Their recorded results remain in [[records/operations/implementation]].
+The stock balance, its evidence probe and the `scripts/check_model.py` inventory checks were removed (the probe on November 25, 2026, with the movement ledger). Their recorded results remain in [[records/operations/implementation]].
 
 ## Exact reference and Settings qualification
 The native agent uses exact read/lineage candidate selection. Citation admission remains separate. The full local check covers dynamic schema validation, the recorded wrong suffix through actual grammar, complete context accounting and refusal receipts. The model-free collector check preserves the failed R2 detours:

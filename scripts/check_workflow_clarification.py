@@ -67,7 +67,6 @@ def fixture(folder):
     source = call('add', book, j({'category': 'source', 'kind': 'observation', 'title': 'Delivery D9',
         'text': 'Delivery D9: bolts were received. The received unit count was not recorded.',
         'meaning': 'actual'}))
-    call('opening', book, 'bolts', '20', '2026-10-01', source['id'])
     field = {'id': 'evidence', 'label': 'Delivery evidence', 'type': 'item', 'required': True}
     def definition(content, token):
         return call('definition-save', book, uuid.uuid4(), j(content), 'new', token)
@@ -75,26 +74,26 @@ def fixture(folder):
         'description': 'Missing information must be requested, never invented.', 'parameters': [field],
         'payload': {'instruction': 'Extract the explicitly stated received unit count as a decimal string. '
             'Quote the exact original statement establishing the count. If the count is absent or ambiguous, '
-            'return needs_input with empty values and explain what information is needed. Do not guess or accept stock.',
+            'return needs_input with empty values and explain what information is needed. Do not guess or accept anything.',
             'evidence': ['evidence'], 'outputs': [
                 {'id': 'quantity', 'label': 'Received count', 'type': 'decimal', 'unit': 'items', 'required': True}],
             'meaning': 'actual', 'scenario': 'actual'}}, 'read')
-    primitive = next(p for p in call('action-registry', book) if p['id'] == 'inventory.proposeMovement')
-    action = definition({'kind': 'action', 'title': 'Draft received stock',
-        'description': 'Separate explicit inventory review.', 'parameters': primitive['parameters'],
+    primitive = next(p for p in call('action-registry', book) if p['id'] == 'records.draftDocument')
+    action = definition({'kind': 'action', 'title': 'Draft a delivery note',
+        'description': 'Separate explicit review.', 'parameters': primitive['parameters'],
         'payload': {'primitive': {'id': primitive['id'], 'version': primitive['version']},
             'arguments': {p['id']: {'parameter': p['id']} for p in primitive['parameters']}}}, 'action')
-    workflow = definition({'kind': 'workflow', 'title': 'Receive with supplied missing information',
+    workflow = definition({'kind': 'workflow', 'title': 'Note with supplied missing information',
         'description': 'An interpretation can pause for an exact later submission.', 'parameters': [field],
         'payload': {'readPolicy': 'latest-at-step', 'steps': [
             {'id': 'read', 'kind': 'interpret', 'binding': {'mode': 'exact', 'versionID': interpretation['id']},
              'arguments': {'evidence': {'parameter': 'evidence'}}},
-            {'id': 'stock', 'kind': 'action', 'binding': {'mode': 'exact', 'versionID': action['id']},
-             'arguments': {'subject': {'literal': 'bolts'},
-                'quantity': {'step': 'read', 'field': 'quantity', 'unit': 'items'},
-                'occurrence': {'literal': 'delivery-d9'}, 'effective': {'literal': '2026-10-29'},
-                'evidence': {'parameter': 'evidence'}, 'meaning': {'literal': 'actual'}}},
-            {'id': 'review', 'kind': 'review', 'review': 'stock'}]}}, 'workflow')
+            {'id': 'note', 'kind': 'action', 'binding': {'mode': 'exact', 'versionID': action['id']},
+             'arguments': {'title': {'literal': 'Delivery D9'},
+                'body': {'literal': 'Delivery D9 arrived; the count was supplied separately.'},
+                'evidence': {'parameter': 'evidence'}, 'meaning': {'literal': 'actual'},
+                'scenario': {'literal': 'actual'}}},
+            {'id': 'review', 'kind': 'review', 'review': 'note'}]}}, 'workflow')
     run_id = call('workflow-start', book, workflow['id'], j({'evidence': source['id']}), 'start')['id']
     (folder / 'plan.json').write_text(j({'runID': run_id}))
     return book, run_id
@@ -111,19 +110,20 @@ def worker_call(operation, folder):
 
 def snapshot(book, run_id):
     return {'run': call('workflow-read', book, run_id), 'counts': call('inspect', book),
-            'balance': call('balance', book, 'bolts', '2099-12-31'), 'events': call('workflow-events', book),
+            'accepted': sum(d['status'] == 'accepted' for d in call('records', book, 'document')),
+            'events': call('workflow-events', book),
             'integrity': call('verify', book)}
 
 
 def finish(book, run_id):
     waiting = call('workflow-continue', book, run_id, root / 'absent-model')
     assert waiting['state'] == 'waiting_review'
-    assert call('balance', book, 'bolts')['quantity'] == '20'
     proposal = waiting['steps'][1]['output']['value']['proposals'][0]
+    assert call('read', book, proposal)['item']['status'] == 'draft'
     accepted = call('accept', book, proposal, 'synthetic-explicit-review')
     assert call('accept', book, proposal, 'synthetic-explicit-review') == accepted
     done = call('workflow-continue', book, run_id, root / 'absent-model')
-    assert done['state'] == 'completed' and call('balance', book, 'bolts')['quantity'] == '25'
+    assert done['state'] == 'completed' and accepted['status'] == 'accepted'
     assert call('workflow-continue', book, run_id, root / 'absent-model') == done
     assert call('verify', book)['ok']
     return done
@@ -153,13 +153,13 @@ try:
     assert source['category'] == 'source' and source['data']['actor']['kind'] == 'programmatic'
     assert source['data']['values'] == values
     assert call('workflow-clarify', book, run_id, j(target), j(values), reason, 'cli-answer') == clarified
-    assert call('balance', book, 'bolts')['quantity'] == '20'
+    assert call('records', book, 'document') == []
     done = finish(book, run_id)
     assert done['steps'][0]['output'] == clarified['steps'][0]['output'], 'Completed interpretation was repeated'
     copy = folder / 'Reconstructed.sevra'
     assert call('reconstruct', book, copy)['execution'] == 'inert'
     assert call('workflow-read', copy, run_id) == done and call('verify', copy)['ok']
-    assert call('balance', copy, 'bolts')['quantity'] == '25'
+    assert [d['status'] for d in call('records', copy, 'document')] == ['accepted']
     result.update(actualModel=bool(args.model_root), originalModelOutput=original,
                   target=target, clarified=clarified, completed=done)
     if not args.skip_crashes:
@@ -186,7 +186,7 @@ try:
                     p.kill()
                     p.communicate(timeout=20)
             interrupted = snapshot(book, run_id)
-            assert interrupted['integrity']['ok'] and interrupted['balance']['quantity'] == '20'
+            assert interrupted['integrity']['ok'] and interrupted['accepted'] == 0
             if phase == 'clarify-prepared':
                 assert interrupted == before, 'Uncommitted clarification left partial state'
             else:
@@ -207,7 +207,7 @@ try:
             save()
     result.update(ok=True, checks=['missing count stays unresolved', 'exact supplied Source and draft Record',
         'honest programmatic attribution', 'original model output unchanged', 'no implicit continuation/acceptance',
-        'absent-model continuation', 'stock20 before review and25 after exact acceptance once',
+        'absent-model continuation', 'draft note before review and accepted once after exact acceptance',
         'completed steps retained', 'inert reconstruction', 'integrity', 'atomic SIGKILL recovery when selected'])
     save()
     print(j({'ok': True, 'actualModel': result['actualModel'], 'calls': len(result['calls']),

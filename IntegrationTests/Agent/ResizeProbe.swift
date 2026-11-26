@@ -42,11 +42,11 @@ func runResizeProbe(configPath: String, output: String) async throws {
     let keptStarts = starts.value
     let resized = await model.prewarm(
       directory: models, size: .growing, cancellation: .init(), progress: { _ in })
-    let path = root.appendingPathComponent("Inventory.sevra")
+    let path = root.appendingPathComponent("Suppliers.sevra")
     _ = try Demo.create(at: path)
     let book = try Workbook(path)
     let result = try await WorkbookAgent.run(
-      "What is the current stock of brass bolts? Use the balance tool and cite the evidence. Do not change the workbook.",
+      "What is the Cedar Tools total in the supplier comparison? Cite the evidence. Do not change the workbook.",
       workbook: book, modelDirectory: models,
       cancellation: .init(deadlineAfterSeconds: 300), model: model)
     let size = Double(await model.lastMetrics["requestedMemoryBytes"].int ?? 0)
@@ -54,7 +54,7 @@ func runResizeProbe(configPath: String, output: String) async throws {
       "firstStart": .bool(first), "plainStartKept": .bool(kept && keptStarts == 1),
       "resized": .bool(resized), "sizesChosen": .number(Double(starts.value)),
       "requestMemoryGiB": .number(size / Double(gibibyte)), "state": .string(result.state),
-      "answerHas18": .bool(result.answer.contains("18")),
+      "answerHasTotal": .bool(result.answer.contains("27.5")),
     ]
   } catch { outcome["error"] = .string(error.localizedDescription) }
   outcome["released"] = .bool(await model.unload())

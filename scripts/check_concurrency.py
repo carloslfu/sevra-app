@@ -38,7 +38,7 @@ with tempfile.TemporaryDirectory(prefix='sevra-concurrency-') as temporary:
     assert run('verify',book)['ok']
     reopened=folder/'Reopened.sevra';run('open-archive',archive,reopened)
     assert run('verify',reopened)['ok']
-    assert run('balance',reopened,'brass bolts')['quantity']=='18'
+    assert [(t['title'],t['rowCount']) for t in run('tables',reopened) if t['title']=='Supplier comparison']==[('Supplier comparison',2)]
     table=run('tables',book)[0];row=run('rows',book,table['id'])[0]
     failure=run('edit-row',book,row['id'],json.dumps(row['data']),0,success=False)
     assert failure['error']['code']=='stale_revision',failure
@@ -67,4 +67,4 @@ with tempfile.TemporaryDirectory(prefix='sevra-concurrency-') as temporary:
         _,stderr=process.communicate(timeout=60)
         assert process.returncode!=0 and json.loads(stderr)['error']['code']=='cancelled',stderr
         assert not list(target.iterdir()) and copies()==before
-    print(json.dumps({'crossProcessIntakeRetry':True,'concurrentWriters':30,'snapshotVerified':True,'idempotentRetry':True,'staleWriteRefused':True,'inventoryPreserved':True}))
+    print(json.dumps({'crossProcessIntakeRetry':True,'concurrentWriters':30,'snapshotVerified':True,'idempotentRetry':True,'staleWriteRefused':True,'tablesPreserved':True}))

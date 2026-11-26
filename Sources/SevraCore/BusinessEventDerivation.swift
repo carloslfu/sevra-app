@@ -47,7 +47,7 @@ extension Database {
     var entries: [BusinessEventEntry] = []
     var settled: [String: [ChangeRow]] = [:]
     var schemas: [String: [ChangeRow]] = [:]
-    var mappings: [String: (table: String, before: ChangeRow?, after: ChangeRow?)] = [:]
+    var mappings: [String: (before: ChangeRow?, after: ChangeRow?)] = [:]
     for change in changes {
       if change.table == "items", change.before == nil, let row = change.after,
         try row.businessText(3) == "record",
@@ -57,16 +57,15 @@ extension Database {
         settled[try row.businessText(1), default: []].append(row)
       } else if change.table == "column_versions", change.before == nil, let row = change.after {
         schemas[try row.businessText(1), default: []].append(row)
-      } else if ["bases", "dataset_rows"].contains(change.table) {
+      } else if change.table == "dataset_rows" {
         guard let row = change.after ?? change.before else {
           throw SevraError("business_integrity", "A captured mapping has no row.")
         }
         let key = try Value.array([
-          .string(change.table), .string(row.businessText(0)),
-          change.table == "dataset_rows" ? .string(row.businessText(1)) : .null,
+          .string(change.table), .string(row.businessText(0)), .string(row.businessText(1)),
         ]).json()
         let first = mappings[key]
-        mappings[key] = (change.table, first == nil ? change.before : first!.before, change.after)
+        mappings[key] = (first == nil ? change.before : first!.before, change.after)
       }
     }
     for logicalID in settled.keys.sorted() {
@@ -93,12 +92,10 @@ extension Database {
             "meaning": row["meaning"]!, "status": row["status"]!, "scenario": row["scenario"]!,
           ])
         } ?? .null
-      let data = try Value.parse(final.businessText(10))
-      let subject = after["kind"] == .string("movement") ? data["subject"].string : nil
       entries.append(
         .init(
-          family: "record-settled", scopeKind: subject == nil ? "record" : "inventory",
-          scopeKey: subject ?? logicalID, recordKind: after["kind"].text, logicalID: logicalID,
+          family: "record-settled", scopeKind: "record",
+          scopeKey: logicalID, recordKind: after["kind"].text, logicalID: logicalID,
           beforeID: before["id"].string, afterID: after["id"].string,
           payload: .object(["before": before, "after": after])))
     }
@@ -106,25 +103,14 @@ extension Database {
       let mapping = mappings[key]!
       if mapping.before?.values == mapping.after?.values { continue }
       let row = (mapping.after ?? mapping.before)!
-      if mapping.table == "bases" {
-        let before = try businessBasis(mapping.before)
-        let after = try businessBasis(mapping.after)
-        entries.append(
-          .init(
-            family: "inventory-basis", scopeKind: "inventory", scopeKey: try row.businessText(0),
-            recordKind: "basis", logicalID: nil, beforeID: before["sourceID"].string,
-            afterID: after["sourceID"].string, payload: .object(["before": before, "after": after]))
-        )
-      } else {
-        entries.append(
-          .init(
-            family: "dataset-membership", scopeKind: "dataset", scopeKey: try row.businessText(0),
-            recordKind: "row-membership", logicalID: nil, beforeID: nil, afterID: nil,
-            payload: .object([
-              "before": try businessMembership(mapping.before),
-              "after": try businessMembership(mapping.after),
-            ])))
-      }
+      entries.append(
+        .init(
+          family: "dataset-membership", scopeKind: "dataset", scopeKey: try row.businessText(0),
+          recordKind: "row-membership", logicalID: nil, beforeID: nil, afterID: nil,
+          payload: .object([
+            "before": try businessMembership(mapping.before),
+            "after": try businessMembership(mapping.after),
+          ])))
     }
     for dataset in schemas.keys.sorted() {
       let rows = try schemas[dataset]!.sorted {
@@ -155,13 +141,6 @@ extension Database {
     return entries
   }
 
-  private func businessBasis(_ row: ChangeRow?) throws -> Value {
-    guard let row else { return .null }
-    return .object([
-      "subject": .string(try row.businessText(0)), "quantity": .string(try row.businessText(1)),
-      "effective": .string(try row.businessText(2)), "sourceID": .string(try row.businessText(3)),
-    ])
-  }
   private func businessMembership(_ row: ChangeRow?) throws -> Value {
     guard let row else { return .null }
     return .object([

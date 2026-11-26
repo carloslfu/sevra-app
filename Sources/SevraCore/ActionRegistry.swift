@@ -2,21 +2,6 @@ import Foundation
 
 /// Trusted native primitives. Definition text never adds capabilities.
 public enum ActionRegistry {
-  static let receivingID = "inventory.receiveDelivery"
-  static let receivingParameters: [Value] = [
-    field("delivery", "Delivery identity", "text"),
-    field("effective", "Effective date", "date"),
-    field("evidence", "Evidence", "item"),
-    .object([
-      "id": .string("lines"), "label": .string("Delivery lines"), "type": .string("entries"),
-      "required": .bool(true), "maxEntries": .number(50),
-      "fields": .array([
-        field("line", "Line identity", "text"), field("subject", "Inventory subject", "text"),
-        field("quantity", "Item count", "decimal", unit: "items"),
-      ]),
-    ]),
-  ]
-  static let movementID = "inventory.proposeMovement"
   static let documentID = "records.draftDocument"
   static let documentParameters: [Value] = [
     field("title", "Document title", "text"), field("body", "New prose", "text"),
@@ -29,33 +14,6 @@ public enum ActionRegistry {
     ]),
     field("scenario", "Scenario", "text"),
   ]
-  private static func title(_ id: String) -> String {
-    id == documentID
-      ? "Draft document"
-      : id == receivingID ? "Receive delivery" : "Propose inventory movement"
-  }
-  private static func parameters(_ id: String) -> [Value] {
-    id == documentID
-      ? documentParameters : id == receivingID ? receivingParameters : movementParameters
-  }
-  static let movementParameters: [Value] = [
-    field("subject", "Inventory subject", "text"),
-    field("quantity", "Signed item count", "decimal", unit: "items"),
-    field("occurrence", "Business occurrence identity", "text"),
-    field("effective", "Effective date", "date"),
-    field("evidence", "Evidence", "item"),
-    .object([
-      "id": .string("meaning"), "label": .string("Meaning"), "type": .string("choice"),
-      "required": .bool(true),
-      "choices": .array(
-        ["actual", "estimate", "plan", "commitment", "assumption"].map(Value.string)),
-      "default": .string("actual"),
-    ]),
-    .object([
-      "id": .string("supersedes"), "label": .string("Corrected movement"), "type": .string("item"),
-      "required": .bool(false),
-    ]),
-  ]
   static func field(_ id: String, _ label: String, _ type: String, unit: String? = nil) -> Value {
     var value: [String: Value] = [
       "id": .string(id), "label": .string(label), "type": .string(type), "required": .bool(true),
@@ -65,14 +23,14 @@ public enum ActionRegistry {
   }
   static func descriptor(_ id: String, version: Int) throws -> DefinitionDescriptor {
     try require(
-      [receivingID, movementID, documentID].contains(id) && version == 1, "action_primitive",
+      id == documentID && version == 1, "action_primitive",
       "Unknown registered action version.")
     return try DefinitionDescriptor(
       .object([
         "kind": .string("action"),
-        "title": .string(title(id)),
+        "title": .string("Draft document"),
         "description": .string("Prepare local drafts for separate review."),
-        "parameters": .array(parameters(id)),
+        "parameters": .array(documentParameters),
         "payload": .object([:]),
       ]))
   }
@@ -80,8 +38,8 @@ public enum ActionRegistry {
     "type": .string("object"), "additionalProperties": .bool(false),
     "required": .array(
       [
-        "workbookID", "definitionID", "sourceID", "proposals", "state", "acceptedBalanceChanged",
-        "resolvedDefinitions", "fingerprint",
+        "workbookID", "definitionID", "sourceID", "proposals", "state", "resolvedDefinitions",
+        "fingerprint",
       ].map(Value.string)),
     "properties": .object([
       "workbookID": .object(["type": .string("string"), "format": .string("uuid")]),
@@ -93,7 +51,6 @@ public enum ActionRegistry {
         "items": .object(["type": .string("string"), "format": .string("uuid")]),
       ]),
       "state": .object(["const": .string("draft")]),
-      "acceptedBalanceChanged": .object(["const": .bool(false)]),
       "resolvedDefinitions": .object([
         "type": .string("array"), "minItems": .number(1), "maxItems": .number(128),
         "items": .object([
@@ -111,30 +68,39 @@ public enum ActionRegistry {
   ])
   public static func actions() -> Value {
     .array(
-      [receivingID, movementID, documentID].map { id in
+      [
         .object([
-          "id": .string(id), "version": .number(1),
-          "title": .string(title(id)),
-          "parameters": .array(parameters(id)),
+          "id": .string(documentID), "version": .number(1),
+          "title": .string("Draft document"),
+          "parameters": .array(documentParameters),
           "resultSchema": resultSchema,
           "effectCategory": .string("local_proposal"),
           "deadlineSeconds": .number(3),
           "effect": .string(
-            id == documentID
-              ? "local draft document from new prose; no acceptance or original-copy fidelity claim"
-              : "local draft inventory proposals; no accepted balance change"),
-          "capabilities": .array([
-            .string(id == documentID ? "workbook.draft_document" : "workbook.propose_inventory")
-          ]),
+            "local draft document from new prose; no acceptance or original-copy fidelity claim"),
+          "capabilities": .array([.string("workbook.draft_document")]),
           "cancellation": .string(
             "bounded atomic transaction; cancellation rolls back before commit"),
           "retry": .string("exact token/arguments return the original receipt"),
-          "units": .string(
-            id == documentID
-              ? "bounded prose; explicit meaning and scenario"
-              : "discrete items only; no conversion or inferred units"),
+          "units": .string("bounded prose; explicit meaning and scenario"),
         ])
-      })
+      ])
+  }
+  /// A saved action that drafts one document through the document primitive, with every
+  /// primitive input as a parameter of its own.
+  public static func documentDefinition(title: String, description: String) -> Value {
+    .object([
+      "kind": .string("action"), "title": .string(title), "description": .string(description),
+      "parameters": .array(documentParameters),
+      "payload": .object([
+        "primitive": .object(["id": .string(documentID), "version": .number(1)]),
+        "arguments": .object(
+          Dictionary(
+            uniqueKeysWithValues: documentParameters.map {
+              ($0["id"].text, .object(["parameter": $0["id"]]))
+            })),
+      ]),
+    ])
   }
   /// A reusable starter is ordinary versioned user data, not an implicit installed rule.
   public static func formDefinition(target: ApplicationDefinition) -> Value {
@@ -147,57 +113,7 @@ public enum ActionRegistry {
           "mode": .string("live"), "logicalID": .string(target.logicalID),
         ]),
         "fields": .array(
-          target.parameters.array.map { parameter in
-            var field: [String: Value] = ["parameter": parameter["id"]]
-            if parameter["id"].text == "delivery" {
-              field["label"] = .string("Delivery or receipt number")
-              field["help"] = .string(
-                "Use the identity on your evidence so the same delivery cannot be recorded twice.")
-            }
-            if parameter["id"].text == "lines" {
-              field["help"] = .string(
-                "Use the line numbers and item counts on the receipt. This form counts discrete items."
-              )
-            }
-            return .object(field)
-          }),
-      ]),
-    ])
-  }
-  /// A saved action that records one stock movement through the movement primitive. A stock
-  /// change is a workbook's own saved action, not a built-in chat tool; the direction review
-  /// still runs in front of the primitive.
-  public static func movementDefinition() -> Value {
-    .object([
-      "kind": .string("action"), "title": .string("Record a stock movement"),
-      "description": .string(
-        "Draft one inventory movement: a signed count of items for a subject, with its evidence. Review before acceptance."
-      ),
-      "parameters": .array(movementParameters),
-      "payload": .object([
-        "primitive": .object(["id": .string(movementID), "version": .number(1)]),
-        "arguments": .object(
-          Dictionary(
-            uniqueKeysWithValues: movementParameters.map {
-              ($0["id"].text, .object(["parameter": $0["id"]]))
-            })),
-      ]),
-    ])
-  }
-  public static func receivingDefinition() -> Value {
-    .object([
-      "kind": .string("action"), "title": .string("Receive delivery"),
-      "description": .string(
-        "Create draft actual inventory movements from exact delivery evidence. Review before acceptance."
-      ),
-      "parameters": .array(receivingParameters),
-      "payload": .object([
-        "primitive": .object(["id": .string(receivingID), "version": .number(1)]),
-        "arguments": .object(
-          Dictionary(
-            uniqueKeysWithValues: receivingParameters.map {
-              ($0["id"].text, .object(["parameter": $0["id"]]))
-            })),
+          target.parameters.array.map { .object(["parameter": $0["id"]]) }),
       ]),
     ])
   }

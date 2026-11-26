@@ -89,22 +89,22 @@ func checkInterfaceGuidance() async throws {
   let observation = try book.addItem(
     category: "source", kind: "observation", title: "Stock check",
     text: "Opening stock 20; two units handed over.", status: "accepted")
-  try book.setOpeningBalance(
-    subject: "fittings", quantity: "20", effective: "2026-01-01", sourceID: observation.id)
+  let table = try book.createDataset(
+    title: "Fittings", columns: [.init(id: "count", title: "Count", type: "decimal")],
+    rows: [["count": .string("20")]], sourceID: observation.id)
   let firstTools = WorkbookTools(book)
   let otherTools = WorkbookTools(book, conversation: other)
-  let proposal = try otherTools.execute(
-    "propose_movement",
-    .object([
-      "subject": .string("fittings"), "quantity": .string("-2"),
-      "occurrence": .string("handover-1"),
-      "effective": .string("2026-01-02"), "input": .string(observation.id),
-    ]))
-  let balance: Value = .object(["subject": .string("fittings")])
-  try expectEqual(try firstTools.execute("balance", balance)["quantity"].text, "20")
-  _ = try book.accept(proposal["id"].text)
-  try expectEqual(try firstTools.execute("balance", balance)["quantity"].text, "18")
-  try expectEqual(try otherTools.execute("balance", balance)["quantity"].text, "18")
+  func count(_ tools: WorkbookTools) throws -> String {
+    let read = try tools.execute(
+      "sql", .object(["statements": .array([.string("SELECT count FROM fittings")])]))
+    return read["results"].array.first?["rows"].array.first?.array.first?.text ?? ""
+  }
+  let proposal = try book.proposeTableEdit(
+    table.id, edits: [RowEdit(id: try book.rows(table.id)[0].id, values: ["count": .string("18")])])
+  try expectEqual(try count(firstTools), "20")
+  _ = try book.accept(proposal.id)
+  try expectEqual(try count(firstTools), "18")
+  try expectEqual(try count(otherTools), "18")
   let sourceCount = try book.items().filter { $0.category == "source" }.count
   let calculation = try otherTools.execute(
     "sql", .object(["statements": .array([.string("SELECT CAST(20 - 2 AS TEXT) AS quantity")])]))

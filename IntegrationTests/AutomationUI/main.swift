@@ -500,27 +500,22 @@ func enable(
   ) {
     let (book, original) = try fixture(root, "Review")
     let tools = WorkbookTools(book)
-    let receipt = try tools.execute("receiving_template", .object([:]))
     let action = try book.saveApplicationDefinition(
-      logicalID: identifier(), content: receipt["content"])
+      logicalID: identifier(),
+      content: ActionRegistry.documentDefinition(title: "Draft a note", description: "Synthetic"))
     let workflowContent = try tools.execute(
       "workflow_template", .object(["id": .string(action.id)]))["content"]
     let workflow = try book.saveApplicationDefinition(
       logicalID: identifier(), content: workflowContent)
     let evidence = try book.addItem(
       category: "source", kind: "observation", title: "Synthetic receipt",
-      text: "Received two units for delivery synthetic-review.")
+      text: "Oak Supply quoted 2.40 each.", status: "accepted")
     var content = original.content.object
     var payload = original.payload.object
     payload["workflow"] = .object(["mode": .string("exact"), "versionID": .string(workflow.id)])
     payload["arguments"] = .object([
-      "delivery": .string("synthetic-review"), "effective": .string("2026-10-01"),
-      "evidence": .string(evidence.id),
-      "lines": .array([
-        .object([
-          "line": .string("one"), "subject": .string("synthetic-bolts"), "quantity": .string("2"),
-        ])
-      ]),
+      "title": .string("Synthetic review"), "body": .string("Oak Supply quoted 2.40 each."),
+      "evidence": .string(evidence.id), "meaning": .string("actual"), "scenario": .string("actual"),
     ])
     content["payload"] = .object(payload)
     let definition = try book.saveApplicationDefinition(

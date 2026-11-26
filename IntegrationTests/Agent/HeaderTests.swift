@@ -164,7 +164,7 @@ func runHeaderTests(
   }
 
   // Restored against computed: resumed, faster, same answers.
-  let prompts = ["How many brass bolts do we have?", "Hi"]
+  let prompts = ["Which supplier is cheaper?", "Hi"]
   var restoredTurns: [Turn] = []
   var computedTurns: [Turn] = []
   for prompt in prompts {

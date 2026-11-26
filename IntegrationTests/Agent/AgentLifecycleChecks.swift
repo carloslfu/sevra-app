@@ -13,25 +13,24 @@ private actor ScriptedInference: WorkbookInference {
   let fail: Bool
   let searchesOnly: Bool
   let filteredSearches: Bool
-  let balanceOnly: Bool
-  let omitBalanceCitation: Bool
-  let inlineBalanceReferences: Bool
+  let rowIDs: [String]
+  let omitRowCitation: Bool
+  let inlineRowReferences: Bool
   let initialBasis: String?
-  var balanceIDs: [String] = []
   let violateReadOnly: Bool
   init(
     cancelAfterResponse: Bool = false, fail: Bool = false, searchesOnly: Bool = false,
-    balanceOnly: Bool = false, violateReadOnly: Bool = false, filteredSearches: Bool = false,
-    omitBalanceCitation: Bool = false, initialBasis: String? = nil,
-    inlineBalanceReferences: Bool = false
+    rowIDs: [String] = [], violateReadOnly: Bool = false, filteredSearches: Bool = false,
+    omitRowCitation: Bool = false, initialBasis: String? = nil,
+    inlineRowReferences: Bool = false
   ) {
     self.cancelAfterResponse = cancelAfterResponse
     self.fail = fail
     self.searchesOnly = searchesOnly
     self.filteredSearches = filteredSearches
-    self.balanceOnly = balanceOnly
-    self.omitBalanceCitation = omitBalanceCitation
-    self.inlineBalanceReferences = inlineBalanceReferences
+    self.rowIDs = rowIDs
+    self.omitRowCitation = omitRowCitation
+    self.inlineRowReferences = inlineRowReferences
     self.initialBasis = initialBasis
     self.violateReadOnly = violateReadOnly
   }
@@ -90,36 +89,33 @@ private actor ScriptedInference: WorkbookInference {
       try expectEqual(responses, 2)
       try expectEqual(messages.last!.content.contains("explicitly forbids changes"), true)
     }
-    if balanceOnly {
+    if !rowIDs.isEmpty {
       if responses == 1 {
         return NativeReply(
           text: "",
           calls: [
             try InferenceCall(
-              id: "balance-call", operation: "balance",
-              .object(["subject": .string("brass bolts")]))
+              id: "rows-call", operation: "sql",
+              .object([
+                "statements": .array([
+                  .string("SELECT supplier, total FROM supplier_comparison ORDER BY total")
+                ])
+              ]))
           ])
       }
-      if responses == 2 {
-        let balance = try Value.parse(messages.last!.content)
-        balanceIDs = [balance["basis"].text] + balance["effects"].array.map { $0["item_id"].text }
-        try expectEqual(balance["evidence"]["referenceType"].text, "item-version")
-        try expectEqual(balance["evidence"]["citations"].array.compactMap(\.string), balanceIDs)
-        try expectEqual(
-          balance["evidence"]["notice"].text.contains("not conversation messages"), true)
-      }
-      try expectEqual(balanceIDs.allSatisfy { citationIDs.contains($0) && !$0.isEmpty }, true)
-      let ids = omitBalanceCitation && responses == 2 ? Array(balanceIDs.prefix(1)) : balanceIDs
+      // The rows the query read are the host's to cite, so the model may name them or not.
+      try expectEqual(rowIDs.allSatisfy { citationIDs.contains($0) }, true)
+      let ids = omitRowCitation ? [] : rowIDs
       return NativeReply(
         text: "",
         calls: [
           InferenceCall(
-            id: "balance-finish-\(responses)", name: "finish",
+            id: "rows-finish-\(responses)", name: "finish",
             inputJSON: try Value.object([
               "answer": .string(
-                "The current stock is 18 brass bolts."
-                  + (inlineBalanceReferences
-                    ? " Source " + balanceIDs[0] + "; movement " + balanceIDs[1].uppercased() : "")),
+                "Oak Supply totals 24 and Cedar Tools 27.5."
+                  + (inlineRowReferences
+                    ? " Row " + rowIDs[0] + "; row " + rowIDs[1].uppercased() : "")),
               "basis": .string("evidence"),
               "citations": .array(ids.map(Value.string)),
             ]).json())
@@ -359,36 +355,35 @@ func checkAgentLifecycle() async throws {
     try expectEqual(result.answer.contains("also searched earlier messages"), !filtered)
     try expectEqual(result.answer.contains("queries were limited to business evidence"), filtered)
   }
-  let inventoryPath = root.appendingPathComponent("Inventory.sevra")
-  _ = try Demo.create(at: inventoryPath)
-  let inventory = try Workbook(inventoryPath)
-  let balanceModel = ScriptedInference(balanceOnly: true)
-  let balanceAnswer = try await WorkbookAgent.run(
-    "What is the brass bolt stock? Cite the basis and movements.",
-    workbook: inventory, context: String(repeating: "Closed archive note. ", count: 5000),
-    model: balanceModel)
-  try expectEqual(balanceAnswer.state, "complete")
-  try expectEqual(balanceAnswer.steps, 2)
-  try expectEqual(balanceAnswer.citations.count, 2)
-  try expectEqual(await balanceModel.ends, 1)
+  let suppliersPath = root.appendingPathComponent("Suppliers.sevra")
+  let tableID = try Demo.create(at: suppliersPath)["datasetID"].text
+  let suppliers = try Workbook(suppliersPath)
+  let rowIDs = try suppliers.rows(tableID).map(\.id)
+  let rowsModel = ScriptedInference(rowIDs: rowIDs)
+  let rowsAnswer = try await WorkbookAgent.run(
+    "What are the supplier totals? Cite the rows.",
+    workbook: suppliers, context: String(repeating: "Closed archive note. ", count: 5000),
+    model: rowsModel)
+  try expectEqual(rowsAnswer.state, "complete")
+  try expectEqual(rowsAnswer.steps, 2)
+  try expectEqual(Set(rowsAnswer.citations).isSuperset(of: rowIDs), true)
+  try expectEqual(await rowsModel.ends, 1)
   let corrected = try await WorkbookAgent.run(
-    "What is the brass bolt stock? Cite the basis and movements. Make no changes.",
-    workbook: inventory, model: ScriptedInference(balanceOnly: true, omitBalanceCitation: true))
+    "What are the supplier totals? Cite the rows. Make no changes.",
+    workbook: suppliers, model: ScriptedInference(rowIDs: rowIDs, omitRowCitation: true))
   try expectEqual(corrected.state, "complete")
   try expectEqual(corrected.steps, 2)
-  try expectEqual(Set(corrected.citations), Set(balanceAnswer.citations))
+  try expectEqual(Set(corrected.citations).isSuperset(of: rowIDs), true)
   let linked = try await WorkbookAgent.run(
-    "What is the brass bolt stock? Cite the basis and movements. Make no changes.",
-    workbook: inventory, model: ScriptedInference(balanceOnly: true, inlineBalanceReferences: true))
+    "What are the supplier totals? Cite the rows. Make no changes.",
+    workbook: suppliers, model: ScriptedInference(rowIDs: rowIDs, inlineRowReferences: true))
   try expectEqual(linked.steps, 2)
-  try expectEqual(Set(linked.citations), Set(balanceAnswer.citations))
-  try expectEqual(linked.answer.contains("[Workshop inventory](sevra://item/"), true)
+  try expectEqual(Set(linked.citations).isSuperset(of: rowIDs), true)
   try expectEqual(linked.answer.components(separatedBy: "sevra://item/").count, 3)
-  let savedLinked = try inventory.messages(limit: 100).last!
-  let savedPayload = try inventory.messagePayload(savedLinked.id)
+  let savedLinked = try suppliers.messages(limit: 100).last!
+  let savedPayload = try suppliers.messagePayload(savedLinked.id)
   try expectEqual(savedPayload["renderedReferences"].object.count, 2)
   try expectEqual(savedPayload["arguments"]["answer"].text.contains("sevra://"), false)
-  try expectEqual(try inventory.balance(subject: "brass bolts")["quantity"].text, "18")
   print(
     "PASS full inspected and cited item IDs render as safe native links without another model turn; unknown and ambiguous references remain refused"
   )

@@ -69,40 +69,38 @@ func runContextProfileProbe(configPath: String, output: String) async throws {
   var rows: [Value] = []
   var fatal: String?
   do {
-    let path = root.appendingPathComponent("Inventory.sevra")
-    _ = try Demo.create(at: path)
+    let path = root.appendingPathComponent("Suppliers.sevra")
+    let tableID = try Demo.create(at: path)["datasetID"].text
     let book = try Workbook(path)
     let originals = try book.items()
     let started = Date()
     do {
       let result = try await WorkbookAgent.run(
-        "What is the current stock of brass bolts? Use the balance tool and cite the evidence. Do not change the workbook.",
+        "What is the Cedar Tools total in the supplier comparison? Cite the evidence. Do not change the workbook.",
         workbook: book, modelDirectory: models,
         cancellation: .init(parent: stop, deadlineAfterSeconds: 300),
         model: model)
       let originalIDs = Set(originals.map(\.id))
-      let balance = try book.balance(subject: "brass bolts", asOf: "2099-12-31")
-      let expectedCitations = Set(
-        [balance["basis"].text] + balance["effects"].array.map { $0["item_id"].text })
+      let expectedCitations = Set(try book.rows(tableID).map(\.id))
       let finalItems = try book.items()
       let integrity = try book.verify()
       let extra = finalItems.filter { !originalIDs.contains($0.id) }
       let passed =
-        result.state == "complete" && result.answer.contains("18")
+        result.state == "complete" && result.answer.contains("27.5")
         && Set(result.citations).isSuperset(of: expectedCitations)
         && finalItems.filter { originalIDs.contains($0.id) } == originals
         && integrity["ok"] == .bool(true)
         && extra.count == 1 && extra.first?.kind == "request"
       rows.append(
         .object([
-          "id": .string("ordinary_inventory"), "passed": .bool(passed),
+          "id": .string("ordinary_table"), "passed": .bool(passed),
           "seconds": .number(Date().timeIntervalSince(started)), "answer": .string(result.answer),
           "runs": .array(try book.agentRuns()), "metrics": await model.lastMetrics,
         ]))
     } catch {
       rows.append(
         .object([
-          "id": .string("ordinary_inventory"), "passed": .bool(false),
+          "id": .string("ordinary_table"), "passed": .bool(false),
           "error": .string(error.localizedDescription),
         ]))
       try emit(rows.last!)

@@ -85,13 +85,6 @@ private struct ItemDetails: Sendable {
       removed ? "Removed" : item.status == "rejected" ? "Withdrawn" : item.status.capitalized
     return [item.category.capitalized, item.meaning.capitalized, status].joined(separator: " · ")
   }
-  private var movementDirection: String? {
-    guard item.kind == "movement", let quantity = try? Numbers.decimal(item.data["quantity"].text)
-    else { return nil }
-    if quantity == 0 { return "No stock quantity change" }
-    let amount = Numbers.string(quantity < 0 ? -quantity : quantity)
-    return (quantity < 0 ? "Decrease: " : "Increase: ") + amount + " " + item.data["subject"].text
-  }
   private func scalarDetail(_ key: String) -> String? {
     switch item.data[key] {
     case .string, .number, .bool: return item.data[key].text
@@ -295,13 +288,6 @@ private struct ItemDetails: Sendable {
         ScrollView {
           VStack(alignment: .leading, spacing: 18) {
             Text(item.title).readingFont(.title2).accessibilityAddTraits(.isHeader)
-            if let movementDirection {
-              Text(movementDirection).readingFont(.headline).accessibilityAddTraits(.isHeader)
-              if item.status == "draft" {
-                Text("Check whether these units entered or left your stock before accepting.")
-                  .foregroundStyle(.secondary)
-              }
-            }
             if let saved = references.document, saved.body.originVersionID == item.id {
               ReferenceReadingText(
                 identity: item.id + (saved.body.id ?? ""), presentation: saved.presentation,
@@ -356,8 +342,6 @@ private struct ItemDetails: Sendable {
                   if !["input", "inputs", "supersedes", "datasetID", "url"].contains(key),
                     !(item.kind == "calculation" && item.data["evaluation"] != .null
                       && ["populationScope", "captured", "submittedInputs"].contains(key)),
-                    !(item.kind == "movement"
-                      && ["requestSourceID", "status", "meaning"].contains(key)),
                     !(item.category == "source" && item.kind == "request"
                       && (["conversationID", "messageID"].contains(key)
                         || (key == "context" && item.data["context"].string != nil))),

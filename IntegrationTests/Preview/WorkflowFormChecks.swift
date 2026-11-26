@@ -12,18 +12,18 @@ import SevraPreviewUI
   let source = try book.addItem(
     category: "source", kind: "observation", title: "Synthetic receipt", status: "accepted")
   let action = try book.saveApplicationDefinition(
-    logicalID: identifier(), content: ActionRegistry.receivingDefinition())
+    logicalID: identifier(), content: ActionRegistry.documentDefinition(title: "Draft a note", description: "A note"))
   let workflow = try book.saveApplicationDefinition(
     logicalID: identifier(),
     content: .object([
-      "kind": .string("workflow"), "title": .string("Receive and review"),
+      "kind": .string("workflow"), "title": .string("Draft and review"),
       "description": .string("Synthetic"),
       "parameters": action.parameters,
       "payload": .object([
         "readPolicy": .string("latest-at-step"),
         "steps": .array([
           .object([
-            "id": .string("receive"), "kind": .string("action"),
+            "id": .string("draft"), "kind": .string("action"),
             "binding": .object(["mode": .string("exact"), "versionID": .string(action.id)]),
             "arguments": .object(
               Dictionary(
@@ -32,7 +32,7 @@ import SevraPreviewUI
                 })),
           ]),
           .object([
-            "id": .string("review"), "kind": .string("review"), "review": .string("receive"),
+            "id": .string("review"), "kind": .string("review"), "review": .string("draft"),
           ]),
         ]),
       ]),
@@ -40,11 +40,8 @@ import SevraPreviewUI
   let form = try book.saveApplicationDefinition(
     logicalID: identifier(), content: ActionRegistry.formDefinition(target: workflow))
   let arguments: Value = .object([
-    "delivery": .string("synthetic-1"), "effective": .string("2026-10-28"),
-    "evidence": .string(source.id),
-    "lines": .array([
-      .object(["line": .string("1"), "subject": .string("bolts"), "quantity": .string("5")])
-    ]),
+    "title": .string("Synthetic note"), "body": .string("Oak Supply quoted 2.40 each."),
+    "evidence": .string(source.id), "meaning": .string("actual"), "scenario": .string("actual"),
   ])
   let session = FormDraftSession(workbook: book, key: "workflow")
   await session.open(form.id)
@@ -122,7 +119,7 @@ import SevraPreviewUI
   let form = try book.saveApplicationDefinition(
     logicalID: identifier(), content: ActionRegistry.formDefinition(target: action))
   let arguments: Value = .object([
-    "title": .string("Receiving report"), "body": .string("First line.\nSecond line. 💡"),
+    "title": .string("Quote report"), "body": .string("First line.\nSecond line. 💡"),
     "evidence": .string(source.id), "meaning": .string("estimate"), "scenario": .string("actual"),
   ])
   let session = FormDraftSession(workbook: book, key: "report")

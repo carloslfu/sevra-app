@@ -9,9 +9,7 @@ func checkProposalReview() throws {
   let book = try Workbook.create(at: root, title: "Review")
   let observation = try book.addItem(
     category: "source", kind: "observation", title: "Handover",
-    text: "Two fittings left stock; opening stock was 20.", status: "accepted")
-  try book.setOpeningBalance(
-    subject: "fittings", quantity: "20", effective: "2026-01-01", sourceID: observation.id)
+    text: "Two fittings were handed over.", status: "accepted")
   func expect(_ condition: @autoclosure () throws -> Bool) throws {
     try require(
       try condition(), "proposal_review", "Proposal history/current state projection changed.")
@@ -20,13 +18,13 @@ func checkProposalReview() throws {
     let run = try book.startAgentRequest(
       "Propose the handover", conversation: book.startChat, model: "fixture")
     let args: Value = .object([
-      "subject": .string("fittings"), "quantity": .string("-2"),
-      "occurrence": .string(identifier()), "effective": .string("2026-01-02"),
-      "input": .string(observation.id),
+      "title": .string("Handover"), "text": .string("Two fittings were handed over."),
+      "kind": .string("analysis"), "meaning": .string("actual"),
+      "inputs": .array([.string(observation.id)]),
     ])
     let receipt = try book.prepareToolCall(
-      runID: run.runID, callID: identifier(), tool: "propose_movement", arguments: args)
-    let result = try WorkbookTools(book, runID: run.runID).execute("propose_movement", args)
+      runID: run.runID, callID: identifier(), tool: "propose_record", arguments: args)
+    let result = try WorkbookTools(book, runID: run.runID).execute("propose_record", args)
     _ = try book.completeToolCall(receipt, result: result)
     // The new explicit association survives interleaved activity. Legacy
     // receipts qualify only when the proposal message follows them immediately.
@@ -47,20 +45,17 @@ func checkProposalReview() throws {
     let accepted = try book.accept(projection.proposalID)
     projection = try book.workspaceSnapshot(conversation: book.startChat)!.proposalReviews[message]!
     try expect(projection.currentVersionID == accepted.id && projection.status == "accepted")
-    try expect(try book.balance(subject: "fittings")["quantity"].text == "18")
     let withdrawn = try book.undoItem(accepted.id)
     projection = try book.workspaceSnapshot(conversation: book.startChat)!.proposalReviews[message]!
     try expect(projection.currentVersionID == withdrawn.id && projection.status == "rejected")
-    try expect(try book.balance(subject: "fittings")["quantity"].text == "20")
-    let revised = try book.movement(
-      subject: "fittings", quantity: "-3", occurrence: args["occurrence"].text,
-      effective: args["effective"].text, input: observation.id, supersedes: withdrawn.id)
+    let revised = try book.addItem(
+      category: "record", kind: "analysis", title: "Handover", text: "Three fittings were handed over.",
+      inputs: [observation.id], supersedes: withdrawn.id)
     projection = try Workbook(root).workspaceSnapshot(conversation: book.startChat)!.proposalReviews[
       message]!
     try expect(projection.currentVersionID == revised.id && projection.currentVersion == 4)
     try expect(projection.status == "draft" && projection.proposalID != revised.id)
     try expect(try encoded(book.historyMessage(message)) == encoded(original))
-    try expect(try book.balance(subject: "fittings")["quantity"].text == "20")
 
     // An arbitrary link or a receipt from another conversation cannot establish
     // a current review status. No original message is rewritten for backfill.

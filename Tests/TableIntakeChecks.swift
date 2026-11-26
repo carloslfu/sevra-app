@@ -114,8 +114,6 @@ func checkTableIntake(at root: URL) {
       let (book, source, table) = try fixture(
         "Apply-" + mode.rawValue, text: "code,amount\n0012,7\n0013,5\n0014,2\n")
       let original = try book.rows(table.id)
-      try book.setOpeningBalance(
-        subject: "stock", quantity: "20", effective: "2026-01-01", sourceID: source.id)
       let preview = try book.previewTableUpdate(
         sourceID: source.id, datasetID: table.id, mode: mode,
         mapping: mapping, keys: mode == .merge ? ["sku"] : [])
@@ -151,7 +149,6 @@ func checkTableIntake(at root: URL) {
       let redone = try book.undoItem(undone.id, token: "redo-once")
       try expect(
         redone.status == "accepted" && book.rows(table.id).map(\.data) == applied.map(\.data))
-      try expect(try book.balance(subject: "stock")["quantity"].text == "20")
       try expect(try book.verify()["ok"] == .bool(true))
       let archive = root.appendingPathComponent("Update-" + mode.rawValue + ".sevraz")
       try book.export(to: archive)

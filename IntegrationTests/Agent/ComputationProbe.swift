@@ -126,10 +126,10 @@ func runComputationProbe(modelsRoot: String, library: String, engine: String, ou
     print("PASS selected model publishes exact complete query result as an estimate draft")
     _ = try await ask(
       "report",
-      "Write a short report named Receiving outlook from the saved Counts snapshot result. Include both item quantities and clearly say these are estimates, leaving the report as a draft. Do not accept either result."
+      "Write a short report named Counts outlook from the saved Counts snapshot result. Include both item quantities and clearly say these are estimates, leaving the report as a draft. Do not accept either result."
     )
     let report = try expectValue(
-      book.items(kind: "document").first { $0.title == "Receiving outlook" })
+      book.items(kind: "document").first { $0.title == "Counts outlook" })
     try expectEqual(report.status, "draft")
     try expectEqual(report.text.lowercased().contains("estimate"), true)
     try expectEqual(report.text.contains("2") && report.text.contains("5"), true)

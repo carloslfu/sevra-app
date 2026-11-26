@@ -40,17 +40,22 @@ private actor ReviewReadGate {
     "sevra-review-" + identifier())
   defer { try? FileManager.default.removeItem(at: root) }
   let book = try Workbook.create(at: root.appendingPathComponent("Queue.sevra"), title: "Review")
-  func expect(_ value: @autoclosure () throws -> Bool) throws {
-    try require(try value(), "review_queue_check", "Current draft discovery or paging changed.")
+  func expect(_ value: @autoclosure () throws -> Bool, line: Int = #line) throws {
+    try require(
+      try value(), "review_queue_check", "Current draft discovery or paging changed (line \(line)).")
   }
   let source = try book.addItem(
     category: "source", kind: "observation", title: "Opening stock",
     text: "20 fittings", status: "accepted")
-  try book.setOpeningBalance(
-    subject: "fittings", quantity: "20", effective: "2026-01-01", sourceID: source.id)
-  let move = try book.movement(
-    subject: "fittings", quantity: "-2", occurrence: "sale-1",
-    effective: "2026-01-02", input: source.id)
+  let table = try book.createDataset(
+    title: "Fittings", columns: [.init(id: "count", title: "Count", type: "decimal")],
+    rows: [["count": .string("20")]], sourceID: source.id)
+  func count() throws -> String { try book.rows(table.id)[0].data["count"].text }
+  func change(_ value: String) throws -> Item {
+    try book.proposeTableEdit(
+      table.id, edits: [RowEdit(id: try book.rows(table.id)[0].id, values: ["count": .string(value)])])
+  }
+  let move = try change("18")
   var expected = Set([move.id])
   for index in 0..<24 {
     let item = try book.addItem(
@@ -77,11 +82,11 @@ private actor ReviewReadGate {
   try expect(Set(first.items.map(\.id)).isDisjoint(with: last.items.map(\.id)))
   let home = try book.workspaceSnapshot(conversation: book.startChat)!.reviewQueue
   try expect(home.items.count == 5 && home.nextCursor != nil)
-  try expect(try book.balance(subject: "fittings")["quantity"].text == "20")
+  try expect(try count() == "20")
   let declined = try book.withdrawDraft(move.id, token: "withdraw-once")
   try expect(try book.withdrawDraft(move.id, token: "withdraw-once").id == declined.id)
   try expect(try book.reviewQueue(limit: 100).items.count == 24)
-  try expect(try book.balance(subject: "fittings")["quantity"].text == "20")
+  try expect(try count() == "20")
   try expect(try book.item(move.id).status == "draft")
   let restored = try book.undoItem(declined.id)
   try expect(restored.status == "draft")
@@ -92,7 +97,7 @@ private actor ReviewReadGate {
   } catch let error as SevraError where error.code == "stale_revision" {}
   let accepted = try book.accept(restored.id)
   expected.remove(move.id)
-  try expect(try book.balance(subject: "fittings")["quantity"].text == "18")
+  try expect(try count() == "18")
   try expect(
     !book.reviewQueue(limit: 100).items.contains { $0.id == move.id || $0.id == accepted.id })
   do {
@@ -103,12 +108,10 @@ private actor ReviewReadGate {
     _ = try book.withdrawDraft(accepted.id)
     throw SevraError("test", "An accepted change was withdrawn as an unapplied draft")
   } catch let error as SevraError where error.code == "not_draft" {}
-  let withdrawn = try book.undoItem(accepted.id)
-  try expect(try book.balance(subject: "fittings")["quantity"].text == "20")
+  _ = try book.undoItem(accepted.id)
+  try expect(try count() == "20")
   try expect(try book.reviewQueue(limit: 100).items.count == 24)
-  let revised = try book.movement(
-    subject: "fittings", quantity: "-3", occurrence: "sale-1",
-    effective: "2026-01-02", input: source.id, supersedes: withdrawn.id)
+  let revised = try change("17")
   expected.insert(revised.id)
   try expect(Set(book.reviewQueue(limit: 100).items.map(\.id)) == expected)
   try expect(try encoded(book.item(source.id)) == before)
@@ -141,14 +144,15 @@ private actor ReviewReadGate {
   try expect(session.items.count == 20 && session.pageNumber == 1)
   await session.load(scope: "second", revision: 0) { _, _ in try other.reviewQueue() }
   try expect(session.items.isEmpty && !session.hasPrevious)
+  let tables = try book.datasets().map(\.id)
   let tableProposal = try book.proposeTable(
     title: "Proposed orders",
     columns: [.init(id: "quantity", title: "Quantity", type: "decimal")],
     rows: [["quantity": .string("2")]], meaning: "plan", inputs: [source.id])
   let declinedTable = try book.withdrawDraft(tableProposal.id)
-  try expect(try book.datasets().isEmpty)
+  try expect(try book.datasets().map(\.id) == tables)
   let restoredTable = try book.undoItem(declinedTable.id)
-  try expect(restoredTable.status == "draft" && book.datasets().isEmpty)
+  try expect(restoredTable.status == "draft" && book.datasets().map(\.id) == tables)
   _ = try book.withdrawDraft(restoredTable.id)
   let gate = ReviewReadGate()
   let late = Task {

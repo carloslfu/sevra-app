@@ -247,10 +247,10 @@ public struct Item: Codable, Identifiable, Equatable, Sendable {
   static let technicalKindSQL = technicalKinds.sorted().map { "'" + $0 + "'" }.joined(
     separator: ",")
   /// Kinds only a host pipeline writes, because later work trusts them: `accept`
-  /// applies table drafts, rows and movements carry table and inventory state, and
+  /// applies table drafts, rows carry table state, and
   /// decisions, calculations and technical kinds record what actually happened.
   static let hostOwnedKinds = technicalKinds.union([
-    "row", "movement", "table-change", "table-creation", "table-intake-update", "decision",
+    "row", "table-change", "table-creation", "table-intake-update", "decision",
     "calculation",
   ])
   /// What an item claims to be, the same set the items table checks.

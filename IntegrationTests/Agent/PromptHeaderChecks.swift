@@ -49,9 +49,9 @@ func checkPromptHeader() async throws {
   let expected = try PromptHeader.inputs(reasoning: .bounded512)
   var ordinary: [InferenceMessage]?
   for (prompt, conversationInput) in [
-    ("How many brass bolts do we have?", true),
+    ("Which supplier is cheaper?", true),
     ("Without changing anything, list the tables.", true),
-    ("How many brass bolts do we have?", false),
+    ("Which supplier is cheaper?", false),
   ] {
     let fixture = FirstDecision()
     _ = try? await WorkbookAgent.run(

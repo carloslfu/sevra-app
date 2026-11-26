@@ -420,7 +420,7 @@ package struct ActionConfirmations {
       task = "saving the space"
     case "set_space_pinned": task = "changing the shortcut"
     case "open_space", "open_reviews", "open_automation": task = "opening the view"
-    case "propose_movement", "propose_record", "publish_result", "prepare_action":
+    case "propose_record", "publish_result", "prepare_action":
       task = "preparing the proposal"
     case "include_archive_members": task = "including the archive files"
     case "prepare_workflow_answer": task = "preparing the answer"

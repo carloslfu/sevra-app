@@ -8,12 +8,10 @@ func checkDocumentActions(at root: URL) {
       at: root.appendingPathComponent("DocumentAction-" + name + ".sevra"), title: name)
     let source = try book.addItem(
       category: "source", kind: "observation", title: "Receipt", text: "Received5 bolts.")
-    try book.setOpeningBalance(
-      subject: "bolts", quantity: "20", effective: "2026-01-01", sourceID: source.id)
     let action = try book.saveApplicationDefinition(
       logicalID: identifier(),
       content: .object([
-        "kind": .string("action"), "title": .string("Draft receiving report"),
+        "kind": .string("action"), "title": .string("Draft supplier report"),
         "description": .string("New prose for separate review."),
         "parameters": .array(ActionRegistry.documentParameters),
         "payload": .object([
@@ -29,8 +27,8 @@ func checkDocumentActions(at root: URL) {
   }
   func arguments(_ source: Item, meaning: String = "estimate") -> Value {
     .object([
-      "title": .string("Receiving report"),
-      "body": .string("New summary of the receiving evidence."), "evidence": .string(source.id),
+      "title": .string("Supplier report"),
+      "body": .string("New summary of the supplier evidence."), "evidence": .string(source.id),
       "meaning": .string(meaning), "scenario": .string("actual"),
     ])
   }
@@ -45,13 +43,13 @@ func checkDocumentActions(at root: URL) {
     let args = arguments(source)
     let revision = try book.revision()
     let preview = try book.previewApplicationAction(form.id, arguments: args)
-    try expect(preview["documents"].array.count == 1 && preview["movements"].array.isEmpty)
+    try expect(preview["documents"].array.count == 1)
     try expect(try book.revision() == revision)
     let result = try book.invokeApplicationAction(
       form.id, arguments: args, preview: preview, token: "save-document",
       actor: .human("synthetic-form"))
     try expect(
-      result["proposals"].array.count == 1 && result["acceptedBalanceChanged"] == .bool(false))
+      result["proposals"].array.count == 1)
     let draft = try book.item(result["proposals"].array[0].text)
     try expect(
       draft.kind == "document" && draft.text == args["body"].text && draft.meaning == "estimate"
@@ -67,7 +65,6 @@ func checkDocumentActions(at root: URL) {
         actor: .human("synthetic-form")) == result)
     let accepted = try book.accept(draft.id)
     try expect(accepted.meaning == "estimate" && accepted.scenario == "actual")
-    try expect(try book.balance(subject: "bolts")["quantity"] == .string("20"))
     let copy = try book.reconstruct(to: root.appendingPathComponent("DocumentActionCopy.sevra"))
     try expect(try copy.item(accepted.id).text == draft.text)
     try expect(try copy.verify()["ok"] == .bool(true))
@@ -132,7 +129,6 @@ func checkDocumentActions(at root: URL) {
     let accepted = try book.accept(proposal)
     try expect(
       try book.advanceWorkflow(session, owner: "synthetic")["state"] == .string("completed"))
-    try expect(try book.balance(subject: "bolts")["quantity"] == .string("20"))
     try expect(try book.item(accepted.logicalID).id == accepted.id)
     try expect(try book.items().filter { $0.kind == "document" }.count == 1)
     try expect(try book.verify()["ok"] == .bool(true))
@@ -191,7 +187,6 @@ func checkDocumentActions(at root: URL) {
     }
     try expect(try book.workflowRun(session.runID)["state"] == .string("needs_attention"))
     try expect(try book.item(proposal.id).text == arguments(source)["body"].text)
-    try expect(try book.balance(subject: "bolts")["quantity"] == .string("20"))
     try expect(try book.verify()["ok"] == .bool(true))
   }
   check("registered document actions cannot bypass the unqualified chat submission boundary") {
@@ -303,7 +298,6 @@ func checkDocumentActions(at root: URL) {
         try expect(
           try book.continueWorkflow(session, owner: "review")["state"] == .string("completed"))
       }
-      try expect(try book.balance(subject: "bolts")["quantity"] == .string("20"))
       try expect(try book.verify()["ok"] == .bool(true))
     }
   }

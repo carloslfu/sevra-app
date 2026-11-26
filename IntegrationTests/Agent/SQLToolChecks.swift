@@ -82,7 +82,7 @@ func checkSQLTool() async throws {
     request.contains(
       "supplier_comparison(supplier TEXT, quantity REAL, unit_cost REAL, total REAL GENERATED) 2 rows"),
     true)
-  try expectEqual(request.contains("Tables for sql: stock(subject TEXT"), true)
+  try expectEqual(request.contains("Tables for sql: supplier_comparison("), true)
   try expectEqual(try book.chatSQLTables(byteLimit: 10), "")
   // The answer rests on the query: its figures pass, and the host attaches the rows it read.
   try expectEqual(answered.state, "complete")

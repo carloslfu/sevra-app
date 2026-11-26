@@ -26,10 +26,9 @@ func checkBusinessOrigins(at root: URL) {
   ) {
     let (book, data) = try fixture("Review")
     let accepted = try book.item(data["acceptedID"].text)
-    let correction = try book.movement(
-      subject: "parts", quantity: "6", occurrence: accepted.data["occurrence"].text,
-      effective: accepted.data["effective"].text, input: data["sourceID"].text,
-      supersedes: accepted.id)
+    let correction = try book.addItem(
+      category: "record", kind: accepted.kind, title: accepted.title, text: "Corrected summary.",
+      inputs: [data["sourceID"].text], supersedes: accepted.id)
     for id in [data["proposalID"].text, accepted.id, correction.id] {
       let result = try trace(book, [id, id])
       try expect(result["inputs"].array.count == 1 && result["automaticProducers"].array.count == 1)
@@ -42,12 +41,13 @@ func checkBusinessOrigins(at root: URL) {
   check("automatic authored configuration does not contaminate independent manual business data") {
     let (book, data) = try fixture("Control")
     let action = try book.saveApplicationDefinition(
-      logicalID: identifier(), content: ActionRegistry.receivingDefinition(),
+      logicalID: identifier(),
+      content: ActionRegistry.documentDefinition(title: "Draft a note", description: "Manual"),
       inputs: [data["acceptedID"].text])
     let workflow = try book.saveApplicationDefinition(
       logicalID: identifier(), content: book.workflowTemplate(action.id))
     var args = data["arguments"].object
-    args["delivery"] = .string("new-independent-delivery")
+    args["title"] = .string("New independent note")
     let run = try book.startWorkflow(workflow.id, arguments: .object(args), token: "manual")
     let session = try book.authorizeWorkflowExecution(run["id"].text)
     let waiting = try book.continueWorkflow(session, owner: "control-origin")
@@ -63,7 +63,7 @@ func checkBusinessOrigins(at root: URL) {
   check("manual continuation and new human Sources retain automatic business inputs") {
     let (book, data) = try fixture("Manual")
     var args = data["arguments"].object
-    args["delivery"] = .string("manual-follow-up")
+    args["title"] = .string("Manual follow-up")
     args["evidence"] = data["acceptedID"]
     let run = try book.startWorkflow(
       data["workflowID"].text, arguments: .object(args), token: "manual")
@@ -187,10 +187,9 @@ func checkBusinessOrigins(at root: URL) {
   check("origin validates direct producer policies and cannot hide them by relabeling kind") {
     for damage in 0..<4 {
       let (book, data) = try fixture("DirectDamage\(damage)")
-      let action = try book.saveApplicationDefinition(
-        logicalID: identifier(), content: ActionRegistry.receivingDefinition())
+      let action = try noteAction(book)
       var arguments = data["arguments"].object
-      arguments["delivery"] = .string("direct-policy-test")
+      arguments["title"] = .string("Direct policy test")
       let plan = try book.previewApplicationAction(action.id, arguments: .object(arguments))
       let saved = try book.invokeApplicationAction(
         action.id, arguments: .object(arguments), preview: plan, token: "direct")

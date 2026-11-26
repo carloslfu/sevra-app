@@ -66,7 +66,7 @@ def main():
         if not options.paths_only:
             workbook = Path(temporary) / 'Missing model.sevra'
             subprocess.run([str(binary), 'demo', str(workbook)], check=True, capture_output=True)
-            result = subprocess.run([str(binary), 'ask', str(workbook), 'What is the current stock?',
+            result = subprocess.run([str(binary), 'ask', str(workbook), 'Which supplier is cheaper?',
                                      str(Path(temporary) / 'No model')], capture_output=True, text=True, timeout=30)
             assert result.returncode != 0 and 'Open Model Settings' in result.stderr, result.stderr
             runs = json.loads(subprocess.check_output([str(binary), 'runs', str(workbook)], text=True))['result']

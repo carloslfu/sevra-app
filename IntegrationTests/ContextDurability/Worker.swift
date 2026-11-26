@@ -32,7 +32,7 @@ private struct Plan: Codable {
       "checkpoints": .array(checkpoints),
       "checkpointDetails": .array(
         try checkpoints.map { try book.contextCheckpoint($0["id"].text) }),
-      "balance": try book.balance(subject: "brass bolts", asOf: "2099-12-31"),
+      "tables": .array(try book.datasets().map { try encoded(book.rows($0.id)) }),
       "forecast": try encoded(book.item(plan.forecastLogical)), "integrity": try book.verify(),
     ])
   }
@@ -54,18 +54,18 @@ private struct Plan: Codable {
         let forecast = try book.addItem(
           category: "record", kind: "forecast", title: "November forecast",
           text: "Estimated demand is four units.", meaning: "estimate", inputs: [source.id])
-        _ = try book.addMessage("Purchase code MAPLE-27. Keep stock unchanged.", role: "user")
+        _ = try book.addMessage("Purchase code MAPLE-27. Keep the tables unchanged.", role: "user")
         let end = try book.addMessage(
           "Recorded the supplied code and constraint.", role: "assistant")
         let prior = try book.saveContextCheckpoint(
           try book.historySlice(),
           summary:
-            "The purchase code is MAPLE-27. The forecast is a draft estimate, not an actual movement.",
+            "The purchase code is MAPLE-27. The forecast is a draft estimate, not an actual.",
           model: "durability-fixture", template: "v1", evidenceIDs: [forecast.id])
         _ = try book.addMessage(
           "Use 0.25 kg per sample. Keep the original 0.10 kg value in history.", role: "user")
         _ = try book.addMessage(
-          "Saved the revised packing instruction. No inventory changed.", role: "assistant")
+          "Saved the revised packing instruction. No table changed.", role: "assistant")
         let plan = Plan(
           history: try book.historySlice(after: end), parent: prior, references: [forecast.id],
           forecast: forecast.id, forecastLogical: forecast.logicalID)
@@ -106,7 +106,7 @@ private struct Plan: Codable {
           try book.saveContextCheckpoint(
             plan.history,
             summary:
-              "Use 0.25 kg per sample; original 0.10 kg remains in history. No inventory change was authorized.",
+              "Use 0.25 kg per sample; original 0.10 kg remains in history. No table change was authorized.",
             model: "durability-fixture", template: "v1", evidenceIDs: plan.references,
             parentID: plan.parent, token: "durability-checkpoint-once", cancellation: cancel)
         })

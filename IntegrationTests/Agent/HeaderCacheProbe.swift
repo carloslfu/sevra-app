@@ -178,7 +178,7 @@ private func prepareHeaderProbe(modelsRoot: String, engine: String, root: URL) a
   let bookURL = root.appendingPathComponent("Business.sevra")
   _ = try Demo.create(at: bookURL)
   _ = try? await WorkbookAgent.run(
-    "How many brass bolts do we have?", workbook: try Workbook(bookURL),
+    "Which supplier is cheaper?", workbook: try Workbook(bookURL),
     context: "Space: Home\nActive space ID: home", model: fixture, conversationInput: true)
   guard let first = await fixture.first else {
     throw SevraError("probe", "The chat turn dispatched no decision.")

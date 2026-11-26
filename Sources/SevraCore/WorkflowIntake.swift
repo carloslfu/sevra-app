@@ -211,7 +211,7 @@ extension Workbook {
       ]),
       "notice": .string(
         changes
-          ? "Draft update only. Review the exact mapped values before applying rows. No inventory or financial effects."
+          ? "Draft update only. Review the exact mapped values before applying rows. Nothing changes until you accept it."
           : "This file changes nothing in the table, so there is nothing to review."
       ),
     ])

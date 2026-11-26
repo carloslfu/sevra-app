@@ -47,7 +47,7 @@ package enum GeneralTools {
     "archive": "archive_members", "reviews": "review_queue", "workflows": "workflow_activity",
     "actions": "workspace_actions", "app_guide": "native_app_sdk",
     "definition_guide": "definition_registry",
-    "receiving_guide": "guide", "view_guide": "guide", "removed": "removed",
+    "view_guide": "guide", "removed": "removed",
   ]
   /// `save` kinds and the operation behind each. A tool is saved by the core's own `save`.
   package static let saves: [String: String] = [
@@ -63,8 +63,7 @@ package enum GeneralTools {
     "automation.open": "open_automation", "archive.include": "include_archive_members",
     "definition.evaluate": "evaluate_definition", "action.preview": "preview_action",
     "action.prepare": "prepare_action", "workflow.start": "start_workflow",
-    "stock.move": "propose_movement", "stock.balance": "balance",
-    "records.count": "count_records", "template.receiving": "receiving_template",
+    "records.count": "count_records",
     "template.form": "form_template", "template.workflow": "workflow_template",
     "workflow.prepare_answer": "prepare_workflow_answer",
   ]
@@ -72,7 +71,7 @@ package enum GeneralTools {
   /// Named actions whose inputs the grammar enforces. Preparing a workflow answer is offered
   /// only in its own step, so a scope never has more than ten of these.
   static let exact: Set<String> = [
-    "view.open", "view.pin", "view.edit", "stock.move", "workflow.start", "definition.evaluate",
+    "view.open", "view.pin", "view.edit", "workflow.start", "definition.evaluate",
     "action.preview", "action.prepare", "template.form", "template.workflow",
     "workflow.prepare_answer",
   ]

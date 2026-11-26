@@ -59,7 +59,14 @@ def run(cli, worker, output):
 
         # An automatically authored definition is configuration. Its origin
         # remains inspectable in the broad graph but cannot taint unrelated data.
-        template = call("receiving-template", book)
+        primitive = call("action-registry", book)[0]
+        template = {
+            "kind": "action", "title": "Draft a note", "description": "Automatic configuration",
+            "parameters": primitive["parameters"],
+            "payload": {"primitive": {"id": primitive["id"], "version": primitive["version"]},
+                        "arguments": {p["id"]: {"parameter": p["id"]}
+                                      for p in primitive["parameters"]}},
+        }
         action = save(template, "automatic-config", [data["acceptedID"]])
         saved_workflow = call("definition-read", book, data["workflowID"])
         workflow_content = {key: saved_workflow[key] for key in
@@ -67,7 +74,7 @@ def run(cli, worker, output):
         workflow_content["payload"]["steps"][0]["binding"]["versionID"] = action["id"]
         workflow = save(workflow_content, "manual-workflow")
         arguments = copy.deepcopy(data["arguments"])
-        arguments["delivery"] = "independent-manual-delivery"
+        arguments["title"] = "Independent manual note"
         manual = call("workflow-start", book, workflow["id"], json.dumps(arguments), "manual")
         waiting = call("workflow-continue", book, manual["id"], folder / "absent-model")
         manual_id = waiting["steps"][0]["output"]["value"]["proposals"][0]

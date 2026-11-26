@@ -14,7 +14,8 @@ import SevraCore
   static func snapshot(_ book: Workbook, runID: String) throws -> Value {
     .object([
       "run": try book.workflowRun(runID), "counts": try book.counts(),
-      "balance": try book.balance(subject: "bolts", asOf: "2099-12-31"), "events": try book.workflowEvents(limit: 50),
+      "accepted": .number(Double(try book.items(kind: "document").filter { $0.status == "accepted" }.count)),
+      "events": try book.workflowEvents(limit: 50),
       "integrity": try book.verify(),
     ])
   }
@@ -60,9 +61,7 @@ import SevraCore
       if operation == "setup" || operation == "setup-form" {
         let book = try Workbook.create(at: path, title: "Synthetic workflow")
         let source = try book.addItem(
-          category: "source", kind: "observation", title: "Synthetic delivery", status: "accepted")
-        try book.setOpeningBalance(
-          subject: "bolts", quantity: "20", effective: "2026-01-01", sourceID: source.id)
+          category: "source", kind: "observation", title: "Synthetic quote", status: "accepted")
         let f = try book.saveApplicationDefinition(
           logicalID: identifier(),
           content: .object([
@@ -71,11 +70,13 @@ import SevraCore
             "parameters": .array([]), "payload": .object(["expression": .string("1+1")]),
           ]))
         let action = try book.saveApplicationDefinition(
-          logicalID: identifier(), content: ActionRegistry.receivingDefinition())
+          logicalID: identifier(),
+          content: ActionRegistry.documentDefinition(
+            title: "Draft a note", description: "Synthetic fixture"))
         let workflow = try book.saveApplicationDefinition(
           logicalID: identifier(),
           content: .object([
-            "kind": .string("workflow"), "title": .string("Receive evidence"),
+            "kind": .string("workflow"), "title": .string("Note evidence"),
             "description": .string("Synthetic fixture"),
             "parameters": action.parameters,
             "payload": .object([
@@ -102,13 +103,9 @@ import SevraCore
             ]),
           ]))
         let arguments: Value = .object([
-          "delivery": .string("delivery-one"), "effective": .string("2026-10-28"),
-          "evidence": .string(source.id),
-          "lines": .array([
-            .object([
-              "line": .string("one"), "subject": .string("bolts"), "quantity": .string("5"),
-            ])
-          ]),
+          "title": .string("Synthetic note"), "body": .string("Oak Supply quoted 2.40 each."),
+          "evidence": .string(source.id), "meaning": .string("actual"),
+          "scenario": .string("actual"),
         ])
         if operation == "setup-form" {
           let form = try book.saveApplicationDefinition(

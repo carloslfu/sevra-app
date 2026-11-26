@@ -3,7 +3,7 @@ import Foundation
 
 extension WorkbookTools {
   static let applicationTools: Set<String> = [
-    "find_definitions", "read_definition", "definition_registry", "receiving_template",
+    "find_definitions", "read_definition", "definition_registry",
     "form_template", "workflow_template", "evaluate_definition",
     "save_definition", "save_template",
     "preview_action",
@@ -71,8 +71,8 @@ extension WorkbookTools {
         readOnly: readOnly, requestRunID: runID, requestSourceID: requestSourceID,
         cancellation: cancellation)
     case "publish_result": return try publishDefinitionResult(a)
-    case "find_definitions", "read_definition", "definition_registry", "receiving_template",
-      "form_template", "workflow_template":
+    case "find_definitions", "read_definition", "definition_registry", "form_template",
+      "workflow_template":
       switch tool {
       case "find_definitions":
         try fields(
@@ -115,15 +115,6 @@ extension WorkbookTools {
         try fields([], required: [])
         return .object([
           "actions": ActionRegistry.actions(), "definitionFormats": Self.definitionFormats,
-          "guides": .string(
-            "To record a delivery as draft stock movements, read kind=receiving_guide."
-          ),
-        ])
-      case "receiving_template":
-        try fields([], required: [])
-        return .object([
-          "content": ActionRegistry.receivingDefinition(),
-          "receiptID": receiptID.map(Value.string) ?? .null,
         ])
       case "workflow_template":
         try fields(["id", "stepID"], required: ["id"])
@@ -253,7 +244,7 @@ extension WorkbookTools {
         "notice": .string(
           plan["primitive"]["id"].text == ActionRegistry.documentID
             ? "Preview only. Submit document actions through a native form or explicit workflow continuation. Chat can author and queue the workflow; direct document-action submission is not qualified yet."
-            : "Preview only. Submit this current-run receiptID only when the current request authorizes these draft proposals. The host rechecks direction and the exact plan; balances stay unchanged until separate acceptance."
+            : "Preview only. Submit this current-run receiptID only when the current request authorizes these draft proposals. The host rechecks the exact plan; nothing is accepted until separate review."
         ),
       ])
     case "commit_action_preview":
@@ -324,7 +315,7 @@ extension WorkbookTools {
       "payload {query,dataMode:live|exact}; query {sources:[{datasetID,definitionID,scope?:{meaning,status,scenario}}],select:[{id,column:{source:0,column:columnID},aggregate?}],filters?:[{column:{source:0,column:columnID},op:eq|ne|lt|lte|gt|gte|contains|isNull|isEmpty,value?:literal|{parameter:id}}],sort?:[{field:id,descending?:boolean}],limit?:1..1000}. Inspect registered dataset IDs, definitionIDs and stored columns first. Source scopes do not change row meaning. Exact dataMode pins schema, not historical row contents. No raw SQL."
     ),
     "action": .string(
-      "payload {primitive:{id,version},arguments:{target:{parameter:id}|{literal:value,unit?}|{function:binding,arguments}}}. Primitive schemas are in actions. Use receiving_template for a starter; saving is not execution."
+      "payload {primitive:{id,version},arguments:{target:{parameter:id}|{literal:value,unit?}|{function:binding,arguments}}}. Primitive schemas are in actions. Saving is not execution."
     ),
     "nativeViews": .string(
       "calculation/function and query/query components bind definitionBinding and explicit typed arguments. Fill required arguments on returned nativeComponent before saving. Live refreshes; Pin space captures first-page values/coverage. publish_result uses this run evaluation receipt and saves a separate draft Record, never acceptance."
@@ -383,7 +374,7 @@ extension Workbook {
         let call = try toolCall(receiptID, conversation: conversation)
         try require(
           call["run_id"].text == runID && call["state"].text == "completed"
-            && ["receiving_template", "form_template", "workflow_template"].contains(
+            && ["form_template", "workflow_template"].contains(
               call["tool"].text),
           "definition_template", "Choose this active run's successful template receipt.")
         let row = try db.execute(
@@ -395,11 +386,7 @@ extension Workbook {
           "The definition template receipt changed.")
         let result = try Value.parse(json)
         let expected: Value
-        if call["tool"].text == "receiving_template" {
-          try require(
-            call["arguments"].object.isEmpty, "definition_template", "Invalid template call.")
-          expected = ActionRegistry.receivingDefinition()
-        } else if call["tool"].text == "workflow_template" {
+        if call["tool"].text == "workflow_template" {
           let arguments = call["arguments"]
           try require(
             Set(arguments.object.keys).isSubset(of: ["id", "stepID"])

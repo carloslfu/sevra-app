@@ -674,11 +674,13 @@ import SwiftUI
         arguments: .object([:]))
     case "form":
       let action = try book!.saveApplicationDefinition(
-        logicalID: identifier(), content: ActionRegistry.receivingDefinition())
+        logicalID: identifier(),
+        content: ActionRegistry.documentDefinition(
+          title: "Draft a supplier note", description: "Synthetic; review before accepting"))
       let form = try book!.saveApplicationDefinition(
         logicalID: identifier(), content: ActionRegistry.formDefinition(target: action))
       return .init(
-        type: type, title: "Receive delivery",
+        type: type, title: "Draft a supplier note",
         definitionBinding: .object(["mode": .string("live"), "logicalID": .string(form.logicalID)]))
     case "calculation":
       let f = try book!.saveApplicationDefinition(

@@ -208,7 +208,7 @@ extension Workbook {
       sheets: parsed.sheets)
   }
 
-  /// Inspect only. A preview cannot apply rows or accept inventory/financial effects.
+  /// Inspect only. A preview cannot apply rows or accept anything.
   /// Explicit full mappings are the first qualified subset; no header/key/locale guessing.
   public func previewTableUpdate(
     sourceID: String, datasetID: String, mode: TableUpdateMode,
@@ -466,7 +466,7 @@ extension Workbook {
                   + "; formulas are not recalculated."
               ]
               : []) + [
-              "No business inventory or financial effects are accepted by updating table values.",
+              "Updating table values changes only this table. Nothing else is accepted.",
               "Append keeps duplicates. Replacement removes every current target row.",
             ])
         return .init(

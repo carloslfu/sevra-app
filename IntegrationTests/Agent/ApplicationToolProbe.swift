@@ -61,7 +61,7 @@ func runApplicationToolProbe(modelsRoot: String, library: String, engine: String
     let previousHome = try book.spaces().first { $0.id == "home" }!.definition.components
     started = Date()
     let formResult = try await WorkbookAgent.run(
-      "Create a reusable receiving action and its native form, named Goods in, using the registered receiving starter. Add that saved form to our existing Home. Keep all existing Home sections. Do not prepare inventory proposals yet.",
+      "Create a reusable action that drafts a document from evidence, and its native form, named Goods in. Add that saved form to our existing Home. Keep all existing Home sections. Do not draft anything yet.",
       workbook: book, modelDirectory: URL(fileURLWithPath: modelsRoot), model: model,
       enableCompaction: false)
     try record("author-home-form", result: formResult, started: started)
@@ -82,46 +82,18 @@ func runApplicationToolProbe(modelsRoot: String, library: String, engine: String
     _ = try book.addItem(
       category: "source", kind: "observation", title: "Receipt R-2026",
       text:
-        "SYNTHETIC RECEIPT R-2026\nDate 2026-10-28\nWe received 3 bolts and 2 nuts into our stock.\nLine 1: bolts, 3 items\nLine 2: nuts, 2 items\nDelivery identity R-2026. No acceptance yet."
+        "SYNTHETIC RECEIPT R-2026\nDate 2026-10-28\nWe received 3 bolts and 2 nuts.\nNo acceptance yet."
     )
     started = Date()
     let submitted = try await WorkbookAgent.run(
-      "Use our saved Goods in form to prepare the inventory proposals from Receipt R-2026 for my review. Use its delivery identity, date and line numbers. Do not accept anything.",
+      "Use our saved Goods in form to draft a note titled R-2026 summary from Receipt R-2026 for my review. Do not accept anything.",
       workbook: book, modelDirectory: URL(fileURLWithPath: modelsRoot), model: model,
       enableCompaction: false)
     try record("submit-saved-form", result: submitted, started: started)
-    try expectEqual(submitted.state, "needs_review")
-    let movements = try book.items(kind: "movement")
-    try expectEqual(movements.count, 2)
-    try expectEqual(movements.allSatisfy { $0.status == "draft" && $0.meaning == "actual" }, true)
-    try expectEqual(Set(movements.map { $0.data["subject"].text }), ["bolts", "nuts"])
-    for movement in movements {
-      try expectEqual(
-        movement.data["quantity"], .string(movement.data["subject"].text == "bolts" ? "3" : "2"))
-      try expectEqual(movement.data["effective"], .string("2026-10-28T00:00:00.000Z"))
-    }
+    let drafts = try book.items(kind: "document").filter { $0.status == "draft" }
+    try expectEqual(drafts.count, 1)
     try expectEqual(try book.items(kind: "application_invocation").count, 1)
     print("PASS native application submit-saved-form")
-    _ = try book.addItem(
-      category: "source", kind: "observation", title: "Receipt R-2027",
-      text:
-        "SYNTHETIC RECEIPT R-2027\nDate 2026-10-28\n4 washers handed over.\nLine 1: washers, 4 items\nDelivery identity R-2027. No sender or receiver identified."
-    )
-    started = Date()
-    let unclear = try await WorkbookAgent.run(
-      "Use Goods in to prepare Receipt R-2027 for review, using the receipt's date and line number. Do not accept anything.",
-      workbook: book, modelDirectory: URL(fileURLWithPath: modelsRoot), model: model,
-      enableCompaction: false)
-    try record("ambiguous-direction", result: unclear, started: started)
-    try expectEqual(try book.items(kind: "movement").count, 2)
-    try expectEqual(try book.items(kind: "application_invocation").count, 1)
-    try expectEqual(unclear.state, "complete")
-    let clarification = unclear.answer.lowercased()
-    try expectEqual(
-      ["receiv", "incoming", "outgoing", "into", "from", "direction", "stock"].contains {
-        clarification.contains($0)
-      }, true)
-    print("PASS native application ambiguous-direction preserves original proposals")
     try expectEqual(try book.verify()["ok"], .bool(true))
     _ = await model.unload()
   } catch {

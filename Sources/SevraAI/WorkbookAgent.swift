@@ -956,9 +956,6 @@ public enum WorkbookAgent {
           if !computed && CalculationRequirement.hasComparisonClaim(modelAnswer) {
             problems.append("Run the comparison or arithmetic with sql before answering.")
           }
-          if CostQualification.overstates(modelAnswer) {
-            problems.append(CostQualification.feedback)
-          }
           if keepsSummary, FidelityClaim.overstates(modelAnswer) {
             problems.append(FidelityClaim.feedback)
           }
@@ -1204,7 +1201,6 @@ public enum WorkbookAgent {
         var currencyThisStep = false
         var callFailed = false
         var navigationFailure: String?
-        var movementReview: Value?
         var preparationPreviewReceiptID: String?
         var commitArguments: Value?
         var nothingFailed = false
@@ -1215,20 +1211,6 @@ public enum WorkbookAgent {
           if let appRoutingFailure { throw appRoutingFailure }
           try ItemReferenceCandidates.validate(tool: tool, arguments: a, choices: itemChoices)
           try DocumentCopyCandidates.validate(tool: tool, arguments: a, choices: copyChoices)
-          if tool == "propose_movement", !readOnly {
-            progress("Checking inventory direction…")
-            let evidence = try workbook.item(a["input"].text)
-            let chunks = evidence.category == "source" ? try workbook.readChunks(evidence.id) : []
-            let reviewed = try await MovementDirectionReview.check(
-              request: requestFacts, evidence: evidence, chunks: chunks, subject: a["subject"].text,
-              quantity: a["quantity"].text, model: model, directory: modelDirectory,
-              cancellation: cancellation, progress: progress)
-            metrics.append(await model.lastMetrics)
-            movementReview = reviewed.receipt
-            try require(
-              reviewed.matches, "movement_direction",
-              "Did these units enter your stock or leave it? I haven’t prepared this movement yet.")
-          }
           if tool == "prepare_action" {
             try require(
               !readOnly, "read_only_request",
@@ -1253,16 +1235,6 @@ public enum WorkbookAgent {
             try require(
               plan["primitive"]["id"].text != "records.draftDocument", "action_capability",
               "Use workspace_action form.submit with the saved form and typed inputs, or workflow.continue for the requested workflow. Document actions require that exact reviewed context."
-            )
-            progress("Checking every inventory direction…")
-            let reviewed = try await ActionDirectionReview.check(
-              request: requestFacts, plan: plan, workbook: workbook, model: model,
-              directory: modelDirectory, cancellation: cancellation, progress: progress)
-            metrics.append(contentsOf: reviewed.metrics)
-            movementReview = reviewed.receipt
-            try require(
-              reviewed.matches, "movement_direction",
-              "Did all these units enter your stock, or did any leave it? I haven’t saved any proposals from this action yet."
             )
             commitArguments = .object(["previewReceiptID": .string(previewID)])
           }
@@ -1502,15 +1474,6 @@ public enum WorkbookAgent {
           // Reminding the model of a stopped request changes nothing, so nothing failed.
           nothingFailed = ["stopped_request"].contains(
             (error as? SevraError)?.code)
-          if ["propose_movement", "prepare_action"].contains(tool),
-            let failure = error as? SevraError,
-            ["movement_direction", "movement_review", "duplicate_effect"].contains(failure.code)
-          {
-            navigationFailure =
-              ["movement_direction", "movement_review"].contains(failure.code)
-              ? failure.message
-              : "This event already has an inventory record. I haven’t created another movement. Should we review the existing record or identify a separate delivery?"
-          }
           if ["open_space", "open_reviews", "open_automation", "set_space_pinned"].contains(tool),
             let failure = error as? SevraError,
             [
@@ -1608,11 +1571,6 @@ public enum WorkbookAgent {
           recordedResult = .object(fields)
         } else if !callFailed {
           consecutiveFailures = 0
-        }
-        if let movementReview {
-          var fields = result.object
-          fields["directionReview"] = movementReview
-          recordedResult = .object(fields)
         }
         if let preparationPreviewReceiptID {
           var fields = recordedResult.object
@@ -1781,8 +1739,7 @@ public enum WorkbookAgent {
             focus = AgentFocus(kind: "space", id: id)
           }
           if [
-            "draft", "propose_record", "propose_movement",
-            "publish_result",
+            "draft", "propose_record", "publish_result",
           ]
           .contains(tool),
             let id = result["id"].string
@@ -1842,13 +1799,6 @@ public enum WorkbookAgent {
           // A long receipt is paged, but what the model must see of it comes first and is short.
           // Its inputs are the host's to cite, so they need not have been shown.
           let visible = projected == result ? result : ToolResultProjection.visibleValue(projected)
-          if tool == "balance", visible["quantity"] != .null {
-            computed = true
-            computedThisStep = true
-            let basis = result["basis"].string.map { [$0] } ?? []
-            admitCalculation(
-              basis + result["effects"].array.compactMap { $0["item_id"].string }, naming: basis)
-          }
           let evidenceText = try projected.json()
           if evidenceText.contains(where: { "$€£".contains($0) }) {
             currencyEvidence = true
@@ -1955,7 +1905,7 @@ public enum WorkbookAgent {
           let receipt =
             "Ready to review:\n"
             + proposals.map { "- " + $0.referenceMarkdown }.joined(separator: "\n")
-            + "\nAccepted balances are unchanged. Review and accept each proposal separately."
+            + "\nNothing is accepted yet. Review and accept each proposal separately."
           return try conclude(
             receipt, step: step, receiptID: receiptID, state: "needs_review",
             payload: .object([
@@ -1969,7 +1919,7 @@ public enum WorkbookAgent {
         }
         if tool == "prepare_workflow_answer", !callFailed {
           let receipt =
-            "Prepared an unsent answer from your current message. Say or type “Preview my answer” to check every value before confirming. The paused interpretation and business balances are unchanged."
+            "Prepared an unsent answer from your current message. Say or type “Preview my answer” to check every value before confirming. The paused interpretation and the workbook are unchanged."
           return try conclude(
             receipt, step: step, receiptID: receiptID,
             payload: .object([
@@ -2018,8 +1968,7 @@ public enum WorkbookAgent {
             ]), focus: AgentFocus(kind: "workflow", id: saved["id"].text))
         }
         if [
-          "propose_movement", "propose_record",
-          "publish_result",
+          "propose_record", "publish_result",
         ].contains(
           tool), let id = result["id"].string, result["status"].text == "draft"
         {
@@ -2395,13 +2344,9 @@ public enum WorkbookAgent {
     return []
   }
   static func renderActionPreview(_ plan: Value) -> String {
-    "Preview only. No draft proposals were saved; accepted balances are unchanged.\n"
-      + plan["movements"].array.map {
-        "- " + $0["quantity"].text + " items · " + citationLabel($0["subject"].text)
-          + " · " + $0["meaning"].text + " (" + $0["effective"].text + ")"
-      }.joined(separator: "\n")
+    "Preview only. No draft proposals were saved, and nothing was accepted.\n"
       + plan["documents"].array.map {
-        "\nDocument: " + citationLabel($0["title"].text) + "\nMeaning: "
+        "Document: " + citationLabel($0["title"].text) + "\nMeaning: "
           + $0["meaning"].text + "; scenario: " + citationLabel($0["scenario"].text)
           + "\nNew prose: " + $0["body"].text
       }.joined(separator: "\n")

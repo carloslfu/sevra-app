@@ -104,7 +104,7 @@ private func runModelPressureChecks(model: any WorkbookInference, directory: URL
       do {
         answer = try await service.run(
           critical
-            ? "What is the current stock of brass bolts? Use the balance tool and cite the evidence. Do not change the workbook."
+            ? "What is the Cedar Tools total in the supplier comparison? Cite the evidence. Do not change the workbook."
             : "Reply with the word Ready. Do not change the workbook.",
           workbook: book, modelDirectory: directory, cancellation: token,
           progress: { message in Task { await trigger.observe(message) } })
@@ -151,10 +151,10 @@ private func runModelPressureChecks(model: any WorkbookInference, directory: URL
       )
     }
     let result = try await service.run(
-      "What is the current stock of brass bolts? Use the balance tool and cite the evidence. Do not change the workbook.",
+      "What is the Cedar Tools total in the supplier comparison? Cite the evidence. Do not change the workbook.",
       workbook: book, modelDirectory: directory)
     try expect(
-      result.state == "complete" && result.answer.contains("18") && !result.citations.isEmpty,
+      result.state == "complete" && result.answer.contains("27.5") && !result.citations.isEmpty,
       "Fresh request did not recover after pressure release")
     let recoveryPIDs = try helperPIDs()
     let released = await service.unload()

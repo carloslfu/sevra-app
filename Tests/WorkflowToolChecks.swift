@@ -305,7 +305,10 @@ func checkWorkflowTools(at root: URL) {
   ) {
     let (book, _, _, tools, _) = try fixture("WorkflowTemplateRefusal")
     let action = try tools.execute(
-      "save_definition", .object(["content": ActionRegistry.receivingDefinition()]))
+      "save_definition",
+      .object([
+        "content": ActionRegistry.documentDefinition(title: "Draft a note", description: "A note")
+      ]))
     let revision = try book.revision()
     let template = try tools.execute(
       "workflow_template", .object(["id": action["id"], "stepID": .string("review")]))
@@ -328,8 +331,9 @@ func checkWorkflowTools(at root: URL) {
     try refuses("workflow_binding") {
       _ = try tools.execute("workflow_template", .object(["id": .string(form.id)]))
     }
-    var changed = ActionRegistry.receivingDefinition().object
-    changed["title"] = .string("New receiving")
+    var changed = ActionRegistry.documentDefinition(title: "Draft a note", description: "A note")
+      .object
+    changed["title"] = .string("New note")
     _ = try tools.execute(
       "save_definition",
       .object([

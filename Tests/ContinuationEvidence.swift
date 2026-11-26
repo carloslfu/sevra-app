@@ -18,12 +18,12 @@ func checkContinuationEvidence(at root: URL) {
       _ = try book.completeToolCall(id, result: result)
       return result
     }
-    let first = try save("Receiving review", component: "one")
-    try expect(try save("Receiving review", component: "one") == first)
-    try refuses("space_duplicate") { _ = try save("Receiving review", component: "two") }
-    try refuses("space_duplicate") { _ = try save("RECEIVING REVIEW", component: "three") }
+    let first = try save("Quote review", component: "one")
+    try expect(try save("Quote review", component: "one") == first)
+    try refuses("space_duplicate") { _ = try save("Quote review", component: "two") }
+    try refuses("space_duplicate") { _ = try save("QUOTE REVIEW", component: "three") }
     _ = try save("Another view", component: "two")
-    try expect(try book.spaces().filter { $0.title == "Receiving review" }.count == 1)
+    try expect(try book.spaces().filter { $0.title == "Quote review" }.count == 1)
     try expect(try book.spaces().count == 3)
     // A later request cannot save it again either, and it hears what the stopped one finished.
     try book.finishAgentRun(run, status: "cancelled", steps: 3, metrics: .array([]))
@@ -33,13 +33,13 @@ func checkContinuationEvidence(at root: URL) {
     let stopped = try book.continuationState(conversation: book.startChat, runID: next, messageIDs: [])[
       "stoppedRequest"]
     try expect(stopped["messageID"].text == request && stopped["status"].text == "cancelled")
-    try expect(stopped["saved"].array.map { $0["title"].text } == ["Receiving review", "Another view"])
+    try expect(stopped["saved"].array.map { $0["title"].text } == ["Quote review", "Another view"])
     try expect(stopped["text"] == .null)
     try refuses("space_duplicate") {
       _ = try WorkbookTools(book, runID: next).execute(
         "save_space",
         .object([
-          "title": .string("Receiving review"),
+          "title": .string("Quote review"),
           "definition": try encoded(
             SpaceDefinition(components: [.init(type: "text", title: "Later", text: "Again")])),
         ]))
@@ -71,13 +71,13 @@ func checkContinuationEvidence(at root: URL) {
       return result
     }
     let run = try start("Draft the memo")
-    let saved = try save(run, "Receiving memo", "One line")
-    try expect(try save(run, "Receiving memo", "One line") == saved)
-    try refuses("draft_duplicate") { _ = try save(run, "Receiving memo", "Corrected line") }
-    try refuses("draft_duplicate") { _ = try save(run, "RECEIVING MEMO", "Corrected line") }
+    let saved = try save(run, "Quote memo", "One line")
+    try expect(try save(run, "Quote memo", "One line") == saved)
+    try refuses("draft_duplicate") { _ = try save(run, "Quote memo", "Corrected line") }
+    try refuses("draft_duplicate") { _ = try save(run, "QUOTE MEMO", "Corrected line") }
     _ = try save(run, "Supplier memo", "Another line")
     try book.finishAgentRun(run, status: "complete", steps: 5, metrics: .array([]))
-    _ = try save(try start("Draft it for next month"), "Receiving memo", "Next month")
+    _ = try save(try start("Draft it for next month"), "Quote memo", "Next month")
     try expect(try book.items(kind: "document").filter { $0.category == "record" }.count == 3)
     // Asked to continue after a step limit, a real run saved its memo a second time.
     func stop(_ title: String) throws -> String {
@@ -209,7 +209,7 @@ func checkContinuationEvidence(at root: URL) {
     ])
     let space = try call(
       "save_space",
-      .object(["title": .string("Receiving review"), "definition": try encoded(definition)]))[
+      .object(["title": .string("Quote review"), "definition": try encoded(definition)]))[
         "spaceID"
       ].text
     let accepted = try book.accept(originals[0].id)
@@ -233,7 +233,7 @@ func checkContinuationEvidence(at root: URL) {
         && entries[0]["isCurrentVersion"] == .bool(false))
     try expect(state["savedSpaces"].array.count == 1)
     try expect(state["savedSpaces"].array[0]["spaceID"].text == space)
-    try expect(state["savedSpaces"].array[0]["savedTitle"].text == "Receiving review")
+    try expect(state["savedSpaces"].array[0]["savedTitle"].text == "Quote review")
     try expect(state["savedSpaces"].array[0]["currentTitle"].text == "Renamed by user")
     try expect(state["savedSpaces"].array[0]["currentVersion"].int == 2)
     try expect(try book.revision() == revision && book.verify()["ok"] == .bool(true))

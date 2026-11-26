@@ -98,7 +98,7 @@ func checkToolReceipts(at root: URL) {
     try refuses("integrity") { _ = try book.toolResultPage(id) }
     try refuses("integrity") { _ = try book.verify() }
   }
-  check("free-form writers cannot forge what the table and inventory pipelines own") {
+  check("free-form writers cannot forge what the table pipelines own") {
     let book = try Workbook.create(
       at: root.appendingPathComponent("ForgedKinds.sevra"), title: "Forged")
     let request = try book.addMessage("Tidy the formatting", role: "user")
@@ -112,7 +112,7 @@ func checkToolReceipts(at root: URL) {
     let row = try book.rows(table.id)[0]
     let edits = try encoded([RowEdit(id: row.id, values: ["qty": .string("999")])])
     for kind in [
-      "table-change", "table-creation", "table-intake-update", "movement", "row", "decision",
+      "table-change", "table-creation", "table-intake-update", "row", "decision",
       "calculation", "request", "annotation", "workflow_authorization", "excel-formulas",
     ] {
       try refuses("proposal_tool") {
@@ -133,15 +133,10 @@ func checkToolReceipts(at root: URL) {
           "data": .object(["documentComposition": .object(["version": .number(9)])]),
         ]))
     }
-    let movement = try book.movement(
-      subject: "bolts", quantity: "2", occurrence: "one", effective: "2026-01-01",
-      input: source.id)
-    for (kind, subject) in [("row", row), ("movement", movement)] {
-      try refuses("proposal_tool") {
-        _ = try book.addItem(
-          category: "record", kind: kind, title: subject.title, data: .object([:]),
-          meaning: subject.meaning, inputs: [subject.id], supersedes: subject.id)
-      }
+    try refuses("proposal_tool") {
+      _ = try book.addItem(
+        category: "record", kind: "row", title: row.title, data: .object([:]),
+        meaning: row.meaning, inputs: [row.id], supersedes: row.id)
     }
     try expect(try book.rows(table.id)[0].data["qty"] == .string("10"))
     // The pipelines themselves and ordinary domain kinds keep working.

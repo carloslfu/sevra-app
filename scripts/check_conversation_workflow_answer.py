@@ -62,7 +62,6 @@ def main():
         call('create', book, 'Synthetic conversation answer')
         source = call('add', book, j({'category': 'source', 'kind': 'observation', 'title': 'Delivery D9',
                                     'text': 'Bolts arrived; the received count was not recorded.'}))
-        call('opening', book, 'bolts', '20', '2026-10-01', source['id'])
         parameter = {'id': 'evidence', 'label': 'Evidence', 'type': 'item', 'required': True}
         def definition(content):
             return call('definition-save', book, uuid.uuid4(), j(content), 'new', uuid.uuid4())
@@ -96,12 +95,12 @@ def main():
             book, run_id, original = fixture(folder)
             prompt = ('What information is missing from this workflow? Explain only. Do not change anything.' if read_only else
                       'I counted 5 received bolts. Prepare my answer for the missing count, leaving it unsent for me to preview and confirm. '
-                      'Do not continue the workflow or accept inventory.') + ' Workflow run: ' + run_id
+                      'Do not continue the workflow or accept anything.') + ' Workflow run: ' + run_id
             response = call('ask', book, prompt, args.model_root)
             saved = draft(book, run_id)
             current = call('workflow-read', book, run_id)
             assert current == original, 'Answer preparation changed the paused workflow'
-            assert call('balance', book, 'bolts')['quantity'] == '20'
+            assert call('records', book, 'document') == []
             if read_only:
                 assert saved is None, 'Read-only question prepared input'
             else:

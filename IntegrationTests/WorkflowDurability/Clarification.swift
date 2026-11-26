@@ -12,7 +12,8 @@ enum WorkflowClarificationDurability {
     func snapshot() throws -> Value {
       .object([
         "run": try book.workflowRun(runID), "counts": try book.counts(),
-        "balance": try book.balance(subject: "bolts", asOf: "2099-12-31"), "events": try book.workflowEvents(),
+        "accepted": .number(Double(try book.items(kind: "document").filter { $0.status == "accepted" }.count)),
+        "events": try book.workflowEvents(),
         "integrity": try book.verify(),
       ])
     }

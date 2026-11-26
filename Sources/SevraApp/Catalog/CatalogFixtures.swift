@@ -53,18 +53,20 @@ import SevraVoice
       || id == "home.attention"
     {
       let action = try b.saveApplicationDefinition(
-        logicalID: identifier(), content: ActionRegistry.receivingDefinition())
+        logicalID: identifier(),
+        content: ActionRegistry.documentDefinition(
+          title: "Draft a supplier note", description: "Synthetic note; review before accepting"))
       let workflow = try b.saveApplicationDefinition(
         logicalID: identifier(),
         content: .object([
-          "kind": .string("workflow"), "title": .string("Receive and review"),
-          "description": .string("Synthetic receipt; each change needs review"),
+          "kind": .string("workflow"), "title": .string("Draft and review"),
+          "description": .string("Synthetic supplier note; each draft needs review"),
           "parameters": action.parameters,
           "payload": .object([
             "readPolicy": .string("latest-at-step"),
             "steps": .array([
               .object([
-                "id": .string("receive"), "kind": .string("action"),
+                "id": .string("draft"), "kind": .string("action"),
                 "binding": .object(["mode": .string("exact"), "versionID": .string(action.id)]),
                 "arguments": .object(
                   Dictionary(
@@ -73,17 +75,16 @@ import SevraVoice
                     })),
               ]),
               .object([
-                "id": .string("review"), "kind": .string("review"), "review": .string("receive"),
+                "id": .string("review"), "kind": .string("review"), "review": .string("draft"),
               ]),
             ]),
           ]),
         ]))
       let args: Value = .object([
-        "delivery": .string("willow-1042"), "effective": .string("2026-11-17"),
-        "evidence": .string(source!.id),
-        "lines": .array([
-          .object(["line": .string("1"), "subject": .string("bolts"), "quantity": .string("5")])
-        ]),
+        "title": .string("Supplier summary"),
+        "body": .string("Oak Supply quoted 24.00 and Cedar Tools quoted 27.50. Tax is still unknown."),
+        "evidence": .string(source!.id), "meaning": .string("estimate"),
+        "scenario": .string("actual"),
       ])
       workflowDefinition = workflow
       if variant != "Empty" {
@@ -114,7 +115,7 @@ import SevraVoice
       automationDefinition = try b.saveApplicationDefinition(
         logicalID: identifier(),
         content: .object([
-          "kind": .string("automation"), "title": .string("Morning receiving check"),
+          "kind": .string("automation"), "title": .string("Morning supplier summary"),
           "description": .string("Synthetic, inert until explicitly stepped in this catalog"),
           "parameters": .array([]),
           "payload": .object([

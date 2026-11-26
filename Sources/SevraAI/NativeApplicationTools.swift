@@ -34,11 +34,6 @@ extension NativeTools {
         "Behavior formats.",
       parameters: object([:], required: [])),
     .init(
-      name: "receiving_template",
-      description:
-        "Receiving template. Use save_template with receiptID; never retype.",
-      parameters: object([:], required: [])),
-    .init(
       name: "form_template",
       description:
         "Form template.",

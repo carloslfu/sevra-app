@@ -8,11 +8,11 @@ private func compositionFixture(at root: URL) throws -> (
   let book = try Workbook.create(
     at: root.appendingPathComponent("Composition-" + identifier() + ".sevra"), title: "Composition")
   let request = try book.startAgentRequest(
-    "Create a receiving report with the exact inspection labels.", conversation: book.startChat,
+    "Create an inspection report with the exact inspection labels.", conversation: book.startChat,
     model: "fixture")
   let text = "X-CHECK-14 | 0.10 kg\r\nCafe\u{301} 👩🏽‍💻\0HOLD: clearance 0.25 mm"
   let source = try book.addItem(
-    category: "source", kind: "document", title: "Receiving original", text: text,
+    category: "source", kind: "document", title: "Inspection original", text: text,
     status: "accepted")
   try book.index(source.id, chunks: [Chunk(text, locator: "page 2")])
   let arguments: Value = .object(["id": .string(source.id)])
@@ -64,13 +64,11 @@ func checkDocumentComposition(at root: URL) {
     let copy = try originalCopy(f)
     try expect(Data(copy.text.utf8) == Data(f.text.utf8))
     try expect(copy.sourceVersionID == f.source.id && copy.locator == "page 2; offset=0")
-    let prefix = "# Receiving\n"
+    let prefix = "# Inspection\n"
     let suffix = "\nCheck before accepting."
-    try f.book.setOpeningBalance(
-      subject: "stock", quantity: "20", effective: "2026-01-01", sourceID: f.source.id)
     let revision = try f.book.revision()
     let draft = try f.book.saveComposedDraft(
-      title: "Receiving",
+      title: "Inspection",
       parts: [.init(text: prefix), .init(copy: copy.reference), .init(text: suffix)],
       runID: f.run, expectedRevision: revision)
     try expect(Data(draft.text.utf8) == Data((prefix + f.text + suffix).utf8))
@@ -84,7 +82,6 @@ func checkDocumentComposition(at root: URL) {
     try expect(saved[0]["reference"]["sha256"].text == hash)
     try expect(saved[0]["outputStartScalar"].int == prefix.unicodeScalars.count)
     try expect(try f.book.item(f.source.id).status == "accepted")
-    try expect(try f.book.balance(subject: "stock")["quantity"].text == "20")
     try expect(try f.book.verify()["ok"] == .bool(true))
   }
   check("receipt copy survives changed extraction, superseding source, review and portable export")
@@ -93,7 +90,7 @@ func checkDocumentComposition(at root: URL) {
     let copy = try originalCopy(f)
     try f.book.index(f.source.id, chunks: [Chunk("Re-extracted with different line breaks")])
     let newer = try f.book.addItem(
-      category: "source", kind: "document", title: "Receiving correction", text: "X-CHECK-99",
+      category: "source", kind: "document", title: "Inspection correction", text: "X-CHECK-99",
       status: "accepted", supersedes: f.source.id)
     let original = try originalCopy(f)
     try expect(Data(original.text.utf8) == Data(f.text.utf8))
@@ -166,7 +163,7 @@ func checkDocumentComposition(at root: URL) {
     }
     let other = try f.book.prepareToolCall(
       runID: f.run, callID: "search", tool: "search",
-      arguments: .object(["query": .string("receiving")]))
+      arguments: .object(["query": .string("inspection")]))
     _ = try f.book.completeToolCall(other, result: .object(["item": try encoded(f.source)]))
     try refuses("document_copy_scope") {
       _ = try f.book.documentCopy(

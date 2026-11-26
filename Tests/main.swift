@@ -233,7 +233,7 @@ if let share, share.index != 0 {
 }
 var book: Workbook!
 var source: Item!
-var movement: Item!
+var record: Item!
 var table: Dataset!
 var fileItem: Item!
 check("create/open canonical package") {
@@ -258,8 +258,6 @@ check("source, lineage and current heads") {
   source = try book.addItem(
     category: "source", kind: "observation", title: "Opening count", text: "We counted 20 bolts.",
     status: "accepted")
-  try book.setOpeningBalance(
-    subject: "bolts", quantity: "20", effective: "2026-01-01T00:00:00Z", sourceID: source.id)
   let derived = try book.addItem(
     category: "record", kind: "analysis", title: "Stock observation", text: "20 bolts",
     inputs: [source.id])
@@ -268,83 +266,95 @@ check("source, lineage and current heads") {
     _ = try book.addItem(category: "record", kind: "analysis", title: "Unfounded")
   }
 }
-check("draft has no inventory effect; acceptance applies once") {
-  let handover = try book.addItem(
-    category: "source", kind: "observation", title: "Handover", text: "Two bolts handed over.",
-    status: "accepted")
-  movement = try book.movement(
-    subject: "bolts", quantity: "-2", occurrence: "sale-1", effective: "2026-01-02T00:00:00Z",
-    input: handover.id)
-  try expect(try book.balance(subject: "bolts")["quantity"].text == "20")
-  movement = try book.accept(movement.id, token: "accept-1")
-  try expect(try book.balance(subject: "bolts")["quantity"].text == "18")
-}
-check("duplicate evidence cannot duplicate effect") {
-  try refuses("duplicate_effect") {
-    _ = try book.movement(
-      subject: "bolts", quantity: "-2", occurrence: "sale-1", effective: "2026-01-02T00:00:00Z",
-      input: source.id, status: "accepted")
+check("a draft table change changes nothing until it is accepted, and applies once") {
+  let b = try Workbook.create(at: temp.appendingPathComponent("TableDrafts.sevra"), title: "Drafts")
+  let s = try b.addItem(category: "source", kind: "observation", title: "Count", status: "accepted")
+  let t = try b.createDataset(
+    title: "Parts",
+    columns: [.init(id: "name", title: "Name"), .init(id: "count", title: "Count", type: "decimal")],
+    rows: [["name": .string("bolts"), "count": .string("20")]], sourceID: s.id)
+  func count() throws -> String {
+    let rows = try b.rows(t.id)
+    return rows[0].data["count"].text
   }
-  try expect(try book.balance(subject: "bolts")["quantity"].text == "18")
+  let row = try b.rows(t.id)[0]
+  let draft = try b.proposeTableEdit(
+    t.id, edits: [RowEdit(id: row.id, values: ["count": .string("18")])])
+  try expect(draft.status == "draft" && count() == "20")
+  let accepted = try b.accept(draft.id, token: "accept-1")
+  try expect(accepted.status == "accepted" && count() == "18")
+  // The same token returns the same acceptance, and the accepted version accepts as itself.
+  try expect(try b.accept(draft.id, token: "accept-1").id == accepted.id)
+  try expect(try b.accept(accepted.id).id == accepted.id && count() == "18")
+  try refuses("stale_revision") { _ = try b.accept(draft.id) }
+  // A withdrawn draft changes nothing and cannot be accepted afterwards.
+  let other = try b.proposeTableEdit(
+    t.id, edits: [RowEdit(id: try b.rows(t.id)[0].id, values: ["count": .string("5")])])
+  let withdrawn = try b.withdrawDraft(other.id)
+  try expect(withdrawn.status == "rejected" && count() == "18")
+  try refuses("rejected") { _ = try b.accept(withdrawn.id) }
+  try expect(try Workbook(b.url).rows(t.id)[0].data["count"].text == "18")
+  // Undo of the accepted change puts the rows back, and undoing that applies it again.
+  let undone = try b.undoItem(accepted.id)
+  try expect(undone.status == "rejected" && count() == "20")
+  _ = try b.undoItem(undone.id)
+  try expect(try count() == "18")
+  try expect(try b.verify()["ok"] == .bool(true))
 }
-check("accepted forecast remains estimate") {
-  let forecast = try book.movement(
-    subject: "bolts", quantity: "-100", occurrence: "forecast-1", effective: "2026-01-03T00:00:00Z",
-    input: source.id, meaning: "estimate")
+check("an accepted estimate stays an estimate") {
+  let forecast = try book.addItem(
+    category: "record", kind: "forecast", title: "Next month", text: "100 bolts",
+    meaning: "estimate", inputs: [source.id])
   let accepted = try book.accept(forecast.id)
   try expect(accepted.meaning == "estimate" && accepted.status == "accepted")
-  try expect(try book.balance(subject: "bolts")["quantity"].text == "18")
 }
-check("correction supersedes rather than adds") {
+check("a correction supersedes rather than adds") {
+  let first = try book.addItem(
+    category: "record", kind: "analysis", title: "Handover", text: "Two bolts handed over.",
+    data: .object(["count": .string("2")]), inputs: [source.id])
+  record = try book.accept(first.id)
   let correction = try book.addItem(
-    category: "source", kind: "correction", title: "Handover correction",
-    text: "Only one bolt handed over.", status: "accepted")
-  movement = try book.movement(
-    subject: "bolts", quantity: "-1", occurrence: "sale-1", effective: "2026-01-02T00:00:00Z",
-    input: correction.id, status: "accepted", supersedes: movement.id)
-  try expect(try book.balance(subject: "bolts")["quantity"].text == "19")
+    category: "record", kind: "analysis", title: "Handover", text: "One bolt handed over.",
+    data: .object(["count": .string("1")]), status: "accepted", inputs: [source.id],
+    supersedes: record.id)
+  record = correction
+  try expect(try book.item(first.logicalID).data["count"].text == "1")
+  try expect(try book.items(kind: "analysis").filter { $0.logicalID == first.logicalID }.count == 1)
 }
-check("withdrawing and undoing a correction preserve the prior accepted inventory effect") {
+check("withdrawing and undoing a correction preserve the prior accepted version") {
   let b = try Workbook.create(
     at: temp.appendingPathComponent("ReviewCorrection.sevra"), title: "Review")
   let s = try b.addItem(category: "source", kind: "observation", title: "Count", status: "accepted")
-  try b.setOpeningBalance(subject: "stock", quantity: "20", effective: "2026-01-01", sourceID: s.id)
-  let first = try b.movement(
-    subject: "stock", quantity: "-2", occurrence: "delivery", effective: "2026-01-02", input: s.id,
-    status: "accepted")
-  let correction = try b.movement(
-    subject: "stock", quantity: "-1", occurrence: "delivery", effective: "2026-01-02", input: s.id,
-    supersedes: first.id)
-  try expect(try b.balance(subject: "stock")["quantity"].text == "18")
+  func current(_ id: String) throws -> Item { try b.item(try b.item(id).logicalID) }
+  let first = try b.addItem(
+    category: "record", kind: "analysis", title: "Delivery", text: "Two out",
+    data: .object(["count": .string("-2")]), status: "accepted", inputs: [s.id])
+  let correction = try b.addItem(
+    category: "record", kind: "analysis", title: "Delivery", text: "One out",
+    data: .object(["count": .string("-1")]), inputs: [s.id], supersedes: first.id)
+  try expect(try current(first.id).status == "draft")
   let withdrawn = try b.withdrawDraft(correction.id, token: "decline-correction")
   try expect(try b.withdrawDraft(correction.id, token: "decline-correction").id == withdrawn.id)
-  try expect(try b.balance(subject: "stock")["quantity"].text == "18")
-  try expect(withdrawn.status == "accepted" && withdrawn.data["quantity"].text == "-2")
+  try expect(withdrawn.status == "accepted" && withdrawn.data["count"].text == "-2")
   let restoredDraft = try b.undoItem(withdrawn.id)
-  try expect(restoredDraft.status == "draft" && restoredDraft.data["quantity"].text == "-1")
-  try expect(try b.balance(subject: "stock")["quantity"].text == "18")
+  try expect(restoredDraft.status == "draft" && restoredDraft.data["count"].text == "-1")
   let accepted = try b.accept(restoredDraft.id)
-  try expect(try b.balance(subject: "stock")["quantity"].text == "19")
+  try expect(accepted.data["count"].text == "-1")
   let undone = try b.undoItem(accepted.id)
-  try expect(undone.status == "accepted" && undone.data["quantity"].text == "-2")
-  try expect(try b.balance(subject: "stock")["quantity"].text == "18")
+  try expect(undone.status == "accepted" && undone.data["count"].text == "-2")
   try expect(try b.item(correction.id).status == "draft")
-  try expect(try Workbook(b.url).balance(subject: "stock")["quantity"].text == "18")
-  let args = Value.object([
-    "subject": .string("stock"), "quantity": .string("-1"), "occurrence": .string("delivery"),
-    "effective": .string("2026-01-02"), "input": .string(s.id), "supersedes": .string(undone.id),
-  ])
-  let revised = try WorkbookTools(b).execute("propose_movement", args)
-  try expect(revised["supersedes"].text == undone.id && revised["status"].text == "draft")
-  try expect(try b.balance(subject: "stock")["quantity"].text == "18")
-  try refuses("stale_revision") { _ = try WorkbookTools(b).execute("propose_movement", args) }
-  try refuses("movement_revision") {
-    _ = try b.movement(
-      subject: "different stock", quantity: "-1", occurrence: "delivery", effective: "2026-01-02",
-      input: s.id, supersedes: revised["id"].text)
+  try expect(try Workbook(b.url).item(first.logicalID).data["count"].text == "-2")
+  let revised = try b.addItem(
+    category: "record", kind: "analysis", title: "Delivery", text: "One out",
+    data: .object(["count": .string("-1")]), inputs: [s.id], supersedes: undone.id)
+  try expect(revised.supersedes == undone.id && revised.status == "draft")
+  try refuses("stale_revision") {
+    _ = try b.addItem(
+      category: "record", kind: "analysis", title: "Delivery", text: "One out",
+      data: .object(["count": .string("-1")]), inputs: [s.id], supersedes: undone.id)
   }
-  _ = try b.withdrawDraft(revised["id"].text)
-  try expect(try b.balance(subject: "stock")["quantity"].text == "18")
+  _ = try b.withdrawDraft(revised.id)
+  try expect(try current(first.id).data["count"].text == "-2")
   try expect(try b.verify()["ok"] == .bool(true))
 }
 check("citation snapshots preserve exact historical versions and current state without mutation") {
@@ -369,9 +379,6 @@ check("citation snapshots preserve exact historical versions and current state w
   let cancelled = Cancellation()
   cancelled.cancel()
   try refuses("cancelled") { _ = try b.citationVersions([first.id], cancellation: cancelled) }
-}
-check("unknown basis does not become zero") {
-  try refuses("unknown_basis") { _ = try book.balance(subject: "unknown") }
 }
 check("idempotency requires identical request") {
   let a = try book.addItem(
@@ -491,30 +498,23 @@ check("accept and undo commands take one exact version and nothing else") {
   }
 }
 
-check("undo acceptance withdraws effect; later draft does not erase accepted state") {
+check("undo of an acceptance withdraws it; a later draft keeps the accepted version") {
   let b = try Workbook.create(at: temp.appendingPathComponent("Undo.sevra"), title: "Undo")
   let s = try b.addItem(category: "source", kind: "observation", title: "Count", status: "accepted")
-  try b.setOpeningBalance(subject: "stock", quantity: "20", effective: "2026-01-01", sourceID: s.id)
-  let draft = try b.movement(
-    subject: "stock", quantity: "-2", occurrence: "one", effective: "2026-01-02", input: s.id)
+  let draft = try b.addItem(
+    category: "record", kind: "analysis", title: "One", text: "Two out", inputs: [s.id])
   let accepted = try b.accept(draft.id)
-  _ = try b.undoItem(accepted.id)
-  try expect(try b.balance(subject: "stock")["quantity"].text == "20")
-  let second = try b.movement(
-    subject: "stock", quantity: "-2", occurrence: "two", effective: "2026-01-03", input: s.id,
-    status: "accepted")
-  _ = try b.movement(
-    subject: "stock", quantity: "-1", occurrence: "two", effective: "2026-01-03", input: s.id,
+  let undone = try b.undoItem(accepted.id)
+  try expect(undone.status == "rejected" && b.item(draft.logicalID).id == undone.id)
+  let second = try b.addItem(
+    category: "record", kind: "analysis", title: "Two", text: "Two out", status: "accepted",
+    inputs: [s.id])
+  _ = try b.addItem(
+    category: "record", kind: "analysis", title: "Two", text: "One out", inputs: [s.id],
     supersedes: second.id)
-  try expect(try b.balance(subject: "stock")["quantity"].text == "18")
-  _ = try b.movement(
-    subject: "stock", quantity: "-2", occurrence: "three", effective: "2026-01-04", input: s.id,
-    status: "accepted")
-  try expect(try b.balance(subject: "stock")["quantity"].text == "16")
-  try refuses("date") {
-    _ = try b.movement(
-      subject: "stock", quantity: "1", occurrence: "bad-date", effective: "tomorrow", input: s.id)
-  }
+  // The draft is the head, but the last accepted decision is still the first version.
+  try expect(try b.item(second.logicalID).status == "draft")
+  try expect(try b.item(second.id).status == "accepted")
   try expect(
     try BusinessTime.normalized("2026-01-01T19:00:00-05:00")
       == BusinessTime.normalized("2026-01-02"))
@@ -806,7 +806,7 @@ check("coherent export and reopen with included bytes") {
   let archive = temp.appendingPathComponent("Shop.sevraz")
   try book.export(to: archive)
   let reopened = try Workbook.openArchive(archive, at: temp.appendingPathComponent("Shared.sevra"))
-  try expect(try reopened.balance(subject: "bolts")["quantity"].text == "19")
+  try expect(try reopened.item(record.logicalID).data["count"].text == "1")
   try expect(try reopened.search("brass").hits.count > 0)
   _ = try reopened.assetURL(fileItem.assetID!, verify: true)
 }
@@ -1300,19 +1300,10 @@ check("formulas that can never evaluate are refused when saved") {
   try expect(try book.evaluateApplicationDefinition(function(64).id)["result"].text == "64")
 }
 
-check("dates past the year range and oversized occurrences cannot wedge inventory consumers") {
+check("dates past the year range are refused") {
   try refuses("date") { _ = try BusinessTime.normalized("9999-12-31T23:59:59-01:00") }
   try refuses("date") { _ = try BusinessTime.normalized("0001-01-01T00:00:00+01:00") }
   try expect(try BusinessTime.normalized("9999-12-31T23:59:59Z").hasPrefix("9999-12-31"))
-  let evidence = try book.addItem(category: "source", kind: "observation", title: "Delivery")
-  try refuses("movement") {
-    _ = try book.movement(
-      subject: "long", quantity: "1", occurrence: String(repeating: "x", count: 513),
-      effective: "2026-01-01", input: evidence.id)
-  }
-  _ = try book.movement(
-    subject: "long", quantity: "1", occurrence: String(repeating: "x", count: 512),
-    effective: "2026-01-01", input: evidence.id)
 }
 
 check("saved URLs hide secrets by name and keep every other parameter's exact bytes") {

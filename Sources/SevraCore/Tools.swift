@@ -13,14 +13,6 @@ public struct WorkbookTools {
   public let readOnly: Bool
   public let excelConversion: ExcelConversionBuild?
   package static let guides: [String: String] = [
-    "receiving": """
-      Receiving records a delivery as draft stock movements, one per line. The stock changes only after the user accepts them in Reviews.
-      1. The workbook needs the Receive delivery action. Find it with search in=definitions for "Receive delivery". If there is none, run action template.receiving, then save with template: {templateReceiptID: that receipt's ID}. The saved action's id is its exact version ID.
-      2. The evidence is the document or record that lists the delivery, such as a packing slip. Find its id with search.
-      3. run action action.prepare with {id: the action's id, arguments: {delivery: the delivery's number or name, effective: the date it arrived as YYYY-MM-DD, evidence: that id, lines: one {line, subject, quantity} per item}}. subject is the item as the stock table names it; quantity is the count as text.
-      Example: a slip for delivery D-104 that arrived on 2026-11-18 with 40 brass bolts and 25 hex nuts gives {delivery: "D-104", effective: "2026-11-18", evidence: the slip's id, lines: [{line: "1", subject: "brass bolts", quantity: "40"}, {line: "2", subject: "hex nuts", quantity: "25"}]}.
-      4. Tell the user the movements wait for review.
-      """,
     "view": """
       A view is a saved page of up to 16 components. save with view: {title, definition: {version: 1, components}}. Every component has a short id of its own, a type and a visible title, and the fields its type uses. Saving a view does not open it.
       A component's fields are written in this order, each only when its type uses it: \(SpaceDefinition.componentFieldOrder.joined(separator: ", ")). A field you have passed cannot be written later.
@@ -41,9 +33,9 @@ public struct WorkbookTools {
   ]
   public static let readOnlyTools: Set<String> = [
     "history_search", "history_read", "tool_result", "search", "count_records", "archive_members",
-    "read", "lineage", "datasets", "rows", "calculate", "balance", "spaces",
+    "read", "lineage", "datasets", "rows", "calculate", "spaces",
     "review_queue", "references", "space_history", "find_definitions", "read_definition",
-    "definition_registry", "receiving_template", "form_template", "workflow_template",
+    "definition_registry", "form_template", "workflow_template",
     "evaluate_definition", "native_app_sdk", "read_native_app", "workspace_actions",
     "preview_action", "workflow_activity", "read_workflow", "removed",
   ]
@@ -237,7 +229,7 @@ public struct WorkbookTools {
               "references": item.kind == "request"
                 ? .null : try referenceEvidence(.object(["id": .string(item.id)])),
               "notice": .string(
-                "The item is the exact requested version. When it is historical, read currentVersion.id for current facts or acceptance; do not present historical status as current. A null currentVersion means the latest head is outside this read scope, not that it is absent. For movements, data preserves original creation arguments: data.status is not the current status. Use item.status for this version and currentVersion.status for its latest head."
+                "The item is the exact requested version. When it is historical, read currentVersion.id for current facts or acceptance; do not present historical status as current. A null currentVersion means the latest head is outside this read scope, not that it is absent. Use item.status for this version and currentVersion.status for its latest head."
               ),
               "chunks": .array(chunks),
               "chunkPage": .object([
@@ -380,21 +372,6 @@ public struct WorkbookTools {
         "result": .string(try Numbers.calculate(string("expression"), values: a["values"].object)),
         "arithmetic": .string("decimal"),
       ])
-    case "balance":
-      var result = try workbook.balance(subject: string("subject")).object
-      let ids =
-        [result["basis"]!.text]
-        + result["effects"]!.array.map { $0["item_id"].text }
-      result["evidence"] = .object([
-        "referenceType": .string("item-version"),
-        "citations": .array(ids.map(Value.string)),
-        "notice": .string(
-          "The basis and effects identify workbook Source/Record versions, not conversation messages. "
-            + "This calculation inspects those inputs, and the host attaches them to your answer. They need no place in finish.citations. "
-            + "Use read for additional source content. No history_read or count_records call is needed to cite this calculation."
-        ),
-      ])
-      return .object(result)
     case "review_queue":
       return try encoded(
         workbook.reviewQueue(cursor: a["cursor"].string, cancellation: cancellation))
@@ -609,13 +586,6 @@ public struct WorkbookTools {
         inputs: inputs,
         transformation: "local-agent-v1; run=" + runID, token: token)
       return try encoded(item)
-    case "propose_movement":
-      return try encoded(
-        workbook.movement(
-          subject: string("subject"), quantity: string("quantity"),
-          occurrence: string("occurrence"), effective: string("effective"), input: string("input"),
-          meaning: a["meaning"].string ?? "actual", supersedes: a["supersedes"].string,
-          token: token, requestSourceID: requestSourceID))
     default:
       // A name that is not a built-in tool may be one of the workbook's own saved tools.
       return try runSavedTool(

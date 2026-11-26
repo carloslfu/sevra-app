@@ -114,104 +114,25 @@ func checkBusinessEvents(at root: URL) {
     try expect(entries.allSatisfy { $0["beforeID"] == .null })
     try expect(try book.verify()["ok"] == .bool(true))
   }
-  check("inventory scope retains exact item IDs and future basis without inventing effects") {
-    let (book, source) = try businessFixture(root, "BusinessInventory")
-    try book.setOpeningBalance(
-      subject: "parts", quantity: "20", effective: "2030-01-01", sourceID: source.id)
-    let movement = try book.movement(
-      subject: "parts", quantity: "-2", occurrence: "sale", effective: "2030-01-02",
-      input: source.id,
-      status: "accepted")
-    let batches = try book.businessBatches(scopeKind: "inventory", scopeKey: "parts")["batches"]
-      .array
-    try expect(batches.count == 2)
-    let basis = try book.businessBatch(batches[0]["id"].text)["events"].array[0]
-    try expect(basis["payload"]["after"]["quantity"].text == "20")
-    try expect(basis["payload"]["after"]["effective"].text.hasPrefix("2030-01-01"))
-    let event = try book.businessBatch(batches[1]["id"].text)["events"].array[0]
-    try expect(event["afterID"].text == movement.id && event["scopeKey"].text == "parts")
-    try expect(
-      try book.db.scalar("SELECT count(*) FROM effects WHERE item_id=?", [.string(movement.id)]).int
-        == 1)
-    let impostor = try book.addHostOwnedItem(
-      category: "record", kind: "movement", title: "Just a claim",
-      data: .object(["subject": .string("parts")]),
-      status: "accepted", inputs: [source.id])
-    try expect(
-      try book.db.scalar("SELECT count(*) FROM effects WHERE item_id=?", [.string(impostor.id)]).int
-        == 0)
-    try expect(try book.balance(subject: "parts", asOf: "2030-02-01")["quantity"].text == "18")
-    try expect(try book.verify()["ok"] == .bool(true))
-  }
-  check("record scope finds a movement by its identity, and a stranger finds nothing") {
+  check("record scope finds a record by its identity, and a stranger finds nothing") {
     let (book, source) = try businessFixture(root, "BusinessRecordScope")
-    let movement = try book.movement(
-      subject: "parts", quantity: "-2", occurrence: "sale", effective: "2026-01-02",
-      input: source.id, status: "accepted")
-    let scoped = try book.businessBatches(scopeKind: "record", scopeKey: movement.logicalID)
+    let record = try book.addItem(
+      category: "record", kind: "analysis", title: "Sale", status: "accepted",
+      inputs: [source.id])
+    let scoped = try book.businessBatches(scopeKind: "record", scopeKey: record.logicalID)
     try expect(scoped["batches"].array.count == 1 && scoped["hasMore"] == .bool(false))
     let other = try book.businessBatches(scopeKind: "record", scopeKey: "no-such-record")
     try expect(other["batches"].array.isEmpty)
   }
-  check("an estimate never becomes an actual through a correction or actual evidence") {
+  check("an estimate never becomes an actual through a correction") {
     let (book, source) = try businessFixture(root, "BusinessNoPromotion")
-    try book.setOpeningBalance(
-      subject: "parts", quantity: "20", effective: "2026-01-01", sourceID: source.id)
-    let estimate = try book.movement(
-      subject: "parts", quantity: "-15", occurrence: "forecast", effective: "2026-02-01",
-      input: source.id, meaning: "estimate", status: "accepted")
-    try refuses("interpretation_meaning") {
-      _ = try book.movement(
-        subject: "parts", quantity: "-15", occurrence: "forecast", effective: "2026-02-01",
-        input: source.id, supersedes: estimate.id)
-    }
     let forecast = try book.addItem(
       category: "record", kind: "forecast", title: "Expected delivery", meaning: "estimate",
       status: "accepted", scenario: "forecast", inputs: [source.id])
     try refuses("interpretation_meaning") {
-      _ = try book.movement(
-        subject: "parts", quantity: "500", occurrence: "delivery", effective: "2026-03-01",
-        input: forecast.id)
-    }
-    try refuses("interpretation_meaning") {
       _ = try book.addItem(
         category: "record", kind: "forecast", title: "Now certain", inputs: [source.id],
         supersedes: forecast.id)
-    }
-    // Forecast evidence still supports a forecast, and the user's own message an actual.
-    _ = try book.movement(
-      subject: "parts", quantity: "500", occurrence: "delivery", effective: "2026-03-01",
-      input: forecast.id, meaning: "estimate")
-    let request = try book.addItem(
-      category: "source", kind: "request", title: "We sold five", meaning: "plan",
-      status: "accepted")
-    _ = try book.movement(
-      subject: "parts", quantity: "-5", occurrence: "sale", effective: "2026-02-02",
-      input: request.id, status: "accepted")
-    try expect(try book.balance(subject: "parts")["quantity"].text == "15")
-  }
-  check("one inventory subject and occurrence, however its text was composed") {
-    let (book, source) = try businessFixture(root, "BusinessUnicode")
-    let composed = "caf\u{e9}"
-    let decomposed = "cafe\u{301}"
-    try book.setOpeningBalance(
-      subject: composed, quantity: "20", effective: "2026-01-01", sourceID: source.id)
-    try refuses("basis_exists") {
-      try book.setOpeningBalance(
-        subject: decomposed, quantity: "7", effective: "2026-01-01", sourceID: source.id)
-    }
-    _ = try book.movement(
-      subject: decomposed, quantity: "-5", occurrence: composed, effective: "2026-01-02",
-      input: source.id, status: "accepted")
-    try refuses("duplicate_effect") {
-      _ = try book.movement(
-        subject: composed, quantity: "-5", occurrence: decomposed, effective: "2026-01-03",
-        input: source.id, status: "accepted")
-    }
-    for subject in [composed, decomposed] {
-      try expect(try book.balance(subject: subject)["quantity"].text == "15")
-      let scoped = try book.businessBatches(scopeKind: "inventory", scopeKey: subject)
-      try expect(scoped["batches"].array.count == 2)
     }
   }
   check("a date is stored as written or refused with date") {
@@ -292,26 +213,30 @@ func checkBusinessEvents(at root: URL) {
     try refuses("business_cursor") { _ = try book.businessBatches(after: source.id) }
     try refuses("business_cursor") { _ = try book.businessBatch("three", afterOrdinal: 3) }
     try refuses("business_batch") { _ = try book.businessBatch(source.id) }
-    try refuses("business_scope") { _ = try book.businessBatches(scopeKind: "inventory") }
+    try refuses("business_scope") { _ = try book.businessBatches(scopeKind: "dataset") }
     try refuses("business_limit") { _ = try book.businessBatch("three", limit: 101) }
     try refuses("business_limit") { _ = try book.businessBatches(limit: 0) }
   }
   check("sparse scope paging uses its scope index and reports exact global coverage") {
     let (book, source) = try businessFixture(root, "BusinessSparse")
+    var rare: Item?
     for index in 0..<20 {
-      _ = try book.movement(
-        subject: index == 4 || index == 16 ? "rare" : "other", quantity: "1",
-        occurrence: String(index), effective: "2026-01-01", input: source.id, status: "accepted")
+      // The rare record is created at the fifth commit and corrected at the seventeenth.
+      let item = try book.addItem(
+        category: "record", kind: "metric", title: "Metric \(index)", status: "accepted",
+        inputs: [source.id], supersedes: index == 16 ? rare?.id : nil)
+      if index == 4 { rare = item }
     }
-    let first = try book.businessBatches(limit: 1, scopeKind: "inventory", scopeKey: "rare")
+    let key = rare!.logicalID
+    let first = try book.businessBatches(limit: 1, scopeKind: "record", scopeKey: key)
     let second = try book.businessBatches(
-      after: first["nextCursor"].text, limit: 1, scopeKind: "inventory", scopeKey: "rare")
+      after: first["nextCursor"].text, limit: 1, scopeKind: "record", scopeKey: key)
     try expect(first["hasMore"] == .bool(true) && second["hasMore"] == .bool(false))
     try expect(second["nextCursor"] == second["tail"]["id"])
     try expect(second["batches"].array[0]["position"].text == "17")
     let plan = try book.db.execute(
       "EXPLAIN QUERY PLAN SELECT batch_position,batch_id FROM business_events WHERE scope_kind=? AND scope_key=? AND batch_position>CAST(? AS INTEGER) GROUP BY batch_position ORDER BY batch_position LIMIT 2",
-      [.string("inventory"), .string("rare"), .string("0")])
+      [.string("record"), .string(key), .string("0")])
     try expect(plan.contains { $0["detail"]!.text.contains("business_events_scope") })
   }
   check("business mutation rollback after publication leaves no receipt, versions or feed") {
@@ -350,9 +275,8 @@ func checkBusinessEvents(at root: URL) {
   }
   check("business receipts retry identical IDs and reconstruct the feed inertly") {
     let (book, source) = try businessFixture(root, "BusinessReconstruct")
-    let draft = try book.movement(
-      subject: "parts", quantity: "2", occurrence: "delivery", effective: "2026-01-01",
-      input: source.id)
+    let draft = try book.addItem(
+      category: "record", kind: "analysis", title: "Delivery", inputs: [source.id])
     _ = try book.accept(draft.id, token: "same-accept")
     let before = try book.businessBatches()
     _ = try book.accept(draft.id, token: "same-accept")
@@ -389,9 +313,9 @@ func checkBusinessEvents(at root: URL) {
     DispatchQueue.concurrentPerform(iterations: 6) { index in
       do {
         let writer = try Workbook(book.url)
-        _ = try writer.movement(
-          subject: "parts", quantity: "1", occurrence: "worker\(index)", effective: "2026-01-01",
-          input: source.id, status: "accepted")
+        _ = try writer.addItem(
+          category: "record", kind: "metric", title: "Worker \(index)", status: "accepted",
+          inputs: [source.id])
       } catch { failures.append(String(describing: error)) }
     }
     try expect(failures.values.isEmpty, failures.values.joined(separator: "; "))

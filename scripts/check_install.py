@@ -60,7 +60,7 @@ with tempfile.TemporaryDirectory(prefix="sevra-install-check-") as path:
     imported = command("import", workbook, original)
     assert imported["intake"]["sourceID"] == imported["source"]["id"]
     assert command("tool", workbook, "read", json.dumps({"id": imported["source"]["id"]}))["extraction"]["state"] == "ready"
-    assert command("balance",workbook,"brass bolts")["quantity"]=="18"
+    assert [(t["title"],t["rowCount"]) for t in command("tables",workbook)]==[("Supplier comparison",2)]
     script("install.sh","--no-build")
     assert command("verify",workbook)["ok"]
     script("uninstall.sh")

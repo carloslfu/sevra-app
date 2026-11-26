@@ -11,15 +11,13 @@ import SevraPreviewUI
   let s = try b.addItem(
     category: "source", kind: "observation", title: "Receipt", status: "accepted")
   let action = try b.saveApplicationDefinition(
-    logicalID: identifier(), content: ActionRegistry.receivingDefinition())
+    logicalID: identifier(), content: ActionRegistry.documentDefinition(title: "Draft a note", description: "A note"))
   let form = try b.saveApplicationDefinition(
     logicalID: identifier(), content: ActionRegistry.formDefinition(target: action))
   func inputs(_ number: String) -> Value {
     .object([
-      "delivery": .string(number), "effective": .string("2026-10-28"), "evidence": .string(s.id),
-      "lines": .array([
-        .object(["line": .string("1"), "subject": .string("bolts"), "quantity": .string("5")])
-      ]),
+      "title": .string(number), "body": .string("Synthetic note."), "evidence": .string(s.id),
+      "meaning": .string("actual"), "scenario": .string("actual"),
     ])
   }
   let firstKey = try FormDraftState.componentKey(spaceID: "home:component:x", componentID: "y")
@@ -34,19 +32,18 @@ import SevraPreviewUI
   let scope = FormDraftScope()
   let saved1 = await scope.open(b)
   try require(saved1, "form_check", "Cannot open scope")
-  let first = scope.session("Home:receiving")!
+  let first = scope.session("Home:note")!
   await first.open(form.logicalID)
   first.update(
     .object([
-      "delivery": .string("unsent café 日本語"),
-      "lines": .array([.object(["quantity": .string("not a number yet")])]),
+      "title": .string("unsent café 日本語"), "meaning": .string("not a meaning yet"),
     ]))
   let before = try b.revision()
   let saved2 = await scope.flush()
   try require(saved2, "form_check", "Cannot flush incomplete draft")
   try require(try b.revision() == before, "form_check", "Keystrokes changed business revision")
   let reopened = try Workbook(b.url)
-  let second = FormDraftSession(workbook: reopened, key: "Home:receiving")
+  let second = FormDraftSession(workbook: reopened, key: "Home:note")
   await second.open(form.id)
   try require(
     second.state?.arguments == first.state?.arguments, "form_check",
@@ -76,7 +73,7 @@ import SevraPreviewUI
   let saved4 = await second.flush()
   try require(saved4, "form_check", "Submitted state did not save")
   let submittedRevision = try b.revision()
-  let recovered = FormDraftSession(workbook: try Workbook(b.url), key: "Home:receiving")
+  let recovered = FormDraftSession(workbook: try Workbook(b.url), key: "Home:note")
   await recovered.open(form.id)
   try require(
     recovered.state?.lastReceipt == second.state?.lastReceipt, "form_check",
@@ -93,13 +90,13 @@ import SevraPreviewUI
   let locationTwo = isolated.session(secondKey)!
   await locationOne.open(form.id)
   await locationTwo.open(form.id)
-  locationOne.update(.object(["delivery": .string("location one")]))
-  locationTwo.update(.object(["delivery": .string("location two")]))
+  locationOne.update(.object(["title": .string("location one")]))
+  locationTwo.update(.object(["title": .string("location two")]))
   let isolatedSaved = await isolated.flush()
   try require(isolatedSaved, "form_check", "Cannot flush distinct locations")
   try require(
-    try b.formDraft(firstKey)?.arguments["delivery"] == .string("location one")
-      && b.formDraft(secondKey)?.arguments["delivery"] == .string("location two"),
+    try b.formDraft(firstKey)?.arguments["title"] == .string("location one")
+      && b.formDraft(secondKey)?.arguments["title"] == .string("location two"),
     "form_check", "Distinct components shared an incomplete draft")
   let otherBook = try Workbook.create(
     at: root.appendingPathComponent("Other.sevra"), title: "Other")
@@ -114,7 +111,7 @@ import SevraPreviewUI
   // Simulate a crash after the business transaction and before the presentation checkpoint.
   let crash = FormDraftSession(workbook: b, key: "Crash")
   await crash.open(form.id)
-  crash.update(inputs("crash-delivery"))
+  crash.update(inputs("crash-note"))
   let saved5 = await crash.flush()
   try require(saved5, "form_check", "Cannot save retry identity")
   let crashState = crash.state!
@@ -130,7 +127,7 @@ import SevraPreviewUI
 
   let stale = FormDraftSession(workbook: b, key: "Stale")
   await stale.open(form.id)
-  stale.update(inputs("stale-delivery"))
+  stale.update(inputs("stale-note"))
   let saved6 = await stale.flush()
   try require(saved6, "form_check", "Cannot save stale test inputs")
   var actionContent = action.content.object
@@ -139,7 +136,7 @@ import SevraPreviewUI
     logicalID: action.logicalID, content: .object(actionContent), expectedDefinitionID: action.id)
   await stale.prepare()
   try require(
-    stale.preview == nil && stale.state?.arguments == inputs("stale-delivery"), "form_check",
+    stale.preview == nil && stale.state?.arguments == inputs("stale-note"), "form_check",
     "Live edit silently retargeted a draft")
   await stale.useCurrent(form.id, carryInputs: true)
   await stale.prepare()
@@ -149,7 +146,7 @@ import SevraPreviewUI
   // A form that changed after its preview offers Preview again, then the current form.
   let late = FormDraftSession(workbook: b, key: "Late")
   await late.open(form.id)
-  late.update(inputs("late-delivery"))
+  late.update(inputs("late-note"))
   await late.prepare()
   try require(late.preview != nil, "form_check", late.failure ?? "No preview")
   let liveAction = try b.applicationDefinition(action.logicalID)
@@ -208,7 +205,7 @@ import SevraPreviewUI
   // Only unsent inputs hold a draft slot.
   let slots = try Workbook.create(at: root.appendingPathComponent("Slots.sevra"), title: "Slots")
   let slotAction = try slots.saveApplicationDefinition(
-    logicalID: identifier(), content: ActionRegistry.receivingDefinition())
+    logicalID: identifier(), content: ActionRegistry.documentDefinition(title: "Draft a note", description: "A note"))
   let slotForm = try slots.saveApplicationDefinition(
     logicalID: identifier(), content: ActionRegistry.formDefinition(target: slotAction))
   let viewed = FormDraftSession(workbook: slots, key: "viewed")
@@ -217,14 +214,14 @@ import SevraPreviewUI
   try require(
     try viewedFlushed && slots.formDraft("viewed") == nil, "form_check",
     "Viewing a form took a draft slot")
-  viewed.update(.object(["delivery": .string("typed")]))
+  viewed.update(.object(["title": .string("typed")]))
   let typedFlushed = await viewed.flush()
   try require(
     try typedFlushed && slots.formDraft("viewed") != nil, "form_check",
     "A first edit was not saved")
   let blank = try slots.newFormDraft(slotForm.id)
   var typed = blank
-  typed.arguments = .object(["delivery": .string("typed")])
+  typed.arguments = .object(["title": .string("typed")])
   for index in 1..<256 { _ = try slots.saveFormDraft("slot-\(index)", state: typed, expected: nil) }
   do {
     _ = try slots.saveFormDraft("slot-256", state: typed, expected: nil)
@@ -250,7 +247,7 @@ import SevraPreviewUI
 
   let reconstruct = try b.reconstruct(to: root.appendingPathComponent("Reconstructed.sevra"))
   try require(
-    try reconstruct.formDraft("Home:receiving") == b.formDraft("Home:receiving"), "form_check",
+    try reconstruct.formDraft("Home:note") == b.formDraft("Home:note"), "form_check",
     "Reconstruction lost form checkpoints")
   try require(
     try reconstruct.formDraft("Crash")?.lastReceipt == receipt, "form_check",

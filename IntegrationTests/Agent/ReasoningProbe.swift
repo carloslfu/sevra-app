@@ -111,14 +111,14 @@ func runReasoningComparison(
       recall, name: "recall",
       prompt: "What was the exact batch code and quantity? Make no changes.",
       citation: "message:" + original, words: ["WILLOW-12", "0.20", "kg"])
-    let inventoryURL = root.appendingPathComponent("Inventory.sevra")
-    _ = try Demo.create(at: inventoryURL)
-    let inventory = try Workbook(inventoryURL)
+    let tableURL = root.appendingPathComponent("Table.sevra")
+    _ = try Demo.create(at: tableURL)
+    let table = try Workbook(tableURL)
     try save(
-      inventory, name: "inventory",
+      table, name: "table",
       prompt:
-        "What is the current stock of brass bolts? Cite the basis and movements. Make no changes.",
-      words: ["18"])
+        "What is the Cedar Tools total in the supplier comparison? Cite the rows. Make no changes.",
+      words: ["27.5"])
     let missing = try Workbook.create(
       at: root.appendingPathComponent("Missing.sevra"), title: "Missing")
     let unsupported = root.appendingPathComponent("Unsupported.fixture")
@@ -187,21 +187,16 @@ func runReasoningComparison(
             fixture.requiredWords.allSatisfy { reply.answer.localizedCaseInsensitiveContains($0) })
           checks["citation"] = .bool(
             fixture.requiredCitation.map { reply.citations.contains($0) }
-              ?? (fixture.name == "inventory"
+              ?? (fixture.name == "table"
                 ? reply.citations.count >= 2 : reply.citations.isEmpty))
-          if fixture.name == "inventory" {
-            let balance = try book.balance(subject: "brass bolts")
-            let expected = Set(
-              [balance["basis"].text] + balance["effects"].array.map { $0["item_id"].text })
-            checks["citation"] = .bool(expected.isSubset(of: Set(reply.citations)))
+          if fixture.name == "table" {
             let runID = try book.agentRuns().first?["id"].text
-            checks["deterministicBalance"] = .bool(
+            checks["deterministicQuery"] = .bool(
               try book.messages(limit: 100).contains {
                 guard $0.role == "tool", let receipt = try? Value.parse($0.body) else {
                   return false
                 }
-                return receipt["runID"].string == runID && receipt["tool"].text == "balance"
-                  && receipt["result"]["basis"].string == balance["basis"].string
+                return receipt["runID"].string == runID && receipt["tool"].text == "sql"
               })
           }
           if fixture.name == "draft" {

@@ -3,22 +3,6 @@ import Foundation
 public enum Demo {
   @discardableResult public static func create(at url: URL) throws -> Value {
     let book = try Workbook.create(at: url, title: "Willow Workshop")
-    let source = try book.addItem(
-      category: "source", kind: "note", title: "Workshop inventory",
-      text: "Synthetic example: opening stock of brass bolts was 20 on 1 January 2026.",
-      status: "accepted")
-    try book.setOpeningBalance(
-      subject: "brass bolts", quantity: "20", effective: "2026-01-01T00:00:00Z", sourceID: source.id
-    )
-    let handover = try book.addItem(
-      category: "source", kind: "observation", title: "Delivery 1042",
-      text:
-        "Synthetic example: on 2 January 2026 two brass bolts were handed over to Willow's customer. The delivery cost was 4.50.",
-      status: "accepted")
-    _ = try book.movement(
-      subject: "brass bolts", quantity: "-2", occurrence: "delivery-1042",
-      effective: "2026-01-02T00:00:00Z", input: handover.id, status: "accepted",
-      token: "demo-delivery")
     let quotes = try book.addItem(
       category: "source", kind: "note", title: "Supplier quotes",
       text:
@@ -48,15 +32,12 @@ public enum Demo {
         .init(
           type: "text", title: "Willow Workshop",
           text:
-            "A small example workbook. Compare suppliers, inspect a delivery, or ask why stock is 18. All data is synthetic."
+            "A small example workbook with two supplier quotes. Ask in chat to compare them, make a view or change a price. All data is synthetic."
         ), .init(type: "table", title: "Supplier comparison", datasetID: table.id),
         .init(type: "chart", title: "Quoted cost", datasetID: table.id, x: "supplier", y: "total"),
       ]), expectedVersion: 1)
-    // Stock changes go through the workbook's own saved action, as any workbook's would.
-    _ = try book.saveApplicationDefinition(
-      logicalID: identifier(), content: ActionRegistry.movementDefinition())
     _ = try book.addMessage(
-      "This example has supplier quotes and a delivery. Try ‘Why do we have 18 brass bolts?’ or ‘Compare the supplier costs and show the evidence.’",
+      "This example has a table of two supplier quotes. Try ‘Which supplier is cheaper, and by how much?’, ‘Make a view with a chart of each supplier’s total’ or ‘Change Cedar Tools to 2.60 each.’",
       role: "assistant", conversation: try book.chats()[0].id)
     return .object(["path": .string(url.path), "datasetID": .string(table.id)])
   }

@@ -282,14 +282,11 @@ extension Workbook {
       if target.type == "item" {
         let current = try item(target.id)
         let prior = try item(marker!.data["version"].text)
-        let next = try insertItem(
+        _ = try insertItem(
           category: prior.category, kind: prior.kind, title: prior.title, text: prior.text,
           data: prior.data, meaning: prior.meaning, status: prior.status,
           scenario: prior.scenario, inputs: [prior.id], transformation: "restore-v1",
           assetID: prior.assetID, supersedes: current.id, referenceOrigin: prior.id)
-        try db.execute(
-          "INSERT INTO effects SELECT occurrence,subject,kind,?,quantity,effective FROM effects WHERE item_id=?",
-          [.string(next), .string(prior.id)])
       }
       _ = try writeRemovalMarker(target, removed: false, version: nil, actor: actor)
       var result: [String: Value] = [

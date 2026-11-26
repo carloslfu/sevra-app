@@ -86,12 +86,12 @@ func runContinuityWorkflowProbe(
     "The continuity output directory must not exist.")
   try FileManager.default.createDirectory(at: root, withIntermediateDirectories: false)
   let path = root.appendingPathComponent("Workflow.sevra")
-  _ = try Demo.create(at: path)
+  let tableID = try Demo.create(at: path)["datasetID"].text
   let book = try Workbook(path)
-  let baselineBalance = try book.balance(subject: "brass bolts")
+  let baselineRows = try book.rows(tableID)
   let baselineSources = try book.items().filter { $0.category == "source" }
   let originalText =
-    "Purchase code MAPLE-27. Original packing sample is exactly 0.10 kg. No currency has been specified. Keep all inventory unchanged."
+    "Purchase code MAPLE-27. Original packing sample is exactly 0.10 kg. No currency has been specified. Keep every table unchanged."
   let original = try book.addMessage(originalText, role: "user")
   _ = try book.addMessage("Recorded as supplied information.", role: "assistant")
   let assumption = try book.addItem(
@@ -115,7 +115,7 @@ func runContinuityWorkflowProbe(
     for index in 0..<150 {
       _ = try book.addMessage(
         "Closed shelf-label inspection \(round)-\(index). "
-          + String(repeating: "Labels checked; no inventory movement or pending action. ", count: 3),
+          + String(repeating: "Labels checked; no change or pending action. ", count: 3),
         role: "assistant")
     }
   }
@@ -143,7 +143,7 @@ func runContinuityWorkflowProbe(
     print(try row.json())
     fflush(stdout)
     try expectEqual(result.state, "complete")
-    try expectEqual(try workbook.balance(subject: "brass bolts"), baselineBalance)
+    try expectEqual(try workbook.rows(tableID), baselineRows)
     try expectEqual(try workbook.verify()["ok"], .bool(true))
     return result
   }
@@ -167,7 +167,7 @@ func runContinuityWorkflowProbe(
       "unloaded": .bool(unloaded), "runs": .array(try book.agentRuns()),
       "checkpoints": .array(try book.contextCheckpoints(limit: 100)),
       "history": .array(try originalHistory(book)),
-      "integrity": try book.verify(), "balance": try book.balance(subject: "brass bolts"),
+      "integrity": try book.verify(), "rows": try encoded(book.rows(tableID)),
       "forecast": try encoded(book.item(forecast.logicalID)),
     ]
     if let error { value["error"] = .string(error.localizedDescription) }
@@ -255,14 +255,12 @@ func runContinuityWorkflowProbe(
       archive, at: root.appendingPathComponent("Reopened.sevra"))
     restored = reopened
     try expectEqual(await model.releaseResources(), true)
-    let inventory = try await ask(
+    let table = try await ask(
       "reopened",
-      "What is the current stock of brass bolts? Cite the opening balance and accepted movements. Make no changes.",
+      "What is the Cedar Tools total in the supplier comparison? Cite the rows. Make no changes.",
       workbook: reopened)
-    try expectEqual(inventory.answer.contains("18"), true)
-    let expected = Set(
-      [baselineBalance["basis"].text] + baselineBalance["effects"].array.map { $0["item_id"].text })
-    try expectEqual(Set(inventory.citations), expected)
+    try expectEqual(table.answer.contains("27.5"), true)
+    try expectEqual(Set(table.citations).isSuperset(of: baselineRows.map(\.id)), true)
     try expectEqual(try reopened.item(forecast.logicalID).id, withdrawn.id)
     try expectEqual(try reopened.historyMessage(original).body, originalText)
     try expectEqual(try reopened.historyMessage(latest).body, latestText)
@@ -270,21 +268,21 @@ func runContinuityWorkflowProbe(
     let chat = try reopened.createChat()
     let fresh = try await ask(
       "new chat",
-      "What is the current stock of brass bolts? Cite the opening balance and accepted movements. Make no changes.",
+      "What is the Cedar Tools total in the supplier comparison? Cite the rows. Make no changes.",
       workbook: reopened, conversation: chat)
-    try expectEqual(fresh.answer.contains("18"), true)
+    try expectEqual(fresh.answer.contains("27.5"), true)
     try expectEqual(fresh.citations.contains { $0.hasPrefix("message:") }, false)
     try expectEqual(
       try reopened.messages(conversation: chat).allSatisfy {
         $0.body != originalText && $0.body != latestText
       }, true)
-    try expectEqual(try reopened.balance(subject: "brass bolts"), baselineBalance)
+    try expectEqual(try reopened.rows(tableID), baselineRows)
     try expectEqual(try reopened.verify()["ok"], .bool(true))
     let unloaded = await model.releaseResources()
     try expectEqual(unloaded, true)
     try await save(nil, unloaded: unloaded)
     print(
-      "PASS native repeated maintenance, concurrent forecast decisions, corrected quantities, portable stock and a separate new chat"
+      "PASS native repeated maintenance, concurrent forecast decisions, corrected quantities, a portable table and a separate new chat"
     )
   } catch {
     let unloaded = await model.releaseResources()

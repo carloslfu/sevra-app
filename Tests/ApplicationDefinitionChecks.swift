@@ -417,19 +417,6 @@ func checkApplicationDefinitions(at root: URL) {
     ] {
       try refuses("date") { _ = try BusinessTime.normalized(bad) }
     }
-    let b = try book("InvalidEventDate")
-    let source = try b.addItem(category: "source", kind: "observation", title: "Count")
-    let history = try b.committedHistory()
-    try refuses("date") {
-      try b.setOpeningBalance(
-        subject: "stock", quantity: "2", effective: "2026-02-30", sourceID: source.id)
-    }
-    try refuses("date") {
-      _ = try b.movement(
-        subject: "stock", quantity: "1", occurrence: "invalid", effective: "2026-02-30",
-        input: source.id)
-    }
-    try expect(try b.committedHistory() == history)
   }
   check("definition logical IDs cannot collide with exact version IDs") {
     let b = try book("Identity")

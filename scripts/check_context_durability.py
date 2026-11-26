@@ -73,10 +73,10 @@ def main():
         return stdout
 
     def business_unchanged(before, after):
-        for key in ['messages', 'payloads', 'historyDigest', 'items', 'balance', 'forecast']:
+        for key in ['messages', 'payloads', 'historyDigest', 'items', 'tables', 'forecast']:
             assert before[key] == after[key], f'Changed {key}'
         assert after['integrity']['ok'] is True, after['integrity']
-        assert after['balance']['quantity'] == '18' and len(after['balance']['effects']) == 1
+        assert len(after['tables']) == 1 and len(after['tables'][0]) == 2
 
     save()
     try:
@@ -122,7 +122,7 @@ def main():
             assert run('portable', root) == final, 'Export/reopen changed durable state'
             evidence['checks'].append({'name': 'SIGKILL-' + phase, 'passed': True,
                                        'externalVisibleCheckpoints': visible, 'idempotentRetry': True,
-                                       'portableIdentical': True, 'inventoryEffectCount': 1})
+                                       'portableIdentical': True, 'tablesUnchanged': True})
             save()
 
         root = output / 'cancelled'
@@ -150,14 +150,14 @@ def main():
                 finish(process, root, 'cleanup-acceptance', barrier, kill=True)
         after = run('inspect', root)
         assert after == changed and after['checkpoints'] == before['checkpoints']
-        assert after['balance'] == before['balance']
+        assert after['tables'] == before['tables']
         assert after['messages'] == before['messages'] and after['historyDigest'] == before['historyDigest']
         assert after['forecast']['status'] == 'accepted' and after['forecast']['meaning'] == 'estimate'
         inputs = after['checkpointDetails'][0]['inputs']
         assert len(inputs) == 1 and inputs[0]['currentStatus'] == 'accepted' and inputs[0]['currentMeaning'] == 'estimate'
         assert after['integrity']['ok'] is True
         evidence['checks'].append({'name': 'concurrent-acceptance-refuses-stale-publication', 'passed': True,
-                                   'currentStateReconstructed': True, 'inventoryUnchanged': True})
+                                   'currentStateReconstructed': True, 'tablesUnchanged': True})
         evidence['ok'] = True
     except BaseException as error:
         evidence['error'] = f'{type(error).__name__}: {error}'

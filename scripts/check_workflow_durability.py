@@ -55,7 +55,7 @@ try:
         root.mkdir()
         baseline = run('setup', root)
         assert step(baseline, 0)['output']['value']['result'] == '2'
-        assert baseline['balance']['quantity'] == '20'
+        assert baseline['accepted'] == 0
         p = subprocess.Popen([str(binary), phase, str(root)], stdin=subprocess.PIPE,
                              stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
         barrier = None
@@ -83,7 +83,7 @@ try:
         interrupted = run('inspect', root)
         assert interrupted['integrity']['ok'] is True
         assert step(interrupted, 0) == step(baseline, 0), 'Completed calculation changed'
-        assert interrupted['balance']['quantity'] == '20'
+        assert interrupted['accepted'] == 0
         if phase == 'committed':
             assert step(interrupted, 1)['state'] == 'completed'
             assert len(step(interrupted, 1)['output']['value']['proposals']) == 1
@@ -96,7 +96,7 @@ try:
         copies = run('inert-copies', root)
         for copy in copies.values():
             assert copy['run'] == interrupted['run']
-            assert copy['balance'] == interrupted['balance']
+            assert copy['accepted'] == interrupted['accepted']
             assert copy['counts'] == interrupted['counts']
             assert copy['events'] == interrupted['events']
             assert copy['integrity']['ok'] is True
@@ -109,19 +109,18 @@ try:
             proposed = interrupted
         waiting = run('advance', root)
         assert waiting['run']['state'] == 'waiting_review'
-        assert waiting['balance']['quantity'] == '20'
+        assert waiting['accepted'] == 0
         assert step(waiting, 1) == step(proposed, 1), 'Recovery repeated a completed action'
         accepted = run('accept', root)
-        assert accepted['balance']['quantity'] == '25'
+        assert accepted['accepted'] == 1
         completed = run('advance', root)
         assert completed['run']['state'] == 'completed'
-        assert completed['balance']['quantity'] == '25'
-        assert len(completed['balance']['effects']) == 1
+        assert completed['accepted'] == 1
         assert step(completed, 0) == step(baseline, 0)
         assert step(completed, 1) == step(proposed, 1)
         again = run('advance', root)
         assert again['run'] == completed['run']
-        assert again['balance'] == completed['balance']
+        assert again['accepted'] == completed['accepted']
         evidence['checks'].append({'phase': phase, 'ok': True})
         save()
     for phase in ['form-prepared', 'form-committed']:
@@ -328,7 +327,7 @@ try:
             run('intake-resume', root)
             baseline = run('intake-review', root)
             assert baseline['run']['state'] == 'waiting_review'
-        assert len(baseline['rows']) == 1 and baseline['balance']['quantity'] == '20'
+        assert len(baseline['rows']) == 1
         p = subprocess.Popen([str(binary), phase, str(root)], stdin=subprocess.PIPE,
                              stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
         try:
@@ -348,7 +347,7 @@ try:
                 p.kill()
                 p.communicate(timeout=20)
         interrupted = run('intake-inspect', root)
-        assert interrupted['integrity']['ok'] and interrupted['balance']['quantity'] == '20'
+        assert interrupted['integrity']['ok']
         applied = phase == 'intake-accept-committed'
         published = acceptance or phase == 'intake-committed'
         assert len(interrupted['proposals']) == int(published)
@@ -379,7 +378,6 @@ try:
         accepted = run('intake-accept', root)
         assert len(accepted['rows']) == 2 and accepted['rows'][1]['meaning'] == 'estimate'
         assert accepted['rows'][1]['data'] == {'sku': '0014', 'qty': '2'}
-        assert accepted['balance']['quantity'] == '20'
         assert run('intake-accept', root) == accepted, 'Exact acceptance retry duplicated rows'
         completed = run('intake-review', root)
         assert completed['run']['state'] == 'completed' and completed['integrity']['ok']

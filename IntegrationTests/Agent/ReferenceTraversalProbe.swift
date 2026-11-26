@@ -33,7 +33,7 @@ func runReferenceTraversalProbe(
           category: "record", kind: "document", title: "Unrelated pending note",
           text: "Leave this note pending.", inputs: [prepared.decoy.id])
         request =
-          "Starting from the intake overview, follow its saved links. What receiving window does the linked original require, and what does its current edition require? Make no changes."
+          "Starting from the intake overview, follow its saved links. What loading window does the linked original require, and what does its current edition require? Make no changes."
         context = "Intake overview: \(prepared.overview.id)"
       } else {
         fixture = nil

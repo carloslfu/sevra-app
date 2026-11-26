@@ -50,8 +50,6 @@ func runIntakeAuthoringProbe(modelsRoot: String, library: String, engine: String
       title: "Parts",
       columns: [.init(id: "sku", title: "SKU"), .init(id: "qty", title: "Quantity")],
       rows: [["sku": .string("0012"), "qty": .string("4")]], sourceID: source.id)
-    try book.setOpeningBalance(
-      subject: "stock", quantity: "20", effective: "2026-10-01", sourceID: source.id)
     return (book, table)
   }
   let (book, table) = try fixture("Authored")
@@ -139,7 +137,6 @@ func runIntakeAuthoringProbe(modelsRoot: String, library: String, engine: String
     try expectEqual(queued.answer.contains("without executing steps or preparing proposals"), true)
     try expectEqual(try encoded(book.rows(table.id)), initial)
     try expectEqual(try encoded(book.items().filter { $0.category == "record" }), initialRecords)
-    try expectEqual(try book.balance(subject: "stock")["quantity"], .string("20"))
     try expectEqual(try book.extractionStatus(source.id), extraction)
     try expectEqual(try book.items().filter { $0.kind == "table-intake-update" }.isEmpty, true)
     let copy = try book.reconstruct(to: root.appendingPathComponent("AuthoredCopy.sevra"))

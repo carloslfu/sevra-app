@@ -66,29 +66,32 @@ def run(cli: Path, worker: Path, output: Path) -> dict:
         assert page['batchComplete'] and page['execution'] == 'inert'
         assert call('accept', book, forecast['id'], 'accept-forecast')['id'] == accepted['id']
         assert call('business-batches', book) == first
-        call('opening', book, 'parts', '20', '2030-01-01', source['id'])
-        for number, quantity in enumerate(['-16', '20', '-20']):
-            call('movement', book, json.dumps({
-                'subject': 'parts', 'quantity': quantity, 'occurrence': f'sale-{number}',
-                'effective': '2030-01-02', 'input': source['id'], 'status': 'accepted',
-                'token': f'movement-{number}',
-            }))
+        # One record and three accepted corrections share its logical identity, so its
+        # record scope pages four batches.
+        record = call('add', book, json.dumps({
+            'category': 'record', 'kind': 'analysis', 'title': 'Parts', 'status': 'accepted',
+            'inputs': [source['id']], 'token': 'parts-0'}))
+        for number in range(1, 4):
+            record = call('add', book, json.dumps({
+                'category': 'record', 'kind': 'analysis', 'title': 'Parts', 'text': str(number),
+                'status': 'accepted', 'inputs': [source['id']], 'supersedes': record['id'],
+                'token': f'parts-{number}'}))
         cursor = '-'
         seen = []
         while True:
-            result = call('business-batches', book, cursor, 1, 'inventory', 'parts')
+            result = call('business-batches', book, cursor, 1, 'record', record['logicalID'])
             seen.extend(result['batches'])
             if not result['hasMore']:
                 assert result['nextCursor'] == result['tail']['id']
                 break
             cursor = result['nextCursor']
         assert len(seen) == 4 and [b['position'] for b in seen] == ['2', '3', '4', '5']
-        empty = call('business-batches', book, '-', 2, 'inventory', 'missing')
+        empty = call('business-batches', book, '-', 2, 'record', 'missing')
         assert empty['batches'] == [] and empty['nextCursor'] == empty['tail']['id']
         call('business-batches', book, source['id'], error='business_cursor')
         call('business-batches', book, '-', 0, error='business_limit')
         call('business-batches', book, '-', 2, 'invalid', 'x', error='business_scope')
-        call('business-batches', book, '-', 2, 'inventory', error='usage')
+        call('business-batches', book, '-', 2, 'record', error='usage')
         call('business-batch', book, source['id'], error='business_batch')
         call('business-batch', book, batch['id'], '-1', error='business_cursor')
         call('business-batch', book, batch['id'], 1, error='business_cursor')
@@ -125,16 +128,17 @@ def run(cli: Path, worker: Path, output: Path) -> dict:
         large = folder / 'IntegerBoundary.sevra'
         call('create', large)
         basis = add_source(large)
-        call('opening', large, 'parts', '1', '2026-01-01', basis['id'])
+        call('add', large, json.dumps({
+            'category': 'record', 'kind': 'analysis', 'title': 'Seed', 'status': 'accepted',
+            'inputs': [basis['id']]}))
         seed = call('business-batches', large)['batches'][0]['id']
         with sqlite3.connect(large / 'workbook.sqlite') as connection:
             connection.execute('UPDATE business_batches SET position=9007199254740993')
             connection.execute('UPDATE business_events SET batch_position=9007199254740993')
         assert call('business-batches', large)['batches'][0]['position'] == '9007199254740993'
-        call('movement', large, json.dumps({
-            'subject': 'parts', 'quantity': '1', 'occurrence': 'exact-integer',
-            'effective': '2026-01-02', 'input': basis['id'], 'status': 'accepted',
-        }))
+        call('add', large, json.dumps({
+            'category': 'record', 'kind': 'analysis', 'title': 'Exact integer',
+            'status': 'accepted', 'inputs': [basis['id']]}))
         exact = call('business-batches', large, seed)
         assert exact['batches'][0]['position'] == '9007199254740994'
         call('verify', large, error='business_integrity')
@@ -142,10 +146,9 @@ def run(cli: Path, worker: Path, output: Path) -> dict:
         call('create', concurrent)
         independent = add_source(concurrent)
         def publish(number):
-            return call('movement', concurrent, json.dumps({
-                'subject': 'parts', 'quantity': '1', 'occurrence': f'independent-{number}',
-                'effective': '2026-01-01', 'input': independent['id'], 'status': 'accepted',
-            }))
+            return call('add', concurrent, json.dumps({
+                'category': 'record', 'kind': 'analysis', 'title': f'Independent {number}',
+                'status': 'accepted', 'inputs': [independent['id']]}))
         with ThreadPoolExecutor(max_workers=6) as pool:
             written = list(pool.map(publish, range(6)))
         positions = call('business-batches', concurrent)['batches']
@@ -157,7 +160,7 @@ def run(cli: Path, worker: Path, output: Path) -> dict:
         call('create', old)
         manifest = old / 'manifest.json'
         with sqlite3.connect(old / 'workbook.sqlite') as connection:
-            assert connection.execute('PRAGMA user_version').fetchone()[0] == 34
+            assert connection.execute('PRAGMA user_version').fetchone()[0] == 35
             connection.execute('PRAGMA user_version=26')
         paths = [manifest, old / 'workbook.sqlite']
         hashes = [hashlib.sha256(p.read_bytes()).hexdigest() for p in paths]

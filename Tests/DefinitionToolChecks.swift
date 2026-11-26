@@ -6,7 +6,7 @@ func checkDefinitionTools(at root: URL) {
   func setup(_ name: String) throws -> (Workbook, AgentRequest, Item, WorkbookTools) {
     let book = try Workbook.create(
       at: root.appendingPathComponent("DefinitionTools-" + name + ".sevra"), title: name)
-    let prompt = "Save receiving behavior and prepare delivery R1 into our stock."
+    let prompt = "Save a note action and draft a note about quote R1."
     let request = try book.startAgentRequest(
       prompt, conversation: book.startChat, model: "synthetic definition tools")
     let source = try book.addItem(
@@ -16,6 +16,8 @@ func checkDefinitionTools(at root: URL) {
       book, request, source, WorkbookTools(book, runID: request.runID, requestSourceID: source.id)
     )
   }
+  let note = ActionRegistry.documentDefinition(
+    title: "Draft a supplier note", description: "Draft a note from a quote")
   func call(_ book: Workbook, _ tools: WorkbookTools, _ name: String, _ args: Value) throws -> (
     String, Value
   ) {
@@ -29,7 +31,7 @@ func checkDefinitionTools(at root: URL) {
     "agent definition authoring has stable create identity, exact base, actual AI request lineage and read-only refusal"
   ) {
     let (book, request, source, tools) = try setup("Authoring")
-    let args: Value = .object(["content": ActionRegistry.receivingDefinition()])
+    let args: Value = .object(["content": note])
     let first = try call(book, tools, "save_definition", args).1
     let saved = try book.applicationDefinition(first["id"].text)
     let revision = try book.revision()
@@ -41,14 +43,14 @@ func checkDefinitionTools(at root: URL) {
     try expect(try book.lineage(saved.sourceID).contains { $0["parent"] == .string(source.id) })
     let read = try tools.execute(
       "read_definition", .object(["id": .string(saved.id)]))
-    try expect(read["content"] == ActionRegistry.receivingDefinition())
+    try expect(read["content"] == note)
     try refuses("item_scope") {
       _ = try tools.execute("read", .object(["id": .string(saved.sourceID)]))
     }
     try expect(try book.item(saved.sourceID).id == saved.sourceID)
-    try expect(try book.search("Receive delivery").hits.isEmpty)
+    try expect(try book.search("supplier note").hits.isEmpty)
     try expect(
-      try book.search("Receive delivery", kind: "application_definition").hits.contains {
+      try book.search("supplier note", kind: "application_definition").hits.contains {
         $0.itemID == saved.sourceID
       })
     try expect(try book.recentItemSummaries().allSatisfy { $0.id != saved.sourceID })
@@ -60,7 +62,7 @@ func checkDefinitionTools(at root: URL) {
       book, runID: request.runID, requestSourceID: source.id, readOnly: true)
     try refuses("read_only_request") { _ = try readOnly.execute("save_definition", args) }
     var content = saved.content.object
-    content["title"] = .string("Receiving v2")
+    content["title"] = .string("Supplier note v2")
     let edit: Value = .object([
       "expectedDefinitionID": .string(saved.id),
       "content": .object(content),
@@ -75,21 +77,15 @@ func checkDefinitionTools(at root: URL) {
     _ = try book.verify()
   }
   check(
-    "agent action submission consumes successful current-run preview, preserves retries and refuses foreign/read-only/prepared receipts"
+    "agent action previews bind to the current run, and chat cannot submit a document action"
   ) {
     let (book, request, source, tools) = try setup("Receipts")
     let action = try book.saveApplicationDefinition(
-      logicalID: identifier(), content: ActionRegistry.receivingDefinition())
+      logicalID: identifier(), content: note)
     let evidence = try book.addItem(
       category: "source", kind: "observation", title: "R1",
-      text: "We received 3 bolts into our stock.")
-    let input: Value = .object([
-      "delivery": .string("R1"), "effective": .string("2026-10-28"),
-      "evidence": .string(evidence.id),
-      "lines": .array([
-        .object(["line": .string("1"), "subject": .string("bolts"), "quantity": .string("3")])
-      ]),
-    ])
+      text: "Quote R1: three bolts at 2.40 each.")
+    let input = noteArguments(evidence.id, title: "Quote R1", meaning: "estimate")
     let previewArgs: Value = .object(["id": .string(action.id), "arguments": input])
     let prepared = try book.prepareToolCall(
       runID: request.runID, callID: "prepared-preview", tool: "preview_action",
@@ -109,19 +105,11 @@ func checkDefinitionTools(at root: URL) {
       _ = try book.applicationPreviewForRun(
         wrongTool, runID: request.runID, conversation: book.startChat, requestSourceID: source.id)
     }
+    // A document action is submitted through its form or workflow, never straight from chat.
     let submit: Value = .object(["previewReceiptID": .string(receipt)])
-    let readOnly = WorkbookTools(
-      book, runID: request.runID, requestSourceID: source.id, readOnly: true)
-    try refuses("read_only_request") { _ = try readOnly.execute("commit_action_preview", submit) }
-    let result = try tools.execute("commit_action_preview", submit)
-    try expect(
-      result["proposals"].array.count == 1 && result["acceptedBalanceChanged"] == .bool(false))
-    try refuses("item_scope") {
-      _ = try tools.execute("read", .object(["id": result["sourceID"]]))
-    }
     let revision = try book.revision()
-    try expect(try tools.execute("commit_action_preview", submit) == result)
-    try expect(try book.revision() == revision)
+    try refuses("action_capability") { _ = try tools.execute("commit_action_preview", submit) }
+    try expect(try book.revision() == revision && book.items(kind: "document").isEmpty)
     let other = try book.startAgentRequest(
       "Another request", conversation: book.startChat, model: "synthetic")
     let otherSource = try book.addItem(
@@ -146,25 +134,20 @@ func checkDefinitionTools(at root: URL) {
     "agent template saves copy exact current-run content, allow only title override and refuse foreign or incomplete receipts"
   ) {
     let (book, request, source, tools) = try setup("Templates")
-    let (templateID, template) = try call(book, tools, "receiving_template", .object([:]))
+    let action = try book.saveApplicationDefinition(logicalID: identifier(), content: note)
+    let templateArguments: Value = .object(["id": .string(action.id)])
+    let (templateID, template) = try call(book, tools, "form_template", templateArguments)
     let arguments: Value = .object([
-      "templateReceiptID": .string(templateID), "title": .string("Goods in"),
+      "templateReceiptID": .string(templateID), "title": .string("Quote notes"),
     ])
     let saved = try tools.execute("save_template", arguments)
-    var expected = ActionRegistry.receivingDefinition().object
-    expected["title"] = .string("Goods in")
+    var expected = ActionRegistry.formDefinition(target: action).object
+    expected["title"] = .string("Quote notes")
     try expect(try book.applicationDefinition(saved["id"].text).content == .object(expected))
     try expect(try tools.execute("save_template", arguments) == saved)
-    try expect(template["content"] == ActionRegistry.receivingDefinition())
-    let (formTemplateID, _) = try call(
-      book, tools, "form_template", .object(["id": saved["id"]]))
-    let form = try tools.execute(
-      "save_template",
-      .object([
-        "templateReceiptID": .string(formTemplateID), "title": .string("Goods in"),
-      ]))
+    try expect(template["content"] == ActionRegistry.formDefinition(target: action))
     try expect(
-      form["kind"] == .string("form") && form["nativeComponent"]["type"] == .string("form"))
+      saved["kind"] == .string("form") && saved["nativeComponent"]["type"] == .string("form"))
     try refuses("arguments") {
       _ = try tools.execute(
         "save_template",
@@ -173,8 +156,8 @@ func checkDefinitionTools(at root: URL) {
         ]))
     }
     let prepared = try book.prepareToolCall(
-      runID: request.runID, callID: identifier(), tool: "receiving_template",
-      arguments: .object([:]))
+      runID: request.runID, callID: identifier(), tool: "form_template",
+      arguments: templateArguments)
     try refuses("definition_template") {
       _ = try tools.execute("save_template", .object(["templateReceiptID": .string(prepared)]))
     }
@@ -222,7 +205,7 @@ func checkDefinitionTools(at root: URL) {
     try expect(result["result"] == .string("4.2") && result["readOnly"] == .bool(true))
     try expect(try book.revision() == revision)
     let action = try book.saveApplicationDefinition(
-      logicalID: identifier(), content: ActionRegistry.receivingDefinition())
+      logicalID: identifier(), content: note)
     try refuses("definition_kind") {
       _ = try tools.execute(
         "evaluate_definition", .object(["id": .string(action.id), "arguments": .object([:])]))
@@ -234,15 +217,12 @@ func checkDefinitionTools(at root: URL) {
   ) {
     let (book, request, source, tools) = try setup("PreviewGuards")
     let action = try book.saveApplicationDefinition(
-      logicalID: identifier(), content: ActionRegistry.receivingDefinition())
+      logicalID: identifier(), content: note)
     let form = try book.saveApplicationDefinition(
       logicalID: identifier(), content: ActionRegistry.formDefinition(target: action))
-    let input: Value = .object([
-      "delivery": .string("R1"), "effective": .string("2026-10-28"), "evidence": .string(source.id),
-      "lines": .array([
-        .object(["line": .string("1"), "subject": .string("bolts"), "quantity": .string("3")])
-      ]),
-    ])
+    let evidence = try book.addItem(
+      category: "source", kind: "observation", title: "R1", text: "Quote R1.")
+    let input = noteArguments(evidence.id, title: "Quote R1", meaning: "estimate")
     let args: Value = .object(["id": .string(form.id), "arguments": input])
     let failedID = try book.prepareToolCall(
       runID: request.runID, callID: "failed", tool: "preview_action", arguments: args)
@@ -268,12 +248,16 @@ func checkDefinitionTools(at root: URL) {
     changed["description"] = .string("Edited live definition")
     _ = try book.saveApplicationDefinition(
       logicalID: action.logicalID, content: .object(changed), expectedDefinitionID: action.id)
-    try refuses("stale_action_preview") {
+    try refuses("action_capability") {
       _ = try tools.execute(
         "commit_action_preview", .object(["previewReceiptID": .string(validID)]))
     }
+    try refuses("stale_action_preview") {
+      _ = try book.invokeApplicationAction(
+        form.id, arguments: input, preview: valid["plan"], token: "stale")
+    }
     try expect(
-      try book.items(kind: "movement").isEmpty && book.items(kind: "application_invocation").isEmpty
+      try book.items(kind: "document").isEmpty && book.items(kind: "application_invocation").isEmpty
     )
     try book.finishAgentRun(request.runID, status: "cancelled", steps: 0, metrics: .array([]))
     try refuses("action_run") {
@@ -288,8 +272,8 @@ func checkDefinitionTools(at root: URL) {
   ) {
     let (book, _, source, tools) = try setup("Paging")
     for index in 0..<13 {
-      var content = ActionRegistry.receivingDefinition().object
-      content["title"] = .string("Receiving \(index)")
+      var content = note.object
+      content["title"] = .string("Supplier note \(index)")
       _ = try book.saveApplicationDefinition(logicalID: identifier(), content: .object(content))
     }
     let table = try book.createDataset(
@@ -331,7 +315,7 @@ func checkDefinitionTools(at root: URL) {
     _ = try book.addItem(category: "source", kind: "observation", title: "New business evidence")
     try refuses("stale_query") { _ = try tools.execute("evaluate_definition", .object(continued)) }
     _ = try book.saveApplicationDefinition(
-      logicalID: identifier(), content: ActionRegistry.receivingDefinition())
+      logicalID: identifier(), content: note)
     try refuses("stale_definition_search") {
       _ = try tools.execute(
         "find_definitions",

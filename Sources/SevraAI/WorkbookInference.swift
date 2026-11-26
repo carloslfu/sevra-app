@@ -7,8 +7,8 @@ package enum InferenceToolScope: String, CaseIterable, Sendable {
   /// offers the seven general tools.
   package var specialized: Bool {
     switch self {
-    case .movementDirection, .actionDirection, .nativeAppReview, .nativeActionReview, .excelPlan,
-      .excelBuild, .excelCalculation, .excelInterface:
+    case .nativeAppReview, .nativeActionReview, .excelPlan, .excelBuild, .excelCalculation,
+      .excelInterface:
       return true
     default: return false
     }
@@ -16,8 +16,7 @@ package enum InferenceToolScope: String, CaseIterable, Sendable {
 
   // Tool scopes retain the public tool names as their raw values.
   // swift-format-ignore: AlwaysUseLowerCamelCase
-  case all, finish, inspection, movementDirection, actionDirection, nativeAppReview,
-    nativeActionReview, excelPlan,
+  case all, finish, inspection, nativeAppReview, nativeActionReview, excelPlan,
     excelBuild, excelCalculation, excelInterface, workflowAnswer,
     answer, conversationAnswer,
     boundedAnswer, boundedConversationAnswer
@@ -59,15 +58,13 @@ package enum InferenceToolScope: String, CaseIterable, Sendable {
     }
     switch self {
     case .all:
-      // The host commits a preview itself, after prepare_action reviews every direction.
+      // The host commits a preview itself, after prepare_action prepares it.
       return ![
-        "review_movement_direction", "review_action_directions", "prepare_workflow_answer",
+        "prepare_workflow_answer",
         "commit_action_preview", "review_native_app", "describe_excel_workflow",
         "inspect_excel_rows", "inspect_excel_evidence", "compare_excel_behavior",
       ].contains(tool)
     case .workflowAnswer: return Self.answer.allows(tool) || tool == "prepare_workflow_answer"
-    case .movementDirection: return tool == "review_movement_direction"
-    case .actionDirection: return tool == "review_action_directions"
     case .nativeAppReview, .nativeActionReview: return tool == "review_native_app"
     case .excelPlan:
       return ["describe_excel_workflow", "inspect_excel_rows", "inspect_excel_evidence"].contains(

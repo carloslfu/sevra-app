@@ -28,7 +28,7 @@ private actor ConversationRoutingFixture: WorkbookInference {
   }
 }
 
-/// Try the same completed read, a distinct subject, then repeat that subject twice.
+/// Try the same completed query, a distinct one, then repeat that one twice.
 private actor RepeatingCalculationFixture: WorkbookInference {
   let identity = "calculation reuse fixture"
   let lastMetrics: Value = .null
@@ -40,24 +40,26 @@ private actor RepeatingCalculationFixture: WorkbookInference {
     progress: @escaping @Sendable (String) -> Void, toolScope: InferenceToolScope,
     citationIDs: [String]
   ) throws -> NativeReply {
-    let subjects = ["brass bolts", "brass bolts", "washers", "washers", "washers"]
+    let suppliers = ["Oak Supply", "Oak Supply", "Cedar Tools", "Cedar Tools", "Cedar Tools"]
     if index > 0 {
       let previous = try Value.parse(messages.last!.content)
       if [2, 4, 5].contains(index) {
         try require(previous["reusedReceiptID"].string != nil, "test", "Duplicate calculation executed")
       } else {
-        try require(previous["openingQuantity"].text == (index == 1 ? "20" : "7"),
-          "test", "Distinct calculation did not obtain its own opening basis")
+        try require(
+          previous["reusedReceiptID"] == .null && previous["results"] != .null,
+          "test", "Distinct calculation did not run its own query")
       }
     }
-    let final = index == subjects.count
+    let final = index == suppliers.count
     try require((toolScope == .finish) == final, "test", "Distinct inputs lost their tool access")
     let arguments: Value = final
-      ? .object(["answer": .string("There are 18 brass bolts and 7 washers."),
+      ? .object(["answer": .string("Oak Supply totals 24 and Cedar Tools 27.5."),
         "basis": .string("evidence"), "citations": .array([])])
-      : .object(["subject": .string(subjects[index])])
+      : .object(["statements": .array([.string(
+        "SELECT total FROM supplier_comparison WHERE supplier = '" + suppliers[index] + "'")])])
     index += 1
-    return .init(text: "", calls: [try .init(id: "lookup-\(index)", operation: final ? "finish" : "balance", arguments, scope: toolScope)])
+    return .init(text: "", calls: [try .init(id: "lookup-\(index)", operation: final ? "finish" : "sql", arguments, scope: toolScope)])
   }
 }
 
@@ -92,14 +94,14 @@ func checkConversationLatency() async throws {
   try require(try book.verify()["ok"] == .bool(true), "test", "Conversation damaged the workbook")
 
   let example = root.appendingPathComponent("Calculation.sevra")
-  _ = try Demo.create(at: example)
-  let stock = try Workbook(example)
-  let basis = try stock.balance(subject: "brass bolts")["basis"].text
-  try stock.setOpeningBalance(subject: "washers", quantity: "7", effective: "2026-01-01", sourceID: basis)
+  let quotes = try Demo.create(at: example)["datasetID"].text
+  let suppliers = try Workbook(example)
+  let quoteRows = try suppliers.rows(quotes).map(\.id)
   let both = try await WorkbookAgent.run(
-    "How many brass bolts and washers are there? Do not change the workbook.",
-    workbook: stock, model: RepeatingCalculationFixture(), conversationInput: true)
-  try require(both.steps == 6 && both.state == "complete" && both.citations.contains(basis),
+    "What do Oak Supply and Cedar Tools total? Do not change the workbook.",
+    workbook: suppliers, model: RepeatingCalculationFixture(), conversationInput: true)
+  try require(
+    both.steps == 6 && both.state == "complete" && Set(both.citations).isSuperset(of: quoteRows),
     "test", "Repeated-read recovery lost the verified evidence")
   // The visible vocabulary stays generic, but a calculation input is never a count receipt.
   let countID = identifier()
@@ -159,7 +161,7 @@ func checkConversationLatency() async throws {
 
 /// Runs the ordinary agent with the real native model on disposable workbooks.
 func runConversationLatencyProbe(
-  modelsRoot: String, library: String, engine: String, output: String, stockOnly: Bool = false,
+  modelsRoot: String, library: String, engine: String, output: String, tableOnly: Bool = false,
   cacheTrace: Bool = false, desktopContext: Bool = false
 )
   async throws
@@ -181,7 +183,7 @@ func runConversationLatencyProbe(
     "Give me one sentence that explains the difference between a quote and an invoice.",
     "¿Para qué serviría este cuaderno en una panadería?",
   ]
-  for prompt in stockOnly || cacheTrace || desktopContext ? [] : introductoryPrompts {
+  for prompt in tableOnly || cacheTrace || desktopContext ? [] : introductoryPrompts {
     let started = ProcessInfo.processInfo.systemUptime
     let previews = ProbePreviews(started: started)
     let result = try await WorkbookAgent.run(
@@ -206,15 +208,15 @@ func runConversationLatencyProbe(
   }
   try require(try book.verify()["ok"] == .bool(true), "quality", "Integrity failed")
   let businessURL = root.appendingPathComponent("Business.sevra")
-  _ = try Demo.create(at: businessURL)
+  let businessTable = try Demo.create(at: businessURL)["datasetID"].text
   let business = try Workbook(businessURL)
   let originals = try business.items()
   var businessRows: [Value] = []
   let businessPrompts = [
-    "What is the current stock of brass bolts? Use the balance tool and cite the evidence. Do not change the workbook.",
-    "How many brass bolts are currently in stock? Use the balance tool and cite the evidence. Do not change the workbook.",
+    "What is the Cedar Tools total in the supplier comparison? Cite the evidence. Do not change the workbook.",
+    "How much does the Cedar Tools quote come to in total? Cite the evidence. Do not change the workbook.",
   ]
-  var sequence = stockOnly ? Array(businessPrompts.prefix(1)) : businessPrompts
+  var sequence = tableOnly ? Array(businessPrompts.prefix(1)) : businessPrompts
   if desktopContext { sequence = Array(businessPrompts.prefix(1)) }
   if cacheTrace { sequence += ["hey", "hey", businessPrompts[0]] }
   for (index, prompt) in sequence.enumerated() {
@@ -227,16 +229,14 @@ func runConversationLatencyProbe(
       progress: { previews.recordProgress($0) }, answerPreview: { previews.receive($0) },
       model: model, conversationInput: true)
     let elapsed = ProcessInfo.processInfo.systemUptime - started
-    let balance = try business.balance(subject: "brass bolts", asOf: "2099-12-31")
-    let citations = Set(
-      [balance["basis"].text] + balance["effects"].array.map { $0["item_id"].text })
+    let citations = Set(try business.rows(businessTable).map(\.id))
     let originalIDs = Set(originals.map(\.id))
     let currentItems = try business.items()
     let integrity = try business.verify()
     let greeting = cacheTrace && (index == 2 || index == 3)
     let correctAnswer = greeting
       ? result.steps == 1 && !result.answer.isEmpty && result.citations.isEmpty
-      : result.answer.contains("18") && Set(result.citations).isSuperset(of: citations)
+      : result.answer.contains("27.5") && Set(result.citations).isSuperset(of: citations)
     let passed = correctAnswer
       && currentItems.filter { originalIDs.contains($0.id) } == originals
       && integrity["ok"] == .bool(true) && previews.hasCleared

@@ -401,12 +401,12 @@ do {
     exit(0)
   }
   if CommandLine.arguments.count == 6,
-    ["--conversation-latency-live", "--conversation-stock-trace", "--conversation-cache-trace", "--conversation-desktop-trace"].contains(CommandLine.arguments[1])
+    ["--conversation-latency-live", "--conversation-table-trace", "--conversation-cache-trace", "--conversation-desktop-trace"].contains(CommandLine.arguments[1])
   {
     try await runConversationLatencyProbe(
       modelsRoot: CommandLine.arguments[2], library: CommandLine.arguments[3],
       engine: CommandLine.arguments[4], output: CommandLine.arguments[5],
-      stockOnly: CommandLine.arguments[1] == "--conversation-stock-trace",
+      tableOnly: CommandLine.arguments[1] == "--conversation-table-trace",
       cacheTrace: CommandLine.arguments[1] == "--conversation-cache-trace",
       desktopContext: CommandLine.arguments[1] == "--conversation-desktop-trace")
     exit(0)
@@ -441,13 +441,13 @@ do {
     exit(0)
   }
   if CommandLine.arguments.dropFirst() == ["--saved-action-checks"] {
-    try await checkSavedMovementAction()
+    try await checkSavedActions()
     exit(0)
   }
   try await checkConversationLatency()
   try await checkConversationHistoryAppendOnly()
   try await checkPromptHeader()
-  try await checkSavedMovementAction()
+  try await checkSavedActions()
   try checkInferenceLease()
   try checkNativeFailures()
   try checkContextBudget()
@@ -460,7 +460,6 @@ do {
   try await checkInterfaceGuidance()
   try await checkRequestEnvelopes()
   try await checkRequestAdmission()
-  try await checkMovementDirection()
   try await checkApplicationTools()
   try await checkWorkflowAgentTools()
   try await checkChatAgentOperations()
@@ -519,10 +518,6 @@ do {
       engine: CommandLine.arguments[4], output: CommandLine.arguments[5])
   } else if CommandLine.arguments.count == 6 && CommandLine.arguments[1] == "--application-tools" {
     try await runApplicationToolProbe(
-      modelsRoot: CommandLine.arguments[2], library: CommandLine.arguments[3],
-      engine: CommandLine.arguments[4], output: CommandLine.arguments[5])
-  } else if CommandLine.arguments.count == 6 && CommandLine.arguments[1] == "--movement-direction" {
-    try await runMovementDirectionProbe(
       modelsRoot: CommandLine.arguments[2], library: CommandLine.arguments[3],
       engine: CommandLine.arguments[4], output: CommandLine.arguments[5])
   } else if CommandLine.arguments.count == 6
@@ -584,7 +579,7 @@ do {
       engine: CommandLine.arguments[4], modelsRoot: CommandLine.arguments[5])
   } else if CommandLine.arguments.count == 6
     && [
-      "--autonomous", "--inventory", "--occupied", "--history", "--continuity",
+      "--autonomous", "--table", "--occupied", "--history", "--continuity",
       "--context-recovery",
     ].contains(
       CommandLine.arguments[1])
@@ -592,7 +587,7 @@ do {
     try await runNativeAgentProbe(
       modelFolder: CommandLine.arguments[2], library: CommandLine.arguments[3],
       engine: CommandLine.arguments[4], modelsRoot: CommandLine.arguments[5],
-      inventoryOnly: CommandLine.arguments[1] != "--autonomous",
+      tableOnly: CommandLine.arguments[1] != "--autonomous",
       occupiedContext: CommandLine.arguments[1] == "--occupied",
       historyOnly: CommandLine.arguments[1] == "--history",
       continuityOnly: CommandLine.arguments[1] == "--continuity",
@@ -610,12 +605,11 @@ do {
     try checkItemReferenceGrammar(frontend: frontend, factory: factory)
     try checkDocumentCopyGrammar(frontend: frontend, factory: factory)
     try checkConversationReplayBoundary(frontend: frontend)
-    try checkActionDirectionGrammar(frontend: frontend, factory: factory)
     try checkNativeReviewGrammar(frontend: frontend, factory: factory)
     try checkInterpretationGrammar(frontend: frontend, factory: factory)
   } else if CommandLine.arguments.count != 1 {
     throw SplashError(
-      "Usage: sevra-agent-checks --reference-traversal MODEL_FOLDER PINNED_NATIVE_LIBRARY ENGINE NEW_OUTPUT_DIRECTORY or --document-composition/--movement-direction/--interface-guidance MODELS_ROOT PINNED_NATIVE_LIBRARY ENGINE NEW_OUTPUT_DIRECTORY or --active-context/--active-context-maintained MODELS_ROOT PINNED_NATIVE_LIBRARY ENGINE NEW_OUTPUT_DIRECTORY or --continuity-workflow MODELS_ROOT PINNED_NATIVE_LIBRARY ENGINE NEW_OUTPUT_DIRECTORY or [MODEL_FOLDER PINNED_NATIVE_LIBRARY] or --autonomous/--inventory/--occupied/--history/--continuity/--context-recovery/--reasoning-comparison/--reasoning-boundary/--inspection-recovery/--coverage MODEL_FOLDER PINNED_NATIVE_LIBRARY ENGINE MODELS_ROOT. The continuity workflow uses native-installed models, 32K and bounded512; reference traversal uses local-pack models at those same budgets. SEVRA_NATIVE_CONTEXT_TOKENS selects 8192/32768/65536/131072/262144 and SEVRA_NATIVE_REASONING selects 0/512 in other development checks. Reasoning comparison fixes 32K and accepts SEVRA_REASONING_SAVE_FIXTURES or SEVRA_REASONING_FIXTURES; SEVRA_REASONING_BOUNDED_ONLY=1 runs only the bounded arm."
+      "Usage: sevra-agent-checks --reference-traversal MODEL_FOLDER PINNED_NATIVE_LIBRARY ENGINE NEW_OUTPUT_DIRECTORY or --document-composition/--interface-guidance MODELS_ROOT PINNED_NATIVE_LIBRARY ENGINE NEW_OUTPUT_DIRECTORY or --active-context/--active-context-maintained MODELS_ROOT PINNED_NATIVE_LIBRARY ENGINE NEW_OUTPUT_DIRECTORY or --continuity-workflow MODELS_ROOT PINNED_NATIVE_LIBRARY ENGINE NEW_OUTPUT_DIRECTORY or [MODEL_FOLDER PINNED_NATIVE_LIBRARY] or --autonomous/--table/--occupied/--history/--continuity/--context-recovery/--reasoning-comparison/--reasoning-boundary/--inspection-recovery/--coverage MODEL_FOLDER PINNED_NATIVE_LIBRARY ENGINE MODELS_ROOT. The continuity workflow uses native-installed models, 32K and bounded512; reference traversal uses local-pack models at those same budgets. SEVRA_NATIVE_CONTEXT_TOKENS selects 8192/32768/65536/131072/262144 and SEVRA_NATIVE_REASONING selects 0/512 in other development checks. Reasoning comparison fixes 32K and accepts SEVRA_REASONING_SAVE_FIXTURES or SEVRA_REASONING_FIXTURES; SEVRA_REASONING_BOUNDED_ONLY=1 runs only the bounded arm."
     )
   }
 } catch {

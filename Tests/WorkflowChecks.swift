@@ -11,8 +11,6 @@ func checkWorkflows(at root: URL) {
       at: root.appendingPathComponent("Workflow-" + name + ".sevra"), title: name)
     let source = try b.addItem(
       category: "source", kind: "observation", title: "Synthetic receipt", status: "accepted")
-    try b.setOpeningBalance(
-      subject: "bolts", quantity: "20", effective: "2026-01-01", sourceID: source.id)
     let f = try b.saveApplicationDefinition(
       logicalID: identifier(),
       content: .object([
@@ -23,30 +21,17 @@ func checkWorkflows(at root: URL) {
         ]),
         "payload": .object(["expression": .string("quantity*2"), "unit": .string("items")]),
       ]))
-    let action = try b.saveApplicationDefinition(
-      logicalID: identifier(),
-      content: .object([
-        "kind": .string("action"), "title": .string("Propose movement"),
-        "description": .string("Synthetic"),
-        "parameters": .array(ActionRegistry.movementParameters),
-        "payload": .object([
-          "primitive": .object(["id": .string(ActionRegistry.movementID), "version": .number(1)]),
-          "arguments": .object(
-            Dictionary(
-              uniqueKeysWithValues: ActionRegistry.movementParameters.map {
-                ($0["id"].text, .object(["parameter": $0["id"]]))
-              })),
-        ]),
-      ]))
-    var actionMappings = Dictionary(
-      uniqueKeysWithValues: ActionRegistry.movementParameters.map {
+    let action = try noteAction(b, title: "Propose a note")
+    let actionMappings = Dictionary(
+      uniqueKeysWithValues: ActionRegistry.documentParameters.map {
         ($0["id"].text, Value.object(["parameter": $0["id"]]))
       })
-    actionMappings["quantity"] = .object(["step": .string("double"), "unit": .string("items")])
     let content: Value = .object([
       "kind": .string("workflow"), "title": .string("Count then propose"),
       "description": .string("Manual synthetic workflow"),
-      "parameters": .array(ActionRegistry.movementParameters),
+      "parameters": .array(
+        [ActionRegistry.field("quantity", "Quantity", "decimal", unit: "items")]
+          + ActionRegistry.documentParameters),
       "payload": .object([
         "readPolicy": .string("latest-at-step"),
         "steps": .array([
@@ -67,13 +52,9 @@ func checkWorkflows(at root: URL) {
       ]),
     ])
     let workflow = try b.saveApplicationDefinition(logicalID: identifier(), content: content)
-    let args: Value = .object([
-      "quantity": .string("3"), "subject": .string("bolts"),
-      "occurrence": .string("delivery-" + name),
-      "effective": .string("2026-10-28"), "evidence": .string(source.id),
-      "meaning": .string(meaning),
-    ])
-    return (b, workflow, args)
+    var args = noteArguments(source.id, title: "Note " + name, meaning: meaning).object
+    args["quantity"] = .string("3")
+    return (b, workflow, .object(args))
   }
   func start(_ b: Workbook, _ definition: ApplicationDefinition, _ args: Value) throws
     -> WorkflowExecutionSession
@@ -100,7 +81,7 @@ func checkWorkflows(at root: URL) {
     let receipt = try b.submitFormDraft(state, preview: preview, actor: actor)
     let runID = receipt["workflowRunID"].text
     try expect(try b.workflowRun(runID)["state"] == .string("queued"))
-    try expect(try b.balance(subject: "bolts")["quantity"] == .string("20"))
+    try expect(try b.items(kind: "document").isEmpty)
     let source = try b.item(receipt["sourceID"].text)
     try expect(source.data["origin"]["formID"] == .string(form.id))
     try expectInputRole(b, child: source.id, parent: form.sourceID, roles: 2)
@@ -244,7 +225,7 @@ func checkWorkflows(at root: URL) {
     let inspected = try b.inspectWorkflow(session.runID)
     try expect(inspected["steps"].array[1]["proposals"].array[0]["status"] == .string("accepted"))
     try expect(try b.continueWorkflow(session, owner: "resumed")["state"] == .string("completed"))
-    try expect(try b.balance(subject: "bolts")["quantity"] == .string("26"))
+    try expect(try b.item(b.item(draft(waiting)).logicalID).status == "accepted")
     _ = try b.verify()
   }
 
@@ -270,8 +251,8 @@ func checkWorkflows(at root: URL) {
     try expect(try c.workflowRun(run.runID)["detail"] == .string("This step could not finish."))
   }
 
-  check("manual workflows retain exact outputs, wait for review and apply inventory once") {
-    let (b, definition, args) = try fixture("Receiving")
+  check("manual workflows retain exact outputs, wait for review and accept once") {
+    let (b, definition, args) = try fixture("Manual")
     let session = try start(b, definition, args)
     let initial = try b.workflowRun(session.runID)
     try expect(
@@ -280,7 +261,7 @@ func checkWorkflows(at root: URL) {
     try expect(first["steps"].array[0]["output"]["value"]["result"] == .string("6"))
     let second = try b.advanceWorkflow(session, owner: "worker")
     let proposal = draft(second)
-    try expect(try b.item(proposal).data["quantity"] == .string("6"))
+    try expect(try b.item(proposal).text == args["body"].text)
     let waiting = try b.advanceWorkflow(session, owner: "worker")
     try expect(waiting["state"] == .string("waiting_review"))
     for _ in 0..<35 {
@@ -291,73 +272,38 @@ func checkWorkflows(at root: URL) {
         "SELECT count(*) FROM workflow_attempts WHERE run_id=? AND step_id='review'",
         [.string(session.runID)]
       ).int == 1)
-    try expect(try b.balance(subject: "bolts")["quantity"] == .string("20"))
+    try expect(try b.item(proposal).status == "draft")
     let other = try Workbook(b.url)
     let accepted = try other.accept(proposal, actor: .human("test-review"))
     let completed = try b.advanceWorkflow(session, owner: "resumed-worker")
     try expect(completed["state"] == .string("completed"))
     try expect(
       completed["steps"].array[2]["output"]["value"]["accepted"] == .array([.string(accepted.id)]))
-    try expect(try b.balance(subject: "bolts")["quantity"] == .string("26"))
     try expect(try b.advanceWorkflow(session, owner: "again")["state"] == .string("completed"))
-    try expect(try b.balance(subject: "bolts")["quantity"] == .string("26"))
     _ = try b.verify()
   }
 
-  check(
-    "receiving across runs preserves accepted work and separates evidence retries from deliveries"
-  ) {
-    let (b, definition, args) = try fixture("DistinctDeliveries")
+  check("cancelling after acceptance keeps the accepted work, and a later run reviews its own") {
+    let (b, definition, args) = try fixture("LaterRuns")
     let first = try start(b, definition, args)
-    let waiting = try b.continueWorkflow(first, owner: "first delivery")
-    _ = try b.accept(draft(waiting), actor: .human("synthetic-review"))
+    let waiting = try b.continueWorkflow(first, owner: "first run")
+    let accepted = try b.accept(draft(waiting), actor: .human("synthetic-review"))
     let acceptedPrefix = try b.workflowRun(first.runID)
     let cancelled = try b.cancelWorkflow(first, token: "stop-after-acceptance")
     try expect(cancelled["state"] == .string("cancelled"))
     try expect(cancelled["steps"].array[0] == acceptedPrefix["steps"].array[0])
     try expect(cancelled["steps"].array[1] == acceptedPrefix["steps"].array[1])
-    try expect(try b.balance(subject: "bolts")["quantity"] == .string("26"))
-    let supporting = try b.addItem(
-      category: "source", kind: "observation", title: "Second evidence for the same delivery",
-      text: "Another view of the same fulfillment, not another delivery.", status: "accepted",
-      inputs: [args["evidence"].text], transformation: "synthetic-supporting-evidence")
-    var repeated = args.object
-    repeated["evidence"] = .string(supporting.id)
-    let repeatedRun = try b.startWorkflow(
-      definition.id, arguments: .object(repeated), token: "new-request-same-delivery")
-    let duplicate = try b.authorizeWorkflowExecution(repeatedRun["id"].text)
-    try refuses("duplicate_effect") {
-      _ = try b.continueWorkflow(duplicate, owner: "same fulfillment")
-    }
-    let refused = try b.workflowRun(duplicate.runID)
-    try expect(refused["state"] == .string("needs_attention"))
-    try expect(refused["steps"].array[0]["state"] == .string("completed"))
-    try expect(refused["steps"].array[1]["output"] == .null)
-    try expect(try b.item(supporting.id).id == supporting.id)
-    try expect(try b.balance(subject: "bolts")["quantity"] == .string("26"))
-    try expect(try b.balance(subject: "bolts")["effects"].array.count == 1)
-    repeated["occurrence"] = .string("genuinely-independent-delivery")
-    let independent = try b.addItem(
-      category: "source", kind: "observation", title: "Independent second delivery",
-      text:
-        "Another genuine delivery with the same six units, distinct from the earlier fulfillment.",
-      status: "accepted")
-    repeated["evidence"] = .string(independent.id)
-    let nextRun = try b.startWorkflow(
-      definition.id, arguments: .object(repeated), token: "distinct-delivery")
+    try expect(try b.item(accepted.logicalID).status == "accepted")
+    let nextRun = try b.startWorkflow(definition.id, arguments: args, token: "second-run")
     let next = try b.authorizeWorkflowExecution(nextRun["id"].text)
-    let nextWaiting = try b.continueWorkflow(next, owner: "second delivery")
-    try expect(try b.balance(subject: "bolts")["quantity"] == .string("26"))
+    let nextWaiting = try b.continueWorkflow(next, owner: "second run")
+    try expect(draft(nextWaiting) != draft(waiting))
     _ = try b.accept(draft(nextWaiting), actor: .human("synthetic-review"))
-    let completed = try b.continueWorkflow(next, owner: "second delivery reviewed")
+    let completed = try b.continueWorkflow(next, owner: "second run reviewed")
     try expect(completed["state"] == .string("completed"))
-    try expect(try b.balance(subject: "bolts")["quantity"] == .string("32"))
-    try expect(try b.balance(subject: "bolts")["effects"].array.count == 2)
-    let copy = try b.reconstruct(to: root.appendingPathComponent("DeliveriesReconstructed.sevra"))
+    let copy = try b.reconstruct(to: root.appendingPathComponent("LaterRunsReconstructed.sevra"))
     try expect(try copy.workflowRun(first.runID) == cancelled)
-    try expect(try copy.workflowRun(duplicate.runID) == refused)
     try expect(try copy.workflowRun(next.runID) == completed)
-    try expect(try copy.balance(subject: "bolts")["quantity"] == .string("32"))
     try expect(try copy.verify()["ok"] == .bool(true) && b.verify()["ok"] == .bool(true))
   }
   check(
@@ -409,11 +355,11 @@ func checkWorkflows(at root: URL) {
     try refuses { _ = try b.completeWorkflowStep(session, claim: claim) }
     try b.db.execute("DROP TRIGGER workflow_fault")
     try expect(try b.committedHistory(limit: 1000) == before)
-    try expect(try b.db.scalar("SELECT count(*) FROM effects").int == 0)
+    try expect(try b.items(kind: "document").isEmpty)
     try expect(try b.workflowRun(session.runID)["steps"].array[1]["output"] == .null)
     let saved = try b.completeWorkflowStep(session, claim: claim)
     try expect(!draft(saved).isEmpty)
-    try expect(try b.db.scalar("SELECT count(*) FROM effects").int == 1)
+    try expect(try b.items(kind: "document").count == 1)
     _ = try b.verify()
   }
 
@@ -426,7 +372,6 @@ func checkWorkflows(at root: URL) {
     let accepted = try b.accept(draft(proposed), actor: .human("test-review"))
     try expect(accepted.meaning == "estimate")
     try expect(try b.advanceWorkflow(session, owner: "worker")["state"] == .string("completed"))
-    try expect(try b.balance(subject: "bolts")["quantity"] == .string("20"))
     _ = try b.verify()
   }
 
@@ -466,7 +411,7 @@ func checkWorkflows(at root: URL) {
     let copy = try b.reconstruct(to: root.appendingPathComponent("Workflow-replayed.sevra"))
     try expect(try copy.workflowRun(session.runID) == saved)
     try refuses("workflow_authority") { _ = try copy.completeWorkflowStep(session, claim: claim) }
-    try expect(try copy.db.scalar("SELECT count(*) FROM effects").int == 0)
+    try expect(try copy.items(kind: "document").isEmpty)
     let archive = root.appendingPathComponent("Workflow.sevraz")
     try b.export(to: archive)
     let portable = try Workbook.openArchive(

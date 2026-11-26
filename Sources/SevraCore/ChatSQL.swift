@@ -137,7 +137,7 @@ extension Workbook {
         !changes.contains { $0.key == key } && !reshapes.contains { $0.key == key }
       }
       let few = read.reduce(0) { $0 + scratch.rowIDs($1).count } <= SQLScratch.namedRowLimit
-      var inputs: [String] = scratch.ledgerRead ? Array(scratch.ledgerSources.prefix(24)) : []
+      var inputs: [String] = []
       for key in read {
         let ids = scratch.rowIDs(key)
         if few {
@@ -178,11 +178,9 @@ extension Workbook {
   /// The tables as sql names them, for the request's context, so the model need not look
   /// them up. Long workbooks list what fits and point at the catalog for the rest.
   public func chatSQLTables(byteLimit: Int = 2_400) throws -> String {
-    let ledger = try hasStockLedger()
-    let named = SQLScratch.named(try datasets(), ledger: ledger)
-    let stock = ledger && SQLScratch.ledgerListing.utf8.count <= byteLimit
-    var lines: [String] = stock ? [SQLScratch.ledgerListing] : []
-    var bytes = stock ? SQLScratch.ledgerListing.utf8.count : 0
+    let named = SQLScratch.named(try datasets())
+    var lines: [String] = []
+    var bytes = 0
     for entry in named {
       let line =
         entry.name + "("
@@ -196,36 +194,20 @@ extension Workbook {
       lines.append(line)
     }
     guard !lines.isEmpty else { return "" }
-    let listed = lines.count - (stock ? 1 : 0)
     return "Tables for sql: " + lines.joined(separator: "; ")
-      + (listed < named.count ? "; \(named.count - listed) more in SELECT * FROM tables" : "")
+      + (lines.count < named.count ? "; \(named.count - lines.count) more in SELECT * FROM tables" : "")
   }
 
   /// A current table by its id or by its name under Tables for sql.
   public func chatTableID(_ reference: String) throws -> String {
     if let table = try? dataset(reference), !table.archived { return table.id }
-    let named = SQLScratch.named(try datasets(), ledger: try hasStockLedger())
+    let named = SQLScratch.named(try datasets())
     guard let match = named.first(where: { $0.name == reference }) else {
       throw SevraError(
         "unknown_table", "No table is named \(reference). Use a name under Tables for sql.")
     }
     return match.dataset.id
   }
-
-  func hasStockLedger() throws -> Bool {
-    try synchronized { try db.scalar("SELECT count(*) FROM bases").int ?? 0 > 0 }
-  }
-
-  /// The current balance of every item with an opening basis, by the ledger's own rules.
-  /// An item whose basis is not yet in effect has no balance and is left out.
-  func stockBalances() throws -> [Value] {
-    try synchronized {
-      try db.execute("SELECT subject FROM bases ORDER BY subject LIMIT 2000").compactMap {
-        try? balance(subject: $0["subject"]!.text)
-      }
-    }
-  }
-
 
   /// A host-owned, exact rule Source for table changes a person asks for in chat.
   /// It is published programmatically, never fabricated as a human acceptance or model rule.
@@ -418,7 +400,6 @@ final class ChatSQLSession {
   private let workbook: Workbook
   private let cancellation: Cancellation
   private var filled = Set<String>()
-  private var ledgerFilled = false
 
   init(
     _ workbook: Workbook, readOnly: Bool, draft: Bool = false, inputs: [String: Value]? = nil,
@@ -427,13 +408,12 @@ final class ChatSQLSession {
     self.workbook = workbook
     self.cancellation = cancellation
     let tables = try workbook.datasets()
-    let ledger = try workbook.hasStockLedger()
     rehearsal = try SQLScratch(
-      tables: tables, ledger: ledger, readOnly: readOnly, draft: draft, inputs: inputs,
+      tables: tables, readOnly: readOnly, draft: draft, inputs: inputs,
       cancellation: cancellation)
     do {
       scratch = try SQLScratch(
-        tables: tables, ledger: ledger, readOnly: readOnly, draft: draft, inputs: inputs,
+        tables: tables, readOnly: readOnly, draft: draft, inputs: inputs,
         cancellation: cancellation)
     } catch {
       rehearsal.close()
@@ -471,10 +451,6 @@ final class ChatSQLSession {
       }
     }
     filled.formUnion(named)
-    if rehearsal.ledgerRead, !ledgerFilled {
-      try scratch.fillLedger(workbook.stockBalances())
-      ledgerFilled = true
-    }
     return try scratch.run(statements)
   }
 
@@ -494,10 +470,6 @@ final class SQLScratch {
   static let shownRows = 50
   static let shownBytes = 9_000
   private static let log = "_sevra_log"
-  /// The stock ledger as two read-only tables, present when the ledger holds a basis.
-  static let ledger: Set<String> = ["stock", "stock_movements"]
-  static let ledgerListing =
-    "stock(subject TEXT, quantity REAL, opening REAL, opening_date TEXT) read-only, the current stock of each inventory item; stock_movements(subject TEXT, quantity REAL, effective TEXT) read-only, the movements counted in it"
   private static let reserved: Set<String> = ["tables", "columns", log]
   private static let shapeRefusal =
     "sql can create, alter and drop tables. It cannot make indexes, views, triggers or temporary tables. Use WITH for intermediate results."
@@ -567,10 +539,6 @@ final class SQLScratch {
   var shownBytes = SQLScratch.shownBytes
   /// A script gets numbers as numbers. A model is shown them as exact decimal text.
   var numbers = false
-  private let hasLedger: Bool
-  /// Whether a statement has read the stock tables, and the Sources their figures rest on.
-  private(set) var ledgerRead = false
-  private(set) var ledgerSources: [String] = []
   private var filledRows = 0
   private let cancellation: Cancellation
   private var guarded = false
@@ -588,10 +556,9 @@ final class SQLScratch {
   }
 
   init(
-    tables: [Dataset], ledger: Bool, readOnly: Bool, draft: Bool,
+    tables: [Dataset], readOnly: Bool, draft: Bool,
     inputs: [String: Value]? = nil, cancellation: Cancellation
   ) throws {
-    hasLedger = ledger
     self.readOnly = readOnly
     self.draft = draft
     self.inputs = inputs
@@ -618,11 +585,7 @@ final class SQLScratch {
     try execute(
       "CREATE TABLE columns(table_name TEXT, name TEXT, title TEXT, type TEXT, formula TEXT, id TEXT)")
     try execute("CREATE TABLE \"\(Self.log)\"(tbl TEXT, id INTEGER)")
-    if ledger {
-      try execute("CREATE TABLE stock(subject TEXT, quantity REAL, opening REAL, opening_date TEXT)")
-      try execute("CREATE TABLE stock_movements(subject TEXT, quantity REAL, effective TEXT)")
-    }
-    for (name, dataset, columns) in Self.named(tables, ledger: ledger) {
+    for (name, dataset, columns) in Self.named(tables) {
       try execute(
         "CREATE TABLE \"\(name)\"("
           + columns.map {
@@ -672,10 +635,10 @@ final class SQLScratch {
   // MARK: Names
 
   /// The name each table and column has in sql: its title in lower case with underscores.
-  static func named(_ tables: [Dataset], ledger: Bool) -> [(
+  static func named(_ tables: [Dataset]) -> [(
     name: String, dataset: Dataset, columns: [(name: String, column: Column)]
   )] {
-    var taken = ledger ? reserved.union(Self.ledger) : reserved
+    var taken = reserved
     return tables.filter { !$0.archived && !$0.columns.isEmpty }.map { dataset in
       let name = unique(identifier(dataset.title, fallback: "table"), in: &taken)
       var columnNames: Set<String> = ["rowid", "oid", "_rowid_"]
@@ -792,7 +755,6 @@ final class SQLScratch {
           : refuse("sql", "Use SELECT * FROM columns to see the tables and their columns.")
       }
       if let key = current[name] { read.insert(key) }
-      if hasLedger, Self.ledger.contains(name) { ledgerRead = true }
       return SQLITE_OK
     case SQLITE_INSERT, SQLITE_UPDATE, SQLITE_DELETE:
       if name == Self.log, inTrigger { return SQLITE_OK }
@@ -943,9 +905,7 @@ final class SQLScratch {
     defer { sqlite3_finalize(list) }
     while sqlite3_step(list) == SQLITE_ROW {
       let name = String(cString: sqlite3_column_text(list, 0))
-      if !Self.reserved.contains(name.lowercased()), !name.lowercased().hasPrefix("sqlite_"),
-        !(hasLedger && Self.ledger.contains(name.lowercased()))
-      {
+      if !Self.reserved.contains(name.lowercased()), !name.lowercased().hasPrefix("sqlite_") {
         names.append(name)
       }
     }
@@ -1047,29 +1007,6 @@ final class SQLScratch {
           "CREATE TRIGGER \"_sevra_\(kind)_\(key)\" AFTER \(event) ON \"\(key)\" BEGIN "
             + rows.map { "INSERT INTO \"\(Self.log)\" VALUES('\(key)',\($0).rowid);" }.joined()
             + " END")
-      }
-    }
-  }
-
-  /// Copies in the stock ledger: one row per item with a basis, and the movements counted.
-  func fillLedger(_ balances: [Value]) throws {
-    for balance in balances {
-      try execute(
-        "INSERT INTO stock VALUES(?,?,?,?)",
-        [
-          balance["subject"], .number(Double(balance["quantity"].text) ?? 0),
-          .number(Double(balance["openingQuantity"].text) ?? 0),
-          .string(String(balance["openingEffective"].text.prefix(10))),
-        ])
-      ledgerSources.append(balance["basis"].text)
-      for effect in balance["effects"].array {
-        try execute(
-          "INSERT INTO stock_movements VALUES(?,?,?)",
-          [
-            balance["subject"], .number(Double(effect["quantity"].text) ?? 0),
-            .string(String(effect["effective"].text.prefix(10))),
-          ])
-        ledgerSources.append(effect["item_id"].text)
       }
     }
   }

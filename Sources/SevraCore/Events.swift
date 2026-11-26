@@ -55,17 +55,6 @@ public enum BusinessTime {
       "date", "Use a date between the years 0001 and 9999.")
     return normalized
   }
-  /// The day it is where this Mac is. A date without a time means that whole day, which UTC can
-  /// reach hours early or late. A fixture's clock has no place, so it stands for itself.
-  static func localDay(at instant: String) throws -> String {
-    guard FixtureContext.current == nil, let date = ISO8601DateFormatter().date(from: instant)
-    else { return try normalized(instant) }
-    let formatter = DateFormatter()
-    formatter.calendar = Calendar(identifier: .gregorian)
-    formatter.locale = Locale(identifier: "en_US_POSIX")
-    formatter.dateFormat = "yyyy-MM-dd"
-    return try normalized(formatter.string(from: date))
-  }
 }
 
 extension Workbook {
@@ -76,150 +65,6 @@ extension Workbook {
       "SELECT * FROM items WHERE logical_id=? AND version<? AND status IN ('accepted','rejected') ORDER BY version DESC LIMIT 1",
       [.string(logicalID), .number(Double(version))]
     ).first.map(decodeItem)
-  }
-  public func setOpeningBalance(
-    subject: String, quantity: String, effective: String, sourceID: String
-  ) throws {
-    let effective = try BusinessTime.normalized(effective)
-    let subject = subject.precomposedStringWithCanonicalMapping
-    _ = try Numbers.decimal(quantity)
-    _ = try item(sourceID)
-    _ = try mutation(
-      "opening_balance",
-      request: .object(["subject": .string(subject), "quantity": .string(quantity)])
-    ) {
-      try require(
-        try db.scalar("SELECT count(*) FROM bases WHERE subject=?", [.string(subject)]).int == 0,
-        "basis_exists",
-        "This subject already has an opening basis. Record a correction or reconciliation explicitly."
-      )
-      try db.execute(
-        "INSERT INTO bases VALUES(?,?,?,?)",
-        [.string(subject), .string(quantity), .string(effective), .string(sourceID)])
-      return .string(subject)
-    }
-  }
-  @discardableResult public func movement(
-    subject: String, quantity: String, occurrence: String, effective: String, input: String,
-    meaning: String = "actual", status: String = "draft", supersedes: String? = nil,
-    token: String = identifier(), requestSourceID: String? = nil,
-    cancellation: Cancellation = .init(), actor: ChangeActor? = nil
-  ) throws -> Item {
-    let request = try movementRequest(
-      subject: subject, quantity: quantity, occurrence: occurrence, effective: effective,
-      input: input, meaning: meaning, status: status, supersedes: supersedes,
-      requestSourceID: requestSourceID)
-    return try mutation(
-      "movement", token: token, request: request, cancellation: cancellation, actor: actor,
-      reading: { try item($0.text) }
-    ) { .string(try self.insertMovement(request)) }
-  }
-
-  func movementRequest(
-    subject: String, quantity: String, occurrence: String, effective: String, input: String,
-    meaning: String = "actual", status: String = "draft", supersedes: String? = nil,
-    requestSourceID: String? = nil
-  ) throws -> Value {
-    let effective = try BusinessTime.normalized(effective)
-    // SQL compares these by bytes and Swift by canonical equivalence, so keep one form.
-    let subject = subject.precomposedStringWithCanonicalMapping
-    let occurrence = occurrence.precomposedStringWithCanonicalMapping
-    try require(
-      !subject.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty && !occurrence.isEmpty,
-      "movement", "Subject and occurrence must not be empty.")
-    // Consumers read effects in bounded rows, so one oversized value would stop them for good.
-    try require(
-      occurrence.utf8.count <= 512, "movement", "An occurrence is limited to 512 bytes.")
-    _ = try Numbers.decimal(quantity)
-    var fields: [String: Value] = [
-      "subject": .string(subject), "quantity": .string(quantity), "occurrence": .string(occurrence),
-      "effective": .string(effective), "input": .string(input), "meaning": .string(meaning),
-      "status": .string(status), "supersedes": supersedes.map(Value.string) ?? .null,
-    ]
-    if let requestSourceID { fields["requestSourceID"] = .string(requestSourceID) }
-    return .object(fields)
-  }
-
-  /// The same read-only domain preconditions serve preview and transactional publication.
-  func validateMovement(_ request: Value) throws {
-    let subject = request["subject"].text
-    let occurrence = request["occurrence"].text
-    let input = try item(request["input"].text)
-    try require(input.id == request["input"].text, "movement_input", "Use exact local evidence.")
-    if let requestID = request["requestSourceID"].string {
-      let source = try item(requestID)
-      try require(
-        source.id == requestID && source.category == "source" && source.kind == "request",
-        "movement_request", "The movement request must reference its captured user submission.")
-    }
-    // Nothing turns an estimate, plan or other scenario into actual stock. A captured request
-    // is the user's own report, so its `plan` meaning says nothing about the event it reports.
-    let actual = request["meaning"] == .string("actual")
-    try require(
-      !actual
-        || ((input.meaning == "actual" || input.kind == "request") && input.scenario == "actual"),
-      "interpretation_meaning", "Actual stock cannot rest on an estimate, plan or another scenario."
-    )
-    let previous = try request["supersedes"].string.map(item)
-    if let previous {
-      try require(
-        !actual || (previous.meaning == "actual" && previous.scenario == "actual"),
-        "interpretation_meaning",
-        "A correction cannot turn an estimate or plan into actual stock. Record the event as its own occurrence."
-      )
-      try require(
-        previous.id == request["supersedes"].text, "movement_revision",
-        "A correction needs the exact movement version.")
-      try require(
-        previous.kind == "movement" && previous.data["subject"].text == subject
-          && previous.data["occurrence"].text == occurrence,
-        "movement_revision", "A correction must keep the same inventory subject and occurrence.")
-      try require(
-        try item(previous.logicalID).id == previous.id, "stale_revision",
-        "This record has a newer version.")
-    }
-    let existing = try db.execute(
-      "SELECT DISTINCT i.logical_id FROM effects e JOIN items i ON i.id=e.item_id WHERE e.occurrence=? AND e.subject=? AND e.kind='inventory'",
-      [.string(occurrence), .string(subject)])
-    try require(
-      existing.isEmpty
-        || (previous != nil
-          && existing.allSatisfy {
-            $0["logical_id"]?.text == previous?.logicalID
-          }),
-      "duplicate_effect",
-      "This business occurrence already has an inventory effect. Add supporting evidence or correct its existing record."
-    )
-  }
-
-  /// Trusted callers already hold the canonical mutation transaction. Never nest mutations.
-  func insertMovement(
-    _ request: Value, additionalInputs: [String] = [], producerInputs: [String] = []
-  ) throws -> String {
-    try validateMovement(request)
-    let subject = request["subject"].text
-    let quantity = request["quantity"].text
-    let meaning = request["meaning"].text
-    let supersedes = request["supersedes"].string
-    let id = try insertItem(
-      category: "record", kind: "movement", title: "\(subject): \(quantity)",
-      text: "\(quantity) inventory movement for \(subject)", data: request, meaning: meaning,
-      status: request["status"].text, scenario: meaning == "actual" ? "actual" : "planning",
-      inputs: Array(
-        Set(
-          [request["input"].text] + additionalInputs
-            + (supersedes.map { [$0] } ?? [])
-            + (request["requestSourceID"].string.map { [$0] } ?? []))
-      ).sorted(),
-      transformation: "inventory-movement-v1", supersedes: supersedes,
-      producerInputs: producerInputs)
-    try db.execute(
-      "INSERT INTO effects VALUES(?,?,?,?,?,?)",
-      [
-        request["occurrence"], .string(subject), .string("inventory"), .string(id),
-        .string(quantity), request["effective"],
-      ])
-    return id
   }
   @discardableResult public func accept(
     _ id: String, token: String = identifier(), cancellation: Cancellation = .init(),
@@ -284,9 +129,6 @@ extension Workbook {
         meaning: old.meaning, status: "accepted", scenario: old.scenario,
         inputs: [old.id, evidence], transformation: "accept-v1", assetID: old.assetID,
         supersedes: old.id)
-      try db.execute(
-        "INSERT INTO effects SELECT occurrence,subject,kind,?,quantity,effective FROM effects WHERE item_id=?",
-        [.string(newID), .string(old.id)])
       if old.kind == "table-intake-update", let runID = old.data["workflow"]["runID"].string {
         WorkflowPublicationProbe.observer?(.prepared, runID)
       }
@@ -297,65 +139,5 @@ extension Workbook {
       WorkflowPublicationProbe.observer?(.committed, runID)
     }
     return accepted
-  }
-  /// A dated entry is not stock until its date arrives, so `asOf` defaults to now. Accepted
-  /// effects outside the period stay visible: a quantity never hides what it left out.
-  public func balance(subject: String, asOf requested: String? = nil) throws -> Value {
-    let asOf = try BusinessTime.normalized(requested ?? timestamp())
-    let day = requested == nil ? try BusinessTime.localDay(at: timestamp()) : asOf
-    let dateOnly = "T00:00:00.000Z"
-    func arrived(_ effective: String) -> Bool {
-      effective <= (effective.hasSuffix(dateOnly) ? day : asOf)
-    }
-    let subject = subject.precomposedStringWithCanonicalMapping
-    return try synchronized {
-      guard
-        let base = try db.execute("SELECT * FROM bases WHERE subject=?", [.string(subject)]).first
-      else { throw SevraError("unknown_basis", "The opening balance is unknown for \(subject).") }
-      try require(
-        arrived(base["effective"]!.text), "unknown_basis",
-        "No opening basis exists before this date.")
-      var total = try Numbers.decimal(base["quantity"]!.text)
-      let settled =
-        "FROM effects e JOIN items i ON i.id=e.item_id WHERE e.subject=? AND i.status='accepted' AND i.meaning='actual' AND i.scenario='actual' AND NOT EXISTS(SELECT 1 FROM items n WHERE n.logical_id=i.logical_id AND n.version>i.version AND n.status IN ('accepted','rejected'))"
-      let period: [Value] = [
-        .string(subject), base["effective"]!, .string("%" + dateOnly), .string(day), .string(asOf),
-      ]
-      let inside = "e.effective>? AND e.effective<=IIF(e.effective LIKE ?,?,?)"
-      let rows = try db.execute(
-        "SELECT e.*,i.logical_id \(settled) AND \(inside) ORDER BY e.effective,e.item_id",
-        period)
-      for row in rows {
-        total = try exactInventorySum(total, Numbers.decimal(row["quantity"]!.text))
-      }
-      let outside = "AND NOT (\(inside))"
-      let excluded = try db.execute(
-        "SELECT e.*,i.logical_id \(settled) \(outside) ORDER BY e.effective,e.item_id LIMIT 20",
-        period)
-      return .object([
-        "subject": .string(subject), "quantity": .string(Numbers.string(total)),
-        "openingQuantity": base["quantity"]!, "openingEffective": base["effective"]!,
-        "basis": base["source_id"]!, "effects": .array(rows.map(Value.object)),
-        "asOf": .string(asOf),
-        "excludedCount": try db.scalar("SELECT count(*) \(settled) \(outside)", period),
-        "excludedEffects": .array(
-          excluded.map { row in
-            var effect = row
-            effect["reason"] = .string(
-              arrived(row["effective"]!.text) ? "not-after-basis" : "after-as-of")
-            return .object(effect)
-          }),
-      ])
-    }
-  }
-
-  func exactInventorySum(_ total: Decimal, _ quantity: Decimal) throws -> Decimal {
-    var lhs = total
-    var rhs = quantity
-    var sum = Decimal()
-    try require(
-      NSDecimalAdd(&sum, &lhs, &rhs, .plain) == .noError, "inventory_history_precision",
-      "The historical quantity exceeds exact decimal precision. No rounded balance was returned.")
-    return try Numbers.decimal(Numbers.string(sum))
   }
 }
