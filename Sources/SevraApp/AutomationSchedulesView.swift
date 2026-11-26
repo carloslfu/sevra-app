@@ -552,7 +552,7 @@ enum AutomationTrigger {
       " on " + $0.formatted(date: .abbreviated, time: .shortened)
     } ?? ""
     return state["finding"].int == 1
-      ? "Last change: it found \(rows == 1 ? "1 row" : "\(rows) rows")\(when). It starts again after the check finds no rows."
+      ? "Last change: it found \(rows == 1 ? "1 row" : "\(rows) rows")\(when). New rows start it again."
       : "Last change: it found no rows\(when). It starts when the check finds rows."
   }
 }

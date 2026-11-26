@@ -293,7 +293,7 @@ public final class SplashOutputParser {
     }
     value += String(decoding: part, as: UTF8.self)
     if name == "finish", parameter == "answer", tools[name!]?.parameters["answer"] == ["string"] {
-      answerPreview = String(value.prefix(16_000))
+      answerPreview = String(Self.ownText(value).prefix(16_000))
     }
     guard value.utf8.count <= 256 * 1024 else {
       throw SplashError("Tool parameter exceeds its limit")
@@ -349,8 +349,18 @@ public final class SplashOutputParser {
     return digits
   }
 
+  /// A string value up to a closing tag the model wrote without its newline. The grammar's
+  /// value ends only at the newline and the tag, so a model that closed the value early went on
+  /// to write its next parameter inside the text, and a reply showed that markup.
+  static func ownText(_ text: String) -> String {
+    guard let range = text.range(of: "</parameter>") else { return text }
+    let rest = text[range.upperBound...].drop { $0 == "\n" || $0 == " " }
+    guard rest.isEmpty || rest.hasPrefix("<parameter=") else { return text }
+    return String(text[..<range.lowerBound]).trimmingCharacters(in: .whitespacesAndNewlines)
+  }
+
   private func convertValue(_ text: String, types: Set<String>) throws -> Any {
-    if types == ["string"] { return text }
+    if types == ["string"] { return Self.ownText(text) }
     // Foundation may silently round large JSON integer literals into floating
     // point. Workbook numeric tool inputs must fit Int64; precise decimals and
     // larger identifiers travel as strings. Check before Foundation allocates

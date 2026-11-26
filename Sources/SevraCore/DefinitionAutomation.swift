@@ -161,7 +161,7 @@ extension Workbook {
     preview["check"] = .object([
       "logicalID": .string(tool.logicalID), "definitionID": .string(tool.id),
       "name": .string(name), "description": .string(tool.description),
-      "fires": .string("when the check starts finding rows"),
+      "fires": .string("when the check finds a row it did not find before, by its first column"),
     ])
     preview["notice"] = .string(Self.automationNotice(check: name, tools: tools, drafts: drafts))
     return preview
@@ -190,7 +190,7 @@ extension Workbook {
     var lines: [String] = []
     if let check {
       lines.append(
-        "It starts when the check \(check) finds rows after finding none. If the check already finds rows when you enable it, it starts once right away. If you change the check, the changed check starts fresh, so rows it finds then start it once."
+        "It starts when the check \(check) finds a row it did not find before, telling rows apart by the check's first column. A row that stays does not start it again. If the check already finds rows when you enable it, it starts once right away. If you change the check, the changed check starts fresh, so rows it finds then start it once."
       )
     }
     if tools.isEmpty {

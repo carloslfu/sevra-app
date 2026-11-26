@@ -292,7 +292,7 @@ import SevraCore
     let runID = dispatch["runID"].string ?? dispatch["run"]["id"].string
     return result(
       runID,
-      runID == nil ? detail : "The check found rows. Starting the workflow.", checked: true)
+      runID == nil ? detail : "The check found new rows. Starting the workflow.", checked: true)
   }
 
   /// One plain sentence for what a check found.
@@ -300,8 +300,10 @@ import SevraCore
     let rows = checked["rows"].int ?? 0
     let found = rows == 1 ? "1 row" : "\(rows) rows"
     switch checked["status"].text {
-    case "fired": return "The check found \(found). Starting the workflow."
-    case "finding": return "The check finds \(found). It starts again after it finds none."
+    case "fired":
+      let new = checked["newRows"].int ?? rows
+      return "The check found \(new == 1 ? "1 new row" : "\(new) new rows"). Starting the workflow."
+    case "finding": return "The check finds \(found), none new. New rows start it again."
     case "cleared": return "The check finds no rows. It starts when it finds rows."
     default: return "The check finds no rows. It starts when it finds rows."
     }

@@ -1,3 +1,4 @@
+import CryptoKit
 import Foundation
 
 /// The check trigger: an automation that starts when its saved check starts finding rows.
@@ -5,10 +6,11 @@ import Foundation
 /// The check is a saved SQL tool with no inputs that only reads. The automation follows the
 /// check's latest version, which is validated again at every evaluation, and each change records
 /// the exact version that ran. While the app is open on a Mac where the person enabled the
-/// automation, the native owner runs it after workbook changes and on a modest poll. It fires on
-/// the change from no rows to one or more rows, not while rows stay. Each change is saved as a
-/// Source with the automation's own state, so reopening the workbook does not fire it again, and
-/// a check that finds no rows again is ready to fire on the next rows.
+/// automation, the native owner runs it after workbook changes and on a modest poll. It fires
+/// when the check finds a row it did not find last time, each row told apart by its first column,
+/// and stays quiet while the same rows stay. A row that leaves and comes back is new again. Each
+/// change of the rows found is saved as a Source with the automation's own state, so reopening
+/// the workbook does not fire it again.
 ///
 /// The saved state outlives pauses and app restarts. The first evaluation after a reopen or a
 /// resume compares with it, so rows that appeared meanwhile fire once and rows that came and
@@ -17,6 +19,15 @@ import Foundation
 /// changed the rule, so rows it finds are news even if the old rule had found rows.
 extension Workbook {
   public static let checkTransitionPolicy = "check-transition-v1"
+  /// The rows of a check that are told apart: more than this many and the rest go unwatched.
+  static let checkWatchedRows = 1_000
+
+  /// What tells a check's row apart: a short digest of its first column.
+  static func checkRowKey(_ row: Value) -> String {
+    let first = (try? (row.array.first ?? .null).json()) ?? ""
+    return SHA256.hash(data: Data(first.utf8)).prefix(8).map { String(format: "%02x", $0) }
+      .joined()
+  }
 
   /// Where a check automation's edge stands: whether its check last found rows, how many, and
   /// the Source of that change. Nil before its first change.
@@ -78,18 +89,26 @@ extension Workbook {
     }
     let tool = try applicationDefinition(snapshot["checkID"].text)
     let statements = try DefinitionTool(DefinitionDescriptor(tool.content)).statements
-    let result = try chatSQL(
-      statements: statements, readOnly: true, token: "check-" + token, requestSourceID: nil,
-      inputs: [:], cancellation: cancellation)
-    let rows = result["results"].array.last?["rowCount"].int ?? 0
+    let result = try synchronized(cancellation: cancellation) { () throws -> Value in
+      let session = try ChatSQLSession(self, readOnly: true, cancellation: cancellation)
+      defer { session.close() }
+      session.scratch.shownRows = Self.checkWatchedRows
+      session.scratch.shownBytes = 16_000_000
+      return try session.run(statements).last ?? .null
+    }
+    let rows = result["rowCount"].int ?? 0
     let finding = rows > 0
+    let keys = Set(result["rows"].array.map(Self.checkRowKey))
     let previous = snapshot["state"]
-    let storedFinding = previous["finding"].int == 1
+    let storedKeys = Set(
+      try previous["source_id"].string.map { try item($0).data["rowKeys"].array.map(\.text) } ?? [])
     // A changed check starts fresh, as if just enabled. Its state is saved when it differs from
     // the stored one, so the page does not keep showing what the old check found.
     let changedCheck = snapshot["changedCheck"] == .bool(true)
-    let wasFinding = changedCheck ? false : storedFinding
-    guard finding != wasFinding || (changedCheck && finding != storedFinding) else {
+    let known = changedCheck ? [] : storedKeys
+    let newRows = keys.subtracting(known).count
+    guard keys != known || (changedCheck && keys != storedKeys)
+    else {
       return .object([
         "status": .string(finding ? "finding" : "clear"), "rows": .number(Double(rows)),
         "changed": .bool(false), "check": snapshot["name"], "execution": .string("none"),
@@ -116,7 +135,7 @@ extension Workbook {
       var decisions: [Value] = []
       var entries: [Value] = []
       let occurrenceID = identifier()
-      let fires = finding && !wasFinding
+      let fires = newRows > 0
       if fires {
         if pending != .null { decisions.append(self.automationDecision(pending, "coalesced")) }
         let slot: Value = .object([
@@ -136,19 +155,24 @@ extension Workbook {
       }
       let source = try self.insertItem(
         category: "source", kind: "automation_check",
-        title: finding ? "Check found rows" : "Check found no rows",
-        text: finding
-          ? "The saved check \(snapshot["name"].text) started finding rows"
-            + (changedCheck ? " after it was changed" : "") + ", so the automation queued one request."
-          : "The saved check \(snapshot["name"].text) found no rows"
-            + (changedCheck ? " after it was changed" : " again") + ". The next rows will start the automation.",
+        title: fires ? "Check found new rows" : finding ? "Check rows changed" : "Check found no rows",
+        text: fires
+          ? "The saved check \(snapshot["name"].text) found \(newRows) new "
+            + (newRows == 1 ? "row" : "rows") + (changedCheck ? " after it was changed" : "")
+            + ", so the automation queued one request."
+          : finding
+            ? "The saved check \(snapshot["name"].text) finds \(rows) "
+              + (rows == 1 ? "row" : "rows") + ", none of them new."
+            : "The saved check \(snapshot["name"].text) found no rows"
+              + (changedCheck ? " after it was changed" : " again") + ". New rows will start the automation.",
         data: .object([
           "activationID": .string(authority.activationID),
           "definitionID": activation["definition_id"],
           "generation": .number(Double(authority.generation)),
           "authorizationSourceID": .string(authority.sourceID),
           "checkID": snapshot["checkID"], "rows": .number(Double(rows)),
-          "finding": .bool(finding), "previousCheckSourceID": previous["source_id"],
+          "finding": .bool(finding), "newRows": .number(Double(newRows)),
+          "rowKeys": .array(keys.sorted().map(Value.string)), "previousCheckSourceID": previous["source_id"],
           "changedCheck": .bool(changedCheck),
           "observedAt": .string(instant), "occurrences": .array(entries),
           "decisions": .array(decisions), "policy": .string(Self.checkTransitionPolicy),
@@ -182,7 +206,7 @@ extension Workbook {
         authority.activationID, generation: authority.generation, kind: "checked", source: source)
       return .object([
         "status": .string(fires ? "fired" : finding ? "finding" : "cleared"),
-        "rows": .number(Double(rows)),
+        "rows": .number(Double(rows)), "newRows": .number(Double(newRows)),
         "changed": .bool(true), "check": snapshot["name"], "sourceID": .string(source),
         "occurrenceID": fires ? .string(occurrenceID) : .null,
         "execution": .string("preparation-only"),

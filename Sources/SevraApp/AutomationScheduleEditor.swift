@@ -206,7 +206,7 @@ struct AutomationScheduleEditor: View {
       }
     }
     Text(
-      "It starts when the check finds rows after finding none, and again only after the check finds no rows. If the check already finds rows when you enable it, it starts once right away. It follows edits to the check. The check runs while Sevra is active, after each change and every minute."
+      "It starts when the check finds a row it did not find before, telling rows apart by the first column. A row that stays does not start it again. If the check already finds rows when you enable it, it starts once right away. It follows edits to the check. The check runs while Sevra is active, after each change and every minute."
     )
     .readingFont(.caption).foregroundStyle(.secondary)
     .fixedSize(horizontal: false, vertical: true)

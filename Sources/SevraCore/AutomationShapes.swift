@@ -44,6 +44,11 @@ extension Workbook {
       try require(
         payload["schedule"] != nil && payload["check"] == nil, "automation_definition",
         "A calendar-v1 automation needs schedule: {policy: native-calendar-v1, timeZone, hour, minute, recurrence}, and no check.")
+      let text = [content["title"], content["description"], payload["alert"] ?? .null]
+        .compactMap(\.string).joined(separator: " ")
+      if let conflict = try NativeCalendarSchedule(payload["schedule"]!).weekdayConflict(text) {
+        throw SevraError("schedule", conflict)
+      }
     } else {
       try require(
         payload["check"] != nil && payload["schedule"] == nil, "automation_definition",
@@ -67,6 +72,12 @@ extension Workbook {
       try require(
         !alert.isEmpty && alert.utf8.count <= 2_000, "automation_definition",
         "Write the alert as one sentence of at most 2,000 bytes.")
+      if let slot = alert.range(of: #"\{[A-Za-z_][A-Za-z0-9_ ]*\}"#, options: .regularExpression) {
+        throw SevraError(
+          "automation_definition",
+          "An alert is fixed text, so " + alert[slot]
+            + " would show as written. Write one plain sentence without placeholders, such as \"A contract ends within 30 days.\" The check shows which rows.")
+      }
       let evidence: Item
       if calendar {
         evidence = try synchronized { try reminderEvidence(requestSourceID) }

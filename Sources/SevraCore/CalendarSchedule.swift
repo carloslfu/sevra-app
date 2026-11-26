@@ -80,6 +80,45 @@ public struct NativeCalendarSchedule: Equatable, Sendable {
     ])
   }
 
+  static let weekdayNames = [
+    "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday",
+  ]
+
+  /// The rule in plain words, such as "every Friday at 16:00 (America/Bogota)".
+  public var phrase: String {
+    let time = String(format: "%02d:%02d", hour, minute) + " (" + timeZone + ")"
+    func list(_ names: [String]) -> String {
+      names.count < 2
+        ? names.joined() : names.dropLast().joined(separator: ", ") + " and " + names.last!
+    }
+    switch recurrence {
+    case .daily: return "every day at " + time
+    case .weekly(let days): return "every " + list(days.map { Self.weekdayNames[$0 - 1] }) + " at " + time
+    case .monthly(let day):
+      return "on " + (day.map { "day \($0)" } ?? "the last day") + " of each month at " + time
+    case .yearly(let month, let day):
+      return "every year on " + Calendar(identifier: .gregorian).monthSymbols[month - 1] + " \(day) at "
+        + time
+    }
+  }
+
+  /// A refusal when text describing a weekly rule names weekdays and the rule runs on none of
+  /// them, which is how a weekday counted from Sunday, or from 0, shows up.
+  public func weekdayConflict(_ text: String) -> String? {
+    guard case .weekly(let days) = recurrence else { return nil }
+    let lower = text.lowercased()
+    let named = (1...7).filter {
+      lower.range(
+        of: "\\b" + Self.weekdayNames[$0 - 1].lowercased() + "s?\\b", options: .regularExpression)
+        != nil
+    }
+    guard !named.isEmpty, Set(named).isDisjoint(with: days) else { return nil }
+    let said = named.map { Self.weekdayNames[$0 - 1] + " is \($0)" }.joined(separator: ", ")
+    return "It says " + named.map { Self.weekdayNames[$0 - 1] }.joined(separator: " and ")
+      + ", but weekdays " + "\(days)" + " runs " + phrase
+      + ". Weekdays count from 1, Monday, to 7, Sunday: " + said + ". Nothing was saved."
+  }
+
   /// Each inspected civil date has at most one slot. Horizon exhaustion is explicit.
   public func preview(
     after: Date, count: Int = 5, horizonDays: Int = 3660,

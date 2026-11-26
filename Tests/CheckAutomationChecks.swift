@@ -74,6 +74,25 @@ func checkCheckAutomations(at root: URL) {
     _ = try f.book.verify()
   }
 
+  check("a row the check did not find before fires while earlier rows stay, and a changed value does not") {
+    let f = try fixture("NewRows")
+    let session = try f.book.authorizeExecution(f.definition, generation: 0, after: start)
+    try setQuantity(f, "5")
+    let first = try f.book.checkAutomation(session.planning, observedAt: at(1), token: "n1")
+    try expect(first["status"] == .string("fired") && first["newRows"].int == 1)
+    try setQuantity(f, "4")
+    let same = try f.book.checkAutomation(session.planning, observedAt: at(2), token: "n2")
+    try expect(same["status"] == .string("finding") && same["changed"] == .bool(false))
+    _ = try f.book.chatSQL(
+      statements: ["INSERT INTO parts (name, qty, reorder) VALUES ('nuts', 1, 10)"],
+      readOnly: false, token: identifier(), requestSourceID: nil)
+    let second = try f.book.checkAutomation(session.planning, observedAt: at(3), token: "n3")
+    try expect(
+      second["status"] == .string("fired") && second["rows"].int == 2
+        && second["newRows"].int == 1)
+    _ = try f.book.verify()
+  }
+
   check("a reopen does not fire again, and no rows then rows fires once more") {
     let f = try fixture("Reopen")
     let session = try f.book.authorizeExecution(f.definition, generation: 0, after: start)

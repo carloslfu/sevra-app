@@ -88,7 +88,15 @@ public struct WorkbookTools {
       case .object(var fields):
         for (key, field) in fields {
           if key == "datasetID", let text = field.string, !text.isEmpty {
-            fields[key] = .string(try workbook.chatTableID(text))
+            do {
+              fields[key] = .string(try workbook.chatTableID(text))
+            } catch let error as SevraError
+              where error.message.hasPrefix("No table") && fields["query"]?.string?.isEmpty == false
+            {
+              // A component with a query reads its own tables, so a datasetID naming no table
+              // is left out. Refused, a model made a copy table for that name.
+              fields[key] = nil
+            }
           } else {
             fields[key] = try walk(field)
           }
@@ -508,6 +516,21 @@ public struct WorkbookTools {
     case "spaces":
       func shown(_ space: Space) throws -> Value {
         var fields = try encoded(space).object
+        // A chart shows its style even when it is the default. Read without it, a model asked
+        // for a line chart copied the chart as read and never wrote the field that changes.
+        if var definition = fields["definition"]?.object,
+          case .array(let components) = definition["components"] ?? .null
+        {
+          definition["components"] = .array(
+            components.map { component in
+              guard component["type"] == .string("chart"), component["chartStyle"] == .null
+              else { return component }
+              var styled = component.object
+              styled["chartStyle"] = .string("bar")
+              return .object(styled)
+            })
+          fields["definition"] = .object(definition)
+        }
         if let app = space.definition.app {
           fields["definition"] = .object([
             "version": .number(1),

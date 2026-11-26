@@ -19,7 +19,9 @@ extension CLI {
       try require(
         args.count == 3, "usage", "automation-activation WORKBOOK ACTIVATION_ID")
       var activation = try book.automationActivation(args[2]).object
-      activation["check"] = try book.automationCheckState(args[2])
+      // Only a check automation has a check state; a scheduled one reads like its pause result.
+      let check = try book.automationCheckState(args[2])
+      if check != .null { activation["check"] = check }
       return .object(activation)
     case "automation-occurrences":
       try require(

@@ -66,6 +66,8 @@ func checkWorkbookGrammars(frontend: SplashTextFrontend, factory: SplashGrammarF
     (#"{"operation":"insert","beforeID":"continue","# + component + "}", true),
     (#"{"operation":"reset"}"#, true),
     (#"{"operation":"title","componentID":"stock","title":"Renamed"}"#, true),
+    // A chart replaced into a line keeps chartStyle after its table and before its query.
+    (#"{"operation":"replace","componentID":"c1","component":{"id":"c1","type":"chart","title":"T","size":"large","datasetID":"d","chartStyle":"line","query":"SELECT 1 AS a","x":"a","y":"a"}}"#, true),
     (#"{"operation":"insert","# + component + #", "title":"Stock"}"#, false),
     (#"{"operation":"insert","at":"last","# + component + #", "title":"Stock"}"#, false),
     (#"{"operation":"reset","title":"Stock"}"#, false),

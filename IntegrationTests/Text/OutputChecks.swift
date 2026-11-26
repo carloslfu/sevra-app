@@ -127,6 +127,15 @@ private func checkProjection() throws {
   guard result.calls.count == 1, previewParser.answerPreview == answer else {
     throw SplashError("Preview changed tool completion")
   }
+  // A model that closed its answer without the newline wrote its basis inside the answer.
+  let early = try SplashOutputParser(tools: [finish, read])
+  _ = try early.append(
+    "<tool_call>\n<function=finish>\n<parameter=answer>\nDone. Use <b>this</b>.</parameter>\n<parameter=basis>\ngeneral\n</parameter>\n<parameter=basis>\ngeneral\n</parameter>\n</function>\n</tool_call>")
+  let cut = try early.finish(.stop).0
+  guard cut.calls.count == 1,
+    let fields = try JSONSerialization.jsonObject(with: cut.calls[0].arguments) as? [String: Any],
+    fields["answer"] as? String == "Done. Use <b>this</b>.", early.answerPreview == "Done. Use <b>this</b>."
+  else { throw SplashError("A closing tag written early left markup in the answer") }
   let privateTool = try SplashOutputParser(tools: [finish, read])
   _ = try privateTool.append("<tool_call>\n<function=read>\n<parameter=id>\nprivate-source-id")
   guard privateTool.answerPreview == nil, try privateTool.finish(.cancelled).0.calls.isEmpty else {

@@ -419,6 +419,13 @@ extension Workbook {
           try require(
             columns.contains { $0.id == c.y }, "view",
             "\(c.id): set y to a column of \(source): \(columnIDs).")
+          // Row numbers added up are no total: a metric over an id meant a count.
+          let column = columns.first { $0.id == c.y }
+          try require(
+            column?.autoNumber != true
+              || ["COUNT", "MIN", "MAX"].contains((c.aggregation ?? "SUM").uppercased()),
+            "view",
+            "\(c.id): y is \(c.y ?? ""), which numbers the rows, so adding it gives no total. To count rows, use a metric with aggregation COUNT and no y, or a query such as SELECT COUNT(*) AS remaining FROM ... WHERE ... with y remaining.")
         }
         if c.type == "chart", !unchanged.contains(c) {
           try require(
@@ -427,6 +434,11 @@ extension Workbook {
           try require(
             ["bar", "line"].contains(c.chartStyle ?? "bar"), "view",
             "\(c.id): chartStyle is bar or line.")
+          // A chart named for a line that draws bars is the model leaving chartStyle out.
+          let named = c.title.lowercased().range(of: #"\bline\b"#, options: .regularExpression)
+          try require(
+            named == nil || c.chartStyle == "line", "view",
+            "\(c.id): its title says line, but without chartStyle line it draws bars. Set chartStyle to line.")
         }
         if c.type == "metric" {
           try require(

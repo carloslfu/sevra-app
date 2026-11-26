@@ -2089,9 +2089,12 @@ public enum WorkbookAgent {
           result["kind"] == .string("automation")
         {
           let saved = try workbook.applicationDefinition(result["id"].text)
+          let runs = (try? NativeCalendarSchedule(saved.payload["schedule"])).map {
+            ", which runs " + $0.phrase
+          } ?? ""
           let receipt =
             "Saved automation “" + citationLabel(saved.title)
-            + "”. Saving does not enable it. Review this exact version to enable or pause it on this Mac. Business changes require separate review."
+            + "”" + runs + ". Saving does not enable it. Review this exact version to enable or pause it on this Mac. Business changes require separate review."
           return try conclude(
             receipt, step: step, receiptID: receiptID,
             payload: .object([
