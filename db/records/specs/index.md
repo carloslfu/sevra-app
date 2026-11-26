@@ -2,16 +2,16 @@
 type: index
 scope: type-folder
 folder: records/specs
-updated: 2026-11-25T03:08:08.668040Z
+updated: 2026-11-26T00:00:55Z
 ---
 
 # records/specs
 
+- [[records/specs/intelligence]] — Native Splash engine and Swift adapter; the model works through seven general tools that read and change the workbook with Undo; on-device voice and declarative spaces.
+- [[records/specs/product]] — Product loop (chat in, a kept database, spaces out) and the native two-pane workbook UX, conversation, viewers, intake and application engine that serve it.
 - [[records/specs/splash-integration]] — Python-free Swift integration of pinned upstream Splash, explicit behavior mapping, differential verification and measured adoption gates.
 - [[records/specs/persistence-readiness]] — Required complete, causal and replayable local persistence for future syncing; cloud, transport, replica coordination and a new conflict resolver remain out of scope.
 - [[records/specs/conversation-context]] — Automatic compaction, preserved conversation history, authoritative continuation state and measured larger-context qualification.
-- [[records/specs/intelligence]] — Native Splash direction, Swift adapter, bounded tools, proposal acceptance, on-device voice and declarative spaces.
-- [[records/specs/product]] — Native two-pane workbook UX, conversation, viewers, contextual intake and customizable application engine with actions, workflows and automations.
 - [[records/specs/distribution]] — Independent source build, native bundle, CLI skill, portable format and end-to-end release gates.
 - [[records/specs/identity]] — Approved Observer zebra, exact original Mac icon, native outlined wordmark and restrained light/dark placement.
 - [[records/specs/mvp-delivery]] — Owner-directed fast MVP: one complete native file-to-result journey, focused verification, coherent setup and deferred infrastructure.

@@ -3,8 +3,8 @@ type: spec
 meta-type: conclusion
 id: 01m5rbxz9j15p1fw5fmxw7p9hv
 created: 2026-10-25T01:48:47.282868+00:00
-updated: 2026-11-21T12:00:00.000000+00:00
-summary: Native two-pane workbook UX, conversation, viewers, contextual intake and customizable application engine with actions, workflows and automations.
+updated: 2026-11-26T00:00:55+00:00
+summary: Product loop (chat in, a kept database, spaces out) and the native two-pane workbook UX, conversation, viewers, intake and application engine that serve it.
 title: Product and interaction specification
 status: reviewed
 ---
@@ -13,9 +13,20 @@ status: reviewed
 Revision 9, October 29, 2026. Status refers to specification review, not delivery.
 Normative requirements use IDs so implementation and verification can map back.
 
-Sevra Workbook is the primary product and homepage. A small Websites link in the
-top navigation leads to the secondary managed service. Separate offer terms and
-explicit data connections remain. This is a direction, not a deployed-page claim.
+## Product loop, November 25, 2026
+
+Sevra is a spreadsheet run through chat, with a local model
+([[sources/notes/2026/11/chat-and-spaces-product]]). Chat is the input: the person
+asks, and the model reads, queries and changes the workbook through the general
+chat tools ([[records/plans/general-chat-tools]]). The workbook keeps the database:
+typed tables with history and Undo, and numbers from queries over them. Spaces are
+the output: Home and saved views show tables, charts, metrics, buttons, forms and
+live mini apps, built and changed through chat ([[records/plans/home-working-overview]]).
+Native screens are optional controls over the same state. The requirements below
+serve that loop. Where an older requirement leads with evidence review, proposals
+or built-in inventory operations, it records an earlier stage and yields to this
+loop and the general chat tools. The managed website service and its navigation
+link are retired.
 
 ## Persistence foundation
 
@@ -38,6 +49,9 @@ remain supported goals. Complete schema/data reconstruction is required; sync an
 concurrent replica resolution remain future work. This target is not yet delivered.
 
 ## Goal and first complete job
+
+Earlier first job, kept as an acceptance journey. The current goal is the product
+loop above.
 
 A user imports a supplier CSV, an invoice PDF and an image receipt, asks what was
 purchased, inspects citations, corrects an interpretation, compares suppliers,

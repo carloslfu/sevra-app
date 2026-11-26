@@ -3,12 +3,18 @@ type: spec
 meta-type: conclusion
 id: 01m5rbxzb0mz1b78ergkwybtnp
 created: 2026-10-25T01:48:47.328971+00:00
-updated: 2026-11-21T12:00:00+00:00
-summary: Native Splash direction, Swift adapter, bounded tools, proposal acceptance, on-device voice and declarative spaces.
+updated: 2026-11-26T00:00:55+00:00
+summary: Native Splash engine and Swift adapter; the model works through seven general tools that read and change the workbook with Undo; on-device voice and declarative spaces.
 title: Local intelligence and rendering
 status: reviewed
 ---
 # Local intelligence
+
+Since November 2026 the model works through seven general tools (search, read,
+sql, run, save, ask, finish) that read and change the workbook directly, with
+history and Undo, and build views ([[records/plans/general-chat-tools]]). That
+supersedes the bounded tools and proposal-only writes described in older sections
+below. The product loop is in [[records/specs/product]] ("Product loop").
 
 A01. Adopt upstream Splash C++/Metal with the Python-free Swift adapter described
 in [[records/specs/splash-integration]]. It is the only inference engine. Pin and

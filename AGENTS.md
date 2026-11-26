@@ -1,7 +1,12 @@
 # Sevra app
 
-This is the open-source native local-AI workbook app, separate from Sevra's
-website service. Read db/DB.md and
+This is the open-source native app for Sevra: a spreadsheet you run by talking
+to it, with a local model. Chat is the input, the workbook keeps the database
+(typed tables with history and Undo), and spaces are the output: Home and saved
+views with tables, charts, totals, buttons, forms and small native apps, built
+and changed through chat. Supplier quotes, Excel import, mini apps and inventory
+are uses of that loop. See the [owner's statement](db/sources/notes/2026/11/chat-and-spaces-product.md).
+The dated authorizations below record how the work got here. Read db/DB.md and
 [Start here](db/records/overview/start-here.md) before changing the project.
 
 Before work, read the [checkout context](db/records/operations/agent-handoff.md#checkout-context)
