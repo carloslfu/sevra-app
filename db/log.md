@@ -400,3 +400,6 @@ Reinstalled the steady-chat build from current code on 092c646; UUID 20511EDB-B5
 ## [2026-11-26 02:06] implementation | records/specs/splash-integration
 Splash 1.7.3 upgrade: protocol 16, fixtures equal the 1.7.3 reference, memory floor 8 GiB and 64 MiB for 64K; model-free checks pass, header tests 7 of 8 (sameAnswers citation order), light set 10 of 11 (floor start, fixed); not yet installed
 
+## [2026-11-26 02:12] install | sevra-app
+Installed the Splash 1.7.3 build from a clean copy of abf55d7, apart from another session's uncommitted work; UUID 09C68064-B31E-3136-8845-2D60DE16DB0F matches output/native, engine digests equal the pin, header 4,496 tokens present
+
