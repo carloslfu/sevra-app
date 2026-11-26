@@ -9,12 +9,14 @@ import SevraSplash
 import SevraSplashText
 
 /// The engine's memory, chosen each time an engine starts from the memory free then: free less
-/// what everything else keeps, within 8 to 20 GiB. Writing speed grows with it up to about
+/// what everything else keeps, within 8 GiB 64 MiB to 20 GiB. Writing speed grows with it up to about
 /// 19 GiB, measured on a 48 GiB Mac at 64K of context (records/plans/engine-memory-sliding-size).
 package enum EngineMemory {
   static let gibibyte: UInt64 = 1024 * 1024 * 1024
-  /// The smallest engine: slow, but it answers.
-  package static let floor = 8 * gibibyte
+  /// The smallest engine: slow, but it answers. 8 GiB alone holds 15 tokens short of 64K on
+  /// Splash 1.7.3, whose one-lane scratch and page-rounded plan take a little more; 64 MiB
+  /// more holds 64K with room for other GPUs' scratch.
+  package static let floor = 8 * gibibyte + 64 * 1024 * 1024
   /// Beyond this the speed hardly grows, and the memory serves other apps better.
   package static let cap = 20 * gibibyte
   /// What a start leaves for everything else on the Mac.
@@ -25,15 +27,16 @@ package enum EngineMemory {
   package static let fixed = 12 * gibibyte
   /// The Macs that get 64K of context.
   package static let largeMac = 48 * gibibyte
-  static let rule = "free less 4 GiB, 8 to 20 GiB, at start"
+  static let rule = "free less 4 GiB, 8 GiB 64 MiB to 20 GiB, at start"
   package static func choose(reclaimable: UInt64?) -> UInt64 {
     guard let reclaimable, reclaimable > headroom + floor else { return floor }
     let whole = (reclaimable - headroom) / gibibyte * gibibyte
-    return min(cap, whole)
+    return max(floor, min(cap, whole))
   }
   /// Whether a loaded engine should start again larger: only a small one, and only by a step.
+  /// Measured from whole GiB, so the floor's 64 MiB does not hold back its growth to 12 GiB.
   package static func grows(loaded: UInt64, chosen: UInt64) -> Bool {
-    loaded <= fixed && chosen >= loaded + step
+    loaded <= fixed && chosen >= loaded / gibibyte * gibibyte + step
   }
   @Sendable static func now() -> UInt64 { choose(reclaimable: ProductAI.reclaimableBytes()) }
   /// The loaded engine's memory is not free, so this reading is conservative.
@@ -56,8 +59,8 @@ enum NativeProductResources {
     try require(data.count < 16384, "resources", "The native runtime manifest is oversized.")
     let manifest = try JSONDecoder().decode(Manifest.self, from: data)
     try require(
-      manifest.schemaVersion == 1 && manifest.release == "1.7.2"
-        && manifest.commit == "2afc7337aacc044722fa95e4cb3da75c281a19a8"
+      manifest.schemaVersion == 1 && manifest.release == "1.7.3"
+        && manifest.commit == "d40c250ff248938edebdb91fb6124514e32daeaa"
         && Set(manifest.engineFiles.keys) == ["splash", "splash.metallib", "host-step.metallib"],
       "resources", "The installed runtime does not match this version of Sevra.")
     let contents = SplashRuntimeResources.installedBundleContents

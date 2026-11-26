@@ -1,6 +1,6 @@
 """Draft trees for the reference mask fixtures, built with pinned Splash reference Python only.
 
-Splash 1.7.2 sends a verify block's draft as a tree: each token's parent is an earlier
+Splash 1.7.3 sends a verify block's draft as a tree: each token's parent is an earlier
 token, and the first token's is NO_PARENT. A fixture step holds the committed tokens, the
 draft tokens and their parents, the hash of the reference masks and the reference's forced
 pairs (kept for later use; the app returns none yet).

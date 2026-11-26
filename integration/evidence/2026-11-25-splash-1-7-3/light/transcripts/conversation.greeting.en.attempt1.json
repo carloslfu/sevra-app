@@ -1,0 +1,54 @@
+{
+ "job": "conversation.greeting",
+ "language": "en",
+ "attempt": 1,
+ "prompt": "hey",
+ "expected": "A plain reply in one decision, with no citations. Nothing is saved.",
+ "failure": "model_capacity: Local AI cannot fit this request with its current memory allowance. Saved work is intact. This configuration needs a smaller working context or a larger verified memory allowance. (--max-context 65536 exceeds the 65521 tokens the model and --max-memory allow; omit it or pass at most 65521)",
+ "result": null,
+ "progress": [
+  "Reading request context",
+  "Checking local model files",
+  "Preparing local AI. The first start can take longer…",
+  "{\"error\":{\"code\":\"model_capacity\",\"message\":\"Local AI cannot fit this request with its current memory allowance. Saved work is intact. This configuration needs a smaller working context or a larger verified memory allowance. (--max-context 65536 exceeds the 65521 tokens the model and --max-memory allow; omit it or pass at most 65521)\"},\"ok\":false,\"schemaVersion\":1}"
+ ],
+ "messages": {
+  "16d0dfc2-9295-4edd-94ed-a2129b7a6737": [
+   {
+    "body": "This example has supplier quotes and a delivery. Try ‘Why do we have 18 brass bolts?’ or ‘Compare the supplier costs and show the evidence.’",
+    "created": "2026-11-26T02:00:32Z",
+    "id": "1fa7e39e-ce18-438d-aab1-d6169a113189",
+    "role": "assistant",
+    "state": "complete"
+   },
+   {
+    "body": "hey",
+    "created": "2026-11-26T02:00:33Z",
+    "id": "bc80def5-cad7-41db-a02b-e547861ec8bd",
+    "role": "user",
+    "state": "complete"
+   },
+   {
+    "body": "Local AI cannot fit this request with its current memory allowance. Saved work is intact. This configuration needs a smaller working context or a larger verified memory allowance. (--max-context 65536 exceeds the 65521 tokens the model and --max-memory allow; omit it or pass at most 65521)",
+    "created": "2026-11-26T02:00:35Z",
+    "id": "01456b4d-0a63-49cc-885b-db4f601cf9de",
+    "role": "assistant",
+    "state": "failed"
+   }
+  ]
+ },
+ "runs": [
+  {
+   "conversation_id": "16d0dfc2-9295-4edd-94ed-a2129b7a6737",
+   "created": "2026-11-26T02:00:33Z",
+   "id": "60f92105-a565-436d-a62f-0dd3f8693bd8",
+   "metrics": [],
+   "model": "Splash 1.7.3; d40c250ff248938edebdb91fb6124514e32daeaa; Qwen3.6-35B-A3B-4bit + DFlash2; native Swift candidate; context 65536; memory free less 4 GiB, 8 to 20 GiB, at start; activations bf16; KV int8; state fp32; ANE on; reasoning budget 512; within-request reasoning retained",
+   "request_message_id": "bc80def5-cad7-41db-a02b-e547861ec8bd",
+   "status": "failed",
+   "steps": 0,
+   "updated": "2026-11-26T02:00:35Z"
+  }
+ ],
+ "saved": {}
+}

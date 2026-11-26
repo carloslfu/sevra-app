@@ -34,7 +34,7 @@ public struct SplashParsedOutput: Sendable {
   public let refusal: String?
 }
 
-/// Selected Qwen XML and reasoning projection. Behavior follows Splash 1.7.2
+/// Selected Qwen XML and reasoning projection. Behavior follows Splash 1.7.3
 /// server/output.py; attribution/license: integration/licenses/Splash-Apache-2.0.txt.
 /// Sevra deliberately refuses ambiguous/unfinished calls, unknown names and
 /// duplicate fields. Upstream's permissive repair is not action authority.

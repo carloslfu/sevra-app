@@ -125,25 +125,36 @@ func checkPrewarm(book: Workbook) async throws {
     ProductAI.hasRoom(
       forEngineBytes: EngineMemory.choose(reclaimable: reclaimable), reclaimable: reclaimable)
   }
-  try expect(roomAt(12 * gigabyte), "Enough memory was refused.")
-  try expect(!roomAt(12 * gigabyte - 1), "Too little memory was accepted.")
+  let smallest = EngineMemory.floor + EngineMemory.headroom
+  try expect(roomAt(smallest), "Enough memory was refused.")
+  try expect(!roomAt(smallest - 1), "Too little memory was accepted.")
   try expect(!roomAt(nil), "Unknown memory was accepted.")
 
-  // The engine's size: free memory less 4 GiB, in whole GiB, from 8 to 20 GiB.
+  // The engine's size: free memory less 4 GiB, in whole GiB, from the floor (8 GiB and the
+  // 64 MiB that keeps 64K on Splash 1.7.3) to 20 GiB. Just past the floor's start, whole GiB
+  // would round under it, so the floor holds.
+  let floor = EngineMemory.floor
   let choices: [(reclaimable: UInt64?, expected: UInt64)] = [
-    (nil, 8), (10 * gigabyte, 8), (16 * gigabyte + gigabyte / 2, 12),
-    (24 * gigabyte - 1, 19), (24 * gigabyte, 20), (40 * gigabyte, 20),
+    (nil, floor), (10 * gigabyte, floor), (smallest + 1, floor), (13 * gigabyte - 1, floor),
+    (13 * gigabyte, 9 * gigabyte), (16 * gigabyte + gigabyte / 2, 12 * gigabyte),
+    (24 * gigabyte - 1, 19 * gigabyte), (24 * gigabyte, 20 * gigabyte), (40 * gigabyte, 20 * gigabyte),
   ]
   for choice in choices {
     let chosen = EngineMemory.choose(reclaimable: choice.reclaimable)
     try expect(
-      chosen == choice.expected * gigabyte,
-      "\(choice.reclaimable.map { String($0) } ?? "Unknown") bytes free chose \(chosen / gigabyte) GiB.")
+      chosen == choice.expected,
+      "\(choice.reclaimable.map { String($0) } ?? "Unknown") bytes free chose \(chosen) bytes.")
   }
   // Only a small engine grows, and only by a step that repays the restart.
   let growth: [(loaded: UInt64, chosen: UInt64, grows: Bool)] = [
     (8, 12, true), (12, 16, true), (12, 15, false), (16, 20, false), (20, 20, false),
   ]
+  try expect(
+    EngineMemory.grows(loaded: EngineMemory.floor, chosen: 12 * gigabyte),
+    "The smallest engine did not grow to 12 GiB.")
+  try expect(
+    !EngineMemory.grows(loaded: EngineMemory.floor, chosen: 11 * gigabyte),
+    "The smallest engine grew by less than a step.")
   for case let (loaded, chosen, grows) in growth {
     try expect(
       EngineMemory.grows(loaded: loaded * gigabyte, chosen: chosen * gigabyte) == grows,

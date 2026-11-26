@@ -7802,3 +7802,6 @@ The native engine moved from Splash 1.6.1 to 1.7.1 under [[records/plans/splash-
 ## Splash 1.7.2, November 24
 The native engine moved from Splash 1.7.1 to 1.7.2 at the owner's word ([[sources/notes/2026/11/splash-1-7-2-upgrade-approval]]). Protocol 15 and the model assembly are unchanged; every reference fixture regenerated from 1.7.2 equals Sevra's apart from the recorded commit. Model-free checks, the remade header, the eight header tests and the light set (11 of 11, first run) pass, one run each. [[records/specs/splash-integration]] holds the details and the limits.
 
+
+## Splash 1.7.3, November 25
+The native engine moved from Splash 1.7.2 to 1.7.3 at the owner's word ([[sources/notes/2026/11/splash-1-7-3-upgrade-approval]]), for its one-lane start fix on M5 GPUs of 8 to 14 cores. Protocol 16; Sevra sends no images, so only the version moved, and every reference fixture regenerated from 1.7.3 equals Sevra's apart from the recorded commit. 1.7.3 plans 15 tokens short of 64K at the 8 GiB memory floor, so the floor is now 8 GiB and 64 MiB. Model-free checks pass; the header tests pass 7 of 8 (`sameAnswers`, citation order) and the light set 10 of 11 (the floor start, since fixed), one run each. [[records/specs/splash-integration]] holds the details and the limits.

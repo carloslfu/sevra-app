@@ -153,7 +153,7 @@ private struct HeaderProbeSetup {
   let prepared: NativePreparedRequest
   let first: (messages: [InferenceMessage], scope: InferenceToolScope, citations: [String])
   let header: [UInt32]
-  /// Splash 1.7.2 keeps a restore point on the last complete 32-token page (observeResume).
+  /// Splash 1.7.3 keeps a restore point on the last complete 32-token page (observeResume).
   var lastCompletePage: Int { (header.count - 1) / 32 * 32 }
 }
 

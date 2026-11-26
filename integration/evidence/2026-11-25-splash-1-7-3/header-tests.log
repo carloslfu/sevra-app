@@ -1,0 +1,10 @@
+header-tests: resumedNotComputed passed
+header-tests: faster passed
+header-tests: sameAnswers FAILED
+header-tests: sameAnswers detail {"computedAnswers":["We have 18 brass bolts.\n\n[brass bolts: -2](sevra:\/\/item\/3742ef1d-8e58-4c53-a341-bba2484264cc) [Workshop inventory](sevra:\/\/item\/03e4621a-dd61-470b-9fac-b5254c9e871e)","Hello! I can help you check stock levels, compare supplier costs, or record stock movements. What would you like to do?"],"computedDecisions":[2,1],"firstDifferentToken":[2,6],"passed":false,"requests":["How many brass bolts do we have?","Hi"],"restoredAnswers":["We have 18 brass bolts.\n\n[Workshop inventory](sevra:\/\/item\/03e4621a-dd61-470b-9fac-b5254c9e871e) [brass bolts: -2](sevra:\/\/item\/3742ef1d-8e58-4c53-a341-bba2484264cc)","Hello! How can I help you with your stock, supplier comparisons, or recording movements today?"],"restoredDecisions":[2,1]}
+header-tests: nothingKeptAfterStop passed
+header-tests: recoversWithoutComputing passed
+header-tests: failsLoudly passed
+header-tests: headerOnlyAfterKill passed
+header-tests: anotherFolder passed
+SevraError(code: "header_tests", message: "A header test failed.")

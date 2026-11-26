@@ -10,6 +10,8 @@ status: reviewed
 ---
 # Native Splash integration and upgrades
 
+Revision 14, November 25, 2026. At the owner's word ([[sources/notes/2026/11/splash-1-7-3-upgrade-approval]]) the native preview pin moves to Splash 1.7.3, protocol 16. See "Splash 1.7.3, November 25" below.
+
 Revision 13, November 24, 2026. At the owner's word ([[sources/notes/2026/11/splash-1-7-2-upgrade-approval]]) the native preview pin moves to Splash 1.7.2, protocol 15 unchanged. See "Splash 1.7.2, November 24" below.
 
 Revision 12, November 24, 2026. The five follow-ups of the 1.7.1 upgrade landed the same day, at the owner's word: forced tokens (I14), literal control tokens as characters (I06), `head_tokens` for prompts without a prepared header and a header identity without restore-neutral options; `--verify-rows auto` was measured and not taken. See "Follow-ups" under "Splash 1.7.1, November 24".
@@ -27,8 +29,10 @@ owns the Swift product, workbook agent and integration. Do not port inference,
 attention, expert routing, speculative verification or GPU scheduling to Swift.
 No runtime Python interpreter, Python server, HTTP proxy or implicit cloud fallback.
 Upstream Python is allowed only in development/reference verification tools.
-I02. The native preview pin is Splash 1.7.2, commit
-`2afc7337aacc044722fa95e4cb3da75c281a19a8`, protocol 15 and status schema 8. The
+I02. The native preview pin is Splash 1.7.3, commit
+`d40c250ff248938edebdb91fb6124514e32daeaa`, protocol 16 and status schema 8. The
+1.7.2 pin at `2afc7337aacc044722fa95e4cb3da75c281a19a8` is preserved in
+`integration/splash-1.7.2-preserved.json`. The
 1.7.1 pin at `1988a72f26a6031127efc29f861bfb46d36286c4` is preserved in
 `integration/splash-1.7.1-preserved.json`. The
 1.6.1 pin at `d8af1054aab0f97de21d043e01aa98af3754f10e` is preserved in
@@ -500,3 +504,15 @@ Upstream's mapped Python surfaces changed only to add Inkling 2's chat format (J
 What 1.7.2 changes for Sevra's MLX 4-bit Qwen: little. Its int8 Q8_0 prefill applies to GGUF only (MLX 4-bit already took int8 activations in 1.7.1), and Qwen decode is level. The cache fixes apply where the app runs: with `--persistent-cache on`, the header's state is now written to the SSD cache after its publication, and a long suspended reply resumes at its newest state. The MoE image gains an expert-scales section, so the persistent cache starts cold once after the upgrade. The app sends normal priority, so the background promotion does not apply.
 
 Results, one run each on a 48 GiB M5 Pro, with the installed app quit: 39 Splash checks and the text, grammar and agent checks pass; the packaged engine's digest equals the pin; the prompt header was remade (4,480 tokens; its inputs changed with the chat tools since the 1.7.1 run, not with the engine) and the engine took it back; the eight header tests pass; the light set passes 11 of 11 on the first run in 119 s of model jobs against 112 s on 1.7.1, the same 30 model calls. Evidence: `integration/evidence/2026-11-24-splash-1-7-2/`. Not run: the timing conversation, the 32K tier start and the broader qualification, which stays blocked for the reasons in `integration/splash.json`.
+
+## Splash 1.7.3, November 25
+
+The pin moved from 1.7.2 to the tagged 1.7.3 (commit `d40c250`), at the owner's word ([[sources/notes/2026/11/splash-1-7-3-upgrade-approval]]). The engine and `splash.metallib` changed; `host-step.metallib`, the licenses, the third-party notices, status schema 8 and LLGuidance 1.8.0 are unchanged. The 1.7.2 pin is preserved in `integration/splash-1.7.2-preserved.json`.
+
+What 1.7.3 changes: Inkling-2-Mini's images and MLX loading, a fix for long Inkling-2-Mini and Flint conversations, and a fix for one-lane starts on M5 GPUs of 8 to 14 cores, which upstream's plans show for Qwen3.6-35B-A3B on M5 GPUs of 8, 12 and 14 cores. Sevra runs one lane, so that fix is the one that matters here. Upstream measured Qwen text level with 1.7.2, with the same outputs.
+
+Protocol 16: an image span grows from 32 to 40 bytes with the image's own height and width. Sevra sends no images, so only the version moved in `Wire.swift`; the protocol golden is the 1.7.3 file, and the three hand-written engine frames in `NativeLifecycleChecks.swift` carry version 16. The mapped Python surfaces changed for Inkling's images, its chat format's image pad, the installer's vision checks and the console's thinking line; Qwen's values are the same. Regenerated from the 1.7.3 reference, all four fixture sets equal Sevra's apart from the recorded commit: 32 text cases, 214 grammar steps, 1,450 workbook tool masks and the output projections.
+
+The memory floor: at the 8 GiB floor with the app's options, 1.7.3 plans 65,521 tokens, 15 short of 64K, and refuses the start that 1.7.2 took. That start is what a 48 GiB Mac gets whenever 12 GiB or less is free. `EngineMemory.floor` is now 8 GiB and 64 MiB, which plans 64K (8 GiB and 1 MiB already does), and the floor holds where whole GiB would round under it; growth still counts from whole GiB, so the smallest engine grows to 12 GiB as before. The product checks cover the boundary, the rounding and the growth.
+
+Results, one run each on a 48 GiB M5 Pro with Sevra quit: 39 Splash checks and the text, grammar, agent and product checks pass; the packaged engine's digests equal the pin; the prompt header (4,496 tokens) was made and the engine took it back. Header tests: 7 of 8 pass. `sameAnswers` failed: both settings made the same decisions (2 and 1) and the same factual answer, 18 brass bolts with the same two citations in the other order, the first token difference at the second generated token; the test compares the first answer's text exactly. Light set: 10 of 11 on the first run, in 93 s of model jobs; `conversation.greeting` failed at engine start on the floor above, before the fix, and the fix was checked with the same engine start, which stops at the memory plan, at 8 GiB (refused) and at the new floor (planned). Evidence: `integration/evidence/2026-11-25-splash-1-7-3/`. Not run: the timing conversation, the 32K tier start and the broader qualification, which stays blocked for the reasons in `integration/splash.json`.

@@ -82,7 +82,7 @@ private func safeRelativePath(_ value: String) -> Bool {
   }
 }
 
-/// Matches Splash 1.7.2's immutable text-only MLX-affine assembly contract.
+/// Matches Splash 1.7.3's immutable text-only MLX-affine assembly contract.
 /// This verifies/links original weights; it never changes or deletes their source.
 public enum SplashModelPreparation {
   /// Open the selected installed pack without assuming the draft lives inside a legacy target

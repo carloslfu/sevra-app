@@ -397,3 +397,6 @@ Installed the steady-chat build with the code review session's unfinished edits;
 ## [2026-11-24 18:56] install | sevra-app
 Reinstalled the steady-chat build from current code on 092c646; UUID 20511EDB-B500-3C86-844D-B6ED19693EB3 matches output/native and the first install, header 4,480 tokens reused; committed and pushed
 
+## [2026-11-26 02:06] implementation | records/specs/splash-integration
+Splash 1.7.3 upgrade: protocol 16, fixtures equal the 1.7.3 reference, memory floor 8 GiB and 64 MiB for 64K; model-free checks pass, header tests 7 of 8 (sameAnswers citation order), light set 10 of 11 (floor start, fixed); not yet installed
+
