@@ -688,10 +688,10 @@ struct WorkbookView: View {
         )
         .disabled(state.changingConversation || !state.conversationSession.ready)
       HStack {
-        VoiceButton(speech: state.speech, action: state.voice)
+        DictationControl(dictation: state.dictation, text: $state.prompt)
           .disabled(state.changingConversation || !state.conversationSession.ready)
         Spacer()
-        VoiceStatus(speech: state.speech)
+        Text("Local AI").readingFont(.caption).foregroundStyle(.secondary)
         Button(action: state.send) { Image(systemName: "arrow.up") }.buttonStyle(.borderedProminent)
           .disabled(!state.canSend).keyboardShortcut(.return, modifiers: .command)
           .help(state.busy ? "Add to the queue. It sends after the current reply." : "Send")

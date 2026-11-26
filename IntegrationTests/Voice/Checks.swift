@@ -246,24 +246,34 @@ private func expect(_ value: @autoclosure () -> Bool, _ message: String) throws 
           draft.apply("late", to: "Human correction") == nil, "Late partial overwrote human text")
       }
     }
-    check("A manual edit ends dictation instead of accepting a later partial") {
+    check("Shared dictation adds to typed text and typing over it stops it") {
       let driver = Driver()
-      let recording = SpeechInput(driverFactory: { driver })
+      let dictation = Dictation(speech: SpeechInput(driverFactory: { driver }))
       var text = "Typed prefix"
-      var draft = DictationDraft(text)
-      recording.start(
-        result: { value in
-          guard let next = draft.apply(value, to: text) else {
-            recording.stop()
-            return
-          }
-          text = next
-        }, failure: { _ in })
+      dictation.toggle(read: { text }, write: { text = $0; dictation.edited($0) })
       driver.allow()
       driver.result?("spoken", false)
+      try expect(text == "Typed prefix spoken" && dictation.active, "Dictation did not add text")
       text = "User edited the draft"
+      dictation.edited(text)
       driver.result?("late recognition", false)
-      try expect(text == "User edited the draft" && !recording.active, "Manual edit was lost")
+      try expect(
+        text == "User edited the draft" && !dictation.active, "A manual edit did not end dictation")
+    }
+    check("Shared dictation keeps a failure for its box and clears it on retry") {
+      let first = Driver()
+      let second = Driver()
+      var drivers = [first, second]
+      let dictation = Dictation(speech: SpeechInput(driverFactory: { drivers.removeFirst() }))
+      var text = ""
+      dictation.toggle(read: { text }, write: { text = $0 })
+      first.speech?(false)
+      try expect(
+        !dictation.active && dictation.failure?.contains("permission") == true,
+        "Denied permission was not reported")
+      dictation.toggle(read: { text }, write: { text = $0 })
+      try expect(dictation.failure == nil && dictation.active, "Retry kept the old failure")
+      dictation.stop()
     }
     check("Dictation pauses every live player and window close affects only its owner") {
       let registry = PlaybackRegistry()

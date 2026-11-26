@@ -175,47 +175,40 @@ struct VoiceButton: View {
   }
 }
 
-/// A mic for any box where the person writes to Sevra. Dictation adds to what is already typed,
-/// and typing over it stops dictation. Each box has its own recording, and only one records at a
-/// time across the app. While it listens, or after a failure, it says so beside the mic.
-struct DictationButton: View {
+/// The mic of every box where the person writes to Sevra. It draws one `Dictation`: the mic,
+/// and beside it "Listening…" while it records or the failure after one. Typing over dictated
+/// text stops it, and so does the box going away.
+struct DictationControl: View {
+  @ObservedObject var dictation: Dictation
   @Binding var text: String
-  @StateObject private var speech = SpeechInput(pausePlayback: {
-    PlaybackRegistry.shared.pauseAll()
-  })
-  @State private var draft: DictationDraft?
-  @State private var failure: String?
   var body: some View {
     HStack(spacing: 6) {
-      VoiceButton(speech: speech, action: toggle)
-      if speech.active {
-        VoiceStatus(speech: speech)
-      } else if let failure {
-        Text(failure).readingFont(.caption).foregroundStyle(.red).lineLimit(2)
+      VoiceButton(speech: dictation.speech) {
+        dictation.toggle(read: { text }, write: { text = $0 })
       }
+      DictationStatus(dictation: dictation, speech: dictation.speech)
     }
-    .onChange(of: text) { _, value in
-      if speech.active, value != draft?.lastRendered { speech.stop() }
-    }
-    .onDisappear { speech.stop() }
+    .onChange(of: text) { _, value in dictation.edited(value) }
+    .onDisappear { dictation.stop() }
   }
-  private func toggle() {
+}
+
+/// A box that owns its dictation. The chat box instead uses the workbook's, so sending,
+/// switching chats and closing can stop it.
+struct DictationButton: View {
+  @Binding var text: String
+  @StateObject private var dictation = Dictation(speech: AppHost.speech())
+  var body: some View { DictationControl(dictation: dictation, text: $text) }
+}
+
+private struct DictationStatus: View {
+  @ObservedObject var dictation: Dictation
+  @ObservedObject var speech: SpeechInput
+  var body: some View {
     if speech.active {
-      speech.stop()
-      return
-    }
-    failure = nil
-    draft = DictationDraft(text)
-    speech.start { transcript in
-      guard var current = draft, let rendered = current.apply(transcript, to: text) else {
-        speech.stop()
-        return
-      }
-      // The draft records the text first, so the change below is known as dictation.
-      draft = current
-      text = rendered
-    } failure: { message in
-      failure = message
+      VoiceStatus(speech: speech)
+    } else if let failure = dictation.failure {
+      Text(failure).readingFont(.caption).foregroundStyle(.red).lineLimit(2)
     }
   }
 }

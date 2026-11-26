@@ -196,7 +196,7 @@ struct FolderReview {
   @Published var conversation = "" {
     didSet {
       if conversation != oldValue {
-        speech.stop()
+        dictation.stop()
         clarificationDrafts.invalidateConversationPreviews()
       }
     }
@@ -257,7 +257,6 @@ struct FolderReview {
   private var restoringConversation = false
   @Published var prompt = "" {
     didSet {
-      if prompt != oldValue && !applyingDictation { speech.stop() }
       if !restoringConversation { conversationSession.updateDraft(prompt) }
       // Typing restarts an engine the idle timer stopped, before Send needs it.
       if oldValue.isEmpty && !prompt.isEmpty && !restoringConversation { prewarmLocalAI() }
@@ -317,10 +316,11 @@ struct FolderReview {
   let mediaOwner = UUID()
   private(set) var interactionActive = false
   private(set) var interactionIdentity = UUID()
-  private var applyingDictation = false
   /// The submitted message until its conversation has saved it. Only one operation runs at a time.
   private var unsent: (input: String, chat: String, book: Workbook)?
-  let speech: SpeechInput
+  /// The chat box's dictation. The workbook owns it so sending, switching chats and closing
+  /// stop it.
+  let dictation: Dictation
   func open(_ url: URL) async throws {
     // Opening checks the whole schema and can wait for another process to let go of the workbook.
     let opened = try await Task.detached(priority: .userInitiated) {
@@ -339,7 +339,7 @@ struct FolderReview {
     try require(
       clarificationsSaved, "clarification_draft_save",
       "Save or preserve clarification inputs before opening another workbook.")
-    speech.stop()
+    dictation.stop()
     let restored = await conversationSession.open(
       opened,
       conversation: defaults.string(forKey: "lastConversation:" + opened.url.path))
@@ -440,7 +440,7 @@ struct FolderReview {
     self.defaults = defaults
     self.automation = automation ?? .shared
     self.appExchange = appExchange
-    self.speech = speech ?? AppHost.speech()
+    self.dictation = Dictation(speech: speech ?? AppHost.speech())
     formDrafts.changed = { [weak self] in self?.objectWillChange.send() }
     clarificationDrafts.changed = { [weak self] in self?.objectWillChange.send() }
     spaceNavigation.changed = { [weak self] in self?.objectWillChange.send() }
@@ -1239,7 +1239,7 @@ struct FolderReview {
       !prompt.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
     else { return }
     ChatTiming.pressedSend()
-    speech.stop()
+    dictation.stop()
     let input = prompt.trimmingCharacters(in: .whitespacesAndNewlines)
     do { try ComposerInput.admit(input) } catch {
       self.error = error.localizedDescription
@@ -2005,7 +2005,7 @@ struct FolderReview {
   }
   func transcribe(_ id: String) {
     guard let (book, ticket) = beginOperation("Transcribing on this Mac") else { return }
-    speech.stop()
+    dictation.stop()
     PlaybackRegistry.shared.pauseAll()
     Task { @MainActor in
       defer { self.finishOperation(ticket, in: book) }
@@ -2019,7 +2019,7 @@ struct FolderReview {
     }
   }
   func stop() {
-    speech.stop()
+    dictation.stop()
     operations.cancel()
     if activePreview?.loading == true { activePreview?.stop() }
     if busy {
@@ -2179,7 +2179,7 @@ struct FolderReview {
   }
   func changeConversation(_ id: String, anchor: String? = nil) {
     guard interactionActive, !changingConversation else { return }
-    speech.stop()
+    dictation.stop()
     clarificationDrafts.invalidateConversationPreviews()
     changingConversation = true
     let owner = interactionIdentity
@@ -2292,7 +2292,7 @@ struct FolderReview {
     owner: UUID, moving: Bool = true, _ destination: @escaping () async throws -> String,
     then: (() async throws -> Void)? = nil
   ) {
-    speech.stop()
+    dictation.stop()
     clarificationDrafts.invalidateConversationPreviews()
     changingConversation = true
     Task {
@@ -2326,7 +2326,7 @@ struct FolderReview {
     refresh()
   }
   func saveBeforeClosing() async -> Bool {
-    speech.stop()
+    dictation.stop()
     keepNotSentAsDraft()
     guard !changingConversation, documentDrafts.flush() else { return false }
     let saved = await conversationSession.flush()
@@ -2374,34 +2374,6 @@ struct FolderReview {
       restoreConversationPresentation()
     }
   }
-  func voice() {
-    guard interactionActive, conversationSession.ready, !changingConversation else { return }
-    if speech.active {
-      speech.stop()
-      return
-    }
-    var draft = DictationDraft(prompt)
-    let chat = conversation
-    let owner = interactionIdentity
-    speech.start { [weak self] text in
-      guard let self else { return }
-      guard self.interactionActive, self.interactionIdentity == owner,
-        !self.changingConversation, self.conversation == chat,
-        let rendered = draft.apply(text, to: self.prompt)
-      else {
-        self.speech.stop()
-        return
-      }
-      self.applyingDictation = true
-      self.prompt = rendered
-      self.applyingDictation = false
-    } failure: { [weak self] error in
-      guard let self, self.interactionActive, self.interactionIdentity == owner,
-        self.conversation == chat, !self.changingConversation
-      else { return }
-      self.error = error
-    }
-  }
   func beginInteraction() { interactionActive = true }
   func endInteraction() {
     keepNotSentAsDraft()
@@ -2430,7 +2402,7 @@ struct FolderReview {
     activePreview?.cancel()
     activePreview = nil
     searchResults.reset()
-    speech.stop()
+    dictation.stop()
     PlaybackRegistry.shared.close(owner: mediaOwner)
     backgroundPlayer?.releasePlayback()
     backgroundPlayer = nil

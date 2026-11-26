@@ -499,8 +499,9 @@ struct CatalogProductionView: View {
       }
     } else if id == "main.voice" {
       VStack(alignment: .leading, spacing: 20) {
-        VoiceButton(speech: state.speech, action: { state.voice() })
-        VoiceStatus(speech: state.speech)
+        DictationControl(
+          dictation: state.dictation,
+          text: Binding(get: { state.prompt }, set: { state.prompt = $0 }))
         Text(state.prompt)
       }.padding(30)
     } else {

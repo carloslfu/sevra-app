@@ -21,7 +21,7 @@ import Foundation
   public var active: Bool { phase != .idle }
   public var status: String {
     switch phase {
-    case .idle: return "Local AI"
+    case .idle: return "Not dictating"
     case .speechPermission: return "Waiting for speech permission"
     case .microphonePermission: return "Waiting for microphone permission"
     case .starting: return "Starting microphone"
@@ -141,5 +141,50 @@ public struct DictationDraft {
     let separator = prefix.isEmpty || prefix.last?.isWhitespace == true ? "" : " "
     lastRendered = prefix + separator + transcript
     return lastRendered
+  }
+}
+
+/// Dictation into one text box: the only code that starts, writes and stops it. Every box where
+/// the person writes to Sevra uses one, through the same button. Dictation adds to what is typed,
+/// typing over it stops it, and a failure is kept for the box to show beside its mic.
+@MainActor public final class Dictation: ObservableObject {
+  public let speech: SpeechInput
+  @Published public private(set) var failure: String?
+  private var draft: DictationDraft?
+
+  public init(speech: SpeechInput) { self.speech = speech }
+
+  public var active: Bool { speech.active }
+
+  /// Starts dictation into the text `read` returns and `write` sets, or stops it.
+  public func toggle(read: @escaping () -> String, write: @escaping (String) -> Void) {
+    if speech.active {
+      stop()
+      return
+    }
+    failure = nil
+    draft = DictationDraft(read())
+    speech.start { [weak self] transcript in
+      guard let self else { return }
+      guard var current = self.draft, let rendered = current.apply(transcript, to: read()) else {
+        self.stop()
+        return
+      }
+      // The draft records the text first, so the write is known as dictation.
+      self.draft = current
+      write(rendered)
+    } failure: { [weak self] message in
+      self?.failure = message
+    }
+  }
+
+  /// The box's text changed. A change dictation did not make is the person typing: stop.
+  public func edited(_ text: String) {
+    if speech.active, text != draft?.lastRendered { stop() }
+  }
+
+  public func stop() {
+    draft = nil
+    speech.stop()
   }
 }

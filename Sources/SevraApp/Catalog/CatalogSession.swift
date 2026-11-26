@@ -774,7 +774,9 @@ import SwiftUI
     }
     if id == "main.history-search" { ws.showingHistorySearch = true }
     if id == "chat.chat-list" { ws.showingChats = true }
-    if id == "main.voice" && ["Recording", "Denied"].contains(variant) { ws.voice() }
+    if id == "main.voice" && ["Recording", "Denied"].contains(variant) {
+      ws.dictation.toggle(read: { ws.prompt }, write: { ws.prompt = $0 })
+    }
     ws.focus =
       variant == "Focused" || id.hasPrefix("mini.") || id.hasPrefix("visual.")
       || id == "home.comparison"
