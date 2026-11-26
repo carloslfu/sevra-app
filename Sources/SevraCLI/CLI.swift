@@ -35,7 +35,7 @@ import SevraProduct
     }
   }
   static func run(_ args: [String], cancellation: Cancellation) async throws -> Value {
-    guard let command = args.first else { return .string(help) }
+    guard let command = args.first else { return .string(start) }
     if let counts = argumentCounts[command] {
       try require(counts.contains(args.count), "usage", help)
     }
@@ -58,7 +58,9 @@ import SevraProduct
       }
       throw SevraError("usage", "header make DIRECTORY [MODEL_DIRECTORY] | header status [DIRECTORY]")
     }
-    if command == "help" || command == "--help" { return .string(help) }
+    if command == "help" || command == "--help" {
+      return .string(args.dropFirst().first == "all" ? help : start)
+    }
     if command == "version" || command == "--version" {
       return .object(["version": .string("0.1.0-dev"), "engine": .string(ProductAI.revision)])
     }
@@ -811,9 +813,31 @@ import SevraProduct
       return .object(["tool": .string(tool.name), "done": .string(String(command.dropFirst(5)))])
     case "tool":
       // The seven general tools are accepted by name, and so is the operation behind each.
-      let call = try GeneralTools.route(
-        arg(2), args.count > 3 ? Value.parseExact(args[3]) : .object([:]))
-      return try WorkbookTools(book, conversation: latestChat()).execute(call.tool, call.arguments)
+      let name = try arg(2)
+      if name == "ask" || name == "finish" {
+        throw SevraError(
+          "chat_only",
+          "\(name) is how Sevra's chat model talks to the person during a chat turn. From the command line, talk to the person yourself, or use sevra ask WORKBOOK QUESTION to ask Sevra's model."
+        )
+      }
+      let call = GeneralTools.route(
+        name, args.count > 3 ? try Value.parseExact(args[3]) : .object([:]))
+      let result = try WorkbookTools(book, conversation: latestChat()).execute(
+        call.tool, call.arguments)
+      // An action the app window performs does nothing here, so it must not report success.
+      if let action = result["hostAction"].string {
+        let instead: [String: String] = [
+          "file.export_table": "export-csv WORKBOOK TABLE_ID PATH.csv",
+          "file.export_workbook": "export WORKBOOK PATH.sevraz",
+          "workflow.continue": "workflow-continue WORKBOOK RUN_ID",
+          "workflow.retry": "workflow-retry WORKBOOK RUN_ID TOKEN",
+        ]
+        throw SevraError(
+          "app_only",
+          "\(action) runs in the Sevra window, so nothing happened."
+            + (instead[action].map { " Use sevra \($0) instead." } ?? ""))
+      }
+      return worded(result)
     case "ask":
       // ask WORKBOOK PROMPT [MODEL_DIRECTORY] [--chat CHAT_ID]: the latest chat unless one is named.
       var positional = Array(args.prefix(2))
@@ -873,6 +897,42 @@ import SevraProduct
     "export": 3...3, "export-csv": 4...4, "tool": 3...4, "ask": 3...6, "tools": 2...2, "tool-enable": 3...3, "tool-disable": 3...3,
     "tool-remove": 3...3,
   ]
+  /// Guidance in a tool result names the operations behind the tools, as it does for the app's
+  /// model before the app rewords it. Only guidance text is reworded; data is left exact.
+  static func worded(_ value: Value) -> Value {
+    switch value {
+    case .object(let fields):
+      return .object(
+        fields.reduce(into: [:]) { out, field in
+          if ["notice", "detail", "hint"].contains(field.key), case .string(let text) = field.value {
+            out[field.key] = .string(GeneralTools.wording(text))
+          } else {
+            out[field.key] = worded(field.value)
+          }
+        })
+    case .array(let items): return .array(items.map(worded))
+    default: return value
+    }
+  }
+
+  /// The front page: the tools Sevra's chat model uses, then the commands for whole workbooks.
+  static let start = """
+    Sevra 0.1.0 development CLI. Every result is JSON; errors exit nonzero.
+    Work in a workbook with the tools Sevra's chat model uses:
+      tool WORKBOOK search '{"query":"a few words"}'
+      tool WORKBOOK read '{"id":"ID"}'            read '{"kind":"actions"}' lists what run can do
+      tool WORKBOOK sql '{"statements":["SELECT name, id FROM tables"]}'
+      tool WORKBOOK run '{"code":"return await sql('SELECT 1')"}'   or '{"action":"NAME","arguments":{}}'
+      tool WORKBOOK save '{"tool":{"name":"…","description":"…","inputs":[],"statements":["…"]}}'
+    Whole workbooks:
+      create PATH.sevra [TITLE] | demo PATH.sevra | inspect WORKBOOK | verify WORKBOOK
+      import WORKBOOK FILE [--role values|analysis|reference|update] [--link]
+      export WORKBOOK PATH.sevraz | open-archive PATH.sevraz DEST.sevra | export-csv WORKBOOK TABLE_ID PATH.csv
+      tools WORKBOOK | tool-enable WORKBOOK NAME | tool-disable WORKBOOK NAME | tool-remove WORKBOOK NAME
+      chats WORKBOOK | history WORKBOOK [CHAT_ID] | ask WORKBOOK QUESTION [MODEL_DIRECTORY] [--chat CHAT_ID]
+      model-status [MODEL_DIRECTORY] | version
+    help all lists every command, including lower-level inspection and repair.
+    """
   static let help = """
     Sevra 0.1.0 development CLI. Every result is JSON; errors exit nonzero.
     header make DIRECTORY [MODEL_DIRECTORY] | header status [DIRECTORY]

@@ -1548,8 +1548,8 @@ for the lifecycle receipt, visible native observations and exact remaining scope
 
 `table-query WORKBOOK QUERY_JSON [CURSOR]` runs the typed host compiler.
 `table-query-plan WORKBOOK QUERY_JSON` returns its actual plan. Read table-schema
-first and use exact dataset/definition UUIDs. See skills/sevra/SKILL.md for a complete
-request example. The query may select up to 50 stored fields across up to three
+first and use exact dataset/definition UUIDs. The skill's request example was removed on
+November 25, 2026; agents use the `sql` tool instead. The query may select up to 50 stored fields across up to three
 sources, with AND filters, two equality inner/left joins, grouping, count/sum/average/
 min/max and output sorting. Source scope can filter meaning/status/scenario; no
 provided scope means all current members. Ungrouped inputs retain exact row/version
@@ -1600,9 +1600,9 @@ No new native query editor or in-app model tool is implied by these CLI commands
 
 Current schema14 workbooks carry the earlier pure-definition support: `definition-save`, `definition-read`,
 `definition-history`, `definition-restore`, `definition-dependencies`,
-`definition-search` and read-only `definition-evaluate`. Run `sevra help` and read
-skills/sevra/SKILL.md for typed examples, parameter/literal mappings and live/exact
-semantics. New definitions use a selected UUID logical ID and base `new`; updates
+`definition-search` and read-only `definition-evaluate`. Run `sevra help all`; agents
+save definitions with the `save` tool after `read kind=definition_guide`. The skill's
+typed examples were removed on November 25, 2026. New definitions use a selected UUID logical ID and base `new`; updates
 require the exact opened version UUID. All writes use stable request tokens.
 Neither authoring nor evaluation accepts business data or schedules execution.
 
@@ -1628,8 +1628,8 @@ Removed November 25, 2026: the receiving template, receiving form and movement a
 Use current schema14 fixtures. `action-registry` exposes trusted native primitive
 versions, typed inputs/results, effect/capability, deadline and retry semantics.
 `receiving-template` and `form-template` return ordinary definitions for versioned
-saving. See skills/sevra/SKILL.md for exact receiving arguments, preview/invocation,
-function bindings and recoverable `form-draft-*` commands. A saved proposal remains
+saving. The skill's examples for these commands were removed on November 25, 2026;
+see `sevra help all` for the `form-draft-*` commands. A saved proposal remains
 a draft. No stock change until explicit separate review/acceptance.
 
 ~~~sh

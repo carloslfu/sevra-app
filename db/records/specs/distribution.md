@@ -35,7 +35,8 @@ D05. CLI `sevra` exposes create, import, search, read, records, tables, calculat
 accept/correct, spaces, conversation, inspect, verify, export/open and local ask.
 Versioned JSON result/error envelope, schemaVersion, nonzero errors, bounded output,
 app-closed use and optional expectedRevision/idempotency. A shipped `skills/sevra`
-skill teaches safe tool composition over this exact CLI, not direct SQL writes.
+skill teaches the chat tools through `sevra tool` (`sql`, `run`, `save`, `search`, `read`),
+with SQL writes recorded and undoable, as the general chat tools plan decided.
 The CLI refuses what it cannot act on. An empty path or one starting with `-`, a wrong
 argument count, an unknown import option or a non-numeric offset gives `usage`. add and
 movement refuse an unknown or wrong-typed field with `arguments`; observe does the same

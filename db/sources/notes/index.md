@@ -2,11 +2,12 @@
 type: index
 scope: type-folder
 folder: sources/notes
-updated: 2026-11-26T04:06:15.874135Z
+updated: 2026-11-26T04:38:20.733900Z
 ---
 
 # sources/notes
 
+- [[sources/notes/2026/11/cli-skill-seven-tools]] — Carlos asks for the CLI skill and command line to follow the seven tools, judged from first principles and product taste.
 - [[sources/notes/2026/11/composer-is-the-only-input]] — Carlos directs that chat questions offer only one-tap answers and that every typed answer goes through the composer.
 - [[sources/notes/2026/11/chat-spreadsheet-cleanup]] — Carlos asks for a full code and docs cleanup to the chat-spreadsheet product: remove inventory-first leftovers and make everything general.
 - [[sources/notes/2026/11/splash-1-7-3-upgrade-approval]] — Carlos asks for the Splash 1.7.3 upgrade through the update-splash skill.

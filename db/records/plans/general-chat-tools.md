@@ -859,3 +859,12 @@ Each specification is updated in the phase that makes its new rule true: managed
 ## Chat-spreadsheet cleanup, November 25, 2026
 
 Stock movements, balances, receiving, stock threshold automations and the supplier-quote guard were removed, and saved-tool actions (`tools.run`) and check-triggered automations (`check-drafts-v1`) were added, in commits `c80143d`, `08d56be` and `f2cae08` (workbook formats 34 to 36). The chat tools lost `stock.move`, `stock.balance`, `template.receiving`, `template.rule`, `rule_guide` and `receiving_guide`; `action.preview` and `action.prepare` now run saved tools. No-model checks pass; the light model run was not done because the installed app held the model. Details, verification and limits: [[records/reviews/chat-spreadsheet-cleanup-2026-11-25]].
+## The command line and its skill follow the tools, November 25, 2026
+
+At the owner's word, [[sources/notes/2026/11/cli-skill-seven-tools]], the shipped skill `skills/sevra/SKILL.md` was rewritten around the tools, from 45,719 bytes to 7,402. It teaches `sql`, `run`, `save`, `search` and `read` through `sevra tool`, reading the catalog, the action list and the guides on demand, the whole-workbook commands, and the authority rules. The workflow, action, form, automation and definition commands are left to `sevra help all`.
+
+- `sevra help` is now a short front page with the tools first. `sevra help all` prints the full list.
+- `sevra tool WORKBOOK ask|finish` refuses with `chat_only`: those two are how the app's model talks to the person, and an outside agent talks to its own user.
+- An action only the app window performs, such as `file.export_table`, used to return `ok: true` from the command line with nothing done. It now refuses with `app_only` and names the command to use, such as `export-csv`.
+- Guidance text in a tool result (`notice`, `detail`, `hint`) gets the same rewording the app gives its model, so it names `read kind=message` and `search in=conversation` instead of removed operation names. Data is not reworded.
+- Checked without the model, once each: every command in the skill on a new workbook (create, catalog reads, a table made and filled by `sql`, a script, a saved tool run by name, a view, undo, a draft update, the action list, search, a guide, CSV and archive export, reopening the archive, `verify`), both refusals and an exact `read_definition` string kept in `sql` data. The suite and a model run were not done.
