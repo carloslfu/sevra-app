@@ -3,443 +3,54 @@ type: operational
 meta-type: operational
 id: 01m659x4nd2q89tkpzzsssd7yr
 created: 2026-10-30T02:23:30.477380+00:00
-updated: 2026-11-26T03:41:49.584708+00:00
-summary: Remove and restore work for every saved kind, in chat with confirmation and in the app with a Removed list; checked with the model and in the installed app, committed and pushed.
-title: Minimum-feature continuation handoff
+updated: 2026-11-26T05:12:32.976358+00:00
+summary: 'Where the app stands now: what is built, open owner decisions, known limits and how to work here. Earlier checkpoints are in the handoff history.'
+title: Agent handoff
 ---
-# Minimum-feature continuation handoff
+# Agent handoff
 
-## Remove and restore, November 24
-
-At the owner's word, after a chat emptied a story draft when asked to remove it. The design, the checks and the model runs are in [[records/plans/general-chat-tools]] under "Remove and restore". Commits `092c646`, `7f0f77e`, `3c9735e` and the one after them, all pushed.
-
-- **One verb.** `remove {id}` and `restore {id}` are `run` actions the person confirms in chat. Nothing is erased: a `removal` marker Source records who removed what, and the thing leaves lists, search, the request's context and name lookups. Documents and records also get a rejected version; tables are archived; views and apps are hidden, and an app loses its permission on this Mac; definitions are hidden and refuse to run; automations are paused; saved tools are retired. A view or app that another view shows is refused until it is taken off that view.
-- **In the app.** Remove on an open document or record, Remove view or Remove app and Remove table in their menus, Restore on a removed document and on a removed table's banner, and a Removed screen in the workbook menu that lists everything removed with Open and Restore. The Tools screen's Remove now goes through the same path.
-- **Chat confirmations** show the change once, on the card; the reply only points at it. A confirmed change ends with "Change applied." instead of the generic "Operation ended".
-- **Checked.** `sevra-checks --removal`, ten groups, now also in the default suite (670 checks pass). The light set plus `change.remove_document` passed 12 of 12 with the model. In the installed app, on throwaway workbooks: Remove and Restore on a document, a chat removal of a document and of a view with their confirmations. The UI Catalog has `main.removed` (Default, Empty) and `main.document` Removed, captured at 900 points.
-- **Not checked live.** The workbook menu's Remove view, Remove table and Removed items in the installed app, because background control cannot open that menu; they are the catalog's production views. Removing an app in chat, which revokes its permission in the app layer, has no run.
-- **Fixed on the way.** `Workbook.verify()` failed on any workbook with a saved tool; a tool is now verified as a tool.
-- **What is on screen follows a removal, November 24 (later).** The owner saw a document removed through chat stay open as a live draft with Accept, Edit draft and "Viewing an earlier version". Only a screen's own button moved it to the new state. Now every screen asks the core `presence(id)` on each workbook change, whoever made it: present, removed, withdrawn, archived, retired or missing, read for the thing as a whole, so an older version answers too. One `GoneBanner` says what happened, with Restore when it applies, on the document viewer, an open view or app (no longer a blank pane), a table route, an automation, and a form or calculation that a view shows. Accept, Edit, Undo and Withdraw appear only on the current version. The chat now ends a confirmed removal with "Removed “X”. History keeps it, and Restore brings it back." Checked: the `--removal` group for presence (11 groups pass), the agent confirmation and chat checks, the catalog's new `main.document` "Removed while open", and in the installed app a chat removal of an open document and of an open view, each restored from the banner.
-
-## A still window when a view button is pressed, November 24
-
-The owner saw the whole window flash and the chat lose its place on every press of a Home counter button. A press ran as a full workbook operation: the status bar was taken away and put back, so the window changed height twice; the top bar gained and lost a spinner and Stop; every busy-bound control greyed out and back; and the chat added and removed a working row. The chat's scroll keeper only reacted to rows moving, not to its own height changing, so it was left above the newest message. Now a view button press and its Undo take a quiet turn (`beginQuietOperation`): no busy state, nothing in the chat, the status bar only replaced, and a spinner beside the button only for a press slower than 400 ms. Any operation keeps the last status in its bar, dimmed, until its own outcome replaces it. The chat's working row shows only for chat work (`operationInChat`). The scroll observer keeps a reader at the newest message when the pane or its content resizes, and no longer reads a resize as the reader scrolling. Checked in the installed app on a copy of the owner's counter workbook: presses of all three buttons and an Undo, with the counter correct, no spinner, no working row and the chat at its last message.
-
-## A steady chat while a reply runs, November 24
-
-At the owner's word ([[sources/notes/2026/11/steady-chat-layout]]). Committed as its own commit on `092c646` and pushed, at the owner's word ("Commit, reinstall and push"). The installed app is that code: rebuilt from it, its executable UUID `20511EDB-B500-3C86-844D-B6ED19693EB3` equals `output/native`'s and the first install's, so the first install, made while the code review session was still editing, already held that session's final code. The code review session's tool changes grew the prompt header to 4,480 tokens.
-
-What moved, and what holds it still now:
-
-- **The reply vanished at the end.** The agent cleared the streamed answer just before the app kept it as the landing text, so the reply could disappear until the saved message loaded. `AnswerPreviewDelivery.end()` now keeps the last answer and drops only the reasoning. The landing is the run's returned `answer` when it finished (`runOutcome` in `WorkspaceState`), which is the saved body with its links, so the saved message that replaces it looks the same.
-- **The saved reply was 18 points taller.** It adds the actions button under itself; the preview keeps that room (`MessageActionsSpace`). The sent message's bubble keeps the button's room beside it and parses its text as the saved one does, so a long message wraps the same way.
-- **The header changed twice at the end.** The saved run still said running for a moment ("Unfinished run"), and its clock, which starts at the run and not at Send, stepped back. `endedRuns` keeps the state and the time from Send for the chat's session.
-- **"Change saved" grew a line after the reply landed.** `ConversationReceiptHints` reads with each refresh, off the main thread, which replies have a change row; the row keeps its line until it has read its state.
-- **The thinking line came and went at every step, and long step titles wrapped.** A closed row now shows the run's thinking in a window of exactly three lines (`ThoughtWindow`, `ThoughtText.stream`): every thought so far, newest words at the bottom, kept between steps and replaced by the answer when it starts. The title stays on one line, whole in its tooltip. An open row's live thought grows to five lines and then scrolls inside them; the status line that repeated the title is gone.
-- **An opened row closed itself.** Its open state was the view's own and was lost when the run moved from under the sent message into its saved request. `openActivities` keeps it by run ID, and one `ForEach` keyed by run keeps the row's identity through the run's first load and its end. The sent message and its run are spaced as the saved request and its run (12 points).
-- **Scrolled up, the chat drifted.** The reading position was a fraction of the row, and the row grows as the reply is written. `ConversationScrollObserver` keeps the offset in points at the same width.
-- **Half-written syntax showed and jumped.** `StreamingMarkdown.settled` holds back a table row until its line ends and a header until the line that makes it a table, and closes open bold and code in the preview only.
-
-Checked without the model: `sevra-preview-checks` (all pass, with the new `checkStreamingText`), and the UI Catalog's `chat.activity` captured at 900 points in Thinking, Between steps (new), Streaming, Thinking opened, Default and Starting.
-
-Checked with the model, once: the installed executable UUID `20511EDB-B500-3C86-844D-B6ED19693EB3` equals `output/native`'s, the CLI is byte-identical, the signature verifies and the header is present at 4,480 tokens. In a new demo workbook in the session's scratch folder, "Compare the supplier costs and show the evidence." was captured about every three seconds in the chat pane. The three-line window kept its height across "Reading the working context" and "Preparing a response"; the answer took its place and its table drew as a table; the row turned "Finished · 13s · 70 tok/s" without a step back; and the saved message replaced the landing with no visible change. The one move left at the end is the citation line the host adds when it saves, which the chat follows by one line. Not watched: a long run, an opened row, the "Change saved" row and reading while scrolled up. Sevra was quit after the run and no engine stayed running.
-
-Another session was changing SevraCore, the model's tools and `ChatActions.swift` in this checkout at the same time; those changes are not part of this work.
-
-## Release gate repaired, November 24
-
-`scripts/check.sh` had failed on committed code since the chat tools became general (November 19) and threads became plain chats (November 21); nobody ran it until the Splash 1.7.1 upgrade. At the owner's word ("fix it all"), its stale checks were updated, none weakened:
-
-- `db/DB.md` declares the log kinds `fix` and `install`, which entries already use; the log is append-only (committed with the upgrade).
-- The extraction descriptor check compares a new workbook with its own revision: a new workbook holds its first chat (committed with the upgrade).
-- The native app authoring check "native app authoring through a scoped conversation continuation" is removed. It scripted `start_thread_and_continue`, which left with threads; nothing replaces the continuation it checked.
-- Five scripts (`check_shared_admissions.py`, `check_condition_dispatch.py`, `check_business_events.py`, `check_derivation_roles.py`, `check_business_inputs.py`) expected workbook format 31; the format is 33.
-- In `check_business_inputs.py` the change counts after a crash start at one, as a new workbook records its first chat.
-
-A separate session found the script fixes; the upgrade session removed the thread check, ran the gate and committed.
-
-## Splash 1.7.1, November 24
-
-The owner approved [[records/plans/splash-1-7-1-upgrade]] and its implementation ([[sources/notes/2026/11/splash-1-7-1-upgrade-approval]]). The pin is Splash 1.7.1, protocol 15. The host reads the new start fields, sends grammar masks over the draft tree as the reference does, keeps the tool grammar's whitespace in the thinking rule, and launches with one lane. The header was remade (its state file is 20.5 MB with int8 cached states). Every model-free check, both context tiers at 12 GiB, the eight header tests and the light set (11 of 11) pass; the timing conversation decoded 92.9 tokens a second against 50.7 on 1.6.1, one run each. Rollback: `.build/rollback/` holds the 1.6.1 app, header and pin. The plan's follow-ups ran the same day, at the owner's word: forced tokens, literal control tokens as characters (which also fixed a swift-transformers split difference on characters of several scalars, such as `❤️<b>`), `head_tokens` instead of prime requests, and a header identity without restore-neutral options landed; `--verify-rows auto` was measured and not taken. Header tests 8 of 8 and the light set 11 of 11 pass on them. `check.sh` passes all checks on them, and the installed executable UUID `32DBB9A2-2663-306F-9986-F9D1B35ED90E` equals `output/native`'s. Committed after the chat work below. The release gate repair is the section above.
-
-## Defaults, and progress instead of a step limit, November 23
-At the owner's word ([[sources/notes/2026/11/defaults-and-step-limit]]), after a request for a counter on Home in an empty workbook asked a question, refused when it was skipped and then hit the twelve-step limit. What the run showed, what changed and what the model runs showed: [[records/reviews/home-counter-run-2026-11-23]].
-
-- **A chat request stops on lack of progress.** The same error from the same action a second time brings what the action takes; a third, or five failed calls in a row, closes the request with only `finish` offered (`wrapUp` in `WorkbookAgent.run`). The reply of a closed request is the model's own account, then one host line for each task that could not finish (`ActionConfirmations.rendered(excluding:brief:)`). The step count is a backstop, `WorkbookAgent.chatStepBackstop` at 64, and Excel conversion keeps twelve.
-- **A choice is not a business value.** The instructions tell the model to choose a default for anything a request leaves open, such as looks, names, placement or what a view shows, and to say what it chose. A table, saved tool or view the workbook lacks is made, a new table starts empty, and a value the user gives each time a tool or button is used is the tool's input, not a question now. Business values are still never invented and still asked for. The building blocks are general; the counter recipe is gone ([[sources/notes/2026/11/general-behavior-not-the-example]]).
-- **Skipping a question goes on without it.** Questions are only for business values, so "Skip" continues the request with its original authority, without the skipped values, which the model must not make up. Typed "Answer: skip" does the same and typed "Answer: decline" cancels the question. `ConversationInputResponse.decline` keeps its name in code.
-- **The grammar fixes the order of an object's fields, and every shape shown to the model must follow it.** A tool's own parameters go by name (`SplashToolPolicy.parameterOrder`); every object inside them goes required fields first, then `componentID` and `definitionBinding`, then the rest by name (`propertyOrder`). `NativeTools.fieldOrder` is the shown copy and lists every action's and save kind's fields; `SpaceDefinition.componentFieldOrder` is stated in the view description and guide. `--field-order-checks` holds all of them equal and checks every shape and prose list the model is shown, host refusals included. When you add a shape, run it.
-- **A view edit takes what the model writes.** An unplaced insertion goes last, a count needs no `y`, a replacement targets its component's own ID, and an empty `text` or `title` is ignored where the edit does not use it. A move still has to say where.
-- **Every save keeps the model's summary,** at the owner's word ([[sources/notes/2026/11/summary-above-confirmation]], widened by [[sources/notes/2026/11/general-behavior-not-the-example]]). The reply is the summary and then the host's lines (`ActionConfirmations.keepsSummary`, used in the finish path of `WorkbookAgent.run`). A failed write keeps the reply to the host's lines unless a later call of the same tool did the same thing (the same tables written the same way, the same kinds of component put into the same view, the same tool saved), or it was a refused repeat whose first save stands; a failed read does not count. This match, `intent`, is finer than the `attempt` that settles the host's own lines. A summary may not claim content was kept perfectly or verbatim (`FidelityClaim`) or state a number nothing in the run gave. After two refused answers the host's lines stand alone whatever the basis.
-- **A view's button runs a saved tool,** at the owner's word ([[sources/notes/2026/11/view-button-and-size]], made general by [[sources/notes/2026/11/general-behavior-not-the-example]]). `definitionBinding: {tool}` names it, `arguments` sets some inputs and the person fills in the rest (`Workbook.pressButton`, `ViewButton`, `ToolButtonView`). The view shows the tool's description and the values the button sets, a report tool's rows, and failures as failures; Undo takes a press's table changes back. The command line has `press` and `metric`. `size` is small, medium or large on a table, chart, metric, text or button, and on a visual only when it is a chart. A count is of every row; a total of nothing is 0 and blank cells are skipped.
-- **A tool keeps nothing itself.** Saving a tool whose statements read and change no table is refused, and the instructions say that what a tool records goes in a table, which a metric or table component shows. A button shows only what its last press returned.
-- **Errors name the fault,** in aggregate and chart visuals, unknown query fields, decoding failures (`decodeDescriptor`), refused edit fields, `AUTOINCREMENT`, `UNIQUE` and a text `PRIMARY KEY` (SQLite's own index for them was refused as "cannot make indexes"), a placeholder in a button's `arguments`, and `viewID` on a component that is not an app. `definitionID` may be left out of a chart written in chat. Saving a view that exists answers with the `view.edit` call to make.
-- **Activity steps are titled by what they did,** and a run that could not finish says so.
-- **The header changed,** to 4,429 tokens from 3,809, so a source build needs the install command again.
-
-Checked without the model: the failed run's calls replayed through the command line, `sevra-agent-checks` with `--progress-stop-checks` (new), `--space-action-checks`, `--action-confirmation-checks`, `--conversation-surfaces`, `--prompt-header-checks` and `--chat-checks`, `sevra-checks` (660 groups), `check_chat_sql.py`, `check_chat_run.py`, `sevra-preview-checks`, the harness self-test of `defaults.home_counter`, and the question form in the UI Catalog at 450 points.
-
-Checked with the model, each run once: the light set and `defaults.home_counter` passed 12 of 12 on the final header with the button and the size, in 35 steps and 263 s. The counter request takes five steps and builds a large count with a large button under it over a new empty table. Its reply is the model's summary and then "Updated space “Home”." The button was pressed and undone with a real click in the UI Catalog. Two earlier runs of it failed, and each failure led to a change; the review has the table.
-
-After the work was made general, each run once on a release build: the light set passed 11 of 11 at 4,429 tokens, in 34 steps and 225 s. The four real-request jobs (`defaults.*`) went from 1 of 4 to 3 of 4 over three runs, each failure leading to a general change. The last run of `defaults.home_counter` failed: it built a working counter whose count shows under the button after a press, but put no number on Home. The review has the table.
-
-Checked without the model after those changes: `sevra-agent-checks` (all 62 groups, the stored `workbook-tools.json` and grammar masks regenerated), `--field-order-checks` (new, 50 shapes), `sevra-checks` (660 groups), the UI Catalog fixtures (182) and the harness self-test of all four `defaults.*` jobs.
-
-**Committed on November 24 as its own commit, before the Splash 1.7.1 upgrade; the app installed then also has this work.** On November 24, at the owner's word, the working tree on `480c7c5` was packaged and installed. The installed executable UUID, `93E75F7C-B777-3C74-ABF1-8A454C8C60C5`, matches `output/native`, the CLI is byte-identical, the signature verifies and the prompt header is present at 4,429 tokens, reused without loading the model. The app's own window was not opened after this install. Open:
-
-- **A button's script actions are not undone.** Undo takes back a press's table changes; a script tool's queued actions stay, and the status says so.
-- **The counter request may put no number on Home.** See the review's Not done list for this and the other open points.
-## Sevra names untitled work, November 22
-At the owner's word ([[sources/notes/2026/11/name-untitled-work]]). After a reply, `WorkspaceState.nameWork` asks `ProductAI.nameWork` to name the chat and the workbook when they are still Sevra's to name. `WorkTitles` builds a short prompt (the first request, the last six messages, up to eight file names and the current names) and the native engine answers through a JSON grammar with `chat` and `workbook`, 0 to 60 characters each; empty means the work is not clear yet. It runs only on an engine that is already running, and any request, unload or start stops it first. Measured: 1.7 s after the reply.
-
-Who chose a name: the manifest's `titleSource` is `auto` (a stand-in Sevra picked), `model` (named from the work) or `person`; a manifest without it counts as Sevra's only while it is "Untitled" or "Untitled N". A chat's title is Sevra's while it is "New chat", its first message's title, or the title stored under meta `chat-title:<id>`; the person's rename ends it. Stand-in names are named after any reply; a model name may improve only in the first three replies. The workbook's file takes the name when it next opens (`WorkbookFiles.fileNamedLikeTitle`), with recents and the last chat carried over; recent lists show manifest titles meanwhile. The model ignored the capitalization instruction, so `WorkTitles.clean` capitalizes the first letter.
-
-Checked: core and product checks without a model (who may name, stopping on a request, the three-reply rule, a late stand-in, cleaning, the file move), and the packaged build with the model: a greeting left the names, a supplier question named the chat and workbook live in 1.7 s, reopening from recents moved the file, and a stand-in past three replies was named. The debug timing log records each naming's outcome as `kind: naming`. Not checked: naming a chat that is not the workbook's first, and a workbook started from files.
-
-## Local AI starts with the window, November 22
-At the owner's word ([[sources/notes/2026/11/start-local-ai-with-window]]). The cause he saw: a message sent while the prewarm was still starting waited for the whole start inside `ProductAI.perform`, with the start's progress discarded, the message not yet saved and Stop unable to end the wait, so the chat showed only "Preparing local AI". The new start window made it common, because nothing started the engine before the first message.
-
-Now the app starts the engine at launch and when it becomes active again (`WorkspaceState.prewarmLocalAI`), only when `ProductAI.hasRoom` finds the engine's 12 GB budget plus 6 GB in free, inactive, purgeable and speculative memory; otherwise Send starts it as before. A request waiting on a start receives its progress through `ProgressRelay`, and its own Stop ends the wait while the start goes on. `WorkspaceState.sentMessage` shows the message in its chat at Send, until the saved one appears. A message stopped or refused before its chat saved it stays as not sent, with Retry and Edit, and becomes the chat's draft when the chat changes, the window closes or the app quits. A failure the chat recorded under the message no longer repeats in the bottom bar.
-
-Checked: the synthetic product checks (a waiting request sees the start's progress, Stop ends the wait and leaves the start, the memory rule), catalog captures of the new `chat.activity` "Starting" and "Not sent" states, and the packaged build: the engine started at launch in 5.6 s; a message sent 4 s in showed at once, waited 1.5 s with "Preparing local AI · n of 11 steps" under it and was answered 5.3 s after Send; Stop during the start left it as not sent with no bar; quitting kept it as the chat's draft; Retry sent it; a model-missing failure showed only under the message. Not checked: Edit by click, a start after a reboot's empty disk cache, and the memory refusal on a Mac without room.
-
-## Start window is a ready chat, November 22
-At the owner's word ([[sources/notes/2026/11/start-window-ready-chat]]), the start window is a message field, an Add files button and a drop target. The first message or files make the workbook in `~/Sevra Workbooks` (preference `workbooksFolder`), named after them, with no save panel; a message that started it is sent in the new workbook. The folder is outside Documents so a live database never syncs to iCloud and no permission prompt comes first. The example and an opened portable workbook go to the same folder. The workbook's name in the header is a menu: Rename (file and manifest title together, by closing, moving and reopening), Show in Finder, New, Open and recent workbooks. File has New Workbook (the start window), New Workbook in Folder, Open Recent and Rename Workbook. `WorkbookLibrary` in the core holds the naming and placing. Checked: the core check for names, free places and rename, catalog captures of the start view at three sizes, and the packaged build run from `output/native`: a first message made the workbook and got its reply, Rename moved the file and title and reopened the chat, New Workbook opened a start window beside the workbook, Open Recent listed it, and Try an example made its workbook with no panel. That run found a rename that stayed on Opening because a view kept the old workbook open; views now keep only its name and place. Not checked: Add files through the panel and dropped files. This build is not installed.
-
-## Visible reasoning, November 22
-At the owner's word ([[sources/notes/2026/11/visible-reasoning]]) people see the model's reasoning by default, collapsed under each request ([[records/specs/agent-activity]] AA03a). While it reasons, the activity row shows its latest words on one line; opened, each thought sits before the step it led to, the current one streams, and an answer Sevra sent back shows what the model wrote and Sevra's reply. Thoughts are saved in the run's per-call record (`agent_runs.metrics`, `kind: reasoning`), with no workbook format change, and no prompt, tool, search or summary reads them. Catalog story `chat.activity` has Opened, Thinking and Thinking opened variants.
-
-## Chat timing, November 22
-At the owner's word ([[sources/notes/2026/11/chat-response-time-analysis]]) chat has debug timing, off by default: `defaults write com.sevra.workbooks SevraChatTiming -bool true` for the app or `SEVRA_CHAT_TIMING=1`, then `python3 scripts/chat_timing.py` reads `~/Library/Logs/Sevra/chat-timing.jsonl`. One five-message conversation through the product layer: 96% of reply time was the engine (prefill 28%, hidden reasoning 33%, output 35%), the app around it 1.1%, and the number of model calls per message decided the total (5.1 to 33.5 s for 1 to 6 calls). Each call costs about 1 s before its first token plus 0.38 ms per new token. The interface timers were not exercised, and this build is not installed. Improvements are left for later. Details: [[records/plans/chat-response-time]].
-
-## Chat header trimmed, November 22
-At the owner's word ([[sources/notes/2026/11/header-trim-direction]]), the prepared chat header is 3,809 tokens, from 5,172, and a first prompt about 4,500. A view is shown to the model as one description with a new `read kind=view_guide` behind it, the instructions say each fact once, and the scope paragraphs are gone. The light set passed 11 of 11 in 29 decisions, with `build.saved_tool` and `build.rule` by name. `build.app` and `build.form` were not run. `sevra-agent-checks --header-parts` counts the header's parts without the model. What was cut and kept: [[records/plans/general-chat-tools]], "The build so far". The header changed, so a source build needs the install command again. Earlier sections that give the header as 2,770 or 5,234 tokens are history.
-
-## Plain chats, November 21
-By owner direction ([[records/plans/simple-chats]]), threads, chapters, bookmarks, tangents, shared summaries, the main conversation, the model's thread tools and request handoffs are gone. Each workbook has a plain list of chats; each chat holds only its own messages and keeps per-chat context maintenance. Format 33, with no conversion of older workbooks. Earlier dated sections that mention threads, "main" or handoffs are history. CLI: `chats`, `chat-new`, `chat-rename`, `chat-delete`, `ask --chat`.
-
-## One inference engine, November 19
-By owner direction, the Slotstream/MLX build is removed: its module, package dependency, `scripts/build.sh`, `scripts/check_model.py` and baseline-only check modes. Native Splash is the only engine and `bash scripts/build_native.sh` is the only build. The install, uninstall and install-check scripts no longer take `--native`. Earlier dated sections that mention a preserved baseline app or baseline packaging are history. This removal does not qualify the native engine; its open gates are unchanged.
-
-## General chat tools planning, November 18
-[[records/plans/general-chat-tools]] is built, its prepared prompt header (H1 to H4) and phase 5 included, at the owner's word to build the whole plan: [[sources/notes/2026/11/general-tools-whole-plan]]. Its gate ran once on November 18. On November 19 the owner made them the only chat tools and had the old way removed: [[sources/notes/2026/11/general-tools-only]]. He authorized it on November 18: [[sources/notes/2026/11/general-tools-implementation]]. The same day he chose a fast test loop: [[sources/notes/2026/11/fast-loop-direction]], and answered four questions: [[sources/notes/2026/11/general-tools-answers]].
-
-Where it stands:
-
-- **The model is offered seven tools, and only these in chat:** `search`, `read`, `sql`, `run`, `save`, `ask`, `finish`. Each call is routed to the operation that does its work, so the agent's checks, receipts and confirmations are keyed on operation names. Reviews and Excel conversion keep tool lists of their own. The plan's section "The build so far" says what each tool is, what was measured and what was left out.
-- **Results with the real model:** the light set passes 11 of 11 in under four minutes, last on November 19 with the seven tools as the only chat tools ([the run](../../../integration/evidence/2026-11-19-seven-tools-only-light/results.json)). Over the whole job list, 22 of 24 pass from the command line and the app job passes inside an app bundle, where today's tools pass 12 of 23. After phase 5 the light set passed 11 of 11 again, and `build.rule`, `build.saved_tool`, `build.form` and `build.app` passed by name ([the runs](../../../integration/evidence/2026-11-19-phase5-light/README.md)). The app job is still the least reliable.
-- **Phase 5 is built:** saved tools are definitions of kind `tool` (schema 32) with a per-Mac grant and a Tools screen, apps keep their declared actions, the sample workbook has a saved movement action, rules can alert, and the rule and receiving starters are guides.
-- **The interface look and the update test are done.** On November 20 the look fixed the chat Undo row (it never appeared, and its Undo failed) and three export faults: the model now uses `file.export_table`, code blocks in answers keep their lines, and a cancelled save panel answers that nothing was exported ([evidence](../../../integration/evidence/2026-11-20-interface-look/README.md)). H4's in-app update from QA build 4 to build 5 passed, and the updated copy resumed build 5's header in its first chat ([evidence](../../../integration/evidence/2026-11-20-update-test/README.md)).
-- **There is no tool profile.** `SEVRA_TOOL_PROFILE` and the app's `SevraToolProfile` setting are gone, with the old chat instructions, `compare_rows`, `propose_table` and `propose_table_edit`. A test Mac that still has `SevraToolProfile` saved ignores it. Scripted checks write an operation as the chat call that asks for it with `chatCall` in [AnswerGroundingChecks.swift](../../../IntegrationTests/Agent/AnswerGroundingChecks.swift).
-- **Pushed** at the owner's word on November 20, 2026.
-
-How to test it, and how not to:
-
-- **Keep it light.** The owner stopped an overtested build on November 19: [[sources/notes/2026/11/light-testing-direction]]. `AGENTS.md` has the rule. English only, no reruns, no repeated timings, no run of every job.
-- **No-model checks, on every change:** `python3 scripts/check_chat_sql.py`, `python3 scripts/check_chat_run.py` and `sevra-agent-checks --sql-tool`. The first two need `swift build --product sevra` and `--product sevra-extract`. They take seconds.
-- **The light set, when chat behavior changes:** `python3 scripts/check_chat_jobs.py --output NEW_DIRECTORY`. Eleven jobs, one run each, under four minutes. It uses `output/native/bin/sevra`, so rebuild that first: `swift build --scratch-path .build/native-product -c release --product sevra`, copy it over `output/native/bin/sevra` and sign it ad hoc.
-- **A job for its area:** `--jobs build.app` when app building changes. The app job needs an app bundle, because the app checker is an XPC service that the CLI finds only as the app's main executable; the installed app's `Contents/CLI/sevra` cannot reach it. Copy `output/native/Sevra.app`, delete its `Contents/MacOS/Sevra`, copy `output/native/bin/sevra` in as `Contents/MacOS/sevra-cli` (the disk ignores case, so `sevra` would replace `Sevra`), set `CFBundleExecutable` to `sevra-cli` and the bundle identifier to a test one, sign the copy ad hoc, and point `SEVRA_CLI` at `sevra-cli`.
-- **Every job, once, to compare two models:** `--jobs '*' --long-run-approved`, with the owner's word, once per model. 30 jobs since November 21, 2026; the two rule jobs were removed on November 25, 2026, with threshold automations. `conversation.follow_up` first failed and was fixed the same day; the general chat tools plan has both runs.
-- **Read the transcript of a failed job.** Do not run it again to see if it passes.
-- **Do not edit sources while a release build runs.** A build that started before an edit can package a mix of old and new modules.
-- **One model process at a time.** The harness refuses to start while another engine helper runs or reclaimable memory is short.
-
-What to know before going further:
-
-- **Strict shapes matter to the local model.** With one loose shape per tool it dropped and misplaced fields. `save` and `run` give each kind and each named action its own shape, and the model is shown less than the grammar enforces.
-- **The grammar takes sixteen alternatives and flat top-level inputs.** That is why `save` has one input per kind and `run` has fifteen exact action shapes.
-- **A rule alerts or runs a workflow.** With alert text it binds to the workbook's shared "Stock alert" workflow, saved with the first alert rule, which drafts the alert for review. It can only watch an item whose stock the workbook keeps, because the alert cites that stock's record.
-- **Numbers.** `sql` rounds every number that leaves it to 15 significant digits. The owner chose that.
-- **The header is built into the app.** Packaging makes it with the model and the app only restores it. It is 2,770 tokens since the export instruction of November 20, and an update between builds carries the new one, as the H4 update test showed.
-- **Looked at on screen.** The Tools screen, the "Change saved" row with "Undo this change", code blocks in answers and the export save panel were looked at in the UI Catalog and the installed app on November 20, and the faults found were fixed.
-
-Waiting on the owner: nothing for this plan. The earlier items (the rule job, the enable step for a copied tool, the header decision and the interface look) are settled.
-## Follow-up turns resume the previous turn's cache, November 18
-
-[[records/plans/conversation-follow-up-cache]] makes the saved conversation append-only, one
-entry per line, and leaves the first decision's engine replay state at its end. A follow-up
-now resumes where the previous turn's history ended instead of computing every earlier turn
-again after the header. In a four-turn replay the fourth turn's first call computed 3,725
-tokens instead of 9,146. CPU checks, the full agent suite and the real-model cache trace
-pass. The app interface and a packaged build were not exercised.
-
-## Hardcoded replies removed, November 17
-
-The latest installed native preview uses the ordinary model for introductory chats. UUID `48CD6C44-6D5C-3207-8612-F10751422EC4` matches the verified package. The installed “hey” replay records actual Splash model calls. The [[records/plans/conversation-latency-fix|exact-question investigation]] traces the original 38-second four-call turn and a 29.45-second two-call replay, including cache reuse, tool results, reasoning length and the first provisional answer. The latter uses a fresh synthetic workbook with different prior conversation. Both answers correctly cite the opening and delivery. The [portable trace](../../../integration/evidence/2026-11-17-conversation-decision-trace.json) records the local grammar, routing, catalog, packaging and installation checks.
-
-## Conversation latency fix, November 17
-
-The owner authorized [[records/plans/conversation-latency-fix|implementation and repeat testing]]. Introductory English/Spanish help uses explicit app-owned copy, without loading inference. Unknown/compound requests and summaries of business work retain the full agent. Prompt vocabulary now excludes changing exact-ID enums while grammar and final validation keep their restrictions. Host-added historical citation links are presented as labels plus lookup metadata, with saved originals unchanged. Only provisional finish.answer text streams; retry, completion and Stop clear it. The catalog has a matching Streaming variant.
-
-Three agent replays measured 5.5–7.6 ms per introductory reply; installed UI observed all four complete by its first checks, 0.59–0.66 seconds including automation overhead, versus the original 19/14/23/20-second activity durations. Maintained product help is not model inference. A real-model warm stock follow-up improved from 33.67 seconds/four calls to 14.55 seconds/two calls after the history-format repair. The full installed UI cold stock case still took 38 seconds/four calls and returned the correct cited balance. General model latency remains a limit.
-
-Local repository, native package/install/extraction and scoped visual/functional verification pass, including actual Stop and original-workbook preservation. Installed main UUID `66DE9F08-606F-3EF6-A388-2B4B73EDC5D3` matches the package. The updated preview is open on a disposable conversation replay. [Portable synthetic receipt](../../../integration/evidence/2026-11-17-conversation-latency.json) records timings, rejected iterations and limits. Code commit `1c97ab0b4038fae0b4f6a90568f7482eac56cd1c` is pushed to main and [hosted Checks](https://github.com/carloslfu/sevra-app/actions/runs/44154194013) passed. The receipt update changes documentation only; measured and installed code hashes remain exact. No production-signing, VoiceOver or additional-hardware claim is made.
-
-## Native UI Catalog implementation, November 17
-
-The owner subsequently authorized [[sources/notes/2026/11/native-storybook-implementation|end-to-end implementation]], superseding the documentation-only restriction below. The isolated native catalog is implemented in `Sources/SevraApp/Catalog`, built by `scripts/build_ui_catalog.sh` to `output/ui-catalog/Sevra UI Catalog.app`. Read [[records/operations/native-ui-catalog]] before UI/schema/SDK/chat work and maintain the matching registry/fixture with each change. AGENTS.md now requires this maintenance.
-
-Local acceptance is complete: 176 default fixtures, twelve focused interaction paths, all ten uninterrupted compositions, sixteen additional state captures, the repository gate and ordinary native compilation pass. Native visual/functional review covered the browser, replay/reset, configuration restore/refusal, ActionForm invalid input/save/Undo/Redo, coverage invalidation and graceful Quit. [[records/reviews/native-ui-catalog]] and its portable receipt preserve exact identities, reused evidence and limits. Ordinary native compilation excludes catalog code; the separate catalog package is signed. No active user workbook, installed preview, model files or product schedule registry was changed.
-
-Use the catalog for future UI work; keep its registry/fixtures in the same change as capabilities and exercise the production path plus a nearby refusal. Scripted checks do not qualify actual-model reliability, OS accessibility, other hardware or production distribution. Historical planning-only statements below describe their dated checkpoint and are superseded by the implementation request above.
-
-## Native UI catalog planning, November 17
-
-The [[records/plans/native-storybook]] plan covers the main app, Home/ordinary spaces, programmable mini apps and chat, including component inputs, states, compositions, isolated fixtures and native capture. It is reviewed but not implemented. The owner requested [[sources/notes/2026/11/native-storybook-checkout-update|alignment with the relocated checkout]]. Begin in the current primary app checkout identified by the checkout context below and optional parent instructions; do not restore a former path or create a duplicate clone. All plan paths and proposed catalog outputs resolve from this app repository's root.
-
-The plan remains the one introduced by `eb7b738`, with the source inventory audited at `4414522`. At the relocation follow-up, `2ba6fea` adds documentation only, so the source inventory is unchanged. The current request authorizes documentation maintenance, not catalog implementation or an app launch. Existing implementation/verification receipts retain their original dates and limits.
-
-## Native preview update, November 16
-
-The owner authorized a focused preview upgrade and a practical 32K versus 64K comparison. Splash 1.6.1 is installed in the native preview. The source chooses 64K on Macs with at least 48 GiB of unified memory and 32K below that tier, with a 12 GiB engine budget and automatic context maintenance in both cases. On the 48 GiB M5 Pro, both settings passed the cited inventory task and the 14K-token purchasing audit. The 42K-token audit was refused at 32K and answered all three values correctly at 64K in 32.8 seconds. Observed peak host and helper footprint was 12.0 and 11.9 GiB respectively, with unchanged swap. These were single runs with synthetic inputs. See the [preview comparison receipt](../../../integration/evidence/2026-11-16-splash-native-preview.json) for the measurements and installed build identity. See [[records/operations/inference-context-execution]].
-
-## Earlier inference and context checkpoint, November 16
-
-The owner-authorized [[records/plans/inference-context-upgrade]] implements exact scoped prompt accounting, complete output/tool/recovery reserves, CPU-only preflight, continuity citation fixes and candidate Splash 1.6.1/protocol 13/status 8. Default settings remain 32K context, 12 GiB engine memory, BF16 activations, int8 KV, fp32 state and ANE on. See [[records/operations/inference-context-execution]] and the [portable evidence](../../../integration/evidence/2026-11-16-splash-upgrade.json).
-
-**The upgrade is not adopted.** Historical same-engine repeatability fails in both native and reference workers; calculator authoring and repair fail independent outcomes. Current-prefix parity, autonomous jobs, corrected multi-compaction continuity, an invoice case and an unchanged stock-program replay pass. The stock replay succeeds at 32K with production context maintenance, after correcting a disabled-maintenance harness. Startup-only 64K/128K admission does not establish better task quality or speed. Full performance, useful-context and finalist cohorts remain gated; no automatic growth or larger user profile is enabled.
-
-Full local checks and final native package/install/extraction checks pass. An isolated installed evaluation verifies progress, both Stop controls, calculator recovery, saved reopening and the corrected completion footer. Main UUID `50067097-3466-35AF-B1C3-00D75F9D1BB9` matches the package; its separate identity changes the signature, with unsigned code and resources verified. Original installed preview UUID `A4AF21E2-1B9E-3757-B8F2-091C630658FD`, executable bytes, model selection and all preferences remain unchanged. Exact containing-commit hosted Checks is required at publication and cannot substitute for the failed real-model gates. Do not replace the preserved preview. Earlier accepted checkpoints below retain their original identities and scope.
-
-## Visual plan after inference changes, November 16
-
-[[records/plans/rich-native-visuals]] is now revision 16. [[records/reviews/rich-native-visuals-recent-changes]] covers all three commits/95 changed files since the prior review through clean 33edcd5, then adversarial integration and whole-plan consistency. Reuse implemented NativePreparedRequest and token-bounded receipts; retain original-human messages for submitted answers, metadata through compaction, exact visible evidence, typed waiting/completion status and measured 32K/64K acceptance. The shared visual architecture and stage order remain intact; no rich visual/chat feature is newly implemented.
-
-The current CPU agent harness passes all 53 reported groups. Existing 1.6.1 receipts retain their bounded scope and known failures; earlier 1.4.1 cohorts are not reassigned to this runtime. Documentation now separates the installed preview from the earlier no-install/32K hold. This review does not open/install the app, rerun GPU experiments or alter the engine/context policy. Start P0-chat's common contracts and continue through its observable acceptance gates.
-
-## Rich visual-system planning checkpoint, November 15
-
-The owner-requested [[records/plans/rich-native-visuals]] is researched and reviewed through three revision passes. [[records/research/rich-native-visuals]] maps clean source `89c8ed70d8f5b18824cccf13932b035d0d424857` and primary technology references; [[records/reviews/rich-native-visuals-plan-review]] records concrete findings, revisions and remaining gates. The recommendation is a common typed native visual system for Home and mini apps, beginning with a complete charts/metrics/exceptions workflow, then richer analysis, boards/time views, diagrams and scoped media.
-
-The subsequent owner request adds native inline chat interactions to the same plan, reaching revision 8. [[records/research/inline-chat-interactions]] records the code/primary-source audit; three further review passes cover questions, compact forms, exact action/review controls, captured visual answers and durable input handoff. P0a delivers useful chat controls before chart/diagram dependencies. Historical results stay distinct from current live views, and the existing text and business-operation paths remain authoritative.
-
-The owner then requested a complete implementation-readiness review. [[records/reviews/rich-native-visuals-readiness]] records four whole-plan passes and section-by-section coverage, producing revision 12. It resolves standalone chat/Home ownership, stable state versus result keys, captured historical provenance, exact receipt Undo/Redo, partial action outcomes, direct form dispatch and stage dependencies. Relevant code was rechecked at `886edc8` and the Redo grammar follow-up at `f90529a`. The plan is ready to start P0-chat/P0a, followed by the P0-visual/P1 chart workflow. Diagram selection and performance remain explicit stage gates; no proposed feature is marked implemented.
-
-The follow-up [[records/reviews/rich-native-visuals-final-audit]] rechecks every section against clean `5b05c5f` and advances the plan to revision 13. It adds a concrete agent prompt/scope/grammar/dispatch contract, visual evaluation/capture route, atomic input publication and compaction-safe continuation. It aligns with the inference/context plan and corrects the earlier restriction on reading immutable answers after app revocation. Transient visual state is explicitly window-scoped. P0-chat/P0a remains the first implementable increment; visual-specific contracts begin in P0-visual/P1.
-
-The plan distinguishes package capabilities from versioned presentation-only edits, reuses exact query/transaction authority and requires chat parity, native visual review and independent data acceptance. ELK/Graphviz selection and performance are explicit implementation gates. This checkpoint changes documentation only: no new component, dependency qualification, UI launch or installed-app change is claimed. The existing accepted Excel, Home and chat-operation checkpoints below retain their original scope.
-
-## Image support planning checkpoint, November 16
-
-The owner-requested [[records/reviews/image-support-and-plan-readiness]] audits c066920 and the subsequent 05d3fe8 viewer follow-up. Mini apps now display included image aliases and offer native enlargement; Home can display them inside those embedded apps. Chat remains text/tables/file links, and standalone Home assets remain Open file buttons. No current installed-bundle verification or new UI run is claimed by this audit.
-
-[[records/plans/rich-native-visuals]] is revision 14 after three image-specific passes. It corrects the stale mini-app inventory and adds P1-image: exact image references, inline imported/assistant images, standalone Home images, explicit file/bitmap-paste capture, chat operations and a common bounded media path. Reuse the existing SDK/grants and shared zoom viewer. The increment needs the common chat publication envelope, not complete question/continuation work, charts or diagrams. Six scenarios gate source/pixel correctness, history/portable copy, retries/revocation, native UX and measured decode/cache limits. This checkpoint changes planning only; separate committed image implementation remains intact.
-
-## End-to-end visual-plan audit, November 16
-
-The latest owner request is [[sources/notes/2026/11/rich-visual-end-to-end-review]]. [[records/reviews/rich-native-visuals-end-to-end-audit]] records three passes over the affected code paths and every plan section, advancing [[records/plans/rich-native-visuals]] to revision 15. It resolves source replacement versus presentation authority, exactly-once attachment publication, image discovery/navigation, bounded transcript hydration, media memory admission, independent pixel checks, early-stage contract ownership and image-template export portability. The plan is ready to begin staged implementation; all new feature acceptance remains open.
-
-On source `6d833206dd9b56bf839d0ead2b811124686c57bc`, 28 SDK tests, 20 signed native-app groups and 21 preview/conversation groups pass. The checks use synthetic test hosts/offscreen views; no installed app was controlled or replaced. These results qualify existing foundations only, not the unimplemented cross-surface image/chat system, actual-model cohort or hard media limits. This revision changes documentation only and preserves separate inference/context work. Earlier checkpoint statements retain their original scope; revision 15 owns the current sequence and contracts.
-
-## Current Home checkpoint, November 14
-
-The owner-directed [[records/plans/home-working-overview]] implements a useful default Home with attention, continued work and pinned spaces, plus chat-customizable layouts and live mini-app bindings. Home, the full app and chat share app data, actions and input state. Removing a view preserves the app/data; explicit Reset Home and version history preserve recovery. Native conversation, navigation and access remain stable.
-
-The [Home acceptance evidence](../../../integration/evidence/2026-11-14-home-working-overview.json) qualifies exact code `b1557b6ac6e0ccd0ba8a19dc70dae740f7723fe6`. A fresh pinned local-model walkthrough passed all five requests: embed, chat-operate, move, remove and reset; all saved layouts preserve unrelated sections, and reopen retains Pencils quantity 3. Six read-tool recoveries and 27–94 second request times limit the result. Local regression, complete agent/grammar, native package/install/extraction and native visual checks pass under the plan's explicit rerun boundaries. [Exact-code hosted CI](https://github.com/carloslfu/sevra-app/actions/runs/43666871100) passed. This is finite coverage, not universal model reliability.
-
-Final packaged main UUID is `F41F2AB4-DEBD-3CFA-908A-687E0EC0D602`; the isolated visual-review main UUID is `31276427-F1B6-3868-A290-1E49AC9C2E5F`. Later chat-only repairs reuse unchanged visual evidence. The review app was closed, and the active installed app was not controlled or replaced. Verify the exact bundle before any future opening or installation. Concurrent Excel business changes are preserved and excluded from this frozen candidate. VoiceOver, other hardware and production distribution remain unqualified. Earlier checkpoints below retain their original scope.
-
-## Current chat operation checkpoint, November 14
-
-The owner-directed [[records/plans/chat-primary-operation]] implements chat as the primary operator for workbook and mini-app work. Named actions and existing fields, selections, tables and canvas actions execute through the same signed worker and data broker without a rendered app. Workbook editing, workflow execution, approvals, automations, Excel conversion and explicit-path exports also have conversational operations. Views remain optional clients of shared state. The [[records/specs/chat-primary-operation]] contract records coverage and authority.
-
-The [acceptance evidence](../../../integration/evidence/2026-11-14-chat-primary-operation.json) includes a final actual-model add/edit/missing-input/Undo/reopen walkthrough and all earlier failures. Core, signed native, SDK, agent, grammar, release-package, isolated install and extraction checks pass with the plan's exact rerun boundaries. Prompt budgets remain unchanged. This is finite action coverage, not a universal local-model success guarantee.
-
-Packaged main UUID is 039A908F-28BB-36CA-8E57-32EEE8862C92. The active user app was left untouched under the owner's no-control instruction. The newer package has not replaced the installed frozen Excel build described below; verify the exact bundle before any later opening or installation. No current visual/VoiceOver or production distribution qualification is claimed. The frozen Excel batch evidence remains separate and is preserved.
-
-## Current Excel checkpoint: two fresh complete batches, November 14
-
-The owner-requested [[records/plans/fresh-excel-batches]] is complete on the explicitly selected [[sources/notes/2026/11/frozen-excel-checkpoint]]: `da3c4720e05033b5aaea620ebb01abde28123d9e`. Two consecutive 10/10 batches created twenty new native apps using the local model, with no replayed apps, previous conversations, workflow reference JavaScript or manual source repairs. Each batch passes 89 independent originals (84 visible plus five held-out), 302 UI steps, 79 saved-edit/reopen/Undo cases and ten portable copies. The [receipt](../../../integration/evidence/2026-11-14-fresh-excel-batches.json) and [retained trials/packages](../../../integration/evidence/2026-11-14-fresh-excel-apps/README.md) preserve all failures, model repairs, source provenance and scope.
-
-The diagnostic batch failed Inventory's copied row-selection guard and Lookup quotes' renamed fields. Generic publication coverage now requires successful fixed-cell actions before Table selection, and authoring/review preserve requested labels. The action check accommodates all 24 declared actions within its bounded 32 transactions. All 38 focused groups pass. The frozen full suite passes through desktop compilation; a model-busy interruption at the package test is closed by rerunning that check with inference idle, and the remaining tail checks pass. Exact-code hosted CI, release build, native package/install/extraction, formatting, links and db validation pass. The concurrently edited shared checkout's compile failure is retained and is outside this acceptance.
-
-All ten fresh batch-2 interfaces pass observed native wide/compact layout, edit/recalculate/reset/Undo and access checks. Installed main UUID `F1FBB363-C04F-34D8-BDF0-67794F636F29` matches the frozen package; helpers/workers and SDK resources are verified. Test edits were undone, app grants disabled and task recents removed while preserving all four original recents. The baseline app, real workbooks and models are unchanged; the preview is on Welcome. Newer unbuilt source or chat-operation changes must not be described as verified by this build.
-
-This is bounded repeated-run evidence, not a first-attempt guarantee or a statistical production success rate. Some apps needed several automatic repairs. Original VBA never executes; original macro execution equivalence, exact Excel layout, unavailable dependencies, binary XLS/XLSB, inserted-row formula extension, VoiceOver, external security/hardware/customer qualification and production notarization remain unqualified. Earlier sections are historical.
-
-## Earlier checkpoint: automatic Excel conversion, November 14
-
-The owner-requested [[records/plans/automatic-excel-reliability]] qualifies ten local-model-generated native business apps without manual UI or calculation-source repairs. The accepted candidates come from successive fresh runs. All ten pass a final replay on `8c8d0140bb4198112b8731330b366b0f425113f3` against 89 independently LibreOffice-recalculated originals: 84 comparison cases available during generation and five held-out states never supplied to the model. See the [acceptance receipt](../../../integration/evidence/2026-11-14-automatic-excel-reliability.json) and [retained trials and generated apps](../../../integration/evidence/2026-11-14-automatic-excel-apps/README.md).
-
-Inventory now ships twice from current saved stock, rejects malformed/overdrawn quantities and invalid current stock without writes, preserves failed drafts, recalculates and supports Undo. Loan and Commission reuse native formulas; the model creates the interface rather than reimplementing supported financial arithmetic. A separate 24-scenario PMT corpus checks 48 saved payment/rounding results and is not counted as generated-app coverage. Other repaired failures include recoverable planning read failures, invented selection requirements, stale/contradictory authoring instructions, calculation-draft invalidation, repeated mismatch handling, ambiguous syntax/action diagnostics, incorrect reviewer objections, deterministic date arithmetic and native table spacing/scrolling.
-
-The final replay passes 302 independent UI steps, 79 saved-edit/reopen/Undo cases and ten portable copies. Final focused checks pass 37 authoring/conversion groups; core PMT and CLI import/edit checks pass. Earlier full local suites and subsequent regressions are retained with their exact versions. [Hosted Checks](https://github.com/carloslfu/sevra-app/actions/runs/43634947457) passes the exact final code, including full core/agent/grammar and baseline/native packaging checks. Final local package/resource, installation and extraction checks also pass.
-
-Installed native UI was inspected for Inventory, Loan, Commission, Invoices, Due dates and unchanged Reference codes, including actual input edits, errors, Undo, original-header guards, row alignment and constrained-window scrolling. Candidate origins and the exact build used for each observation are recorded separately; unchanged UI evidence is reused. The final installed main UUID is `B713C26D-4750-32D3-BCE5-5FE5EC7BE608`, matching the current package; helper/workers and SDK resources are verified. The preview is left on Welcome. All task app grants are disabled, task recent entries removed, current unrelated recents/preferences preserved, and synthetic workbooks retained as ignored evidence. Earlier recent-limit eviction is documented; no unrelated workbook, model file or preserved baseline app was modified.
-
-This is finite coverage across successive runs, not a single ten-of-ten cohort, a first-attempt success rate or universal Excel equivalence. Fresh generation can still fail or take minutes; failed attempts, superseded narrower passes and harness corrections remain recorded. Original VBA never executes; Inventory original action-execution equivalence remains unverified despite independent shipment checks. Exact Excel rendering, missing dependencies, external services, row-insertion formula extension, production notarization, external security/customer testing, VoiceOver and additional hardware remain unqualified. Earlier sections below are historical.
-
-## Earlier publication verification, November 14
-
-The implementation was committed and pushed as `34f1f00`. [Hosted Checks run 43539274889](https://github.com/carloslfu/sevra-app/actions/runs/43539274889) passed on exact commit `34f1f006ef02e883411ded6aaff33067d97c1296`, including the baseline and native packaged products. All recorded code hashes match that tested revision. This publication receipt changes only documentation/evidence; its db.md and link checks are separate from the unchanged code's full CI result. Autonomous model-generation reliability remains open.
-
-## Earlier checkpoint: reconstruction and adversarial review, November 14
-
-The Excel reconstruction engine is implemented with inert original/VBA evidence, bounded pure behavior programs, scoped native actions and host-owned original-result comparisons. The multi-pass review repaired calculation/write-scope, row identity, atomic transactions, native remount/event state, canvas actions, corrupt metadata, reviewer context and interface defects. See [[records/reviews/excel-reconstruction-and-engine-review]] and the [acceptance receipt](../../../integration/evidence/2026-11-14-excel-engine-review.json).
-
-The integrated full suite passes: 653 core checks, 17 native groups and six SDK tests. Final focused authoring checks pass all 36 groups across ten business cases and 43 independently recalculated originals. Explicitly reviewed Inventory, Loan and Lookup derivatives pass 42 independent UI steps plus 15 original comparisons. Installed native permission/edit/validation/Undo/reopen/example flows and wide/821-point compact layouts were inspected. Final main UUID is `CA63042B-C1BD-3DD5-8D37-684046FD3AB1`; package/install/extraction checks pass. All task grants are disabled, five task recent entries are removed, and the installed preview is closed. Scratch evidence stays under ignored build folders. The baseline app, real workbooks and model files are preserved.
-
-**Autonomous authoring reliability remains open.** Stronger checks exposed wrong zero-interest logic, missing numeric validation and copied lookup constants in earlier model outputs. Latest fresh Inventory and Loan builds both stopped after repeated mistakes. Manually repaired samples are labeled separately; their success is not fresh-model acceptance. This is a bounded source preview, not a universally correct Excel replacement, a security certification or a production-notarized release. VoiceOver, external customers and additional hardware remain unqualified. Commit checks on GitHub qualify the containing pushed revision separately from local evidence.
-
-## Earlier checkpoint: single Excel import, November 13
-
-The owner-approved [[records/plans/single-excel-import]] is implemented as one native Add files/start/drop/saved-Excel flow. A local model infers a reviewable workflow, then builds a checked native app over the same imported tables and supported formulas. Table-only use requires no model; existing-table updates remain a secondary reviewed action. Stable conversions preserve originals and avoid duplicated data on retry. Host-owned capabilities, sandbox checks, separate model review and exact-version device access remain enforced.
-
-The [[records/reviews/single-excel-import]] and [acceptance receipt](../../../integration/evidence/2026-11-13-single-excel-import.json) qualify the result. The full integrated suite passed, followed by 17 native and 21 authoring/conversion groups for final repairs. Eight deterministic business workflows and two edge groups pass; actual-model Inventory, Invoices and Timesheets pass independent 14-step repeated-edit/header checks. A fresh installed UI build also completed in 1m 2s and passed real edits, formula recalculation, Undo, search, header protection, validation, reopen, table-only fallback and normal/narrow layout inspection. Fourteen review findings were repaired, including offscreen keyboard focus. Earlier failed trials are retained.
-
-Installed main UUID `B5E2EA5A-48DA-35F1-BB95-685E69B130D0` matches the current packaged build. Both workers use UUID `BF55355D-6CE6-3FB2-9FD7-9CD0F1A39DAD` and match exact signed bytes. Package/install/extraction checks pass. The owned UI app was disabled; 20 test workbooks and two task-owned recents were removed after retaining evidence. No native grants remain. The app is left on Welcome; unrelated workbooks/preferences, model files and preserved baseline are unchanged. No VoiceOver or system settings were changed.
-
-This qualifies a bounded source preview, not all Excel applications. Unsupported formulas keep declared saved results; VBA, external refresh, original layout/protection and automatic formula extension to new rows are not implemented. Generation can still fail or misunderstand business rules. The earlier generic calculator failure below is not retroactively qualified by the narrower Excel authoring successes. No external security certification, additional hardware or production notarization is claimed.
-
-## Earlier checkpoint: fresh mini-app baseline, November 13
-
-The owner-approved [[sources/notes/2026/11/mini-app-fresh-start]] is implemented for the selected development artifacts: obsolete mini-app workbooks/packages, 20 approvals and their recent entries are retired, with unrelated workbooks, model files, canonical examples and historical evidence preserved. Test runners now dispose of temporary host bundles; native tests return before process exit so their workbook cleanup runs, and test preference domains clear. No migration or compatibility path was added. Normal initial review and per-version approval remain required.
-
-The [[records/reviews/native-app-fresh-start-2026-11-13]] and [receipt](../../../integration/evidence/2026-11-13-native-app-fresh-start.json) separate the outcomes. All 17 native and 11 authoring groups pass. A fresh canonical Inventory app passed native import, initial access review/enable, validation, save/reactive row count, Undo and normal/narrow spacing inspection. Its workbook, grant and recent entry were then removed; the installed app is on Welcome. Installed main UUID `C1206D73-F023-3CB9-8A3B-C052F9A93B38` matches the packaged product; runtime source is unchanged.
-
-**Open authoring reliability issue:** a new local-model calculator request exhausted its steps on repeated syntax/test errors; a guided follow-up selected the wrong fixed-layout tool and stopped. Neither saved an app; integrity and permissions held. This occurred in a fresh workbook, so failures are not limited to long prior conversations. The imported example's success does not qualify this model request. No broad generation-reliability claim is warranted.
-
-## Earlier checkpoint: native-app adversarial review completed, November 13
-
-The owner-requested [[records/reviews/native-app-adversarial-review-2026-11-13]] is complete for the native engine and local-model authoring scope. Six findings are repaired: two P1 permission issues (schema read expansion and stale live-session grants), plus four P2 native-state/presentation issues (initial table state, tab state/titles, disabled interactions and disclosure labels/state). Reproducing failures were retained; no known finding from this bounded review is left open. The old approvals belonged to disposable development fixtures. The later [[sources/notes/2026/11/mini-app-fresh-start]] retires that test state instead of defining a user upgrade task.
-
-The [review receipt](../../../integration/evidence/2026-11-13-native-app-adversarial-review.json) records source and log hashes, actual failures, repairs and limits. `scripts/check.sh` completed successfully, including 650 core checks, native groups and full agent/grammar checks. Final presentation-only changes passed all 17 native groups, strict Swift lint, a fresh native release build and package/resource/signature checks. Installer/extraction checks also pass, with unchanged evidence reused for the last header-only change. The 11 authoring groups pass. No new actual-model inference is claimed; the seven actual-model cases and retained generation failures below remain relevant.
-
-Installed main UUID **`C1206D73-F023-3CB9-8A3B-C052F9A93B38`** matches the current packaged candidate. Both worker UUIDs are **`CB5298EB-B04D-3387-99B0-A220BF0DCF35`** and their exact signed bytes match their packaged products. The installed UI passed approval, disable/re-enable, saved-data preservation, initial/reverse sort and selection, tabs/titles, disabled and re-enabled actions, disclosures, centered rows and a narrowed scrollable layout. The disposable review workbook is left open with the working disclosure expanded. No real workbook, preserved baseline app, VoiceOver or system setting was changed.
-
-The baseline `9c59650d56260c75c4662a87ccd8c6224462208f` passed [hosted CI](https://github.com/carloslfu/sevra-app/actions/runs/43368224770). That run does not qualify these newer fixes; new hosted CI is not claimed here. This remains an internally reviewed source preview, not a production-notarized or independently security-certified release. Generated apps still need human testing. No further implementation is implied by the historical sections below.
-
-## Earlier checkpoint: local-model native authoring accepted, November 12
-
-The owner-requested [[records/plans/local-model-native-apps]] is implemented and verified as a source preview. Ordinary local chat can create and edit native mini apps using the shipped SDK. Generated source runs in a separate sandbox check process, receives a separate local-model review, and saves only after both pass. Each source version remains disabled until the person reviews actual table access and enables it. Apps run independently of the inference model once enabled.
-
-Seven actual-model scenarios plus an inventory edit have independent checks. Installed UI exercised chat creation, edits preserving data, per-version enable, validation, exact decimals, search, live counts, Undo, narrow layout and canvas drag/keyboard/reopen. A final fresh-thread calculator generation repaired refused attempts and passed actual 0, 7.2 and invalid-input checks. The long-conversation retry still repeated syntax errors and stopped safely; successful examples do not establish universal generation reliability. [[records/reviews/local-model-native-apps]] preserves findings, repairs and remaining limits.
-
-The [final acceptance receipt](../../../integration/evidence/2026-11-12-local-model-native-app-final.json) records source hashes and installed identities. Main UUID `6F410451-9213-3901-AE05-925898D789BA` matches the packaged candidate; both isolated worker identities use UUID `1AFBF675-2DF8-3840-B235-BDE64AF75671` and match their exact packaged bytes. Native resource/signature, installation and extraction checks pass. The broad functional suite passed through desktop compilation; a model-busy packaging interruption was closed by rerunning that tail with inference idle. Final local fixes passed all 10 authoring groups and the full agent/grammar suite. Hosted CI for this source is not yet claimed.
-
-The synthetic workbook is left open on Price check with invalid-input feedback visible. Existing workbooks and the old baseline app were not modified. No VoiceOver or system settings were used. External user testing, security assessment, additional hardware and production signing/notarization remain open. The accepted native-engine checkpoint below is historical and does not supersede this authoring evidence.
-
-## Earlier checkpoint: native app engine accepted, November 12
-
-The owner-authorized [[records/plans/programmable-native-engine]] is complete through
-P7 for the bounded SDK 1. The contract and manual walkthrough are in
-[[records/specs/programmable-native-engine]]. Native programmable spaces, shared-data
-transactions, reactive controls, permission/recovery flows and three example apps
-are implemented and accepted for their scope.
-
-The engine passes 14 production-path native groups and 5 SDK tests. The broad local
-suite passed after repairing its table gate. [Hosted Checks](https://github.com/carloslfu/sevra-app/actions/runs/43320623027)
-passed all 40 steps for `628bd36780bdd45f82cb22f1053a3f7d9d3e0395`, including both
-packaging paths. The later localized permission-label correction at
-`2fb90822a20ac83bda852177db90414586520722` has focused native/package tests and actual
-installed UI verification; the older CI run is not claimed to cover newer source.
-The [initial acceptance](../../../integration/evidence/2026-11-12-native-app-engine.json.gz),
-[hosted receipt](../../../integration/evidence/2026-11-12-native-app-ci.json.gz),
-[focused correction](../../../integration/evidence/2026-11-12-native-app-access-review.json.gz)
-and [final installed receipt](../../../integration/evidence/2026-11-12-native-app-final-ui.json.gz)
-preserve exact evidence, failures, repairs and limits.
-
-The unlock blocker is closed. The installed main UUID is
-`15F450B0-8377-3D40-9211-F041DCE10EF0`, helper `86B9EB3E-68F7-3121-9426-DBF974EC92F4`.
-Both match the latest packaged product. The permission dialog displayed the actual
-Stock table despite a misleading package title. The standard inventory package was
-restored as version 6, required a fresh Enable action and rendered the saved quantity
-32 with the reviewed spacing. The synthetic workshop is left open on Inventory.
-No real workbook or preserved baseline app was changed. No required work remains
-for this engine increment; broader production, hardware and accessibility
-qualification remains as documented below. No VoiceOver or system setting was used.
-
-## Earlier accessibility checkpoint: paused November 12
-
-The owner's earlier instruction, [[sources/notes/2026/11/accessibility-headless-tests-and-pause]], authorized headless testing of all ten accessibility fixes, correction of failures, handoff, commit and push, then pause. **A1–A10 are implemented; 22 headless behavior groups and 10 supplemental static adapter groups pass. Actual UI and assistive-technology behavior remains untested.** No app was opened or installed, no UI or accessibility tree was touched, and VoiceOver, clipboard and system preferences were not used. This narrow check is complete; do not restart work from historical instructions or treat a general resume as permission for UI testing.
-
-The checks execute the same production navigation, presentation, announcement/focus eligibility, reading-size and PDF-search decisions used by the app. Real synthetic workbook checks cover extracted text, description persistence/reopen, stale writes, exact source identities, paste/recalculate/Undo, validation errors and chart values. They run under a sandbox denying UI services, AppleEvents, network and other executable launches, with writes restricted to synthetic fixtures and Foundation atomic-write temporaries. The [headless receipt](../../../integration/evidence/2026-11-12-accessibility-headless-checks.json.gz) records source hashes, results, failures and corrections. [[records/reviews/accessibility-static-review-2026-11-12]] maps all ten findings to coverage and its limits.
-
-The pass fixed discovery metadata appearing as extracted text before extraction or after a failed/unsupported result, preserved text after embedded NUL characters with a bounded Unicode read, and reset PDF-search state when the document changes. The native release `SevraDesktop` product compiles without launch. Strict lint passes for 19 changed/new Swift files. Standard CI is skipped because it runs native UI/accessibility checks outside the owner's authorization; this is scoped local headless evidence.
-
-The earlier code-only checkpoint is `3cdaf775d01d57d0d5dd463537ca94272b991dff`; its [code-fix receipt](../../../integration/evidence/2026-11-12-accessibility-code-fixes.json.gz) remains unchanged. Increments 1 through 9 retain their earlier bounded acceptance. The earlier exercised product commit was `831b7f3b1181b0fa8218f5d77e08cd992fd17246`; its hosted test results do not qualify newer code. Work stays on main. This remains MVP 0.1 source test preview, not a notarized production release.
-
-## What finished today
-
-- **The remaining automation observation passed.** With the exact enabled definition open and Sevra in front, the 8:49 AM Bogotá run completed with result 6, the upcoming list advanced, and Open saved run opened that newly created run.
-- **The nearby counterexample passed.** At 8:52 AM, the next run completed with result 6 and its link opened the new run. An unsaved checked Allow local AI option stayed checked through the refresh while the persisted grant remained `allowAI: false`. A display change did not silently grant authority.
-- Both occurrences have exact saved run and activation receipts in [[records/operations/implementation]]. The previous screen-lock blocker is closed. The prior code commit's [hosted Checks run](https://github.com/carloslfu/sevra-app/actions/runs/43147307918) finished successfully, including all 39 reported steps. Prior local suite, installed model and packaging evidence is retained without rerunning those broader checks.
-- The owner stopped the incomplete VoiceOver attempt. VoiceOver was restored off and the unsent synthetic composer marker was cleared in the earlier session. The attempt establishes no accessibility qualification. The subsequent records/review pass used no computer UI or system-setting changes.
-- [[records/reviews/accessibility-static-review-2026-11-12]] now records ten ranked static findings, including table focus/paste, form context, query/snapshot table semantics, extracted-text access, chart values and status discovery. The later code pass implements all ten; this follow-up adds headless logic/storage checks without OS-level qualification. [[records/plans/known-limit-closure-2026-11-12]] gives concrete ways to close them and the broader product limits.
-
-## Already fixed and verified
-
-The November 11 code commit fixed exact historical automation lookup, pasted originals left unindexed after Done, and stale Open saved run targets. The first two had installed-window proof and counterexamples on November 11; today's runs finish the third. File shortcuts, Transcribe from File actions with Stop/retry, trigger-description behavior and paste/table conversion were exercised. The local model ran successfully, so the earlier memory shortage is no longer a blocker on the tested Mac. Earlier window fixes prevent the closed-workbook reopen crash and duplicate blank windows.
-
-The detailed register preserves failures and dated evidence: [[records/operations/implementation]]. Do not restart accepted increments solely because an older section says a check was pending.
-
-## Remaining work and limits
-
-1. All ten accessibility fixes have passing headless coverage. The owner still needs to evaluate actual keyboard and assistive-technology focus, spoken output, native source actions, enlarged layout/contrast and PDFKit behavior. These UI/OS tests remain skipped, not passed; the review preserves a manual follow-up list.
-2. Broad AI requests can still miss evidence; Excel supports a declared subset; automations intentionally run only while Sevra is active. The closure plan proposes a per-question evidence checklist, bounded formula expansion and a separately opted-in background policy. These broader proposals were not implemented by the accessibility work.
-3. An uncoached external user, production signing/notarization and additional hardware qualification remain. Prior code-signing inspection found zero valid identities. Transcript accuracy and large-workbook storage costs also retain their stated limits.
-
-These are precise unfinished items, not a production-readiness claim. The earlier accessibility pause remains historical; the later native-engine task
-explicitly authorized its own implementation and UI verification. It does not
-expand into the broader closure plan or VoiceOver/system-setting qualification.
-
-## Paused state and retained fixtures
-
-The due-test activation was paused through the CLI at `2026-11-12T13:52:29Z`, generation 7, with local AI off. The other historical test activation was already paused at generation 2. Neither the review, code fixes nor headless checks re-enabled either. At the earlier pause, the app was left open and idle; this handoff does not claim the app quit or every window was closed. No test/model worker was left running by the earlier stopped session, and this follow-up ran only compiler, headless, static and records tools, all completed before delivery. It did not operate the app or inspect its live UI state. Its fresh `.build/accessibility-headless/` workbook fixtures were cleaned up; the harness now completes cleanup before returning a failure exit too; retained acceptance fixtures were not used.
-
-Disposable fixtures remain under `.build/acceptance-2026-11-11/`, including `Window-checks.sevra` and the two `nov12-*-workflow.json` receipts. The [portable result receipt](../../../integration/evidence/2026-11-12-final-automation-observation.json.gz) preserves the synthetic proof without depending on the local fixture surviving. No real workbook was modified. The new runner is reproducible with the commands in the implementation record; it is not scheduled or left running. Do not operate retained fixtures while paused.
-
-If later work needs the CLI, use `output/native/bin/sevra` or the installed `~/.local/bin/sevra`; a bare `sevra` can resolve an unrelated retired CLI. Recreate selected disposable fixtures with `create` and `demo` when needed, with no pre-1.0 migrations. The model, engine, Slotstream and website repositories are unchanged.
-## Native engine implementation, November 12
-
-The owner explicitly requests complete native programmable app-engine implementation and verification, and explicitly permits installation and UI testing for this task: [[sources/notes/2026/11/programmable-native-engine]]. The earlier no-launch/UI restriction is superseded for this work; VoiceOver and system-setting changes remain outside it. The bounded implementation is accepted on main under [[records/plans/programmable-native-engine]]. The architecture and SDK contract are [[records/specs/programmable-native-engine]]. Existing accepted features and historical test receipts remain unchanged.
-## Earlier local model authoring checkpoint
-
-The owner now explicitly requests [[records/plans/local-model-native-apps]], continuing the accepted engine's installation/UI authorization. Local SDK discovery, source inspection and sandbox-checked save/update are implemented and have focused production-path tests. Real local-model use cases, adversarial review, installed visual verification and release checks remain in progress. [[records/reviews/local-model-native-apps]] records observed failures and repairs. The accepted SDK 1 checkpoint below remains historical evidence, not completion of this new authoring task.
-
-## Inference and context upgrade plan, November 15
-The owner requested a thorough implementation plan for context-accounting fixes, Splash and related integration upgrades, and context/memory qualification. [[records/plans/inference-context-upgrade]] is revision 4 after three sequential readiness passes; [[records/reviews/inference-context-plan-readiness]] records findings and revisions, and [[records/research/inference-context-upgrade]] records source/evidence limits.
-
-Planning only. No engine/model/configuration change, candidate GPU benchmark, installation or UI work occurred in this checkpoint. The native preview remains at its existing 32K/12 GiB configuration and Splash 1.4.1 pin. Candidate 1.6.1 provenance is recorded from source/release metadata; archive/component verification and qualification remain implementation steps. The next implementation sequence is P0/P1 accounting and preparation, P2/P3 same-configuration engine integration and qualification, then P4/P5 controlled context/memory selection, followed by UX and release gates. No automatic mid-job capacity-growth ladder is planned for the first implementation.
-
-The current W1 exact-parity blocker and D9 repeatability evidence remain open; passing historical timings do not qualify promotion. Candidate context research may proceed only after behavioral/lifecycle/admission prerequisites, with promotion gated separately. This planning checkpoint does not alter other workstreams' status or restart cross-chat coordination.
-
-## Complete inference plan re-review, November 15
-The owner's complete re-review is finished. [[records/plans/inference-context-upgrade]] is revision 5, ready for staged implementation. [[records/reviews/inference-context-plan-full-review]] records 18 resolved gaps/ambiguities and coverage of every plan section. The earlier three-pass review remains historical evidence.
-
-The revision makes direct-inference admission, actual output modes, phase/result reserves, CPU preparation, one-helper memory admission, cancellation versus successful protocol Stop, runtime provenance and saved attempts concrete. It preserves original and corrected-old-engine workers for comparisons, keeps the 32K/12 GiB control, separates screening from formal task variants, guards against accumulated regressions and requires qualification of the final selected profile.
-
-The candidate 1.6.1 archive and its five intended native/license members are now hash-verified; no candidate executable or Metal library was loaded, run or installed. The current product remains Splash 1.4.1 with unchanged 32K/12 GiB settings. Existing CPU performance-harness rejection checks passed. Runtime, strict parity, context/memory, installed UX and release gates remain implementation work. No cross-chat coordination was resumed.
-
-Start implementation with P0/P1 when directed. The target is the native source preview; production signing and other hardware qualification remain separate. The preserved strict W1/D9 issue has a bounded diagnosis path and is not cleared by this planning review.
+Where the app stands, for the next agent. This page holds the current state only. Replace a section when it changes instead of adding a dated one; the details of a change belong in its plan or review. The log of earlier checkpoints, October 30 to November 25, 2026, is in [[records/operations/agent-handoff-history]].
 
 ## Checkout context
-The [[sources/notes/2026/11/durable-agent-checkout-context|owner requires durable checkout context]] in agent instructions and handoff notes. Start by confirming
-the repository root and current Git status. This app retains its own Git history,
-remote and public knowledge store even when nested inside another workspace.
 
-If a parent `../AGENTS.md` exists, read its machine-specific checkout and recovery
-notes before changing local layout, deleting caches or assuming another checkout
-is redundant. Standalone clones do not require a parent workspace or private
-repository. Do not copy local paths, private manifests or machine preferences into
-tracked public files.
+The [[sources/notes/2026/11/durable-agent-checkout-context|owner requires durable checkout context]] in agent instructions and handoff notes. Start by confirming the repository root and current Git status. This app retains its own Git history, remote and public knowledge store even when nested inside another workspace.
 
-Preserve unpublished branches, reflogs, linked worktrees, ignored workbooks,
-models and build evidence when relocating a checkout. A clean primary tree and
-synced main branch do not prove that all local state is published. A relocation
-also does not rebuild or install the app; verify the actual installed executable
-against the intended packaged build before claiming it is current.
+If a parent `../AGENTS.md` exists, read its machine-specific checkout and recovery notes before changing local layout, deleting caches or assuming another checkout is redundant. Standalone clones do not require a parent workspace or private repository. Do not copy local paths, private manifests or machine preferences into tracked public files.
 
-This is an instruction and documentation change only. It does not advance app
-feature work or add build, installation or UI qualification.
+Preserve unpublished branches, reflogs, linked worktrees, ignored workbooks, models and build evidence when relocating a checkout. A clean primary tree and synced main branch do not prove that all local state is published. A relocation also does not rebuild or install the app; verify the actual installed executable against the intended packaged build before claiming it is current.
 
-## Native prompt and KV reuse, November 17
-The latest native prompt layout, KV checkpoint behavior, bounded idle lifetime and repeatable five-turn qualification live in [[records/plans/conversation-latency-fix]]. The retained per-call evidence distinguishes cold setup, cache priming, resumed tokens, prefill, decoding and first visible text. Native workbook answers continue to use the model and verified tools.
+Another agent may be working in the same checkout. Commit only the files your change touched, and leave other uncommitted work alone.
 
-## First request latency, November 21
-Opening a workbook now starts the local engine before Send, every chat scope shares one prepared header of 5,234 tokens with the scope instructions inside it, and the grammar lets `read` name only messages and items the context shows. A "hi" in a new thread went from 14 s to 3.7 s after Send. Work, causes, measurements and what is left: [[records/plans/first-request-latency]]. The header changed, so a source build needs the install command again.
+## What Sevra is
 
+A spreadsheet you run by talking to it, with a local model: chat is the input, the workbook keeps the database in typed tables with history and Undo, and spaces (Home and saved views) are the output ([[sources/notes/2026/11/chat-and-spaces-product]]). It is a free source preview for Apple silicon Macs, not a signed or notarized release.
 
-## Chat-spreadsheet cleanup, November 25, 2026
+## What is built, as of November 26, 2026
 
-Stock movements, balances, receiving, stock threshold automations and the supplier-quote guard were removed, and saved-tool actions (`tools.run`) and check-triggered automations (`check-drafts-v1`) were added, in commits `c80143d`, `08d56be` and `f2cae08` (workbook formats 34 to 36). The chat tools lost `stock.move`, `stock.balance`, `template.receiving`, `template.rule`, `rule_guide` and `receiving_guide`; `action.preview` and `action.prepare` now run saved tools. No-model checks pass; the light model run was not done because the installed app held the model. Details, verification and limits: [[records/reviews/chat-spreadsheet-cleanup-2026-11-25]].
+- **Chat works through seven general tools**, `search`, `read`, `sql`, `run`, `save`, `ask` and `finish`, and nothing else ([[records/plans/general-chat-tools]], "The build so far"). SQL changes tables at once through the recorded write path, with Undo. Scripts run in a sandbox that reaches only the workbook. The prompt header is made at build time and restored when the engine starts.
+- **Open choices get defaults.** When a request leaves a name, layout or place open, the model picks one and says so. A request stops when it makes no progress instead of at a step limit.
+- **Plain chats.** Each workbook has a list of chats with only their own messages; threads and the main conversation are gone ([[records/plans/simple-chats]]).
+- **Saved tools.** A workbook carries its own SQL or script tools, granted per Mac. Tools run by name in chat, from a view's button, as `tools.run` actions in workflows and from automations that follow a saved check.
+- **Remove and restore** work for every saved kind, in chat with a confirmation and in the app with a Removed list.
+- **Chat questions are answered in the composer**, with one-tap buttons for choices, and every box that writes to Sevra has the microphone.
+- **The stock ledger is gone.** Stock movements, balances, receiving, stock threshold automations and the supplier-quote guard were removed on November 25 ([[records/reviews/chat-spreadsheet-cleanup-2026-11-25]]). Inventory is ordinary tables and saved tools.
+- **The engine** is Splash 1.7.3. Its memory is sized from free memory at each start, between 8 and 20 GiB, and it restarts smaller under memory pressure ([[records/plans/engine-memory-by-free-memory]]).
+- **The command line** runs the tools through `sevra tool`, and the shipped skill teaches that ([[sources/notes/2026/11/cli-skill-seven-tools]]). `scripts/install_skill.sh codex|claude` installs or updates it.
+- Earlier work still in place: Excel import and reconstruction, programmable mini apps, rich visuals and the Native UI Catalog. Their plans are in `db/records/plans/`.
+
+## Open decisions for the owner
+
+- Whether submitting a form from chat keeps its confirmation now that SQL writes directly. The plan keeps it.
+- Whether to remove the lower-level CLI commands that the tools now cover. They are listed under `sevra help all`, and tests and scripts use them.
+
+## Known limits
+
+- A release claims only the chips its header tests passed on, so far an Apple M5 Pro.
+- The app job is the least reliable model job and is not in the light set.
+- UI and VoiceOver accessibility are not qualified. The workbook menu's Remove view, Remove table and Removed items were not checked live in the installed app.
+
+## How to work here
+
+- Build, run and the check commands: [[records/operations/build-and-run]]. Installing a build: `bash scripts/install.sh` ([[records/plans/macos-installer-and-updates]]).
+- Test lightly, as `AGENTS.md` says: no-model checks for the change, then the light set `python3 scripts/check_chat_jobs.py --output DIR` when chat behavior changed. `scripts/check.sh` runs once on a candidate before a release.
+- Interface changes also update the [[records/operations/native-ui-catalog]].

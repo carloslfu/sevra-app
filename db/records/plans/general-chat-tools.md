@@ -832,8 +832,7 @@ Each specification is updated in the phase that makes its new rule true: managed
 - **The header is built** at the owner's word of November 19, 2026, with P6 to P9 as written. It adds 88 MB to the DMG. A release names only the chips where its header tests passed, so far an Apple M5 Pro.
 - **The app job** passes, but it is the least reliable job and is not in the light set.
 - Decide whether submitting a form from chat keeps its confirmation now that SQL writes directly. The plan keeps it.
-- Confirm that the stock tables are listed only when the ledger holds a basis, or have them listed always.
-- Decide whether a separate plan should turn the inventory ledger into ordinary tables.
+- Settled November 25, 2026: the two stock-ledger questions (when to list the ledger's tables, and whether to turn the ledger into ordinary tables) ended when the ledger was removed. Inventory is ordinary tables and saved tools: [[records/reviews/chat-spreadsheet-cleanup-2026-11-25]].
 
 ## Review passes
 

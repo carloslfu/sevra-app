@@ -79,6 +79,9 @@ with tempfile.TemporaryDirectory(prefix="sevra-install-check-") as path:
     installed=subprocess.run([str(root/"scripts/install_skill.sh"),"codex"],env=skill_env,capture_output=True,text=True)
     assert installed.returncode==0,installed.stderr
     skill=(folder/"skills/sevra/SKILL.md").read_bytes()
+    again=subprocess.run([str(root/"scripts/install_skill.sh"),"claude"],env=skill_env,capture_output=True,text=True)
+    assert again.returncode==0 and "up to date" in again.stdout and (folder/"skills/sevra/SKILL.md").read_bytes()==skill
+    (folder/"skills/sevra/SKILL.md").write_text("---\nname: other\n---\n")
     conflict=subprocess.run([str(root/"scripts/install_skill.sh"),"claude"],env=skill_env,capture_output=True,text=True)
-    assert conflict.returncode!=0 and (folder/"skills/sevra/SKILL.md").read_bytes()==skill
+    assert conflict.returncode!=0 and (folder/"skills/sevra/SKILL.md").read_text()=="---\nname: other\n---\n"
     print(json.dumps({"appWorkerSandbox":True,"earlierNameReplaced":True,"skillInstallAndConflict":True,"installed":True,"updated":True,"standaloneCLI":True,"uninstalled":True,"workbookPreserved":True,"unrelatedCLIProtected":True}))

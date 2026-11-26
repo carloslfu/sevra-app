@@ -6,120 +6,85 @@ to it, with a local model. Chat is the input, the workbook keeps the database
 views with tables, charts, totals, buttons, forms and small native apps, built
 and changed through chat. Supplier quotes, Excel import, mini apps and inventory
 are uses of that loop. See the [owner's statement](db/sources/notes/2026/11/chat-and-spaces-product.md).
-The dated authorizations below record how the work got here. Read db/DB.md and
-[Start here](db/records/overview/start-here.md) before changing the project.
 
-Before work, read the [checkout context](db/records/operations/agent-handoff.md#checkout-context)
-in the handoff. If this repository is nested in a local workspace and
-`../AGENTS.md` exists, read it and its checkout/recovery notes. That context is
-optional for standalone clones; this public repository remains self-contained.
-Keep machine-specific paths and private recovery evidence out of tracked app files.
+## Start here
+
+1. Read the [agent handoff](db/records/operations/agent-handoff.md): where the app
+   stands, its [checkout context](db/records/operations/agent-handoff.md#checkout-context),
+   open owner decisions and how to work here.
+2. Read db/DB.md and [Start here](db/records/overview/start-here.md) before
+   changing the project, and the owning plan in `db/records/plans/` before changing
+   its area. Chat tools: read "The build so far" in the
+   [general chat tools plan](db/records/plans/general-chat-tools.md).
+3. If this repository is nested in a local workspace and `../AGENTS.md` exists,
+   read it and its checkout/recovery notes. Standalone clones do not need it; this
+   public repository stays self-contained. Keep machine-specific paths and private
+   recovery evidence out of tracked app files.
+
+Another agent may be working in the same checkout. Commit only the files your
+change touched and preserve unrelated changes.
+
+## What the owner has authorized
+
+- **Build, package, install and test the interface on this Mac.** This started with
+  the [native-engine approval](db/sources/notes/2026/11/programmable-native-engine.md)
+  and was continued by each later request; see [Authorization history](#authorization-history).
+  VoiceOver and system-setting changes are not authorized.
+- **Chat works through the seven general tools only**, with no tool profile and no
+  backward compatibility for the old tools ([removed](db/sources/notes/2026/11/general-tools-only.md)).
+  Model SQL may change table shapes through the recorded write path, and `sql` keeps
+  15-digit numbers ([answers](db/sources/notes/2026/11/general-tools-answers.md)).
+- **Do not push or publish a release without the owner's word in the current
+  request.** A request to build, fix or finish something is not that word.
+- Cloud sync, transport, replica coordination and a new resolver are out of scope.
+  Do not change the website business as a side effect.
 
 ## Public product language
 
-The owner’s [November 17 launch-copy direction](db/sources/notes/2026/11/readme-launch-wording.md)
-supersedes the older MVP label in current public copy. Call the product Sevra or
-Sevra Workbook. Describe the current Mac source preview and its actual setup and
-feature limits without implying a production release. Preserve historical labels
-in dated evidence and compatibility anchors. Follow the
-[README copy review](db/records/reviews/readme-launch-copy.md) for the four product
-distinctions, claim boundaries and publication checks.
+The owner's [November 17 launch-copy direction](db/sources/notes/2026/11/readme-launch-wording.md)
+applies. Call the product Sevra or Sevra Workbook. Describe the current Mac source
+preview and its actual setup and feature limits without implying a production
+release. Preserve historical labels in dated evidence and compatibility anchors.
+Follow the [README copy review](db/records/reviews/readme-launch-copy.md) for the
+four product distinctions, claim boundaries and publication checks. Keep public
+claims tied to measured acceptance.
 
-## Engineering and verification
+## Engineering
 
 Swift/SwiftUI/AppKit; shared Swift core and CLI. Local inference uses upstream
 Splash C++/Metal through a Python-free Swift adapter, under the
-[integration spec](db/records/specs/splash-integration.md).
-Use the repo-owned [update-splash skill](skills/update-splash/SKILL.md) for engine
-upgrades. Keep the unchanged native engine separate from the Swift frontend.
-Every file asset is outside SQLite inside the workbook unless explicitly linked.
-Use deterministic calculations, immutable input versions, lineage, bounded
-retrieval, and truthful completion. No hidden hosted model or telemetry.
+[integration spec](db/records/specs/splash-integration.md). Use the repo-owned
+[update-splash skill](skills/update-splash/SKILL.md) for engine upgrades and keep
+the unchanged native engine separate from the Swift frontend. Every file asset is
+outside SQLite inside the workbook unless explicitly linked. Use deterministic
+calculations, immutable input versions, lineage, bounded retrieval and truthful
+completion. No hidden hosted model or telemetry.
 
-Keep specifications and work records in this repo's db.md store. No private
-paths, private repository requirements, credentials, or real business fixtures.
-Use meaningful invariant/integration tests. Follow the owner-approved
-[focused verification policy](db/records/specs/distribution.md#focused-verification-policy):
-verify the actual fix plus a nearby counterexample, reuse unchanged evidence, and
-reserve broad reruns for concrete boundary changes or integration/release milestones.
-Run scripts/check.sh before release.
+Keep specifications and work records in this repo's db.md store. Update the owning
+plan or review with each change, and keep the handoff a current-state page: replace
+its sections rather than adding dated ones. No private paths, private repository
+requirements, credentials or real business fixtures.
 
-Before the first notarized, production-ready 1.0 release actually distributed for
-production use, do not maintain backward compatibility for development schemas,
-formats or CLI/agent contracts. Update canonical schemas/interfaces and recreate
-selected disposable fixtures instead of adding legacy migrations/adapters. Test
-deployments/previews/tags do not activate support. Preserve current-format integrity
-and user data. The controlling policy is
-[pre-1.0 compatibility](db/records/specs/distribution.md#pre-10-compatibility-policy).
-The [persistence-readiness requirement](db/records/specs/persistence-readiness.md)
+Before the first notarized, production-ready 1.0 release, do not keep backward
+compatibility for development schemas, formats or CLI/agent contracts. Update the
+canonical schemas and interfaces and recreate disposable fixtures instead of adding
+migrations or adapters. Preserve current-format integrity and user data. The
+controlling policy is [pre-1.0 compatibility](db/records/specs/distribution.md#pre-10-compatibility-policy);
+the [persistence-readiness requirement](db/records/specs/persistence-readiness.md)
 adds complete saved changes, causal identities, deterministic local reconstruction
-and accurate decision provenance. The next deliverable is the owner-directed [fast MVP](db/records/specs/mvp-delivery.md):
-run the native supplier CSV/PDF to cited comparison, saved result, edit/recalculate/Undo,
-reopen and portable-copy journey first, fix observed blockers, then ship MVP 0.1 test
-preview. Finish only a coherent in-flight checkpoint. Further E2-E6, condition/dataset/
-background infrastructure and full engine/hardware/release research are deferred.
-Existing safeguards, history and current-format integrity remain required. Keep at
-most three active blockers in the progress record and reuse unchanged proof.
-The owner's October 29 follow-up now authorizes the ordered
-[minimum feature increments](db/records/operations/minimum-feature-delivery.md).
-This supersedes the blanket follow-up deferral above. Complete a bounded usable
-increment, test and polish it, then advance; later rows remain queued. Preserve
-the existing integrity and authority boundaries and report qualification limits.
-The current checkpoint is documented in the
-[agent handoff](db/records/operations/agent-handoff.md). Increments 1 through 9 are
-accepted for their scope. The November 11 fixes and November 12 live automation checks
-passed their scoped functional verification. Work is now paused. The owner selected an
-[adversarial static accessibility review](db/records/reviews/accessibility-static-review-2026-11-12.md)
-and then authorized [all ten code fixes](db/sources/notes/2026/11/accessibility-code-fixes-and-pause.md).
-Those fixes are implemented, compiled and covered by the later owner-authorized
-[headless checkpoint](db/sources/notes/2026/11/accessibility-headless-tests-and-pause.md):
-22 behavior groups and 10 static adapter groups pass. UI/OS accessibility remains
-unqualified. The handoff preserves results and the
-[known-limit closure plan](db/records/plans/known-limit-closure-2026-11-12.md).
-Work is paused after commit/push; the narrow headless check does not authorize continued work.
-Do not manipulate the UI, launch/install the app, inspect accessibility trees, use VoiceOver or
-change system settings unless the owner explicitly changes that decision. A general resume
-does not revoke it. The later [native-engine request and explicit installation/UI approval](db/sources/notes/2026/11/programmable-native-engine.md)
-supersede the pause and no-app restriction for the [native engine implementation](db/records/plans/programmable-native-engine.md).
-Installation and UI tests are authorized for that task; VoiceOver and system-setting
-changes remain outside scope. External use, signing and hardware qualification remain open.
-The subsequent [local-model mini-app request](db/sources/notes/2026/11/local-model-native-apps.md)
-continues that installation/UI authorization for the
-[native authoring integration](db/records/plans/local-model-native-apps.md), with the same boundaries.
-The November 13 [single Excel import request](db/sources/notes/2026/11/single-excel-import.md)
-continues those boundaries for [workflow conversion](db/records/plans/single-excel-import.md),
-including native visual testing, business cases and adversarial review. The later
-[Excel application reconstruction request](db/sources/notes/2026/11/excel-application-reconstruction.md)
-authorizes deeper source understanding, constrained behavior translation and original-result
-comparison under its [plan](db/records/plans/excel-application-reconstruction.md). The owner
-resumed that work after its temporary stop; the same installation/UI boundaries apply. The current
-handoff distinguishes this work from the historical pause and earlier authoring trials.
-The owner's subsequent [whole-app adversarial review request](db/sources/notes/2026/11/app-engine-adversarial-review.md)
-extends the work through the [app and engine review](db/records/plans/app-engine-adversarial-review.md),
-with the same installation/UI authority and preserved VoiceOver/system-setting boundaries.
-The owner's November 18 [general chat tools authorization](db/sources/notes/2026/11/general-tools-implementation.md)
-authorizes implementing the [general chat tools plan](db/records/plans/general-chat-tools.md)
-end to end, phase by phase on its exit criteria, with the real-model runs, development
-packaging, installation and interface checks those exits require and the same VoiceOver and
-system-setting boundaries. His later [answers](db/sources/notes/2026/11/general-tools-answers.md)
-settle four points: model SQL may change a table's shape through the recorded write path,
-format changes for this plan need no compatibility work, the header work is paused until the
-tools are done, and `sql` keeps 15-digit numbers. Build it with the plan's fast loop. Do not
-push or publish a release for it without the owner's word. He then asked for the tools
-[in the app and the whole plan done](db/sources/notes/2026/11/general-tools-in-the-app.md).
-On November 19 he made the seven tools the only chat tools and had the old way
-[removed](db/sources/notes/2026/11/general-tools-only.md), with no tool profile and no backward
-compatibility. Read the plan's "The build so far" before changing chat tools.
-Test enough, as the [owner asked](db/sources/notes/2026/10/ship-with-enough-testing.md): the real
-failure and one counterexample, with the suite and install once on the candidate.
-Commit messages never say Claude in any form, trailers and author names included. To name the
-CLAUDE.md link or a .claude/ file, write "the agent instructions" or "the agent settings". The
-repository's agent settings keep the tool from adding attribution lines.
-Work directly on `main`, with no feature branch or pull request. Run `dbmd index rebuild` before
-the suite, because its first step validates the records.
-Cloud sync, transport, replica coordination and a new resolver are out of scope.
-Preserve unrelated changes. Do not change the website business as a side effect.
-Keep public claims tied to measured acceptance.
+and accurate decision provenance.
+
+The shipped agent skill, `skills/sevra/SKILL.md`, teaches the chat tools through
+`sevra tool`. Change it with the tools or the CLI it describes.
+
+## Git
+
+Work directly on `main`, with no feature branch or pull request. Run
+`dbmd index rebuild` before the suite, because its first step validates the
+records. Commit messages never say Claude in any form, trailers and author names
+included. To name the CLAUDE.md link or a .claude/ file, write "the agent
+instructions" or "the agent settings". The repository's agent settings keep the
+tool from adding attribution lines.
 
 ## Keep testing light
 
@@ -144,13 +109,16 @@ plan, skill, checklist or earlier habit that asks for more.
 - **A plan may not set a heavier gate than this.** When you write a plan, its tests are these.
   When you follow one that asks for more, these rules win and you say so.
 
+The [focused verification policy](db/records/specs/distribution.md#focused-verification-policy)
+says the same for fixes: verify the actual fix plus a nearby counterexample and reuse
+unchanged evidence ([owner asked](db/sources/notes/2026/10/ship-with-enough-testing.md)).
+
 ## Interface quality
 
 The owner explicitly requires deep visual and functional review of interface work.
 Inspect spacing, alignment, density, hierarchy, empty/loading/error states, native
 keyboard behavior and constrained-window layouts, not only compilation or saved
-data. Fix observed issues and inspect the result. This task has explicit app/UI
-authorization; VoiceOver and system-setting changes remain outside scope.
+data. Fix observed issues and inspect the result.
 
 ## Native UI Catalog maintenance
 
@@ -165,3 +133,28 @@ interaction evidence and visual review; never count an early-exiting runner as a
 pass. Keep fixtures, scripts and controlled services out of normal packaging and
 the shipped agent's prompt/tools. Do not open an active user workbook, download a
 model, start product schedules or change OS settings for catalog checks.
+
+## Authorization history
+
+How the current authority came about, oldest first. These are history: the
+sections above state what holds now.
+
+- The [fast MVP](db/records/specs/mvp-delivery.md) delivery order, then the
+  owner's October 29 [minimum feature increments](db/records/operations/minimum-feature-delivery.md).
+- November 12: an [adversarial static accessibility review](db/records/reviews/accessibility-static-review-2026-11-12.md),
+  [all ten code fixes](db/sources/notes/2026/11/accessibility-code-fixes-and-pause.md) and a
+  [headless checkpoint](db/sources/notes/2026/11/accessibility-headless-tests-and-pause.md), after
+  which work was paused with no app or UI use. The
+  [known-limit closure plan](db/records/plans/known-limit-closure-2026-11-12.md) records what stayed open.
+- The [native-engine request and installation/UI approval](db/sources/notes/2026/11/programmable-native-engine.md)
+  ended that pause for the [native engine implementation](db/records/plans/programmable-native-engine.md).
+  The same authority continued through the [local-model mini-app request](db/sources/notes/2026/11/local-model-native-apps.md)
+  ([plan](db/records/plans/local-model-native-apps.md)), the [single Excel import request](db/sources/notes/2026/11/single-excel-import.md)
+  ([plan](db/records/plans/single-excel-import.md)), the [Excel application reconstruction request](db/sources/notes/2026/11/excel-application-reconstruction.md)
+  ([plan](db/records/plans/excel-application-reconstruction.md)) and the
+  [whole-app adversarial review request](db/sources/notes/2026/11/app-engine-adversarial-review.md)
+  ([plan](db/records/plans/app-engine-adversarial-review.md)).
+- November 18 and 19: the [general chat tools authorization](db/sources/notes/2026/11/general-tools-implementation.md),
+  the owner's [answers](db/sources/notes/2026/11/general-tools-answers.md), the request for the tools
+  [in the app and the whole plan done](db/sources/notes/2026/11/general-tools-in-the-app.md), and the
+  seven tools made the only chat tools with the old way [removed](db/sources/notes/2026/11/general-tools-only.md).

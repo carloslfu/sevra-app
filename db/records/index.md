@@ -2,12 +2,12 @@
 type: index
 scope: layer
 folder: records
-updated: 2026-11-26T03:41:49.584708Z
+updated: 2026-11-26T05:12:32.976358Z
 ---
 
 # records
 
-- [[records/operations/index|Operations]] (7)
+- [[records/operations/index|Operations]] (8)
 - [[records/overview/index|Overview]] (1)
 - [[records/plans/index|Plans]] (26)
 - [[records/research/index|Research]] (5)
