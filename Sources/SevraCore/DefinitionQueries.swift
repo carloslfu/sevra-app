@@ -12,7 +12,7 @@ extension Workbook {
       ["live", "exact"].contains(mode)
     else {
       throw SevraError(
-        "definition_query", "A query needs a managed query template and live/exact dataMode.")
+        "definition_query", "A query needs a managed query template and live/exact dataMode. A view needs no query definition: give its table, chart or metric a query field, one SELECT.")
     }
     var query = try queryObject(
       raw, keys: ["sources", "joins", "select", "filters", "groupBy", "sort", "limit"])

@@ -337,5 +337,36 @@ func checkSQLTool() async throws {
   try expectEqual(try book.chatTableID("supplier_comparison"), tableID)
   try expectEqual(try book.chatTableID(tableID), tableID)
   try expectThrows(try book.chatTableID("no_such_table"))
-  print("PASS sql tool: general declarations, answers from query results, AI row and shape changes under a rule Source, one undo from the answer, saved tool, draft, forbidden change, repeated query, a script's changes and refusal, an export to an unnamed path, a new table's one undo, a table named for export")
+  // A table filled from a summary of another, and a row of its column totals, are saved and
+  // the result the model reads says what they are, beside the saved changes.
+  let summarizing = ScriptedCalls(
+    [
+      sql(
+        "CREATE TABLE groups_seen (grp TEXT, n REAL)",
+        "INSERT INTO groups_seen VALUES ('a', 1), ('b', 2), ('c', 3)",
+        "CREATE TABLE group_sums (grp TEXT, n REAL)",
+        "INSERT INTO group_sums SELECT grp, SUM(n) FROM groups_seen GROUP BY grp"),
+      finish("Made the group sums.", basis: "completed_action"),
+    ])
+  let summarized = try await WorkbookAgent.run(
+    "Make a table of sums by group.", workbook: book, model: summarizing)
+  try expectEqual(summarized.state, "complete")
+  let snapshot = try await toolResult(summarizing)
+  try expectEqual(snapshot["error"], .null)
+  try expectEqual(
+    snapshot["notice"].text.contains("group_sums is a snapshot worked out from groups_seen"), true)
+  try expectEqual(summarized.answer.contains("snapshot"), false)
+  let totalling = ScriptedCalls(
+    [
+      sql("INSERT INTO group_sums VALUES ('all', 6)"),
+      finish("Added the row.", basis: "completed_action"),
+    ])
+  let totalled = try await WorkbookAgent.run(
+    "Add a row with the sum.", workbook: book, model: totalling)
+  try expectEqual(totalled.state, "complete")
+  let totalRow = try await toolResult(totalling)
+  try expectEqual(totalRow["error"], .null)
+  try expectEqual(totalRow["notice"].text.contains("repeats the totals of its other rows"), true)
+  try expectEqual(totalRow["changes"].array.first?["inserted"], .number(1))
+  print("PASS sql tool: general declarations, answers from query results, AI row and shape changes under a rule Source, one undo from the answer, saved tool, draft, forbidden change, repeated query, a script's changes and refusal, an export to an unnamed path, a new table's one undo, a table named for export, the snapshot and total-row notices")
 }

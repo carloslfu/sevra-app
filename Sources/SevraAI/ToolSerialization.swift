@@ -31,7 +31,7 @@ extension NativeTools {
       [
         "code": schema(
           "string",
-          "The function body, such as: const rows = await sql('SELECT part, stock FROM parts'); return rows.filter(r => r.stock < 5).length;"
+          "The function body, such as: const rows = await sql('SELECT name, quantity FROM items'); return rows.filter(r => r.quantity < 5).length;"
         ),
         "tool": schema("string", "Run this saved tool instead of code."),
         "values": .object([
@@ -45,7 +45,7 @@ extension NativeTools {
     parameters: object(
       [
         "kind": .object(["type": .string("string"), "enum": .array([.string("tool")])]),
-        "name": schema("string", "Lower case with underscores, such as low_stock."),
+        "name": schema("string", "Lower case with underscores, such as add_row."),
         "description": schema("string", "One sentence on what it does."),
         "inputs": .object([
           "type": .string("array"), "maxItems": .number(16),

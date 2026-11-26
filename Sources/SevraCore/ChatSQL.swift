@@ -20,9 +20,14 @@ extension Workbook {
         self, readOnly: readOnly, draft: draft, inputs: inputs, cancellation: cancellation)
       defer { session.close() }
       let results = try session.run(statements)
-      return try saveChatSQL(
+      let saved = try saveChatSQL(
         session.scratch, results: results, draft: draft, token: token,
         requestSourceID: requestSourceID, confirmLarge: confirmLarge, cancellation: cancellation)
+      let notices = try chatDerivedDataNotices(statements, scratch: session.scratch, result: saved)
+      guard !notices.isEmpty else { return saved }
+      var fields = saved.object
+      fields["notice"] = .string(([saved["notice"].text] + notices).joined(separator: " "))
+      return .object(fields)
     }
   }
 
@@ -323,27 +328,85 @@ extension Workbook {
 
   /// The tables as sql names them, for the request's context, so the model need not look
   /// them up. Long workbooks list what fits and point at the catalog for the rest.
-  public func chatSQLTables(byteLimit: Int = 2_400) throws -> String {
+  public func chatSQLTables(byteLimit: Int = 2_400, valueByteLimit: Int = 600) throws -> String {
     let named = SQLScratch.named(try datasets())
     var lines: [String] = []
     var bytes = 0
+    var valueBytes = 0
     for entry in named {
       let names = Dictionary(entry.columns.map { ($0.column.id, $0.name) }) { first, _ in first }
       let sets = entry.dataset.columns.uniqueSets.map {
         "UNIQUE(" + $0.compactMap { names[$0] }.joined(separator: ", ") + ")"
       }
-      let line =
-        entry.name + "("
-        + (entry.columns.map { SQLScratch.declaration($0.name, $0.column) } + sets)
-        .joined(separator: ", ")
-        + ") \(entry.dataset.rowCount) rows"
-      guard bytes + line.utf8.count <= byteLimit else { break }
-      bytes += line.utf8.count
-      lines.append(line)
+      let declarations = entry.columns.map { SQLScratch.declaration($0.name, $0.column) }
+      func line(_ declarations: [String]) -> String {
+        entry.name + "(" + (declarations + sets).joined(separator: ", ")
+          + ") \(entry.dataset.rowCount) rows"
+      }
+      let plain = line(declarations)
+      guard bytes + plain.utf8.count <= byteLimit else { break }
+      bytes += plain.utf8.count
+      // The few values of a category column, so a filter names the values the column has
+      // rather than the ones the model guesses. They have their own budget, so they never
+      // push a table out of the list.
+      var listed = declarations
+      for (index, (name, column)) in entry.columns.enumerated() {
+        guard let values = try chatCategoryValues(entry.dataset, column: column, name: name)
+        else { continue }
+        let note = " (values " + values.joined(separator: ", ") + ")"
+        guard valueBytes + note.utf8.count <= valueByteLimit else { continue }
+        valueBytes += note.utf8.count
+        listed[index] += note
+      }
+      lines.append(line(listed))
     }
     guard !lines.isEmpty else { return "" }
     return "Tables for sql: " + lines.joined(separator: "; ")
       + (lines.count < named.count ? "; \(named.count - lines.count) more in SELECT * FROM tables" : "")
+  }
+
+  /// Tables up to this many rows have their category columns' values listed for sql.
+  static let categoryRowLimit = 10_000
+  static let categoryValueLimit = 8
+  static let categoryValueBytes = 32
+
+  /// The distinct values of a text column that holds a few short labels, as SQL literals in
+  /// a fixed order, or nil for any other column: numbers, dates, computed, numbering and
+  /// unique columns, a column named as an id, values that are long, span lines or all start
+  /// with a digit, as dates and codes do, fewer than two or more than eight values, or more
+  /// values than half the filled rows, which reads as names or notes.
+  /// Read fresh from the stored rows each time, so the list follows the data.
+  func chatCategoryValues(_ table: Dataset, column: Column, name: String) throws -> [String]? {
+    guard column.type == "text", column.formula == nil, column.autoNumber != true,
+      column.unique != true, name != "id", !name.hasSuffix("_id"),
+      (2...Self.categoryRowLimit).contains(table.rowCount)
+    else { return nil }
+    return try synchronized {
+      try db.readTransaction {
+        let schema = try db.managedSchema(table.id)
+        let field = ChangeFormat.quote(schema.field(column.id))
+        let source = ChangeFormat.quote(schema.table)
+        let filled =
+          try db.scalar(
+            "SELECT count(*) FROM " + source + " WHERE " + field + " IS NOT NULL AND " + field
+              + " <> ''"
+          ).int ?? 0
+        let values = try db.execute(
+          "SELECT DISTINCT " + field + " AS v FROM " + source + " WHERE " + field
+            + " IS NOT NULL AND " + field + " <> '' ORDER BY " + field + " LIMIT "
+            + String(Self.categoryValueLimit + 1)
+        ).compactMap { $0["v"]?.string }
+        guard values.count >= 2, values.count <= Self.categoryValueLimit,
+          !values.allSatisfy({ $0.first?.isNumber == true }),
+          values.count * 2 <= filled,
+          values.allSatisfy({
+            $0.utf8.count <= Self.categoryValueBytes && !$0.contains("\n")
+              && $0.trimmingCharacters(in: .whitespaces) == $0
+          })
+        else { return nil }
+        return values.map { "'" + $0.replacingOccurrences(of: "'", with: "''") + "'" }
+      }
+    }
   }
 
   /// A table by its id, or by its exact sql name or title when one current table has it.
@@ -1897,5 +1960,145 @@ final class SQLScratch {
       }
     }
     return found
+  }
+}
+
+// MARK: Notices about derived data
+
+extension SQLScratch {
+  /// Tables in which a row this call added or changed holds, in every number column it fills,
+  /// the sum of that column over the table's other rows: a total row, found by comparing
+  /// numbers rather than by any label. Numbering and unique columns are not compared. One
+  /// column matching takes at least three other rows, so two rows rarely add up to a third
+  /// by chance.
+  func totalRowTables() throws -> [String] {
+    var found: [String] = []
+    for key in order {
+      let entry = entries[key]!
+      guard !entry.dropped, written.contains(key) else { continue }
+      let numeric = entry.fields.filter {
+        $0.column.type == "decimal" && $0.column.autoNumber != true && $0.column.unique != true
+      }
+      guard !numeric.isEmpty else { continue }
+      var touched = Set<Int64>()
+      let ids = try prepare("SELECT DISTINCT id FROM \"\(Self.log)\" WHERE tbl=?")
+      sqlite3_bind_text(ids, 1, key, -1, Self.transient)
+      while sqlite3_step(ids) == SQLITE_ROW { touched.insert(sqlite3_column_int64(ids, 0)) }
+      sqlite3_finalize(ids)
+      guard !touched.isEmpty else { continue }
+      let select = try prepare(
+        "SELECT rowid, "
+          + numeric.map { "CAST(" + Self.quoted($0.name) + " AS REAL)" }.joined(separator: ", ")
+          + " FROM " + Self.quoted(entry.name))
+      defer { sqlite3_finalize(select) }
+      var rows: [(id: Int64, values: [Double?])] = []
+      var sums = [Double](repeating: 0, count: numeric.count)
+      while sqlite3_step(select) == SQLITE_ROW {
+        let values: [Double?] = numeric.indices.map {
+          sqlite3_column_type(select, Int32($0 + 1)) == SQLITE_NULL
+            ? nil : sqlite3_column_double(select, Int32($0 + 1))
+        }
+        for (index, value) in values.enumerated() { sums[index] += value ?? 0 }
+        rows.append((sqlite3_column_int64(select, 0), values))
+      }
+      let others = rows.count - 1
+      guard others >= 2 else { continue }
+      let repeats = rows.contains { row in
+        guard touched.contains(row.id) else { return false }
+        var matched = 0
+        var nonzero = false
+        for (index, value) in row.values.enumerated() {
+          guard let value else { continue }
+          let rest = sums[index] - value
+          guard abs(value - rest) <= 1e-9 * max(1, abs(value)) else { return false }
+          matched += 1
+          if value != 0 { nonzero = true }
+        }
+        return nonzero && (matched >= 2 || others >= 3)
+      }
+      if repeats { found.append(entry.name) }
+    }
+    return found
+  }
+
+  /// Statements that fill a table from a summary of others: INSERT ... SELECT or
+  /// CREATE TABLE ... AS SELECT with GROUP BY or an aggregate function. Each is the table
+  /// filled and the tables it read, by their sql names.
+  static func summaryCopies(_ statements: [String]) -> [(target: String, sources: [String])] {
+    func matches(_ pattern: String, _ text: String) -> [[String]] {
+      guard let regex = try? NSRegularExpression(pattern: pattern, options: [.caseInsensitive])
+      else { return [] }
+      return regex.matches(in: text, range: NSRange(text.startIndex..., in: text)).map { match in
+        (0..<match.numberOfRanges).map {
+          Range(match.range(at: $0), in: text).map { String(text[$0]) } ?? ""
+        }
+      }
+    }
+    var found: [(target: String, sources: [String])] = []
+    for statement in statements {
+      // Values and comments are blanked; quoted names keep their text without the quotes.
+      let code = pieces(statement).map { piece -> String in
+        if piece.code { return piece.text }
+        guard let first = piece.text.first, "\"`[".contains(first), piece.text.count >= 2 else {
+          return " _ "
+        }
+        return String(piece.text.dropFirst().dropLast())
+      }.joined()
+      let target =
+        matches(
+          #"^\s*(?:INSERT(?:\s+OR\s+\w+)?|REPLACE)\s+INTO\s+(\w+)"#, code
+        ).first?[1]
+        ?? matches(#"^\s*CREATE\s+TABLE\s+(?:IF\s+NOT\s+EXISTS\s+)?(\w+)[^;]*?\bAS\s+(?:WITH|SELECT)\b"#, code)
+        .first?[1]
+      guard let target, !matches(#"\bSELECT\b"#, code).isEmpty,
+        matches(#"\bVALUES\b"#, code).isEmpty,
+        !matches(#"\bGROUP\s+BY\b|\b(?:SUM|COUNT|AVG|MIN|MAX|TOTAL|GROUP_CONCAT)\s*\("#, code)
+          .isEmpty
+      else { continue }
+      let named = Set(matches(#"(\w+)\s+AS\s*\("#, code).map { $0[1].lowercased() })
+      var sources: [String] = []
+      for match in matches(#"\b(?:FROM|JOIN)\s+(\w+)"#, code) {
+        let name = match[1]
+        let lower = name.lowercased()
+        guard lower != target.lowercased(), !named.contains(lower),
+          !sources.contains(where: { $0.lowercased() == lower })
+        else { continue }
+        sources.append(name)
+      }
+      guard !sources.isEmpty else { continue }
+      found.append((target, sources))
+    }
+    return found
+  }
+}
+
+extension Workbook {
+  /// Short notes for the model about what a saved sql call made of the data: a table filled
+  /// with a summary that will not follow its source, and a row that repeats the column
+  /// totals. They ride in the result's notice, beside the saved changes.
+  func chatDerivedDataNotices(
+    _ statements: [String], scratch: SQLScratch, result: Value
+  ) throws -> [String] {
+    guard result["undo"].string != nil else { return [] }
+    let filled = Set(
+      (result["changes"].array + result["shape"].array).map { $0["table"].text.lowercased() })
+    var notices: [String] = []
+    for copy in SQLScratch.summaryCopies(statements)
+    where filled.contains(copy.target.lowercased()) {
+      let sources = copy.sources.joined(separator: " and ")
+      notices.append(
+        copy.target + " is a snapshot worked out from " + sources
+          + " now: it will not follow later changes to " + sources
+          + ". For a view, chart " + copy.sources[0]
+          + " itself, since a chart adds up y for each x, or give the component a query.")
+    }
+    let changed = Set(result["changes"].array.map { $0["table"].text.lowercased() })
+    for name in try scratch.totalRowTables() where changed.contains(name.lowercased()) {
+      notices.append(
+        "A row this call wrote in " + name
+          + " repeats the totals of its other rows, so sums and charts of " + name
+          + " will count them twice. A metric with aggregation SUM shows a total without changing the data. Tell the user and offer to undo this change.")
+    }
+    return notices
   }
 }

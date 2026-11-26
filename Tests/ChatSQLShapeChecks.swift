@@ -242,4 +242,61 @@ func checkChatSQLShape(at root: URL) {
     try expect(
       try b.space(saved["spaceID"].text).definition.components.first?.datasetID == table.id)
   }
+
+  check("Tables for sql lists the few values of a category column, follows the data and leaves out names, ids and dates") {
+    let b = try book("Values")
+    _ = try sql(
+      b,
+      "CREATE TABLE entries (id INTEGER PRIMARY KEY, ref_id TEXT, label TEXT, state TEXT, kind TEXT, day TEXT, amount REAL)",
+      "INSERT INTO entries (ref_id, label, state, kind, day, amount) VALUES ('r1', 'Alpha', 'open', 'x', '2026-11-01', 10), ('r2', 'Beta', 'done', 'x', '2026-11-02', 20), ('r3', 'Gamma', 'open', 'y', '2026-11-01', 30), ('r4', 'Delta', 'void', 'x', '2026-11-02', 40), ('r5', 'Epsilon', 'open', 'y', '2026-11-01', 50), ('r6', 'Zeta', 'done', 'x', '2026-11-02', 60)")
+    let listed = try b.chatSQLTables()
+    try expect(
+      listed.contains("state TEXT (values 'done', 'open', 'void'), kind TEXT (values 'x', 'y')"),
+      listed)
+    // Six names in six rows are free text, an id-named column and dates are not categories.
+    try expect(
+      listed.contains("label TEXT,") && listed.contains("ref_id TEXT,") && listed.contains("day TEXT,"),
+      listed)
+    // A new value shows up on the next request, and a column past eight values is left out.
+    _ = try sql(b, "UPDATE entries SET state = 'held' WHERE label = 'Delta'")
+    try expect(try b.chatSQLTables().contains("state TEXT (values 'done', 'held', 'open')"), try b.chatSQLTables())
+    _ = try sql(
+      b, "INSERT INTO entries (label, kind) VALUES ('a', 'k1'), ('b', 'k2'), ('c', 'k3'), ('d', 'k4'), ('e', 'k5'), ('f', 'k6'), ('g', 'k7'), ('h', 'k8'), ('i', 'k9'), ('j', 'k9'), ('k', 'k9'), ('l', 'k9'), ('m', 'k9'), ('n', 'k9'), ('o', 'k9'), ('p', 'k9'), ('q', 'k9'), ('r', 'k9')")
+    try expect(try b.chatSQLTables().contains("kind TEXT,"), try b.chatSQLTables())
+    // The values have their own budget: past it a column is listed without them.
+    try expect(!(try b.chatSQLTables(valueByteLimit: 10).contains("(values")))
+  }
+
+  check("a table filled from a summary of another, and a row of column totals, get a notice; plain copies and data rows do not") {
+    let b = try book("Derived")
+    _ = try sql(
+      b, "CREATE TABLE facts (area TEXT, amount REAL, units REAL)",
+      "INSERT INTO facts VALUES ('a', 10, 1), ('b', 20, 2), ('a', 5, 3), ('c', 7, 4)")
+    let made = try sql(
+      b, "CREATE TABLE by_area (area TEXT, amount REAL)",
+      "INSERT INTO by_area (area, amount) SELECT area, SUM(amount) FROM facts GROUP BY area")
+    try expect(
+      made["notice"].text.contains("by_area is a snapshot worked out from facts now")
+        && made["notice"].text.contains("chart facts itself"), made["notice"].text)
+    let created = try sql(b, "CREATE TABLE counted AS SELECT area, count(*) AS n FROM facts GROUP BY area")
+    try expect(created["notice"].text.contains("counted is a snapshot"), created["notice"].text)
+    // A copy of rows with no summary, and a value read inside VALUES, are not snapshots.
+    let copied = try sql(
+      b, "CREATE TABLE kept (area TEXT, amount REAL)",
+      "INSERT INTO kept (area, amount) SELECT area, amount FROM facts WHERE amount > 6",
+      "INSERT INTO kept (area, amount) VALUES ('z', (SELECT 1))")
+    try expect(!copied["notice"].text.contains("snapshot"), copied["notice"].text)
+    // A row whose number is the sum of the other rows' is a total row, whatever its label.
+    let total = try sql(b, "INSERT INTO by_area (area, amount) VALUES ('All', 42)")
+    try expect(
+      total["notice"].text.contains("repeats the totals of its other rows")
+        && total["notice"].text.contains("offer to undo"), total["notice"].text)
+    // A genuine row, and a row of two columns where only one adds up, are not.
+    let row = try sql(b, "INSERT INTO facts VALUES ('d', 12, 5)")
+    try expect(!row["notice"].text.contains("repeats"), row["notice"].text)
+    let half = try sql(b, "INSERT INTO facts VALUES ('e', 54, 1)")
+    try expect(!half["notice"].text.contains("repeats"), half["notice"].text)
+    let sums = try sql(b, "INSERT INTO facts VALUES ('Sum', 108, 16)")
+    try expect(sums["notice"].text.contains("repeats the totals"), sums["notice"].text)
+  }
 }
