@@ -463,6 +463,53 @@ func checkActionConfirmations() async throws {
   try expectEqual(dropped.state, "complete")
   try expectEqual(dropped.steps, 4)
   try expectEqual(dropped.answer, "Updated space “Home”.")
+  // An edit that changes nothing because the view already shows it is the outcome, not a
+  // failure: the model's account of that stands, and without one the person reads a plain
+  // line by the component's title. The model-facing refusal is never shown.
+  func unchanged(_ name: String, answers: [String]) async throws -> AgentResult {
+    let book = try Workbook.create(at: root.appendingPathComponent(name + ".sevra"), title: name)
+    _ = try book.chatSQL(
+      statements: [
+        "CREATE TABLE facts (area TEXT, amount REAL)",
+        "INSERT INTO facts VALUES ('a', 1), ('b', 2)",
+      ], readOnly: false, token: identifier(), requestSourceID: nil)
+    let table = try expectValue(book.datasets().first)
+    let amount = try expectValue(table.columns.first { $0.title.lowercased() == "amount" })
+    let area = try expectValue(table.columns.first { $0.title.lowercased() == "area" })
+    let chart = Component(
+      id: "chart1", type: "chart", title: "Amount by area", datasetID: table.id, x: area.id,
+      y: amount.id, chartStyle: "bar")
+    let home = try book.editSpace(
+      "home", expectedVersion: try book.space("home").version,
+      edits: [SpaceEdit(operation: "insert", at: "last", component: chart)])
+    let same: Value = .object([
+      "id": .string("home"), "expectedVersion": .number(Double(home.version)),
+      "edits": .array([
+        .object([
+          "operation": .string("replace"), "componentID": .string("chart1"),
+          "component": .object([
+            "id": .string("chart1"), "type": .string("chart"), "title": .string("Amount by area"),
+            "chartStyle": .string("bar"),
+          ]),
+        ])
+      ]),
+    ])
+    let result = try await WorkbookAgent.run(
+      "Make it a bar chart.", workbook: book,
+      model: ScriptedCalls(
+        [call("edit_space", same)] + answers.map { finish($0, basis: "completed_action") }))
+    try expectEqual(try book.space("home").version, home.version)
+    for raw in ["If the user asked", "include the field", "Couldn’t finish", "Nothing changed:"] {
+      try expectEqual(result.answer.contains(raw), false)
+    }
+    return result
+  }
+  let already = try await unchanged("already", answers: ["It is already a bar chart."])
+  try expectEqual(already.answer, "It is already a bar chart.")
+  let plain = try await unchanged("plain", answers: ["Changed it to a bar chart.", "I changed it to bars."])
+  try expectEqual(
+    plain.answer, "Nothing needed to change: “Amount by area” already shows that (bar chart).")
+  print("PASS a view edit that changes nothing keeps the model's account, or reads as a plain line")
   // The same holds for every save, a draft too. A claim the receipt cannot prove, that the
   // content is perfect, is sent back, and a summary that keeps making it is dropped.
   func memo(_ answer: String, finishes: Int) -> ScriptedCalls {

@@ -299,4 +299,87 @@ func checkChatSQLShape(at root: URL) {
     let sums = try sql(b, "INSERT INTO facts VALUES ('Sum', 108, 16)")
     try expect(sums["notice"].text.contains("repeats the totals"), sums["notice"].text)
   }
+
+  check("a saved query or tool that compares with today or now written out gets 'now'; other dates and written values stay") {
+    let zone = TimeZone(identifier: "America/New_York")!
+    var parts = DateComponents()
+    (parts.year, parts.month, parts.day, parts.hour, parts.minute, parts.second) = (2026, 11, 26, 14, 5, 30)
+    var calendar = Calendar(identifier: .gregorian)
+    calendar.timeZone = zone
+    let now = calendar.date(from: parts)!
+    func rewrite(_ sql: String) -> String {
+      CurrentDateLiterals.rewrite(sql, now: [now], timeZone: zone).text
+    }
+    for (given, expected) in [
+      ("SELECT * FROM t WHERE status = 'open' AND due < '2026-11-26'",
+       "SELECT * FROM t WHERE status = 'open' AND due < date('now')"),
+      ("SELECT * FROM t WHERE '2026-11-26' >= due", "SELECT * FROM t WHERE date('now') >= due"),
+      ("SELECT * FROM t WHERE due BETWEEN '2026-11-01' AND '2026-11-26'",
+       "SELECT * FROM t WHERE due BETWEEN '2026-11-01' AND date('now')"),
+      ("SELECT * FROM t WHERE strftime('%Y-%m', due) = '2026-11'",
+       "SELECT * FROM t WHERE strftime('%Y-%m', due) = strftime('%Y-%m','now')"),
+      ("SELECT * FROM t WHERE at >= '2026-11-26 14:05'",
+       "SELECT * FROM t WHERE at >= strftime('%Y-%m-%d %H:%M','now')"),
+      ("SELECT * FROM t WHERE due <= date('2026-11-26', '+7 days')",
+       "SELECT * FROM t WHERE due <= date('now', '+7 days')"),
+      ("UPDATE t SET done = '2026-11-26' WHERE due < '2026-11-26'",
+       "UPDATE t SET done = '2026-11-26' WHERE due < date('now')"),
+    ] {
+      try expect(rewrite(given) == expected, rewrite(given))
+    }
+    // Another day is data, as is today written into a row, a month without a month format,
+    // and a quoted name.
+    for kept in [
+      "SELECT * FROM t WHERE due < '2026-11-20'",
+      "INSERT INTO t (due) VALUES ('2026-11-26')",
+      "SELECT * FROM t WHERE substr(due, 1, 7) = '2026-11'",
+      "SELECT \"2026-11-26\" FROM t",
+      "SELECT * FROM t WHERE at >= '2026-11-26 15:05'",
+    ] {
+      try expect(rewrite(kept) == kept, rewrite(kept))
+    }
+    try expect(
+      CurrentDateLiterals.notice(["date('now')"])
+        == "Wrote date('now') for today's date so it stays current.")
+
+    // Through the chat tools: a view's query and a saved tool are saved with date('now').
+    let b = try book("Today")
+    _ = try sql(
+      b, "CREATE TABLE items (name TEXT, status TEXT, due TEXT)",
+      "INSERT INTO items VALUES ('a', 'open', '2026-01-01'), ('b', 'open', '2999-01-01')")
+    let format = DateFormatter()
+    format.locale = Locale(identifier: "en_US_POSIX")
+    format.dateFormat = "yyyy-MM-dd"
+    let today = format.string(from: Date())
+    let tools = WorkbookTools(b, conversation: "")
+    let saved = try tools.execute(
+      "save_space",
+      .object([
+        "title": .string("Due"),
+        "definition": .object([
+          "version": .number(1),
+          "components": .array([
+            .object([
+              "id": .string("t1"), "type": .string("table"), "title": .string("Past due"),
+              "query": .string("SELECT name, due FROM items WHERE status = 'open' AND due < '\(today)'"),
+            ])
+          ]),
+        ]),
+      ]))
+    try expect(
+      try b.space(saved["spaceID"].text).definition.components.first?.query
+        == "SELECT name, due FROM items WHERE status = 'open' AND due < date('now')")
+    try expect(saved["notice"].text.contains("Wrote date('now') for today's date"), "\(saved)")
+    let tool = try tools.execute(
+      "save",
+      .object([
+        "kind": .string("tool"), "name": .string("past_due"), "description": .string("Rows past due"),
+        "inputs": .array([]),
+        "statements": .array([.string("SELECT name FROM items WHERE due < '\(today)' AND due > '2000-01-01'")]),
+      ]))
+    try expect(tool["notice"].text.hasPrefix("Wrote date('now') for today's date"), "\(tool)")
+    try expect(
+      try b.savedTools().first { $0.name == "past_due" }?.statements
+        == ["SELECT name FROM items WHERE due < date('now') AND due > '2000-01-01'"])
+  }
 }

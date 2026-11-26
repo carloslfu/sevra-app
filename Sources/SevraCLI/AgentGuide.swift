@@ -93,7 +93,9 @@ enum AgentGuide {
       `ALTER TABLE t ADD COLUMN total REAL AS (quantity * price)`; it follows its inputs.
     - A table keeps `INTEGER PRIMARY KEY` numbering (with or without AUTOINCREMENT),
       `DEFAULT`, `NOT NULL` and `UNIQUE` for every later row, whoever adds it.
-    - `'now'`, `CURRENT_DATE` and `CURRENT_TIMESTAMP` are the Mac's local time.
+    - `'now'`, `CURRENT_DATE` and `CURRENT_TIMESTAMP` are the Mac's local time. A view's
+      query or a saved tool that compares with today's date or the current minute written
+      out is saved with `date('now')` (or the matching `'now'` form) in its place.
     - Decimals come back as text with their exact digits. Do arithmetic in SQL, not in
       your head, and use `round(x, 2)` for money.
     - `"draft": true` saves UPDATEs as a proposal for the person to review instead.

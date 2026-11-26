@@ -337,25 +337,55 @@ func checkSQLTool() async throws {
   try expectEqual(try book.chatTableID("supplier_comparison"), tableID)
   try expectEqual(try book.chatTableID(tableID), tableID)
   try expectThrows(try book.chatTableID("no_such_table"))
-  // A table filled from a summary of another, and a row of its column totals, are saved and
-  // the result the model reads says what they are, beside the saved changes.
+  // A table filled from a summary of another is held the first time in a request: nothing is
+  // saved and the result says how a view shows it live. The same statements sent again are
+  // the user's fixed table: saved, with the snapshot notice, and the repeat guard stays out of it.
+  let summary = [
+    "CREATE TABLE groups_seen (grp TEXT, n REAL)",
+    "INSERT INTO groups_seen VALUES ('a', 1), ('b', 2), ('c', 3)",
+    "CREATE TABLE group_sums (grp TEXT, n REAL)",
+    "INSERT INTO group_sums SELECT grp, SUM(n) FROM groups_seen GROUP BY grp",
+  ]
   let summarizing = ScriptedCalls(
     [
-      sql(
-        "CREATE TABLE groups_seen (grp TEXT, n REAL)",
-        "INSERT INTO groups_seen VALUES ('a', 1), ('b', 2), ('c', 3)",
-        "CREATE TABLE group_sums (grp TEXT, n REAL)",
-        "INSERT INTO group_sums SELECT grp, SUM(n) FROM groups_seen GROUP BY grp"),
+      call("sql", .object(["statements": .array(summary.map(Value.string))])),
+      call("sql", .object(["statements": .array(summary.map(Value.string))])),
       finish("Made the group sums.", basis: "completed_action"),
     ])
+  let tablesBefore = try book.datasets().count
   let summarized = try await WorkbookAgent.run(
     "Make a table of sums by group.", workbook: book, model: summarizing)
   try expectEqual(summarized.state, "complete")
-  let snapshot = try await toolResult(summarizing)
+  let held = try await toolResult(summarizing)
+  try expectEqual(held["error"], .null)
+  try expectEqual(held["status"], .string("not_saved"))
+  try expectEqual(
+    held["notice"].text.hasPrefix("Nothing was changed. group_sums would be a summary of groups_seen"),
+    true)
+  try expectEqual(held["notice"].text.contains("SELECT x, SUM(y) AS y FROM groups_seen GROUP BY x"), true)
+  let snapshot = try Value.parse(
+    try expectValue(await summarizing.prompts.dropFirst(2).first?.last { $0.role == "tool" }).content)
   try expectEqual(snapshot["error"], .null)
   try expectEqual(
     snapshot["notice"].text.contains("group_sums is a snapshot worked out from groups_seen"), true)
+  try expectEqual(try book.datasets().count, tablesBefore + 2)
   try expectEqual(summarized.answer.contains("snapshot"), false)
+  try expectEqual(summarized.answer.contains("stopped"), false)
+  try expectEqual(summarized.answer.hasPrefix("Made the group sums."), true)
+  // A plain copy of rows, with no summary, saves on its first call.
+  let copying = ScriptedCalls(
+    [
+      sql(
+        "CREATE TABLE groups_kept (grp TEXT, n REAL)",
+        "INSERT INTO groups_kept SELECT grp, n FROM groups_seen WHERE n > 1"),
+      finish("Copied the rows.", basis: "completed_action"),
+    ])
+  let copied = try await WorkbookAgent.run(
+    "Copy the larger rows to a new table.", workbook: book, model: copying)
+  try expectEqual(copied.state, "complete")
+  let copyResult = try await toolResult(copying)
+  try expectEqual(copyResult["status"], .null)
+  try expectEqual(copyResult["undo"].string != nil, true)
   let totalling = ScriptedCalls(
     [
       sql("INSERT INTO group_sums VALUES ('all', 6)"),
@@ -368,5 +398,5 @@ func checkSQLTool() async throws {
   try expectEqual(totalRow["error"], .null)
   try expectEqual(totalRow["notice"].text.contains("repeats the totals of its other rows"), true)
   try expectEqual(totalRow["changes"].array.first?["inserted"], .number(1))
-  print("PASS sql tool: general declarations, answers from query results, AI row and shape changes under a rule Source, one undo from the answer, saved tool, draft, forbidden change, repeated query, a script's changes and refusal, an export to an unnamed path, a new table's one undo, a table named for export, the snapshot and total-row notices")
+  print("PASS sql tool: general declarations, answers from query results, AI row and shape changes under a rule Source, one undo from the answer, saved tool, draft, forbidden change, repeated query, a script's changes and refusal, an export to an unnamed path, a new table's one undo, a table named for export, a summary copy held once then saved when sent again, a plain copy saved at once, the snapshot and total-row notices")
 }

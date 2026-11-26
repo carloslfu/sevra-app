@@ -21,6 +21,11 @@ public struct WorkbookTools {
   /// so the confirmation counts a table's changes across calls.
   public var changeTally = ChatChangeTally()
   private var largeChanges: ChatChangeTally? { confirmsLargeChanges ? changeTally : nil }
+  /// When the request started, the moment its Now line names. A view's query or a saved tool
+  /// that compares with today written out, or with now to the minute, is saved with 'now'
+  /// in its place, matched against this moment and the save's own.
+  public var requestNow: Date?
+  private var nowMoments: [Date] { [requestNow, Date()].compactMap { $0 } }
   package static let guides: [String: String] = [
     "view": """
       A view is a saved page of up to 16 components. save with view: {title, definition: {version: 1, components}}. Every component has a short id of its own, a type and a visible title, and the fields its type uses. Saving a view does not open it.
@@ -323,14 +328,22 @@ public struct WorkbookTools {
         a["kind"] == .string("tool"), "arguments",
         "Choose a kind for save: tool, document, view, app, record, definition, template or result."
       )
-      let statements = a["statements"].array.compactMap(\.string)
+      var statements = a["statements"].array.compactMap(\.string)
       try require(
         statements.count == a["statements"].array.count, "arguments",
         "statements is a list of SQL strings.")
       try require(
         (a["source"].string == nil) != statements.isEmpty, "arguments",
         "A tool holds SQL statements or a JavaScript source, one of the two.")
-      return try workbook.chatSaveTool(
+      // A tool runs on later days, such as a check an automation watches: a comparison with
+      // today written out would stop matching tomorrow.
+      var written: [String] = []
+      for index in statements.indices {
+        let rewritten = CurrentDateLiterals.rewrite(statements[index], now: nowMoments)
+        statements[index] = rewritten.text
+        written += rewritten.written
+      }
+      let savedTool = try workbook.chatSaveTool(
         name: string("name"), description: a["description"].text,
         inputs: a["inputs"].array.map {
           let type = $0["type"].text
@@ -339,6 +352,10 @@ public struct WorkbookTools {
         optional: Set(a["inputs"].array.filter { $0["required"] == .bool(false) }.map(\.["name"].text)),
         statements: statements, source: a["source"].string, token: "save-" + (receiptID ?? token),
         requestSourceID: requestSourceID, cancellation: cancellation)
+      guard !written.isEmpty, case .object(var fields) = savedTool else { return savedTool }
+      fields["notice"] = .string(
+        CurrentDateLiterals.notice(written) + " " + (fields["notice"]?.text ?? ""))
+      return .object(fields)
     case "guide":
       // Short how-to texts the general tools read on demand.
       guard let text = Self.guides[a["name"].text] else {
@@ -401,7 +418,7 @@ public struct WorkbookTools {
         statements: statements, readOnly: readOnly || inspectionOnly,
         draft: a["draft"] == .bool(true), token: "sql-" + (receiptID ?? token),
         requestSourceID: requestSourceID, confirmLarge: largeChanges,
-        cancellation: cancellation)
+        holdsSummaryCopies: true, cancellation: cancellation)
     case "datasets":
       return try encoded(
         excelConversion.map { try $0.tables.map { try workbook.dataset($0.id) } }
@@ -576,6 +593,18 @@ public struct WorkbookTools {
           leftOut += SpaceDefinition.leavingOutUnusedFields([component]).notices
         }
       }
+      // A query that compares with today written out would go stale tomorrow.
+      var written: [String] = []
+      for index in edits.indices {
+        guard var component = edits[index].component else { continue }
+        var list = [component]
+        let rewritten = CurrentDateLiterals.rewrite(&list, now: nowMoments)
+        if !rewritten.isEmpty {
+          component = list[0]
+          edits[index].component = component
+          written += rewritten
+        }
+      }
       let saved = try workbook.editSpace(
         string("id"), expectedVersion: version, edits: edits, token: token)
       var result: [String: Value] = [
@@ -583,7 +612,7 @@ public struct WorkbookTools {
         "version": .number(Double(saved.version)),
       ]
       let notices =
-        leftOut
+        leftOut + (written.isEmpty ? [] : [CurrentDateLiterals.notice(written)])
         + [
           try workbook.unshownButtonTablesNotice(
             saved.definition, spaceID: saved.id, version: saved.version)
@@ -602,8 +631,10 @@ public struct WorkbookTools {
       ])
     case "save_space":
       try refuseStrayVisuals(definition: a["definition"], path: "definition")
-      let definition = try decodeDescriptor(
+      var definition = try decodeDescriptor(
         SpaceDefinition.self, from: a["definition"], named: "definition")
+      // A query that compares with today written out would go stale tomorrow.
+      let written = CurrentDateLiterals.rewrite(&definition.components, now: nowMoments)
       try require(
         definition.app == nil, "app_check",
         "Use save_native_app to check and save programmable source.")
@@ -626,7 +657,7 @@ public struct WorkbookTools {
         id: token, title: title, definition: definition, token: token)
       var result: [String: Value] = ["spaceID": .string(spaceID)]
       let notices =
-        leftOut
+        leftOut + (written.isEmpty ? [] : [CurrentDateLiterals.notice(written)])
         + [try workbook.unshownButtonTablesNotice(definition, spaceID: spaceID, version: 1)]
         .compactMap { $0 }
       if !notices.isEmpty { result["notice"] = .string(notices.joined(separator: " ")) }

@@ -10,7 +10,7 @@ extension Workbook {
   public func chatSQL(
     statements: [String], readOnly: Bool, draft: Bool = false, token: String,
     requestSourceID: String?, inputs: [String: Value]? = nil, confirmLarge: ChatChangeTally? = nil,
-    cancellation: Cancellation = .init()
+    holdsSummaryCopies: Bool = false, cancellation: Cancellation = .init()
   ) throws -> Value {
     try require(
       (1...8).contains(statements.count) && statements.allSatisfy { $0.utf8.count <= 8_000 },
@@ -20,6 +20,17 @@ extension Workbook {
         self, readOnly: readOnly, draft: draft, inputs: inputs, cancellation: cancellation)
       defer { session.close() }
       let results = try session.run(statements)
+      // A table filled with a summary of another stops following it, which a view of that
+      // summary rarely means. The first such call in a request saves nothing and says how to
+      // show it live; one sent after it, such as the same statements again, saves.
+      if holdsSummaryCopies, let tally = confirmLarge, !draft, !readOnly {
+        let copies = SQLScratch.summaryCopies(statements).filter {
+          session.scratch.fills($0.target)
+        }
+        if let copy = copies.first, tally.holdsSummaryCopy() {
+          return Self.heldSummaryCopy(copy)
+        }
+      }
       let saved = try saveChatSQL(
         session.scratch, results: results, draft: draft, token: token,
         requestSourceID: requestSourceID, confirmLarge: confirmLarge, cancellation: cancellation)
@@ -230,6 +241,17 @@ public final class ChatChangeTally: @unchecked Sendable {
     defer { lock.unlock() }
     let prior = tables[id] ?? (rows, 0, 0)
     tables[id] = (prior.rows, prior.deleted + deleted, prior.updated + updated)
+  }
+
+  /// Whether this request already held a summary copy once.
+  private var heldCopy = false
+  /// Whether to hold a summary copy: only the request's first. A call sent after it, the
+  /// same statements again above all, means the user wants that fixed table, and saves.
+  func holdsSummaryCopy() -> Bool {
+    lock.lock()
+    defer { lock.unlock() }
+    defer { heldCopy = true }
+    return !heldCopy
   }
 }
 
@@ -2072,7 +2094,33 @@ extension SQLScratch {
   }
 }
 
+extension SQLScratch {
+  /// Whether this call created the table named, or wrote rows in it.
+  func fills(_ name: String) -> Bool {
+    let lower = name.lowercased()
+    return created.contains { $0.lowercased() == lower }
+      || written.contains { entries[$0].map { $0.name.lowercased() == lower } ?? false }
+  }
+}
+
 extension Workbook {
+  /// The result of a summary copy held once: nothing saved, and how a view shows the summary
+  /// live. `status` tells the host it is neither a read nor a failure.
+  static func heldSummaryCopy(_ copy: (target: String, sources: [String])) -> Value {
+    let sources = copy.sources.joined(separator: " and ")
+    return .object([
+      "status": .string("not_saved"),
+      "notice": .string(
+        "Nothing was changed. " + copy.target + " would be a summary of " + sources
+          + " that does not follow later changes to " + sources + ". For a view, chart "
+          + copy.sources[0]
+          + " itself, since the chart adds up y for each x, or give the component a query such as SELECT x, SUM(y) AS y FROM "
+          + copy.sources[0]
+          + " GROUP BY x. If the user wants a separate fixed summary table, send the same statements again."
+      ),
+    ])
+  }
+
   /// Short notes for the model about what a saved sql call made of the data: a table filled
   /// with a summary that will not follow its source, and a row that repeats the column
   /// totals. They ride in the result's notice, beside the saved changes.

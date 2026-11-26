@@ -408,6 +408,35 @@ extension Workbook {
     return
       "Nothing changed: \(subject) already has these values.\(shows) If the user asked for what it already shows, say so. To change \(target == nil ? "the view" : "it"), include the field that changes, for example \(example). To add something beside it, such as a total, insert a new component, such as a metric."
   }
+  /// What the person reads when a view edit changed nothing: the component by its title and
+  /// what it already shows, in plain words, such as
+  /// "Nothing needed to change: “Sales” already shows that (bar chart).".
+  /// `arguments` is the edit call's: the view's id and its edits.
+  public func unchangedViewLine(_ arguments: Value) -> String {
+    let fallback = "Nothing needed to change: the view already shows that."
+    guard let id = arguments["id"].string, let space = try? space(id) else { return fallback }
+    let ids = arguments["edits"].array.compactMap {
+      $0["componentID"].string ?? $0["component"]["id"].string
+    }
+    guard let target = ids.lazy.compactMap({ space.definition.component($0) }).first else {
+      return "Nothing needed to change: “" + space.title + "” already shows that."
+    }
+    let shows: String
+    switch target.type {
+    case "chart": shows = (target.chartStyle ?? "bar") + " chart"
+    case "metric":
+      switch target.aggregation ?? "SUM" {
+      case "COUNT": shows = "a count"
+      case "AVERAGE": shows = "an average"
+      case "MIN": shows = "the smallest value"
+      case "MAX": shows = "the largest value"
+      default: shows = "a total"
+      }
+    default: shows = target.type
+    }
+    let title = target.title.isEmpty ? space.title : target.title
+    return "Nothing needed to change: “" + title + "” already shows that (" + shows + ")."
+  }
   /// The order a model's grammar writes an edit's fields in. A model that writes the component
   /// first cannot go back for the position, so an error names this order.
   package static let editFieldOrder = [

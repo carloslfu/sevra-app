@@ -461,8 +461,20 @@ package struct ActionConfirmations {
 
   package mutating func recordFailure(
     tool: String, arguments: Value, result: Value, receiptID: String,
-    appTargetNotFound: Bool = false
+    appTargetNotFound: Bool = false, unchanged: String? = nil
   ) {
+    // An edit refused because the view already shows what it asks is an outcome, not a
+    // failure: the person reads that nothing needed to change, never the model's refusal.
+    if let unchanged {
+      entries.append(
+        .object([
+          "receiptID": .string(receiptID), "tool": .string(tool), "kind": .string("unchanged"),
+          "targetID": .string(receiptID), "title": .string(unchanged),
+          "spaceID": arguments["id"], "attempt": .string(Self.attempt(tool, arguments)),
+          "intent": .string(Self.intent(tool, arguments)),
+        ]))
+      return
+    }
     let task: String
     switch tool {
     case "workspace_action":
@@ -739,7 +751,7 @@ package struct ActionConfirmations {
             || (entry["error"].text.contains(Self.repeatRefused) && recoveredFailure(entry, at: index))
         else { return false }
       case "chat_approval", "cancelled": return false
-      case "settled": break
+      case "settled", "unchanged": break
       default: saved = true
       }
     }
@@ -754,7 +766,16 @@ package struct ActionConfirmations {
   /// Whether anything this request asked for was saved: a change, not a refusal, a wait for
   /// the person or a cancelled panel.
   package var savedAnything: Bool {
-    entries.contains { !["failure", "chat_approval", "cancelled", "settled"].contains($0["kind"].text) }
+    entries.contains {
+      !["failure", "chat_approval", "cancelled", "settled", "unchanged"].contains($0["kind"].text)
+    }
+  }
+
+  /// Whether the request's only outcome is that what it asked for was already so: an edit
+  /// that changed nothing, with nothing saved, failed, waiting or cancelled.
+  package var unchangedOnly: Bool {
+    entries.contains { $0["kind"].text == "unchanged" } && !savedAnything && !hasUnresolvedFailure
+      && !entries.contains { ["chat_approval", "cancelled"].contains($0["kind"].text) }
   }
 
   /// The title of something a save failed to make, and nothing saved since, that the answer
@@ -811,7 +832,8 @@ package struct ActionConfirmations {
   /// list follows an account that has already said why: it names each unfinished task once.
   /// `omittingFailuresOf` leaves out a tool's failures that another line already explains.
   package func rendered(
-    excluding receiptID: String?, brief: Bool = false, omittingFailuresOf omitted: String? = nil
+    excluding receiptID: String?, brief: Bool = false, omittingFailuresOf omitted: String? = nil,
+    omittingUnchanged: Bool = false
   ) -> String? {
     var seen = Set<String>()
     // Every table change keeps an Undo. The last line that reports one says so, once.
@@ -824,6 +846,15 @@ package struct ActionConfirmations {
       let kind = entry["kind"].text
       if recoveredFailure(entry, at: index) || entry["receiptID"].string == receiptID { return nil }
       if kind == "failure", let omitted, entry["tool"].text == omitted { return nil }
+      if kind == "unchanged" {
+        // Said once, and not at all once a later edit of the same view saved.
+        guard !omittingUnchanged, seen.insert("unchanged:" + entry["title"].text).inserted,
+          !entries.dropFirst(index + 1).contains(where: {
+            $0["kind"].text == "space_edit" && $0["targetID"] == entry["spaceID"]
+          })
+        else { return nil }
+        return entry["title"].text
+      }
       let id = entry["targetID"].text
       let qualifier = entry["qualifier"].text
       guard seen.insert(kind + ":" + id + ":" + qualifier).inserted else { return nil }

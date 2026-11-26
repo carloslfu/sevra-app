@@ -332,7 +332,8 @@ public enum WorkbookAgent {
       }
       // The Mac's date, weekday, time and zone come with every chat request, small enough that
       // "overdue", "this month" and "every Monday" need no guess. Below the prepared header.
-      if excelConversion == nil { policy += "\n" + ConversationDateContext.nowLine() }
+      let requestNow = Date()
+      if excelConversion == nil { policy += "\n" + ConversationDateContext.nowLine(requestNow) }
       if [requestTask, submittedText].contains(where: {
         $0.range(
           of: #"(?i)\b(today|tomorrow|yesterday|this week|next week|last week)\b"#,
@@ -382,6 +383,7 @@ public enum WorkbookAgent {
         conversation: conversation, readOnly: readOnly, excelConversion: excelConversion)
       // A chat change that empties, removes or mostly rewrites a table waits for the person.
       tools.confirmsLargeChanges = excelConversion == nil
+      tools.requestNow = requestNow
       // Storage and progress metadata are host context, not more user text.
       // Keep the submitted request intact and expose its Source for provenance,
       // without making that Source sound like a document the user asked to find.
@@ -753,7 +755,12 @@ public enum WorkbookAgent {
           // follows as the proof. Two refused answers are enough: after that the host's lines
           // stand alone, whatever basis the answer claims, so a summary that cannot pass never
           // fails a request that saved.
-          let saved = actionConfirmations.keepsSummary
+          // When the only outcome is that the view already showed what was asked, the model's
+          // own account of that stands, unless it claims a change.
+          let unchangedOnly = actionConfirmations.unchangedOnly
+          let saved =
+            actionConfirmations.keepsSummary
+            || (unchangedOnly && !ChangeClaim.claims(a["answer"].text))
           let summaryRefused = saved && finalFailures >= 2
           let keepsSummary =
             saved && !summaryRefused
@@ -776,11 +783,12 @@ public enum WorkbookAgent {
           let falseChangeClaim =
             actionText == nil
             && (unsavedClaim != nil
-              || (!actionConfirmations.savedAnything && actionConfirmations.hasUnresolvedFailure
+              || (!actionConfirmations.savedAnything
+                && (actionConfirmations.hasUnresolvedFailure || unchangedOnly)
                 && ChangeClaim.claims(a["answer"].text)))
           if falseChangeClaim && changeClaimRefused {
             actionText =
-              actionConfirmations.savedAnything
+              actionConfirmations.savedAnything || unchangedOnly
               ? actionConfirmations.rendered ?? "Nothing was changed."
               : "Nothing was changed." + (actionConfirmations.rendered.map { "\n" + $0 } ?? "")
           }
@@ -788,7 +796,9 @@ public enum WorkbookAgent {
           // Independent cited facts remain useful alongside explicit outcomes.
           let supplementalActionText =
             actionText == nil
-            ? actionConfirmations.rendered(excluding: nil, brief: wrapUp != nil) : nil
+            ? actionConfirmations.rendered(
+              excluding: nil, brief: wrapUp != nil, omittingUnchanged: unchangedOnly && keepsSummary)
+            : nil
           var answer = actionText ?? a["answer"].text
           // A currency symbol nothing gave, beside a number, is the host's to take out: the
           // number stays, and its own checks still apply. Any other symbol is still refused.
@@ -940,7 +950,7 @@ public enum WorkbookAgent {
               )
             }
           }
-          if basis == "completed_action" && !completedAction && actionText == nil {
+          if basis == "completed_action" && !completedAction && actionText == nil && !unchangedOnly {
             problems.append(
               "No completed action is available to confirm. Inspect the saved receipts/state and do not claim success."
             )
@@ -1261,6 +1271,8 @@ public enum WorkbookAgent {
         var preparationPreviewReceiptID: String?
         var commitArguments: Value?
         var nothingFailed = false
+        // A view edit that changed nothing: the person's line saying it already shows that.
+        var unchangedLine: String?
         var retainedSaveComparison: Value?
         var retainedAppCheck: Value?
         var isolatedTestStepsPassed = 0
@@ -1559,6 +1571,9 @@ public enum WorkbookAgent {
           // Reminding the model of a stopped request changes nothing, so nothing failed.
           nothingFailed = ["stopped_request"].contains(
             (error as? SevraError)?.code)
+          if tool == "edit_space", (error as? SevraError)?.code == "nothing_changed" {
+            unchangedLine = workbook.unchangedViewLine(a)
+          }
           if ["open_space", "open_reviews", "open_automation", "set_space_pinned"].contains(tool),
             let failure = error as? SevraError,
             [
@@ -1787,7 +1802,8 @@ public enum WorkbookAgent {
           if !nothingFailed {
             actionConfirmations.recordFailure(
               tool: tool, arguments: a, result: result, receiptID: receiptID,
-              appTargetNotFound: (appRoutingFailure as? SevraError)?.code == "space_not_found")
+              appTargetNotFound: (appRoutingFailure as? SevraError)?.code == "space_not_found",
+              unchanged: unchangedLine)
           }
           var key = repeatKey
           if tool == "save_native_app", excelConversion != nil,
@@ -2138,9 +2154,10 @@ public enum WorkbookAgent {
                 in: projected == result ? result : ToolResultProjection.visibleValue(projected))
               : []))
         messages[messages.count - 1].hasCalculationResult = !calculationInputsThisStep.receipts.isEmpty
-        // A read sent again at once can only return the same result.
+        // A read sent again at once can only return the same result. A held summary copy is
+        // not a read: the same call sent again saves.
         previousRead =
-          !callFailed
+          !callFailed && result["status"] != .string("not_saved")
             && (WorkbookTools.readOnlyTools.contains(tool)
               || ((tool == "sql" || tool == "run") && result["changes"].array.isEmpty
                 && result["drafts"].array.isEmpty && result["shape"].array.isEmpty
