@@ -51,9 +51,7 @@ func chatCall(_ operation: String, _ arguments: Value, scope: InferenceToolScope
   guard !scope.specialized else { return (operation, arguments) }
   var fields = arguments.object
   func read(_ kind: String) -> (String, Value) {
-    if !["references", "lineage", "archive", "actions"].contains(kind),
-      let id = fields.removeValue(forKey: "id")
-    {
+    if kind != "actions", let id = fields.removeValue(forKey: "id") {
       fields["ref"] = id
     }
     if kind == "actions", let domain = fields.removeValue(forKey: "domain") {
@@ -63,7 +61,11 @@ func chatCall(_ operation: String, _ arguments: Value, scope: InferenceToolScope
     return ("read", .object(fields))
   }
   switch operation {
-  case "read", "sql", "run", "finish", "search": return (operation, arguments)
+  case "read":
+    // An item is read by ref, like everything else read names.
+    if let id = fields.removeValue(forKey: "id") { fields["ref"] = id }
+    return ("read", .object(fields))
+  case "sql", "run", "finish", "search": return (operation, arguments)
   case "save" where fields["kind"] == .string("tool"):
     fields["kind"] = nil
     return ("save", .object(["tool": .object(fields)]))
@@ -83,7 +85,8 @@ func chatCall(_ operation: String, _ arguments: Value, scope: InferenceToolScope
     )
   default: break
   }
-  if let kind = GeneralTools.reads.first(where: { $0.value == operation })?.key {
+  // A list and its one-thing read share an operation. The list is the one meant here.
+  if let kind = GeneralTools.reads.filter({ $0.value == operation }).map(\.key).max() {
     return read(kind)
   }
   if let kind = GeneralTools.saves.first(where: { $0.value == operation })?.key {

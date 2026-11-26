@@ -147,9 +147,9 @@ func checkConversationLatency() async throws {
   let aJSON = try JSONSerialization.data(withJSONObject: a.promptTools(), options: [.sortedKeys])
   let bJSON = try JSONSerialization.data(withJSONObject: b.promptTools(), options: [.sortedKeys])
   try require(aJSON == bJSON, "test", "Dynamic IDs changed the prompt prefix")
-  try a.validate(ToolPolicyChecks().candidate("read", [("id", first)], policy: a))
+  try a.validate(ToolPolicyChecks().candidate("read", [("ref", first)], policy: a))
   do {
-    try a.validate(ToolPolicyChecks().candidate("read", [("id", second)], policy: a))
+    try a.validate(ToolPolicyChecks().candidate("read", [("ref", second)], policy: a))
     throw SevraError("test", "Prompt projection weakened ID validation")
   } catch is SevraError {
     throw SevraError("test", "ID validation accepted a different choice")

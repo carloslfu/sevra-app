@@ -295,6 +295,63 @@ func checkSpaceEditing(at temp: URL) {
     try expect(try book.revision() == revision && book.item(note.id).text == "Keep me")
     try refuses("view_limit") { _ = try book.pinSpace("home") }
   }
+  check("an insertion beside a comparison's column joins it while it has room") {
+    let book = try fixture()
+    func text(_ id: String) -> Component { .init(id: id, type: "text", title: id, text: id) }
+    let id = try book.saveSpace(
+      title: "Side by side",
+      definition: .init(components: [
+        .init(id: "group", type: "comparison", title: "Together", children: [text("a"), text("b")])
+      ]))
+    func message(_ body: () throws -> Void) -> String {
+      do { try body() } catch { return (error as? SevraError)?.message ?? "\(error)" }
+      return "saved"
+    }
+    let joined = try book.editSpace(
+      id, expectedVersion: 1,
+      edits: [.init(operation: "insert", beforeID: "b", component: text("c"))])
+    try expect(joined.definition.components.map(\.id) == ["group"])
+    try expect(joined.definition.components[0].children?.map(\.id) == ["a", "c", "b"])
+    // Full, the refusal says where the component can go instead.
+    let full = message {
+      _ = try book.editSpace(
+        id, expectedVersion: 2,
+        edits: [.init(operation: "insert", beforeID: "a", component: text("d"))])
+    }
+    try expect(
+      full
+        == "a is inside comparison group, which already has three columns. Place the new component before group or with at first or last, or replace group to change its columns.",
+      full)
+    let unknown = message {
+      _ = try book.editSpace(
+        id, expectedVersion: 2,
+        edits: [.init(operation: "insert", beforeID: "nowhere", component: text("d"))])
+    }
+    try expect(unknown.hasPrefix("No component is named nowhere."), unknown)
+    try expect(try book.space(id).version == 2)
+  }
+  check("a component with no table says to make one only when the workbook has none") {
+    let book = try fixture()
+    let metric = SpaceDefinition(components: [
+      .init(id: "visits", type: "metric", title: "Visits", aggregation: "COUNT")
+    ])
+    func message() -> String {
+      do { _ = try book.saveSpace(title: "Counts", definition: metric) } catch {
+        return (error as? SevraError)?.message ?? "\(error)"
+      }
+      return "saved"
+    }
+    let none = message()
+    try expect(none.contains("The workbook has no tables yet. Create the table it shows first"), none)
+    try expect(!none.contains("do not create"), none)
+    _ = try book.chatSQL(
+      statements: ["CREATE TABLE visits (customer TEXT)"], readOnly: false, token: identifier(),
+      requestSourceID: nil)
+    let some = message()
+    try expect(some.contains("such as Visits (") || some.contains("such as visits ("), some)
+    try expect(some.contains("do not create a table of totals for it"), some)
+    try expect(some.contains("If the table it should show does not exist yet, create it first"), some)
+  }
   check("a stray or unknown visual says what to change") {
     let book = try fixture()
     let tools = WorkbookTools(book)

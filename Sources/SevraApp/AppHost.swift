@@ -25,6 +25,7 @@ import SevraVoice
       return false
     }
     static func speech() -> SpeechInput { SpeechInput(driverFactory: { CatalogDictation() }) }
+    static func dictationCleaner() -> (any DictationCleaner)? { CatalogDictationCleaner() }
     static func installed(at: URL) async -> Bool { false }
     static func setup(
       at: URL, reusing: URL?, cancellation: Cancellation,
@@ -43,6 +44,10 @@ import SevraVoice
     @discardableResult static func openExternal(_ url: URL) -> Bool { NSWorkspace.shared.open(url) }
     static func speech() -> SpeechInput {
       SpeechInput(pausePlayback: { PlaybackRegistry.shared.pauseAll() })
+    }
+    /// The Mac's on-device model, when it has one. Without it dictation is kept as said.
+    static func dictationCleaner() -> (any DictationCleaner)? {
+      OnDeviceDictationCleaner.available ? OnDeviceDictationCleaner() : nil
     }
     static func installed(at url: URL) async -> Bool { await ai.installed(at: url) }
     static func setup(

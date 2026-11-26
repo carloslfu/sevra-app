@@ -211,11 +211,11 @@ func checkReferenceTraversal() async throws {
   }
   let policy = try NativeCitationPolicy.make([], itemReferenceIDs: [fixture.overview.id])
   let checks = ToolPolicyChecks()
-  let references = [("id", fixture.overview.id), ("kind", "references")]
+  let references = [("kind", "references"), ("ref", fixture.overview.id)]
   try policy.validate(checks.candidate("read", references, policy: policy))
   for fields in [
     references + [("direction", "both")], references + [("historicalOrigins", "\"true\"")],
-    references + [("limit", "100")], [("id", identifier()), ("kind", "references")],
+    references + [("limit", "100")], [("kind", "references"), ("ref", identifier())],
   ] {
     try expectThrows(try policy.validate(checks.candidate("read", fields, policy: policy)))
   }

@@ -69,6 +69,9 @@ func checkWorkbookGrammars(frontend: SplashTextFrontend, factory: SplashGrammarF
     (#"{"operation":"insert","# + component + #", "title":"Stock"}"#, false),
     (#"{"operation":"insert","at":"last","# + component + #", "title":"Stock"}"#, false),
     (#"{"operation":"reset","title":"Stock"}"#, false),
+    // Only a visual or an image takes visual.
+    (#"{"operation":"insert","at":"last","component":{"id":"v","type":"visual","title":"V","visual":{}}}"#, true),
+    (#"{"operation":"insert","at":"last","component":{"id":"b","type":"button","title":"B","visual":{}}}"#, false),
   ] {
     let tokens = frontend.encode(
       "<tool_call>\n<function=run>\n<parameter=action>\n"
@@ -81,7 +84,7 @@ func checkWorkbookGrammars(frontend: SplashTextFrontend, factory: SplashGrammarF
       try expectThrows(try grammar.finish(committed: tokens, requireComplete: true))
     }
   }
-  print("PASS layout grammar keeps insert labels in components and refuses fields from other edits")
+  print("PASS layout grammar keeps insert labels in components, refuses fields from other edits and a visual on a button")
   for item in fixture.cases {
     let choice: SplashToolPolicy.Choice =
       item.choice == "named_finish" ? .named("finish") : item.choice == "auto" ? .auto : .required

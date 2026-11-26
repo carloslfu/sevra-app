@@ -318,9 +318,19 @@ extension Workbook {
       }
       if ["table", "chart", "metric"].contains(c.type) {
         guard let id = c.datasetID else {
+          // With no table to point at, the only way forward is to make the one it shows.
+          let tables = try datasets()
+          let shown = tables.prefix(8).map { "\($0.title) (\($0.id))" }.joined(separator: ", ")
           throw SevraError(
             "view",
-            "Component \(c.id) (\(c.type)) needs datasetID: the id of the existing table it draws from. It can be the same table another component shows. Do not create a table for it."
+            tables.isEmpty
+              ? "Component \(c.id) (\(c.type)) needs datasetID: the id of the table it shows. The workbook has no tables yet. Create the table it shows first with sql, then use its id from SELECT name, id FROM tables."
+              : "Component \(c.id) (\(c.type)) needs datasetID: the id of the table it shows, such as "
+                + shown + ". It can be the same table another component shows."
+                + (c.type == "table"
+                  ? ""
+                  : " A \(c.type) adds up its table itself, so do not create a table of totals for it.")
+                + " If the table it should show does not exist yet, create it first with sql and use its id."
           )
         }
         let table = try dataset(id)

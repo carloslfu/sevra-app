@@ -56,6 +56,11 @@ extension NativeTools {
                 "type": .string("string"),
                 "enum": .array(["text", "number", "boolean", "date"].map(Value.string)),
               ]),
+              "required": .object([
+                "type": .string("boolean"),
+                "description": .string(
+                  "false when the input may be left empty, such as an optional note. Its :name is then NULL. Default true."),
+              ]),
             ]),
             "required": .array([.string("name"), .string("type")]),
           ]),

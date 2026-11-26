@@ -19,15 +19,15 @@ public struct WorkbookTools {
       table: datasetID, a table's id from SELECT name, id FROM tables.
       chart: datasetID, chartStyle, x and y, in that order. chartStyle is bar or line, and bar when left out. x and y are column ids of that table from SELECT table_name, name, id FROM columns: x the categories, y a number. The chart adds up y for each x itself.
       metric: one number from a table, such as a count or a total: datasetID, aggregation, unit and y, in that order. aggregation is SUM, AVERAGE, MIN, MAX or COUNT, and SUM when left out. unit only when the request or the evidence states one. y is the column it reads; COUNT counts the rows and needs no y.
-      button: runs a saved tool when pressed: definitionBinding, arguments and size, in that order. definitionBinding is {tool: the tool's name}. arguments holds the values of inputs the button always uses; leave out each input the person picks when pressing, such as which invoice or which customer, and the button shows a field for it. One button serves the whole view, not one per row. Save the tool first: its statements are what a press does, such as an INSERT, an UPDATE or a DELETE. A button shows only what its last press returned: to keep what its tool records in view, such as a count or a total, add a metric or a table of that table.
+      button: runs a saved tool when pressed: definitionBinding, arguments and size, in that order. definitionBinding is {tool: the tool's name}. arguments holds the values of inputs the button always uses; leave out each input the person picks when pressing, such as which invoice or which customer, and the button shows a field for it. One button serves the whole view, not one per row. A button runs only a saved tool, so when no saved tool does what it should do, save one first with save {tool}, then bind the button to it: the tool's statements are what a press does, such as an INSERT, an UPDATE or a DELETE. A button shows only what its last press returned: to keep what its tool records in view, such as a count or a total, add a metric or a table of that table.
       size: small, medium or large, and medium when left out. It sets how large a \(SpaceDefinition.sizedTypes.dropLast().joined(separator: ", ")) or \(SpaceDefinition.sizedTypes.last!) is drawn; a visual takes it only when it is a chart.
       document, asset: itemID, the exact ID of that document or file.
       text: text, its content. search: query, its words.
       app: spaceID, the saved app's exact ID. To show one declared view of the app, add viewID and its viewVersion.
-      comparison: children, two or three components side by side.
+      comparison: children, two or three components side by side. To add a column to a saved comparison, insert with beforeID set to one of its children.
       form, calculation, query: read kind=definition with ref set to the saved definition's ID, copy the nativeComponent it returns and fill its arguments. Keep its definitionBinding. A result lists fields by name, so write them in the component order above, not as the result lists them.
       Example: {title: "Purchasing", definition: {version: 1, components: [{id: "table1", type: "table", title: "Quotes", datasetID: the table's id}, {id: "chart1", type: "chart", title: "Total by supplier", datasetID: the table's id, x: "supplier", y: "total"}]}}.
-      To change a saved view, read kind=views for its id and version, then run action view.edit with {id, expectedVersion, edits}. Home is the saved view with id home. To add a component: edits [{operation: "insert", at: "first" or "last", component}].
+      To change a saved view, read kind=view with ref set to its id for its components and version (read kind=views lists every view), then run action view.edit with {id, expectedVersion, edits}. Home is the saved view with id home. To add a component: edits [{operation: "insert", at: "first" or "last", component}].
       A screen with its own logic, beyond tables, charts and buttons, is an app: read kind=app_guide.
       """,
   ]
@@ -282,6 +282,7 @@ public struct WorkbookTools {
           let type = $0["type"].text
           return ($0["name"].text, type == "number" ? "decimal" : type.isEmpty ? "text" : type)
         },
+        optional: Set(a["inputs"].array.filter { $0["required"] == .bool(false) }.map(\.["name"].text)),
         statements: statements, source: a["source"].string, token: "save-" + (receiptID ?? token),
         requestSourceID: requestSourceID, cancellation: cancellation)
     case "guide":
@@ -428,22 +429,33 @@ public struct WorkbookTools {
       return try NativeAppAuthoring.save(a, checkResult: nativeAppCheck, tools: self)
     case "removed": return .array(try workbook.removedThings())
     case "spaces":
-      return .array(
-        try workbook.spaces().map { space in
-          var fields = try encoded(space).object
-          if let app = space.definition.app {
-            fields["definition"] = .object([
-              "version": .number(1),
-              "app": .object([
-                "name": .string(app.name), "digest": .string(app.digest),
-                "notice": .string(
-                  "Programmable app. Use read_native_app, then save_native_app to edit. Fixed-layout edit_space is not supported."
-                ),
-              ]),
-            ])
-          }
-          return .object(fields)
-        })
+      func shown(_ space: Space) throws -> Value {
+        var fields = try encoded(space).object
+        if let app = space.definition.app {
+          fields["definition"] = .object([
+            "version": .number(1),
+            "app": .object([
+              "name": .string(app.name), "digest": .string(app.digest),
+              "notice": .string(
+                "Programmable app. Use read_native_app, then save_native_app to edit. Fixed-layout edit_space is not supported."
+              ),
+            ]),
+          ])
+        }
+        return .object(fields)
+      }
+      let spaces = try workbook.spaces()
+      // One view, by its id, carries what an edit needs: its components and its version.
+      if let id = a["id"].string {
+        guard let space = spaces.first(where: { $0.id == id }) else {
+          throw SevraError(
+            "view",
+            "No saved view has the id \(id). Saved views: "
+              + spaces.map { "\($0.title) (\($0.id))" }.joined(separator: ", ") + ".")
+        }
+        return try shown(space)
+      }
+      return .array(try spaces.map(shown))
     case "open_automation":
       let automation = try workbook.automationTarget(string("target"))
       return .object([

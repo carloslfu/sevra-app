@@ -220,8 +220,14 @@ extension Workbook {
           guard let component = edit.component else {
             throw SevraError("view", "An insertion needs a component.")
           }
-          let index = try insertionIndex(edit, in: definition.components)
-          definition.components.insert(component, at: index)
+          if let before = edit.beforeID, edit.at == nil,
+            !definition.components.contains(where: { $0.id == before })
+          {
+            try insertInComparison(component, before: before, in: &definition.components)
+          } else {
+            let index = try insertionIndex(edit, in: definition.components)
+            definition.components.insert(component, at: index)
+          }
         } else {
           // A replacement keeps the component's ID, so the component names its own target.
           guard
@@ -294,6 +300,38 @@ extension Workbook {
       throw SevraError("view", "Move before a component in the same group.")
     }
     return index
+  }
+  /// An insertion before a component inside a comparison joins that comparison's columns
+  /// when it has room. A comparison holds two or three.
+  private func insertInComparison(
+    _ component: Component, before: String, in components: inout [Component]
+  ) throws {
+    guard try insertNested(component, before: before, in: &components) else {
+      throw SevraError(
+        "view",
+        "No component is named \(before). Use beforeID with the id of a component in the view, or at first or last."
+      )
+    }
+  }
+  private func insertNested(
+    _ component: Component, before: String, in components: inout [Component]
+  ) throws -> Bool {
+    for index in components.indices {
+      guard var children = components[index].children else { continue }
+      if let at = children.firstIndex(where: { $0.id == before }) {
+        let group = components[index].id
+        try require(
+          children.count < 3, "view",
+          "\(before) is inside comparison \(group), which already has three columns. Place the new component before \(group) or with at first or last, or replace \(group) to change its columns."
+        )
+        children.insert(component, at: at)
+      } else if try !insertNested(component, before: before, in: &children) {
+        continue
+      }
+      components[index].children = children
+      return true
+    }
+    return false
   }
   private func alterComponent(_ id: String, in components: inout [Component], edit: SpaceEdit)
     throws -> Bool

@@ -33,9 +33,9 @@ struct ToolButtonView: View {
     guard let button, let tool else { return [] }
     return button.open(tool)
   }
-  // Every input of a tool needs a value when it runs, whatever its definition calls optional.
+  // A required input needs a value. An optional one left empty runs as NULL.
   private var missing: Bool {
-    open.contains { $0.type != "boolean" && filled($0.name).isEmpty }
+    open.contains { $0.required && $0.type != "boolean" && filled($0.name).isEmpty }
   }
   private var canPress: Bool {
     owner != nil && tool?.enabled == true && !missing && !state.busy
@@ -47,8 +47,9 @@ struct ToolButtonView: View {
     let words = name.replacingOccurrences(of: "_", with: " ")
     return words.prefix(1).uppercased() + words.dropFirst()
   }
-  private func prompt(_ type: String) -> String {
-    type == "decimal" ? "Number" : type == "date" ? "YYYY-MM-DD" : ""
+  private func prompt(_ type: String, required: Bool) -> String {
+    let shape = type == "decimal" ? "Number" : type == "date" ? "YYYY-MM-DD" : ""
+    return required ? shape : shape.isEmpty ? "Optional" : shape + ", optional"
   }
   private var controlSize: ControlSize {
     component.size == "large" ? .extraLarge : component.size == "small" ? .regular : .large
@@ -73,7 +74,7 @@ struct ToolButtonView: View {
             TextField(
               label(input.name),
               text: Binding(get: { text[input.name] ?? "" }, set: { text[input.name] = $0 }),
-              prompt: Text(prompt(input.type))
+              prompt: Text(prompt(input.type, required: input.required))
             )
             .labelsHidden().textFieldStyle(.roundedBorder).frame(maxWidth: 320)
             .onSubmit { if canPress { press() } }

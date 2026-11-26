@@ -26,6 +26,17 @@ func checkSQLTool() async throws {
     "read", .object(["kind": .string("message"), "ref": .string("m1")]))
   try expectEqual(message.tool, "history_read")
   try expectEqual(message.arguments, .object(["id": .string("m1")]))
+  // Every read names its thing by ref, an item and its relations too.
+  for (arguments, tool) in [
+    (Value.object(["ref": .string("d1"), "offset": .number(2)]), "read"),
+    (.object(["kind": .string("lineage"), "ref": .string("d1")]), "lineage"),
+    (.object(["kind": .string("view"), "ref": .string("home")]), "spaces"),
+  ] {
+    let routed = GeneralTools.route("read", arguments)
+    try expectEqual(routed.tool, tool)
+    try expectEqual(routed.arguments["id"], arguments["ref"])
+    try expectEqual(routed.arguments["ref"], .null)
+  }
   try expectEqual(
     GeneralTools.route(
       "run", .object(["action": .object(["name": .string("table.schema")])])
@@ -46,6 +57,17 @@ func checkSQLTool() async throws {
   let book = try Workbook(
     URL(fileURLWithPath: Demo.create(at: root.appendingPathComponent("SQL.sevra"))["path"].text))
   let tableID = try expectValue(try book.datasets().first { $0.title == "Supplier comparison" }).id
+  // One view by its id carries its components and the version an edit needs. A wrong id
+  // names the views there are.
+  let home = try WorkbookTools(book).execute("spaces", .object(["id": .string("home")]))
+  try expectEqual(home["id"], .string("home"))
+  try expectEqual(home["version"].int != nil && !home["definition"]["components"].array.isEmpty, true)
+  do {
+    _ = try WorkbookTools(book).execute("spaces", .object(["id": .string("homepage")]))
+    throw SevraError("check", "A view that does not exist was read.")
+  } catch let error as SevraError where error.code == "view" {
+    try expectEqual(error.message.contains("(home)"), true)
+  }
   func values() throws -> [[String: Value]] {
     let table = try book.dataset(tableID)
     return try book.rows(tableID).map { book.calculatedValues($0, columns: table.columns) }

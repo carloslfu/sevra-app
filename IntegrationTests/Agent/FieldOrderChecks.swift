@@ -47,9 +47,21 @@ func checkFieldOrder() throws {
     }
   }
   // The component order the view description and guide state is the grammar's.
+  // A component is one of two shapes, with visual or with children. Their fields together
+  // are written in this order.
+  let components = NativeTools.componentSchema(depth: 0)["anyOf"].array
+  try expectEqual(components.count, 2)
+  var union: [String: Value] = [:]
+  for shape in components {
+    union.merge(shape["properties"].object) { first, _ in first }
+    try expectEqual(
+      NativeTools.fieldOrder(shape),
+      SpaceDefinition.componentFieldOrder.filter { shape["properties"][$0] != .null })
+  }
   try expectEqual(
     SpaceDefinition.componentFieldOrder,
-    NativeTools.fieldOrder(NativeTools.componentSchema(depth: 0)))
+    NativeTools.fieldOrder(
+      .object(["properties": .object(union), "required": components[0]["required"]])))
   // The order an edit's refusal names is the grammar's.
   let edit = try expectValue(
     schemas.first { Set($0.schema["properties"].object.keys).isSuperset(of: ["operation", "componentID"]) })

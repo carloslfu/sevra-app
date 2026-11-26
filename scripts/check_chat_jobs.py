@@ -310,28 +310,67 @@ class Job:
         self.group = identifier.split('.')[0]
 
 
+SUPPLIER = re.compile(r'\b(Oak|Cedar)\b')
+COMPARED = re.compile(r'\b(?:against|compared|than|versus|vs|while|whereas)\b', re.I)
+LOWER = re.compile(r'\b(lower|lowest|cheaper|cheapest|less expensive|least expensive)\b', re.I)
+
+
 def supplier_claims(text):
-    """Each supplier named in the answer with the clause that follows it: up to the next
-    supplier, the end of the sentence, a comma or a comparison word. A decimal point does not
-    end a sentence."""
-    end = r'(?<!\d)[.;:\n](?!\d)|,|\b(?:against|compared|than|versus|vs|while|whereas)\b'
-    parts = re.split(r'\b(Oak|Cedar)\b', text)
-    for index in range(1, len(parts) - 1, 2):
-        yield parts[index], re.split(end, parts[index + 1], flags=re.I)[0]
+    """Each supplier named in the answer with what the answer says of it, sentence by
+    sentence. A decimal point does not end a sentence. In a sentence that names one supplier,
+    the claim is the whole sentence, less what a comparison word gives the other side: the
+    text before the name back to the last comparison word, and after it up to the next one.
+    In a sentence that names both, each name's claim runs to the next name or comparison word
+    and stops at a comma, unless the commas only set off an aside right after the name, as in
+    "Cedar Tools, at 24, is cheaper". The first name also takes the text before it."""
+    for sentence in re.split(r'(?<!\d)[.;!?\n](?!\d)', text):
+        parts = SUPPLIER.split(sentence)
+        named = parts[1::2]
+        for index in range(1, len(parts) - 1, 2):
+            before = COMPARED.split(parts[index - 1])[-1] if index == 1 else ''
+            after = COMPARED.split(parts[index + 1])[0]
+            if len(named) > 1:
+                pieces = after.split(',')
+                bare = re.fullmatch(r"\s*(?:Supply|Tools)?(?:'s?)?\s*", pieces[0])
+                after = ','.join(pieces[:3]) if bare and len(pieces) >= 3 else pieces[0]
+            yield parts[index], before + parts[index] + after
+
+
+def swapped(answer):
+    """Oak Supply totals 24 and Cedar Tools 27.5, so a claim giving Cedar the lower total or
+    24, or Oak 27.5, swaps the suppliers. Numbers alone pass with the suppliers swapped."""
+    problems = []
+    for name, claim in supplier_claims(answer):
+        wrong = '27.5' if name == 'Oak' else '24'
+        if name == 'Cedar' and LOWER.search(re.sub(r'\d[\d.,]*\s*(?:%|percent)\s*\w+', ' ', claim)):
+            problems.append('the answer calls Cedar Tools the lower total')
+        if any(n == Decimal(wrong) for n in numbers(claim)):
+            problems.append('the answer gives %s %s, the other supplier\'s total' % (name, wrong))
+    return problems
+
+
+def swapped_self_test():
+    """The supplier check against answers worded both ways. Returns the ones it gets wrong."""
+    right = [
+        "Oak Supply has the lower total at 24, compared to Cedar Tools' 27.5.",
+        'Cedar Tools costs 27.5, which is 3.5 more than Oak Supply at 24. Oak is 12.73% lower.',
+        'The cheaper supplier is Oak Supply: 24 against 27.5 for Cedar Tools, a difference of 3.50 or 12.73% lower.',
+        'Oak Supply (24) is cheaper than Cedar Tools (27.5) by 3.50, which is 12.73% lower.',
+        'That is 12.73% lower than Cedar Tools. Oak Supply is cheaper at 24 versus 27.5.',
+    ]
+    wrong = [
+        "Cedar Tools has the lower total at 24, compared to Oak Supply's 27.5.",
+        'Cedar Tools, at 24, is cheaper than Oak Supply.',
+        'The cheapest is Cedar Tools at 24.',
+        'Oak Supply costs 27.5, more than Cedar Tools.',
+    ]
+    return [a for a in right if swapped(a)] + [a for a in wrong if not swapped(a)]
 
 
 def comparison_check(run):
     problems = complete(run) + unchanged(run)
     problems += ['the answer does not name ' + n for n in names(run['answer'], 'Oak')]
-    # Oak Supply totals 24 and Cedar Tools 27.5, so a sentence giving Cedar the lower total or
-    # 24, or Oak 27.5, swaps the suppliers. Numbers alone pass with the suppliers swapped.
-    lower = re.compile(r'\b(lower|lowest|cheaper|cheapest|less expensive|least expensive)\b', re.I)
-    for name, claim in supplier_claims(run['answer']):
-        wrong = '27.5' if name == 'Oak' else '24'
-        if name == 'Cedar' and lower.search(claim):
-            problems.append('the answer calls Cedar Tools the lower total')
-        if any(n == Decimal(wrong) for n in numbers(claim)):
-            problems.append('the answer gives %s %s, the other supplier\'s total' % (name, wrong))
+    problems += swapped(run['answer'])
     problems = list(dict.fromkeys(problems))
     if not has(run['answer'], '3.5'):
         problems.append('the answer does not give the difference 3.50')
@@ -1239,6 +1278,9 @@ def gate(job, language, folder, redact, minimum, keep=False):
 def self_test(selected, languages):
     """No model. Every check refuses an untouched workbook and accepts the expected result."""
     failures = 0
+    misread = swapped_self_test()
+    failures += len(misread)
+    print(json.dumps({'check': 'supplier claims', 'selfTest': not misread, 'misread': misread}), flush=True)
     with tempfile.TemporaryDirectory(prefix='sevra-chat-jobs-') as temporary:
         folder = Path(temporary) / 'books'
         folder.mkdir()

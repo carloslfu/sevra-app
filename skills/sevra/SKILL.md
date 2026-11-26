@@ -91,11 +91,13 @@ sevra tool W save '{"view":{"title":"Stock","definition":{"version":1,"component
 ```
 
 - **tool**: SQL `statements` that use each input as `:name`, or `source`, a script
-  that reads `inputs.name`. A tool keeps nothing itself; what it records goes in a
-  table. Saving a tool does not run it.
+  that reads `inputs.name`. Every input is required unless it has
+  `"required":false`, and an optional input left out is NULL. A tool keeps nothing
+  itself. What it records goes in a table. Saving a tool does not run it.
 - **view**: `datasetID` is a table's `id` and chart `x` and `y` are column `id`s
-  from the catalog. To change a saved view, read `kind=views` for its version and
-  use the `view.edit` action instead of saving it again. Home is the view with id
+  from the catalog. To change a saved view, read `{"kind":"view","ref":"VIEW_ID"}`
+  for its components and version and use the `view.edit` action instead of saving
+  it again. A button runs a saved tool, so save the tool first when none fits. Home is the view with id
   `home`. Read `{"kind":"view_guide"}` for components beyond a table and a chart.
 - **app**: read `{"kind":"app_guide"}` first. An app is saved disabled, and only
   the person enables it.
@@ -107,16 +109,17 @@ sevra tool W save '{"view":{"title":"Stock","definition":{"version":1,"component
 
 ```sh
 sevra tool W search '{"query":"cedar quote"}'
-sevra tool W read '{"id":"ID"}'
+sevra tool W read '{"ref":"ID"}'
 ```
 
 Every search word must match, so use a few. `"in":"conversation"` searches
 earlier messages and `"in":"definitions"` saved definitions. A search that finds
-nothing does not prove absence. `read` takes an ID from a search or another read,
-with `offset` for later parts of a long document. `kind` reads something else:
-`references`, `lineage` and `archive` take an item's `id` and show what it links
-to, came from or contains; `app`, `definition`, `workflow` and `view_history` name
-their thing with `ref`; `views`, `reviews`, `workflows` and `removed` are lists.
+nothing does not prove absence. `read` names its thing with `ref`: alone, an ID
+from a search or another read, with `offset` for later parts of a long document.
+`kind` reads something else: `references`, `lineage` and `archive` take an item's
+ID and show what it links to, came from or contains. `app`, `definition`,
+`workflow`, `view` and `view_history` take that saved thing's ID. `views`,
+`reviews`, `workflows` and `removed` are lists.
 
 ## Whole workbooks
 

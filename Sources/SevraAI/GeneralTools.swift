@@ -34,15 +34,16 @@ package enum GeneralTools {
     return
       "A page of components: {title, definition: {version: 1, components: [{id: \"table1\", type: \"table\", title, datasetID}, {id: \"chart1\", type: \"chart\", title, datasetID, x, y}]}}. A component's fields are written in this order: "
       + order.joined(separator: ", ")
-      + ". Only a visual or image component takes visual; leave it off every other type. datasetID is a table's id from SELECT name, id FROM tables. x and y are column ids of that table from SELECT table_name, name, id FROM columns. The chart adds up y for each x itself, so never create a table of totals for one. A metric is one number: aggregation, one of SUM, AVERAGE, MIN, MAX or COUNT, over datasetID, and y, the column it reads, which COUNT does not need. A button runs a saved tool when pressed: {id: \"button1\", type: \"button\", title, definitionBinding: {tool: the tool's name}, arguments: values of inputs it always uses, size}. Leave out of arguments each input the person picks when pressing, such as which invoice: the button shows a field for it. One button serves the whole view. A button shows only what its last press returned: to keep what its tool records in view, such as a count or a total, add a metric or a table of that table. size is small, medium or large, on a "
+      + ". Only a visual or image component takes visual; leave it off every other type. datasetID is a table's id from SELECT name, id FROM tables. x and y are column ids of that table from SELECT table_name, name, id FROM columns. The chart adds up y for each x itself, so never create a table of totals for one. A metric is one number: aggregation, one of SUM, AVERAGE, MIN, MAX or COUNT, over datasetID, and y, the column it reads, which COUNT does not need. A button runs a saved tool when pressed: {id: \"button1\", type: \"button\", title, definitionBinding: {tool: the tool's name}, arguments: values of inputs it always uses, size}. When no saved tool does what the button should do, save one first with save {tool}, then bind the button to it. Leave out of arguments each input the person picks when pressing, such as which invoice: the button shows a field for it. One button serves the whole view. A button shows only what its last press returned: to keep what its tool records in view, such as a count or a total, add a metric or a table of that table. size is small, medium or large, on a "
       + sized.dropLast().joined(separator: ", ") + " or " + sized.last!
-      + ". Saving a view does not open it. Home is the saved view with id home. To change a saved view, do not save it again: read kind=views for its version, then run action view.edit with arguments {id, expectedVersion, edits: [{operation: \"insert\", at: \"first\" or \"last\", component}]}. For other components, read kind=view_guide first."
+      + ". Saving a view does not open it. Home is the saved view with id home. To change a saved view, do not save it again: read kind=view with ref set to its id for its components and version, then run action view.edit with arguments {id, expectedVersion, edits: [{operation: \"insert\", at: \"first\" or \"last\", component}]}. For other components, read kind=view_guide first."
   }
 
-  /// `read` kinds and the operation behind each. An item needs no kind.
+  /// `read` kinds and the operation behind each. An item needs no kind. `view` reads one saved
+  /// view and `views` lists them, through the same operation.
   package static let reads: [String: String] = [
     "item": "read", "message": "history_read", "result": "tool_result", "app": "read_native_app",
-    "views": "spaces", "view_history": "space_history", "definition": "read_definition",
+    "view": "spaces", "views": "spaces", "view_history": "space_history", "definition": "read_definition",
     "workflow": "read_workflow", "references": "references", "lineage": "lineage",
     "archive": "archive_members", "reviews": "review_queue", "workflows": "workflow_activity",
     "actions": "workspace_actions", "app_guide": "native_app_sdk",
@@ -93,7 +94,9 @@ package enum GeneralTools {
       default: return ("search", rest(without: "in"))
       }
     case "read":
-      guard let kind = a["kind"].string, kind != "item" else { return ("read", rest(without: "kind")) }
+      // Every read names its thing by `ref`: a document or record for an item and its
+      // relations, and the saved thing for every other kind. The operations take it as id.
+      let kind = a["kind"].string ?? "item"
       guard let target = reads[kind] else { return (tool, a) }
       let ref = fields.removeValue(forKey: "ref")
       if target == "guide" {
@@ -102,8 +105,7 @@ package enum GeneralTools {
       if kind == "actions" {
         return (target, (ref ?? a["id"]).string.map { .object(["domain": .string($0)]) } ?? .object([:]))
       }
-      // `id` is a document or record. Anything else is named by `ref`.
-      if !["references", "lineage", "archive"].contains(kind), let ref { fields["id"] = ref }
+      if let ref { fields["id"] = ref }
       return (target, rest(without: "kind"))
     case "run":
       // An action is {name, arguments}. The command line may also name it directly.
@@ -185,6 +187,10 @@ package enum GeneralTools {
   /// document or record from the item choices, an earlier message from the messages this
   /// conversation shows. A kind with nothing to name is not offered, so the model cannot make
   /// up an ID for it. `messages` nil leaves earlier messages open, for callers without history.
+  /// A tool's own parameters are written in name order, so kind comes before ref: a model that
+  /// means a kind writes it first, and one that writes ref first reads an item. On November 25,
+  /// 2026 a separate id field sorted before kind, and a model that meant kind=views wrote id
+  /// first and could then only name an item.
   static func readShapes(_ fields: [String: Value], items: [String], messages: [String]?)
     -> Value
   {
@@ -197,17 +203,17 @@ package enum GeneralTools {
       .object(["type": .string("string"), "enum": .array(values.map(Value.string))])
     }
     let relations = ["archive", "lineage", "references"]
-    let named = ["app", "definition", "result", "view_history", "workflow"]
+    let named = ["app", "definition", "result", "view", "view_history", "workflow"]
     var shapes: [Value] = []
     if !items.isEmpty {
       shapes.append(
         NativeTools.object(
-          pick(["id", "kind", "offset"], ["id": only(items), "kind": only(["item"])]),
-          required: ["id"]))
+          pick(["kind", "offset", "ref"], ["ref": only(items), "kind": only(["item"])]),
+          required: ["ref"]))
       shapes.append(
         NativeTools.object(
-          pick(["id", "kind", "offset"], ["id": only(items), "kind": only(relations)]),
-          required: ["id", "kind"]))
+          pick(["kind", "offset", "ref"], ["ref": only(items), "kind": only(relations)]),
+          required: ["kind", "ref"]))
     }
     if let messages, !messages.isEmpty {
       shapes.append(
@@ -265,9 +271,10 @@ package enum GeneralTools {
           "cursor": schema("string", "Next page, from an earlier result."),
         ], required: ["query"]))
     let readFields: [String: Value] = [
-      "id": schema("string", "A document or record, by the exact ID a search or read gave."),
       "kind": choice(reads.keys.sorted(), "Default item."),
-      "ref": schema("string", "The exact ID of a thing that is not a document or record."),
+      "ref": schema(
+        "string",
+        "The exact ID of what to read: a document or record a search or read gave, or the saved thing its kind names."),
       "offset": schema("integer", "Where to continue a long document or result."),
       "path": .object([
         "type": .string("array"), "items": .object(["type": .string("string")]),
@@ -277,7 +284,7 @@ package enum GeneralTools {
     let read = WorkbookToolDefinition(
       name: "read",
       description:
-        "Read one thing. With id alone: a document or record, with offset for later parts. references, lineage, archive: what that item links to, came from, or contains. Other kinds name their thing with ref. message: an earlier message. result: a page of a long saved tool result. app, definition, workflow, view_history: that saved thing. views, reviews, workflows, removed: those lists, with no ref. actions: the actions run can perform, with ref as an optional group such as table, app, visual, file, workflow. app_guide: read before writing an app. view_guide: view components beyond a table and a chart. definition_guide: the kinds of saved definitions.",
+        "Read one thing, named by ref. With ref alone: a document or record, with offset for later parts. references, lineage, archive: what that item links to, came from, or contains. message: an earlier message. result: a page of a long saved tool result. app, definition, workflow, view_history: that saved thing. view: one saved view with its components and version, such as ref home. views, reviews, workflows, removed: those lists, with no ref. actions: the actions run can perform, with ref as an optional group such as table, app, visual, file, workflow. app_guide: read before writing an app. view_guide: view components beyond a table and a chart. definition_guide: the kinds of saved definitions.",
       parameters: display
         ? object(readFields, required: [])
         : readShapes(readFields, items: items, messages: messages))

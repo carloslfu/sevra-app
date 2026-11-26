@@ -35,8 +35,21 @@ final class CatalogSavePanel: NSSavePanel {
   func begin(
     result: @escaping @MainActor (String, Bool) -> Void,
     failure: @escaping @MainActor (String) -> Void
-  ) throws { result("Compare the supplier quotes", mode != "Recording") }
+  ) throws { result("um compare the supplier quotes compare the supplier quotes", mode != "Recording") }
   func stop() {}
+}
+/// Stands in for the on-device cleanup: drops "um" and a phrase said twice, and adds the
+/// capital and full stop, so the catalog shows a cleanup without a model.
+struct CatalogDictationCleaner: DictationCleaner {
+  func clean(_ transcript: String) async throws -> String {
+    var words = transcript.split(separator: " ").map(String.init).filter { $0 != "um" }
+    let half = words.count / 2
+    if words.count % 2 == 0, Array(words[..<half]) == Array(words[half...]) {
+      words = Array(words[..<half])
+    }
+    let text = words.joined(separator: " ")
+    return text.prefix(1).uppercased() + text.dropFirst() + "."
+  }
 }
 /// Scripted tool calls still run through the production agent and workbook transaction paths.
 actor CatalogInference: WorkbookInference {

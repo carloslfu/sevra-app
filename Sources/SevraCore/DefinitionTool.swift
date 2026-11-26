@@ -90,6 +90,7 @@ extension Workbook {
       name + "("
         + inputs.map {
           $0.name + " " + ($0.type == "decimal" ? "REAL" : $0.type == "boolean" ? "BOOLEAN" : "TEXT")
+            + ($0.required ? "" : " optional")
         }.joined(separator: ", ") + ")"
     }
   }
@@ -182,13 +183,17 @@ extension Workbook {
   /// statements with empty inputs or checking its script's syntax. Saving it here grants it.
   public func chatSaveTool(
     name: String, description: String, inputs: [(name: String, type: String)],
-    statements: [String], source: String?, token: String, requestSourceID: String?,
-    cancellation: Cancellation = .init()
+    optional: Set<String> = [], statements: [String], source: String?, token: String,
+    requestSourceID: String?, cancellation: Cancellation = .init()
   ) throws -> Value {
+    try require(
+      optional.isSubset(of: inputs.map(\.name)), "tool_inputs",
+      "Mark an input optional with required: false on that input.")
+    // An input is required unless it says otherwise. An optional one is NULL when left empty.
     let parameters: [Value] = inputs.map {
       .object([
         "id": .string($0.name), "label": .string($0.name), "type": .string($0.type),
-        "required": .bool(true),
+        "required": .bool(!optional.contains($0.name)),
       ])
     }
     var payload: [String: Value] = [
@@ -227,12 +232,19 @@ extension Workbook {
     }
     try enableTool(saved.id)
     let signature =
-      name + "(" + inputs.map { $0.name + ($0.type == "decimal" ? " number" : "") }
+      name + "("
+      + inputs.map {
+        $0.name + ($0.type == "decimal" ? " number" : "")
+          + (optional.contains($0.name) ? " optional" : "")
+      }
       .joined(separator: ", ") + ")"
     return .object([
       "saved": .string(name), "definitionID": .string(saved.id),
       "logicalID": .string(saved.logicalID), "version": .number(Double(saved.version)), "language": .string(tool.language),
-      "inputs": .array(inputs.map { .string($0.name + " " + $0.type) }),
+      "inputs": .array(
+        inputs.map {
+          .string($0.name + " " + $0.type + (optional.contains($0.name) ? " optional" : ""))
+        }),
       "run": .string(
         (source == nil ? "sql" : "run") + " with tool=\(name)" + (inputs.isEmpty ? "" : " and values")),
       "undo": .object(["action": .string("tool.undo"), "id": .string(saved.id)]),

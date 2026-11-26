@@ -160,8 +160,26 @@ package enum NativeTools {
         ), "items": componentSchema(depth: depth + 1),
       ])
     }
-    let schema = object(fields, required: ["id", "type", "title"])
-    return withoutDescriptions(schema)
+    // Only a visual or an image takes visual, and neither holds children, so the grammar
+    // offers visual only after one of those types. A visual on another component was refused
+    // after the fact, which cost the model a decision. Two shapes add about 5 KB to the
+    // workbook tools' grammar and no measurable compile or mask time (November 26, 2026).
+    let visual = ["visual", "image"]
+    var plain = fields
+    plain["visual"] = nil
+    plain["type"] = .object([
+      "type": .string("string"), "enum": .array(types.filter { !visual.contains($0) }.map(Value.string)),
+    ])
+    var drawn = fields
+    drawn["children"] = nil
+    drawn["type"] = .object(["type": .string("string"), "enum": .array(visual.map(Value.string))])
+    return withoutDescriptions(
+      .object([
+        "anyOf": .array([
+          object(plain, required: ["id", "type", "title"]),
+          object(drawn, required: ["id", "type", "title"]),
+        ])
+      ]))
   }
   /// An inserted component owns its title; outer title is only for relabeling.
   static func spaceEditSchema(_ base: Value) -> Value {

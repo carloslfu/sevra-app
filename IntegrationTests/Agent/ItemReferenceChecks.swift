@@ -157,10 +157,10 @@ func checkItemReferences() async throws {
     // An item, what it links to and what it came from are all read by the item's exact ID.
     for kind in [[], [("kind", "lineage")], [("kind", "references")]] {
       try policy.validate(
-        checks.candidate("read", [("id", correctReference)] + kind, policy: policy))
+        checks.candidate("read", kind + [("ref", correctReference)], policy: policy))
       try expectThrows(
         try policy.validate(
-          checks.candidate("read", [("id", failedReference)] + kind, policy: policy)))
+          checks.candidate("read", kind + [("ref", failedReference)], policy: policy)))
     }
   }
   let uncited = try NativeCitationPolicy.make([], itemReferenceIDs: [correctReference])
@@ -238,7 +238,7 @@ func checkItemReferenceGrammar(frontend: SplashTextFrontend, factory: SplashGram
   try expectThrows(try ContextBudget().allowance(promptTokens: full.tokens.count))
   let definitions = try NativeTools.referenceDefinitions(itemReferenceIDs: many)
   try expectEqual(
-    definitions.first { $0.name == "read" }!.parameters["anyOf"].array.first!["properties"]["id"][
+    definitions.first { $0.name == "read" }!.parameters["anyOf"].array.first!["properties"]["ref"][
       "enum"
     ].array.count, 256)
   for thinking in [false, true] {
@@ -258,8 +258,9 @@ func checkItemReferenceGrammar(frontend: SplashTextFrontend, factory: SplashGram
     for kind in ["", "lineage", "references"] {
       func output(_ id: String) -> String {
         (thinking ? "Inspect the known reference.</think>\n" : "")
-          + "<tool_call>\n<function=read>\n<parameter=id>\n\(id)\n</parameter>\n"
+          + "<tool_call>\n<function=read>\n"
           + (kind.isEmpty ? "" : "<parameter=kind>\n\(kind)\n</parameter>\n")
+          + "<parameter=ref>\n\(id)\n</parameter>\n"
           + "</function>\n</tool_call>"
       }
       let valid = try factory.create(grammar: policy.grammar)
@@ -298,14 +299,22 @@ func checkItemReferenceGrammar(frontend: SplashTextFrontend, factory: SplashGram
     ("a message this context shows", earlier, [("kind", "message"), ("ref", said)], true),
     ("a made-up message", earlier, [("kind", "message"), ("ref", invented)], false),
     ("any message in a new conversation", fresh, [("kind", "message"), ("ref", said)], false),
-    ("an item before any is known", fresh, [("id", correctReference)], false),
-    ("a known item", known, [("id", correctReference)], true),
-    ("a known item's lineage", known, [("id", correctReference), ("kind", "lineage")], true),
-    ("a made-up item", known, [("id", failedReference)], false),
+    ("an item before any is known", fresh, [("ref", correctReference)], false),
+    ("a known item", known, [("ref", correctReference)], true),
+    ("a known item as kind item", known, [("kind", "item"), ("ref", correctReference)], true),
+    ("a known item's lineage", known, [("kind", "lineage"), ("ref", correctReference)], true),
+    ("a made-up item", known, [("ref", failedReference)], false),
+    ("an item by the old id field", known, [("id", correctReference)], false),
     ("a saved result by ref", fresh, [("kind", "result"), ("ref", invented)], true),
     ("the actions list", fresh, [("kind", "actions")], true),
     ("a guide", fresh, [("kind", "view_guide")], true),
-    ("a list with an item ID", fresh, [("id", correctReference), ("kind", "views")], false),
+    ("the views list naming one view", fresh, [("kind", "views"), ("ref", "home")], true),
+    // November 25, 2026: with items known, a model that meant the views list could only
+    // start with the item field. kind comes first now, so a known item does not block it.
+    ("the views list while items are known", known, [("kind", "views")], true),
+    ("one view by its id while items are known", known, [("kind", "view"), ("ref", "home")], true),
+    ("a view with no ref", known, [("kind", "view")], false),
+    ("an item, then a kind", known, [("ref", correctReference), ("kind", "views")], false),
   ]
   for (name, policy, fields, expected) in cases {
     guard try accepts(policy, read(fields)) == expected else {

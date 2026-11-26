@@ -131,4 +131,81 @@ func checkSavedActions() async throws {
   print(
     "PASS chat cannot submit a saved document action and saves nothing, a saved tool action runs from chat with one Undo, and the supplier comparison runs through sql"
   )
+  try checkOptionalToolInputs(book)
+}
+
+/// A tool saved from chat can mark an input optional with required: false. Left out, from
+/// chat or from a view's button, it is NULL. The other inputs stay required.
+private func checkOptionalToolInputs(_ book: Workbook) throws {
+  _ = try book.chatSQL(
+    statements: ["CREATE TABLE visits (customer TEXT, note TEXT)"], readOnly: false,
+    token: identifier(), requestSourceID: nil)
+  let save = GeneralTools.route(
+    "save",
+    .object([
+      "tool": .object([
+        "name": .string("log_visit"), "description": .string("Logs a customer visit."),
+        "inputs": .array([
+          .object(["name": .string("customer"), "type": .string("text")]),
+          .object([
+            "name": .string("note"), "type": .string("text"), "required": .bool(false),
+          ]),
+        ]),
+        "statements": .array([
+          .string("INSERT INTO visits (customer, note) VALUES (:customer, :note)")
+        ]),
+      ])
+    ]))
+  let saved = try WorkbookTools(book).execute(save.tool, save.arguments)
+  try expectEqual(saved["inputs"], .array([.string("customer text"), .string("note text optional")]))
+  try expectEqual(
+    try book.chatSavedTools().contains("log_visit(customer TEXT, note TEXT optional)"), true)
+  func visits() throws -> [[String]] {
+    try book.chatSQL(
+      statements: ["SELECT customer, coalesce(note, 'NULL') FROM visits ORDER BY customer"],
+      readOnly: true, token: identifier(), requestSourceID: nil
+    )["results"].array[0]["rows"].array.map { $0.array.map(\.text) }
+  }
+  _ = try book.chatRunTool(
+    name: "log_visit", values: ["customer": .string("Ana")], readOnly: false,
+    token: identifier(), requestSourceID: nil)
+  _ = try book.chatRunTool(
+    name: "log_visit", values: ["customer": .string("Bea"), "note": .string("Paid cash")],
+    readOnly: false, token: identifier(), requestSourceID: nil)
+  // The required input is still required.
+  do {
+    _ = try book.chatRunTool(
+      name: "log_visit", values: ["note": .string("No customer")], readOnly: false,
+      token: identifier(), requestSourceID: nil)
+    throw SevraError("check", "A required input was left out.")
+  } catch let error as SevraError where error.code == "tool_inputs" {}
+  // A button leaves the optional input out too.
+  let view = try WorkbookTools(book).execute(
+    "save_space",
+    .object([
+      "title": .string("Visits"),
+      "definition": .object([
+        "version": .number(1),
+        "components": .array([
+          .object([
+            "id": .string("log"), "type": .string("button"), "title": .string("Log a visit"),
+            "definitionBinding": .object(["tool": .string("log_visit")]),
+          ])
+        ]),
+      ]),
+    ]))
+  _ = try book.pressButton(
+    spaceID: view["spaceID"].text, componentID: "log", values: ["customer": .string("Cy")])
+  try expectEqual(
+    try visits(), [["Ana", "NULL"], ["Bea", "Paid cash"], ["Cy", "NULL"]])
+  // Without required: false, every input is required, as before.
+  let strict = try WorkbookTools(book).execute(
+    "save",
+    .object([
+      "kind": .string("tool"), "name": .string("log_strict"), "description": .string("Logs."),
+      "inputs": .array([.object(["name": .string("note"), "type": .string("text")])]),
+      "statements": .array([.string("INSERT INTO visits (customer, note) VALUES ('x', :note)")]),
+    ]))
+  try expectEqual(strict["inputs"], .array([.string("note text")]))
+  print("PASS a tool saved from chat takes an optional input, NULL when chat or a button leaves it out")
 }
