@@ -32,7 +32,7 @@ extension CLI {
       actor: .programmatic("SevraCLI.automation-run-once"), cancellation: cancellation)
     // A check automation runs its check once. A schedule plans its calendar slots.
     let checks = try book.applicationDefinition(args[2]).payload["policy"]
-      == .string("check-drafts-v1")
+      == .string("check-v1")
     let planned =
       checks
       ? try book.checkAutomation(

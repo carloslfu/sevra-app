@@ -216,7 +216,7 @@ func checkRemoval(at root: URL) {
         "description": .string("An inert intention, not permission to execute."),
         "parameters": .array([]),
         "payload": .object([
-          "policy": .string("calendar-drafts-v1"),
+          "policy": .string("calendar-v1"),
           "workflow": .object(["mode": .string("exact"), "versionID": .string(workflow.id)]),
           "arguments": .object(["quantity": .string("5.00")]),
           "schedule": .object([

@@ -48,7 +48,7 @@ func fixture(_ root: URL, _ name: String, title: String? = nil) throws -> (
       "kind": .string("automation"), "title": .string(title ?? name),
       "description": .string("Synthetic schedule"), "parameters": .array([]),
       "payload": .object([
-        "policy": .string("calendar-drafts-v1"),
+        "policy": .string("calendar-v1"),
         "workflow": .object(["mode": .string("exact"), "versionID": .string(workflow.id)]),
         "arguments": .object([:]),
         "schedule": .object([
@@ -451,9 +451,9 @@ if ProcessInfo.processInfo.environment["SEVRA_TOOL_GRANTS"] == nil {
       requestSourceID: nil)
     let check = try book.savedTools().first { $0.name == "low_stock" }!
     var payload = schedule.payload.object
-    payload["policy"] = .string("check-drafts-v1")
+    payload["policy"] = .string("check-v1")
     payload["schedule"] = nil
-    payload["check"] = .object(["mode": .string("exact"), "versionID": .string(check.definitionID)])
+    payload["check"] = .object(["mode": .string("live"), "logicalID": .string(check.logicalID)])
     var content = schedule.content.object
     content["payload"] = .object(payload)
     let definition = try book.saveApplicationDefinition(
@@ -478,6 +478,24 @@ if ProcessInfo.processInfo.environment["SEVRA_TOOL_GRANTS"] == nil {
     }
     try expect(try book.workflowRuns().count == 1)
     try expect(owner.status(grant).hasPrefix("The check finds 1 row"), owner.status(grant))
+    // The automation follows an edit to the check. A changed rule starts fresh, so its rows
+    // start the workflow once more.
+    _ = try book.chatSaveTool(
+      name: "low_stock", description: "Parts below twenty.", inputs: [],
+      statements: ["SELECT name FROM parts WHERE qty < 20"], source: nil, token: "low-stock-2",
+      requestSourceID: nil)
+    owner.poll(now: due.addingTimeInterval(140))
+    await owner.waitForCurrentPoll()
+    try expect(try book.workflowRuns().count == 2, "The edited check did not start it")
+    // A check changed to take inputs makes the automation wait, with the reason on its page.
+    _ = try book.chatSaveTool(
+      name: "low_stock", description: "Parts below a level.", inputs: [("level", "decimal")],
+      statements: ["SELECT name FROM parts WHERE qty < :level"], source: nil,
+      token: "low-stock-3", requestSourceID: nil)
+    owner.poll(now: due.addingTimeInterval(200))
+    await owner.waitForCurrentPoll()
+    try expect(owner.status(grant).contains("takes no inputs"), owner.status(grant))
+    try expect(try book.workflowRuns().count == 2)
     _ = try book.verify()
   }
   await check("driver defers while inactive, stays write-free while idle and completes one due run")

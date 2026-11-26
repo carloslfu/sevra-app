@@ -54,7 +54,7 @@ private struct NativeFormEditor: View {
             Label("Saved workflow run", systemImage: "checkmark.circle")
             Button("Open workflow") { workspace.navigate(.workflow(runID)) }
           } else if receipt["state"] == .string("applied") {
-            FormToolOutcome(receipt: receipt, workspace: workspace)
+            ToolRunOutcome(receipt: receipt, workspace: workspace)
           } else {
             Label(
               "Saved \(receipt["proposals"].array.count) draft \(receipt["proposals"].array.count == 1 ? "proposal" : "proposals")",
@@ -337,10 +337,12 @@ struct FormParameterField: View {
   }
 }
 
-/// What a form that ran a saved tool did, with one Undo for its change.
-private struct FormToolOutcome: View {
+/// What a saved tool run did, from a form or a workflow step, with one Undo for its change.
+struct ToolRunOutcome: View {
   let receipt: Value
   @ObservedObject var workspace: WorkspaceState
+  /// What ran the tool, for the Undo button's help: "this form" or "this step".
+  var subject = "this form"
   @State private var undone = false
   @State private var working = false
   @State private var failure: String?
@@ -352,7 +354,7 @@ private struct FormToolOutcome: View {
       if let undo = receipt["undo"].string, !undone {
         Button("Undo this change") { take(undo) }
           .disabled(working || workspace.busy)
-          .help("Takes back the rows this form changed")
+          .help("Takes back the rows \(subject) changed")
       }
       if let failure {
         Text(failure).readingFont(.callout).foregroundStyle(.red).textSelection(.enabled)
@@ -367,7 +369,8 @@ private struct FormToolOutcome: View {
       defer { working = false }
       do {
         _ = try await Task.detached {
-          try book.chatSQLUndo(token, actor: .human("Sevra form"))
+          try book.chatSQLUndo(
+            token, actor: .human(subject == "this form" ? "Sevra form" : "Sevra workflow run"))
         }.value
         guard workspace.workbook === book else { return }
         undone = true

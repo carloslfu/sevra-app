@@ -11,7 +11,7 @@ func executionAutomation(
       "kind": .string("automation"), "title": .string("Scheduled draft"),
       "description": .string("Synthetic foreground execution"), "parameters": .array([]),
       "payload": .object([
-        "policy": .string("calendar-drafts-v1"),
+        "policy": .string("calendar-v1"),
         "workflow": .object(["mode": .string("exact"), "versionID": .string(workflow.id)]),
         "arguments": arguments,
         "schedule": .object([

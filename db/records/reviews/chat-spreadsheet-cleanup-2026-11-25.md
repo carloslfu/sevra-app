@@ -2,7 +2,7 @@
 type: review
 id: 01m8az3aa4k3rb8eg3wh46196j
 created: 2026-11-26T03:41:28.772405+00:00
-updated: 2026-11-26T03:41:28.772405+00:00
+updated: 2026-11-26T04:50:00+00:00
 summary: Removed inventory-first leftovers (stock ledger, movements, receiving, stock thresholds, quote guard) and added general saved-tool actions and check-triggered automations.
 title: Chat-spreadsheet cleanup
 ---
@@ -33,12 +33,20 @@ No-model checks: all default `sevra-checks` groups (572 passed), `sevra-agent-ch
 
 Model run, after the installed app released its model: the light set (11 jobs, Splash 1.7.3, one run each, 156 seconds) passed 11 of 11 on the first run with the cleanup's release CLI. One passing answer was wrong: read.supplier_comparison said Cedar Tools has the lower total at 24, when Oak Supply is 24 and Cedar Tools 27.5. The difference and percentage were right, and the job only checks that Oak Supply is named. The installed app has not been rebuilt.
 
+## Follow-up: automations that follow their check and run tools
+
+Format 37. The definition policies are now `calendar-v1` and `check-v1`, since an automation no longer only drafts.
+
+- **The check is followed by its logical ID** (`check: {mode: live, logicalID}`), like a saved filter. Every evaluation validates the latest version again as read-only with no inputs, and a check that was removed, writes or takes inputs makes the automation wait with that reason until it works again. Each change records the exact check version that ran. A check whose statements changed starts fresh, as if just enabled: its rows fire once even if the old rule had found rows, because the person changed the rule. A description-only edit keeps the state. The editor picks the check by name and the list shows its current name.
+- **Rows already present at enable fire at once.** This was kept on purpose: a person who asks to be told when a part is below its reorder level wants to know about the parts already below it. The editor, the automation's page and the chat confirmation now say so.
+- **Missed transitions.** The earlier limit was wrong: the check state is kept per automation across pauses, resumes and restarts, so the first evaluation after a resume or reopen fires once for rows that appeared meanwhile, and nothing for rows that came and went. A check now covers it.
+- **Workflows with saved tool steps can be automated.** The enable notice, shown in the editor after Preview, on the automation's page and in the chat confirmation, names the tools and says their changes apply without review and each run keeps an Undo. Workflow runs show a tool step's result with its Undo. Local AI permission is unchanged.
+
 ## Known limits
 
-- A check automation is pinned to an exact version of its check; editing the check needs the automation's check picked again.
-- The first check after enabling counts rows already present, so it fires at once if they exist.
-- Changes while the app is closed or the automation is paused are not seen as a transition.
-- Overlapping runs of one check are refused as stale rather than ordered.
+- Overlapping evaluations of one check, possible only between the app and the CLI, are refused as stale. This cannot double fire, since the refused one commits nothing, and cannot lose a change, since the next evaluation compares with the saved state again. The refused one shows its message as the status until the next check.
+- A fired request that is cancelled by a pause before it is dispatched is not offered again while the check keeps finding the same rows. The native owner dispatches in the same step as the check, so this needs a pause in between.
+- A workflow's tool step pins the exact tool version, so editing that tool stops the automation's workflow with a stale-tool message until the workflow is saved again.
 - Check occurrences reuse the `calendar` causal root kind.
 - Chat `save tool` makes every input required; optional inputs need a saved definition.
 - Older records and the verification register still describe the removed systems as dated history.

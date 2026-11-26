@@ -122,8 +122,8 @@ struct WorkflowRunView: View {
           .readingFont(.callout).foregroundStyle(.secondary)
           Text(
             run["policy"] == .string("automation-drafts-v1")
-              ? "Automatic draft workflow. Continue is a separate manual request for this run; it does not enable future automations. Business changes require review."
-              : "Manual workflow. Each continuation stops for required review. Completed work is kept."
+              ? "Automatic workflow. Drafts wait for review. Saved tool steps apply at once and show an Undo below. Continue is a separate manual request for this run and does not enable future automations."
+              : "Manual workflow. Drafts wait for review. Saved tool steps apply at once and show an Undo below. Completed work is kept."
           )
           .foregroundStyle(.secondary)
           if !run["detail"].text.isEmpty,
@@ -233,6 +233,8 @@ struct WorkflowRunView: View {
                     workspace.navigate(.item(supplied["recordID"].text))
                   }
                 }
+              } else if output["kind"] == .string("tool") {
+                ToolRunOutcome(receipt: output, workspace: workspace, subject: "this step")
               } else if output["kind"] == .string("query") {
                 Text(
                   "Saved \(output["result"]["rows"].array.count) result rows and their scoped inputs."

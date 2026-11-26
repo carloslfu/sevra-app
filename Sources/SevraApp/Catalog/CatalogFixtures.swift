@@ -119,7 +119,7 @@ import SevraVoice
           "description": .string("Synthetic, inert until explicitly stepped in this catalog"),
           "parameters": .array([]),
           "payload": .object([
-            "policy": .string("calendar-drafts-v1"),
+            "policy": .string("calendar-v1"),
             "workflow": .object(["mode": .string("exact"), "versionID": .string(workflow.id)]),
             "arguments": args,
             "schedule": .object([
@@ -145,11 +145,11 @@ import SevraVoice
         logicalID: identifier(),
         content: .object([
           "kind": .string("automation"), "title": .string("When a supplier costs over 50"),
-          "description": .string("Prepare this saved workflow when its check finds rows."),
+          "description": .string("Run this saved workflow when its check finds rows."),
           "parameters": .array([]),
           "payload": .object([
-            "policy": .string("check-drafts-v1"),
-            "check": .object(["mode": .string("exact"), "versionID": .string(check.definitionID)]),
+            "policy": .string("check-v1"),
+            "check": .object(["mode": .string("live"), "logicalID": .string(check.logicalID)]),
             "workflow": .object(["mode": .string("exact"), "versionID": .string(workflow.id)]),
             "arguments": automationDefinition?.payload["arguments"] ?? .object([:]),
           ]),
@@ -162,6 +162,55 @@ import SevraVoice
         _ = try b.pauseAutomation(
           session.activationID, expectedGeneration: session.generation, token: identifier())
       }
+    }
+    if id == "main.automations" && variant == "Tool runs" {
+      // A nightly automation whose workflow runs a saved tool. Its page names the tool and says
+      // the change applies without review, before anyone enables it.
+      _ = try b.chatSaveTool(
+        name: "remove_blank_quotes", description: "Removes quotes with no cost.",
+        inputs: [], statements: ["DELETE FROM supplier_comparison WHERE cost IS NULL"],
+        source: nil, token: "catalog-remove-blank-quotes", requestSourceID: nil)
+      let tool = try b.applicationDefinition(
+        try b.savedTools().first { $0.name == "remove_blank_quotes" }!.definitionID)
+      let action = try b.saveApplicationDefinition(
+        logicalID: identifier(),
+        content: ActionRegistry.toolActionDefinition(tool: tool, exact: true))
+      // The tool takes no inputs, so its one step has no arguments and, since it applies at
+      // once with an Undo, no review step.
+      let workflow = try b.saveApplicationDefinition(
+        logicalID: identifier(),
+        content: .object([
+          "kind": .string("workflow"), "title": .string("Remove blank quotes"),
+          "description": .string("Runs the saved tool remove_blank_quotes."),
+          "parameters": .array([]),
+          "payload": .object([
+            "readPolicy": .string("latest-at-step"),
+            "steps": .array([
+              .object([
+                "id": .string("prepare"), "kind": .string("action"),
+                "binding": .object(["mode": .string("exact"), "versionID": .string(action.id)]),
+                "arguments": .object([:]),
+              ])
+            ]),
+          ]),
+        ]))
+      toolAutomationDefinition = try b.saveApplicationDefinition(
+        logicalID: identifier(),
+        content: .object([
+          "kind": .string("automation"), "title": .string("Every night, remove blank quotes"),
+          "description": .string("Run this saved workflow on a calendar schedule."),
+          "parameters": .array([]),
+          "payload": .object([
+            "policy": .string("calendar-v1"),
+            "workflow": .object(["mode": .string("exact"), "versionID": .string(workflow.id)]),
+            "arguments": .object([:]),
+            "schedule": .object([
+              "policy": .string("native-calendar-v1"), "timeZone": .string("UTC"),
+              "hour": .number(22), "minute": .number(0),
+              "recurrence": .object(["kind": .string("daily")]),
+            ]),
+          ]),
+        ]))
     }
     if id == "main.excel" || id == "composition.excel" {
       let url = Bundle.main.resourceURL!.appendingPathComponent("CatalogAssets/Quotes.xlsx")

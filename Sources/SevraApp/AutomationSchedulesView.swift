@@ -256,12 +256,18 @@ struct AutomationScheduleDetail: View {
             Text("This automation is not enabled for this physical workbook on this Mac.")
           }
           Toggle("Allow this exact workflow to use local AI", isOn: $allowAI)
+          if let notice = preview?["notice"].string {
+            Text(notice).readingFont(.callout)
+              .fixedSize(horizontal: false, vertical: true)
+              .accessibilityLabel("Before you enable it. " + notice)
+          }
           Text(
             preview?["check"] != nil && preview?["check"] != .null
-              ? "Automatic work creates drafts and stops for review. The check runs while Sevra is active, after each change and every minute. No background helper is installed."
-              : "Automatic work creates drafts and stops for review. Runs while Sevra is active; quit or inactive periods catch up when eligible. No background helper is installed."
+              ? "The check runs while Sevra is active, after each change and every minute. When Sevra opens again or you resume it, the check runs at once, so rows that appeared meanwhile start it once. No background helper is installed."
+              : "Runs while Sevra is active. Times missed while Sevra was closed catch up when eligible. No background helper is installed."
           )
           .readingFont(.caption).foregroundStyle(.secondary)
+          .fixedSize(horizontal: false, vertical: true)
           ViewThatFits(in: .horizontal) {
             HStack { automationActions }.fixedSize(horizontal: true, vertical: false)
             VStack(alignment: .leading, spacing: 8) { automationActions }
@@ -464,11 +470,12 @@ struct ScheduleOccurrencePreview: View {
 /// How an automation's trigger reads in a list and on its page.
 enum AutomationTrigger {
   static func text(_ definition: ApplicationDefinition, workbook: Workbook) -> String {
-    guard definition.payload["policy"] == .string("check-drafts-v1") else {
+    guard definition.payload["policy"] == .string("check-v1") else {
       return "On a schedule"
     }
+    // The check is followed by its logical ID, so this is its current name.
     let name =
-      (try? workbook.applicationDefinition(definition.payload["check"]["versionID"].text))
+      (try? workbook.applicationDefinition(definition.payload["check"]["logicalID"].text))
       .map { $0.payload["name"].text } ?? "its check"
     return "When the check " + name + " finds rows"
   }
@@ -476,7 +483,7 @@ enum AutomationTrigger {
   /// The check's last saved change, in one or two sentences.
   static func checkState(_ state: Value) -> String {
     guard state != .null else {
-      return "The check has not found rows yet. The first rows it finds after you enable it start the workflow."
+      return "The check has not run yet. If it finds rows when you enable it, it starts the workflow once right away."
     }
     let rows = state["rows"].int ?? 0
     let when = ISO8601DateFormatter().date(from: state["updated"].text).map {

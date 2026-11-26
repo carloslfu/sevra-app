@@ -2,7 +2,7 @@ import Foundation
 
 enum Schema {
   static let applicationID = 0x5356_5241
-  static let version = 36
+  static let version = 37
   /// One transaction, so a crash leaves no partial schema and a new workbook costs one flush.
   static let sql = """
     PRAGMA application_id=1398166081;

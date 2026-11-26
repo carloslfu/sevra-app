@@ -116,7 +116,7 @@ extension Workbook {
         title: (policy == "foreground-drafts-v1" ? "Authorize " : "Prepare ") + saved.title,
         text: actor.label
           + (policy == "foreground-drafts-v1"
-            ? " authorized exact foreground draft workflows. Business changes require separate review."
+            ? " authorized this exact foreground workflow. Drafts wait for review. Saved tool steps apply with an Undo."
             : " authorized foreground calendar preparation only. Workflow execution is not enabled."),
         data: .object([
           "activationID": .string(id), "logicalID": .string(saved.logicalID),

@@ -36,7 +36,7 @@ def run(cli, worker, output):
         data = {"sourceID": call("observe", book, json.dumps(
             {"title": "Counted opening input", "text": "Synthetic count", "token": "opening"}))["id"]}
         with sqlite3.connect(book / "workbook.sqlite") as db:
-            assert db.execute("PRAGMA user_version").fetchone()[0] == 36
+            assert db.execute("PRAGMA user_version").fetchone()[0] == 37
             declaration = db.execute("SELECT commit_id,kind,policy FROM business_inputs WHERE source_id=?",
                                      [data["sourceID"]]).fetchone()
         assert declaration[1:] == ("observation", "business-input-v1"), declaration

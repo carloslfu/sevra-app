@@ -1,18 +1,20 @@
 import Foundation
 
-/// A saved automation: what starts it, and the exact draft workflow it runs.
+/// A saved automation: what starts it, and the exact workflow it runs.
 ///
-/// Two triggers: `calendar-drafts-v1` starts on a calendar schedule, and `check-drafts-v1`
-/// starts when a saved check, a read-only SQL tool, starts finding rows. Either one runs only
-/// while the app is open on a Mac where the person enabled it.
+/// Two triggers: `calendar-v1` starts on a calendar schedule, and `check-v1` starts when a
+/// saved check, a read-only SQL tool, starts finding rows. Either one runs only while the app is
+/// open on a Mac where the person enabled it. The workflow can draft for review or run saved
+/// tools, whose changes apply at once with an Undo. The enable step names those tools.
 struct DefinitionAutomation {
-  static let calendarPolicy = "calendar-drafts-v1"
-  static let checkPolicy = "check-drafts-v1"
+  static let calendarPolicy = "calendar-v1"
+  static let checkPolicy = "check-v1"
   let policy: String
   let workflow: DefinitionBinding
   let arguments: Value
   private let calendar: NativeCalendarSchedule?
-  /// The exact saved check version a check automation watches.
+  /// The saved check a check automation watches, by its logical ID: the check's latest version,
+  /// like a saved filter. Each evaluation records the exact version that ran.
   let check: DefinitionBinding?
   var schedule: NativeCalendarSchedule {
     get throws {
@@ -34,7 +36,7 @@ struct DefinitionAutomation {
         && Set(descriptor.payload.object.keys)
           == ["policy", "workflow", "arguments", isCalendar ? "schedule" : "check"],
       "automation_definition",
-      "Use an exact workflow, arguments and one trigger, without parameters: schedule with policy calendar-drafts-v1, or check with policy check-drafts-v1."
+      "Use an exact workflow, arguments and one trigger, without parameters: schedule with policy calendar-v1, or check with policy check-v1 and check {mode: live, logicalID}."
     )
     self.policy = policy
     workflow = try DefinitionBinding(descriptor.payload["workflow"])
@@ -48,7 +50,8 @@ struct DefinitionAutomation {
       calendar = nil
       let binding = try DefinitionBinding(descriptor.payload["check"])
       try require(
-        binding.mode == "exact", "automation_binding", "Pin an exact saved check version.")
+        binding.mode == "live", "automation_binding",
+        "Choose the check by its logical ID, {mode: live, logicalID}, so the automation follows edits to the check.")
       check = binding
     }
   }
@@ -65,15 +68,15 @@ extension Workbook {
     )
     let workflow = try DefinitionDescriptor(target.content)
     try validateWorkflowDefinition(workflow, historical: historical)
-    // An automation prepares drafts for review. A step that changes tables at once does not.
-    for step in try DefinitionWorkflow(workflow).steps where step.kind == "action" {
-      try require(
-        !(try actionRunsTool(resolveDefinition(step.binding!))), "automation_binding",
-        "An automation's workflow prepares drafts for review. Its step \(step.id) runs a saved tool, which changes tables at once, so an automation cannot run this workflow."
-      )
-    }
     if let check = automation.check {
-      _ = try automationCheck(resolveDefinition(check), historical: historical)
+      let current = try resolveDefinition(check)
+      // The check follows its latest version, which may since have changed into something that
+      // cannot be a check. An evaluation refuses that. History only needs it to be a tool.
+      if historical {
+        try require(current.kind == "tool", "automation_check", "A check is a saved SQL tool.")
+      } else {
+        _ = try automationCheck(current)
+      }
     }
     let normalized = Value.object(try definitionArguments(workflow, automation.arguments))
     var inputs: Set<String> = []
@@ -141,20 +144,69 @@ extension Workbook {
     _ automation: DefinitionAutomation, after: Date, count: Int = 5, horizonDays: Int = 3660,
     cancellation: Cancellation
   ) throws -> [String: Value] {
+    let tools = try automationTools(automation)
+    let drafts = try DefinitionWorkflow(
+      DefinitionDescriptor(resolveDefinition(automation.workflow).content)
+    ).steps.contains { $0.kind == "review" }
+    var preview: [String: Value] = ["tools": .array(tools.map(Value.string))]
     guard let check = automation.check else {
-      return [
-        "calendar": try automation.schedule.preview(
-          after: after, count: count, horizonDays: horizonDays, cancellation: cancellation)
-      ]
+      preview["calendar"] = try automation.schedule.preview(
+        after: after, count: count, horizonDays: horizonDays, cancellation: cancellation)
+      preview["notice"] = .string(Self.automationNotice(check: nil, tools: tools, drafts: drafts))
+      return preview
     }
-    let tool = try applicationDefinition(check.target)
-    return [
-      "check": .object([
-        "definitionID": .string(tool.id),
-        "name": .string(try DefinitionTool(DefinitionDescriptor(tool.content)).name),
-        "fires": .string("when the check starts finding rows"),
-      ])
-    ]
+    let tool = try resolveDefinition(check)
+    let name = try DefinitionTool(DefinitionDescriptor(tool.content)).name
+    preview["check"] = .object([
+      "logicalID": .string(tool.logicalID), "definitionID": .string(tool.id),
+      "name": .string(name), "fires": .string("when the check starts finding rows"),
+    ])
+    preview["notice"] = .string(Self.automationNotice(check: name, tools: tools, drafts: drafts))
+    return preview
+  }
+
+  /// The names of the saved tools the automation's workflow runs, in step order.
+  func automationTools(_ automation: DefinitionAutomation) throws -> [String] {
+    let workflow = try DefinitionDescriptor(resolveDefinition(automation.workflow).content)
+    var names: [String] = []
+    for step in try DefinitionWorkflow(workflow).steps where step.kind == "action" {
+      let target = try resolveDefinition(step.binding!)
+      guard try actionRunsTool(target, historical: true),
+        let binding = try toolAction(target).tool
+      else { continue }
+      let name = try DefinitionTool(DefinitionDescriptor(resolveDefinition(binding).content)).name
+      if !names.contains(name) { names.append(name) }
+    }
+    return names
+  }
+
+  /// What enabling an automation means, in plain sentences. The editor, the automation's page
+  /// and the chat confirmation all show it before the person enables it.
+  public static func automationNotice(check: String?, tools: [String], drafts: Bool = false)
+    -> String
+  {
+    var lines: [String] = []
+    if let check {
+      lines.append(
+        "It starts when the check \(check) finds rows after finding none. If the check already finds rows when you enable it, it starts once right away. If you change the check, the changed check starts fresh, so rows it finds then start it once."
+      )
+    }
+    if tools.isEmpty {
+      lines.append(
+        drafts
+          ? "It drafts its changes for review. Your tables change only when you accept a draft."
+          : "It does not change your tables.")
+    } else {
+      let list =
+        tools.count == 1
+        ? tools[0]
+        : tools.dropLast().joined(separator: ", ") + " and " + tools.last!
+      lines.append(
+        "It runs the saved \(tools.count == 1 ? "tool" : "tools") \(list) without asking. \(tools.count == 1 ? "Its" : "Their") changes apply without review. Each run is saved in Workflow runs with an Undo."
+      )
+      if drafts { lines.append("Any drafts it makes wait for your review.") }
+    }
+    return lines.joined(separator: " ")
   }
 
   /// A saved check: a SQL tool with no inputs whose statements only read. Its rows are what
@@ -200,9 +252,9 @@ extension Workbook {
       try require(
         dependencies.count == 2 && dependencies[1]["ordinal"] == .number(1)
           && dependencies[1]["kind"] == .string("definition")
-          && dependencies[1]["mode"] == .string("exact")
-          && dependencies[1]["target_version"] == .string(check.target),
-        "definition_integrity", "The automation lost its exact check dependency.")
+          && dependencies[1]["mode"] == .string("live")
+          && dependencies[1]["target_logical"] == .string(check.target),
+        "definition_integrity", "The automation lost its check dependency.")
     }
     try require(
       dependencies.count == automation.bindings.count && dependencies[0]["ordinal"] == .number(0)

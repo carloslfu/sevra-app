@@ -231,7 +231,7 @@ extension Workbook {
       .joined(separator: ", ") + ")"
     return .object([
       "saved": .string(name), "definitionID": .string(saved.id),
-      "version": .number(Double(saved.version)), "language": .string(tool.language),
+      "logicalID": .string(saved.logicalID), "version": .number(Double(saved.version)), "language": .string(tool.language),
       "inputs": .array(inputs.map { .string($0.name + " " + $0.type) }),
       "run": .string(
         (source == nil ? "sql" : "run") + " with tool=\(name)" + (inputs.isEmpty ? "" : " and values")),

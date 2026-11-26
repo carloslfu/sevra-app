@@ -30,7 +30,10 @@ struct AutomationScheduleEditor: View {
   @State private var trigger = "schedule"
   @State private var checks: [Workbook.SavedTool] = []
   @State private var checksLoaded = false
+  /// The chosen check's logical ID. The automation follows the check's latest version.
   @State private var checkID: String?
+  /// The name of a chosen check that is no longer listed, such as one that now takes inputs.
+  @State private var missingCheckName: String?
   @State private var preview: Value?
   @State private var previewContent: Value?
   @State private var failure: String?
@@ -100,8 +103,12 @@ struct AutomationScheduleEditor: View {
           } else {
             scheduleFields
           }
+          if previewContent == content, let notice = preview?["notice"].string {
+            Text(notice).readingFont(.callout)
+              .fixedSize(horizontal: false, vertical: true)
+          }
           Text(
-            "Save keeps this automation in the workbook. Enable on this Mac is a separate step. Business changes still require review."
+            "Save keeps this automation in the workbook. Enable on this Mac is a separate step."
           )
           .readingFont(.callout).foregroundStyle(.secondary)
         }.labeledContentStyle(ScheduleFieldStyle())
@@ -148,15 +155,23 @@ struct AutomationScheduleEditor: View {
       LabeledContent("Check") {
         Picker("Check", selection: $checkID) {
           Text("Choose a check").tag(String?.none)
-          ForEach(checks, id: \.definitionID) { tool in
-            Text(tool.name).tag(Optional(tool.definitionID))
+          ForEach(checks, id: \.logicalID) { tool in
+            Text(tool.name).tag(Optional(tool.logicalID))
           }
-          if let checkID, !checks.contains(where: { $0.definitionID == checkID }) {
-            Text("The version saved with this automation").tag(Optional(checkID))
+          if let checkID, !checks.contains(where: { $0.logicalID == checkID }) {
+            Text(missingCheckName.map { $0 + " (cannot be a check now)" } ?? "The saved check")
+              .tag(Optional(checkID))
           }
         }.labelsHidden().accessibilityLabel("Check")
       }
-      if let tool = checks.first(where: { $0.definitionID == checkID }) {
+      if let checkID, !checks.contains(where: { $0.logicalID == checkID }) {
+        Text(
+          "This check was removed or now takes inputs, so the automation waits. Choose another check, or change the check back in the chat."
+        )
+        .readingFont(.caption).foregroundStyle(.secondary)
+        .fixedSize(horizontal: false, vertical: true)
+      }
+      if let tool = checks.first(where: { $0.logicalID == checkID }) {
         Text(tool.description.isEmpty ? tool.statements.last ?? "" : tool.description)
           .readingFont(.callout).foregroundStyle(.secondary).textSelection(.enabled)
           .fixedSize(horizontal: false, vertical: true)
@@ -169,7 +184,7 @@ struct AutomationScheduleEditor: View {
       }
     }
     Text(
-      "It starts when the check finds rows after finding none, and again only after the check finds no rows. The first check after you enable it counts any rows it finds. The check runs while Sevra is active, after each change and every minute."
+      "It starts when the check finds rows after finding none, and again only after the check finds no rows. If the check already finds rows when you enable it, it starts once right away. It follows edits to the check. The check runs while Sevra is active, after each change and every minute."
     )
     .readingFont(.caption).foregroundStyle(.secondary)
     .fixedSize(horizontal: false, vertical: true)
@@ -280,10 +295,10 @@ struct AutomationScheduleEditor: View {
       "arguments": arguments,
     ]
     if trigger == "check" {
-      payload["policy"] = .string("check-drafts-v1")
-      payload["check"] = .object(["mode": .string("exact"), "versionID": .string(checkID ?? "")])
+      payload["policy"] = .string("check-v1")
+      payload["check"] = .object(["mode": .string("live"), "logicalID": .string(checkID ?? "")])
     } else {
-      payload["policy"] = .string("calendar-drafts-v1")
+      payload["policy"] = .string("calendar-v1")
       payload["schedule"] = .object([
         "policy": .string("native-calendar-v1"), "timeZone": .string(zone),
         "hour": .number(Double(hour)), "minute": .number(Double(minute)), "recurrence": rule,
@@ -296,8 +311,8 @@ struct AutomationScheduleEditor: View {
       "payload": .object(payload),
     ])
   }
-  private static let calendarDescription = "Prepare this saved workflow on a calendar schedule."
-  private static let checkDescription = "Prepare this saved workflow when its check finds rows."
+  private static let calendarDescription = "Run this saved workflow on a calendar schedule."
+  private static let checkDescription = "Run this saved workflow when its check finds rows."
   /// A written description survives an edit. The default one follows the trigger.
   private var description: String {
     let standard = trigger == "check" ? Self.checkDescription : Self.calendarDescription
@@ -346,9 +361,14 @@ struct AutomationScheduleEditor: View {
     title = existing.title
     arguments = existing.payload["arguments"]
     logicalID = existing.logicalID
-    if existing.payload["policy"] == .string("check-drafts-v1") {
+    if existing.payload["policy"] == .string("check-v1") {
       trigger = "check"
-      checkID = existing.payload["check"]["versionID"].string
+      checkID = existing.payload["check"]["logicalID"].string
+      if let checkID {
+        missingCheckName = try? await Task.detached {
+          try book.applicationDefinition(checkID).payload["name"].text
+        }.value
+      }
     }
     let schedule = existing.payload["schedule"]
     if let saved = schedule["timeZone"].string { zone = saved }

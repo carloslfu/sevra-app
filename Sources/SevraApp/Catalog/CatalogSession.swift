@@ -44,6 +44,7 @@ import SwiftUI
   var automationDefinition: ApplicationDefinition?
   /// An automation that starts when its saved check finds rows.
   var checkAutomationDefinition: ApplicationDefinition?
+  var toolAutomationDefinition: ApplicationDefinition?
   var workflowRunID: String?
   var excelID: String?
   let transport = CatalogTransportGate()
@@ -749,7 +750,9 @@ import SwiftUI
       ws.route =
         variant == "Detail" || variant == "Armed"
         ? .automation(automationDefinition!.id)
-        : variant == "Check" ? .automation(checkAutomationDefinition!.id) : .automations
+        : variant == "Check"
+          ? .automation(checkAutomationDefinition!.id)
+          : variant == "Tool runs" ? .automation(toolAutomationDefinition!.id) : .automations
     } else if id.hasPrefix("main.viewer.") {
       ws.route = .item(fileItems[id.components(separatedBy: ".").last!] ?? source!.id)
     } else if id == "main.table-update" {

@@ -191,10 +191,44 @@ func checkToolActions(at root: URL) {
     try expect(again["recovered"] == .bool(true) && rows(shop) == ["bolts", "nuts"])
     _ = try b.chatSQLUndo(output["undo"].text, actor: .human("test"))
     try expect(try rows(shop) == ["bolts"])
-    // An automation prepares drafts for review, so it cannot run this workflow.
-    try refuses("automation_binding") {
-      _ = try executionAutomation(b, workflow: workflow, arguments: input)
-    }
+    // An automation can run it on a schedule. Its preview names the tool and says the change
+    // applies without review, and its run applies the change once with an Undo.
+    let automation = try executionAutomation(b, workflow: workflow, arguments: input)
+    let preview = try b.previewAutomation(automation.id, after: Date())
+    try expect(preview["tools"] == .array([.string("add_part")]))
+    try expect(
+      preview["notice"].text.contains("runs the saved tool add_part without asking")
+        && preview["notice"].text.contains("apply without review")
+        && !preview["notice"].text.contains(";") && !preview["notice"].text.contains("\u{2014}"))
+    let start = automationDate("2026-10-01T08:00:00Z")
+    let due = automationDate("2026-10-01T09:00:00Z")
+    let granted = try b.authorizeAutomationExecution(
+      automation.id, expectedGeneration: 0, after: start, token: "enable",
+      actor: .human("test"))
+    _ = try b.planAutomationOccurrences(granted.planning, through: due, token: "plan")
+    let dispatched = try b.dispatchAutomationOccurrence(granted, observedAt: due, token: "go")
+    let worker = try b.authorizeAutomationWorkflowExecution(
+      granted, runID: dispatched["runID"].text)
+    let automatic = try b.advanceWorkflow(worker, owner: "test")
+    try expect(automatic["state"] == .string("completed"))
+    let applied = automatic["steps"].array[0]["output"]["value"]
+    try expect(applied["kind"] == .string("tool") && applied["undo"].string != nil)
+    try expect(try rows(shop) == ["bolts", "nuts"])
+    try expect(
+      try b.workflowRuns().contains { $0["id"] == dispatched["runID"] }
+        && b.workflowRun(dispatched["runID"].text)["policy"] == .string("automation-drafts-v1"),
+      "The automatic tool run is not listed in Workflow runs")
+    _ = try b.chatSQLUndo(applied["undo"].text, actor: .human("test"))
+    try expect(try rows(shop) == ["bolts"])
+    // A drafting workflow says it drafts and names no tool.
+    let evidence = try b.addItem(
+      category: "source", kind: "observation", title: "Note", status: "accepted")
+    let noteWorkflow = try b.saveApplicationDefinition(
+      logicalID: identifier(), content: b.workflowTemplate(noteAction(b).id))
+    let drafting = try b.previewAutomation(
+      executionAutomation(b, workflow: noteWorkflow, arguments: noteArguments(evidence.id)).id,
+      after: Date())
+    try expect(drafting["tools"] == .array([]) && drafting["notice"].text.contains("drafts"))
     _ = try b.verify()
   }
 

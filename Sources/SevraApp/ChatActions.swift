@@ -429,9 +429,12 @@ extension WorkspaceState {
           "automation", "Supply the inspected generation and whether to allow local AI.")
       }
       if !confirmed {
+        // What enabling means: when it starts and which saved tools it runs without review.
+        let notice = try book.previewAutomation(definition.id, after: Date())["notice"].text
         return try approve(
           "Enable “" + definition.title + "” on this Mac?\nLocal AI: "
-            + (allowAI ? "allowed" : "not allowed") + "\n" + definition.content["description"].text)
+            + (allowAI ? "allowed" : "not allowed") + "\n" + definition.content["description"].text
+            + (notice.isEmpty ? "" : "\n" + notice))
       }
       try await controller.enable(
         book, exactID: definition.id, expectedGeneration: generation, allowAI: allowAI,

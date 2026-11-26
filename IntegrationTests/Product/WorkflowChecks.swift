@@ -120,7 +120,7 @@ func checkWorkflowModelLifecycle() async throws {
           "kind": .string("automation"), "title": .string("Synthetic local-AI draft"),
           "description": .string("Permission boundary"), "parameters": .array([]),
           "payload": .object([
-            "policy": .string("calendar-drafts-v1"),
+            "policy": .string("calendar-v1"),
             "workflow": .object(["mode": .string("exact"), "versionID": .string(workflow.id)]),
             "arguments": .object(["evidence": .string(source.id)]),
             "schedule": .object([

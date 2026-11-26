@@ -74,7 +74,7 @@ import SevraCore
       deferWork(deferral)
       return
     }
-    gate = "Runs while Sevra is active. Business changes require review."
+    gate = "Runs while Sevra is active."
     deferred = false
     guard task == nil else { return }
     let control = Cancellation(deadlineAfterSeconds: 240)
@@ -217,7 +217,7 @@ import SevraCore
       }
     }
     let definition = try book.applicationDefinition(grant.definitionID)
-    if definition.payload["policy"] == .string("check-drafts-v1") {
+    if definition.payload["policy"] == .string("check-v1") {
       return try prepareCheck(
         book, session: session, now: now, lastCheck: lastCheck, cancellation: cancellation)
     }

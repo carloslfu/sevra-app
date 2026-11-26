@@ -137,7 +137,7 @@ private actor SpaceActionModel: WorkbookInference {
         "kind": .string("automation"), "title": .string(title),
         "description": .string("Synthetic"), "parameters": .array([]),
         "payload": .object([
-          "policy": .string("calendar-drafts-v1"),
+          "policy": .string("calendar-v1"),
           "workflow": .object(["mode": .string("exact"), "versionID": .string(workflow.id)]),
           "arguments": .object([:]),
           "schedule": .object([

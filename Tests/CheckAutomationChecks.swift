@@ -11,6 +11,7 @@ func checkCheckAutomations(at root: URL) {
     let book: Workbook
     let parts: Dataset
     let definition: ApplicationDefinition
+    let check: Workbook.SavedTool
   }
   func fixture(_ name: String) throws -> Fixture {
     let book = try Workbook.create(
@@ -35,9 +36,9 @@ func checkCheckAutomations(at root: URL) {
     let definition = try book.saveApplicationDefinition(
       logicalID: identifier(),
       content: checkAutomationContent(
-        check: check.definitionID, workflow: workflow.id,
+        check: check.logicalID, workflow: workflow.id,
         arguments: noteArguments(source.id, title: "Reorder parts")))
-    return Fixture(book: book, parts: parts, definition: definition)
+    return Fixture(book: book, parts: parts, definition: definition, check: check)
   }
   func setQuantity(_ f: Fixture, _ qty: String) throws {
     _ = try f.book.chatSQL(
@@ -86,7 +87,7 @@ func checkCheckAutomations(at root: URL) {
     try expect(
       try reopened.automationOccurrences(again.planning.activationID)["occurrences"].array.count
         == 1)
-    let g = Fixture(book: reopened, parts: f.parts, definition: f.definition)
+    let g = Fixture(book: reopened, parts: f.parts, definition: f.definition, check: f.check)
     try setQuantity(g, "50")
     let cleared = try reopened.checkAutomation(again.planning, observedAt: at(4), token: "c3")
     try expect(cleared["status"] == .string("cleared"))
@@ -114,7 +115,7 @@ func checkCheckAutomations(at root: URL) {
         _ = try f.book.saveApplicationDefinition(
           logicalID: identifier(),
           content: checkAutomationContent(
-            check: tool.definitionID, workflow: workflow.id,
+            check: tool.logicalID, workflow: workflow.id,
             arguments: f.definition.payload["arguments"]))
       }
     }
@@ -138,13 +139,125 @@ func checkCheckAutomations(at root: URL) {
     try expect(try occurrences(f, session).isEmpty && f.book.workflowRuns().isEmpty)
     // A check that is not enabled on this Mac does not run either.
     let resumed = try f.book.authorizeExecution(f.definition, generation: 2, after: at(2))
-    let check = f.definition.payload["check"]["versionID"].text
-    try f.book.disableTool(check)
+    try f.book.disableTool(f.check.definitionID)
     try refuses("tool_disabled") {
       _ = try f.book.checkAutomation(resumed.planning, observedAt: at(3), token: "c2")
     }
     try expect(try occurrences(f, resumed).isEmpty)
     _ = try f.book.verify()
+  }
+
+  func saveCheck(_ f: Fixture, _ statement: String, description: String = "Parts below their reorder level.",
+    inputs: [(name: String, type: String)] = []) throws
+  {
+    _ = try f.book.chatSaveTool(
+      name: "low_stock", description: description, inputs: inputs, statements: [statement],
+      source: nil, token: identifier(), requestSourceID: nil)
+  }
+  func checkSource(_ f: Fixture, _ result: Value) throws -> Item { try f.book.item(result["sourceID"].text) }
+
+  check("an edited check is followed, and a changed rule starts fresh while a new description does not") {
+    let f = try fixture("Edited")
+    let session = try f.book.authorizeExecution(f.definition, generation: 0, after: start)
+    try setQuantity(f, "5")
+    let first = try f.book.checkAutomation(session.planning, observedAt: at(1), token: "c1")
+    try expect(first["status"] == .string("fired"))
+    try expect(try checkSource(f, first).data["checkID"] == .string(f.check.definitionID))
+    _ = try f.book.dispatchAutomationOccurrence(session, observedAt: at(1), token: "d1")
+    // Only the description changes: the same rule, so rows that stay fire nothing.
+    try saveCheck(f, "SELECT name FROM parts WHERE qty < reorder", description: "Parts to reorder.")
+    let same = try f.book.checkAutomation(session.planning, observedAt: at(2), token: "c2")
+    try expect(same["status"] == .string("finding") && same["changed"] == .bool(false))
+    // The threshold changes: the new rule has never run, so its rows fire once, and the
+    // change records the exact new version that ran.
+    try saveCheck(f, "SELECT name FROM parts WHERE qty < reorder * 2")
+    let edited = try f.book.savedTools().first { $0.name == "low_stock" }!
+    try expect(edited.logicalID == f.check.logicalID && edited.definitionID != f.check.definitionID)
+    let fresh = try f.book.checkAutomation(session.planning, observedAt: at(3), token: "c3")
+    try expect(fresh["status"] == .string("fired"))
+    let source = try checkSource(f, fresh)
+    try expect(
+      source.data["checkID"] == .string(edited.definitionID)
+        && source.data["changedCheck"] == .bool(true))
+    try expect(try occurrences(f, session).count == 2)
+    _ = try f.book.dispatchAutomationOccurrence(session, observedAt: at(3), token: "d3")
+    // Rows of the new rule stay: nothing more.
+    let stays = try f.book.checkAutomation(session.planning, observedAt: at(4), token: "c4")
+    try expect(stays["status"] == .string("finding") && stays["changed"] == .bool(false))
+    // A rule that finds nothing after an edit saves that, so the page shows the new state.
+    try saveCheck(f, "SELECT name FROM parts WHERE qty < 0")
+    let cleared = try f.book.checkAutomation(session.planning, observedAt: at(5), token: "c5")
+    try expect(cleared["status"] == .string("cleared"))
+    try expect(try f.book.automationCheckState(session.planning.activationID)["finding"].int == 0)
+    _ = try f.book.verify()
+  }
+
+  check("a check changed into inputs, writes or removed makes the automation wait with the reason") {
+    let f = try fixture("Invalid")
+    let session = try f.book.authorizeExecution(f.definition, generation: 0, after: start)
+    try saveCheck(f, "SELECT name FROM parts WHERE qty < :level", inputs: [("level", "decimal")])
+    do {
+      _ = try f.book.checkAutomation(session.planning, observedAt: at(1), token: "c1")
+      throw SevraError("test", "A check with inputs ran.")
+    } catch let error as SevraError where error.code == "automation_check" {
+      try expect(error.message.contains("takes no inputs") && error.message.contains("waits"))
+    }
+    try saveCheck(f, "UPDATE parts SET qty = qty + 1")
+    try refuses("automation_check") {
+      _ = try f.book.checkAutomation(session.planning, observedAt: at(2), token: "c2")
+    }
+    _ = try f.book.retireTool("low_stock")
+    do {
+      _ = try f.book.checkAutomation(session.planning, observedAt: at(3), token: "c3")
+      throw SevraError("test", "A removed check ran.")
+    } catch let error as SevraError where error.code == "automation_check" {
+      try expect(error.message.contains("was removed"))
+    }
+    try expect(try occurrences(f, session).isEmpty)
+    // Saving a working check again resumes it with no other step.
+    try saveCheck(f, "SELECT name FROM parts WHERE qty < reorder")
+    try setQuantity(f, "5")
+    let fired = try f.book.checkAutomation(session.planning, observedAt: at(4), token: "c4")
+    try expect(fired["status"] == .string("fired"))
+    _ = try f.book.verify()
+  }
+
+  check("rows that appeared while paused or closed fire once on resume, and rows that came and went fire nothing") {
+    let f = try fixture("Missed")
+    // Rows already present at enable fire at once: the person asked to know.
+    try setQuantity(f, "5")
+    let session = try f.book.authorizeExecution(f.definition, generation: 0, after: start)
+    let now = try f.book.checkAutomation(session.planning, observedAt: at(1), token: "c1")
+    try expect(now["status"] == .string("fired"))
+    _ = try f.book.dispatchAutomationOccurrence(session, observedAt: at(1), token: "d1")
+    try setQuantity(f, "50")
+    _ = try f.book.checkAutomation(session.planning, observedAt: at(2), token: "c2")
+    // Paused, then the rows come back: the first check after resuming fires once.
+    _ = try f.book.pauseAutomation(
+      session.planning.activationID, expectedGeneration: session.planning.generation, token: "p1")
+    try setQuantity(f, "3")
+    let reopened = try Workbook(f.book.url)
+    let resumed = try reopened.authorizeExecution(
+      f.definition, generation: session.planning.generation + 1, after: at(3))
+    let missed = try reopened.checkAutomation(resumed.planning, observedAt: at(4), token: "c3")
+    try expect(missed["status"] == .string("fired"))
+    _ = try reopened.dispatchAutomationOccurrence(resumed, observedAt: at(4), token: "d3")
+    try setQuantity(Fixture(book: reopened, parts: f.parts, definition: f.definition, check: f.check), "50")
+    _ = try reopened.checkAutomation(resumed.planning, observedAt: at(5), token: "c4")
+    // Paused again, rows come and go: nothing fires on resume.
+    _ = try reopened.pauseAutomation(
+      resumed.planning.activationID, expectedGeneration: resumed.planning.generation, token: "p2")
+    let g = Fixture(book: reopened, parts: f.parts, definition: f.definition, check: f.check)
+    try setQuantity(g, "2")
+    try setQuantity(g, "40")
+    let again = try reopened.authorizeExecution(
+      f.definition, generation: resumed.planning.generation + 1, after: at(6))
+    let quiet = try reopened.checkAutomation(again.planning, observedAt: at(7), token: "c5")
+    try expect(quiet["status"] == .string("clear") && quiet["changed"] == .bool(false))
+    try expect(
+      try reopened.automationOccurrences(again.planning.activationID)["occurrences"].array.count
+        == 2)
+    _ = try reopened.verify()
   }
 
   check("an alert in place of a workflow drafts that alert for review when the check fires") {
@@ -156,7 +269,7 @@ func checkCheckAutomations(at root: URL) {
         "description": .string("Alert when a part is below its reorder level"),
         "parameters": .array([]),
         "payload": .object([
-          "policy": .string("check-drafts-v1"), "check": check,
+          "policy": .string("check-v1"), "check": check,
           "alert": .string("A part is below its reorder level. Reorder it."),
         ]),
       ]), token: "alert", requestRunID: nil, requestSourceID: nil, cancellation: .init())
@@ -180,8 +293,8 @@ func checkAutomationContent(check: String, workflow: String, arguments: Value) -
     "description": .string("Prepare the note when the check finds rows"),
     "parameters": .array([]),
     "payload": .object([
-      "policy": .string("check-drafts-v1"),
-      "check": .object(["mode": .string("exact"), "versionID": .string(check)]),
+      "policy": .string("check-v1"),
+      "check": .object(["mode": .string("live"), "logicalID": .string(check)]),
       "workflow": .object(["mode": .string("exact"), "versionID": .string(workflow)]),
       "arguments": arguments,
     ]),

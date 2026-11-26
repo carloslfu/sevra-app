@@ -113,7 +113,7 @@ enum CatalogRegistry {
       ),
       (
         "automations", "Automations", "AutomationSchedulesView.swift",
-        ["Default", "Empty", "Detail", "Armed", "Paused", "Stale", "Check"]
+        ["Default", "Empty", "Detail", "Armed", "Paused", "Stale", "Check", "Tool runs"]
       ),
       (
         "automation-editor", "Automation editor", "AutomationScheduleEditor.swift",

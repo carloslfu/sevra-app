@@ -21,7 +21,7 @@ func automationPlanningFixture(at url: URL, schedule: Value? = nil) throws -> (
       "kind": .string("automation"), "title": .string("Daily draft report"),
       "description": .string("Prepare only; never execute"), "parameters": .array([]),
       "payload": .object([
-        "policy": .string("calendar-drafts-v1"),
+        "policy": .string("calendar-v1"),
         "workflow": .object(["mode": .string("exact"), "versionID": .string(workflow.id)]),
         "arguments": .object([:]),
         "schedule": schedule

@@ -79,7 +79,7 @@ def main():
         workflow = call('definition-save', book, workflow_logical, j(workflow_content), 'new', 'workflow')
         content = {'kind': 'automation', 'title': 'Weekday inventory summary',
                    'description': 'A portable inert intention, never an activation grant.', 'parameters': [],
-                   'payload': {'policy': 'calendar-drafts-v1',
+                   'payload': {'policy': 'calendar-v1',
                                'workflow': {'mode': 'exact', 'versionID': workflow['id']},
                                'arguments': {'quantity': '5.00', 'evidence': first['id'],
                                              'entries': [{'attachment': second['id']}]},

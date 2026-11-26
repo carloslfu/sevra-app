@@ -2,12 +2,19 @@ import Foundation
 
 /// The check trigger: an automation that starts when its saved check starts finding rows.
 ///
-/// The check is a saved SQL tool with no inputs that only reads. While the app is open on a Mac
-/// where the person enabled the automation, the native owner runs it after workbook changes and
-/// on a modest poll. It fires on the change from no rows to one or more rows, not while rows
-/// stay. Each change is saved as a Source with the automation's own state, so reopening the
-/// workbook does not fire it again, and a check that finds no rows again is ready to fire on the
-/// next rows. The first check after enabling starts from no rows, so rows found then fire.
+/// The check is a saved SQL tool with no inputs that only reads. The automation follows the
+/// check's latest version, which is validated again at every evaluation, and each change records
+/// the exact version that ran. While the app is open on a Mac where the person enabled the
+/// automation, the native owner runs it after workbook changes and on a modest poll. It fires on
+/// the change from no rows to one or more rows, not while rows stay. Each change is saved as a
+/// Source with the automation's own state, so reopening the workbook does not fire it again, and
+/// a check that finds no rows again is ready to fire on the next rows.
+///
+/// The saved state outlives pauses and app restarts. The first evaluation after a reopen or a
+/// resume compares with it, so rows that appeared meanwhile fire once and rows that came and
+/// went meanwhile fire nothing. The first check after enabling starts from no rows, so rows it
+/// finds then fire. A check whose statements changed starts fresh the same way: the person
+/// changed the rule, so rows it finds are news even if the old rule had found rows.
 extension Workbook {
   public static let checkTransitionPolicy = "check-transition-v1"
 
@@ -41,15 +48,31 @@ extension Workbook {
           throw SevraError(
             "automation_trigger", "This automation runs on a schedule, not on a check.")
         }
-        let tool = try applicationDefinition(check.target)
-        let name = try automationCheck(tool).name
+        let tool = try resolveDefinition(check)
+        let name: String
+        do {
+          name = try automationCheck(tool).name
+        } catch let error as SevraError where error.code == "automation_check" {
+          throw SevraError(
+            "automation_check",
+            error.message
+              + " This automation waits until the check works again. Change the check back, or edit the automation and choose another check."
+          )
+        }
         try require(
           isToolEnabled(tool.id), "tool_disabled",
           "The check \(name) came with this workbook and is not enabled on this Mac. Enable it under Tools in the workbook's menu."
         )
+        let state = try automationCheckState(session.activationID)
+        // The exact check version the saved state came from, to tell an edited check.
+        let ranID = try state["source_id"].string.map { try item($0).data["checkID"].text }
+        let ran = try ranID.map {
+          try DefinitionTool(DefinitionDescriptor(applicationDefinition($0).content))
+        }
+        let statements = try DefinitionTool(DefinitionDescriptor(tool.content)).statements
         return .object([
           "activation": activation, "checkID": .string(tool.id), "name": .string(name),
-          "state": try automationCheckState(session.activationID),
+          "state": state, "changedCheck": .bool(ran.map { $0.statements != statements } ?? false),
         ])
       }
     }
@@ -61,8 +84,12 @@ extension Workbook {
     let rows = result["results"].array.last?["rowCount"].int ?? 0
     let finding = rows > 0
     let previous = snapshot["state"]
-    let wasFinding = previous["finding"].int == 1
-    guard finding != wasFinding else {
+    let storedFinding = previous["finding"].int == 1
+    // A changed check starts fresh, as if just enabled. Its state is saved when it differs from
+    // the stored one, so the page does not keep showing what the old check found.
+    let changedCheck = snapshot["changedCheck"] == .bool(true)
+    let wasFinding = changedCheck ? false : storedFinding
+    guard finding != wasFinding || (changedCheck && finding != storedFinding) else {
       return .object([
         "status": .string(finding ? "finding" : "clear"), "rows": .number(Double(rows)),
         "changed": .bool(false), "check": snapshot["name"], "execution": .string("none"),
@@ -89,7 +116,8 @@ extension Workbook {
       var decisions: [Value] = []
       var entries: [Value] = []
       let occurrenceID = identifier()
-      if finding {
+      let fires = finding && !wasFinding
+      if fires {
         if pending != .null { decisions.append(self.automationDecision(pending, "coalesced")) }
         let slot: Value = .object([
           "kind": .string("check"), "slotKey": .string("check:" + occurrenceID), "due": .string(instant),
@@ -110,8 +138,10 @@ extension Workbook {
         category: "source", kind: "automation_check",
         title: finding ? "Check found rows" : "Check found no rows",
         text: finding
-          ? "The saved check \(snapshot["name"].text) started finding rows, so the automation queued one request."
-          : "The saved check \(snapshot["name"].text) found no rows again. The next rows will start the automation.",
+          ? "The saved check \(snapshot["name"].text) started finding rows"
+            + (changedCheck ? " after it was changed" : "") + ", so the automation queued one request."
+          : "The saved check \(snapshot["name"].text) found no rows"
+            + (changedCheck ? " after it was changed" : " again") + ". The next rows will start the automation.",
         data: .object([
           "activationID": .string(authority.activationID),
           "definitionID": activation["definition_id"],
@@ -119,6 +149,7 @@ extension Workbook {
           "authorizationSourceID": .string(authority.sourceID),
           "checkID": snapshot["checkID"], "rows": .number(Double(rows)),
           "finding": .bool(finding), "previousCheckSourceID": previous["source_id"],
+          "changedCheck": .bool(changedCheck),
           "observedAt": .string(instant), "occurrences": .array(entries),
           "decisions": .array(decisions), "policy": .string(Self.checkTransitionPolicy),
         ]), meaning: "actual", status: "accepted", scenario: "actual",
@@ -150,9 +181,10 @@ extension Workbook {
       try self.automationEvent(
         authority.activationID, generation: authority.generation, kind: "checked", source: source)
       return .object([
-        "status": .string(finding ? "fired" : "cleared"), "rows": .number(Double(rows)),
+        "status": .string(fires ? "fired" : finding ? "finding" : "cleared"),
+        "rows": .number(Double(rows)),
         "changed": .bool(true), "check": snapshot["name"], "sourceID": .string(source),
-        "occurrenceID": finding ? .string(occurrenceID) : .null,
+        "occurrenceID": fires ? .string(occurrenceID) : .null,
         "execution": .string("preparation-only"),
       ])
     }
@@ -188,7 +220,8 @@ extension Workbook {
     let automation = try DefinitionAutomation(
       DefinitionDescriptor(applicationDefinition(occurrence["definition_id"].text).content))
     try require(
-      automation.check?.target == source.data["checkID"].string
+      automation.check?.target
+        == (try? applicationDefinition(source.data["checkID"].text).logicalID)
         && source.data["policy"] == .string(Self.checkTransitionPolicy)
         && source.data["finding"] == .bool(true)
         && slot == .object([
@@ -244,7 +277,7 @@ extension Workbook {
       payload["policy"] == .string(DefinitionAutomation.checkPolicy)
         && Set(payload.object.keys) == ["policy", "check", "alert"],
       "automation_definition",
-      "An alert automation is {policy: check-drafts-v1, check, alert}, with no workflow.")
+      "An alert automation is {policy: check-v1, check, alert}, with no workflow.")
     let alert = payload["alert"].text.trimmingCharacters(in: .whitespacesAndNewlines)
     try require(
       !alert.isEmpty && alert.utf8.count <= 2_000, "automation_definition",

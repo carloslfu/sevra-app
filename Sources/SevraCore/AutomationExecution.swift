@@ -1,6 +1,6 @@
 import Foundation
 
-/// Explicit authority for exact foreground draft workflows. No saved row or
+/// Explicit authority for exact foreground workflows. No saved row or
 /// imported Source can instantiate it. Business acceptance remains separate.
 public final class AutomationExecutionSession: @unchecked Sendable {
   public let planning: AutomationPlanningSession
@@ -179,7 +179,7 @@ extension Workbook {
         title: late ? "Skip late scheduled request" : "Dispatch scheduled workflow",
         text: late
           ? "The pending calendar request exceeded its lateness bound; no run was started."
-          : "The dispatcher queued an exact authorized foreground draft workflow. Business changes still require review.",
+          : "The dispatcher queued an exact authorized foreground workflow. Drafts wait for review. Saved tool steps apply with an Undo.",
         data: .object([
           "activationID": activation["id"], "definitionID": activation["definition_id"],
           "generation": .number(Double(authority.generation)),
