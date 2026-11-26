@@ -760,7 +760,12 @@ public enum WorkbookAgent {
             actionText == nil
             ? actionConfirmations.rendered(excluding: nil, brief: wrapUp != nil) : nil
           var answer = actionText ?? a["answer"].text
-          var citations = actionText == nil ? a["citations"].array.compactMap(\.string) : []
+          // The grammar lets a model name one ID twice; each is cited once, in first order.
+          var seenCitations = Set<String>()
+          var citations =
+            actionText == nil
+            ? a["citations"].array.compactMap(\.string).filter { seenCitations.insert($0).inserted }
+            : []
           // An answer built from host outcomes states no calculation, and neither does an
           // unresolved one or a preview. Any other answer carries the inputs of what it ran.
           let reportsWork =

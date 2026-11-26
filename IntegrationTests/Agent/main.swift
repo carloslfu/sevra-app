@@ -483,6 +483,7 @@ do {
   try await checkItemReferences()
   try await checkReferenceTraversal()
   try await checkReferenceScope()
+  try await checkDuplicateCitations()
   try await checkSearchCoverage()
   try await checkRelatedOriginals()
   try await checkCompaction()
