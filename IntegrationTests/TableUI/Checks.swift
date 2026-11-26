@@ -157,6 +157,41 @@ actor ReadGate {
     try expect(selected.isEmpty, "Filtered selection remained in the conversation context")
     print("PASS cancelled editing does not write and filtered-out selection clears")
 
+    // Long values: one truncated line with a hover expansion; opening the cell grows its row
+    // to show every line on an opaque editor surface, and closing restores the row.
+    view(current).update(table, coordinator: coordinator)
+    let scroll = NSScrollView(frame: NSRect(x: 0, y: 0, width: 600, height: 300))
+    scroll.documentView = table
+    let window = NSWindow(
+      contentRect: scroll.frame, styleMask: [.titled], backing: .buffered, defer: false)
+    window.contentView = scroll
+    table.frame = NSRect(x: 0, y: 0, width: 600, height: 300)
+    table.reloadData()
+    let base = table.rect(ofRow: 0).height
+    let open = table.view(atColumn: 0, row: 0, makeIfNecessary: true) as! GridCellView
+    let field = open.textField as! BoundTableCell
+    try expect(
+      field.lineBreakMode == .byTruncatingTail && field.allowsExpansionToolTips,
+      "Closed cells must end cut-off text with an ellipsis and offer the full value on hover")
+    try expect(
+      GridRowView().interiorBackgroundStyle == .normal,
+      "Selected rows must keep normal text colors")
+    try expect(window.makeFirstResponder(field), "Cell did not open")
+    let original = field.currentEditor()?.string ?? ""
+    field.currentEditor()?.string = String(repeating: "two bananas, three apples ", count: 8)
+    coordinator.controlTextDidChange(
+      Notification(name: NSControl.textDidChangeNotification, object: field))
+    try expect(
+      open.isOpen && table.rect(ofRow: 0).height > base * 2 && table.rect(ofRow: 1).height == base,
+      "Opening a long value must grow only its own row")
+    field.currentEditor()?.string = original
+    _ = window.makeFirstResponder(table)
+    try expect(
+      !open.isOpen && table.rect(ofRow: 0).height == base
+        && field.lineBreakMode == .byTruncatingTail,
+      "Closing the cell must restore one truncated line")
+    print("PASS long values truncate with hover expansion and open into a grown, high-contrast editor")
+
     var columns = external.dataset.columns
     columns[3].formula = "C2"
     try book.setColumns(id, columns: columns)

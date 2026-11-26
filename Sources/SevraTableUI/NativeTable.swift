@@ -272,8 +272,52 @@ public struct NativeTable: NSViewRepresentable {
     var textScale = 1.0
     var updating = false
     var selectionGeneration = 0
+    /// The row version whose cell is open in the editor, and the height that shows its text.
+    var expandedRowID: String?
+    var expandedHeight: CGFloat = 0
+    var baseRowHeight: CGFloat { ReadingStyle.points(30, scale: textScale) }
     init(_ parent: NativeTable) { self.parent = parent }
     public func numberOfRows(in tableView: NSTableView) -> Int { parent.page.rows.count }
+    public func tableView(_ tableView: NSTableView, rowViewForRow row: Int) -> NSTableRowView? {
+      GridRowView()
+    }
+    public func tableView(_ tableView: NSTableView, heightOfRow row: Int) -> CGFloat {
+      guard let expandedRowID, parent.page.rows.indices.contains(row),
+        parent.page.rows[row].id == expandedRowID
+      else { return baseRowHeight }
+      return max(baseRowHeight, expandedHeight)
+    }
+    /// An open cell grows its row downward so the whole value is visible while it is read or edited.
+    func fitExpandedRow(_ cell: BoundTableCell) {
+      guard let table = cell.enclosingScrollView?.documentView as? NSTableView,
+        let row = parent.page.rows.firstIndex(where: { $0.id == cell.row.id })
+      else { return }
+      let text = cell.currentEditor()?.string ?? cell.stringValue
+      let height = cell.expandedHeight(for: text, minimum: baseRowHeight)
+      guard expandedRowID != cell.row.id || abs(expandedHeight - height) > 0.5 else { return }
+      expandedRowID = cell.row.id
+      expandedHeight = height
+      NSAnimationContext.runAnimationGroup { context in
+        context.duration = 0
+        table.noteHeightOfRows(withIndexesChanged: IndexSet(integer: row))
+      }
+      table.scrollRowToVisible(row)
+    }
+    func collapseExpandedRow(_ cell: BoundTableCell) {
+      guard expandedRowID == cell.row.id else { return }
+      expandedRowID = nil
+      guard let table = cell.enclosingScrollView?.documentView as? NSTableView,
+        let row = parent.page.rows.firstIndex(where: { $0.id == cell.row.id })
+      else { return }
+      NSAnimationContext.runAnimationGroup { context in
+        context.duration = 0
+        table.noteHeightOfRows(withIndexesChanged: IndexSet(integer: row))
+      }
+    }
+    public func controlTextDidChange(_ notification: Notification) {
+      guard let cell = notification.object as? BoundTableCell else { return }
+      fitExpandedRow(cell)
+    }
     public func tableView(_ tableView: NSTableView, viewFor tableColumn: NSTableColumn?, row: Int)
       -> NSView?
     {
@@ -294,6 +338,10 @@ public struct NativeTable: NSViewRepresentable {
           let column = self.parent.page.dataset.columns.firstIndex(where: { $0.id == cell.column })
         else { return }
         table.focusCell(row: current, column: column)
+      }
+      cell.openChanged = { [weak self, weak cell] open in
+        guard let self, let cell else { return }
+        if open { self.fitExpandedRow(cell) } else { self.collapseExpandedRow(cell) }
       }
       cell.isBordered = false
       cell.backgroundColor = .clear
@@ -332,16 +380,7 @@ public struct NativeTable: NSViewRepresentable {
               ? "Double-click or press Return to edit"
               : "Read only while the table updates or another task runs")
       }
-      let container = NSTableCellView()
-      cell.translatesAutoresizingMaskIntoConstraints = false
-      container.addSubview(cell)
-      container.textField = cell
-      NSLayoutConstraint.activate([
-        cell.leadingAnchor.constraint(equalTo: container.leadingAnchor),
-        cell.trailingAnchor.constraint(equalTo: container.trailingAnchor),
-        cell.centerYAnchor.constraint(equalTo: container.centerYAnchor),
-      ])
-      return container
+      return GridCellView(field: cell)
     }
     public func controlTextDidBeginEditing(_ notification: Notification) {
       guard let cell = notification.object as? BoundTableCell,
@@ -376,6 +415,7 @@ public struct NativeTable: NSViewRepresentable {
     }
     public func controlTextDidEndEditing(_ notification: Notification) {
       guard let cell = notification.object as? BoundTableCell else { return }
+      cell.close()
       if notification.userInfo?["NSTextMovement"] as? Int == NSTextMovement.cancel.rawValue {
         cell.stringValue = cell.originalValue
         return
@@ -442,10 +482,54 @@ final class BoundTableCell: NSTextField {
   let originalValue: String
   var submissionSent = false
   var focusChanged: (() -> Void)?
+  /// Called when the cell opens for reading or editing and when it closes again.
+  var openChanged: ((Bool) -> Void)?
+  private(set) var isOpen = false
   override func becomeFirstResponder() -> Bool {
+    // The field editor copies these settings when it starts, so set them first.
+    showWholeText(true)
     let accepted = super.becomeFirstResponder()
-    if accepted { focusChanged?() }
+    if accepted {
+      isOpen = true
+      (superview as? GridCellView)?.isOpen = true
+      focusChanged?()
+      openChanged?(true)
+    } else {
+      showWholeText(false)
+    }
     return accepted
+  }
+  override func textDidEndEditing(_ notification: Notification) {
+    super.textDidEndEditing(notification)
+    close()
+  }
+  /// Returns the cell to one truncated line. Safe to call more than once.
+  func close() {
+    guard isOpen else { return }
+    isOpen = false
+    showWholeText(false)
+    (superview as? GridCellView)?.isOpen = false
+    openChanged?(false)
+  }
+  /// Closed cells show one line ending in an ellipsis; open cells wrap every line of the value.
+  private func showWholeText(_ whole: Bool) {
+    usesSingleLineMode = !whole
+    cell?.wraps = whole
+    cell?.isScrollable = !whole
+    lineBreakMode = whole ? .byWordWrapping : .byTruncatingTail
+    cell?.truncatesLastVisibleLine = !whole
+  }
+  /// The row height that shows `text` wrapped at this cell's width, up to twelve lines.
+  func expandedHeight(for text: String, minimum: CGFloat) -> CGFloat {
+    let font = font ?? .systemFont(ofSize: NSFont.systemFontSize)
+    let width = max(20, (superview?.bounds.width ?? bounds.width) - GridCellView.inset * 2 - 4)
+    let line = NSLayoutManager().defaultLineHeight(for: font)
+    let measured = (text.isEmpty ? " " : text as NSString).boundingRect(
+      with: NSSize(width: width, height: .greatestFiniteMagnitude),
+      options: [.usesLineFragmentOrigin, .usesFontLeading], attributes: [.font: font]
+    ).height
+    let lines = min(max(1, (measured / line).rounded(.up)), 12)
+    return max(minimum, ceil(lines * line) + GridCellView.verticalPadding * 2)
   }
   override func setAccessibilityFocused(_ focused: Bool) {
     super.setAccessibilityFocused(focused)
@@ -457,6 +541,78 @@ final class BoundTableCell: NSTextField {
     self.revision = revision
     self.originalValue = value
     super.init(frame: .zero)
+    // Hovering a cut-off value shows all of it, the way Finder and Numbers do.
+    allowsExpansionToolTips = true
+    showWholeText(false)
   }
   required init?(coder: NSCoder) { fatalError("Bound cells are created from a table snapshot.") }
+}
+
+/// Holds one grid cell. Closed, it centers a single line; open, it fills the cell with an
+/// opaque editor surface and an accent outline so text keeps full contrast on any row.
+final class GridCellView: NSTableCellView {
+  /// Open text sits inside the editor outline; closed text lines up with the column header.
+  static let inset: CGFloat = 5
+  static let verticalPadding: CGFloat = 6
+  private var centered: [NSLayoutConstraint] = []
+  private var filled: [NSLayoutConstraint] = []
+  private var leading: NSLayoutConstraint!, trailing: NSLayoutConstraint!
+  var isOpen = false {
+    didSet {
+      guard isOpen != oldValue else { return }
+      NSLayoutConstraint.deactivate(isOpen ? centered : filled)
+      NSLayoutConstraint.activate(isOpen ? filled : centered)
+      leading.constant = isOpen ? Self.inset : 0
+      trailing.constant = isOpen ? -Self.inset : 0
+      needsDisplay = true
+    }
+  }
+  init(field: BoundTableCell) {
+    super.init(frame: .zero)
+    field.translatesAutoresizingMaskIntoConstraints = false
+    field.focusRingType = .none
+    addSubview(field)
+    textField = field
+    leading = field.leadingAnchor.constraint(equalTo: leadingAnchor)
+    trailing = field.trailingAnchor.constraint(equalTo: trailingAnchor)
+    NSLayoutConstraint.activate([leading, trailing])
+    centered = [field.centerYAnchor.constraint(equalTo: centerYAnchor)]
+    filled = [
+      field.topAnchor.constraint(equalTo: topAnchor, constant: Self.verticalPadding),
+      field.bottomAnchor.constraint(equalTo: bottomAnchor, constant: -Self.verticalPadding),
+    ]
+    NSLayoutConstraint.activate(centered)
+  }
+  required init?(coder: NSCoder) { fatalError("Grid cells are created from a table snapshot.") }
+  /// Selected rows use a light tint, so cell text keeps its normal colors.
+  override var backgroundStyle: NSView.BackgroundStyle {
+    get { .normal }
+    set { super.backgroundStyle = .normal }
+  }
+  override func draw(_ dirtyRect: NSRect) {
+    guard isOpen else { return }
+    let editable = textField?.isEditable == true
+    let box = NSBezierPath(roundedRect: bounds.insetBy(dx: 1, dy: 1), xRadius: 4, yRadius: 4)
+    NSColor.textBackgroundColor.setFill()
+    box.fill()
+    (editable ? NSColor.controlAccentColor : NSColor.separatorColor).setStroke()
+    box.lineWidth = 2
+    box.stroke()
+  }
+}
+
+/// A selected row is tinted with the accent color instead of filled with it. Text stays in
+/// its normal colors, and an open editor never sits on a saturated background.
+final class GridRowView: NSTableRowView {
+  override var interiorBackgroundStyle: NSView.BackgroundStyle { .normal }
+  override func drawSelection(in dirtyRect: NSRect) {
+    guard selectionHighlightStyle != .none else { return }
+    let dark = effectiveAppearance.bestMatch(from: [.darkAqua, .aqua]) == .darkAqua
+    let tint =
+      isEmphasized
+      ? NSColor.controlAccentColor.withAlphaComponent(dark ? 0.28 : 0.16)
+      : NSColor.unemphasizedSelectedContentBackgroundColor
+    tint.setFill()
+    bounds.fill()
+  }
 }

@@ -302,6 +302,7 @@ import SevraCore
     super.init(frame: .zero)
     let label = NSTextField(labelWithString: "")
     label.lineBreakMode = .byTruncatingTail
+    label.allowsExpansionToolTips = true
     label.translatesAutoresizingMaskIntoConstraints = false
     addSubview(label)
     textField = label
