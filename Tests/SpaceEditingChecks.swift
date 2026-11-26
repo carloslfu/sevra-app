@@ -614,8 +614,24 @@ func checkSpaceEditing(at temp: URL) {
     }
     let text = refusal(.init(id: "note", type: "text", title: "Note", query: "SELECT 1", text: "x"))
     try expect(text.contains("note is a text, which does not use query") && text.contains("table, chart or metric with query"), text)
-    let table = refusal(.init(id: "t", type: "table", title: "T", datasetID: stock.id, x: "part", y: "quantity"))
-    try expect(table.contains("does not use x, y") && table.contains("x belongs to a chart"), table)
+    // Fields that change nothing are left out with a notice, and the rest of the view saves.
+    let stray = Component(
+      id: "t", type: "table", title: "T", datasetID: stock.id, x: "part", y: "quantity",
+      size: "large")
+    let noted = SpaceDefinition.leavingOutUnusedFields([
+      stray, .init(id: "d", type: "document", title: "D", itemID: "x", size: "small"),
+    ])
+    try expect(
+      noted.notices == [
+        "Left out x, y on t: a table does not use them.", "Left out size on d: a document has no size.",
+      ] && noted.components[0].x == nil && noted.components[0].size == "large", "\(noted.notices)")
+    try expect(refusal(stray) == "saved")
+    let saved = try book.spaces().first { $0.definition.components.first?.id == "t" }!
+    try expect(saved.definition.components[0].x == nil && saved.definition.components[0].y == nil)
+    // A chart's aggregation other than SUM would mean another number, so it is still refused.
+    let average = refusal(
+      .init(id: "c", type: "chart", title: "C", datasetID: stock.id, x: "part", y: "quantity", aggregation: "AVERAGE"))
+    try expect(average.contains("does not use aggregation") && average.contains("query"), average)
     let write = refusal(.init(id: "t", type: "table", title: "T", query: "DELETE FROM stock"))
     try expect(write.contains("only reads"), write)
     let sneaky = refusal(.init(id: "t", type: "table", title: "T", query: "WITH x AS (SELECT 1) DELETE FROM stock"))
@@ -647,6 +663,72 @@ func checkSpaceEditing(at temp: URL) {
       id, expectedVersion: 1,
       edits: [.init(operation: "replace", componentID: "note", component: changed)])
     try expect(replaced.definition.components == [changed])
+  }
+  check("a replace of the same type keeps the fields it leaves out, clears a null one, and a new type is whole") {
+    let book = try fixture()
+    _ = try book.chatSQL(
+      statements: ["CREATE TABLE sales (region TEXT, revenue REAL)", "INSERT INTO sales VALUES ('North', 5)"],
+      readOnly: false, token: "sales", requestSourceID: nil)
+    let sales = try book.datasets()[0]
+    let chart = Component(
+      id: "chart1", type: "chart", title: "Sales by region", datasetID: sales.id, x: "region",
+      y: "revenue", chartStyle: "line", unit: "units", size: "medium")
+    let tools = WorkbookTools(book, conversation: "")
+    let id = try tools.execute(
+      "save_space",
+      .object([
+        "title": .string("Sales"),
+        "definition": try encoded(SpaceDefinition(components: [chart])),
+      ]))["spaceID"].text
+    // The scenario that lost datasetID, x and y: the edit sent id, type, title and size only.
+    func edit(_ component: Value, version: Int) throws -> Value {
+      try tools.execute(
+        "edit_space",
+        .object([
+          "id": .string(id), "expectedVersion": .number(Double(version)),
+          "edits": .array([
+            .object([
+              "operation": .string("replace"), "componentID": .string("chart1"),
+              "component": component,
+            ])
+          ]),
+        ]))
+    }
+    _ = try edit(
+      .object([
+        "id": .string("chart1"), "type": .string("chart"), "title": .string("Sales by region"),
+        "chartStyle": .string("bar"), "size": .string("large"),
+      ]), version: 1)
+    var kept = chart
+    kept.chartStyle = "bar"
+    kept.size = "large"
+    try expect(try book.space(id).definition.components == [kept], "\(try book.space(id).definition.components)")
+    // null clears a field, and a stray field on the new type is left out with a notice.
+    let cleared = try edit(
+      .object([
+        "id": .string("chart1"), "type": .string("chart"), "title": .string("Sales by region"),
+        "unit": .null,
+      ]), version: 2)
+    try expect(try book.space(id).definition.components[0].unit == nil && cleared["notice"] == .null)
+    let table = try edit(
+      .object([
+        "id": .string("chart1"), "type": .string("table"), "title": .string("Sales"),
+        "datasetID": .string(sales.id), "x": .string("region"),
+      ]), version: 3)
+    try expect(
+      try book.space(id).definition.components
+        == [.init(id: "chart1", type: "table", title: "Sales", datasetID: sales.id)]
+        && table["notice"].text.contains("Left out x on chart1: a table does not use it."),
+      "\(table)")
+    // A new type is a new component: a chart from a table needs its own x and y.
+    let refused = refusalMessage {
+      _ = try edit(
+        .object([
+          "id": .string("chart1"), "type": .string("chart"), "title": .string("Sales"),
+          "datasetID": .string(sales.id),
+        ]), version: 4)
+    }
+    try expect(refused.contains("needs x and y") || refused.contains("x and y"), refused)
   }
 }
 

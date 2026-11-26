@@ -14,7 +14,8 @@ extension NativeTools {
           "description": .string("One SQL statement per entry, run in order."),
         ]),
         "draft": schema(
-          "boolean", "True saves UPDATEs as a proposal for the user to review. Nothing changes."),
+          "boolean",
+          "Only when the user asks to review a change before it applies: saves UPDATEs as a proposal and changes nothing. Otherwise leave it out."),
         "tool": schema("string", "Run this saved SQL tool instead of statements."),
         "undo": schema(
           "string", "Sent alone: undo everything an earlier sql call saved, by its undo value."),

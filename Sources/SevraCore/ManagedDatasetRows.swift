@@ -148,7 +148,8 @@ extension Workbook {
   /// valid multi-row swap is checked against the final set, within one transaction.
   func prepareManagedRowEdits(_ datasetID: String, exactIDs: [String]) throws {
     let schema = try db.managedSchema(datasetID)
-    guard schema.stored.contains(where: \.distinct) else { return }
+    guard schema.stored.contains(where: \.distinct) || !schema.columns.uniqueSets.isEmpty
+    else { return }
     for id in exactIDs {
       try db.execute(
         "DELETE FROM " + ChangeFormat.quote(schema.table)
@@ -194,6 +195,25 @@ extension Workbook {
             column.title + " must contain distinct values, and "
               + (value.isEmpty ? "that value" : "\"" + String(value.prefix(80)) + "\"")
               + " is already in another row. No changes were saved.")
+        }
+        if error.code == "database",
+          let set = schema.columns.uniqueSets.first(where: { set in
+            error.message.contains(
+              "UNIQUE constraint failed: "
+                + set.map { schema.table + "." + schema.field($0) }.joined(separator: ", "))
+          })
+        {
+          let columns = set.compactMap { id in schema.stored.firstIndex { $0.id == id } }
+          let titles = columns.map { schema.stored[$0].title }
+          let values = columns.map { index in
+            let value = args.count > 5 + index ? args[5 + index].text : ""
+            return "\"" + String(value.prefix(80)) + "\""
+          }
+          throw SevraError(
+            "unique",
+            titles.dropLast().joined(separator: ", ") + " and " + titles.last!
+              + " together must be distinct in each row, and "
+              + values.joined(separator: ", ") + " are already in another row. No changes were saved.")
         }
         throw error
       }

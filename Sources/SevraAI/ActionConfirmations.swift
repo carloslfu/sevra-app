@@ -147,6 +147,11 @@ package struct ActionConfirmations {
   /// then saved. What stands is what the later save saved, and its own line says so.
   private static func sameTarget(_ failure: Value, settledBy saved: Value) -> Bool {
     guard failure["kind"].text == "failure", saved["kind"].text != "failure" else { return false }
+    // A save that named no kind saved nothing and named no target. Whatever the model saved
+    // after it is that save done: there is nothing else it could have meant.
+    if failure["kindlessSave"] == .bool(true) {
+      return Self.savedKinds.contains(saved["kind"].text)
+    }
     let attempt = failure["attempt"].text
     if ["save_space", "edit_space"].contains(failure["tool"].text),
       ["space", "space_edit"].contains(saved["kind"].text), !attempt.isEmpty
@@ -167,6 +172,10 @@ package struct ActionConfirmations {
     }
     return tried["payload"].string != nil && tried["payload"] == made["payload"]
   }
+  /// The kinds of entry a save leaves: something saved, not a table change or a refusal.
+  private static let savedKinds: Set<String> = [
+    "tool", "definition", "draft", "native_app", "space", "space_edit", "snapshot",
+  ]
   /// The kind, title and payload digest of a definition a call saves, so a later save of the
   /// same one can settle an earlier failure of it.
   private static func definitionKey(_ tool: String, _ arguments: Value) -> Value {
@@ -531,6 +540,7 @@ package struct ActionConfirmations {
         ),
         "appName": .string(tool == "save_native_app" ? arguments["package"]["name"].text : ""),
         "shapeOnly": .bool(Self.shapeOnly(tool, arguments)),
+        "kindlessSave": .bool(tool == "save" && arguments["kind"] != .string("tool")),
         "definitionKey": Self.definitionKey(tool, arguments),
         "action": tool == "workspace_action" ? arguments["action"] : .null,
         "argumentValues": .array(
@@ -745,6 +755,55 @@ package struct ActionConfirmations {
   /// the person or a cancelled panel.
   package var savedAnything: Bool {
     entries.contains { !["failure", "chat_approval", "cancelled", "settled"].contains($0["kind"].text) }
+  }
+
+  /// The title of something a save failed to make, and nothing saved since, that the answer
+  /// still speaks of as made, such as "open the Monthly Expenses view" after its save was
+  /// refused. A request can save a table and a tool and fail the view, and an account written
+  /// at the host's stop describes the plan rather than what happened. A sentence that says the
+  /// save failed or was only tried is honest and does not count.
+  package func unsavedClaim(in answer: String) -> String? {
+    let saves: Set<String> = [
+      "save_space", "save_definition", "save_template", "save_native_app", "draft",
+    ]
+    let sentences = answer.components(separatedBy: CharacterSet(charactersIn: ".!?\n"))
+      .map { $0.trimmingCharacters(in: .whitespaces) }.filter { !$0.isEmpty }
+    for (index, entry) in entries.enumerated()
+    where entry["kind"].text == "failure" && saves.contains(entry["tool"].text)
+      && !recoveredFailure(entry, at: index)
+    {
+      let title = entry["attempt"].text.trimmingCharacters(in: .whitespaces)
+      guard title.count >= 3, UUID(uuidString: title) == nil,
+        !entries.contains(where: {
+          $0["kind"].text != "failure" && $0["title"].text.caseInsensitiveCompare(title) == .orderedSame
+        })
+      else { continue }
+      if sentences.contains(where: {
+        $0.range(of: title, options: [.caseInsensitive, .diacriticInsensitive]) != nil
+          && $0.range(of: Self.acknowledgesFailure, options: .regularExpression) == nil
+      }) {
+        return title
+      }
+    }
+    return nil
+  }
+  private static let acknowledgesFailure =
+    #"(?i)(?:\b(?:not|no|never|cannot|failed|fail|unable|attempted|tried|try|refused|error|needs?)\b|n[’']t\b)"#
+  /// What the model is told when its account speaks of `title` as made.
+  package static func unsavedFeedback(_ title: String) -> String {
+    "“" + title
+      + "” was not saved: its save failed and nothing saved it later. Do not describe it as made or tell the user to open or use it. Say in a sentence that it was not saved and why, and what was saved."
+  }
+  /// The host's lines that the answer does not already say. A model that read an earlier
+  /// turn can copy a line such as "Couldn’t finish saving the space." into its own account,
+  /// and the same line twice reads as two failures.
+  package static func unrepeated(_ lines: String, after answer: String) -> String? {
+    let kept = lines.components(separatedBy: "\n").filter { line in
+      let text = line.trimmingCharacters(in: .whitespaces)
+      return text.isEmpty || !answer.contains(text)
+    }
+    let text = kept.joined(separator: "\n").trimmingCharacters(in: .whitespacesAndNewlines)
+    return text.isEmpty ? nil : text
   }
 
   package var rendered: String? { rendered(excluding: nil) }

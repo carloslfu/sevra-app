@@ -33,6 +33,68 @@ extension SpaceDefinition {
     ("aggregation", ["metric"]), ("chartStyle", ["chart"]), ("itemID", ["document", "asset"]),
     ("text", ["text"]), ("unit", ["chart", "metric"]), ("x", ["chart"]), ("y", ["chart", "metric"]),
   ]
+  /// Whether a field the type does not use can be left out without changing what the component
+  /// shows. A table's x and y, a metric's chartStyle or a size on a document change nothing, so
+  /// one of them on a component that is otherwise right should not cost the model a whole save:
+  /// a retry tends to rewrite the view and lose a field that was right, such as a button's
+  /// binding. A chart's aggregation other than SUM would mean another number than the chart
+  /// draws, and datasetID, query, itemID and text say what the component should show, so their
+  /// loss would hide intent and they are still refused.
+  static func harmless(_ field: String, on c: Component) -> Bool {
+    switch field {
+    case "x", "y", "chartStyle", "unit": return true
+    case "aggregation": return c.type != "chart" || c.aggregation?.uppercased() == "SUM"
+    default: return false
+    }
+  }
+  /// Whether a component takes a size: see `sizedTypes`.
+  static func takesSize(_ c: Component) -> Bool {
+    sizedTypes.contains(c.type) && (c.type != "visual" || c.visual?.chart != nil)
+  }
+  /// The components with fields their type does not use, and that change nothing, left out,
+  /// with one short notice for each component that lost some, such as "Left out x, y on table1:
+  /// a table does not use them." Children are checked too. Every other unused field stays, so
+  /// the save refuses it and says why.
+  public static func leavingOutUnusedFields(_ components: [Component]) -> (
+    components: [Component], notices: [String]
+  ) {
+    var notices: [String] = []
+    func clean(_ c: Component) -> Component {
+      var c = c
+      var dropped: [String] = []
+      for (field, types) in fieldTypes where !types.contains(c.type) && harmless(field, on: c) {
+        let present: Bool
+        switch field {
+        case "x": present = c.x != nil; c.x = nil
+        case "y": present = c.y != nil; c.y = nil
+        case "chartStyle": present = c.chartStyle != nil; c.chartStyle = nil
+        case "unit": present = c.unit != nil; c.unit = nil
+        default: present = c.aggregation != nil; c.aggregation = nil
+        }
+        if present { dropped.append(field) }
+      }
+      let sizeDropped = c.size != nil && !takesSize(c)
+      if sizeDropped { c.size = nil }
+      if !dropped.isEmpty {
+        let article = "aeiou".contains(c.type.first ?? "x") ? "an " : "a "
+        notices.append(
+          "Left out " + dropped.joined(separator: ", ") + " on " + c.id + ": " + article + c.type
+            + (c.type == "chart" && dropped == ["aggregation"]
+              ? " adds up y for each x itself."
+              : " does not use " + (dropped.count == 1 ? "it." : "them.")))
+      }
+      if sizeDropped {
+        let article = "aeiou".contains(c.type.first ?? "x") ? "an " : "a "
+        notices.append(
+          "Left out size on " + c.id + ": " + article
+            + (c.type == "visual" ? "visual that is not a chart" : c.type) + " has no size.")
+      }
+      c.children = c.children.map { $0.map(clean) }
+      return c
+    }
+    let cleaned = components.map(clean)
+    return (cleaned, notices)
+  }
   /// Refuses a field the component's type does not use, saying what does use it. The types
   /// with fields of their own, such as apps, buttons, forms and visuals, check theirs.
   static func refuseUnusedFields(_ c: Component) throws {
@@ -65,6 +127,9 @@ extension SpaceDefinition {
         + ". Leave "
         + (stray.count == 1 ? "it" : "them") + " out, or choose the type that uses "
         + (stray.count == 1 ? "it" : "them") + "."
+        + (c.type == "chart" && stray.contains { $0.field == "aggregation" }
+          ? " A chart adds up y for each x. For another number for each x, give it a query that works it out, such as SELECT region, avg(revenue) AS revenue FROM sales GROUP BY region."
+          : "")
         + (stray.contains { $0.field == "query" }
           ? " To show only some rows, use a table, chart or metric with query: one SELECT."
           : ""))
@@ -107,9 +172,15 @@ public struct SpaceEdit: Codable, Equatable, Sendable {
   public var component: Component?
   public var title: String?
   public var text: String?
+  /// The component fields a caller wrote, when it may have left some out, as a model does. A
+  /// replace that keeps the component's type then keeps the saved value of every field not
+  /// named here, and a field named with null is cleared. Without it, or when the type
+  /// changes, the component given is the whole new component.
+  public var fields: [String]?
   public init(
     operation: String, componentID: String? = nil, beforeID: String? = nil, at: String? = nil,
-    component: Component? = nil, title: String? = nil, text: String? = nil
+    component: Component? = nil, title: String? = nil, text: String? = nil,
+    fields: [String]? = nil
   ) {
     self.operation = operation
     self.componentID = componentID
@@ -118,6 +189,7 @@ public struct SpaceEdit: Codable, Equatable, Sendable {
     self.component = component
     self.title = title
     self.text = text
+    self.fields = fields
   }
 }
 
@@ -251,8 +323,11 @@ extension Workbook {
       try checkSpaceBase(current, expectedVersion: expectedVersion)
       var definition = current.definition
       var title = current.title
-      for edit in edits {
+      for var edit in edits {
         try validateSpaceEdit(edit)
+        if current.definition.pinnedAt == nil, let component = edit.component {
+          edit.component = SpaceDefinition.leavingOutUnusedFields([component]).components[0]
+        }
         if edit.operation == "reset" {
           try require(id == "home", "view", "Reset is only available for Home.")
           definition = .defaultHome
@@ -270,7 +345,7 @@ extension Workbook {
           }
           try require(
             !ids(definition.components).contains(component.id), "view",
-            "This view already has a component with id \(component.id). To change that component, replace it: {operation: \"replace\", componentID: \"\(component.id)\", component}, with the whole new component and the same id. To add another one, give it a new id.")
+            "This view already has a component with id \(component.id). To change that component, replace it: {operation: \"replace\", componentID: \"\(component.id)\", component}, with the same id, type and title and the fields that change. To add another one, give it a new id.")
           if let before = edit.beforeID, edit.at == nil,
             !definition.components.contains(where: { $0.id == before })
           {
@@ -415,7 +490,7 @@ extension Workbook {
         guard let component = edit.component, component.id == id else {
           throw SevraError("view", "A replacement preserves the selected component ID.")
         }
-        components[index] = component
+        components[index] = try Self.merged(components[index], with: component, given: edit.fields)
       default: throw SevraError("view", "Unknown layout edit.")
       }
       return true
@@ -424,6 +499,20 @@ extension Workbook {
       if try alterComponent(id, in: &components[index].children!, edit: edit) { return true }
     }
     return false
+  }
+  /// A replacement of the same type keeps each saved field the caller did not write, so
+  /// "make it a bar chart" can send the chart's id, type, title and chartStyle and keep its
+  /// table, x and y. A field written as null is cleared. A new type is a new component, whole.
+  static func merged(_ saved: Component, with given: Component, given fields: [String]?) throws
+    -> Component
+  {
+    guard let fields, saved.type == given.type else { return given }
+    let named = Set(fields)
+    var merged = try encoded(given).object
+    for (key, value) in try encoded(saved).object where !named.contains(key) {
+      merged[key] = value
+    }
+    return try JSONDecoder().decode(Component.self, from: Data(Value.object(merged).json().utf8))
   }
   public func spaceHistory(_ id: String, before: Int? = nil, limit: Int = 20) throws
     -> [SpaceRevision]

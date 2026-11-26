@@ -765,12 +765,21 @@ public enum WorkbookAgent {
           var actionText = previewText ?? (hostActionOnly ? actionConfirmations.rendered : nil)
           // A summary that says something was made when nothing was saved, only refused, is not
           // what happened. It goes back once; then the host gives one account of its own.
+          // The same holds for one thing that failed beside others that saved, such as a view
+          // whose save was refused after its table and tool were saved, and for the account a
+          // model writes when the host stops the request.
+          let unsavedClaim =
+            actionText == nil ? actionConfirmations.unsavedClaim(in: a["answer"].text) : nil
           let falseChangeClaim =
-            actionText == nil && !actionConfirmations.savedAnything
-            && actionConfirmations.hasUnresolvedFailure && ChangeClaim.claims(a["answer"].text)
+            actionText == nil
+            && (unsavedClaim != nil
+              || (!actionConfirmations.savedAnything && actionConfirmations.hasUnresolvedFailure
+                && ChangeClaim.claims(a["answer"].text)))
           if falseChangeClaim && changeClaimRefused {
             actionText =
-              "Nothing was changed." + (actionConfirmations.rendered.map { "\n" + $0 } ?? "")
+              actionConfirmations.savedAnything
+              ? actionConfirmations.rendered ?? "Nothing was changed."
+              : "Nothing was changed." + (actionConfirmations.rendered.map { "\n" + $0 } ?? "")
           }
           // Changing the answer label cannot turn a failed write into success.
           // Independent cited facts remain useful alongside explicit outcomes.
@@ -990,7 +999,8 @@ public enum WorkbookAgent {
           }
           if falseChangeClaim && !changeClaimRefused {
             changeClaimRefused = true
-            problems.append(ChangeClaim.feedback)
+            problems.append(
+              unsavedClaim.map(ActionConfirmations.unsavedFeedback) ?? ChangeClaim.feedback)
           }
           if keepsSummary, FidelityClaim.overstates(modelAnswer) {
             problems.append(FidelityClaim.feedback)
@@ -1146,7 +1156,11 @@ public enum WorkbookAgent {
                 return "Version check: " + citationLink(current["id"].text)
                   + ", version \(current["version"].int!), \(status). The cited version \($0["cited"]["version"].int!) is historical."
               }.joined(separator: "\n")
-          let outcomeText = supplementalActionText.map { "\n\n" + $0 } ?? ""
+          // A host line the answer already carries is not said twice.
+          let outcomeText =
+            supplementalActionText.flatMap {
+              ActionConfirmations.unrepeated($0, after: answer + suffix)
+            }.map { "\n\n" + $0 } ?? ""
           _ = try ChatTiming.span("agent.save_answer", ["state": .string("answer")]) {
             try workbook.finishAgentAnswer(
               answer + suffix + coverageText + versionText + outcomeText + visualFallback,

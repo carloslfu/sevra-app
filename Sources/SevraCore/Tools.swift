@@ -39,7 +39,7 @@ public struct WorkbookTools {
       Example: {title: "Purchasing", definition: {version: 1, components: [{id: "table1", type: "table", title: "Quotes", datasetID: the table's id}, {id: "chart1", type: "chart", title: "Total by supplier", datasetID: the table's id, x: "supplier", y: "total"}]}}.
       To change a saved view, read kind=view with ref set to its id for its components and version (read kind=views lists every view), then run action view.edit with {id, expectedVersion, edits}. Home is the saved view with id home. A request to change this view, the one open (Active space ID in the request), or a named one, is view.edit on that view, such as "make it a bar chart" or "make this look nicer"; save a new view only when the user asks for one. The edits:
       add: {operation: "insert", at: "first" or "last", component}, or beforeID: an id in place of at.
-      change a component: {operation: "replace", componentID, component}, the whole new component with the same id. Never insert a component again to change it.
+      change a component: {operation: "replace", componentID, component} with the same id, type and title and only the fields that change, such as chartStyle: "bar"; the others keep their values, and null clears one. A new type needs the whole component. Never insert a component again to change it.
       take one out: {operation: "remove", componentID}. Move: {operation: "move", componentID, at or beforeID}. Relabel one: {operation: "title", componentID, title}. Change a text component's text: {operation: "text", componentID, text}. Rename the view: {operation: "rename", title}.
       Name tables by their title, such as Invoices, in component titles and the answer, never by their sql names.
       A title says exactly what its component shows. For a period, such as Total this month, give the component a query that keeps only that period. A metric of a quantity, such as glasses, hours or amount, is the SUM of that column, not a COUNT of rows.
@@ -560,18 +560,32 @@ public struct WorkbookTools {
         throw SevraError("arguments", "Read the current space version before editing.")
       }
       try refuseStrayVisuals(edits: a["edits"], path: "edits")
-      let edits = try decodeDescriptor([SpaceEdit].self, from: a["edits"], named: "edits")
+      var edits = try decodeDescriptor([SpaceEdit].self, from: a["edits"], named: "edits")
+      // A model's replace names the fields it changes; the others keep their saved values.
+      var leftOut: [String] = []
+      for index in edits.indices {
+        if edits[index].operation == "replace",
+          case .object(let given) = a["edits"].array[index]["component"]
+        {
+          edits[index].fields = given.keys.sorted()
+        }
+        if let component = edits[index].component {
+          leftOut += SpaceDefinition.leavingOutUnusedFields([component]).notices
+        }
+      }
       let saved = try workbook.editSpace(
         string("id"), expectedVersion: version, edits: edits, token: token)
       var result: [String: Value] = [
         "spaceID": .string(saved.id), "title": .string(saved.title),
         "version": .number(Double(saved.version)),
       ]
-      if let notice = try workbook.unshownButtonTablesNotice(
-        saved.definition, spaceID: saved.id, version: saved.version)
-      {
-        result["notice"] = .string(notice)
-      }
+      let notices =
+        leftOut
+        + [
+          try workbook.unshownButtonTablesNotice(
+            saved.definition, spaceID: saved.id, version: saved.version)
+        ].compactMap { $0 }
+      if !notices.isEmpty { result["notice"] = .string(notices.joined(separator: " ")) }
       return .object(result)
     case "restore_space":
       guard let version = a["version"].int, let expected = a["expectedVersion"].int else {
@@ -604,14 +618,15 @@ public struct WorkbookTools {
               : "This is a programmable app. Use read_native_app with its exact name, then save_native_app with its ID and current version to change it.")
         )
       }
+      let leftOut = SpaceDefinition.leavingOutUnusedFields(definition.components).notices
       let spaceID = try workbook.saveSpace(
         id: token, title: title, definition: definition, token: token)
       var result: [String: Value] = ["spaceID": .string(spaceID)]
-      if let notice = try workbook.unshownButtonTablesNotice(
-        definition, spaceID: spaceID, version: 1)
-      {
-        result["notice"] = .string(notice)
-      }
+      let notices =
+        leftOut
+        + [try workbook.unshownButtonTablesNotice(definition, spaceID: spaceID, version: 1)]
+        .compactMap { $0 }
+      if !notices.isEmpty { result["notice"] = .string(notices.joined(separator: " ")) }
       return .object(result)
     case "draft", "propose_record":
       // A late correction or retry would otherwise leave two drafts for one request to review.

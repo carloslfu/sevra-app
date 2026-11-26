@@ -1156,6 +1156,13 @@ struct ColumnEditor: View {
     if column.required == true { details.append("required") }
     if column.unique == true { details.append("unique") }
     if column.autoNumber == true { details.append("numbered") }
+    // A set of columns unique together reads on each of its columns.
+    for set in columns.uniqueSets where set.contains(column.id) {
+      let others = set.filter { $0 != column.id }.map { id in
+        columns.first { $0.id == id }?.title ?? id
+      }
+      details.append("unique with " + others.joined(separator: ", "))
+    }
     if let initial = column.defaultValue {
       switch initial.now {
       case "date"?: details.append("defaults to today")

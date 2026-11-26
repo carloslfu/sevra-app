@@ -328,9 +328,14 @@ extension Workbook {
     var lines: [String] = []
     var bytes = 0
     for entry in named {
+      let names = Dictionary(entry.columns.map { ($0.column.id, $0.name) }) { first, _ in first }
+      let sets = entry.dataset.columns.uniqueSets.map {
+        "UNIQUE(" + $0.compactMap { names[$0] }.joined(separator: ", ") + ")"
+      }
       let line =
         entry.name + "("
-        + entry.columns.map { SQLScratch.declaration($0.name, $0.column) }.joined(separator: ", ")
+        + (entry.columns.map { SQLScratch.declaration($0.name, $0.column) } + sets)
+        .joined(separator: ", ")
         + ") \(entry.dataset.rowCount) rows"
       guard bytes + line.utf8.count <= byteLimit else { break }
       bytes += line.utf8.count
@@ -765,21 +770,30 @@ final class SQLScratch {
     try execute(
       "CREATE TABLE tables(name TEXT, title TEXT, row_count INTEGER, id TEXT, version INTEGER, definition_id TEXT)")
     try execute(
-      "CREATE TABLE columns(table_name TEXT, name TEXT, title TEXT, type TEXT, formula TEXT, id TEXT, required INTEGER, is_unique INTEGER, default_value TEXT, auto_number INTEGER)")
+      "CREATE TABLE columns(table_name TEXT, name TEXT, title TEXT, type TEXT, formula TEXT, id TEXT, required INTEGER, is_unique INTEGER, default_value TEXT, auto_number INTEGER, unique_with TEXT)")
     try execute("CREATE TABLE \"\(Self.log)\"(tbl TEXT, id INTEGER)")
     for (name, dataset, columns) in Self.named(tables) {
       // A numbering column is the table's INTEGER PRIMARY KEY here too, and a default is the
       // column's DEFAULT, so later statements and saved tools add rows as SQLite would.
+      // A unique column and a set of columns unique together are real constraints here, so
+      // INSERT OR IGNORE, ON CONFLICT and REPLACE behave as SQLite's do.
       let numbered = columns.first { $0.column.autoNumber == true }?.column.id
+      let sqlNames = Dictionary(columns.map { ($0.column.id, $0.name) }) { first, _ in first }
+      let sets = dataset.columns.uniqueSets.compactMap { set -> String? in
+        let names = set.compactMap { sqlNames[$0] }
+        guard names.count == set.count else { return nil }
+        return "UNIQUE(" + names.map { "\"\($0)\"" }.joined(separator: ",") + ")"
+      }
       try execute(
         "CREATE TABLE \"\(name)\"("
-          + columns.map {
+          + (columns.map {
             "\"\($0.name)\" "
               + ($0.column.id == numbered
                 ? "INTEGER PRIMARY KEY"
                 : ($0.column.type == "decimal" || $0.column.formula != nil ? "REAL" : "TEXT")
-                  + defaultClause($0.column))
-          }.joined(separator: ",") + ")")
+                  + defaultClause($0.column)
+                  + ($0.column.unique == true && $0.column.formula == nil ? " UNIQUE" : ""))
+          } + sets).joined(separator: ",") + ")")
       try execute(
         "INSERT INTO tables VALUES(?,?,?,?,?,?)",
         [
@@ -787,8 +801,12 @@ final class SQLScratch {
           .string(dataset.id), .number(Double(dataset.version)), .string(dataset.definitionID),
         ])
       for entry in columns {
+        // The other columns of each set this column is unique together with, by sql name.
+        let together = dataset.columns.uniqueSets.filter { $0.contains(entry.column.id) }.map {
+          $0.filter { $0 != entry.column.id }.compactMap { sqlNames[$0] }.joined(separator: ", ")
+        }
         try execute(
-          "INSERT INTO columns VALUES(?,?,?,?,?,?,?,?,?,?)",
+          "INSERT INTO columns VALUES(?,?,?,?,?,?,?,?,?,?,?)",
           [
             .string(name), .string(entry.name), .string(entry.column.title),
             .string(entry.column.formula == nil ? entry.column.type : "formula"),
@@ -797,6 +815,7 @@ final class SQLScratch {
             .number(entry.column.distinct ? 1 : 0),
             entry.column.defaultValue.map { .string($0.sql(entry.column.type)) } ?? .null,
             .number(entry.column.autoNumber == true ? 1 : 0),
+            together.isEmpty ? .null : .string(together.joined(separator: "; ")),
           ])
       }
       entries[name] = Entry(
@@ -1121,6 +1140,23 @@ final class SQLScratch {
     if expired() {
       return SevraError("sql_limit", "The statement ran too long and was stopped. Narrow it.")
     }
+    // A row that repeats a unique column or set: say what the table keeps and how SQLite
+    // skips or updates such rows, since the model usually meant one of them.
+    if message.hasPrefix("UNIQUE constraint failed: ") {
+      let columns = message.dropFirst("UNIQUE constraint failed: ".count)
+        .split(separator: ",").map { $0.trimmingCharacters(in: .whitespaces) }
+      let table = columns.first?.split(separator: ".").first.map(String.init) ?? ""
+      let names = columns.map { $0.split(separator: ".").last.map(String.init) ?? $0 }
+      return SevraError(
+        "unique",
+        (index.map { "Statement \($0 + 1): " } ?? "")
+          + (names.count == 1
+            ? "\(table).\(names[0]) must hold distinct values"
+            : "\(table) keeps " + names.joined(separator: ", ") + " distinct together")
+          + ", and this row repeats one already there. To skip such rows use INSERT OR IGNORE; to change them use ON CONFLICT("
+          + names.joined(separator: ", ")
+          + ") DO UPDATE SET. Nothing was changed.")
+    }
     return SevraError(
       "sql",
       (index.map { "Statement \($0 + 1): " } ?? "") + message
@@ -1232,34 +1268,44 @@ final class SQLScratch {
     return found
   }
 
-  /// What each column of a table asks the workbook to keep, by lower-case name. Constraints
-  /// over several columns are refused, since a workbook column keeps its own.
-  private func shapes(_ layout: Layout) throws -> [String: ColumnShape] {
-    var shapes: [String: ColumnShape] = [:]
-    let declarations = Self.declarations(layout.sql)
-    let keys = layout.columns.filter { $0.key > 0 }
-    try require(
-      keys.count <= 1, "sql_shape",
-      "\(layout.actual) has a PRIMARY KEY over several columns, which a table cannot keep. Give it one id INTEGER PRIMARY KEY column, or mark a single column UNIQUE. Nothing was changed.")
-    var unique = Set<String>()
+  /// The columns of each UNIQUE or PRIMARY KEY constraint of a table, in lower case.
+  private func uniqueIndexes(_ layout: Layout) throws -> [[String]] {
+    var found: [[String]] = []
     let indexes = try prepare("PRAGMA index_list(" + Self.quoted(layout.actual) + ")")
     defer { sqlite3_finalize(indexes) }
     while sqlite3_step(indexes) == SQLITE_ROW {
+      guard sqlite3_column_int(indexes, 2) != 0 else { continue }
       let index = String(cString: sqlite3_column_text(indexes, 1))
       let info = try prepare("PRAGMA index_info(" + Self.quoted(index) + ")")
       defer { sqlite3_finalize(info) }
       var named: [String] = []
       while sqlite3_step(info) == SQLITE_ROW {
-        named.append(sqlite3_column_text(info, 2).map { String(cString: $0) } ?? "")
+        named.append((sqlite3_column_text(info, 2).map { String(cString: $0) } ?? "").lowercased())
       }
-      try require(
-        named.count == 1, "sql_shape",
-        "\(layout.actual) has a UNIQUE or PRIMARY KEY constraint over several columns, which a table cannot keep. Mark single columns UNIQUE instead. Nothing was changed.")
-      unique.insert(named[0].lowercased())
+      if !named.isEmpty { found.append(named) }
     }
+    return found
+  }
+
+  /// The sets of columns a table keeps unique together, from UNIQUE(a, b) or PRIMARY KEY(a,
+  /// b), in lower case, each in its declared order.
+  private func uniqueSets(_ layout: Layout) throws -> [[String]] {
+    try uniqueIndexes(layout).filter { $0.count > 1 }
+  }
+
+  /// What each column of a table asks the workbook to keep, by lower-case name. A constraint
+  /// over several columns is kept by the table as a set: see `uniqueSets`.
+  private func shapes(_ layout: Layout) throws -> [String: ColumnShape] {
+    var shapes: [String: ColumnShape] = [:]
+    let declarations = Self.declarations(layout.sql)
+    let keys = layout.columns.filter { $0.key > 0 }
+    let unique = Set(try uniqueIndexes(layout).filter { $0.count == 1 }.map { $0[0] })
     for column in layout.columns {
       var shape = ColumnShape()
-      if column.key > 0 {
+      if column.key > 0, keys.count > 1 {
+        // A key over several columns needs each of them, and the set is unique together.
+        shape.required = true
+      } else if column.key > 0 {
         // Only a column declared exactly INTEGER is SQLite's row number.
         if column.type.uppercased() == "INTEGER" {
           shape.autoNumber = true
@@ -1744,6 +1790,16 @@ final class SQLScratch {
         } catch let error as SevraError {
           throw SevraError(error.code, layout.actual + ": " + error.message)
         }
+      }
+      // A set of columns unique together is kept on its first column.
+      let positions = Dictionary(
+        layout.columns.enumerated().map { ($0.element.name.lowercased(), $0.offset) }
+      ) { first, _ in first }
+      for set in try uniqueSets(layout) {
+        let indices = set.compactMap { positions[$0] }
+        guard indices.count == set.count else { continue }
+        columns[indices[0]].uniqueWith =
+          (columns[indices[0]].uniqueWith ?? []) + [indices.dropFirst().map { columns[$0].id }]
       }
       tables.append(
         Created(

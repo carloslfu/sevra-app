@@ -436,10 +436,17 @@ private actor SpaceActionModel: WorkbookInference {
     button("blank", "add_item", ["name": .string("")]),
     button("placeholder", "add_item", ["name": .string(":name")]),
     button("huge", "log_item", size: "huge"),
-    Component(id: "sized", type: "search", title: "Find", query: "bolt", size: "large"),
   ] {
     try expectThrows(try edit([SpaceEdit(operation: "insert", component: refused)]))
   }
+  // A size on a type that has none changes nothing, so it is left out instead of refused.
+  let unsized = try edit([
+    SpaceEdit(
+      operation: "insert",
+      component: Component(id: "sized", type: "search", title: "Find", query: "bolt", size: "large"))
+  ])
+  try expectEqual(unsized.definition.components.first { $0.id == "sized" }?.size, nil)
+  _ = try edit([SpaceEdit(operation: "remove", componentID: "sized")])
   let buttons = try homeBook.saveSpace(
     title: "Buttons", definition: .init(components: [button("log", "log_item")]))
   try expectThrows(try homeBook.pinSpace(buttons))

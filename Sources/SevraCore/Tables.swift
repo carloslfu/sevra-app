@@ -13,11 +13,17 @@ public struct Column: Codable, Identifiable, Equatable, Sendable {
   /// A new row that leaves this column out gets the largest whole number in it plus one, as
   /// SQLite numbers an INTEGER PRIMARY KEY. Every row holds a distinct whole number here.
   public var autoNumber: Bool?
+  /// Sets of other columns that, with this one, no two rows share all the values of, as
+  /// SQLite's UNIQUE(habit, day) keeps them: each set lists the other columns' ids and is kept
+  /// on the set's first column. A row with an empty value in the set is not compared, as in
+  /// SQLite.
+  public var uniqueWith: [[String]]?
   public init(
     id: String, title: String, type: String = "text", formula: String? = nil, unit: String? = nil,
     required: Bool? = nil, unique: Bool? = nil, defaultValue: ColumnDefault? = nil,
-    autoNumber: Bool? = nil
+    autoNumber: Bool? = nil, uniqueWith: [[String]]? = nil
   ) {
+    self.uniqueWith = uniqueWith
     self.id = id
     self.title = title
     self.type = type
@@ -30,6 +36,12 @@ public struct Column: Codable, Identifiable, Equatable, Sendable {
   }
   /// No two rows share a value: a unique column, or one that numbers its rows.
   public var distinct: Bool { unique == true || autoNumber == true }
+}
+extension [Column] {
+  /// Every set of columns no two rows share, by column id, each led by the column that keeps it.
+  public var uniqueSets: [[String]] {
+    flatMap { column in (column.uniqueWith ?? []).map { [column.id] + $0 } }
+  }
 }
 /// A column's default: a fixed value, or the Mac's local date or time when the row is added.
 public struct ColumnDefault: Codable, Equatable, Sendable {

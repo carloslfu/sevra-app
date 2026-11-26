@@ -39,7 +39,7 @@ package enum ChangeClaim {
     "Nothing in this request was saved, so the answer must not say that anything was created, added, saved, updated or deleted. Say plainly what was not done and why, in a sentence or two."
 
   private static let verbs =
-    #"(?:created|added|saved|updated|built|made|set up|deleted|removed|changed|inserted|recorded|placed|replaced|renamed|moved|edited|logged)"#
+    #"(?:created|added|saved|updated|built|made|set up|deleted|removed|changed|inserted|recorded|placed|replaced|renamed|moved|edited|logged|included|applied|configured|fixed|adjusted)"#
   private static let patterns = [
     #"(?i)\b(?:I|I've|I have|we|we've|we have)\s+(?:just\s+|now\s+|also\s+|successfully\s+)?"#
       + verbs + #"\b"#,

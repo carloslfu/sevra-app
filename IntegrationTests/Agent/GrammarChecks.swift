@@ -85,6 +85,24 @@ func checkWorkbookGrammars(frontend: SplashTextFrontend, factory: SplashGrammarF
     }
   }
   print("PASS layout grammar keeps insert labels in components, refuses fields from other edits and a visual on a button")
+  // A button keeps its tool binding after other components, including ones with a query, so
+  // a view retried after an error can bind its button again.
+  do {
+    let savePolicy = try SplashToolPolicy(
+      toolsJSON: NativeTools.serializedDefinitions(nativeAppAuthoring: false),
+      choice: .named("save"), thinking: false)
+    let button = #"{"id":"button1","type":"button","title":"Add","definitionBinding":{"tool":"add_expense"},"size":"medium"}"#
+    let queryTable = #"{"id":"t1","type":"table","title":"E","datasetID":"e426","query":"SELECT 1 as a"}"#
+    let queryMetric = #"{"id":"m1","type":"metric","title":"Total","datasetID":"e426","query":"SELECT 1 as total","y":"total","size":"medium"}"#
+    for comps in [button, queryTable + "," + queryMetric + "," + button] {
+      let tokens = frontend.encode(
+        "<tool_call>\n<function=save>\n<parameter=view>\n"
+          + #"{"title":"T","definition":{"version":1,"components":["# + comps + #"]}}"#
+          + "\n</parameter>\n</function>\n</tool_call>")
+      try factory.create(grammar: savePolicy.grammar).finish(committed: tokens, requireComplete: true)
+    }
+  }
+  print("PASS save grammar keeps a button's tool binding after query components")
   for item in fixture.cases {
     let choice: SplashToolPolicy.Choice =
       item.choice == "named_finish" ? .named("finish") : item.choice == "auto" ? .auto : .required

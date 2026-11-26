@@ -73,6 +73,19 @@ struct ManagedDatasetSchema: Equatable {
     try require(
       columns.filter { $0.autoNumber == true }.count <= 1, "column_number",
       "A table numbers its rows in one column at most.")
+    // A set of columns kept unique together names other stored columns of this table.
+    let stored = Set(columns.filter { $0.formula == nil }.map(\.id))
+    for set in columns.uniqueSets {
+      let named = columns.first { $0.id == set[0] }!
+      try require(
+        (2...8).contains(set.count) && Set(set).count == set.count
+          && set.allSatisfy(stored.contains), "column_constraint",
+        "\(named.title) is kept unique together with columns this table does not have as stored columns. A set of two to eight stored columns can be unique together."
+      )
+    }
+    try require(
+      Set(columns.uniqueSets.map { $0.sorted() }).count == columns.uniqueSets.count,
+      "column_constraint", "Each set of columns is unique together once.")
     try require(
       Set(columns.map { $0.id.lowercased() }).count == columns.count,
       "columns", "SQLite column identifiers must also be unique without case.")
@@ -96,6 +109,9 @@ struct ManagedDatasetSchema: Equatable {
       let unique = column.distinct ? " UNIQUE" : ""
       return quote(name) + " " + type + collation + check + required + unique
     }
+    let sets = columns.uniqueSets.map {
+      "UNIQUE(" + $0.map { quote(field($0)) }.joined(separator: ",") + ")"
+    }
     return "CREATE TABLE " + quote(table) + "("
       + ([
         (quote("_sevra_row") + " TEXT PRIMARY KEY"),
@@ -103,7 +119,7 @@ struct ManagedDatasetSchema: Equatable {
         quote("_sevra_logical") + " TEXT NOT NULL UNIQUE REFERENCES heads(logical_id)",
         quote("_sevra_item") + " TEXT NOT NULL REFERENCES items(id)",
         quote("_sevra_cells") + " TEXT NOT NULL",
-      ] + data).joined(separator: ",")
+      ] + data + sets).joined(separator: ",")
       + ");\nCREATE INDEX " + quote(table + "_order") + " ON " + quote(table)
       + "(" + quote("_sevra_ordinal") + "," + quote("_sevra_row") + ");"
   }

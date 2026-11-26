@@ -70,7 +70,7 @@ func checkChatSQLShape(at root: URL) {
     try b.verify()
   }
 
-  check("UNIQUE and a key that is not INTEGER are kept, and a duplicate is refused with its value") {
+  check("UNIQUE and a key that is not INTEGER are kept, a duplicate is refused naming its column, and OR IGNORE, ON CONFLICT and REPLACE work") {
     let b = try book("Unique")
     _ = try sql(
       b, "CREATE TABLE people (email TEXT UNIQUE, name TEXT)", "CREATE TABLE codes (code TEXT PRIMARY KEY, label TEXT)",
@@ -83,11 +83,79 @@ func checkChatSQLShape(at root: URL) {
       _ = try sql(b, "INSERT INTO people VALUES ('b@example.com', 'B')", "INSERT INTO people VALUES ('a@example.com', 'C')")
       throw SevraError("test", "A duplicate was saved.")
     } catch let error as SevraError where error.code == "unique" {
-      try expect(error.message.contains("\"a@example.com\""), error.message)
+      // The copy has the constraint, so the statement that repeats the value is named, with
+      // the ways SQLite skips or updates such a row.
+      try expect(
+        error.message.hasPrefix("Statement 2: people.email must hold distinct values")
+          && error.message.contains("INSERT OR IGNORE"), error.message)
     }
     try expect(try b.dataset(people.id).rowCount == 1)
-    try refuses("sql_shape") { _ = try sql(b, "CREATE TABLE pairs (a TEXT, b TEXT, UNIQUE (a, b))") }
     try expect(try b.datasets().count == 2)
+    // INSERT OR IGNORE, ON CONFLICT and REPLACE meet a real unique column in the copy.
+    let ignored = try sql(
+      b, "INSERT OR IGNORE INTO people VALUES ('a@example.com', 'Again')",
+      "INSERT INTO people VALUES ('a@example.com', 'Upd') ON CONFLICT(email) DO UPDATE SET name = excluded.name",
+      "SELECT email, name FROM people")
+    try expect(rows(ignored) == [["a@example.com", "Upd"]], "\(rows(ignored))")
+    let replaced = try sql(
+      b, "REPLACE INTO people VALUES ('a@example.com', 'New')", "SELECT email, name FROM people")
+    try expect(rows(replaced) == [["a@example.com", "New"]] && b.dataset(people.id).rowCount == 1)
+  }
+
+  check("UNIQUE over several columns is kept, shown, enforced at save and met by INSERT OR IGNORE") {
+    let b = try book("UniqueSet")
+    // The scenario that rolled back a whole call, the habits table with it.
+    _ = try sql(
+      b, "CREATE TABLE habits (id INTEGER PRIMARY KEY, name TEXT NOT NULL UNIQUE)",
+      "CREATE TABLE habit_logs (id INTEGER PRIMARY KEY, habit_id INTEGER NOT NULL, log_date TEXT NOT NULL, UNIQUE(habit_id, log_date))",
+      "INSERT INTO habits (name) VALUES ('Read')",
+      "INSERT INTO habit_logs (habit_id, log_date) VALUES (1, '2026-11-26')")
+    let logs = try b.datasets().first { $0.title == "Habit logs" }!
+    try expect(try b.datasets().count == 2)
+    try expect(
+      logs.columns[1].uniqueWith == [[logs.columns[2].id]] && logs.columns[1].unique == nil,
+      "\(logs.columns)")
+    try expect(try b.chatSQLTables().contains("UNIQUE(habit_id, log_date)"), try b.chatSQLTables())
+    let catalog = try sql(b, "SELECT name, unique_with FROM columns WHERE table_name = 'habit_logs' AND unique_with IS NOT NULL")
+    try expect(rows(catalog) == [["habit_id", "log_date"], ["log_date", "habit_id"]], "\(rows(catalog))")
+    // A later call that repeats the pair is ignored, as SQLite would, and a new day is added.
+    let again = try sql(
+      b, "INSERT OR IGNORE INTO habit_logs (habit_id, log_date) VALUES (1, '2026-11-26')",
+      "INSERT INTO habit_logs (habit_id, log_date) VALUES (1, '2026-11-27') ON CONFLICT DO NOTHING",
+      "INSERT OR IGNORE INTO habits (name) VALUES ('Read')",
+      "SELECT count(*) FROM habit_logs")
+    try expect(rows(again) == [["2"]] && b.dataset(logs.id).rowCount == 2, "\(rows(again))")
+    // A plain duplicate is refused in the copy, and nothing of the call is saved.
+    try refuses {
+      _ = try sql(
+        b, "INSERT INTO habits (name) VALUES ('Walk')",
+        "INSERT INTO habit_logs (habit_id, log_date) VALUES (1, '2026-11-27')")
+    }
+    try expect(try b.dataset(b.chatTableID("habits")).rowCount == 1)
+    // A row change from outside sql, as an app sends it, is refused naming both values.
+    do {
+      _ = try b.chatTableTransaction(
+        logs.id, expectedDefinitionID: logs.definitionID,
+        operations: [
+          .object([
+            "op": .string("insert"),
+            "values": .object([
+              logs.columns[1].id: .string("1"), logs.columns[2].id: .string("2026-11-26"),
+            ]),
+          ])
+        ])
+      throw SevraError("test", "A duplicate pair was saved.")
+    } catch let error as SevraError where error.code == "unique" {
+      try expect(
+        error.message.contains("Habit id and Log date together") && error.message.contains("\"2026-11-26\""),
+        error.message)
+    }
+    // A composite key is a set too, with each of its columns required.
+    _ = try sql(b, "CREATE TABLE prices (supplier TEXT, part TEXT, price REAL, PRIMARY KEY (supplier, part))")
+    let prices = try b.datasets().first { $0.title == "Prices" }!
+    try expect(
+      prices.columns[0].uniqueWith == [[prices.columns[1].id]] && prices.columns[0].required == true
+        && prices.columns[1].required == true && prices.columns[0].autoNumber == nil, "\(prices.columns)")
   }
 
   check("a computed column from sql is a formula column that follows its inputs, and other expressions are refused") {

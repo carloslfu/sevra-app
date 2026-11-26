@@ -214,6 +214,69 @@ func checkReplyTruth() async throws {
   }
   print("PASS a summary that claims a change nothing saved is sent back once, then replaced by the host's account")
 
+  // A view whose save failed beside a table and a tool that saved, as when the host stopped a
+  // request that resent the same refused save: the account that describes the view and says
+  // to open it goes back once, and then the host's lines stand alone.
+  let view: Value = .object([
+    "title": .string("Monthly Expenses"),
+    "definition": .object([
+      "version": .number(1),
+      "components": .array([
+        .object(["id": .string("button1"), "type": .string("button"), "title": .string("Add expense")])
+      ]),
+    ]),
+  ])
+  let tool: Value = .object([
+    "kind": .string("tool"), "name": .string("add_expense"), "description": .string("Adds an expense."),
+    "inputs": .array([.object(["name": .string("item"), "type": .string("text")])]),
+    "statements": .array([.string("INSERT INTO expenses (item) VALUES (:item)")]),
+  ])
+  let plan =
+    "I created your expense tracker.\n\n**Monthly Expenses view** shows your expenses. Open the Monthly Expenses view to add one."
+  let stopped = ScriptedCalls([
+    call("save", tool), call("save_space", view), call("save_space", view),
+    finish(plan, basis: "completed_action"), finish(plan, basis: "completed_action"),
+  ])
+  let stoppedRun = try await WorkbookAgent.run(
+    "track my monthly expenses", workbook: try book("ViewStop"), model: stopped)
+  try expectEqual(
+    await stopped.refusals.first?.contains(ActionConfirmations.unsavedFeedback("Monthly Expenses")), true)
+  try expectEqual(stoppedRun.answer.contains("Open the Monthly Expenses view"), false)
+  try expectEqual(stoppedRun.answer.contains("Saved tool “add_expense”."), true)
+  try expectEqual(stoppedRun.answer.hasPrefix("Nothing was changed."), false)
+  // An honest account keeps its words, and a host line it already copied is not said twice.
+  let honest = ScriptedCalls([
+    call("save", tool), call("save_space", view), call("save_space", view),
+    finish(
+      "I saved the add_expense tool, but the Monthly Expenses view could not be saved.\n\nCouldn’t finish saving the space.",
+      basis: "completed_action"),
+  ])
+  let honestRun = try await WorkbookAgent.run(
+    "track my monthly expenses", workbook: try book("ViewHonest"), model: honest)
+  try expectEqual(await honest.refusals.isEmpty, true)
+  try expectEqual(honestRun.answer.hasPrefix("I saved the add_expense tool"), true)
+  try expectEqual(honestRun.answer.components(separatedBy: "Couldn’t finish saving the space.").count, 2)
+  try expectEqual(honestRun.answer.contains("Saved tool “add_expense”."), true)
+  try expectEqual(ChangeClaim.claims("I have now included these required fields."), true)
+  print("PASS an account at the host's stop that describes an unsaved view goes back, and no host line repeats")
+
+  // A save that named no kind is settled by the save that followed it.
+  let kindless = ScriptedCalls([
+    // Two kinds in one call, as in the scenario, so the host cannot tell which was meant.
+    call(
+      "save",
+      .object([
+        "definition": .object(["content": .object(["title": .string("Alert")])]),
+        "tool": .object(["name": .string("alert")]),
+      ])),
+    call("save", tool),
+    finish("I saved the add_expense tool.", basis: "completed_action"),
+  ])
+  let kindlessRun = try await WorkbookAgent.run(
+    "save a tool that adds an expense", workbook: try book("Kindless"), model: kindless)
+  try expectEqual(kindlessRun.answer, "I saved the add_expense tool.\n\nSaved tool “add_expense”.")
+  print("PASS a failed save with no kind is settled by a later save")
+
   // Numbers the model wrote into calls that succeeded are what was saved, so the summary may
   // repeat them. A number nothing gave is still sent back.
   let numbers = ScriptedCalls([

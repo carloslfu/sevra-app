@@ -78,6 +78,16 @@ extension Workbook {
     try require(
       title != nil || columns != nil || archived != nil,
       "dataset_definition", "Choose a table definition change.")
+    // A set of columns unique together ends with the removal of one of its columns.
+    let kept = Set(columns?.filter { $0.formula == nil }.map(\.id) ?? [])
+    let columns = columns?.map { column -> Column in
+      var column = column
+      if let sets = column.uniqueWith {
+        let whole = sets.filter { $0.allSatisfy(kept.contains) }
+        column.uniqueWith = whole.isEmpty ? nil : whole
+      }
+      return column
+    }
     let request: Value = .object([
       "datasetID": .string(id), "baseVersion": .number(Double(expectedVersion)),
       "baseDefinitionID": .string(expectedDefinitionID), "title": title.map(Value.string) ?? .null,

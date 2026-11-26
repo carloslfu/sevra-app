@@ -153,6 +153,12 @@ extension Workbook {
     id: String = identifier(), title: String, definition: SpaceDefinition,
     expectedVersion: Int? = nil, token: String = identifier(), actor: ChangeActor? = nil
   ) throws -> String {
+    // Fields that change nothing are left out rather than refused; see leavingOutUnusedFields.
+    var definition = definition
+    if definition.pinnedAt == nil {
+      definition.components = SpaceDefinition.leavingOutUnusedFields(definition.components)
+        .components
+    }
     let data = try encoded(definition).json()
     _ = try mutation(
       "space", token: token,

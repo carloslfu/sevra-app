@@ -134,7 +134,9 @@ enum AgentGuide {
       read-only SELECT in the `sql` dialect, run again whenever the workbook changes;
       `x` and `y` then name its result columns. To change a saved view, read it for its
       components and version and use the `view.edit` action instead of saving it again:
-      `{"operation":"replace","componentID":ID,"component":{...}}` changes a component. A button runs a saved
+      `{"operation":"replace","componentID":ID,"component":{...}}` changes a component: give its
+      `id`, `type`, `title` and the fields that change; the rest keep their values, and `null`
+      clears one. A button runs a saved
       tool, so save the tool first when none fits. Home is the view with id `home`.
       Read `{"kind":"view_guide"}` for components beyond a table and a chart.
     - **app**: read `{"kind":"app_guide"}` first. An app is saved disabled, and only
