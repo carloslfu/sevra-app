@@ -637,12 +637,14 @@ import SwiftUI
       return .init(
         type: type, title: story.title, itemID: fileItems[type == "asset" ? "image" : "text"])
     case "button":
-      // A saved tool with one input the button leaves open, so the story shows its field.
+      // A saved tool with a required and an optional input the button leaves open, so the story
+      // shows both fields.
       _ = try book!.chatSaveTool(
-        name: "add_supplier", description: "Adds a supplier by name.",
-        inputs: [("supplier", "text")],
-        statements: ["INSERT INTO supplier_comparison (supplier) VALUES (:supplier)"], source: nil,
-        token: "catalog-add-supplier", requestSourceID: nil)
+        name: "add_supplier", description: "Adds a supplier by name, with its cost if known.",
+        inputs: [("supplier", "text"), ("unit_cost", "decimal")], optional: ["unit_cost"],
+        statements: [
+          "INSERT INTO supplier_comparison (supplier, cost) VALUES (:supplier, :unit_cost)"
+        ], source: nil, token: "catalog-add-supplier", requestSourceID: nil)
       return .init(
         type: type, title: "Add supplier",
         definitionBinding: .object(["tool": .string("add_supplier")]), size: "large")
@@ -678,10 +680,11 @@ import SwiftUI
     case "form" where variant == "Runs a tool":
       // A form on a saved tool's action: submitting it adds a row, with one Undo.
       _ = try book!.chatSaveTool(
-        name: "add_supplier", description: "Adds a supplier by name.",
-        inputs: [("supplier", "text")],
-        statements: ["INSERT INTO supplier_comparison (supplier) VALUES (:supplier)"], source: nil,
-        token: "catalog-add-supplier", requestSourceID: nil)
+        name: "add_supplier", description: "Adds a supplier by name, with its cost if known.",
+        inputs: [("supplier", "text"), ("unit_cost", "decimal")], optional: ["unit_cost"],
+        statements: [
+          "INSERT INTO supplier_comparison (supplier, cost) VALUES (:supplier, :unit_cost)"
+        ], source: nil, token: "catalog-add-supplier", requestSourceID: nil)
       let tool = try book!.applicationDefinition(
         try book!.savedTools().first { $0.name == "add_supplier" }!.definitionID)
       let action = try book!.saveApplicationDefinition(

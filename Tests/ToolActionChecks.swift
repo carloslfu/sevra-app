@@ -41,6 +41,14 @@ func checkToolActions(at root: URL) {
       logicalID: identifier(), content: ActionRegistry.toolActionDefinition(tool: shop.tool))
     let form = try b.saveApplicationDefinition(
       logicalID: identifier(), content: ActionRegistry.formDefinition(target: action))
+    // A tool form runs directly from the Home page. A document form still previews first.
+    let note = try b.saveApplicationDefinition(
+      logicalID: identifier(),
+      content: ActionRegistry.documentDefinition(title: "Draft a note", description: "A note"))
+    let noteForm = try b.saveApplicationDefinition(
+      logicalID: identifier(), content: ActionRegistry.formDefinition(target: note))
+    try expect(try b.formRunsTool(form.id) && !b.formRunsTool(noteForm.id))
+    try expect(try !b.formRunsTool(action.id))
     let revision = try b.revision()
     let preview = try b.previewApplicationAction(form.id, arguments: input)
     try expect(

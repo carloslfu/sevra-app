@@ -66,7 +66,7 @@ struct AutomationPhysicalIdentity: Codable, Equatable, Sendable {
   init(_ url: URL) throws {
     try require(
       url.isFileURL && url.standardizedFileURL.path == url.resolvingSymlinksInPath().path,
-      "automation_file", "Select a physical workbook without a symbolic-link path.")
+      "automation_file", "Choose the workbook file itself, not a symbolic link to it.")
     package = try FileIdentity(url, directory: true)
     database = try FileIdentity(url.appendingPathComponent("workbook.sqlite"), directory: false)
   }
@@ -135,7 +135,7 @@ public final class AutomationDeviceRegistry: @unchecked Sendable {
       try require(
         !registry.grants.contains { $0.workbookID == grant.workbookID && $0.physical != physical },
         "automation_copy",
-        "Another physical copy is enabled on this Mac. Pause it before enabling this copy.")
+        "Another copy of this workbook is enabled on this Mac. Pause it before enabling this copy.")
       registry.grants.removeAll { $0.id == grant.id && $0.workbookID == grant.workbookID }
       try require(
         registry.grants.count < 32, "automation_limit", "Enable at most 32 schedules on this Mac.")

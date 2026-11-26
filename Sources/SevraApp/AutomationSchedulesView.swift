@@ -220,49 +220,63 @@ struct AutomationScheduleDetail: View {
   @State private var loadedDefinitionID: String?
   @State private var checkState: Value = .null
   private var shown: ApplicationDefinition { updatedDefinition ?? definition }
+  /// A check starts it, not a calendar. Its page shows no calendar sections.
+  private var startsWithCheck: Bool { shown.payload["policy"] == .string("check-v1") }
   var body: some View {
-    VStack(alignment: .leading, spacing: 16) {
-      Text(shown.title).readingFont(.title2).accessibilityAddTraits(.isHeader)
-      Text("Saved version \(shown.version)").readingFont(.caption).foregroundStyle(.secondary)
+    let page = VStack(alignment: .leading, spacing: 16) {
+      VStack(alignment: .leading, spacing: 4) {
+        Text(shown.title).readingFont(.title2).accessibilityAddTraits(.isHeader)
+        Text("Saved version \(shown.version)").readingFont(.caption).foregroundStyle(.secondary)
+      }
       ScrollView {
         VStack(alignment: .leading, spacing: 14) {
-          Text(shown.description)
-          if let check = preview?["check"], check != .null {
-            Text("Starts when the saved check " + check["name"].text + " finds rows")
-              .readingFont(.headline).accessibilityAddTraits(.isHeader)
-            Text(AutomationTrigger.checkState(checkState)).readingFont(.callout)
-              .foregroundStyle(.secondary).fixedSize(horizontal: false, vertical: true)
+          if !shown.description.isEmpty {
+            Text(shown.description).fixedSize(horizontal: false, vertical: true)
           }
+          trigger
+          Divider()
           if let workflow {
-            Text("Workflow: " + workflow.title).readingFont(.headline).accessibilityAddTraits(
-              .isHeader)
-            WorkflowInputsView(
-              parameters: workflow.parameters.array,
-              arguments: shown.payload["arguments"], workspace: workspace)
+            VStack(alignment: .leading, spacing: 6) {
+              Text("Then it runs " + workflow.title).readingFont(.headline)
+                .accessibilityAddTraits(.isHeader)
+              if !workflow.description.isEmpty {
+                Text(workflow.description).readingFont(.callout).foregroundStyle(.secondary)
+                  .fixedSize(horizontal: false, vertical: true)
+              }
+            }
+            if !workflow.parameters.array.isEmpty {
+              WorkflowInputsView(
+                parameters: workflow.parameters.array,
+                arguments: shown.payload["arguments"], workspace: workspace)
+            }
           }
-          ScheduleOccurrencePreview(calendar: preview?["calendar"])
+          if let notice = preview?["notice"].string {
+            Text(notice).readingFont(.callout)
+              .fixedSize(horizontal: false, vertical: true)
+              .accessibilityLabel("Before you enable it. " + notice)
+          }
+          Divider()
+          Text("On this Mac").readingFont(.headline).accessibilityAddTraits(.isHeader)
           if let grant {
             Text(
               grantIsCurrent
                 ? AutomationGrantNotice.text(
                   enabled: grant.definitionID == shown.id ? shown.version : enabledVersion,
                   shown: shown.version)
-                : "This device registration is stale. The workbook no longer authorizes it.")
+                : "This device registration is stale. The workbook no longer authorizes it."
+            ).fixedSize(horizontal: false, vertical: true)
             Text(owner.status(grant.id)).foregroundStyle(.secondary)
+              .fixedSize(horizontal: false, vertical: true)
             Button(grantIsCurrent ? "Pause on this Mac" : "Remove stale registration") {
               perform { try await owner.pause(grant) }
             }
           } else {
-            Text("This automation is not enabled for this physical workbook on this Mac.")
+            Text("This automation is not enabled for this workbook on this Mac.")
+              .fixedSize(horizontal: false, vertical: true)
           }
           Toggle("Allow this exact workflow to use local AI", isOn: $allowAI)
-          if let notice = preview?["notice"].string {
-            Text(notice).readingFont(.callout)
-              .fixedSize(horizontal: false, vertical: true)
-              .accessibilityLabel("Before you enable it. " + notice)
-          }
           Text(
-            preview?["check"] != nil && preview?["check"] != .null
+            startsWithCheck
               ? "The check runs while Sevra is active, after each change and every minute. When Sevra opens again or you resume it, the check runs at once, so rows that appeared meanwhile start it once. No background helper is installed."
               : "Runs while Sevra is active. Times missed while Sevra was closed catch up when eligible. No background helper is installed."
           )
@@ -278,7 +292,7 @@ struct AutomationScheduleDetail: View {
               workspace.navigate(.workflow(runID))
             }
           }
-        }
+        }.frame(maxWidth: .infinity, alignment: .leading)
       }
       if working { ProgressView("Updating automation") }
       if let failure { Text(failure).foregroundStyle(.red).textSelection(.enabled) }
@@ -286,7 +300,17 @@ struct AutomationScheduleDetail: View {
         Spacer()
         Button("Done") { close() }.keyboardShortcut(.cancelAction)
       }
-    }.padding(24).frame(minWidth: 540, idealWidth: 620, minHeight: 440, idealHeight: 660)
+    }.padding(24)
+    Group {
+      if onClose == nil {
+        // A sheet sizes itself. In the workspace the page takes the pane's width instead, so
+        // a narrow pane wraps it rather than clipping both edges.
+        page.frame(minWidth: 540, idealWidth: 620, minHeight: 440, idealHeight: 660)
+      } else {
+        page.frame(maxWidth: 760, alignment: .leading)
+          .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
+      }
+    }
       .disabled(working || workspace.busy).interactiveDismissDisabled(working)
       .announceStatus(failure ?? changeNotice)
       .task(id: workspace.interactionIdentity.uuidString + shown.id + String(workspace.revision)) {
@@ -296,6 +320,26 @@ struct AutomationScheduleDetail: View {
         AutomationScheduleEditor(
           workspace: workspace, existing: shown, onSave: { updatedDefinition = $0 })
       }
+  }
+  /// What starts it: the check, with what it watches and its last change, or the calendar.
+  @ViewBuilder private var trigger: some View {
+    if startsWithCheck {
+      if let check = preview?["check"], check != .null {
+        VStack(alignment: .leading, spacing: 6) {
+          Text("Starts when the check " + check["name"].text + " finds rows")
+            .readingFont(.headline).accessibilityAddTraits(.isHeader)
+            .fixedSize(horizontal: false, vertical: true)
+          if !check["description"].text.isEmpty {
+            Text(check["description"].text).readingFont(.callout).foregroundStyle(.secondary)
+              .fixedSize(horizontal: false, vertical: true)
+          }
+        }
+        Text(AutomationTrigger.checkState(checkState)).readingFont(.callout)
+          .fixedSize(horizontal: false, vertical: true)
+      }
+    } else {
+      ScheduleOccurrencePreview(calendar: preview?["calendar"])
+    }
   }
   @ViewBuilder private var automationActions: some View {
     Button("Enable on this Mac") {
@@ -437,15 +481,21 @@ struct AutomationScheduleDetail: View {
 struct ScheduleOccurrencePreview: View {
   let calendar: Value?
   var body: some View {
-    if let calendar {
-      Text("Upcoming times · " + calendar["schedule"]["timeZone"].text).readingFont(.headline)
-        .accessibilityAddTraits(.isHeader)
-      ForEach(calendar["occurrences"].array, id: \.text) { slot in
-        Text(description(slot)).readingFont(.callout).textSelection(.enabled)
-          .help("Exact UTC time: " + slot["due"].text)
+    if let calendar, calendar != .null {
+      let zone = calendar["schedule"]["timeZone"].text
+      VStack(alignment: .leading, spacing: 6) {
+        Text(zone.isEmpty ? "Upcoming times" : "Upcoming times in " + zone)
+          .readingFont(.headline).accessibilityAddTraits(.isHeader)
+        ForEach(calendar["occurrences"].array, id: \.text) { slot in
+          Text(description(slot)).readingFont(.callout).textSelection(.enabled)
+            .help("Exact UTC time: " + slot["due"].text)
+        }
       }
-      if calendar["countReached"] != .bool(true) {
-        Text("Preview reached its calendar horizon; only the times above were found.")
+      if calendar["occurrences"].array.isEmpty {
+        Text("No times fall in the next ten years.")
+          .readingFont(.caption).foregroundStyle(.secondary)
+      } else if calendar["countReached"] != .bool(true) {
+        Text("These are the only times in the next ten years.")
           .readingFont(.caption).foregroundStyle(.secondary)
       }
     }

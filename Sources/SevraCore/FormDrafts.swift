@@ -76,6 +76,19 @@ extension Workbook {
       definitionID: context["definition"]["id"].text,
       resolvedDefinitions: context["resolvedDefinitions"].array.map(\.text))
   }
+  /// Whether a saved form runs a saved tool. Its change is recorded at once with one Undo, so
+  /// the form can run without a separate preview step. Document forms still preview first.
+  public func formRunsTool(_ formID: String) throws -> Bool {
+    try synchronized {
+      try db.readTransaction {
+        let form = try applicationDefinition(formID)
+        guard form.kind == "form" else { return false }
+        let target = try DefinitionForm(DefinitionDescriptor(form.content))
+        guard target.targetKind == "action" else { return false }
+        return try actionRunsTool(resolveDefinition(target.binding))
+      }
+    }
+  }
   public func previewFormDraft(_ state: FormDraftState, cancellation: Cancellation = .init()) throws
     -> Value
   {

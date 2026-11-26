@@ -48,14 +48,35 @@ struct AutomationScheduleEditor: View {
       ScrollView {
         VStack(alignment: .leading, spacing: 16) {
           TextField("Automation title", text: $title)
+          // It reads as a sentence: when it starts, then what it does.
+          LabeledContent("Starts") {
+            Picker("Starts", selection: $trigger) {
+              Text("On a schedule").tag("schedule")
+              Text("When a saved check finds rows").tag("check")
+            }.labelsHidden().pickerStyle(.radioGroup)
+          }
+          if trigger == "check" {
+            checkFields
+          } else {
+            scheduleFields
+          }
+          Divider()
           if let workflow {
-            Text("Workflow: " + workflow.title + " · version \(workflow.version)").readingFont(
-              .headline
-            ).accessibilityAddTraits(.isHeader)
-            Text(workflow.description).foregroundStyle(.secondary)
+            VStack(alignment: .leading, spacing: 4) {
+              Text("Then it runs " + workflow.title).readingFont(.headline)
+                .accessibilityAddTraits(.isHeader)
+              Text(
+                "Version \(workflow.version)"
+                  + (workflow.description.isEmpty ? "" : " · " + workflow.description)
+              ).readingFont(.callout).foregroundStyle(.secondary)
+                .fixedSize(horizontal: false, vertical: true)
+            }
+          } else {
+            Text("Then it runs a saved workflow").readingFont(.headline)
+              .accessibilityAddTraits(.isHeader)
           }
           DisclosureGroup(
-            workflow == nil ? "Choose a saved workflow" : "Choose another workflow",
+            workflow == nil ? "Choose a workflow" : "Choose another workflow",
             isExpanded: $choosingWorkflow
           ) {
             TextField("Search workflows", text: $query)
@@ -92,17 +113,6 @@ struct AutomationScheduleEditor: View {
             }
           }
           Divider()
-          LabeledContent("Starts") {
-            Picker("Starts", selection: $trigger) {
-              Text("On a schedule").tag("schedule")
-              Text("When a saved check finds rows").tag("check")
-            }.labelsHidden().pickerStyle(.radioGroup)
-          }
-          if trigger == "check" {
-            checkFields
-          } else {
-            scheduleFields
-          }
           if previewContent == content, let notice = preview?["notice"].string {
             Text(notice).readingFont(.callout)
               .fixedSize(horizontal: false, vertical: true)
@@ -247,9 +257,10 @@ struct AutomationScheduleEditor: View {
       Stepper("Day: \(day)", value: $day, in: 1...31)
     }
     Text(
-      "Missing dates are skipped. Repeated clock times run once; skipped clock times use the next valid time. The explicit time zone stays fixed when you travel."
+      "Missing dates are skipped. A clock time that repeats runs once. A clock time that is skipped uses the next valid time. The time zone stays fixed when you travel."
     )
     .readingFont(.caption).foregroundStyle(.secondary)
+    .fixedSize(horizontal: false, vertical: true)
     if previewContent == content {
       ScheduleOccurrencePreview(calendar: preview?["calendar"])
     }

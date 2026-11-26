@@ -159,7 +159,8 @@ extension Workbook {
     let name = try DefinitionTool(DefinitionDescriptor(tool.content)).name
     preview["check"] = .object([
       "logicalID": .string(tool.logicalID), "definitionID": .string(tool.id),
-      "name": .string(name), "fires": .string("when the check starts finding rows"),
+      "name": .string(name), "description": .string(tool.description),
+      "fires": .string("when the check starts finding rows"),
     ])
     preview["notice"] = .string(Self.automationNotice(check: name, tools: tools, drafts: drafts))
     return preview

@@ -42,6 +42,8 @@ private struct NativeFormEditor: View {
   let currentFormID: String?
   @ObservedObject var workspace: WorkspaceState
   @AccessibilityFocusState private var validationFocused: Bool
+  /// The draft's form runs a saved tool, so it runs without a preview step.
+  @State private var runsTool = false
   var body: some View {
     VStack(alignment: .leading, spacing: 14) {
       if let definition = session.definition, let state = session.state {
@@ -116,21 +118,17 @@ private struct NativeFormEditor: View {
                 }
               }
             }.disabled(session.busy || workspace.busy)
+          } else if runsTool {
+            // A tool form runs at once: its change is recorded and one Undo takes it back.
+            VStack(alignment: .leading, spacing: 6) {
+              Button(definition.title) { check(run: true) }
+                .buttonStyle(.borderedProminent)
+                .disabled(session.busy || workspace.busy)
+              Text("Runs right away. If it changes rows, you can undo the change.")
+                .readingFont(.caption).foregroundStyle(.secondary)
+            }
           } else {
-            Button("Preview") {
-              validationFocused = false
-              let origin = workspace.route
-              let owner = workspace.interactionIdentity
-              Task {
-                await session.prepare()
-                if !session.issues.isEmpty, workspace.route == origin,
-                  workspace.interactionIdentity == owner,
-                  workspace.readingWindow?.isKeyWindow == true
-                {
-                  validationFocused = true
-                }
-              }
-            }.disabled(session.busy)
+            Button("Preview") { check(run: false) }.disabled(session.busy)
           }
           if let currentFormID, currentFormID != state.definitionID || session.stale {
             Button("Use current form and keep these inputs") {
@@ -161,12 +159,37 @@ private struct NativeFormEditor: View {
           Button("Retry saving inputs") { Task { _ = await session.flush() } }
         }
       }
-    }.announceStatus(
+    }
+    .task(id: session.state?.definitionID) {
+      guard let book = workspace.workbook, let id = session.state?.definitionID else { return }
+      let found = (try? await Task.detached { try book.formRunsTool(id) }.value) ?? false
+      guard !Task.isCancelled else { return }
+      runsTool = found
+    }
+    .announceStatus(
       session.failure
         ?? (session.state?.lastReceipt.map {
           $0["state"] == .string("applied")
             ? $0["summary"].string ?? "Done." : "Saved. Review the result before business use."
         }))
+  }
+  /// Checks the inputs, then previews them or, for a tool form, runs it. A problem moves
+  /// VoiceOver to the list of input issues.
+  private func check(run: Bool) {
+    validationFocused = false
+    let book = workspace.workbook
+    let origin = workspace.route
+    let owner = workspace.interactionIdentity
+    Task {
+      if run { await session.run() } else { await session.prepare() }
+      guard workspace.workbook === book, workspace.interactionIdentity == owner else { return }
+      if run, session.state?.lastReceipt != nil { workspace.refresh() }
+      if !session.issues.isEmpty, workspace.route == origin,
+        workspace.readingWindow?.isKeyWindow == true
+      {
+        validationFocused = true
+      }
+    }
   }
   private func parameterBinding(_ parameter: Value) -> Binding<Value> {
     let key = parameter["id"].text
@@ -203,10 +226,21 @@ struct FormParameterField: View {
   private var fieldIssues: [String] { presentation.issues }
   private var accessibleTitle: String { presentation.accessibleTitle }
   private var fieldHelp: String { presentation.help }
+  private var required: Bool { parameter["required"] == .bool(true) }
+  /// The input is a plain text field, which carries its own placeholder.
+  private var textEntry: Bool {
+    !["entries", "choice", "boolean", "item"].contains(parameter["type"].text)
+  }
   var body: some View {
     VStack(alignment: .leading, spacing: 6) {
-      Text(title + (parameter["required"] == .bool(true) ? " *" : "")).readingFont(
-        .callout, weight: .medium)
+      // Like a view's button: required is the norm, and an optional input says so. A text
+      // field says it in its placeholder; other controls say it beside the title.
+      HStack(alignment: .firstTextBaseline, spacing: 6) {
+        Text(title).readingFont(.callout, weight: .medium)
+        if !required && !textEntry {
+          Text("Optional").readingFont(.caption).foregroundStyle(.secondary)
+        }
+      }
       switch parameter["type"].text {
       case "entries":
         ForEach(value.array.indices, id: \.self) { index in
@@ -301,10 +335,11 @@ struct FormParameterField: View {
         }
       default:
         TextField(
-          parameter["type"].text == "date" ? "YYYY-MM-DD" : title,
+          title,
           text: Binding(
             get: { value == .null ? "" : value.text },
             set: { value = formFieldValue($0, parameter: parameter) }),
+          prompt: Text(FormFieldPresentation.prompt(parameter["type"].text, required: required)),
           axis: parameter["type"].text == "text" ? .vertical : .horizontal
         )
         .lineLimit(1...12).textFieldStyle(.roundedBorder).accessibilityLabel(accessibleTitle)

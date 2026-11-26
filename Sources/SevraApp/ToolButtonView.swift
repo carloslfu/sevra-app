@@ -1,4 +1,5 @@
 import SevraCore
+import SevraPreviewUI
 import SevraTableUI
 import SwiftUI
 
@@ -43,13 +44,9 @@ struct ToolButtonView: View {
   private func filled(_ name: String) -> String {
     (text[name] ?? "").trimmingCharacters(in: .whitespacesAndNewlines)
   }
-  private func label(_ name: String) -> String {
-    let words = name.replacingOccurrences(of: "_", with: " ")
-    return words.prefix(1).uppercased() + words.dropFirst()
-  }
+  private func label(_ name: String) -> String { FormFieldPresentation.readable(name) }
   private func prompt(_ type: String, required: Bool) -> String {
-    let shape = type == "decimal" ? "Number" : type == "date" ? "YYYY-MM-DD" : ""
-    return required ? shape : shape.isEmpty ? "Optional" : shape + ", optional"
+    FormFieldPresentation.prompt(type, required: required)
   }
   private var controlSize: ControlSize {
     component.size == "large" ? .extraLarge : component.size == "small" ? .regular : .large
@@ -64,20 +61,31 @@ struct ToolButtonView: View {
 
   var body: some View {
     VStack(alignment: .leading, spacing: 10) {
-      ForEach(open, id: \.name) { input in
-        if input.type == "boolean" {
-          Toggle(
-            label(input.name),
-            isOn: Binding(get: { flags[input.name] ?? false }, set: { flags[input.name] = $0 }))
-        } else {
-          LabeledContent(label(input.name)) {
-            TextField(
-              label(input.name),
-              text: Binding(get: { text[input.name] ?? "" }, set: { text[input.name] = $0 }),
-              prompt: Text(prompt(input.type, required: input.required))
-            )
-            .labelsHidden().textFieldStyle(.roundedBorder).frame(maxWidth: 320)
-            .onSubmit { if canPress { press() } }
+      // A grid lines up the fields whatever their labels' lengths.
+      if !open.isEmpty {
+        Grid(alignment: .leading, horizontalSpacing: 10, verticalSpacing: 10) {
+          ForEach(open, id: \.name) { input in
+            if input.type == "boolean" {
+              GridRow {
+                Color.clear.gridCellUnsizedAxes([.horizontal, .vertical])
+                Toggle(
+                  label(input.name),
+                  isOn: Binding(
+                    get: { flags[input.name] ?? false }, set: { flags[input.name] = $0 }))
+              }
+            } else {
+              GridRow {
+                Text(label(input.name)).gridColumnAlignment(.trailing)
+                  .accessibilityHidden(true)
+                TextField(
+                  label(input.name),
+                  text: Binding(get: { text[input.name] ?? "" }, set: { text[input.name] = $0 }),
+                  prompt: Text(prompt(input.type, required: input.required))
+                )
+                .labelsHidden().textFieldStyle(.roundedBorder).frame(maxWidth: 320)
+                .onSubmit { if canPress { press() } }
+              }
+            }
           }
         }
       }

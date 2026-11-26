@@ -87,6 +87,14 @@ import SevraCore
       failure = issues.isEmpty ? nil : "Check the highlighted fields. Your inputs are retained."
     } catch { fail(error) }
   }
+  /// A form that runs a saved tool: check the inputs, then run it at once. The change is
+  /// recorded with one Undo, so there is no separate preview step. Anything else stops at its
+  /// preview, as a document form does.
+  public func run() async {
+    await prepare()
+    guard issues.isEmpty, let tool = preview?["tool"], tool != .null else { return }
+    await submit()
+  }
   public func submit() async {
     guard !busy, let value = state, let preview, value.lastReceipt == nil else { return }
     busy = true

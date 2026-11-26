@@ -8,7 +8,7 @@ public enum ActionRegistry {
   /// view's button: the change is recorded at once and one Undo takes it back.
   public static let toolID = "tools.run"
   static let documentParameters: [Value] = [
-    field("title", "Document title", "text"), field("body", "New prose", "text"),
+    field("title", "Document title", "text"), field("body", "Text", "text"),
     field("evidence", "Evidence", "item"),
     .object([
       "id": .string("meaning"), "label": .string("Meaning"), "type": .string("choice"),

@@ -11,7 +11,9 @@ public struct FormFieldPresentation {
     parameter: Value, label: String? = nil, help: String? = nil,
     context: String? = nil, issues: [Value] = [], path: [Value] = []
   ) {
-    title = label ?? parameter["label"].text
+    // A saved tool's inputs carry their machine names as labels, such as unit_cost.
+    let declared = label ?? parameter["label"].text
+    title = declared == parameter["id"].text ? Self.readable(declared) : declared
     let resolvedPath = path.isEmpty ? [.string(parameter["id"].text)] : path
     self.path = resolvedPath
     self.issues = issues.filter { $0["path"].array == resolvedPath }.map { $0["message"].text }
@@ -28,6 +30,16 @@ public struct FormFieldPresentation {
     if let limit = parameter["maxEntries"].int { parts.append("Up to \(limit) lines.") }
     parts += self.issues.map { "Error: " + $0 }
     self.help = parts.joined(separator: " ")
+  }
+  /// An input name as a person reads it: unit_cost becomes "Unit cost".
+  public static func readable(_ name: String) -> String {
+    let words = name.replacingOccurrences(of: "_", with: " ")
+    return words.prefix(1).uppercased() + words.dropFirst()
+  }
+  /// A text field's placeholder: the value's shape, and "Optional" when it may stay empty.
+  public static func prompt(_ type: String, required: Bool) -> String {
+    let shape = type == "decimal" ? "Number" : type == "date" ? "YYYY-MM-DD" : ""
+    return required ? shape : shape.isEmpty ? "Optional" : shape + ", optional"
   }
 }
 
