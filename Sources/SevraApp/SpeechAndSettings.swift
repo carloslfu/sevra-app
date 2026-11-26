@@ -176,8 +176,8 @@ struct VoiceButton: View {
 }
 
 /// The mic of every box where the person writes to Sevra. It draws one `Dictation`: the mic,
-/// and beside it "Listening…" while it records or the failure after one. Typing over dictated
-/// text stops it, and so does the box going away.
+/// and beside it "Listening…" while it records, "Cleaning up…" after, then "Undo cleanup", or
+/// the failure. Typing over dictated text stops it, and so does the box going away.
 struct DictationControl: View {
   @ObservedObject var dictation: Dictation
   @Binding var text: String
@@ -197,7 +197,8 @@ struct DictationControl: View {
 /// switching chats and closing can stop it.
 struct DictationButton: View {
   @Binding var text: String
-  @StateObject private var dictation = Dictation(speech: AppHost.speech())
+  @StateObject private var dictation = Dictation(
+    speech: AppHost.speech(), cleaner: AppHost.dictationCleaner())
   var body: some View { DictationControl(dictation: dictation, text: $text) }
 }
 
@@ -207,8 +208,16 @@ private struct DictationStatus: View {
   var body: some View {
     if speech.active {
       VoiceStatus(speech: speech)
+    } else if dictation.cleaning {
+      HStack(spacing: 4) {
+        ProgressView().controlSize(.mini)
+        Text("Cleaning up…").readingFont(.caption).foregroundStyle(.secondary)
+      }.accessibilityElement(children: .combine)
     } else if let failure = dictation.failure {
       Text(failure).readingFont(.caption).foregroundStyle(.red).lineLimit(2)
+    } else if dictation.original != nil {
+      Button("Undo cleanup", action: dictation.restoreOriginal).buttonStyle(.link)
+        .readingFont(.caption).help("Put back the words as you said them")
     }
   }
 }

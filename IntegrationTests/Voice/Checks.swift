@@ -65,6 +65,16 @@ private func expect(_ value: @autoclosure () -> Bool, _ message: String) throws 
   }
 }
 
+private struct Cleaner: DictationCleaner {
+  var output: String? = nil
+  var delay: Duration = .zero
+  func clean(_ transcript: String) async throws -> String {
+    try await Task.sleep(for: delay)
+    guard let output else { throw Failure("Cleanup refused") }
+    return output
+  }
+}
+
 @main private struct VoiceChecks {
   @MainActor static func main() async {
     setbuf(stdout, nil)
@@ -73,6 +83,16 @@ private func expect(_ value: @autoclosure () -> Bool, _ message: String) throws 
     func check(_ name: String, _ body: () throws -> Void) {
       do {
         try body()
+        passed += 1
+        print("PASS \(name)")
+      } catch {
+        failures.append(name + ": " + String(describing: error))
+        print("FAIL \(name): \(error)")
+      }
+    }
+    func check(_ name: String, _ body: () async throws -> Void) async {
+      do {
+        try await body()
         passed += 1
         print("PASS \(name)")
       } catch {
@@ -260,6 +280,28 @@ private func expect(_ value: @autoclosure () -> Bool, _ message: String) throws 
       try expect(
         text == "User edited the draft" && !dictation.active, "A manual edit did not end dictation")
     }
+    check("Pauses keep every spoken piece") {
+      var pieces = TranscriptPieces()
+      for partial in ["compare", "compare the supplier", "compare the supplier quotes"] {
+        pieces.update(partial, utteranceEnded: false)
+      }
+      // The recognizer starts a fresh transcript after a pause.
+      pieces.update("for", utteranceEnded: false)
+      pieces.update("for brass bolts", utteranceEnded: false)
+      try expect(
+        pieces.text == "compare the supplier quotes for brass bolts", "A pause lost: \(pieces.text)")
+      // An utterance marked finished, then a recognizer that repeats it before the new words.
+      pieces.update("for brass bolts.", utteranceEnded: true)
+      pieces.update("For brass bolts. And include delivery", utteranceEnded: false)
+      try expect(
+        pieces.text == "compare the supplier quotes for brass bolts. And include delivery",
+        "A repeated piece was kept twice: \(pieces.text)")
+      // A revision of the last words is not a new piece.
+      var revised = TranscriptPieces()
+      revised.update("send it on tuesday", utteranceEnded: false)
+      revised.update("send it on Wednesday", utteranceEnded: false)
+      try expect(revised.text == "send it on Wednesday", "A revision became a new piece")
+    }
     check("Shared dictation keeps a failure for its box and clears it on retry") {
       let first = Driver()
       let second = Driver()
@@ -339,6 +381,50 @@ private func expect(_ value: @autoclosure () -> Bool, _ message: String) throws 
       try expect(
         abandonedReference == nil && abandonedDriver.stops == 1, "Released input left capture alive"
       )
+    }
+    await check("Ending dictation cleans up only what was said, and the original comes back") {
+      let driver = Driver()
+      let dictation = Dictation(
+        speech: SpeechInput(driverFactory: { driver }),
+        cleaner: Cleaner(output: "Compare the supplier quotes."))
+      var text = "Typed first:"
+      dictation.toggle(read: { text }, write: { text = $0; dictation.edited($0) })
+      driver.allow()
+      driver.result?("um compare the supplier quotes compare the supplier quotes", false)
+      await dictation.finish()
+      try expect(
+        text == "Typed first: Compare the supplier quotes." && !dictation.busy,
+        "Cleanup did not replace the dictated part: \(text)")
+      dictation.restoreOriginal()
+      try expect(
+        text == "Typed first: um compare the supplier quotes compare the supplier quotes"
+          && dictation.original == nil, "Undo cleanup did not put the words back")
+    }
+    await check("Typing during cleanup wins, and a failed or slow cleanup keeps the words") {
+      for (cleaner, typed) in [
+        (Cleaner(output: "Clean.", delay: .milliseconds(50)), true),
+        (Cleaner(output: nil), false),
+        (Cleaner(output: "Too late.", delay: .seconds(5)), false),
+      ] {
+        let driver = Driver()
+        let dictation = Dictation(
+          speech: SpeechInput(driverFactory: { driver }), cleaner: cleaner,
+          cleanupLimit: .milliseconds(100))
+        var text = ""
+        dictation.toggle(read: { text }, write: { text = $0; dictation.edited($0) })
+        driver.allow()
+        driver.result?("uh said once", false)
+        let finishing = Task { await dictation.finish() }
+        if typed {
+          await Task.yield()
+          text = "my own words"
+          dictation.edited(text)
+        }
+        await finishing.value
+        try expect(
+          text == (typed ? "my own words" : "uh said once") && !dictation.busy
+            && dictation.original == nil, "Cleanup overwrote or lost text: \(text)")
+      }
     }
     print(
       "\(passed) passed; \(failures.count) failed. Synthetic lifecycle checks do not qualify speech hardware or recognition accuracy."

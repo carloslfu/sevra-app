@@ -1,6 +1,7 @@
 import SevraCore
 import SevraProduct
 import SevraTableUI
+import SevraVoice
 import SwiftUI
 
 /// A window opening its workbook. Opening can wait for another process to let the workbook go, so
@@ -37,6 +38,8 @@ struct StartView: View {
   var folder: URL = WorkbookLibrary.directory()
   var defaults: UserDefaults = .standard
   @State private var message = ""
+  @StateObject private var dictation = Dictation(
+    speech: AppHost.speech(), cleaner: AppHost.dictationCleaner())
   @State private var recents: [String] = []
   @State private var showingAll = false
   @State private var dropTargeted = false
@@ -165,7 +168,7 @@ struct StartView: View {
         } label: {
           Label("Add files…", systemImage: "paperclip")
         }.buttonStyle(.borderless).help("Start from spreadsheets, PDFs or other files")
-        DictationButton(text: $message).disabled(starting)
+        DictationControl(dictation: dictation, text: $message).disabled(starting)
         Spacer()
         if starting { ProgressView().controlSize(.small) }
         Button(action: send) { Image(systemName: "arrow.up") }.buttonStyle(.borderedProminent)
@@ -181,6 +184,14 @@ struct StartView: View {
   }
 
   private func send() {
+    // Sending while dictating sends the cleaned text: end dictation, wait for its cleanup.
+    if dictation.busy {
+      Task {
+        await dictation.finish()
+        send()
+      }
+      return
+    }
     guard !starting, !trimmed.isEmpty else { return }
     start(trimmed, [])
   }

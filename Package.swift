@@ -86,7 +86,11 @@ let package = Package(
     .executableTarget(
       name: "SevraAutomationDurability", dependencies: ["SevraCore"],
       path: "IntegrationTests/AutomationDurability", swiftSettings: [.swiftLanguageMode(.v5)]),
-    .target(name: "SevraVoice", swiftSettings: [.swiftLanguageMode(.v5)]),
+    // The on-device model framework exists from macOS 26. Weak linking keeps older Macs running,
+    // where dictation simply has no cleanup.
+    .target(
+      name: "SevraVoice", swiftSettings: [.swiftLanguageMode(.v5)],
+      linkerSettings: [.unsafeFlags(["-Xlinker", "-weak_framework", "-Xlinker", "FoundationModels"])]),
     .executableTarget(
       name: "SevraVoiceChecks", dependencies: ["SevraVoice"],
       path: "IntegrationTests/Voice", swiftSettings: [.swiftLanguageMode(.v5)]),

@@ -44,9 +44,17 @@ import Speech
       request.append(buffer)
     }
     tapped = true
+    // After a pause the recognizer can start a fresh transcript. The pieces keep what was said.
+    var pieces = TranscriptPieces()
     task = recognizer.recognitionTask(with: request) { value, error in
+      let update = value.map {
+        ($0.bestTranscription.formattedString, $0.speechRecognitionMetadata != nil, $0.isFinal)
+      }
       Task { @MainActor in
-        if let value { result(value.bestTranscription.formattedString, value.isFinal) }
+        if let (text, ended, final) = update {
+          pieces.update(text, utteranceEnded: ended)
+          result(pieces.text, final)
+        }
         if let error { failure(error.localizedDescription) }
       }
     }

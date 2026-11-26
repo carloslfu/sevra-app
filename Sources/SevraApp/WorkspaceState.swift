@@ -440,7 +440,8 @@ struct FolderReview {
     self.defaults = defaults
     self.automation = automation ?? .shared
     self.appExchange = appExchange
-    self.dictation = Dictation(speech: speech ?? AppHost.speech())
+    self.dictation = Dictation(
+      speech: speech ?? AppHost.speech(), cleaner: AppHost.dictationCleaner())
     formDrafts.changed = { [weak self] in self?.objectWillChange.send() }
     clarificationDrafts.changed = { [weak self] in self?.objectWillChange.send() }
     spaceNavigation.changed = { [weak self] in self?.objectWillChange.send() }
@@ -1238,8 +1239,15 @@ struct FolderReview {
     guard interactionActive, let book = workbook, canSend,
       !prompt.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
     else { return }
+    // Sending while dictating sends the cleaned text: end dictation, wait for its cleanup.
+    if dictation.busy {
+      Task {
+        await dictation.finish()
+        send()
+      }
+      return
+    }
     ChatTiming.pressedSend()
-    dictation.stop()
     let input = prompt.trimmingCharacters(in: .whitespacesAndNewlines)
     do { try ComposerInput.admit(input) } catch {
       self.error = error.localizedDescription
