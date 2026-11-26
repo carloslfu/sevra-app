@@ -158,6 +158,11 @@ extension Workbook {
   /// What the chat says once a confirmed change is saved: what happened, in words.
   static func completion(_ approval: ChatApproval, result: Value) -> String {
     let title = "“" + result["title"].text + "”"
+    let changed = Workbook.tableChangeSummary(result)
+    if !changed.isEmpty {
+      return changed.joined(separator: " ")
+        + (result["undo"].string != nil ? " You can undo this." : "")
+    }
     switch result["status"].string {
     case "removed": return "Removed " + title + ". History keeps it, and Restore brings it back."
     case "restored":

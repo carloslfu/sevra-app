@@ -30,4 +30,17 @@ package struct ConversationDateContext: Codable, Equatable, Sendable {
     default: literal
     }
   }
+
+  /// The Mac's local date, weekday, time and time zone in one short line, for every chat
+  /// request, so "overdue", "this month" or "every Monday" need no guess.
+  package static func nowLine(
+    _ now: Date = Date(), calendar local: Calendar = .current
+  ) -> String {
+    let format = DateFormatter()
+    format.calendar = Calendar(identifier: .gregorian)
+    format.locale = Locale(identifier: "en_US_POSIX")
+    format.timeZone = local.timeZone
+    format.dateFormat = "EEEE yyyy-MM-dd HH:mm"
+    return "Now: " + format.string(from: now) + ", time zone " + local.timeZone.identifier + "."
+  }
 }

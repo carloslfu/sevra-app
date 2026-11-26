@@ -9,7 +9,7 @@ import Foundation
 extension Workbook {
   public func chatSQL(
     statements: [String], readOnly: Bool, draft: Bool = false, token: String,
-    requestSourceID: String?, inputs: [String: Value]? = nil,
+    requestSourceID: String?, inputs: [String: Value]? = nil, confirmLarge: Bool = false,
     cancellation: Cancellation = .init()
   ) throws -> Value {
     try require(
@@ -22,14 +22,14 @@ extension Workbook {
       let results = try session.run(statements)
       return try saveChatSQL(
         session.scratch, results: results, draft: draft, token: token,
-        requestSourceID: requestSourceID, cancellation: cancellation)
+        requestSourceID: requestSourceID, confirmLarge: confirmLarge, cancellation: cancellation)
     }
   }
 
   /// Applies what the statements did on the copy through the recorded write paths.
   func saveChatSQL(
     _ scratch: SQLScratch, results: [Value], draft: Bool, token: String,
-    requestSourceID: String?, cancellation: Cancellation
+    requestSourceID: String?, confirmLarge: Bool = false, cancellation: Cancellation
   ) throws -> Value {
     try synchronized(cancellation: cancellation) {
       let reshapes = try scratch.reshapes()
@@ -38,6 +38,19 @@ extension Workbook {
       try require(
         changes.allSatisfy { $0.operations.count <= SQLScratch.changeLimit }, "sql_limit",
         "One call can change at most \(SQLScratch.changeLimit) rows of a table for now. Nothing was changed. Split the change.")
+      // A change that empties or removes a table, or reaches most of its rows, waits for the
+      // person. Nothing is saved, and the host asks them with this preview.
+      if confirmLarge, !draft,
+        let preview = Self.largeChangePreview(
+          changes.map { ($0.table.title, $0.table.rowCount, $0.deleted, $0.updated) }
+            + reshapes.filter(\.archived).map { ($0.table.title, $0.table.rowCount, -1, 0) })
+      {
+        return .object([
+          "status": .string("confirmation_required"), "preview": .string(preview),
+          "notice": .string(
+            "Nothing was changed. This change waits for the user's confirmation, which the host asks for."),
+        ])
+      }
       var saved: [Value] = []
       if draft {
         // A draft changes nothing. Today's proposals cover edits to existing rows.
@@ -175,6 +188,82 @@ extension Workbook {
 }
 
 extension Workbook {
+  /// Whether a change to one table needs the person's confirmation before it is saved. Every
+  /// change keeps an Undo, so this asks only where a misread request costs the most: emptying
+  /// a table of two or more rows, or deleting or overwriting more than 20 rows, or more than
+  /// half of a table of more than five. A small table's change is listed in full in the reply
+  /// and taken back with one Undo, so it applies at once. A deleted count of -1 is the table
+  /// itself removed, which asks whenever the table has rows.
+  public static func needsConfirmation(rows: Int, deleted: Int, updated: Int) -> Bool {
+    if deleted < 0 { return rows > 0 }
+    let changed = deleted + updated
+    if deleted > 0 && deleted >= rows && rows >= 2 { return true }
+    return changed > 20 || (rows > 5 && changed * 2 > rows)
+  }
+
+  /// What a sql call, script or saved tool changed, in words for the person, one sentence a
+  /// change, tables named by their titles. Empty when it changed no table.
+  public static func tableChangeSummary(_ result: Value) -> [String] {
+    func rows(_ n: Int) -> String { n == 1 ? "1 row" : "\(n) rows" }
+    func named(_ entry: Value) -> String {
+      "“" + (entry["title"].string ?? entry["table"].text) + "”"
+    }
+    var lines: [String] = []
+    for shape in result["shape"].array {
+      let rowsMade = shape["rows"].int ?? 0
+      switch shape["change"].text {
+      case "created":
+        lines.append(
+          "Created table " + named(shape) + (rowsMade > 0 ? " with " + rows(rowsMade) : "") + ".")
+      case "archived": lines.append("Removed table " + named(shape) + ".")
+      case "reshaped": lines.append("Changed the columns of " + named(shape) + ".")
+      default: break
+      }
+    }
+    for change in result["changes"].array {
+      if let n = change["inserted"].int, n > 0 {
+        lines.append("Added " + rows(n) + " to " + named(change) + ".")
+      }
+      if let n = change["updated"].int, n > 0 {
+        lines.append("Updated " + rows(n) + " in " + named(change) + ".")
+      }
+      if let n = change["deleted"].int, n > 0 {
+        lines.append("Deleted " + rows(n) + " from " + named(change) + ".")
+      }
+    }
+    return lines
+  }
+
+  /// What the person is asked to confirm, one sentence a table, or nil when nothing needs it.
+  public static func largeChangePreview(
+    _ tables: [(title: String, rows: Int, deleted: Int, updated: Int)]
+  ) -> String? {
+    func rows(_ n: Int) -> String { n == 1 ? "1 row" : "\(n) rows" }
+    let lines = tables.filter {
+      needsConfirmation(rows: $0.rows, deleted: $0.deleted, updated: $0.updated)
+    }.map { table -> String in
+      let title = "“" + table.title + "”"
+      if table.deleted < 0 {
+        return "This removes the table " + title + " and its " + rows(table.rows) + "."
+      }
+      var parts: [String] = []
+      if table.deleted > 0 {
+        parts.append(
+          table.deleted >= table.rows
+            ? "deletes all " + rows(table.rows) + " of " + title
+            : "deletes \(table.deleted) of the " + rows(table.rows) + " of " + title)
+      }
+      if table.updated > 0 {
+        parts.append(
+          table.deleted > 0
+            ? "changes " + rows(table.updated)
+            : "changes \(table.updated) of the " + rows(table.rows) + " of " + title)
+      }
+      return "This " + parts.joined(separator: " and ") + "."
+    }
+    return lines.isEmpty ? nil : lines.joined(separator: " ")
+  }
+
   /// The tables as sql names them, for the request's context, so the model need not look
   /// them up. Long workbooks list what fits and point at the catalog for the rest.
   public func chatSQLTables(byteLimit: Int = 2_400) throws -> String {
@@ -307,15 +396,19 @@ extension Workbook {
     }
   }
 
-  /// The token of the sql call a chat answer saved changes with, when it was the only one.
+  /// The token of the sql call a chat answer saved changes with, when it was the only one, or
+  /// of the change the person confirmed in chat.
   public func conversationSQLReceipt(_ messageID: String, conversation: String) throws -> String? {
     try synchronized {
       try db.scalar(
         """
-        SELECT json_extract(p.payload,'$.reversibleOutcome.sql')
+        SELECT CASE WHEN m.role='assistant' THEN json_extract(p.payload,'$.reversibleOutcome.sql')
+          WHEN json_type(p.payload,'$.result.undo')='text' THEN json_extract(p.payload,'$.result.undo')
+          END
         FROM messages m JOIN message_payloads p ON p.message_id=m.id
-        WHERE m.id=? AND m.conversation_id=? AND m.role='assistant' AND m.state='complete'
-          AND json_extract(p.payload,'$.tool')='finish'
+        WHERE m.id=? AND m.conversation_id=? AND m.state='complete'
+          AND ((m.role='assistant' AND json_extract(p.payload,'$.tool')='finish')
+            OR (m.role='event' AND json_extract(p.payload,'$.kind')='chat_approval_result'))
         """, [.string(messageID), .string(conversation)]
       ).string
     }

@@ -26,3 +26,25 @@ package enum FidelityClaim {
     #"\b(?:guard|copi|conserv|preserv|registr)\w*\s+(?:\w+\s+){0,3}(?:perfectamente|fielmente|sin errores|tal cual)\b"#,
   ]
 }
+
+/// Whether an answer says it changed something: "I created", "has been updated", or a line
+/// that starts "Added". When nothing was saved, such a summary is not what happened, so the
+/// host sends it back once and then gives its own account.
+package enum ChangeClaim {
+  package static func claims(_ answer: String) -> Bool {
+    patterns.contains { answer.range(of: $0, options: .regularExpression) != nil }
+  }
+
+  package static let feedback =
+    "Nothing in this request was saved, so the answer must not say that anything was created, added, saved, updated or deleted. Say plainly what was not done and why, in a sentence or two."
+
+  private static let verbs =
+    #"(?:created|added|saved|updated|built|made|set up|deleted|removed|changed|inserted|recorded|placed|replaced|renamed|moved|edited|logged)"#
+  private static let patterns = [
+    #"(?i)\b(?:I|I've|I have|we|we've|we have)\s+(?:just\s+|now\s+|also\s+|successfully\s+)?"#
+      + verbs + #"\b"#,
+    #"(?i)\b(?:has|have)\s+(?:now\s+)?been\s+(?:successfully\s+)?"# + verbs + #"\b"#,
+    #"(?i)\b(?:is|are)\s+(?:now\s+)?(?:ready|set up|live|in place)\b"#,
+    #"(?m)^\s*(?:[-*]\s+)?(?:Created|Added|Saved|Updated|Built|Deleted|Removed|Changed|Inserted|Recorded|Replaced|Renamed|Moved)\b"#,
+  ]
+}

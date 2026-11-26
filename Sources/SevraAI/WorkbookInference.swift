@@ -31,9 +31,9 @@ package enum InferenceToolScope: String, CaseIterable, Sendable {
 
   package var workspaceOperations: [ChatOperations.Operation] {
     switch self {
-    case .all: return ChatOperations.operations
+    case .all: return ChatOperations.offered
     case .conversationAnswer, .boundedConversationAnswer:
-      return ChatOperations.operations.filter {
+      return ChatOperations.offered.filter {
         $0.readOnly
           && (!$0.host
             || [

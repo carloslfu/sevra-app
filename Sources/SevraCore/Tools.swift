@@ -12,6 +12,11 @@ public struct WorkbookTools {
   public let conversation: String
   public let readOnly: Bool
   public let excelConversion: ExcelConversionBuild?
+  /// Chat sets this: a sql call, script or saved tool the model runs that empties or removes a
+  /// table, or changes most of its rows, saves nothing and returns status
+  /// confirmation_required with a preview for the person. A view's button is the person's own
+  /// action and runs without it.
+  public var confirmsLargeChanges = false
   package static let guides: [String: String] = [
     "view": """
       A view is a saved page of up to 16 components. save with view: {title, definition: {version: 1, components}}. Every component has a short id of its own, a type and a visible title, and the fields its type uses. Saving a view does not open it.
@@ -349,12 +354,14 @@ public struct WorkbookTools {
         try require(
           a.object["code"] == nil, "arguments", "Send either code or a saved tool with its values.")
         return try runSavedTool(
-          name, values: a["values"].object, readOnly: unchanging, token: receiptID ?? token)
+          name, values: a["values"].object, readOnly: unchanging, token: receiptID ?? token,
+          confirmLarge: confirmsLargeChanges)
       }
       try require(
         a.object["values"] == nil, "arguments", "values belong to a saved tool, with tool beside them.")
       return try runScript(
-        string("code"), inputs: [:], readOnly: unchanging, token: receiptID ?? token)
+        string("code"), inputs: [:], readOnly: unchanging, token: receiptID ?? token,
+        confirmLarge: confirmsLargeChanges)
     case "sql":
       // The general chat tools' table tool. It refuses changes itself when none are allowed.
       if let undo = a["undo"].string {
@@ -371,7 +378,7 @@ public struct WorkbookTools {
         return try workbook.chatRunTool(
           name: name, values: a["values"].object, readOnly: readOnly || inspectionOnly,
           token: "sql-" + (receiptID ?? token), requestSourceID: requestSourceID,
-          cancellation: cancellation)
+          confirmLarge: confirmsLargeChanges, cancellation: cancellation)
       }
       try require(
         a["values"].object.isEmpty, "arguments",
@@ -383,7 +390,8 @@ public struct WorkbookTools {
       return try workbook.chatSQL(
         statements: statements, readOnly: readOnly || inspectionOnly,
         draft: a["draft"] == .bool(true), token: "sql-" + (receiptID ?? token),
-        requestSourceID: requestSourceID, cancellation: cancellation)
+        requestSourceID: requestSourceID, confirmLarge: confirmsLargeChanges,
+        cancellation: cancellation)
     case "datasets":
       return try encoded(
         excelConversion.map { try $0.tables.map { try workbook.dataset($0.id) } }
@@ -650,11 +658,12 @@ public struct WorkbookTools {
   /// One script in the sandbox. Its sql works on one private copy, search and read see the
   /// saved workbook, and the actions it queues run after its changes are saved.
   private func runScript(
-    _ code: String, inputs: [String: Value], readOnly unchanging: Bool, token: String
+    _ code: String, inputs: [String: Value], readOnly unchanging: Bool, token: String,
+    confirmLarge: Bool = false
   ) throws -> Value {
     try workbook.chatRun(
       code: code, readOnly: unchanging, token: "run-" + token,
-      requestSourceID: requestSourceID, inputs: inputs,
+      requestSourceID: requestSourceID, inputs: inputs, confirmLarge: confirmLarge,
       host: { method, arguments in
         switch method {
         case "search", "read":
@@ -678,24 +687,42 @@ public struct WorkbookTools {
   /// A workbook tool by name, enabled on this Mac: its script, or its statements through sql.
   /// A view's button runs its tool here too.
   func runSavedTool(
-    _ name: String, values: [String: Value], readOnly unchanging: Bool, token: String
+    _ name: String, values: [String: Value], readOnly unchanging: Bool, token: String,
+    confirmLarge: Bool = false
   ) throws -> Value {
     let tool = try workbook.synchronized { try workbook.runnableTool(name) }
-    return try runTool(tool, values: values, readOnly: unchanging, token: token)
+    return try runTool(
+      tool, values: values, readOnly: unchanging, token: token, confirmLarge: confirmLarge)
   }
 
-  /// One saved tool version, enabled on this Mac: its statements through sql, saved under
-  /// "tool-" + token, or its script, saved under "run-" + token. A tool action runs here too.
+  /// A chat sql call or script the person confirmed, run as it was sent, as their change.
+  /// `tool` is sql or run and `call` its arguments.
+  public func runConfirmedChange(_ arguments: Value) throws -> Value {
+    let tool = arguments["tool"].text
+    try require(
+      ["sql", "run"].contains(tool) && arguments["call"].object["action"] == nil
+        && arguments["call"].object["undo"] == nil, "arguments",
+      "Send tool, sql or run, and the call that waited for confirmation.")
+    var tools = self
+    tools.confirmsLargeChanges = false
+    return try ChangeAttribution.$actor.withValue(.human("Sevra.chat-confirmation")) {
+      try tools.executeAttributed(
+        tool, arguments["call"], receiptID: "confirmed-" + identifier(), nativeAppCheck: nil)
+    }
+  }
+
   func runTool(
-    _ tool: Workbook.SavedTool, values: [String: Value], readOnly unchanging: Bool, token: String
+    _ tool: Workbook.SavedTool, values: [String: Value], readOnly unchanging: Bool, token: String,
+    confirmLarge: Bool = false
   ) throws -> Value {
     guard tool.language == "javascript" else {
       return try workbook.chatRunTool(
         tool, values: values, readOnly: unchanging, token: "tool-" + token,
-        requestSourceID: requestSourceID, cancellation: cancellation)
+        requestSourceID: requestSourceID, confirmLarge: confirmLarge, cancellation: cancellation)
     }
     var result = try runScript(
-      tool.source, inputs: workbook.toolInputs(tool, values), readOnly: unchanging, token: token
+      tool.source, inputs: workbook.toolInputs(tool, values), readOnly: unchanging, token: token,
+      confirmLarge: confirmLarge
     ).object
     result["tool"] = .string(tool.signature)
     return .object(result)

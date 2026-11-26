@@ -35,6 +35,7 @@ public enum NativeAppCheck {
   ) async throws -> Value {
     try cancellation.check()
     try package.validate()
+    try requireCheckService()
     guard case .object = fixtures else {
       throw SevraError("app_check", "Fixtures must be an object of table aliases and row arrays.")
     }
@@ -968,6 +969,26 @@ private func checkVisual(_ result: VisualResult, expected: Value) throws {
         "app_check_assertion",
         "Visual \(key) differed. Observed: " + String(try observed[key]!.json().prefix(2000)))
     }
+  }
+}
+
+extension NativeAppCheck {
+  /// The checker is an XPC service inside the app bundle, and the system finds it only for a
+  /// process whose main bundle, or one of its frameworks, carries it. A plain command line has
+  /// none, so it is told so plainly instead of the system's "Couldn't communicate with a
+  /// helper application".
+  package static func requireCheckService(in main: Bundle = .main) throws {
+    let name = "XPCServices/" + NativeAppWire.checkService + ".xpc"
+    let bundles = [main] + Bundle.allFrameworks
+    let found = bundles.contains {
+      FileManager.default.fileExists(
+        atPath: $0.bundleURL.appendingPathComponent("Contents").appendingPathComponent(name).path)
+        || FileManager.default.fileExists(atPath: $0.bundleURL.appendingPathComponent(name).path)
+    }
+    try require(
+      found, "app_host_unavailable",
+      "Saving an app needs the Sevra app open: its isolated check runs only inside the app. Nothing was saved."
+    )
   }
 }
 

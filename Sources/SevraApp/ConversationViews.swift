@@ -55,7 +55,8 @@ struct ConversationMessageRow: View, Equatable {
     // The Undo row sits outside the spaced stack, since most replies leave it empty.
     VStack(alignment: .leading, spacing: 0) {
       if message.role == "user" { userBubble } else { messageStack }
-      if message.role == "assistant" && message.state == "complete" {
+      // A change the person confirmed in chat keeps its Undo on the line that reports it.
+      if ["assistant", "event"].contains(message.role) && message.state == "complete" {
         ConversationReversalView(state: state, messageID: message.id)
       }
     }.environment(

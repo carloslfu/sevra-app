@@ -42,19 +42,19 @@ func checkVisibleThoughts() async throws {
   defer { try? FileManager.default.removeItem(at: root) }
   let book = try Workbook.create(at: root.appendingPathComponent("Thoughts.sevra"), title: "T")
   let chat = book.startChat
-  let marks = ["MARK-SEARCH", "MARK-NOCALL", "MARK-DOLLAR", "MARK-ANSWER"]
+  let marks = ["MARK-SEARCH", "MARK-NOCALL", "MARK-OPAQUE", "MARK-ANSWER"]
   let model = ThinkingModel([
     (marks[0] + " I should search first.", "search", .object(["query": .string("greeting")])),
     (marks[1] + " I forgot to call a tool.", "none", .null),
     (
-      marks[2] + " Answer with a price.", "finish",
+      marks[2] + " Answer with an ID.", "finish",
       .object([
-        "answer": .string("Hello for $5."), "basis": .string("general"),
+        "answer": .string("Hello from 123e4567-e89b-12d3-a456-426614174000."), "basis": .string("general"),
         "citations": .array([]),
       ])
     ),
     (
-      marks[3] + " Answer without a currency.", "finish",
+      marks[3] + " Answer without an ID.", "finish",
       .object([
         "answer": .string("Hello."), "basis": .string("general"), "citations": .array([]),
       ])
@@ -71,8 +71,8 @@ func checkVisibleThoughts() async throws {
   try expectEqual(thoughts.map(\.step), [1, 2, 3, 4])
   try expectEqual(thoughts.map { $0.text.components(separatedBy: " ")[0] }, marks)
   try expectEqual(thoughts.map(\.outcome), [nil, "unusable", "answer_refused", nil])
-  try expectEqual(thoughts[2].draft, "Hello for $5.")
-  try expectEqual(thoughts[2].note?.contains("currency"), true)
+  try expectEqual(thoughts[2].draft, "Hello from 123e4567-e89b-12d3-a456-426614174000.")
+  try expectEqual(thoughts[2].note?.contains("opaque ID"), true)
   try expectEqual(thoughts[1].note?.contains("Use exactly one"), true)
   // Each thought comes before the step it led to; the unmatched ones keep their place.
   let order = RequestActivity.timeline(steps: activity.steps, thoughts: thoughts).map(\.id)

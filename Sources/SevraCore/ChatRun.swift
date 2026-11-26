@@ -28,7 +28,7 @@ extension Workbook {
 
   public func chatRun(
     code: String, readOnly: Bool, token: String, requestSourceID: String?,
-    inputs: [String: Value] = [:],
+    inputs: [String: Value] = [:], confirmLarge: Bool = false,
     host: (_ method: String, _ arguments: Value) throws -> Value,
     cancellation: Cancellation = .init()
   ) throws -> Value {
@@ -134,8 +134,11 @@ extension Workbook {
         }
         var fields = try saveChatSQL(
           session.scratch, results: [], draft: false, token: token,
-          requestSourceID: requestSourceID, cancellation: cancellation
+          requestSourceID: requestSourceID, confirmLarge: confirmLarge,
+          cancellation: cancellation
         ).object
+        // Nothing was saved: the person is asked first, and the script's value waits with it.
+        if fields["status"] == .string("confirmation_required") { return .object(fields) }
         fields["results"] = nil
         fields["value"] = value
         fields["statements"] = .array(statements)

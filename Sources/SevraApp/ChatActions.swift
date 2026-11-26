@@ -366,6 +366,13 @@ extension WorkspaceState {
         result = try book.undoItem(item.id, cancellation: cancellation, actor: actor)
       }
       return .object(["status": .string("completed"), "item": try encoded(result)])
+    case "table.confirm_change":
+      // A chat change that empties, removes or mostly rewrites a table, which the host held
+      // for the person. It runs only once they confirm, as they saw it.
+      try require(
+        confirmed, "chat_approval", "This change runs only after the person confirms it in chat.")
+      let tools = WorkbookTools(book, cancellation: cancellation, conversation: conversation)
+      return try await Task.detached { try tools.runConfirmedChange(a) }.value
     case "remove", "restore":
       let target = try book.removalTarget(a["id"].text)
       let removing = name == "remove"

@@ -104,7 +104,9 @@ private func checkCurrencyResult(
   _ result: AgentResult, book: Workbook, before: [Item], expectedInputs: Set<String>,
   model: CurrencyFault, opaqueOnly: Bool = false
 ) async throws {
-  try expectEqual(await model.sawRejection, true)
+  // A symbol beside a grounded number is the host's to remove, so that answer needs no second
+  // try. An opaque reference is still sent back.
+  try expectEqual(await model.sawRejection, opaqueOnly)
   try expectEqual(result.state, "complete")
   try expectEqual(result.answer.contains(where: { "$€£".contains($0) }), false)
   try expectEqual(result.answer.contains("3.5") && result.answer.contains("12.73"), true)
@@ -132,7 +134,7 @@ private func checkCurrencyResult(
       $0.role == "tool"
         && $0.body.contains(
           opaqueOnly ? "Remove every opaque ID" : "Remove invented currency symbols")
-    }.count, 1)
+    }.count, opaqueOnly ? 1 : 0)
 }
 
 func checkCurrencyRejection() async throws {
@@ -150,7 +152,7 @@ func checkCurrencyRejection() async throws {
     workbook: book, model: model)
   try await checkCurrencyResult(
     result, book: book, before: before, expectedInputs: inputs, model: model)
-  try expectEqual(result.steps, 3)
+  try expectEqual(result.steps, 2)
   let secondPath = path.deletingLastPathComponent().appendingPathComponent(
     "sevra-opaque-" + identifier() + ".sevra")
   defer { try? FileManager.default.removeItem(at: secondPath) }
@@ -195,7 +197,7 @@ func checkCurrencyRejection() async throws {
     "PASS unknown opaque references are rejected before publication; corrected prose preserves citation navigation"
   )
   print(
-    "PASS invented currency is rejected before assistant publication; corrected answer retains exact citations and unchanged business data"
+    "PASS an invented currency symbol is removed before assistant publication; the answer retains exact citations and unchanged business data"
   )
 }
 

@@ -240,11 +240,14 @@ public enum WorkbookAgent {
     let requestNumbers = numericValues(requestFacts).union(
       numericValues(requestFacts.replacingOccurrences(of: " ", with: "\n")))
     var computedNumbers = Set<String>()
+    // Numbers in the arguments of calls that succeeded: what this request wrote or saved.
+    var actionNumbers = Set<String>()
     var calculationInputs = CalculationInputs()
     var currencyEvidence = prompt.contains("$") || prompt.contains("€") || prompt.contains("£")
     var percentages: [Decimal] = []
     let statedPercentages = Self.percentValues(requestFacts + "\n" + context)
     var finalFailures = 0
+    var changeClaimRefused = false
     // A count of steps says nothing about progress. A chat request stops when it stops getting
     // anywhere (`wrapUp` below), and the count is only a backstop against a run that never
     // ends. Excel conversion keeps its short budget: each of its steps is long.
@@ -253,6 +256,7 @@ public enum WorkbookAgent {
     // and it is told to say what it did, what is saved and what blocked the rest.
     var wrapUp: String?
     var sameFailures: [String: Int] = [:]
+    var sameSystemFailures: [String: Int] = [:]
     var consecutiveFailures = 0
     var stoppedRequestRaised = false
     var emptySearches = 0
@@ -326,6 +330,9 @@ public enum WorkbookAgent {
         policy +=
           "\nUse request_input to ask for genuinely missing business values before applying changes. Never use it for a choice about looks, names, placement or starting content: choose a default and say what you chose. Offer choices with literal values when appropriate. Set a short snake_case field ID such as include_shipping. Use type=boolean when the choices contain true and false. Reuse each field ID as a key in literal choice values and give each choice its own ID. The run pauses until a human replies. Never ask again for values already supplied. Do not supply or approve the answer yourself."
       }
+      // The Mac's date, weekday, time and zone come with every chat request, small enough that
+      // "overdue", "this month" and "every Monday" need no guess. Below the prepared header.
+      if excelConversion == nil { policy += "\n" + ConversationDateContext.nowLine() }
       if [requestTask, submittedText].contains(where: {
         $0.range(
           of: #"(?i)\b(today|tomorrow|yesterday|this week|next week|last week)\b"#,
@@ -370,9 +377,11 @@ public enum WorkbookAgent {
               "context": .string(context),
             ]), token: runID + "-request")
         }
-      let tools = WorkbookTools(
+      var tools = WorkbookTools(
         workbook, runID: runID, cancellation: cancellation, requestSourceID: requestSource.id,
         conversation: conversation, readOnly: readOnly, excelConversion: excelConversion)
+      // A chat change that empties, removes or mostly rewrites a table waits for the person.
+      tools.confirmsLargeChanges = excelConversion == nil
       // Storage and progress metadata are host context, not more user text.
       // Keep the submitted request intact and expose its Source for provenance,
       // without making that Source sound like a document the user asked to find.
@@ -753,13 +762,31 @@ public enum WorkbookAgent {
             wrapUp == nil && !keepsSummary
             && (summaryRefused || ["completed_action", "general", "unresolved"].contains(basis)
               || (basis == "current_request" && actionConfirmations.hasUnresolvedFailure))
-          let actionText = previewText ?? (hostActionOnly ? actionConfirmations.rendered : nil)
+          var actionText = previewText ?? (hostActionOnly ? actionConfirmations.rendered : nil)
+          // A summary that says something was made when nothing was saved, only refused, is not
+          // what happened. It goes back once; then the host gives one account of its own.
+          let falseChangeClaim =
+            actionText == nil && !actionConfirmations.savedAnything
+            && actionConfirmations.hasUnresolvedFailure && ChangeClaim.claims(a["answer"].text)
+          if falseChangeClaim && changeClaimRefused {
+            actionText =
+              "Nothing was changed." + (actionConfirmations.rendered.map { "\n" + $0 } ?? "")
+          }
           // Changing the answer label cannot turn a failed write into success.
           // Independent cited facts remain useful alongside explicit outcomes.
           let supplementalActionText =
             actionText == nil
             ? actionConfirmations.rendered(excluding: nil, brief: wrapUp != nil) : nil
           var answer = actionText ?? a["answer"].text
+          // A currency symbol nothing gave, beside a number, is the host's to take out: the
+          // number stays, and its own checks still apply. Any other symbol is still refused.
+          if actionText == nil, !currencyEvidence {
+            let plain = Self.removingCurrencySymbols(answer)
+            if plain != answer {
+              answer = plain
+              metrics.append(.object(["host": .string("currency_symbol_removed")]))
+            }
+          }
           // The grammar lets a model name one ID twice; each is cited once, in first order.
           var seenCitations = Set<String>()
           var citations =
@@ -961,6 +988,10 @@ public enum WorkbookAgent {
           if !computed && CalculationRequirement.hasComparisonClaim(modelAnswer) {
             problems.append("Run the comparison or arithmetic with sql before answering.")
           }
+          if falseChangeClaim && !changeClaimRefused {
+            changeClaimRefused = true
+            problems.append(ChangeClaim.feedback)
+          }
           if keepsSummary, FidelityClaim.overstates(modelAnswer) {
             problems.append(FidelityClaim.feedback)
           }
@@ -968,8 +999,10 @@ public enum WorkbookAgent {
           // not what the view shows. Cited evidence and the request's own numbers keep their
           // checks under their own bases.
           if keepsSummary, ["completed_action", "general"].contains(basis) {
+            // A number the model wrote into a call that succeeded, such as a value it inserted
+            // or a limit in a saved query, is what was saved, so the summary may repeat it.
             let unsupported = numericValues(modelAnswer).subtracting(
-              requestNumbers.union(computedNumbers))
+              requestNumbers.union(computedNumbers).union(actionNumbers))
             if !unsupported.isEmpty {
               problems.append(
                 "The summary states " + unsupported.sorted().joined(separator: ", ")
@@ -1206,6 +1239,8 @@ public enum WorkbookAgent {
         var currencyThisStep = false
         var callFailed = false
         var navigationFailure: String?
+        // A failure of this Mac rather than of the call, which no retry of the call fixes.
+        var systemFailure: (error: String, final: Bool)?
         var preparationPreviewReceiptID: String?
         var commitArguments: Value?
         var nothingFailed = false
@@ -1328,6 +1363,26 @@ public enum WorkbookAgent {
                 tool == "prepare_action" ? "commit_action_preview" : tool,
                 commitArguments ?? a, receiptID: receiptID, nativeAppCheck: nativeAppCheck,
                 inspectionOnly: !inferenceScope.changes)
+          }
+          // A change that empties, removes or mostly rewrites a table saved nothing. The person
+          // confirms it in chat; without the app there is no one to ask, so it is refused.
+          if ["sql", "run"].contains(tool), value["status"] == .string("confirmation_required") {
+            let preview = value["preview"].text
+            guard workspaceAction != nil else {
+              throw SevraError(
+                "confirmation_unavailable",
+                preview
+                  + " It needs your confirmation, which only the Sevra app can ask for. Nothing was changed."
+              )
+            }
+            let title = preview + "\nYou can undo it after it is applied."
+            try workbook.prepareChatApproval(
+              action: "table.confirm_change",
+              arguments: .object(["tool": .string(tool), "call": a]), title: title,
+              conversation: conversation)
+            value = .object([
+              "status": .string("confirmation_required"), "preview": .string(title),
+            ])
           }
           if tool == "workspace_action", let action = value["hostAction"].string {
             let args = routedAppCall.map { $0["arguments"] } ?? value["arguments"]
@@ -1476,6 +1531,11 @@ public enum WorkbookAgent {
           }
         } catch {
           callFailed = true
+          if (error as? SevraError)?.code == "app_host_unavailable" {
+            systemFailure = (failureDescription(error), true)
+          } else if Self.isSystemFailure(error) {
+            systemFailure = (failureDescription(error), false)
+          }
           // Reminding the model of a stopped request changes nothing, so nothing failed.
           nothingFailed = ["stopped_request"].contains(
             (error as? SevraError)?.code)
@@ -1702,6 +1762,32 @@ public enum WorkbookAgent {
             key += "\u{0}inconclusive-review"
           }
           rejectedActions[key, default: 0] += 1
+          // The same failure of this Mac twice, whatever the arguments, or one that says the
+          // app is needed, ends the request with a plain account instead of more retries.
+          if let systemFailure {
+            let seen = (sameSystemFailures[tool + "\u{0}" + systemFailure.error] ?? 0) + 1
+            sameSystemFailures[tool + "\u{0}" + systemFailure.error] = seen
+            if systemFailure.final || seen >= 2 {
+              metrics.append(
+                .object(["host": .string("wrap_up"), "reason": .string("system_failure")]))
+              let task = actionConfirmations.failureTask(tool) ?? "that action"
+              let account =
+                "Couldn’t finish " + task + ". " + systemFailure.error
+                + (systemFailure.final
+                  ? ""
+                  : " This is a problem on this Mac, not with your request, so trying again won’t fix it.")
+              let others = actionConfirmations.rendered(
+                excluding: receiptID, omittingFailuresOf: tool)
+              let answer = account + (others.map { "\n\n" + $0 } ?? "")
+              try workbook.addMessage(
+                answer, role: "assistant", conversation: conversation, state: "complete",
+                payload: .object(["actionConfirmations": actionConfirmations.evidence]))
+              try workbook.finishAgentRun(
+                runID, status: "complete", steps: step, metrics: .array(metrics))
+              return AgentResult(
+                answer: answer, citations: [], steps: step, state: "complete", focus: focus)
+            }
+          }
           // A chat request that is closing gets to say what happened. Excel conversion and
           // app building, which never close this way, still stop here.
           try require(
@@ -1735,6 +1821,9 @@ public enum WorkbookAgent {
             completedAction = true
           }
           actionConfirmations.record(tool: tool, arguments: a, result: result, receiptID: receiptID)
+          if !GeneralTools.reads(tool, a) || ["sql", "run"].contains(tool) {
+            actionNumbers.formUnion(Self.argumentNumbers(a))
+          }
           // A later explicit opening supersedes any earlier result-focus request.
           if ["open_space", "open_reviews"].contains(tool) { focus = nil }
           if ["save_space", "edit_space", "restore_space", "save_native_app"].contains(tool),
@@ -1863,7 +1952,7 @@ public enum WorkbookAgent {
           }
 
         }
-        if tool == "workspace_action", !callFailed,
+        if ["workspace_action", "sql", "run"].contains(tool), !callFailed,
           result["status"] == .string("confirmation_required")
         {
           // The change itself is on the card above, with its buttons. Repeating it here showed
@@ -2071,6 +2160,48 @@ public enum WorkbookAgent {
   static let stepLimitNotice =
     "Sevra stopped this request because it was not finishing. What it changed so far is saved. Say “continue” to go on from here."
   /// What the model is told when its request is being closed: the only tool left is finish.
+  /// The numbers a call's arguments state, such as a value in an INSERT or a limit in a saved
+  /// query. Ids, versions and undo values are not statements of the request's facts.
+  package static func argumentNumbers(_ value: Value, key: String = "") -> Set<String> {
+    let name = key.lowercased()
+    if name.hasSuffix("id") || name.hasSuffix("ids")
+      || ["version", "expectedversion", "token", "undo"].contains(name)
+    {
+      return []
+    }
+    switch value {
+    case .object(let fields):
+      return fields.reduce(into: Set<String>()) { $0.formUnion(argumentNumbers($1.value, key: $1.key)) }
+    case .array(let items):
+      return items.reduce(into: Set<String>()) { $0.formUnion(argumentNumbers($1, key: key)) }
+    case .string(let text):
+      return numericValues(
+        text.replacingOccurrences(
+          of: #"[0-9A-Fa-f]{8}-[0-9A-Fa-f]{4}-[0-9A-Fa-f]{4}-[0-9A-Fa-f]{4}-[0-9A-Fa-f]{12}"#,
+          with: " ", options: .regularExpression))
+    case .number: return numericValues((try? value.json()) ?? "")
+    default: return []
+    }
+  }
+
+  /// An answer with each currency symbol beside a number taken out: "$51.50" is "51.50",
+  /// "-$5" is "-5" and "12 €" is "12". A symbol anywhere else stays.
+  package static func removingCurrencySymbols(_ answer: String) -> String {
+    answer.replacingOccurrences(
+      of: #"(?<![A-Za-z])(?:US)?[$€£]\s?(?=[-+(]?[0-9])"#, with: "", options: .regularExpression
+    ).replacingOccurrences(
+      of: #"(?<=[0-9])\s?[$€£](?![A-Za-z0-9])"#, with: "", options: .regularExpression)
+  }
+
+  /// A failure of this Mac rather than of the call: the system could not reach a helper,
+  /// such as the app's isolated checker. Retrying the same call cannot fix it.
+  package static func isSystemFailure(_ error: any Error) -> Bool {
+    guard !(error is SevraError) else { return false }
+    let failure = error as NSError
+    // NSXPCConnectionInterrupted, NSXPCConnectionInvalid and the reply-invalid code.
+    return failure.domain == NSCocoaErrorDomain && (4097...4101).contains(failure.code)
+  }
+
   static func wrapUpNotice(_ reason: String) -> String {
     "\nHost stop: " + reason
       + " Stop working on this request and call finish now. No other tool is available. In the answer say in plain words, without IDs: what you did, what is saved, and what you could not do and why. Say that the user can reply “continue” to go on. Use basis=completed_action only if this request saved a change; otherwise basis=unresolved."

@@ -223,7 +223,8 @@ private func checkRefusedRepeats() throws {
     tool: "edit_space", arguments: insert("button"), result: homeSaved, receiptID: "view")
   try expectEqual(detour.hasUnresolvedFailure, false)
   try expectEqual(detour.keepsSummary, true)
-  try expectEqual(detour.rendered, "Updated space “Home”.")
+  // The table it made is the host's own line, by the table's title.
+  try expectEqual(detour.rendered, "Created table “visits”.\nUpdated space “Home”.")
   try expectEqual(
     summary(
       failed: ("sql", sql("ALTER TABLE counters ADD COLUMN label TEXT UNIQUE")),
@@ -235,6 +236,30 @@ private func checkRefusedRepeats() throws {
   try expectEqual(
     summary(failed: ("edit_space", insert("metric")), then: ("edit_space", insert("table")), result: homeSaved),
     false)
+  // A view saved again with the same kinds of component in another order did the same work.
+  func view(_ types: [String]) -> Value {
+    .object([
+      "title": .string("Alerts"),
+      "definition": .object([
+        "version": .number(1),
+        "components": .array(types.map { .object(["id": .string($0 + "1"), "type": .string($0)]) }),
+      ]),
+    ])
+  }
+  let alerts: Value = .object(["spaceID": .string("alerts"), "title": .string("Alerts")])
+  try expectEqual(
+    summary(failed: ("save_space", view(["table", "button"])), then: ("save_space", view(["button", "table"])), result: alerts),
+    true)
+  // An edit that failed after the view was saved is a later change that did not apply, not the
+  // whole view unsaved.
+  var later = ActionConfirmations()
+  later.record(tool: "edit_space", arguments: insert("chart"), result: homeSaved, receiptID: "chart")
+  later.recordFailure(
+    tool: "edit_space", arguments: insert("chart"),
+    result: .object(["error": .string("Component id chart1 is used twice.")]), receiptID: "again")
+  try expectEqual(
+    later.rendered,
+    "Updated space “Home”.\nCouldn’t finish a later change to “Home”. Component id chart1 is used twice.")
   // What a statement writes, read from its text: a quoted value and an upsert's own UPDATE are
   // not writes of their own.
   try expectEqual(
@@ -318,6 +343,7 @@ private func checkRefusedRepeats() throws {
 }
 
 func checkActionConfirmations() async throws {
+  try await checkReplyTruth()
   try checkRefusedRepeats()
   try await checkRecordMeaningRefusal()
   try checkNestedActionRecovery()

@@ -224,6 +224,10 @@ public enum ChatOperations {
     .init("table.undo", "Undo a saved table edit by its change ID.", ["id"]),
     .init("table.undo_sql", "Undo everything one sql call saved, by its undo value.", ["token"]),
     .init(
+      "table.confirm_change",
+      "Apply a sql call or script that waited for the person's confirmation. Only the host prepares it.",
+      ["tool", "call"], host: true),
+    .init(
       "tool.undo",
       "Undo saving a tool, by the definitionID its save returned: restores the earlier version, or removes a new tool.",
       ["id"]),
@@ -326,8 +330,14 @@ public enum ChatOperations {
       "excel.build", "Build the reviewed Excel workspace with local AI in this conversation.",
       ["id"], host: true),
   ]
+  /// Operations only the host prepares, as the action of a confirmation it shows the person.
+  /// No model is offered them, so a change cannot skip the confirmation it waits for.
+  public static let hostPrepared: Set<String> = ["table.confirm_change"]
+  /// The operations a model or outside agent may name.
+  public static var offered: [Operation] { operations.filter { !hostPrepared.contains($0.name) } }
+
   public static func catalog(_ domain: String? = nil, allowed: Set<String>? = nil) throws -> Value {
-    let all = operations.filter { allowed?.contains($0.name) ?? true }
+    let all = offered.filter { allowed?.contains($0.name) ?? true }
     let matching = all.filter { operation in
       domain == nil || domain!.isEmpty || operation.name.hasPrefix(domain! + ".")
     }
@@ -352,6 +362,7 @@ public enum ChatOperations {
     if key == "expectedVersion" { return name.hasPrefix("excel.") ? "string" : "integer" }
     if key == "inputs" { return name == "app.fill" ? "array" : "object" }
     if key == "target" && name == "workflow.answer" { return "object" }
+    if key == "call" && name == "table.confirm_change" { return "object" }
     if ["values", "preview", "chart", "work", "diagram", "overview", "aggregate", "positions"]
       .contains(key)
     {

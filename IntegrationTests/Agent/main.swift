@@ -440,6 +440,15 @@ do {
     try await checkVisibleThoughts()
     exit(0)
   }
+  if CommandLine.arguments.dropFirst() == ["--answer-grounding-checks"] {
+    // What a final answer may say, and the chat approvals that stand in for it.
+    try await checkAnswerGrounding()
+    try await checkCurrencyRejection()
+    try await checkTerminalReceipts()
+    try await checkRefusedToolCalls()
+    try await checkChatAgentOperations()
+    exit(0)
+  }
   if CommandLine.arguments.dropFirst() == ["--saved-action-checks"] {
     try await checkSavedActions()
     exit(0)

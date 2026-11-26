@@ -16,6 +16,7 @@ package struct ActionConfirmations {
     let later = entries.dropFirst(index + 1)
     return (entry["error"].text.contains(Self.repeatRefused) ? entries[...] : later).contains {
       saved in
+      if Self.removal(entry, settledBy: saved) { return true }
       if entry["unavailableSelection"] != .null,
         saved["appVersion"] == entry["appVersion"],
         saved["resolvedAppTarget"] == entry["resolvedAppTarget"],
@@ -130,6 +131,15 @@ package struct ActionConfirmations {
         !["failure", "chat_approval", "cancelled"].contains($0["kind"].text)
       }
   }
+  /// A failed removal of a table, such as remove that needed the app, is settled by a later
+  /// change that removed that table's rows or the table: the same intent, done another way.
+  private static func removal(_ failure: Value, settledBy saved: Value) -> Bool {
+    guard failure["kind"].text == "failure", saved["kind"].text == "table_change",
+      failure["action"] == .string("remove")
+    else { return false }
+    let removed = Set(saved["removed"].array.map { $0.text.lowercased() })
+    return failure["argumentValues"].array.contains { removed.contains($0.text.lowercased()) }
+  }
   /// What a call acted on, so a later success can settle the failure before it.
   private static func attempt(_ tool: String, _ arguments: Value) -> String {
     if tool == "workspace_action" {
@@ -164,8 +174,9 @@ package struct ActionConfirmations {
   /// host's own lines, and the model's summary must not describe a part that failed. Empty
   /// when the call's text does not say.
   private static func intent(_ tool: String, _ arguments: Value) -> String {
+    // The kinds of component, in any order: a retry that moved a button first did the same work.
     func components(_ list: [Value]) -> String {
-      list.map { $0["type"].text }.joined(separator: " ")
+      list.map { $0["type"].text }.sorted().joined(separator: " ")
     }
     switch tool {
     case "sql":
@@ -416,7 +427,8 @@ package struct ActionConfirmations {
     case "draft": task = "saving the draft"
     case "save_definition", "save_template": task = "saving reusable behavior"
     case "start_workflow": task = "queueing the workflow"
-    case "save_space", "edit_space", "restore_space", "pin_space", "save_native_app":
+    case "save_native_app": task = "saving the app"
+    case "save_space", "edit_space", "restore_space", "pin_space":
       task = "saving the space"
     case "set_space_pinned": task = "changing the shortcut"
     case "open_space", "open_reviews", "open_automation": task = "opening the view"
@@ -492,6 +504,38 @@ package struct ActionConfirmations {
     let id: String
     let title: String
     var qualifier = ""
+    // A change that waits for the person: nothing of it is saved, and the host says so.
+    if tool != "workspace_action", result["status"] == .string("confirmation_required") {
+      entries.append(
+        .object([
+          "receiptID": .string(receiptID), "tool": .string(tool), "kind": .string("chat_approval"),
+          "targetID": .string(receiptID), "title": .string(result["preview"].text),
+          "attempt": .string(attempt), "intent": .string(Self.intent(tool, arguments)),
+        ]))
+      return
+    }
+    // Rows and tables a sql call, script or tool changed, named by the tables' titles.
+    if ["sql", "run", "prepare_action"].contains(tool) {
+      let lines = Workbook.tableChangeSummary(result)
+      if !lines.isEmpty {
+        var removed: [Value] = []
+        for change in result["changes"].array where (change["deleted"].int ?? 0) > 0 {
+          removed += [change["table"], change["title"]]
+        }
+        for shape in result["shape"].array where shape["change"] == .string("archived") {
+          removed += [shape["table"], shape["title"]]
+        }
+        entries.append(
+          .object([
+            "receiptID": .string(receiptID), "tool": .string(tool), "kind": .string("table_change"),
+            "targetID": .string(receiptID), "title": .string(lines.joined(separator: " ")),
+            "qualifier": .string(result["undo"].string != nil ? "undo" : ""),
+            "attempt": .string(attempt), "intent": .string(Self.intent(tool, arguments)),
+            "retryGroup": .string(Self.retryGroup(arguments)), "removed": .array(removed),
+          ]))
+        return
+      }
+    }
     switch tool {
     case "workspace_action":
       if arguments["action"] == .string("app.inspect"), let id = result["id"].string {
@@ -517,6 +561,10 @@ package struct ActionConfirmations {
       }
       id = receiptID
       title = kind == "cancelled" ? result["note"].text : result["preview"].text
+    case "save" where result["saved"].string != nil && arguments["kind"] == .string("tool"):
+      kind = "tool"
+      id = result["definitionID"].string ?? receiptID
+      title = result["saved"].text
     case "save_definition", "save_template":
       guard let value = result["id"].string, let name = result["title"].string else { return }
       kind = "definition"
@@ -625,6 +673,7 @@ package struct ActionConfirmations {
           && entries.dropFirst(index + 1).contains {
             $0["kind"].text != "failure" && $0["tool"] == entry["tool"] && $0["intent"].text == intent
           }
+          || entries.dropFirst(index + 1).contains { Self.removal(entry, settledBy: $0) }
         guard
           redone || movedPast(entry, at: index)
             || (entry["error"].text.contains(Self.repeatRefused) && recoveredFailure(entry, at: index))
@@ -637,17 +686,44 @@ package struct ActionConfirmations {
     return saved
   }
 
+  /// The task the last failure of a tool named, such as "saving the space".
+  package func failureTask(_ tool: String) -> String? {
+    entries.last { $0["kind"].text == "failure" && $0["tool"].text == tool }?["title"].string
+  }
+
+  /// Whether anything this request asked for was saved: a change, not a refusal, a wait for
+  /// the person or a cancelled panel.
+  package var savedAnything: Bool {
+    entries.contains { !["failure", "chat_approval", "cancelled", "settled"].contains($0["kind"].text) }
+  }
+
   package var rendered: String? { rendered(excluding: nil) }
   /// A receipt that already speaks for one call leaves that call out of the list. A brief
   /// list follows an account that has already said why: it names each unfinished task once.
-  package func rendered(excluding receiptID: String?, brief: Bool = false) -> String? {
+  /// `omittingFailuresOf` leaves out a tool's failures that another line already explains.
+  package func rendered(
+    excluding receiptID: String?, brief: Bool = false, omittingFailuresOf omitted: String? = nil
+  ) -> String? {
     var seen = Set<String>()
+    // Every table change keeps an Undo. The last line that reports one says so, once.
+    let undoable = entries.indices.last {
+      entries[$0]["kind"].text == "table_change" && entries[$0]["qualifier"].text == "undo"
+        && entries[$0]["receiptID"].string != receiptID
+    }
+    let changeCount = entries.filter { $0["kind"].text == "table_change" }.count
     let lines = entries.enumerated().compactMap { index, entry -> String? in
       let kind = entry["kind"].text
       if recoveredFailure(entry, at: index) || entry["receiptID"].string == receiptID { return nil }
+      if kind == "failure", let omitted, entry["tool"].text == omitted { return nil }
       let id = entry["targetID"].text
       let qualifier = entry["qualifier"].text
       guard seen.insert(kind + ":" + id + ":" + qualifier).inserted else { return nil }
+      // The same refusal of the same task, from calls the model repeated, is one line.
+      if kind == "failure",
+        !seen.insert("said:" + entry["title"].text + ":" + entry["error"].text).inserted
+      {
+        return nil
+      }
       let title = entry["title"].text.replacingOccurrences(of: "\\", with: "\\\\")
         .replacingOccurrences(of: "[", with: "\\[").replacingOccurrences(of: "]", with: "\\]")
       switch kind {
@@ -657,12 +733,28 @@ package struct ActionConfirmations {
         return "Saved reusable behavior “" + title
           + "”. Business acceptance is separate."
       case "failure":
+        // After a save of the same view, a failed edit of it is a later change that did not
+        // apply, not the whole view unsaved.
+        var task = title
+        if let earlier = entries.prefix(index).last(where: {
+          ["space", "space_edit"].contains($0["kind"].text) && $0["tool"] == entry["tool"]
+            && !entry["attempt"].text.isEmpty
+            && ($0["attempt"].text.caseInsensitiveCompare(entry["attempt"].text) == .orderedSame
+              || $0["targetID"].text == entry["attempt"].text)
+        }) {
+          task = "a later change to “" + earlier["title"].text + "”"
+        }
         if brief {
-          return seen.insert("unfinished:" + title).inserted
-            ? "Couldn’t finish " + title + "." : nil
+          return seen.insert("unfinished:" + task).inserted
+            ? "Couldn’t finish " + task + "." : nil
         }
         let reason = entry["error"].text.components(separatedBy: Self.repeatRefused)[0]
-        return "Couldn’t finish " + title + ". " + reason
+        return "Couldn’t finish " + task + ". " + reason
+      case "table_change":
+        return entry["title"].text
+          + (index == undoable
+            ? (changeCount > 1 ? " You can undo these changes." : " You can undo this.") : "")
+      case "tool": return "Saved tool “" + title + "”."
       case "draft": return "Saved draft [" + title + "](sevra://item/" + id + ")."
       case "native_app":
         return "Saved native app “" + title + "” after " + qualifier
