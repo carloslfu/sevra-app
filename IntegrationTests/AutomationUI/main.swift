@@ -71,6 +71,14 @@ func enable(
   return try registry.register(book, session: session)
 }
 
+// Saved tools grant themselves on this Mac. The checks keep those grants out of the person's own.
+if ProcessInfo.processInfo.environment["SEVRA_TOOL_GRANTS"] == nil {
+  setenv(
+    "SEVRA_TOOL_GRANTS",
+    FileManager.default.temporaryDirectory.appendingPathComponent(
+      "sevra-tool-grants-" + UUID().uuidString
+    ).path, 1)
+}
 @MainActor func runChecks() async throws -> Int {
   let root = FileManager.default.temporaryDirectory.appendingPathComponent(
     "sevra-automation-ui-" + identifier())
@@ -426,6 +434,50 @@ func enable(
     owner.poll(now: due.addingTimeInterval(86_500))
     await owner.waitForCurrentPoll()
     try expect(try book.items(kind: "automation_planning", limit: 100).count == 2)
+    _ = try book.verify()
+  }
+  await check("a check automation runs its workflow once when its check starts finding rows") {
+    let (book, schedule) = try fixture(root, "Check")
+    let source = try book.addItem(
+      category: "source", kind: "observation", title: "Stock count", status: "accepted")
+    _ = try book.createDataset(
+      title: "Parts",
+      columns: [
+        .init(id: "name", title: "Name"), .init(id: "qty", title: "Qty", type: "decimal"),
+      ], rows: [["name": .string("bolts"), "qty": .string("20")]], sourceID: source.id)
+    _ = try book.chatSaveTool(
+      name: "low_stock", description: "Parts below ten.", inputs: [],
+      statements: ["SELECT name FROM parts WHERE qty < 10"], source: nil, token: "low-stock",
+      requestSourceID: nil)
+    let check = try book.savedTools().first { $0.name == "low_stock" }!
+    var payload = schedule.payload.object
+    payload["policy"] = .string("check-drafts-v1")
+    payload["schedule"] = nil
+    payload["check"] = .object(["mode": .string("exact"), "versionID": .string(check.definitionID)])
+    var content = schedule.content.object
+    content["payload"] = .object(payload)
+    let definition = try book.saveApplicationDefinition(
+      logicalID: identifier(), content: .object(content))
+    let owner = NativeAutomationController(registry: registry("Registry-Check"), runner: runner)
+    try await owner.enable(
+      book, exactID: definition.id, expectedGeneration: 0, allowAI: false, now: start)
+    owner.poll(now: due)
+    await owner.waitForCurrentPoll()
+    let grant = owner.grants[0].id
+    try expect(try book.workflowRuns().isEmpty)
+    try expect(owner.status(grant).hasPrefix("The check finds no rows"), owner.status(grant))
+    _ = try book.chatSQL(
+      statements: ["UPDATE parts SET qty = 4"], readOnly: false, token: "low", requestSourceID: nil)
+    owner.poll(now: due.addingTimeInterval(20))
+    await owner.waitForCurrentPoll()
+    try expect(try book.workflowRuns().first?["state"] == .string("completed"))
+    // Rows that stay do not start it again, even after the next minute's check.
+    for seconds in [40.0, 120] {
+      owner.poll(now: due.addingTimeInterval(seconds))
+      await owner.waitForCurrentPoll()
+    }
+    try expect(try book.workflowRuns().count == 1)
+    try expect(owner.status(grant).hasPrefix("The check finds 1 row"), owner.status(grant))
     _ = try book.verify()
   }
   await check("driver defers while inactive, stays write-free while idle and completes one due run")

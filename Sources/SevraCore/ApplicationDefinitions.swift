@@ -223,7 +223,7 @@ extension Workbook {
       try validateDefinitionGraph(target, state: state, depth: depth + 1)
     } else if descriptor.kind == "action" {
       _ = try validateActionMapping(
-        DefinitionAction(descriptor), caller: descriptor,
+        definitionAction(descriptor), caller: descriptor,
         state: state, arguments: nil, depth: depth)
     } else {
       for call in try DefinitionFunction(descriptor).calls {

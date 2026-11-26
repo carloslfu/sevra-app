@@ -26,6 +26,53 @@ extension Workbook {
         _ = try assetURL(intake.request["assetID"].text, verify: true, cancellation: cancellation)
       }
     }
+    // A step that runs a saved tool runs it first, outside the step's transaction, because the
+    // tool's saves are recorded changes of their own. Its token is fixed by the run and step,
+    // so a retry after a failed checkpoint finds those changes and does not run the tool again.
+    var toolRun: (plan: Value, run: Value)?
+    if intake == nil, interpretation == nil, extraction == nil {
+      let prepared: Value? = try synchronized(cancellation: cancellation) {
+        try db.readTransaction {
+          // A committed step replays from its receipt, and a claim that no longer holds is
+          // refused by the step's own transaction. Neither runs a tool here.
+          guard
+            try db.scalar(
+              "SELECT EXISTS(SELECT 1 FROM operations WHERE id=?)",
+              [.string("workflow-step:" + attemptID)]
+            ).int == 0,
+            let saved = try? self.validateWorkflowClaim(session, claim: claim)
+          else { return nil }
+          let run = try self.workflowRun(session.runID)
+          let definition = try self.applicationDefinition(run["definition_id"].text)
+          let descriptor = try DefinitionDescriptor(definition.content)
+          let workflow = try DefinitionWorkflow(descriptor)
+          guard let step = workflow.steps.first(where: { $0.id == saved["step_id"].text }),
+            step.kind == "action",
+            try self.actionRunsTool(self.applicationDefinition(step.binding!.target))
+          else { return nil }
+          let outputs = Dictionary(
+            uniqueKeysWithValues: run["steps"].array.filter {
+              $0["state"] == .string("completed")
+            }.map { ($0["step_id"].text, $0["output"]["value"]) })
+          let args = try self.workflowArguments(
+            step, descriptor: descriptor, supplied: run["arguments"], outputs: outputs)
+          return .object([
+            "plan": try self.applicationActionPlan(
+              step.binding!.target, arguments: args, cancellation: cancellation),
+            "token": .string("workflow-tool:" + session.runID + ":" + step.id),
+          ])
+        }
+      }
+      if let prepared {
+        try session.automation?.deviceFence?()
+        toolRun = (
+          prepared["plan"],
+          try runPlannedTool(
+            prepared["plan"], token: prepared["token"].text, requestSourceID: nil,
+            actor: .programmatic("SevraCore.workflowWorker"), cancellation: cancellation)
+        )
+      }
+    }
     var deadline: Double?
     let guardLease: () throws -> Void = {
       try session.automation?.deviceFence?()
@@ -128,10 +175,31 @@ extension Workbook {
           detail = String(
             output["response"]["issues"].array.map(\.text).joined(separator: " ").prefix(1000))
         }
+      } else if step.kind == "action", let toolRun {
+        let interpretationInputs = try self.workflowValueInputs(
+          step, workflow: workflow, outputs: outputs)
+        try require(
+          toolRun.plan["definitionID"] == .string(step.binding!.target), "workflow_integrity",
+          "The tool run belongs to another step.")
+        var value = try self.insertToolInvocation(
+          plan: toolRun.plan, run: toolRun.run,
+          request: .object([
+            "workflowRunID": .string(session.runID), "stepID": .string(step.id),
+            "operationID": .string("workflow-effect:" + session.runID + ":" + step.id),
+            "arguments": args,
+          ]), actor: .programmatic("SevraCore.workflowWorker"), requestSourceID: nil,
+          additionalInputs: interpretationInputs.data.map(\.id),
+          controlInputs: interpretationInputs.controls, producerInputs: [run["source_id"].text]
+        ).object
+        value["kind"] = .string("tool")
+        output = .object(value)
       } else if step.kind == "action" {
         let plan = try self.applicationActionPlan(
           step.binding!.target, arguments: args,
           cancellation: cancellation)
+        try require(
+          plan["primitive"]["id"] == .string(ActionRegistry.documentID), "workflow_integrity",
+          "This step's action changed while it ran. Retry the step.")
         let interpretationInputs = try self.workflowValueInputs(
           step, workflow: workflow, outputs: outputs)
         for document in plan["documents"].array where document["meaning"] == .string("actual") {

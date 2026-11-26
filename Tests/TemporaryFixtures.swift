@@ -8,6 +8,10 @@ let temp: URL = {
   let folder = FileManager.default.temporaryDirectory.appendingPathComponent(
     "sevra-checks-" + identifier())
   try! FileManager.default.createDirectory(at: folder, withIntermediateDirectories: true)
+  // Saved tools grant themselves on this Mac. The checks keep those grants out of the person's own.
+  if ProcessInfo.processInfo.environment["SEVRA_TOOL_GRANTS"] == nil {
+    setenv("SEVRA_TOOL_GRANTS", folder.appendingPathComponent("ToolGrants").path, 1)
+  }
   // A dying process must not allocate, so its arguments are built here.
   let arguments: [String] = ["/bin/rm", "-rf", folder.path]
   removal = arguments.map { strdup($0) } + [nil]

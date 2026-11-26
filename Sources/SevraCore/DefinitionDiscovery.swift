@@ -207,6 +207,10 @@ extension Workbook {
           try require(
             dependencies.count == bindings.count, "definition_integrity",
             "Missing action/form dependencies.")
+          // A tool action's tool is its last dependency, checked at the retained version.
+          let parsed = saved.kind == "action" ? try DefinitionAction(descriptor, parseOnly: true) : nil
+          let toolVersion =
+            parsed?.tool == nil ? nil : dependencies.last?["target_version"].string
           for (index, binding) in bindings.enumerated() {
             let dependency = dependencies[index]
             let target = try applicationDefinition(dependency["target_version"].text)
@@ -220,8 +224,12 @@ extension Workbook {
               "Saved action/form binding differs from its retained dependency.")
             if saved.kind == "form" {
               try validateForm(DefinitionForm(descriptor), descriptor: descriptor, action: target)
+            } else if let toolVersion, index == bindings.count - 1 {
+              try require(
+                target.kind == "tool" && target.id == toolVersion, "definition_integrity",
+                "A tool action lost its saved tool dependency.")
             } else {
-              let action = try DefinitionAction(descriptor)
+              let action = try definitionAction(descriptor, toolVersion: toolVersion)
               let call = try action.calls[index]
               let targetDescriptor = try DefinitionDescriptor(target.content)
               let parameter = action.target.parameters.first { $0.id == call.alias }
@@ -235,7 +243,7 @@ extension Workbook {
             }
           }
           if saved.kind == "action" {
-            let action = try DefinitionAction(descriptor)
+            let action = try definitionAction(descriptor, toolVersion: toolVersion)
             let calls = try action.calls
             var plain = action.arguments.filter { $0.value.object["function"] == nil }
             for call in calls {

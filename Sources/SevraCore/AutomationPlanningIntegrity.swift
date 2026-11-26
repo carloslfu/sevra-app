@@ -84,20 +84,24 @@ extension Workbook {
         let retained = decision.data["decisions"].array.filter { $0["id"] == occurrence["id"] }
         let slot = try Value.parse(occurrence["slot"].text)
         let saved = try applicationDefinition(occurrence["definition_id"].text)
+        let checked = source.kind == "automation_check"
         try require(
           saved.kind == "automation" && saved.logicalID == activation["logical_id"].text
             && source.category == "source" && source.status == "accepted"
-            && source.meaning == "actual" && source.kind == "automation_planning"
+            && source.meaning == "actual"
+            && ["automation_planning", "automation_check"].contains(source.kind)
             && source.data["activationID"] == occurrence["activation_id"]
             && source.data["definitionID"] == occurrence["definition_id"]
             && source.data["generation"] == occurrence["generation"]
             && occurrence["generation"].int! <= activation["generation"].int!
             && entry.count == 1 && entry[0]["slot"] == slot
             && slot["slotKey"] == occurrence["slot_key"] && slot["due"] == occurrence["due"]
-            && source.data["cursor"].text >= occurrence["due"].text
+            && (checked || source.data["cursor"].text >= occurrence["due"].text)
             && decision.category == "source"
-            && ["automation_planning", "automation_authorization", "automation_dispatch"].contains(
-              decision.kind)
+            && [
+              "automation_planning", "automation_check", "automation_authorization",
+              "automation_dispatch",
+            ].contains(decision.kind)
             && decision.data["activationID"] == occurrence["activation_id"]
             && retained.count == 1 && retained[0]["state"] == occurrence["state"]
             && retained[0]["detail"] == occurrence["detail"]
@@ -112,10 +116,14 @@ extension Workbook {
         if decision.kind == "automation_dispatch" {
           try verifyAutomationDispatchDecision(occurrence, source: decision)
         }
-        let rule = try DefinitionAutomation(DefinitionDescriptor(saved.content)).schedule
-        try require(
-          rule.selects(slot), "automation_integrity",
-          "The occurrence does not match its pinned calendar rule.")
+        if checked {
+          try verifyCheckOccurrence(occurrence, slot: slot, source: source)
+        } else {
+          let rule = try DefinitionAutomation(DefinitionDescriptor(saved.content)).schedule
+          try require(
+            rule.selects(slot), "automation_integrity",
+            "The occurrence does not match its pinned calendar rule.")
+        }
         let authorization = try item(source.data["authorizationSourceID"].text)
         try require(
           authorization.kind == "automation_authorization"
@@ -128,6 +136,7 @@ extension Workbook {
         after = occurrence["id"].text
       }
     }
+    try verifyAutomationChecks()
     try verifyAutomationRuns()
     var sequence = 0
     while true {
@@ -137,7 +146,7 @@ extension Workbook {
       if rows.isEmpty { break }
       for row in rows {
         let source = try item(row["source_id"]!.text)
-        let planned = row["kind"] == .string("planned")
+        let planned = ["planned", "checked"].contains(row["kind"]!.text)
         let dispatched = ["dispatched", "dispatch_skipped"].contains(row["kind"]!.text)
         let scope =
           planned
@@ -147,7 +156,7 @@ extension Workbook {
           source.category == "source"
             && source.kind
               == (planned
-                ? "automation_planning"
+                ? (row["kind"] == .string("checked") ? "automation_check" : "automation_planning")
                 : dispatched ? "automation_dispatch" : "automation_authorization")
             && source.data["activationID"] == row["activation_id"]
             && source.data["generation"] == row["generation"]

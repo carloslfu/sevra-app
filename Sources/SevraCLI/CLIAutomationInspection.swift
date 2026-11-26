@@ -18,7 +18,9 @@ extension CLI {
     case "automation-activation":
       try require(
         args.count == 3, "usage", "automation-activation WORKBOOK ACTIVATION_ID")
-      return try book.automationActivation(args[2])
+      var activation = try book.automationActivation(args[2]).object
+      activation["check"] = try book.automationCheckState(args[2])
+      return .object(activation)
     case "automation-occurrences":
       try require(
         (3...5).contains(args.count), "usage",

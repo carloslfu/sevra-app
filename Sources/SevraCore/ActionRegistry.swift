@@ -3,6 +3,10 @@ import Foundation
 /// Trusted native primitives. Definition text never adds capabilities.
 public enum ActionRegistry {
   static let documentID = "records.draftDocument"
+  /// Runs one of the workbook's saved tools, named by the action's `tool` binding, with the
+  /// tool's own inputs as the primitive's parameters. It runs through the same path as a
+  /// view's button: the change is recorded at once and one Undo takes it back.
+  public static let toolID = "tools.run"
   static let documentParameters: [Value] = [
     field("title", "Document title", "text"), field("body", "New prose", "text"),
     field("evidence", "Evidence", "item"),
@@ -24,7 +28,7 @@ public enum ActionRegistry {
   static func descriptor(_ id: String, version: Int) throws -> DefinitionDescriptor {
     try require(
       id == documentID && version == 1, "action_primitive",
-      "Unknown registered action version.")
+      "Unknown registered action version. The registered actions are records.draftDocument and tools.run, version 1.")
     return try DefinitionDescriptor(
       .object([
         "kind": .string("action"),
@@ -66,9 +70,57 @@ public enum ActionRegistry {
       "fingerprint": .object(["type": .string("string"), "pattern": .string("^[0-9a-f]{64}$")]),
     ]),
   ])
+  /// The primitive's inputs for one saved tool version: exactly that tool's inputs.
+  static func toolDescriptor(_ tool: ApplicationDefinition) throws -> DefinitionDescriptor {
+    let saved = try DefinitionTool(DefinitionDescriptor(tool.content))
+    try require(
+      !saved.retired, "tool", "The tool \(saved.name) was removed. Choose a saved tool.")
+    return try DefinitionDescriptor(
+      .object([
+        "kind": .string("action"), "title": .string("Run " + saved.name),
+        "description": .string("Run the saved tool " + saved.name + "."),
+        "parameters": tool.parameters, "payload": .object([:]),
+      ]))
+  }
+  public static let toolResultSchema: Value = .object([
+    "type": .string("object"), "additionalProperties": .bool(false),
+    "required": .array(
+      ["workbookID", "definitionID", "sourceID", "tool", "state", "resolvedDefinitions", "fingerprint"]
+        .map(Value.string)),
+    "properties": .object([
+      "workbookID": .object(["type": .string("string"), "format": .string("uuid")]),
+      "definitionID": .object(["type": .string("string"), "format": .string("uuid")]),
+      "sourceID": .object(["type": .string("string"), "format": .string("uuid")]),
+      "tool": .object(["type": .string("string")]),
+      "state": .object(["const": .string("applied")]),
+      "summary": .object(["type": .string("string")]),
+      "undo": .object(["type": .string("string")]),
+      "changes": .object(["type": .string("array")]),
+      "results": .object(["type": .string("array")]),
+      "resolvedDefinitions": .object(["type": .string("array")]),
+      "fingerprint": .object(["type": .string("string"), "pattern": .string("^[0-9a-f]{64}$")]),
+    ]),
+  ])
   public static func actions() -> Value {
     .array(
       [
+        .object([
+          "id": .string(toolID), "version": .number(1),
+          "title": .string("Run a saved tool"),
+          "parameters": .string(
+            "the saved tool's own inputs, with the same ids and types. Name the tool in payload.tool: {mode: live, logicalID} or {mode: exact, versionID} of a saved tool definition."
+          ),
+          "resultSchema": toolResultSchema,
+          "effectCategory": .string("recorded_change"),
+          "deadlineSeconds": .number(30),
+          "effect": .string(
+            "runs the tool's statements or script. Its table changes are saved at once and recorded, and one Undo takes them back"
+          ),
+          "capabilities": .array([.string("workbook.run_tool")]),
+          "cancellation": .string("a run saves all of its changes or none"),
+          "retry": .string("exact token/arguments return the original receipt"),
+          "units": .string("the tool's input types: text, decimal, boolean or date"),
+        ]),
         .object([
           "id": .string(documentID), "version": .number(1),
           "title": .string("Draft document"),
@@ -102,6 +154,28 @@ public enum ActionRegistry {
       ]),
     ])
   }
+  /// A saved action that runs one saved tool, with every tool input as a parameter of its own.
+  /// A live binding follows the tool's current version. A workflow needs an exact one.
+  public static func toolActionDefinition(
+    tool: ApplicationDefinition, title: String? = nil, exact: Bool = false
+  ) -> Value {
+    .object([
+      "kind": .string("action"), "title": .string(title ?? tool.title),
+      "description": .string(tool.description.isEmpty ? "Run " + tool.title : tool.description),
+      "parameters": tool.parameters,
+      "payload": .object([
+        "primitive": .object(["id": .string(toolID), "version": .number(1)]),
+        "tool": exact
+          ? .object(["mode": .string("exact"), "versionID": .string(tool.id)])
+          : .object(["mode": .string("live"), "logicalID": .string(tool.logicalID)]),
+        "arguments": .object(
+          Dictionary(
+            uniqueKeysWithValues: tool.parameters.array.map {
+              ($0["id"].text, .object(["parameter": $0["id"]]))
+            })),
+      ]),
+    ])
+  }
   /// A reusable starter is ordinary versioned user data, not an implicit installed rule.
   public static func formDefinition(target: ApplicationDefinition) -> Value {
     .object([
@@ -123,9 +197,15 @@ struct DefinitionAction {
   let primitiveID: String
   let primitiveVersion: Int
   let arguments: [String: Value]
+  /// The saved tool a `tools.run` action runs. Nil for every other primitive.
+  let tool: DefinitionBinding?
   let target: DefinitionDescriptor
-  init(_ descriptor: DefinitionDescriptor) throws {
-    let raw = try definitionObject(descriptor.payload, keys: ["primitive", "arguments"])
+  /// `tool` is the resolved version of the action's tool binding. `parseOnly` reads the
+  /// mappings and bindings without it, for callers that need only those.
+  init(_ descriptor: DefinitionDescriptor, tool resolved: ApplicationDefinition? = nil,
+    parseOnly: Bool = false) throws
+  {
+    let raw = try definitionObject(descriptor.payload, keys: ["primitive", "arguments", "tool"])
     let primitive = try definitionObject(raw["primitive"] ?? .null, keys: ["id", "version"])
     guard let id = primitive["id"]?.string, let version = primitive["version"]?.int,
       primitive["version"] == .number(Double(version)),
@@ -138,7 +218,33 @@ struct DefinitionAction {
     primitiveID = id
     primitiveVersion = version
     self.arguments = arguments
-    target = try ActionRegistry.descriptor(id, version: version)
+    if id == ActionRegistry.toolID {
+      try require(
+        version == 1 && raw["tool"] != nil, "definition_action",
+        "A tools.run action names its saved tool: payload.tool is {mode: live, logicalID} or {mode: exact, versionID}."
+      )
+      tool = try DefinitionBinding(raw["tool"]!)
+      if let resolved {
+        try require(resolved.kind == "tool", "definition_kind", "payload.tool must name a saved tool.")
+        target = try ActionRegistry.toolDescriptor(resolved)
+      } else {
+        try require(parseOnly, "definition_action", "Resolve the action's saved tool first.")
+        target = try DefinitionDescriptor(
+          .object([
+            "kind": .string("action"), "title": .string("Run a saved tool"),
+            "description": .string(""), "parameters": .array([]), "payload": .object([:]),
+          ]))
+      }
+    } else {
+      try require(
+        raw["tool"] == nil, "definition_action", "Only a tools.run action names a tool.")
+      tool = nil
+      target = try ActionRegistry.descriptor(id, version: version)
+    }
+  }
+  /// The definitions this action depends on: its computed inputs, then its tool.
+  var bindings: [DefinitionBinding] {
+    get throws { try calls.map(\.binding) + (tool.map { [$0] } ?? []) }
   }
   var calls: [DefinitionFunction.Call] {
     get throws {
@@ -207,12 +313,23 @@ extension Workbook {
   func definitionBindings(_ descriptor: DefinitionDescriptor) throws -> [DefinitionBinding] {
     switch descriptor.kind {
     case "function": return try DefinitionFunction(descriptor).calls.map(\.binding)
-    case "action": return try DefinitionAction(descriptor).calls.map(\.binding)
+    case "action": return try DefinitionAction(descriptor, parseOnly: true).bindings
     case "form": return [try DefinitionForm(descriptor).binding]
     case "workflow": return try DefinitionWorkflow(descriptor).steps.compactMap(\.binding)
-    case "automation": return [try DefinitionAutomation(descriptor).workflow]
+    case "automation": return try DefinitionAutomation(descriptor).bindings
     default: return []
     }
+  }
+
+  /// An action with its tool resolved: the tool binding's version, or `toolVersion` when a
+  /// retained dependency pins the version to check against.
+  func definitionAction(_ descriptor: DefinitionDescriptor, toolVersion: String? = nil) throws
+    -> DefinitionAction
+  {
+    let parsed = try DefinitionAction(descriptor, parseOnly: true)
+    guard let binding = parsed.tool else { return parsed }
+    let tool = try toolVersion.map { try applicationDefinition($0) } ?? resolveDefinition(binding)
+    return try DefinitionAction(descriptor, tool: tool)
   }
 
   func validateActionMapping(
@@ -220,6 +337,12 @@ extension Workbook {
     arguments: [String: Value]?, depth: Int
   ) throws -> [String: Value] {
     let calls = try action.calls
+    if let binding = action.tool {
+      // The tool is part of what the action resolves, so a changed tool makes a preview stale.
+      let tool = try resolveDefinition(binding)
+      try state.enter(tool, depth: depth + 1)
+      state.active.remove(tool.id)
+    }
     var plain = action.arguments.filter { $0.value.object["function"] == nil }
     let parameters = Dictionary(uniqueKeysWithValues: action.target.parameters.map { ($0.id, $0) })
     for call in calls {

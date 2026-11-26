@@ -32,6 +32,12 @@ extension Workbook {
     ])
     try require(
       try request.json().utf8.count <= 256_000, "action_limit", "Action request exceeds 256 KB.")
+    if preview["primitive"]["id"] == .string(ActionRegistry.toolID) {
+      return try invokeToolAction(
+        id, arguments: arguments, preview: preview, token: token, request: request,
+        requestSourceID: requestSourceID, actor: actual, requestRunID: requestRunID,
+        cancellation: cancellation)
+    }
     let control = Cancellation(parent: cancellation, deadlineAfterSeconds: 3)
     return try mutation(
       "invoke_application_action", token: token, request: request, cancellation: control,
@@ -128,11 +134,39 @@ extension Workbook {
       action = root
     }
     let actionDescriptor = try DefinitionDescriptor(action.content)
-    let primitive = try DefinitionAction(actionDescriptor)
+    let primitive = try definitionAction(actionDescriptor)
     let mapped = try validateActionMapping(
       primitive, caller: actionDescriptor, state: state,
       arguments: supplied, depth: root.kind == "form" ? 1 : 0)
     try cancellation.check()
+    if let binding = primitive.tool {
+      let tool = try runnableTool(version: resolveDefinition(binding))
+      _ = try toolInputs(tool, mapped)
+      var plan: [String: Value] = [
+        "workbookID": .string(self.id), "requestedID": .string(id),
+        "definitionID": .string(root.id), "actionID": .string(action.id),
+        "title": .string(root.title), "arguments": .object(supplied),
+        "submittedArguments": arguments, "primitiveArguments": .object(mapped),
+        "primitive": .object(["id": .string(ActionRegistry.toolID), "version": .number(1)]),
+        "resolvedDefinitions": .array(
+          state.resolved.values.sorted { $0.id < $1.id }.map {
+            .object([
+              "id": .string($0.id), "logicalID": .string($0.logicalID),
+              "sourceID": .string($0.sourceID),
+            ])
+          }),
+        "tool": .object([
+          "name": .string(tool.name), "definitionID": .string(tool.definitionID),
+          "language": .string(tool.language), "signature": .string(tool.signature),
+        ]),
+        "readOnly": .bool(true),
+        "effect": .string(
+          "Run the saved tool \(tool.name). Its changes are saved at once and can be undone."),
+        "units": .string("tool inputs"),
+      ]
+      plan["fingerprint"] = .string(ChangeFormat.hash(try Value.object(plan).json()))
+      return .object(plan)
+    }
     let documents = try proposedDocuments(mapped)
     var plan: [String: Value] = [
       "workbookID": .string(self.id), "requestedID": .string(id), "definitionID": .string(root.id),
@@ -180,5 +214,112 @@ extension Workbook {
         "Actual documents cannot promote estimates or change their evidence scenario.")
     }
     return [.object(arguments)]
+  }
+}
+
+extension Workbook {
+  /// A tool action runs its tool through the button's path, outside one transaction, since the
+  /// tool's own saves are recorded changes. Its receipt is saved after, under the action's
+  /// token, so an exact retry returns that receipt and does not run the tool again.
+  private func invokeToolAction(
+    _ id: String, arguments: Value, preview: Value, token: String, request: Value,
+    requestSourceID: String?, actor: ChangeActor, requestRunID: String?,
+    cancellation: Cancellation
+  ) throws -> Value {
+    let receipt: () throws -> Value = {
+      try self.mutation(
+        "invoke_application_action", token: token, request: request,
+        cancellation: Cancellation(parent: cancellation, deadlineAfterSeconds: 3), actor: actor
+      ) {
+        throw SevraError("action_token", "The action's receipt is missing.")
+      }
+    }
+    if try synchronized({
+      try db.scalar("SELECT EXISTS(SELECT 1 FROM operations WHERE id=?)", [.string(token)]).int == 1
+    }) {
+      return try receipt()
+    }
+    let plan = try synchronized(cancellation: cancellation) {
+      try db.readTransaction {
+        if let requestRunID {
+          try validateApplicationToolRun(requestRunID, requestSourceID: requestSourceID)
+        }
+        return try applicationActionPlan(id, arguments: arguments, cancellation: cancellation)
+      }
+    }
+    try require(
+      plan == preview, "stale_action_preview",
+      "The action or its inputs changed. Keep your draft and preview it again.")
+    let run = try runPlannedTool(
+      plan, token: "action-" + token, requestSourceID: requestSourceID, actor: actor,
+      cancellation: cancellation)
+    return try mutation(
+      "invoke_application_action", token: token, request: request,
+      cancellation: Cancellation(parent: cancellation, deadlineAfterSeconds: 3), actor: actor
+    ) {
+      try self.insertToolInvocation(
+        plan: plan, run: run, request: request, actor: actor, requestSourceID: requestSourceID)
+    }
+  }
+
+  /// Runs a planned tool action's tool. A run whose changes were already saved under `token`,
+  /// by an earlier attempt that stopped before its receipt, is not run again.
+  func runPlannedTool(
+    _ plan: Value, token: String, requestSourceID: String?, actor: ChangeActor,
+    cancellation: Cancellation
+  ) throws -> Value {
+    let tool = try synchronized {
+      try runnableTool(version: applicationDefinition(plan["tool"]["definitionID"].text))
+    }
+    for saved in ["tool-" + token, "run-" + token]
+    where try synchronized({ !(try chatSQLSteps(saved)).isEmpty }) {
+      return .object(["undo": .string(saved), "recovered": .bool(true)])
+    }
+    return try ChangeAttribution.$actor.withValue(actor) {
+      try WorkbookTools(
+        self, cancellation: cancellation, requestSourceID: requestSourceID, conversation: ""
+      ).runTool(tool, values: plan["primitiveArguments"].object, readOnly: false, token: token)
+    }
+  }
+
+  /// The receipt of one tool action: an invocation Source that names what ran and its undo.
+  func insertToolInvocation(
+    plan: Value, run: Value, request: Value, actor: ChangeActor, requestSourceID: String?,
+    additionalInputs: [String] = [], controlInputs: [String] = [], producerInputs: [String] = []
+  ) throws -> Value {
+    if let requestSourceID {
+      let source = try self.item(requestSourceID)
+      try require(
+        source.id == requestSourceID && source.category == "source" && source.kind == "request",
+        "action_request", "Use the captured current request Source.")
+    }
+    let definitionInputs = plan["resolvedDefinitions"].array.map { $0["sourceID"].text }
+    let summary = Self.describeRun(run)
+    var outcome: [String: Value] = [:]
+    for key in ["undo", "changes", "shape", "results", "value", "recovered"] {
+      if let value = run.object[key] { outcome[key] = value }
+    }
+    let invocation = try self.insertItem(
+      category: "source", kind: "application_invocation",
+      title: "Ran " + plan["title"].text,
+      text: actor.label + " ran the saved tool " + plan["tool"]["name"].text + ". " + summary,
+      data: .object([
+        "submitted": request, "plan": plan, "actor": try encoded(actor),
+        "outcome": .object(outcome), "producerPolicy": .string("application-tool-v1"),
+      ]),
+      meaning: "actual", status: "accepted", scenario: "actual",
+      inputs: Array(Set(additionalInputs + (requestSourceID.map { [$0] } ?? []))).sorted(),
+      transformation: "application-tool-invocation-v1",
+      controlInputs: definitionInputs + controlInputs, producerInputs: producerInputs)
+    var result: [String: Value] = [
+      "workbookID": .string(self.id), "definitionID": plan["definitionID"],
+      "sourceID": .string(invocation), "tool": plan["tool"]["signature"],
+      "state": .string("applied"), "summary": .string(summary),
+      "resolvedDefinitions": plan["resolvedDefinitions"], "fingerprint": plan["fingerprint"],
+    ]
+    for key in ["undo", "changes", "results"] {
+      if let value = run.object[key] { result[key] = value }
+    }
+    return .object(result)
   }
 }

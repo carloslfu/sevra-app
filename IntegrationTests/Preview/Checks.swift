@@ -84,6 +84,7 @@ private actor ReadGate {
       try await checkConversationQueue()
       try await checkHistorySearch()
       try await checkFormDrafts()
+      try await checkToolFormDraft()
       try await checkWorkflowFormDrafts()
       try await checkWorkflowClarificationDrafts()
       try await checkDefinitionResultSession()

@@ -24,6 +24,17 @@ import SevraCore
   private var cursor = 0
   private var nextChecks: [String: Date] = [:]
   private var seenRevisions: [String: Int] = [:]
+  /// The workbook revision and time each check automation last ran its check, and what it
+  /// found. A check runs again after a workbook change, or after a minute for checks that
+  /// read the date.
+  private var lastChecks: [String: CheckMark] = [:]
+  struct CheckMark: Sendable {
+    let revision: Int
+    let at: Date
+    let detail: String
+  }
+  /// How often a check whose workbook did not change runs again.
+  nonisolated static let checkInterval: TimeInterval = 60
   public init(registry: AutomationDeviceRegistry, runner: @escaping Runner) {
     self.registry = registry
     self.runner = runner
@@ -84,14 +95,16 @@ import SevraCore
         runningID = grant.id
         do {
           let previousRevision = seenRevisions[grant.id]
+          let lastCheck = lastChecks[grant.id]
           let result = try await Task.detached(priority: .utility) {
             try Self.prepare(
               registry, grant: grant, now: now,
-              previousRevision: previousRevision, cancellation: control)
+              previousRevision: previousRevision, lastCheck: lastCheck, cancellation: control)
           }.value
           try control.check()
           nextChecks[grant.id] = result.nextCheck
           statuses[grant.id] = result.detail
+          if let mark = result.check { lastChecks[grant.id] = mark }
           if let runID = result.runID {
             let book = result.book
             let session = try await Task.detached {
@@ -138,6 +151,7 @@ import SevraCore
     }.value
     nextChecks[grant.id] = nil
     seenRevisions[grant.id] = nil
+    lastChecks[grant.id] = nil
     await reload()
     statuses[grant.id] = "Enabled on this Mac."
   }
@@ -177,10 +191,11 @@ import SevraCore
     let runID: String?
     let nextCheck: Date
     let detail: String
+    var check: CheckMark? = nil
   }
   nonisolated private static func prepare(
     _ registry: AutomationDeviceRegistry, grant: AutomationDeviceGrant, now: Date,
-    previousRevision: Int?, cancellation: Cancellation
+    previousRevision: Int?, lastCheck: CheckMark?, cancellation: Cancellation
   ) throws -> Preparation {
     let (book, session) = try registry.restore(grant, cancellation: cancellation)
     let state = try book.automationActivation(grant.activationID)
@@ -202,6 +217,10 @@ import SevraCore
       }
     }
     let definition = try book.applicationDefinition(grant.definitionID)
+    if definition.payload["policy"] == .string("check-drafts-v1") {
+      return try prepareCheck(
+        book, session: session, now: now, lastCheck: lastCheck, cancellation: cancellation)
+    }
     let schedule = try NativeCalendarSchedule(definition.payload["schedule"])
     let formatter = ISO8601DateFormatter()
     formatter.formatOptions = [.withInternetDateTime, .withFractionalSeconds]
@@ -239,6 +258,53 @@ import SevraCore
       dispatch["runID"].string ?? dispatch["run"]["id"].string,
       dispatch["status"] == .string("late")
         ? "Skipped a request older than 24 hours." : "Schedule checked.")
+  }
+
+  /// A check automation runs its check when the workbook changed since the last one, or a
+  /// minute after it. Rows found after none queue one request, which starts the workflow here.
+  nonisolated private static func prepareCheck(
+    _ book: Workbook, session: AutomationExecutionSession, now: Date, lastCheck: CheckMark?,
+    cancellation: Cancellation
+  ) throws -> Preparation {
+    let revision = try book.revision()
+    func result(_ runID: String?, _ detail: String, checked: Bool) -> Preparation {
+      Preparation(
+        book: book, session: session, runID: runID, nextCheck: now.addingTimeInterval(10),
+        detail: detail,
+        check: checked ? CheckMark(revision: revision, at: now, detail: detail) : nil)
+    }
+    var pending = try book.deviceAutomationPending(session)
+    if pending == .null, let lastCheck, lastCheck.revision == revision,
+      now.timeIntervalSince(lastCheck.at) < checkInterval
+    {
+      return result(nil, lastCheck.detail, checked: false)
+    }
+    var detail = "Check runs while Sevra is active."
+    if pending == .null {
+      let checked = try book.checkAutomation(
+        session.planning, observedAt: now, token: identifier(), cancellation: cancellation)
+      detail = checkDetail(checked)
+      pending = try book.deviceAutomationPending(session)
+    }
+    guard pending != .null else { return result(nil, detail, checked: true) }
+    let dispatch = try book.dispatchAutomationOccurrence(
+      session, observedAt: now, token: identifier(), cancellation: cancellation)
+    let runID = dispatch["runID"].string ?? dispatch["run"]["id"].string
+    return result(
+      runID,
+      runID == nil ? detail : "The check found rows. Starting the workflow.", checked: true)
+  }
+
+  /// One plain sentence for what a check found.
+  nonisolated static func checkDetail(_ checked: Value) -> String {
+    let rows = checked["rows"].int ?? 0
+    let found = rows == 1 ? "1 row" : "\(rows) rows"
+    switch checked["status"].text {
+    case "fired": return "The check found \(found). Starting the workflow."
+    case "finding": return "The check finds \(found). It starts again after it finds none."
+    case "cleared": return "The check finds no rows. It starts when it finds rows."
+    default: return "The check finds no rows. It starts when it finds rows."
+    }
   }
 
   nonisolated private static func stateTitle(_ state: String) -> String {

@@ -16,7 +16,7 @@ def sha(path):
 
 def snapshot(book):
     with sqlite3.connect(book / "workbook.sqlite") as db:
-        assert db.execute("PRAGMA user_version").fetchone()[0] == 35
+        assert db.execute("PRAGMA user_version").fetchone()[0] == 36
         items = db.execute("SELECT id,supersedes,derivation FROM items ORDER BY id").fetchall()
         result = []
         for identity, supersedes, raw in items:

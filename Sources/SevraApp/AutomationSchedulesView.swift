@@ -16,6 +16,8 @@ struct AutomationSchedulesView: View {
   @State private var selected: ApplicationDefinition?
   @State private var creating = false
   @State private var failure: String?
+  /// What starts each listed automation, by its definition ID.
+  @State private var triggers: [String: String] = [:]
   @Environment(\.openWindow) private var openWindow
   var body: some View {
     VStack(alignment: .leading, spacing: 16) {
@@ -44,6 +46,10 @@ struct AutomationSchedulesView: View {
                 Text(row["title"].text).readingFont(.headline).accessibilityAddTraits(.isHeader)
                 Text("Version \(row["version"].int ?? 0) · " + row["description"].text)
                   .foregroundStyle(.secondary)
+                if let trigger = triggers[row["id"].text] {
+                  Label(trigger, systemImage: trigger.hasPrefix("On a") ? "calendar" : "checklist")
+                    .readingFont(.caption).foregroundStyle(.secondary)
+                }
               }.multilineTextAlignment(.leading)
                 .frame(maxWidth: .infinity, alignment: .leading).padding(.vertical, 6)
                 .contentShape(Rectangle())
@@ -123,6 +129,9 @@ struct AutomationSchedulesView: View {
         await owner.reload()
       }
       .onDisappear { pages.cancel() }
+      .task(id: (pages.evaluation?["hits"].array ?? []).map { $0["id"].text }.joined()) {
+        await loadTriggers()
+      }
       .sheet(item: $selected) { definition in
         AutomationScheduleDetail(definition: definition, workspace: workspace)
       }
@@ -143,6 +152,20 @@ struct AutomationSchedulesView: View {
         if saved.kind == "automation" { selected = saved }
       } catch { failure = error.localizedDescription }
     }
+  }
+  private func loadTriggers() async {
+    guard let book = workspace.workbook else { return }
+    let ids = (pages.evaluation?["hits"].array ?? []).map { $0["id"].text }
+    let found = await Task.detached { () -> [String: String] in
+      var found: [String: String] = [:]
+      for id in ids {
+        guard let definition = try? book.applicationDefinition(id) else { continue }
+        found[id] = AutomationTrigger.text(definition, workbook: book)
+      }
+      return found
+    }.value
+    guard !Task.isCancelled, workspace.workbook === book else { return }
+    triggers = found
   }
   private func open(_ id: String) {
     guard let book = workspace.workbook else { return }
@@ -195,6 +218,7 @@ struct AutomationScheduleDetail: View {
   @State private var updatedDefinition: ApplicationDefinition?
   @State private var enabledVersion: Int?
   @State private var loadedDefinitionID: String?
+  @State private var checkState: Value = .null
   private var shown: ApplicationDefinition { updatedDefinition ?? definition }
   var body: some View {
     VStack(alignment: .leading, spacing: 16) {
@@ -203,6 +227,12 @@ struct AutomationScheduleDetail: View {
       ScrollView {
         VStack(alignment: .leading, spacing: 14) {
           Text(shown.description)
+          if let check = preview?["check"], check != .null {
+            Text("Starts when the saved check " + check["name"].text + " finds rows")
+              .readingFont(.headline).accessibilityAddTraits(.isHeader)
+            Text(AutomationTrigger.checkState(checkState)).readingFont(.callout)
+              .foregroundStyle(.secondary).fixedSize(horizontal: false, vertical: true)
+          }
           if let workflow {
             Text("Workflow: " + workflow.title).readingFont(.headline).accessibilityAddTraits(
               .isHeader)
@@ -227,7 +257,9 @@ struct AutomationScheduleDetail: View {
           }
           Toggle("Allow this exact workflow to use local AI", isOn: $allowAI)
           Text(
-            "Automatic work creates drafts and stops for review. Runs while Sevra is active; quit or inactive periods catch up when eligible. No background helper is installed."
+            preview?["check"] != nil && preview?["check"] != .null
+              ? "Automatic work creates drafts and stops for review. The check runs while Sevra is active, after each change and every minute. No background helper is installed."
+              : "Automatic work creates drafts and stops for review. Runs while Sevra is active; quit or inactive periods catch up when eligible. No background helper is installed."
           )
           .readingFont(.caption).foregroundStyle(.secondary)
           ViewThatFits(in: .horizontal) {
@@ -296,12 +328,17 @@ struct AutomationScheduleDetail: View {
           try book.applicationDefinition(definition.payload["workflow"]["versionID"].text)
         )
       }.value
+      let activation = saved.1["id"].string
+      let edge = try await Task.detached {
+        try activation.map { try book.automationCheckState($0) } ?? .null
+      }.value
       guard !Task.isCancelled, workspace.workbook === book, shown.id == definition.id else {
         return
       }
       preview = saved.0
       state = saved.1
       workflow = saved.2
+      checkState = edge
       await owner.reload()
       let registry = owner.registry
       let candidates = owner.grants.filter { $0.id == state["id"].text }
@@ -421,5 +458,32 @@ struct ScheduleOccurrencePreview: View {
     formatter.dateStyle = .medium
     formatter.timeStyle = slot["actualLocalTime"].text.hasSuffix(":00") ? .short : .medium
     return formatter.string(from: date) + adjustment
+  }
+}
+
+/// How an automation's trigger reads in a list and on its page.
+enum AutomationTrigger {
+  static func text(_ definition: ApplicationDefinition, workbook: Workbook) -> String {
+    guard definition.payload["policy"] == .string("check-drafts-v1") else {
+      return "On a schedule"
+    }
+    let name =
+      (try? workbook.applicationDefinition(definition.payload["check"]["versionID"].text))
+      .map { $0.payload["name"].text } ?? "its check"
+    return "When the check " + name + " finds rows"
+  }
+
+  /// The check's last saved change, in one or two sentences.
+  static func checkState(_ state: Value) -> String {
+    guard state != .null else {
+      return "The check has not found rows yet. The first rows it finds after you enable it start the workflow."
+    }
+    let rows = state["rows"].int ?? 0
+    let when = ISO8601DateFormatter().date(from: state["updated"].text).map {
+      " on " + $0.formatted(date: .abbreviated, time: .shortened)
+    } ?? ""
+    return state["finding"].int == 1
+      ? "Last change: it found \(rows == 1 ? "1 row" : "\(rows) rows")\(when). It starts again after the check finds no rows."
+      : "Last change: it found no rows\(when). It starts when the check finds rows."
   }
 }

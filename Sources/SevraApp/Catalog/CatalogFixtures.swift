@@ -50,7 +50,7 @@ import SevraVoice
         ]))
     }
     if id.contains("workflow") || id == "main.automations" || id == "main.automation-detail"
-      || id == "home.attention"
+      || id == "main.automation-editor" || id == "home.attention"
     {
       let action = try b.saveApplicationDefinition(
         logicalID: identifier(),
@@ -129,6 +129,39 @@ import SevraVoice
             ]),
           ]),
         ]))
+    }
+    if (id == "main.automations" && variant == "Check")
+      || (id == "main.automation-editor" && variant == "Check"),
+      let workflow = workflowDefinition
+    {
+      // A saved check, a read-only SQL tool with no inputs, and an automation that starts when
+      // it finds rows. On the automations page its first check has run, so its state shows.
+      _ = try b.chatSaveTool(
+        name: "costly_suppliers", description: "Suppliers whose cost is over 50.",
+        inputs: [], statements: ["SELECT supplier, cost FROM supplier_comparison WHERE cost > 50"],
+        source: nil, token: "catalog-costly-suppliers", requestSourceID: nil)
+      let check = try b.savedTools().first { $0.name == "costly_suppliers" }!
+      let definition = try b.saveApplicationDefinition(
+        logicalID: identifier(),
+        content: .object([
+          "kind": .string("automation"), "title": .string("When a supplier costs over 50"),
+          "description": .string("Prepare this saved workflow when its check finds rows."),
+          "parameters": .array([]),
+          "payload": .object([
+            "policy": .string("check-drafts-v1"),
+            "check": .object(["mode": .string("exact"), "versionID": .string(check.definitionID)]),
+            "workflow": .object(["mode": .string("exact"), "versionID": .string(workflow.id)]),
+            "arguments": automationDefinition?.payload["arguments"] ?? .object([:]),
+          ]),
+        ]))
+      checkAutomationDefinition = definition
+      if id == "main.automations" {
+        let session = try b.authorizeAutomationPlanning(
+          definition.id, expectedGeneration: 0, after: Date(), token: identifier())
+        _ = try b.checkAutomation(session, token: identifier())
+        _ = try b.pauseAutomation(
+          session.activationID, expectedGeneration: session.generation, token: identifier())
+      }
     }
     if id == "main.excel" || id == "composition.excel" {
       let url = Bundle.main.resourceURL!.appendingPathComponent("CatalogAssets/Quotes.xlsx")

@@ -30,11 +30,22 @@ extension CLI {
       args[2], expectedGeneration: generation, after: start,
       allowAI: args.count >= 8, token: args[6] + ":authorize",
       actor: .programmatic("SevraCLI.automation-run-once"), cancellation: cancellation)
-    let planned = try book.planAutomationOccurrences(
-      session.planning, through: observed, token: args[6] + ":plan", cancellation: cancellation)
+    // A check automation runs its check once. A schedule plans its calendar slots.
+    let checks = try book.applicationDefinition(args[2]).payload["policy"]
+      == .string("check-drafts-v1")
+    let planned =
+      checks
+      ? try book.checkAutomation(
+        session.planning, observedAt: observed, token: args[6] + ":check",
+        cancellation: cancellation)
+      : try book.planAutomationOccurrences(
+        session.planning, through: observed, token: args[6] + ":plan", cancellation: cancellation)
     let dispatch: Value
     let run: Value
-    if planned["catchUpRemaining"] == .bool(true) {
+    if checks, try book.deviceAutomationPending(session) == .null {
+      dispatch = .object(["status": .string("idle"), "execution": .string("none")])
+      run = .null
+    } else if planned["catchUpRemaining"] == .bool(true) {
       dispatch = .object(["status": .string("catch_up"), "execution": .string("none")])
       run = .null
     } else {

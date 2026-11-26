@@ -53,6 +53,8 @@ private struct NativeFormEditor: View {
           if let runID = receipt["workflowRunID"].string {
             Label("Saved workflow run", systemImage: "checkmark.circle")
             Button("Open workflow") { workspace.navigate(.workflow(runID)) }
+          } else if receipt["state"] == .string("applied") {
+            FormToolOutcome(receipt: receipt, workspace: workspace)
           } else {
             Label(
               "Saved \(receipt["proposals"].array.count) draft \(receipt["proposals"].array.count == 1 ? "proposal" : "proposals")",
@@ -96,7 +98,8 @@ private struct NativeFormEditor: View {
               Text("\(index + 1). " + step["title"].text).readingFont(.callout)
             }
             Button(
-              preview["kind"] == .string("workflow") ? "Start workflow" : "Save draft proposals"
+              preview["kind"] == .string("workflow")
+                ? "Start workflow" : preview["tool"] != .null ? "Run" : "Save draft proposals"
             ) {
               let book = workspace.workbook
               let owner = workspace.interactionIdentity
@@ -160,8 +163,10 @@ private struct NativeFormEditor: View {
       }
     }.announceStatus(
       session.failure
-        ?? (session.state?.lastReceipt == nil
-          ? nil : "Saved. Review the result before business use."))
+        ?? (session.state?.lastReceipt.map {
+          $0["state"] == .string("applied")
+            ? $0["summary"].string ?? "Done." : "Saved. Review the result before business use."
+        }))
   }
   private func parameterBinding(_ parameter: Value) -> Binding<Value> {
     let key = parameter["id"].text
@@ -329,6 +334,46 @@ struct FormParameterField: View {
         rows[index] = .object(row)
         value = .array(rows)
       })
+  }
+}
+
+/// What a form that ran a saved tool did, with one Undo for its change.
+private struct FormToolOutcome: View {
+  let receipt: Value
+  @ObservedObject var workspace: WorkspaceState
+  @State private var undone = false
+  @State private var working = false
+  @State private var failure: String?
+  var body: some View {
+    VStack(alignment: .leading, spacing: 8) {
+      Label(
+        undone ? "Change undone" : receipt["summary"].string ?? "Done.",
+        systemImage: undone ? "arrow.uturn.backward.circle" : "checkmark.circle")
+      if let undo = receipt["undo"].string, !undone {
+        Button("Undo this change") { take(undo) }
+          .disabled(working || workspace.busy)
+          .help("Takes back the rows this form changed")
+      }
+      if let failure {
+        Text(failure).readingFont(.callout).foregroundStyle(.red).textSelection(.enabled)
+      }
+    }
+  }
+  private func take(_ token: String) {
+    guard let book = workspace.workbook else { return }
+    working = true
+    failure = nil
+    Task {
+      defer { working = false }
+      do {
+        _ = try await Task.detached {
+          try book.chatSQLUndo(token, actor: .human("Sevra form"))
+        }.value
+        guard workspace.workbook === book else { return }
+        undone = true
+        workspace.refresh()
+      } catch { failure = error.localizedDescription }
+    }
   }
 }
 

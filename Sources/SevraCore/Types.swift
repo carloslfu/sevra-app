@@ -240,7 +240,7 @@ public struct ItemSummary: Codable, Identifiable, Equatable, Sendable {
 public struct Item: Codable, Identifiable, Equatable, Sendable {
   public static let technicalKinds: Set<String> = [
     "request", "annotation", "application_definition", "application_invocation",
-    "automation_authorization", "automation_planning", "automation_dispatch",
+    "automation_authorization", "automation_planning", "automation_check", "automation_dispatch",
     "workflow_authorization", "excel-formulas",
     "excel-conversion", "visual_lineage", "visual_presentation", "removal",
   ]

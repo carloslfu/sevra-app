@@ -42,6 +42,8 @@ import SwiftUI
   var fileItems: [String: String] = [:]
   var workflowDefinition: ApplicationDefinition?
   var automationDefinition: ApplicationDefinition?
+  /// An automation that starts when its saved check finds rows.
+  var checkAutomationDefinition: ApplicationDefinition?
   var workflowRunID: String?
   var excelID: String?
   let transport = CatalogTransportGate()
@@ -672,6 +674,23 @@ import SwiftUI
         type: type, title: "Supplier costs",
         definitionBinding: .object(["mode": .string("live"), "logicalID": .string(q.logicalID)]),
         arguments: .object([:]))
+    case "form" where variant == "Runs a tool":
+      // A form on a saved tool's action: submitting it adds a row, with one Undo.
+      _ = try book!.chatSaveTool(
+        name: "add_supplier", description: "Adds a supplier by name.",
+        inputs: [("supplier", "text")],
+        statements: ["INSERT INTO supplier_comparison (supplier) VALUES (:supplier)"], source: nil,
+        token: "catalog-add-supplier", requestSourceID: nil)
+      let tool = try book!.applicationDefinition(
+        try book!.savedTools().first { $0.name == "add_supplier" }!.definitionID)
+      let action = try book!.saveApplicationDefinition(
+        logicalID: identifier(),
+        content: ActionRegistry.toolActionDefinition(tool: tool, title: "Add a supplier"))
+      let form = try book!.saveApplicationDefinition(
+        logicalID: identifier(), content: ActionRegistry.formDefinition(target: action))
+      return .init(
+        type: type, title: "Add a supplier",
+        definitionBinding: .object(["mode": .string("live"), "logicalID": .string(form.logicalID)]))
     case "form":
       let action = try book!.saveApplicationDefinition(
         logicalID: identifier(),
@@ -729,11 +748,14 @@ import SwiftUI
     } else if id == "main.automations" {
       ws.route =
         variant == "Detail" || variant == "Armed"
-        ? .automation(automationDefinition!.id) : .automations
+        ? .automation(automationDefinition!.id)
+        : variant == "Check" ? .automation(checkAutomationDefinition!.id) : .automations
     } else if id.hasPrefix("main.viewer.") {
       ws.route = .item(fileItems[id.components(separatedBy: ".").last!] ?? source!.id)
     } else if id == "main.table-update" {
       ws.route = .tableUpdate(fileItems["csv"]!, nil)
+    } else if id == "main.automation-editor" {
+      ws.route = .automations
     } else if id == "main.automation-detail", let definition = automationDefinition {
       ws.route = .automation(definition.id)
     } else if id == "main.references" {

@@ -80,8 +80,10 @@ struct DefinitionWorkflow {
       }
       seen[id] = kind
     }
+    // Whether an action drafts, and so needs its review, depends on its primitive, which the
+    // workbook checks: an action that runs a saved tool changes tables at once and has none.
     try require(
-      Set(seen.filter { ["action", "intake"].contains($0.value) }.keys) == reviews,
+      Set(seen.filter { $0.value == "intake" }.keys).isSubset(of: reviews),
       "workflow_definition", "Each draft action or intake needs a subsequent review step.")
     steps = result
   }
@@ -123,7 +125,8 @@ extension Workbook {
             })),
       ])
     ]
-    if ["action", "intake"].contains(kind) {
+    let drafts = try kind == "intake" || (kind == "action" && !actionRunsTool(target))
+    if drafts {
       steps.append(
         .object([
           "id": .string(name == "review" ? "review_result" : "review"),
@@ -146,6 +149,7 @@ extension Workbook {
     throws
   {
     let workflow = try DefinitionWorkflow(descriptor)
+    let reviewed = Set(workflow.steps.compactMap(\.review))
     var previous: [String: ApplicationDefinition] = [:]
     var visited = Set<String>()
     func exactClosure(_ target: ApplicationDefinition, depth: Int) throws {
@@ -177,6 +181,23 @@ extension Workbook {
           try DefinitionForm(DefinitionDescriptor(target.content)).targetKind == "action",
           "workflow_binding",
           "A workflow action step cannot launch another workflow through a form.")
+      }
+      if step.kind == "action" {
+        let runsTool = try actionRunsTool(target, historical: historical)
+        try require(
+          runsTool != reviewed.contains(step.id), "workflow_definition",
+          runsTool
+            ? "Step \(step.id) runs a saved tool, which saves its changes at once with an Undo. Remove its review step."
+            : "Each draft action or intake needs a subsequent review step.")
+        if runsTool, !historical {
+          let action = try toolAction(target)
+          let tool = try resolveDefinition(action.tool!)
+          try require(
+            try DefinitionTool(DefinitionDescriptor(tool.content)).language == "sql",
+            "workflow_binding",
+            "A workflow step runs a saved SQL tool. A script tool runs from chat, a form or a button."
+          )
+        }
       }
       if !historical {
         try validateDefinitionGraph(target, state: DefinitionEvaluation(.init()), depth: 0)
@@ -350,5 +371,28 @@ extension Workbook {
     }
     try visit(step)
     return (records.sorted { $0.id < $1.id }, controls.sorted())
+  }
+}
+
+extension Workbook {
+  /// The tool action an action step runs, through a form when it names one. Nil when the
+  /// step's action drafts instead.
+  func toolAction(_ target: ApplicationDefinition) throws -> DefinitionAction {
+    let action =
+      target.kind == "form"
+      ? try resolveDefinition(DefinitionForm(DefinitionDescriptor(target.content)).binding)
+      : target
+    return try DefinitionAction(DefinitionDescriptor(action.content), parseOnly: true)
+  }
+
+  /// Whether an action or action form runs a saved tool rather than drafting for review.
+  func actionRunsTool(_ target: ApplicationDefinition, historical: Bool = false) throws -> Bool {
+    guard ["action", "form"].contains(target.kind) else { return false }
+    if target.kind == "form",
+      try DefinitionForm(DefinitionDescriptor(target.content)).targetKind != "action"
+    {
+      return false
+    }
+    return try toolAction(target).tool != nil
   }
 }

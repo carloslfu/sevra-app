@@ -7,11 +7,13 @@ private actor SavedActionModel: WorkbookInference {
   let identity = "Synthetic saved action"
   let lastMetrics: Value = .null
   let actionID: String
-  let evidenceID: String
+  let arguments: Value
+  let answer: Value
   var scopes: [InferenceToolScope] = []
-  init(actionID: String, evidenceID: String) {
+  init(actionID: String, arguments: Value, answer: Value) {
     self.actionID = actionID
-    self.evidenceID = evidenceID
+    self.arguments = arguments
+    self.answer = answer
   }
   func beginRun() {}
   func endRun() {}
@@ -30,14 +32,7 @@ private actor SavedActionModel: WorkbookInference {
             inputJSON: try Value.object([
               "action": .object([
                 "name": .string("action.prepare"),
-                "arguments": .object([
-                  "id": .string(actionID),
-                  "arguments": .object([
-                    "title": .string("Oak quote"), "body": .string("Oak Supply quotes 2.40 each."),
-                    "evidence": .string(evidenceID), "meaning": .string("actual"),
-                    "scenario": .string("actual"),
-                  ]),
-                ]),
+                "arguments": .object(["id": .string(actionID), "arguments": arguments]),
               ])
             ]).json())
         ])
@@ -47,10 +42,7 @@ private actor SavedActionModel: WorkbookInference {
       calls: [
         .init(
           id: identifier(), name: "finish",
-          inputJSON: try Value.object([
-            "answer": .string("I could not draft that note from chat."),
-            "basis": .string("unresolved"), "citations": .array([]),
-          ]).json())
+          inputJSON: try answer.json())
       ])
   }
 }
@@ -73,7 +65,17 @@ func checkSavedActions() async throws {
   let evidence = try book.addItem(
     category: "source", kind: "observation", title: "Oak quote",
     text: "Oak Supply quotes 2.40 each.", status: "accepted")
-  let model = SavedActionModel(actionID: action.id, evidenceID: evidence.id)
+  let model = SavedActionModel(
+    actionID: action.id,
+    arguments: .object([
+      "title": .string("Oak quote"), "body": .string("Oak Supply quotes 2.40 each."),
+      "evidence": .string(evidence.id), "meaning": .string("actual"),
+      "scenario": .string("actual"),
+    ]),
+    answer: .object([
+      "answer": .string("I could not draft that note from chat."),
+      "basis": .string("unresolved"), "citations": .array([]),
+    ]))
   let before = try book.items(kind: "document").count
   _ = try await WorkbookAgent.run(
     "Draft a note about the Oak quote with the saved action.", workbook: book, model: model)
@@ -88,8 +90,45 @@ func checkSavedActions() async throws {
   try expectEqual(
     comparison["results"].array.first?["rows"].array.map { $0.array.map(\.text) },
     [["Oak Supply", "24"], ["Cedar Tools", "27.5"]])
+  // A saved action on a saved tool runs from chat: the row is added at once, and the answer
+  // offers the one Undo that takes it back.
+  _ = try book.chatSaveTool(
+    name: "add_quote", description: "Adds a supplier quote.",
+    inputs: [("supplier", "text"), ("quantity", "decimal"), ("unit_cost", "decimal")],
+    statements: [
+      "INSERT INTO supplier_comparison (supplier, quantity, unit_cost) VALUES (:supplier, :quantity, :unit_cost)"
+    ], source: nil, token: "save-add-quote", requestSourceID: nil)
+  let tool = try book.applicationDefinition(
+    try book.savedTools().first { $0.name == "add_quote" }!.definitionID)
+  let adds = try book.saveApplicationDefinition(
+    logicalID: identifier(), content: ActionRegistry.toolActionDefinition(tool: tool))
+  let runner = SavedActionModel(
+    actionID: adds.id,
+    arguments: .object([
+      "supplier": .string("Birch Parts"), "quantity": .string("10"),
+      "unit_cost": .string("2.10"),
+    ]),
+    answer: .object([
+      "answer": .string("Added the Birch Parts quote."), "basis": .string("completed_action"),
+      "citations": .array([]),
+    ]))
+  _ = try await WorkbookAgent.run(
+    "Add a quote from Birch Parts, 10 at 2.10, with the saved action.", workbook: book,
+    model: runner)
+  func suppliers() throws -> [String] {
+    try book.chatSQL(
+      statements: ["SELECT supplier FROM supplier_comparison ORDER BY supplier"], readOnly: true,
+      token: identifier(), requestSourceID: nil
+    )["results"].array[0]["rows"].array.map { $0.array[0].text }
+  }
+  try expectEqual(try suppliers(), ["Birch Parts", "Cedar Tools", "Oak Supply"])
+  let answered = try book.messages().last { $0.role == "assistant" }!
+  let undo = try book.conversationSQLReceipt(answered.id, conversation: book.startChat)
+  try expectEqual(undo != nil, true)
+  _ = try book.chatSQLUndo(undo!, actor: .human("synthetic person"))
+  try expectEqual(try suppliers(), ["Cedar Tools", "Oak Supply"])
   try expectEqual(try book.verify()["ok"], .bool(true))
   print(
-    "PASS chat cannot submit a saved document action and saves nothing, and the supplier comparison runs through sql"
+    "PASS chat cannot submit a saved document action and saves nothing, a saved tool action runs from chat with one Undo, and the supplier comparison runs through sql"
   )
 }

@@ -163,7 +163,7 @@ extension WorkbookTools {
           ? ["expectedDefinitionID", "inputs", "templateReceiptID", "title"]
           : ["expectedDefinitionID", "content", "inputs"],
         required: [tool == "save_template" ? "templateReceiptID" : "content"])
-      let content: Value
+      var content: Value
       if tool == "save_template" {
         let template = try string("templateReceiptID")
         try require(
@@ -219,6 +219,12 @@ extension WorkbookTools {
       } else {
         existing = nil
       }
+      if content["kind"] == .string("automation"), content["payload"].object["alert"] != nil {
+        // An alert runs the shared alert workflow, saved with the first alert.
+        content = try workbook.checkAlertAutomation(
+          content, token: token, requestRunID: runID, requestSourceID: requestSourceID,
+          cancellation: cancellation)
+      }
       let saved = try workbook.saveApplicationDefinition(
         logicalID: existing ?? Self.definitionIdentity(token), content: content,
         expectedDefinitionID: a["expectedDefinitionID"].string,
@@ -244,7 +250,7 @@ extension WorkbookTools {
         "notice": .string(
           plan["primitive"]["id"].text == ActionRegistry.documentID
             ? "Preview only. Submit document actions through a native form or explicit workflow continuation. Chat can author and queue the workflow; direct document-action submission is not qualified yet."
-            : "Preview only. Submit this current-run receiptID only when the current request authorizes these draft proposals. The host rechecks the exact plan; nothing is accepted until separate review."
+            : "Preview only. Nothing ran. When the current request asks to run it, use action.prepare with the same id and arguments: the host rechecks the exact plan, runs the tool, and its changes carry an undo value."
         ),
       ])
     case "commit_action_preview":
@@ -315,7 +321,7 @@ extension WorkbookTools {
       "payload {query,dataMode:live|exact}; query {sources:[{datasetID,definitionID,scope?:{meaning,status,scenario}}],select:[{id,column:{source:0,column:columnID},aggregate?}],filters?:[{column:{source:0,column:columnID},op:eq|ne|lt|lte|gt|gte|contains|isNull|isEmpty,value?:literal|{parameter:id}}],sort?:[{field:id,descending?:boolean}],limit?:1..1000}. Inspect registered dataset IDs, definitionIDs and stored columns first. Source scopes do not change row meaning. Exact dataMode pins schema, not historical row contents. No raw SQL."
     ),
     "action": .string(
-      "payload {primitive:{id,version},arguments:{target:{parameter:id}|{literal:value,unit?}|{function:binding,arguments}}}. Primitive schemas are in actions. Saving is not execution."
+      "payload {primitive:{id,version},arguments:{target:{parameter:id}|{literal:value,unit?}|{function:binding,arguments}}}. Primitive schemas are in actions. To run a saved tool: primitive {id:tools.run,version:1}, tool {mode:live,logicalID} or {mode:exact,versionID} of the tool's definition, and one argument for each tool input. Its parameters are usually the tool's inputs. A form on a tools.run action runs the tool, for example to add a row. A workflow step needs an exact tool and has no review. Saving is not execution."
     ),
     "nativeViews": .string(
       "calculation/function and query/query components bind definitionBinding and explicit typed arguments. Fill required arguments on returned nativeComponent before saving. Live refreshes; Pin space captures first-page values/coverage. publish_result uses this run evaluation receipt and saves a separate draft Record, never acceptance."
@@ -330,7 +336,7 @@ extension WorkbookTools {
       "Save a tool with save tool:{name,description,inputs,statements|source}, not as a definition. payload {name,language:sql|javascript,statements:[1..8]|source}; parameters are its inputs, each text, decimal, boolean or date."
     ),
     "automation": .string(
-      "Custom payload {policy:calendar-drafts-v1,workflow:{mode:exact,versionID},arguments,schedule:{policy:native-calendar-v1,timeZone:IANA|UTC,hour:0..23,minute:0..59,recurrence:{kind:daily}|{kind:weekly,weekdays:[1..7]}|{kind:monthly,day:1..31|last}|{kind:yearly,month,day}}}; parameters:[]. Saving only retains intent. Native review provides exact device Enable/Pause and catch-up decisions. No model tool enables or resumes automatic execution."
+      "Two triggers. On a schedule: payload {policy:calendar-drafts-v1,workflow:{mode:exact,versionID},arguments,schedule:{policy:native-calendar-v1,timeZone:IANA|UTC,hour:0..23,minute:0..59,recurrence:{kind:daily}|{kind:weekly,weekdays:[1..7]}|{kind:monthly,day:1..31|last}|{kind:yearly,month,day}}}. When a saved check finds rows: payload {policy:check-drafts-v1,check:{mode:exact,versionID},workflow,arguments}. A check is a saved sql tool with no inputs and one SELECT that returns the rows to watch, such as parts below their reorder level; save it first with save tool, and versionID is the definitionID it returns. It fires when the check goes from no rows to some rows, once, and again only after it finds none. For an alert in place of a workflow, payload {policy:check-drafts-v1,check,alert:one sentence the user will read}: it drafts that alert for review when it fires. parameters:[]. Saving only retains intent. The person enables it on this Mac; no model tool enables or resumes automatic execution."
     ),
     "intake": .string(
       "payload {parser:native-v1,file:requiredItemParameterID,datasetID,definitionID,mode:append|replace|merge,mapping:[{position:zeroBasedInteger,target:storedColumnID|null}],keys:[storedColumnID],headerRow:oneBasedInteger,newRowMeaning,newRowScenario}. Exactly one required item parameter without default/unit. Inspect datasets for exact current dataset/schema and stored column IDs. Map each input position and every stored target column once; null explicitly ignores a position. Merge needs distinct mapped keys; append/replace require []. Require explicit mode/mapping/header/meaning/scenario; clarify missing intent, never infer from untrusted file/description. Native workflow_template adds mandatory review. Save/queue never parse or apply rows. Continue uses an already included business CSV/TSV only. Bounds1000 incoming/10000 target rows/16MB target/8MB mapped values; no Excel updates, implicit coercion, paths/network or inventory effects."

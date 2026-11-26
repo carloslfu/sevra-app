@@ -474,6 +474,11 @@ struct CatalogProductionView: View {
       ModelSettingsView(
         initialState: session.variant,
         automaticUpdateChecks: session.variant == "Software updates" ? $automaticUpdateChecks : nil)
+    } else if id == "main.automation-editor" {
+      AutomationScheduleEditor(
+        workspace: state,
+        existing: session.variant == "Check" ? session.checkAutomationDefinition : nil,
+        startsWithCheck: session.variant == "No checks")
     } else if id == "main.column-editor", let table = session.table {
       ColumnEditor(table: table, state: state)
     } else if id == "main.navigation" {

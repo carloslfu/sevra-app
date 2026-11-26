@@ -627,9 +627,17 @@ public struct WorkbookTools {
     _ name: String, values: [String: Value], readOnly unchanging: Bool, token: String
   ) throws -> Value {
     let tool = try workbook.synchronized { try workbook.runnableTool(name) }
+    return try runTool(tool, values: values, readOnly: unchanging, token: token)
+  }
+
+  /// One saved tool version, enabled on this Mac: its statements through sql, saved under
+  /// "tool-" + token, or its script, saved under "run-" + token. A tool action runs here too.
+  func runTool(
+    _ tool: Workbook.SavedTool, values: [String: Value], readOnly unchanging: Bool, token: String
+  ) throws -> Value {
     guard tool.language == "javascript" else {
       return try workbook.chatRunTool(
-        name: name, values: values, readOnly: unchanging, token: "tool-" + token,
+        tool, values: values, readOnly: unchanging, token: "tool-" + token,
         requestSourceID: requestSourceID, cancellation: cancellation)
     }
     var result = try runScript(

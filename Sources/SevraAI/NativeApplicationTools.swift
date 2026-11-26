@@ -169,7 +169,7 @@ extension NativeTools {
     .init(
       name: "prepare_action",
       description:
-        "Preview, check directions and save drafts; never accept.",
+        "Preview, then run a saved tool action or form; its changes carry an undo. Document actions use their form.",
       parameters: object(
         [
           "id": schema("string", "Exact action/form version."),

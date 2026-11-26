@@ -2,7 +2,7 @@
   "schemaVersion": 1,
   "nestedPropertyOrder": "required-then-component-and-definition-selectors",
   "splashCommit": "d40c250ff248938edebdb91fb6124514e32daeaa",
-  "toolsSHA256": "ee38a54d8dea83732204968f203fd60e545315848685cb8741638b935b8986e7",
+  "toolsSHA256": "3fb3f426153d9abeb6661fe43d666fdb9350fbdbbf065e118a7854dfc2822293",
   "cases": [
     {
       "name": "required_native_app_sdk",

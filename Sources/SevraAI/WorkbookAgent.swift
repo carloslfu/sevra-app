@@ -796,7 +796,7 @@ public enum WorkbookAgent {
             problems.append(
               pendingActionPreview?.plan["primitive"]["id"].text == "records.draftDocument"
                 ? "preview_action saved no documents. Use basis=preview to show this unsaved plan, or author and queue a workflow for explicit continuation. Direct document-action submission is not qualified yet."
-                : "preview_action saved no proposals. If the user asked to prepare drafts for review, call prepare_action with its exact requestedID and submittedArguments. For a preview-only request, use basis=preview; the host will show the plan and that no proposals were saved. Do not claim completed drafts from a preview."
+                : "preview_action ran nothing. If the user asked to run the saved tool, call prepare_action with its exact requestedID and submittedArguments. For a preview-only request, use basis=preview; the host will show the plan and that nothing ran. Do not claim a change from a preview."
             )
           }
           if basis == "preview" && (previewText == nil || !a["counts"].array.isEmpty) {
@@ -1602,11 +1602,13 @@ public enum WorkbookAgent {
         }
         // What one sql call saved can be undone from the answer. Two changing calls in one
         // answer have no single Undo to offer.
-        if tool == "sql" || tool == "run", !callFailed, let undo = result["undo"].string {
+        if ["sql", "run", "prepare_action"].contains(tool), !callFailed,
+          let undo = result["undo"].string
+        {
           reversibleOutcome =
             reversibleOutcome == .null ? .object(["sql": .string(undo)]) : .object([:])
         }
-        if tool == "sql" || tool == "run",
+        if ["sql", "run", "prepare_action"].contains(tool),
           ["changes", "drafts", "shape", "actions"].contains(where: { !result[$0].array.isEmpty })
         {
           attemptedEffect = true
@@ -2344,7 +2346,15 @@ public enum WorkbookAgent {
     return []
   }
   static func renderActionPreview(_ plan: Value) -> String {
-    "Preview only. No draft proposals were saved, and nothing was accepted.\n"
+    if plan["tool"] != .null {
+      let inputs = plan["primitiveArguments"].object.sorted { $0.key < $1.key }.map {
+        citationLabel($0.key) + ": " + citationLabel($0.value.text)
+      }
+      return "Preview only. Nothing ran and nothing changed.\nTool: "
+        + citationLabel(plan["tool"]["name"].text)
+        + (inputs.isEmpty ? "" : "\nInputs: " + inputs.joined(separator: ", "))
+    }
+    return "Preview only. No draft proposals were saved, and nothing was accepted.\n"
       + plan["documents"].array.map {
         "Document: " + citationLabel($0["title"].text) + "\nMeaning: "
           + $0["meaning"].text + "; scenario: " + citationLabel($0["scenario"].text)

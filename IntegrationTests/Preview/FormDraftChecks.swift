@@ -257,3 +257,56 @@ import SevraPreviewUI
     "PASS form drafts: structured component identity isolation, workbook-switch ownership, incomplete input recovery, concurrent keep-both, exact bindings, read-only preview, atomic submission and crash receipt reconciliation"
   )
 }
+
+/// A form on a saved tool's action, through the same draft session the app uses: submitting it
+/// adds the row once, its receipt carries the Undo, and a reopened session keeps that receipt.
+@MainActor func checkToolFormDraft() async throws {
+  if ProcessInfo.processInfo.environment["SEVRA_TOOL_GRANTS"] == nil {
+    setenv(
+      "SEVRA_TOOL_GRANTS",
+      FileManager.default.temporaryDirectory.appendingPathComponent(
+        "sevra-tool-grants-" + identifier()
+      ).path, 1)
+  }
+  let root = FileManager.default.temporaryDirectory.appendingPathComponent(
+    "sevra-tool-form-" + identifier())
+  try FileManager.default.createDirectory(at: root, withIntermediateDirectories: true)
+  defer { try? FileManager.default.removeItem(at: root) }
+  let b = try Workbook.create(at: root.appendingPathComponent("ToolForm.sevra"), title: "Parts")
+  let s = try b.addItem(
+    category: "source", kind: "observation", title: "Parts list", status: "accepted")
+  let parts = try b.createDataset(
+    title: "Parts", columns: [.init(id: "name", title: "Name")], rows: [], sourceID: s.id)
+  _ = try b.chatSaveTool(
+    name: "add_part", description: "Adds a part.", inputs: [("name", "text")],
+    statements: ["INSERT INTO parts (name) VALUES (:name)"], source: nil, token: "add-part",
+    requestSourceID: nil)
+  let tool = try b.applicationDefinition(
+    try b.savedTools().first { $0.name == "add_part" }!.definitionID)
+  let action = try b.saveApplicationDefinition(
+    logicalID: identifier(), content: ActionRegistry.toolActionDefinition(tool: tool))
+  let form = try b.saveApplicationDefinition(
+    logicalID: identifier(), content: ActionRegistry.formDefinition(target: action))
+  let session = FormDraftSession(workbook: b, key: "Home:parts")
+  await session.open(form.logicalID)
+  session.update(.object(["name": .string("washers")]))
+  await session.prepare()
+  try require(
+    session.preview?["tool"]["name"] == .string("add_part") && b.rows(parts.id).isEmpty,
+    "form_check", "A tool form preview ran the tool")
+  await session.submit()
+  let receipt = session.state?.lastReceipt
+  try require(
+    receipt?["state"] == .string("applied") && receipt?["undo"].string != nil
+      && b.rows(parts.id).map { $0.data["name"].text } == ["washers"], "form_check",
+    "A tool form did not add its row with an Undo: \(session.failure ?? "")")
+  let flushed = await session.flush()
+  try require(flushed, "form_check", "The submitted tool form did not save")
+  let reopened = FormDraftSession(workbook: try Workbook(b.url), key: "Home:parts")
+  await reopened.open(form.logicalID)
+  try require(
+    reopened.state?.lastReceipt == receipt, "form_check", "A reopened form lost its receipt")
+  _ = try b.chatSQLUndo(receipt!["undo"].text, actor: .human("form check"))
+  try require(try b.rows(parts.id).isEmpty, "form_check", "The form's Undo kept its row")
+  print("PASS a form on a saved tool adds its row once, keeps its receipt and undoes")
+}

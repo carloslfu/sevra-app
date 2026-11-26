@@ -319,6 +319,11 @@ extension Workbook {
     var bound: [String: Value] = [:]
     for input in tool.inputs where complete || values[input.name] != nil {
       let value = values[input.name] ?? .null
+      // An optional input, as a saved definition can declare one, is NULL when left out.
+      if !input.required, value == .null || value.text.isEmpty {
+        bound[input.name] = .null
+        continue
+      }
       try require(
         value != .null && !value.text.isEmpty, "tool_inputs",
         "\(tool.signature) needs a value for \(input.name).")
@@ -359,13 +364,47 @@ extension Workbook {
     return tool
   }
 
+  /// One exact saved tool version, to run on this Mac: the current version of its tool, not
+  /// removed, and enabled here.
+  func runnableTool(version saved: ApplicationDefinition) throws -> SavedTool {
+    try require(saved.kind == "tool", "definition_kind", "Choose a saved tool.")
+    let descriptor = try DefinitionDescriptor(saved.content)
+    let tool = try DefinitionTool(descriptor)
+    try require(
+      !tool.retired, "tool", "The tool \(tool.name) was removed. Choose a saved tool.")
+    try require(
+      try applicationDefinition(saved.logicalID).id == saved.id, "stale_tool",
+      "The tool \(tool.name) was changed after this was saved. Choose its current version.")
+    let found = SavedTool(
+      definitionID: saved.id, logicalID: saved.logicalID, name: tool.name,
+      description: saved.description,
+      inputs: descriptor.parameters.map { ($0.id, $0.type, $0.required) },
+      language: tool.language, statements: tool.statements, source: tool.source,
+      enabled: isToolEnabled(saved.id))
+    try require(
+      found.enabled, "tool_disabled",
+      "The tool \(tool.name) came with this workbook and is not enabled on this Mac. The user can enable it under Tools in the workbook's menu. Nothing ran."
+    )
+    return found
+  }
+
   /// Runs a saved SQL tool: its statements, with the caller's values bound to its inputs.
   public func chatRunTool(
     name: String, values: [String: Value], readOnly: Bool, token: String,
     requestSourceID: String?, cancellation: Cancellation = .init()
   ) throws -> Value {
-    try synchronized(cancellation: cancellation) {
-      let tool = try runnableTool(name)
+    let tool = try synchronized(cancellation: cancellation) { try runnableTool(name) }
+    return try chatRunTool(
+      tool, values: values, readOnly: readOnly, token: token, requestSourceID: requestSourceID,
+      cancellation: cancellation)
+  }
+
+  func chatRunTool(
+    _ tool: SavedTool, values: [String: Value], readOnly: Bool, token: String,
+    requestSourceID: String?, cancellation: Cancellation = .init()
+  ) throws -> Value {
+    let name = tool.name
+    return try synchronized(cancellation: cancellation) {
       try require(
         tool.language == "sql", "tool",
         "The tool \(name) is a script. Run it with run and tool=\(name).")

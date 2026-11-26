@@ -113,7 +113,11 @@ enum CatalogRegistry {
       ),
       (
         "automations", "Automations", "AutomationSchedulesView.swift",
-        ["Default", "Empty", "Detail", "Armed", "Paused", "Stale"]
+        ["Default", "Empty", "Detail", "Armed", "Paused", "Stale", "Check"]
+      ),
+      (
+        "automation-editor", "Automation editor", "AutomationScheduleEditor.swift",
+        ["Default", "Check", "No checks"]
       ),
       ("tools", "Saved tools", "ToolsView.swift", ["Default", "Empty"]),
       ("removed", "Removed", "RemovedView.swift", ["Default", "Empty"]),
@@ -138,7 +142,8 @@ enum CatalogRegistry {
         "home.component." + type, type.capitalized, "Home & spaces",
         "Sources/SevraApp/ContentViews.swift",
         type == "app"
-          ? ["Default", "Disabled", "Missing", "Changed version", "Missing view"] : common,
+          ? ["Default", "Disabled", "Missing", "Changed version", "Missing view"]
+          : type == "form" ? common + ["Runs a tool"] : common,
         "Ordinary-space component, using the same renderer as Home.", ["space." + type])
     }
     for (id, title) in [

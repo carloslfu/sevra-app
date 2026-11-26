@@ -2,7 +2,7 @@ import Foundation
 
 enum Schema {
   static let applicationID = 0x5356_5241
-  static let version = 35
+  static let version = 36
   /// One transaction, so a crash leaves no partial schema and a new workbook costs one flush.
   static let sql = """
     PRAGMA application_id=1398166081;
@@ -120,8 +120,9 @@ enum Schema {
     CREATE TABLE automation_occurrences(id TEXT PRIMARY KEY,activation_id TEXT NOT NULL REFERENCES automation_activations(id),definition_id TEXT NOT NULL REFERENCES app_definitions(id),generation INTEGER NOT NULL CHECK(typeof(generation)='integer' AND generation>0 AND generation<=1000000000),slot_key TEXT NOT NULL,due TEXT NOT NULL,slot TEXT NOT NULL,state TEXT NOT NULL CHECK(state IN ('pending','skipped','dispatched')),detail TEXT NOT NULL,source_id TEXT NOT NULL REFERENCES items(id),decision_source TEXT NOT NULL REFERENCES items(id),created TEXT NOT NULL,updated TEXT NOT NULL,UNIQUE(activation_id,definition_id,slot_key));
     CREATE UNIQUE INDEX automation_occurrences_pending ON automation_occurrences(activation_id) WHERE state='pending';
     CREATE INDEX automation_occurrences_page ON automation_occurrences(activation_id,due,id);
-    CREATE TABLE automation_outbox(sequence INTEGER PRIMARY KEY,event_id TEXT NOT NULL UNIQUE,activation_id TEXT NOT NULL REFERENCES automation_activations(id),generation INTEGER NOT NULL CHECK(typeof(generation)='integer' AND generation>0 AND generation<=1000000000),kind TEXT NOT NULL CHECK(kind IN ('authorized','paused','planned','dispatched','dispatch_skipped')),source_id TEXT NOT NULL REFERENCES items(id),payload TEXT NOT NULL,created TEXT NOT NULL);
+    CREATE TABLE automation_outbox(sequence INTEGER PRIMARY KEY,event_id TEXT NOT NULL UNIQUE,activation_id TEXT NOT NULL REFERENCES automation_activations(id),generation INTEGER NOT NULL CHECK(typeof(generation)='integer' AND generation>0 AND generation<=1000000000),kind TEXT NOT NULL CHECK(kind IN ('authorized','paused','planned','checked','dispatched','dispatch_skipped')),source_id TEXT NOT NULL REFERENCES items(id),payload TEXT NOT NULL,created TEXT NOT NULL);
     CREATE INDEX automation_outbox_activation ON automation_outbox(activation_id,sequence);
+    CREATE TABLE automation_checks(activation_id TEXT PRIMARY KEY REFERENCES automation_activations(id),finding INTEGER NOT NULL CHECK(finding IN (0,1)),rows INTEGER NOT NULL CHECK(typeof(rows)='integer' AND rows>=0),source_id TEXT NOT NULL REFERENCES items(id),updated TEXT NOT NULL);
     CREATE TABLE automation_runs(occurrence_id TEXT NOT NULL UNIQUE REFERENCES automation_occurrences(id),activation_id TEXT NOT NULL REFERENCES automation_activations(id),run_id TEXT NOT NULL PRIMARY KEY REFERENCES workflow_runs(id),definition_id TEXT NOT NULL REFERENCES app_definitions(id),authorization_source TEXT NOT NULL REFERENCES items(id),dispatch_source TEXT NOT NULL REFERENCES items(id),generation INTEGER NOT NULL CHECK(typeof(generation)='integer' AND generation>0 AND generation<=1000000000),created TEXT NOT NULL);
     CREATE INDEX automation_runs_activation ON automation_runs(activation_id,run_id);
     CREATE TABLE automatic_roots(id TEXT PRIMARY KEY,kind TEXT NOT NULL CHECK(kind IN ('calendar','business')),occurrence_id TEXT UNIQUE REFERENCES automation_occurrences(id),commit_id TEXT UNIQUE REFERENCES committed_changes(id),policy TEXT NOT NULL,source_id TEXT NOT NULL REFERENCES items(id),created TEXT NOT NULL,CHECK((kind='calendar' AND occurrence_id IS NOT NULL AND commit_id IS NULL AND policy='automation-causality-v1') OR (kind='business' AND occurrence_id IS NULL AND commit_id IS NOT NULL AND policy='business-input-v1')));
