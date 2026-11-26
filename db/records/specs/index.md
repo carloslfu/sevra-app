@@ -2,16 +2,16 @@
 type: index
 scope: type-folder
 folder: records/specs
-updated: 2026-11-26T03:41:43.800392Z
+updated: 2026-11-26T16:57:33Z
 ---
 
 # records/specs
 
+- [[records/specs/splash-integration]] — Python-free Swift integration of pinned upstream Splash, explicit behavior mapping, differential verification and measured adoption gates.
 - [[records/specs/inventory-event-state]] — Retired November 25, 2026: inventory state at business batches, removed with stock movements and stock threshold automations.
 - [[records/specs/condition-transition-inputs]] — Retired November 25, 2026: durable observation inputs for stock condition transitions, removed with stock threshold automations.
 - [[records/specs/intelligence]] — Native Splash engine and Swift adapter; the model works through seven general tools that read and change the workbook with Undo; on-device voice and declarative spaces.
 - [[records/specs/product]] — Product loop (chat in, a kept database, spaces out) and the native two-pane workbook UX, conversation, viewers, intake and application engine that serve it.
-- [[records/specs/splash-integration]] — Python-free Swift integration of pinned upstream Splash, explicit behavior mapping, differential verification and measured adoption gates.
 - [[records/specs/persistence-readiness]] — Required complete, causal and replayable local persistence for future syncing; cloud, transport, replica coordination and a new conflict resolver remain out of scope.
 - [[records/specs/conversation-context]] — Automatic compaction, preserved conversation history, authoritative continuation state and measured larger-context qualification.
 - [[records/specs/distribution]] — Independent source build, native bundle, CLI skill, portable format and end-to-end release gates.

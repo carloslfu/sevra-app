@@ -2,19 +2,29 @@
 type: operational
 id: 01m825qdf8dt9kd5yaxyawt1cc
 created: 2026-11-22T17:44:08.936320+00:00
-updated: 2026-11-22T17:44:08.956730+00:00
-summary: 'Debug-mode chat timing and one measured five-message conversation: 96% of reply time is the engine, and the number of model calls per message decides it.'
+updated: 2026-11-26T16:57:33.000000+00:00
+summary: 'Chat timing, one five-message run on Splash 1.6.1 at a fixed 12 GiB: 96% of reply time is the engine and model calls per message decide it. Per-call figures predate the 1.7 engines.'
 title: Chat response time
 ---
 # Chat response time: where each turn's time goes
 
 Owner request: [[sources/notes/2026/11/chat-response-time-analysis]]. Status: debug timing built, and one five-message conversation measured on November 22, 2026. Ways to make it faster are left for later, as he asked. Nothing here changes behavior, prompts or engine settings.
 
+## Since this measurement, November 26
+
+The figures below are from one run on Splash 1.6.1 at a fixed 12 GiB engine budget. Read them as that run, not as the app today:
+
+- **The engine moved to 1.7.1, then 1.7.2 and 1.7.3** ([[records/specs/splash-integration]]). On the 1.7.1 timing conversation the time before a call's first token averaged 0.85 s against 1.63 s on 1.6.1, and decoding rose from 50.7 to 92.9 tokens a second ([[records/plans/splash-1-7-1-upgrade]], Step 8).
+- **The app no longer runs at a fixed 12 GiB.** Since November 25 it sizes the engine at each start to free memory less 4 GiB, from 8 to 20 GiB ([[records/plans/engine-memory-sliding-size]]). The timing harness still sets 12 GiB, so its runs measure 12 GiB, not what a Mac with room gets.
+- **More memory mostly buys writing speed.** The memory runs found decoding about twice as fast at 20 GiB as at 12, and prompt reading almost unchanged above 8 GiB. They timed long prompts, not each call's first token.
+- **"About 1 second before the first token" is not a fixed cost.** Over the 1.7.1 calls the time rises steeply over the first few hundred computed tokens and then slowly: 0.33 s for 32 tokens, 1.06 s for 740, 1.72 s for 3,349. A straight line through it gives the "fixed" second.
+- **Not measured:** the time before the first token at 16 to 20 GiB, and what the engine spends it on. The engine logs a breakdown of each first token on its stderr; no saved run has kept it.
+
 ## The answer in short
 
 In the measured conversation, 96% of the time from Send to the finished reply was the engine: reading the prompt (28%), hidden reasoning (33%) and writing the tool call or answer (35%). Waiting for the engine to finish starting took 3%, only on the first message. Everything the app does around the model, including the database, tools, prompt building and context maintenance, took 1.1%.
 
-What decides how long a message takes is how many model calls the model chooses to make. Each call costs about 1 second before its first token, plus its reasoning and its output. Two of the five messages used 6 and 4 calls instead of 1, and those later calls were 60% of the whole conversation's time.
+What decides how long a message takes is how many model calls the model chooses to make. In this run each call cost about 1 second before its first token, plus its reasoning and its output. Two of the five messages used 6 and 4 calls instead of 1, and those later calls were 60% of the whole conversation's time.
 
 The conversation's length does not make a message slower by itself: each follow-up resumes the previous turn's cache. What a follow-up pays again is the previous turn's new entries, including its tool calls and results, and about 630 tokens of host state and request after them.
 
@@ -80,7 +90,7 @@ The engine start took 6.07 s from opening the workbook: 1.38 s of session setup 
 
 ### Each model call
 
-- **Before the first token: about 1 second, plus 0.38 ms per token not already computed.** Over the 13 calls the engine's prefill fits 1.02 s + 0.38 ms per computed token, from 0.75 s for 153 tokens to 2.30 s for 3,741. Time to first token equals prefill within a few milliseconds, and the engine admitted each request within 26 ms. Prompt length itself, 4,400 to 9,400 tokens here, added nothing measurable. The fixed second is inside the engine, and the host cannot see its parts.
+- **Before the first token: about 1 second, plus 0.38 ms per token not already computed.** A straight-line fit; the 1.7.1 calls show a curve, see "Since this measurement". Over the 13 calls the engine's prefill fits 1.02 s + 0.38 ms per computed token, from 0.75 s for 153 tokens to 2.30 s for 3,741. Time to first token equals prefill within a few milliseconds, and the engine admitted each request within 26 ms. Prompt length itself, 4,400 to 9,400 tokens here, added nothing measurable. The fixed second is inside the engine, and the host cannot see its parts.
 - **Decoding: about 50 tokens a second.** 2,264 tokens in 45.5 s: 605 decode cycles of about 75 ms, each yielding 3.7 tokens with 39% of draft tokens accepted. The host's grammar masks, computed synchronously at every cycle, took 1.29 s of that.
 - **Hidden reasoning is the largest part.** 1,247 of the 2,264 generated tokens were reasoning. The first decision of a chat turn may reason 64 tokens, and later decisions 512. The search call in "tell me more about the first one" used all 512, 8.5 s on its own, the largest single item in the conversation.
 - **Output.** The first answer text appears 0.35 to 0.59 s after reasoning ends, the time to write the opening of the `finish` call before its answer. A long answer is written at decode speed: the 232-token capability list took 4.5 s.

@@ -3,12 +3,14 @@ type: spec
 meta-type: conclusion
 id: 01m5wps1qcharh0qv8vq40wbjr
 created: 2026-10-26T18:15:17.996137+00:00
-updated: 2026-11-25T03:08:08.668040+00:00
+updated: 2026-11-26T16:57:33.000000+00:00
 summary: Python-free Swift integration of pinned upstream Splash, explicit behavior mapping, differential verification and measured adoption gates.
 title: Native Splash integration and upgrades
 status: reviewed
 ---
 # Native Splash integration and upgrades
+
+Revision 15, November 26, 2026. I18 states the engine memory the app uses: sized from free memory at each start, 8 to 20 GiB, since November 25. The 12 GiB figures elsewhere in this spec are qualification, header and harness settings. No behavior changed.
 
 Revision 14, November 25, 2026. At the owner's word ([[sources/notes/2026/11/splash-1-7-3-upgrade-approval]]) the native preview pin moves to Splash 1.7.3, protocol 16. See "Splash 1.7.3, November 25" below.
 
@@ -50,6 +52,19 @@ I04. Keep Qwen3.6-35B-A3B 4-bit and its matching DFlash2 draft as the first mode
 Pin the original target and draft bytes. No model catalog, unrelated weights or
 automatic model change accompanies the engine migration. Model data stays outside
 workbooks. Keep the old installation usable until the new one verifies.
+
+I18. Engine memory in the app. At each start the app gives the engine free memory less
+4 GiB, rounded down to a whole GiB, from 8 to 20 GiB (`EngineMemory` in
+`NativeProductResources.swift`). It restarts larger when the app comes forward or a reply
+ends with at least 4 GiB more room, only from 12 GiB or less, and memory pressure or the
+ten-minute idle release stops it, after which the next start chooses again. Each request's
+metrics record the size in `requestedMemoryBytes`. `sevra header make` and the harnesses keep
+a fixed 12 GiB, so their timings measure 12 GiB. At 12 GiB and one lane the expert store holds
+7,901 MiB of the model's 17,281 MiB of routed experts and the rest stream from the model files; at 20 GiB
+nearly all stay. Measured on the 48 GiB M5 Pro: decoding about twice as fast at 20 GiB as at
+12, prompt reading almost unchanged above 8 GiB. Plans:
+[[records/plans/engine-memory-by-free-memory]], then
+[[records/plans/engine-memory-sliding-size]].
 
 ## Swift responsibilities
 
@@ -350,7 +365,7 @@ The workbook agent owns tool schemas and conversation values. SevraProduct is th
 
 The app uses the verified installed assembly, including its separate tokenizer and draft folders. Settings downloads into managed storage by default and can explicitly reuse a complete existing compatible model folder in place. Reused originals must remain available. Setup and inference are serialized; cancellation preserves resumable bytes and never publishes an incomplete selection. New sessions validate selected source identities and original files: each launch checks sizes and recorded identities and hashes only a file whose identity moved. Verify model files hashes every file of an existing pinned assembly before considering a download; this preserves explicit reuse without creating a second weight copy. Only a missing or changed original starts a download, repaired into managed snapshots with the previous selection retained until the replacement verifies. Any other failure, such as a busy lock, stops setup with its error.
 
-The app and CLI package the unchanged Splash helper and Metal files, native grammar library, resource bundles and dependency notices. Runtime lookups resolve only installed locations. Missing packaged resources must fail even when the contributor build tree exists. The preview has its own bundle identifier and does not register workbook associations. Candidate builds keep automatic compaction disabled until its adoption gate passes. The 32K context, bounded512 reasoning and 12 GiB engine budget remain qualification settings, not a broad hardware performance claim.
+The app and CLI package the unchanged Splash helper and Metal files, native grammar library, resource bundles and dependency notices. Runtime lookups resolve only installed locations. Missing packaged resources must fail even when the contributor build tree exists. The preview has its own bundle identifier and does not register workbook associations. Candidate builds keep automatic compaction disabled until its adoption gate passes. The 32K context, bounded512 reasoning and 12 GiB engine budget remain qualification settings, not a broad hardware performance claim. The app itself sizes engine memory from free memory (I18).
 
 The native product must be tested with build-folder access denied, missing and altered resources, actual model setup and complete workbook jobs. Code signatures and runtime hashes must agree after packaging. CI additionally builds the preview from a fresh checkout and checks installed paths, grammar loading, signatures and missing resources without GPU qualification. Local checks separately exercise Metal and missing-model guidance. Performance adoption still requires the matched reference comparison in this specification.
 
