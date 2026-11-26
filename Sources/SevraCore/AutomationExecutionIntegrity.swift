@@ -50,11 +50,6 @@ extension Workbook {
       try db.scalar(
         "SELECT EXISTS(SELECT 1 FROM automation_occurrences o LEFT JOIN automation_runs a ON a.occurrence_id=o.id WHERE (o.state='dispatched' AND a.occurrence_id IS NULL) OR (o.state!='dispatched' AND a.occurrence_id IS NOT NULL))"
       ).int == 0, "automation_integrity", "A dispatched occurrence lost its exact run.")
-    try require(
-      try db.scalar(
-        "SELECT EXISTS(SELECT 1 FROM condition_candidates c LEFT JOIN automation_runs a ON a.candidate_id=c.id WHERE (c.state='dispatched' AND a.run_id IS NULL) OR (c.state!='dispatched' AND a.run_id IS NOT NULL))"
-      ).int == 0,
-      "automation_integrity", "A dispatched condition lost its exact workflow binding.")
     var after = ""
     while true {
       let rows = try db.execute(
@@ -71,13 +66,6 @@ extension Workbook {
           DefinitionDescriptor(saved.content), historical: true)
         let descriptor = try DefinitionDescriptor(retained.workflow.content)
         let normalized = Value.object(try definitionArguments(descriptor, retained.arguments))
-        if binding["candidate_id"] != .null {
-          try verifyConditionRun(
-            binding, run: run, invocation: invocation, dispatch: dispatch, authority: authority,
-            saved: saved)
-          after = run["id"].text
-          continue
-        }
         let occurrence =
           try db.execute(
             "SELECT * FROM automation_occurrences WHERE id=?", [binding["occurrence_id"]]
@@ -168,8 +156,7 @@ extension Workbook {
             && source.data["activationID"] == binding["activation_id"]
             && source.data["definitionID"] == binding["definition_id"]
             && source.data["state"] == .string("armed")
-            && [.string("foreground-drafts-v1"), .string("condition-drafts-v1")].contains(
-              source.data["policy"])
+            && source.data["policy"] == .string("foreground-drafts-v1")
             && source.data["generation"].int! >= binding["generation"].int!
             && (source.id == binding["authorization_source"].text
               || source.data["resumedRunID"] == run["id"])

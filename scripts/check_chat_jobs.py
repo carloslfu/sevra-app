@@ -275,19 +275,6 @@ def levels(book):
     book.new_table('Reorder levels', [('part', 'Part', 'text'), ('level', 'Level', 'decimal')], LEVELS)
 
 
-def report_workflow(book):
-    """A saved function and a workflow that evaluates it, for a rule to run."""
-    import uuid
-    function = book.run('definition-save', str(uuid.uuid4()), {
-        'kind': 'function', 'title': 'Report count', 'description': 'Synthetic fixture.',
-        'parameters': [], 'payload': {'expression': '3'}}, 'new', str(uuid.uuid4()))
-    book.run('definition-save', str(uuid.uuid4()), {
-        'kind': 'workflow', 'title': 'Low-stock report', 'description': 'Synthetic fixture.', 'parameters': [],
-        'payload': {'readPolicy': 'latest-at-step', 'steps': [{
-            'id': 'calculate', 'kind': 'evaluate', 'binding': {'mode': 'exact', 'versionID': function['id']},
-            'arguments': {}}]}}, 'new', str(uuid.uuid4()))
-
-
 def script_check(run):
     problems = complete(run)
     stock = {r['part']: Decimal(r['stock']) for r in run['book'].values('Parts') or []}
@@ -529,17 +516,6 @@ def form_check(run):
         problems.append('no form definition, app or saved tool with the fields Part and Level was saved')
     if not rows_are(run['book'].values('Reorder levels'), LEVELS):
         problems.append('Reorder levels changed while the form was built')
-    return problems
-
-
-def rule_check(run):
-    problems = complete(run)
-    rules = [d for d in run['saved'].get('newDefinitions', []) if d.get('kind') == 'automation']
-    if not rules:
-        return problems + ['no saved rule (automation definition) was found']
-    text = json.dumps([run['book'].run('definition-read', d['id']) for d in rules]).casefold()
-    if 'brass bolts' not in text or not has(text, 10) or '<' not in text:
-        problems.append('the saved rule is not brass bolts below 10')
     return problems
 
 
@@ -996,12 +972,6 @@ JOBS = [
     Job('build.form', 'A form (or an app that is one) named New reorder level is saved for the Reorder levels table, and the table itself is unchanged. Submitting the form is not exercised by this harness.',
         'Create a form named New reorder level with the fields Part and Level that adds a row to the Reorder levels table.',
         form_check, lambda book: levels(book) or {}, None, timeout=900),
-    Job('build.rule', 'A rule is saved, not enabled, that alerts when the stock of brass bolts is below 10.',
-        'Create a rule that alerts me when the stock of brass bolts falls below 10.',
-        rule_check, None, None, timeout=600),
-    Job('build.rule_for_workflow', 'A rule is saved, not enabled, that runs the Low-stock report when the stock of brass bolts is below 10. The workbook holds that workflow, which the first rule job lacks.',
-        'Create a rule that runs the Low-stock report workflow when the stock of brass bolts falls below 10. Do not enable it.',
-        rule_check, lambda book: report_workflow(book) or {}, None, timeout=600),
     Job('build.saved_tool', 'A workbook tool named low_stock is saved, and calling it lists exactly Hex nuts and Hex key set.',
         'Save a tool named low_stock that lists the parts in the Parts table whose stock is below their reorder level.',
         tool_check, lambda book: parts(book) or {}, None),

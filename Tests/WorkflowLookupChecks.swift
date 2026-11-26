@@ -192,26 +192,6 @@ func checkWorkflowLookups(at root: URL) {
     _ = try book.planAutomationOccurrences(session.planning, through: first, token: "plan-1")
     let run = try book.dispatchAutomationOccurrence(session, observedAt: first, token: "run-1")
     try expect(run["runID"].string != nil)
-    // A condition run retains its definition the same way.
-    let counted = try book.recordBusinessObservation(title: "Counted opening inventory")
-    try book.setOpeningBalance(
-      subject: "parts", quantity: "20", effective: "2026-01-01", sourceID: counted.id)
-    let watched = try book.authorizeInventoryConditionExecution(
-      conditionAutomation(book, workflow: workflow, arguments: args).id, expectedGeneration: 0,
-      after: automationDate("2026-12-31T00:00:00Z"), token: "watch", actor: .human("synthetic"))
-    func drain() throws {
-      while try book.stepAutomationCondition(watched, through: "2026-12-31", token: identifier())[
-        "hasMore"] == .bool(true)
-      {}
-    }
-    try drain()
-    _ = try book.movement(
-      subject: "parts", quantity: "-15", occurrence: "low", effective: "2026-02-01",
-      input: book.recordBusinessObservation(title: "New counted input").id, status: "accepted")
-    try drain()
-    let low = try book.dispatchInventoryCondition(
-      watched, observedAt: automationDate("2027-01-01T00:00:00Z"), token: "run-condition")
-    try expect(low["runID"].string != nil)
     _ = try book.updateDatasetDefinition(
       table.id, expectedVersion: 1, expectedDefinitionID: table.definitionID,
       title: "Renamed catalog")

@@ -73,7 +73,7 @@ func checkChats(at root: URL) {
     try expect(first.count == 1 && first[0].title == "New chat" && first[0].messageCount == 0)
     try expect(
       try b.scalarForCheck("PRAGMA user_version") == .number(Double(Schema.version))
-        && Schema.version == 33)
+        && Schema.version == 34)
     let start = first[0].id
 
     // The first message a person sends names the chat; later ones and replies do not.

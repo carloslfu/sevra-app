@@ -288,7 +288,6 @@ extension Workbook {
     try verifyApplicationDefinitions()
     try verifyWorkflows()
     try verifyAutomationPlanning()
-    try verifyConditionInputStorage()
     try verifyItemDerivations()
     try verifyBusinessInputDeclarations()
     try verifyFormDrafts()

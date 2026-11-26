@@ -65,9 +65,6 @@ import SevraProduct
     if command == "schedule-preview" {
       return try runSchedulePreview(args, cancellation: cancellation)
     }
-    if command == "condition-preview" {
-      return try runConditionPreview(args, cancellation: cancellation)
-    }
     func arg(_ i: Int) throws -> String {
       guard args.count > i else { throw SevraError("usage", help) }
       return args[i]
@@ -159,20 +156,8 @@ import SevraProduct
       return try book.automaticDerivationAncestry(
         inputs: Array(args.dropFirst(2)), cancellation: cancellation)
     }
-    if [
-      "condition-create", "condition-step", "condition-state", "condition-observations",
-      "condition-dismiss", "condition-inputs", "condition-origins", "condition-causes",
-    ].contains(command) {
-      return try runInventoryCondition(args, book: book, cancellation: cancellation)
-    }
     if ["business-batches", "business-batch"].contains(command) {
       return try runBusinessFeed(args, book: book, cancellation: cancellation)
-    }
-    if command == "inventory-at-batch" {
-      try require(
-        args.count == 5, "usage", "inventory-at-batch WORKBOOK BATCH_ID SUBJECT EFFECTIVE_THROUGH")
-      return try book.inventoryAtBusinessBatch(
-        args[2], subject: args[3], effectiveThrough: args[4], cancellation: cancellation)
     }
     if command == "automation-run-once" {
       return try await runAutomationOnce(args, book: book, cancellation: cancellation)
@@ -943,7 +928,6 @@ import SevraProduct
     balance WORKBOOK SUBJECT [AS_OF] | calculate EXPRESSION [VALUES_JSON]
     schedule-preview SCHEDULE_JSON_OR_@FILE AFTER_ISO [COUNT] [HORIZON_DAYS]
     automation-preview WORKBOOK EXACT_DEFINITION_ID AFTER_ISO [COUNT] [HORIZON_DAYS]
-    condition-preview RULE_JSON_OR_@FILE OBSERVATIONS_JSON_OR_@FILE
     automation-activation WORKBOOK ACTIVATION_ID
     automation-list WORKBOOK [AFTER_ID_OR_-] [LIMIT]
     automation-occurrences WORKBOOK ACTIVATION_ID [AFTER_ID_OR_-] [LIMIT]
@@ -971,18 +955,9 @@ import SevraProduct
     commits WORKBOOK [LIMIT] | reconstruct WORKBOOK NEW_WORKBOOK
     business-batches WORKBOOK [AFTER_BATCH_ID|-] [LIMIT] [SCOPE_KIND SCOPE_KEY]
     business-batch WORKBOOK BATCH_ID [AFTER_ORDINAL|-] [LIMIT]
-    inventory-at-batch WORKBOOK BATCH_ID SUBJECT EFFECTIVE_THROUGH
-    condition-create WORKBOOK SUBJECT RULE_JSON EFFECTIVE_THROUGH TOKEN
-    condition-step WORKBOOK CONSUMER_ID THROUGH TOKEN
-    condition-state WORKBOOK CONSUMER_ID
     business-origins WORKBOOK ITEM_ID [ITEM_ID...]
     automation-ancestry WORKBOOK ITEM_ID [ITEM_ID...]
     automation-causality WORKBOOK RUN_ID
-    condition-observations WORKBOOK CONSUMER_ID [AFTER_ID|-] [LIMIT]
-    condition-inputs WORKBOOK OBSERVATION_ID [AFTER_INPUT_ID|-] [LIMIT]
-    condition-causes WORKBOOK OBSERVATION_ID
-    condition-origins WORKBOOK OBSERVATION_ID
-    condition-dismiss WORKBOOK CANDIDATE_ID REASON TOKEN
     table-schema WORKBOOK DATASET_ID
     table-schema-history WORKBOOK DATASET_ID [BEFORE_VERSION]
     table-edit-schema WORKBOOK DATASET_ID BASE_VERSION BASE_DEFINITION_ID OPTIONS_JSON TOKEN

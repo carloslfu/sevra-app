@@ -14,10 +14,6 @@ struct AutomationScheduleEditor: View {
   @State private var choosingWorkflow = true
   @State private var title = ""
   @State private var arguments: Value = .object([:])
-  @State private var trigger = "calendar"
-  @State private var subject = ""
-  @State private var comparison = "<"
-  @State private var threshold = "10"
   // With TZ=UTC Foundation names the zone GMT, which the schedule refuses as unnamed.
   @State private var zone =
     TimeZone.current.identifier == "GMT" ? "UTC" : TimeZone.current.identifier
@@ -86,100 +82,64 @@ struct AutomationScheduleEditor: View {
             }
           }
           Divider()
-          LabeledContent("When") {
-            Picker("When", selection: $trigger) {
-              Text("At a scheduled time").tag("calendar")
-              Text("When inventory crosses a threshold").tag("inventory")
+          LabeledContent("Repeat") {
+            Picker("Repeat", selection: $recurrence) {
+              Text("Daily").tag("daily")
+              Text("Weekly").tag("weekly")
+              Text("Monthly").tag("monthly")
+              Text("Yearly").tag("yearly")
             }.labelsHidden()
           }
-          if trigger == "inventory" {
-            LabeledContent("Subject") {
-              TextField("Inventory subject", text: $subject)
-                .accessibilityLabel("Inventory subject")
-            }
-            LabeledContent("Stock becomes") {
-              Picker("Stock becomes", selection: $comparison) {
-                Text("Less than").tag("<")
-                Text("At most").tag("<=")
-                Text("Greater than").tag(">")
-                Text("At least").tag(">=")
-                Text("Equal to").tag("=")
-                Text("Different from").tag("<>")
-              }.labelsHidden()
-            }
-            LabeledContent("Quantity") {
-              TextField("Quantity", text: $threshold).accessibilityLabel("Quantity")
-            }
-            Text(
-              "Enabling starts from the current stock. An already-true rule does not run until it becomes false and crosses again. Unknown stock waits for evidence."
-            )
-            .readingFont(.caption).foregroundStyle(.secondary)
-          } else {
-            LabeledContent("Repeat") {
-              Picker("Repeat", selection: $recurrence) {
-                Text("Daily").tag("daily")
-                Text("Weekly").tag("weekly")
-                Text("Monthly").tag("monthly")
-                Text("Yearly").tag("yearly")
-              }.labelsHidden()
-            }
-            LabeledContent("Time") {
-              DatePicker("Time", selection: clockTime, displayedComponents: .hourAndMinute)
-                .labelsHidden().environment(\.timeZone, clockCalendar.timeZone)
-                .accessibilityValue(String(format: "%02d:%02d", hour, minute) + " " + zone)
-                .help("Uses the time zone below, even when this Mac’s time zone changes")
-            }
-            LabeledContent("Time zone") {
-              TextField("America/Bogota or UTC", text: $zone)
-                .accessibilityLabel("Time zone")
-            }
-            if recurrence == "weekly" {
-              HStack {
-                ForEach(
-                  Array(["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"].enumerated()),
-                  id: \.offset
-                ) { index, name in
-                  Toggle(
-                    name,
-                    isOn: Binding(
-                      get: { weekdays.contains(index + 1) },
-                      set: { enabled in
-                        if enabled {
-                          weekdays.insert(index + 1)
-                        } else {
-                          weekdays.remove(index + 1)
-                        }
-                      })
-                  ).toggleStyle(.button)
-                }
-              }
-            }
-            if recurrence == "monthly" {
-              Toggle("Last day of the month", isOn: $lastDay)
-              if !lastDay { Stepper("Day: \(day)", value: $day, in: 1...31) }
-            }
-            if recurrence == "yearly" {
-              Picker("Month", selection: $month) {
-                ForEach(Array(clockCalendar.monthSymbols.enumerated()), id: \.offset) {
-                  index, name in
-                  Text(name).tag(index + 1)
-                }
-              }
-              Stepper("Day: \(day)", value: $day, in: 1...31)
-            }
-            Text(
-              "Missing dates are skipped. Repeated clock times run once; skipped clock times use the next valid time. The explicit time zone stays fixed when you travel."
-            )
-            .readingFont(.caption).foregroundStyle(.secondary)
+          LabeledContent("Time") {
+            DatePicker("Time", selection: clockTime, displayedComponents: .hourAndMinute)
+              .labelsHidden().environment(\.timeZone, clockCalendar.timeZone)
+              .accessibilityValue(String(format: "%02d:%02d", hour, minute) + " " + zone)
+              .help("Uses the time zone below, even when this Mac’s time zone changes")
           }
-          if previewContent == content {
-            if trigger == "inventory" {
-              Text(
-                "When \(subject) becomes \(comparison) \(threshold). Saving keeps this rule inactive."
-              )
-            } else {
-              ScheduleOccurrencePreview(calendar: preview?["calendar"])
+          LabeledContent("Time zone") {
+            TextField("America/Bogota or UTC", text: $zone)
+              .accessibilityLabel("Time zone")
+          }
+          if recurrence == "weekly" {
+            HStack {
+              ForEach(
+                Array(["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"].enumerated()),
+                id: \.offset
+              ) { index, name in
+                Toggle(
+                  name,
+                  isOn: Binding(
+                    get: { weekdays.contains(index + 1) },
+                    set: { enabled in
+                      if enabled {
+                        weekdays.insert(index + 1)
+                      } else {
+                        weekdays.remove(index + 1)
+                      }
+                    })
+                ).toggleStyle(.button)
+              }
             }
+          }
+          if recurrence == "monthly" {
+            Toggle("Last day of the month", isOn: $lastDay)
+            if !lastDay { Stepper("Day: \(day)", value: $day, in: 1...31) }
+          }
+          if recurrence == "yearly" {
+            Picker("Month", selection: $month) {
+              ForEach(Array(clockCalendar.monthSymbols.enumerated()), id: \.offset) {
+                index, name in
+                Text(name).tag(index + 1)
+              }
+            }
+            Stepper("Day: \(day)", value: $day, in: 1...31)
+          }
+          Text(
+            "Missing dates are skipped. Repeated clock times run once; skipped clock times use the next valid time. The explicit time zone stays fixed when you travel."
+          )
+          .readingFont(.caption).foregroundStyle(.secondary)
+          if previewContent == content {
+            ScheduleOccurrencePreview(calendar: preview?["calendar"])
           }
           Text(
             "Save keeps this automation in the workbook. Enable on this Mac is a separate step. Business changes still require review."
@@ -248,28 +208,9 @@ struct AutomationScheduleEditor: View {
       ])
     default: rule = .object(["kind": .string("daily")])
     }
-    if trigger == "inventory" {
-      return .object([
-        "kind": .string("automation"), "title": .string(title),
-        "description": .string(description(Self.inventoryDescription)),
-        "parameters": .array([]),
-        "payload": .object([
-          "policy": .string("inventory-condition-drafts-v1"),
-          "workflow": .object(["mode": .string("exact"), "versionID": .string(workflow?.id ?? "")]),
-          "arguments": arguments,
-          "condition": .object([
-            "subject": .string(subject),
-            "rule": .object([
-              "policy": .string("native-condition-v1"), "scope": .string("inventory:" + subject),
-              "operator": .string(comparison), "threshold": .string(threshold),
-            ]),
-          ]),
-        ]),
-      ])
-    }
     return .object([
       "kind": .string("automation"), "title": .string(title),
-      "description": .string(description(Self.calendarDescription)),
+      "description": .string(description),
       "parameters": .array([]),
       "payload": .object([
         "policy": .string("calendar-drafts-v1"),
@@ -283,14 +224,9 @@ struct AutomationScheduleEditor: View {
     ])
   }
   private static let calendarDescription = "Prepare this saved workflow on a calendar schedule."
-  private static let inventoryDescription =
-    "Prepare this workflow when the inventory rule crosses its threshold."
-  /// A written description survives an edit. The stock wording follows the trigger.
-  private func description(_ stock: String) -> String {
-    guard let saved = existing?.description,
-      ![Self.calendarDescription, Self.inventoryDescription].contains(saved)
-    else { return stock }
-    return saved
+  /// A written description survives an edit.
+  private var description: String {
+    existing?.description ?? Self.calendarDescription
   }
   private func argument(_ parameter: Value) -> Binding<Value> {
     let key = parameter["id"].text
@@ -318,12 +254,6 @@ struct AutomationScheduleEditor: View {
     title = existing.title
     arguments = existing.payload["arguments"]
     logicalID = existing.logicalID
-    if existing.payload["policy"] == .string("inventory-condition-drafts-v1") {
-      trigger = "inventory"
-      subject = existing.payload["condition"]["subject"].text
-      comparison = existing.payload["condition"]["rule"]["operator"].text
-      threshold = existing.payload["condition"]["rule"]["threshold"].text
-    }
     let schedule = existing.payload["schedule"]
     zone = schedule["timeZone"].text
     hour = schedule["hour"].int ?? 9

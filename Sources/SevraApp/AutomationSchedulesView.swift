@@ -184,11 +184,6 @@ struct AutomationScheduleDetail: View {
   @Environment(\.dismiss) private var dismiss
   @State private var preview: Value?
   @State private var state: Value = .null
-  @State private var conditionState: Value = .null
-  @State private var conditionQueue: Value = .null
-  @State private var confirmingFromNow = false
-  @State private var dismissing: String?
-  @State private var dismissalReason = ""
   @State private var inspectionOwner = UUID()
   @State private var workflow: ApplicationDefinition?
   @State private var grant: AutomationDeviceGrant?
@@ -201,10 +196,6 @@ struct AutomationScheduleDetail: View {
   @State private var enabledVersion: Int?
   @State private var loadedDefinitionID: String?
   private var shown: ApplicationDefinition { updatedDefinition ?? definition }
-  private var isCondition: Bool {
-    shown.payload["policy"] == .string("inventory-condition-drafts-v1")
-  }
-  private var waitingCount: Int { conditionState["pendingCandidates"].int ?? 0 }
   var body: some View {
     VStack(alignment: .leading, spacing: 16) {
       Text(shown.title).readingFont(.title2).accessibilityAddTraits(.isHeader)
@@ -219,48 +210,7 @@ struct AutomationScheduleDetail: View {
               parameters: workflow.parameters.array,
               arguments: shown.payload["arguments"], workspace: workspace)
           }
-          if isCondition {
-            let condition = shown.payload["condition"]
-            Text(
-              "When \(condition["subject"].text) stock becomes \(condition["rule"]["operator"].text) \(condition["rule"]["threshold"].text)"
-            ).readingFont(.headline)
-            Text(
-              "Initial enable establishes current stock. Already-true stock waits for a new crossing. Resume keeps every saved transition and checks missed changes."
-            )
-            .readingFont(.caption).foregroundStyle(.secondary)
-            if conditionState["lastCompleteObservation"]["quantity"].string != nil {
-              Text(
-                "Last observed stock: " + conditionState["lastCompleteObservation"]["quantity"].text
-                  + " · "
-                  + DisplayText.date(
-                    conditionState["lastCompleteObservation"]["effectiveThrough"].text))
-            }
-            if waitingCount > 0 {
-              Text("\(waitingCount) saved transitions waiting").readingFont(.headline)
-                .accessibilityAddTraits(.isHeader)
-              DisclosureGroup("Review waiting transitions") {
-                ForEach(conditionQueue["candidates"].array, id: \.text) { candidate in
-                  HStack {
-                    Text(
-                      candidate["observation"]["quantity"].text + " · "
-                        + DisplayText.date(candidate["observation"]["effectiveThrough"].text))
-                    Spacer()
-                    Button("Dismiss…") {
-                      dismissing = candidate["candidateID"].text
-                      dismissalReason = ""
-                    }
-                  }
-                }
-                if conditionQueue["hasMore"] == .bool(true) {
-                  Text(
-                    "More transitions remain saved. Dismissed entries leave room to inspect the next ones."
-                  ).readingFont(.caption)
-                }
-              }
-            }
-          } else {
-            ScheduleOccurrencePreview(calendar: preview?["calendar"])
-          }
+          ScheduleOccurrencePreview(calendar: preview?["calendar"])
           if let grant {
             Text(
               grantIsCurrent
@@ -304,58 +254,13 @@ struct AutomationScheduleDetail: View {
       .task(id: workspace.interactionIdentity.uuidString + shown.id + String(workspace.revision)) {
         await load()
       }
-      .confirmationDialog("Start only from now?", isPresented: $confirmingFromNow) {
-        Button("Skip earlier transitions and start from now") {
-          guard let book = workspace.workbook else { return }
-          perform {
-            try await owner.enable(
-              book, exactID: shown.id,
-              expectedGeneration: state["generation"].int ?? 0, allowAI: allowAI, fromNow: true)
-          }
-        }
-      } message: {
-        Text(
-          "This records an explicit skip for the \(waitingCount) saved transitions and starts a fresh stock baseline. Earlier missed changes will not start new work. Completed work and history remain saved."
-        )
-      }
-      .sheet(isPresented: Binding(get: { dismissing != nil }, set: { if !$0 { dismissing = nil } }))
-    {
-      VStack(alignment: .leading, spacing: 16) {
-        Text("Dismiss this transition").readingFont(.title2).accessibilityAddTraits(.isHeader)
-        TextField("Reason", text: $dismissalReason, axis: .vertical)
-        Text(
-          "The transition and your reason remain in history. No workflow or business change is created."
-        ).readingFont(.caption)
-        HStack {
-          Button("Cancel") { dismissing = nil }
-          Spacer()
-          Button("Dismiss transition") {
-            guard let candidate = dismissing, let book = workspace.workbook else { return }
-            let reason = dismissalReason
-            dismissing = nil
-            perform {
-              _ = try await Task.detached {
-                try book.dismissInventoryConditionCandidate(
-                  candidate, reason: reason, token: identifier(),
-                  actor: .human("Sevra.native-condition-dismiss"))
-              }.value
-            }
-          }.disabled(
-            dismissalReason.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
-              || dismissalReason.utf8.count > 1024)
-        }
-      }.padding(24).frame(minWidth: 420)
-    }
       .sheet(isPresented: $editing, onDismiss: workspace.refresh) {
         AutomationScheduleEditor(
           workspace: workspace, existing: shown, onSave: { updatedDefinition = $0 })
       }
   }
   @ViewBuilder private var automationActions: some View {
-    Button(
-      isCondition && waitingCount > 0
-        ? "Resume waiting transitions on this Mac" : "Enable on this Mac"
-    ) {
+    Button("Enable on this Mac") {
       guard let book = workspace.workbook else { return }
       perform {
         try await owner.enable(
@@ -368,9 +273,6 @@ struct AutomationScheduleDetail: View {
     Button("Run once") { runOnce() }.disabled(preview == nil)
     Button("Edit…") { editing = true }
     Button("Export template…", action: exportTemplate)
-    if isCondition && state["consumer_id"].string != nil {
-      Button("Only from now…") { confirmingFromNow = true }
-    }
   }
   private func close() {
     if let onClose { onClose() } else { dismiss() }
@@ -378,7 +280,7 @@ struct AutomationScheduleDetail: View {
   private var grantIsCurrent: Bool {
     guard let grant else { return false }
     return state["state"] == .string("armed")
-      && [.string("foreground-drafts-v1"), .string("condition-drafts-v1")].contains(state["policy"])
+      && state["policy"] == .string("foreground-drafts-v1")
       && state["id"] == .string(grant.id) && state["source_id"] == .string(grant.sourceID)
       && state["definition_id"] == .string(grant.definitionID)
       && state["generation"].int == grant.generation && state["allowAI"] == .bool(grant.allowAI)
@@ -400,19 +302,6 @@ struct AutomationScheduleDetail: View {
       preview = saved.0
       state = saved.1
       workflow = saved.2
-      if let id = state["consumer_id"].string {
-        let status = try await Task.detached {
-          (try book.inventoryCondition(id), try book.inventoryConditionQueue(id))
-        }.value
-        guard !Task.isCancelled, workspace.workbook === book, shown.id == definition.id else {
-          return
-        }
-        conditionState = status.0
-        conditionQueue = status.1
-      } else {
-        conditionState = .null
-        conditionQueue = .null
-      }
       await owner.reload()
       let registry = owner.registry
       let candidates = owner.grants.filter { $0.id == state["id"].text }

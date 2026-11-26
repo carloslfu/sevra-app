@@ -435,7 +435,7 @@ extension WorkspaceState {
       }
       try await controller.enable(
         book, exactID: definition.id, expectedGeneration: generation, allowAI: allowAI,
-        fromNow: a["fromNow"] == .bool(true), actor: .human("Sevra.chat-confirmation"))
+        actor: .human("Sevra.chat-confirmation"))
       return .object(["status": .string("enabled"), "id": .string(definition.id)])
     default: throw SevraError("chat_action", "This conversational operation is not connected yet.")
     }

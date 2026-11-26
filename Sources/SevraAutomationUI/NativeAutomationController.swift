@@ -126,26 +126,14 @@ import SevraCore
 
   public func enable(
     _ book: Workbook, exactID: String, expectedGeneration: Int, allowAI: Bool,
-    now: Date = Date(), token: String = identifier(), fromNow: Bool = false,
-    actor: ChangeActor? = nil
+    now: Date = Date(), token: String = identifier(), actor: ChangeActor? = nil
   ) async throws {
     await quiesce("Updating device permission.")
     let registry = registry
     let grant = try await Task.detached {
-      let definition = try book.applicationDefinition(exactID)
-      let session: AutomationExecutionSession
-      if definition.payload["policy"] == .string("inventory-condition-drafts-v1") {
-        session = try book.authorizeInventoryConditionExecution(
-          exactID, expectedGeneration: expectedGeneration, after: now, allowAI: allowAI,
-          fromNow: fromNow, token: token, actor: actor ?? .human("Sevra.native-condition-enable"))
-      } else {
-        try require(
-          !fromNow, "automation_trigger",
-          "From-now queue replacement applies to inventory conditions.")
-        session = try book.authorizeAutomationExecution(
-          exactID, expectedGeneration: expectedGeneration, after: now, allowAI: allowAI,
-          token: token, actor: actor ?? .human("Sevra.native-schedule-enable"))
-      }
+      let session = try book.authorizeAutomationExecution(
+        exactID, expectedGeneration: expectedGeneration, after: now, allowAI: allowAI,
+        token: token, actor: actor ?? .human("Sevra.native-schedule-enable"))
       return try registry.register(book, session: session)
     }.value
     nextChecks[grant.id] = nil
@@ -214,34 +202,6 @@ import SevraCore
       }
     }
     let definition = try book.applicationDefinition(grant.definitionID)
-    if definition.payload["policy"] == .string("inventory-condition-drafts-v1") {
-      var probe = try book.deviceConditionWork(session, through: now, cancellation: cancellation)
-      if probe["horizonAhead"] == .bool(true) {
-        return result(
-          nil, "Waiting for the retained observation time.", next: now.addingTimeInterval(60))
-      }
-      if probe["needsStep"] == .bool(true) {
-        let formatter = ISO8601DateFormatter()
-        formatter.formatOptions = [.withInternetDateTime, .withFractionalSeconds]
-        _ = try book.stepAutomationCondition(
-          session, through: formatter.string(from: now),
-          token: identifier(), cancellation: cancellation)
-        probe = try book.deviceConditionWork(session, through: now, cancellation: cancellation)
-      }
-      if (probe["pendingCandidates"].int ?? 0) > 0 {
-        let dispatch = try book.dispatchInventoryCondition(
-          session, observedAt: now,
-          token: identifier(), cancellation: cancellation)
-        return result(
-          dispatch["runID"].string ?? dispatch["run"]["id"].string,
-          "\(probe["pendingCandidates"].int ?? 0) transitions waiting.")
-      }
-      return result(
-        nil,
-        probe["needsStep"] == .bool(true)
-          ? "Catching up on stock changes." : "Watching stock changes.",
-        next: probe["needsStep"] == .bool(true) ? now : nil)
-    }
     let schedule = try NativeCalendarSchedule(definition.payload["schedule"])
     let formatter = ISO8601DateFormatter()
     formatter.formatOptions = [.withInternetDateTime, .withFractionalSeconds]

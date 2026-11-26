@@ -348,4 +348,14 @@ extension Workbook {
       ])
     }
   }
+
+  func exactInventorySum(_ total: Decimal, _ quantity: Decimal) throws -> Decimal {
+    var lhs = total
+    var rhs = quantity
+    var sum = Decimal()
+    try require(
+      NSDecimalAdd(&sum, &lhs, &rhs, .plain) == .noError, "inventory_history_precision",
+      "The historical quantity exceeds exact decimal precision. No rounded balance was returned.")
+    return try Numbers.decimal(Numbers.string(sum))
+  }
 }

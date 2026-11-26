@@ -60,16 +60,9 @@ extension Workbook {
   func automationExecutionSession(_ session: AutomationExecutionSession) throws -> Value {
     let activation = try automationSession(session.planning)
     try require(
-      [.string("foreground-drafts-v1"), .string("condition-drafts-v1")].contains(
-        activation["policy"])
+      activation["policy"] == .string("foreground-drafts-v1")
         && activation["allowAI"] == .bool(session.allowAI),
       "automation_authority", "Explicitly authorize the exact foreground execution scope.")
-    let condition = try DefinitionAutomation(
-      DefinitionDescriptor(applicationDefinition(activation["definition_id"].text).content)
-    ).condition
-    try require(
-      (condition != nil) == (activation["policy"] == .string("condition-drafts-v1")),
-      "automation_authority", "The execution policy does not match its exact trigger.")
     return activation
   }
 
@@ -148,7 +141,7 @@ extension Workbook {
       let activation = try self.automationExecutionSession(session)
       try require(
         activation["policy"] == .string("foreground-drafts-v1"),
-        "automation_trigger", "Dispatch condition candidates through their own exact trigger path.")
+        "automation_trigger", "Dispatch only through the exact foreground calendar scope.")
       try require(
         activation["catch_up_remaining"].int == 0, "automation_catch_up",
         "Complete bounded catch-up before dispatching a stale intermediate request.")
@@ -225,7 +218,7 @@ extension Workbook {
             try self.db.scalar("SELECT source_id FROM workflow_runs WHERE id=?", [.string($0)]).text
           })
         try self.db.execute(
-          "INSERT INTO automation_runs VALUES(?,?,?,?,?,?,?,?,NULL)",
+          "INSERT INTO automation_runs VALUES(?,?,?,?,?,?,?,?)",
           [
             pending["id"], activation["id"], .string(runID), activation["definition_id"],
             .string(authority.sourceID), .string(source), .number(Double(authority.generation)),

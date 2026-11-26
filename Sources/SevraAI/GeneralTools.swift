@@ -46,7 +46,7 @@ package enum GeneralTools {
     "workflow": "read_workflow", "references": "references", "lineage": "lineage",
     "archive": "archive_members", "reviews": "review_queue", "workflows": "workflow_activity",
     "actions": "workspace_actions", "app_guide": "native_app_sdk",
-    "definition_guide": "definition_registry", "rule_guide": "guide",
+    "definition_guide": "definition_registry",
     "receiving_guide": "guide", "view_guide": "guide", "removed": "removed",
   ]
   /// `save` kinds and the operation behind each. A tool is saved by the core's own `save`.
@@ -66,15 +66,14 @@ package enum GeneralTools {
     "stock.move": "propose_movement", "stock.balance": "balance",
     "records.count": "count_records", "template.receiving": "receiving_template",
     "template.form": "form_template", "template.workflow": "workflow_template",
-    "template.rule": "inventory_automation_template",
     "workflow.prepare_answer": "prepare_workflow_answer",
   ]
 
   /// Named actions whose inputs the grammar enforces. Preparing a workflow answer is offered
-  /// only in its own step, so a scope never has more than eleven of these.
+  /// only in its own step, so a scope never has more than ten of these.
   static let exact: Set<String> = [
     "view.open", "view.pin", "view.edit", "stock.move", "workflow.start", "definition.evaluate",
-    "action.preview", "action.prepare", "template.form", "template.workflow", "template.rule",
+    "action.preview", "action.prepare", "template.form", "template.workflow",
     "workflow.prepare_answer",
   ]
 
@@ -113,18 +112,7 @@ package enum GeneralTools {
       guard let action = named["name"].string ?? named.string else { return (tool, a) }
       let arguments =
         (named.string == nil ? named.object["arguments"] : a.object["arguments"]) ?? .object([:])
-      if let target = actions[action] {
-        if target == "inventory_automation_template", case .number(let level) = arguments["threshold"]
-        {
-          // The grammar takes the level as a number. The template keeps exact decimal text.
-          var fields = arguments.object
-          fields["threshold"] = .string(
-            level == level.rounded() && abs(level) < 1e15
-              ? String(Int64(level)) : String(level))
-          return (target, .object(fields))
-        }
-        return (target, arguments)
-      }
+      if let target = actions[action] { return (target, arguments) }
       return ("workspace_action", .object(["action": .string(action), "arguments": arguments]))
     case "save":
       // One kind per call, each with the shape of the operation that saves it.
@@ -270,7 +258,7 @@ package enum GeneralTools {
     let search = WorkbookToolDefinition(
       name: "search",
       description:
-        "Find documents, records and saved things by words. Every word must match, so use a few. in=conversation searches earlier messages, in=definitions the saved forms, workflows, functions and rules. Results give IDs to read.",
+        "Find documents, records and saved things by words. Every word must match, so use a few. in=conversation searches earlier messages, in=definitions the saved forms, workflows, functions and schedules. Results give IDs to read.",
       parameters: object(
         [
           "query": schema("string", "A few words."),
@@ -290,7 +278,7 @@ package enum GeneralTools {
     let read = WorkbookToolDefinition(
       name: "read",
       description:
-        "Read one thing. With id alone: a document or record, with offset for later parts. references, lineage, archive: what that item links to, came from, or contains. Other kinds name their thing with ref. message: an earlier message. result: a page of a long saved tool result. app, definition, workflow, view_history: that saved thing. views, reviews, workflows, removed: those lists, with no ref. actions: the actions run can perform, with ref as an optional group such as table, app, visual, file, workflow. app_guide: read before writing an app. rule_guide: read before saving a rule that watches stock. view_guide: view components beyond a table and a chart. definition_guide: the kinds of saved definitions.",
+        "Read one thing. With id alone: a document or record, with offset for later parts. references, lineage, archive: what that item links to, came from, or contains. Other kinds name their thing with ref. message: an earlier message. result: a page of a long saved tool result. app, definition, workflow, view_history: that saved thing. views, reviews, workflows, removed: those lists, with no ref. actions: the actions run can perform, with ref as an optional group such as table, app, visual, file, workflow. app_guide: read before writing an app. view_guide: view components beyond a table and a chart. definition_guide: the kinds of saved definitions.",
       parameters: display
         ? object(readFields, required: [])
         : readShapes(readFields, items: items, messages: messages))
@@ -299,7 +287,7 @@ package enum GeneralTools {
     }
     // One shape per action: the workspace actions take the inputs read kind=actions lists,
     // and each action with an operation of its own takes that operation's inputs.
-    // The grammar takes twelve shapes. These eleven actions get their own, and the rest
+    // The grammar takes eleven shapes. These ten actions get their own, and the rest
     // share the open one, where the action itself says what it is missing.
     let exact = named.filter(Self.exact.contains)
     let open = (operations + named.filter { !Self.exact.contains($0) }).sorted()
@@ -314,15 +302,8 @@ package enum GeneralTools {
             ], required: ["name", "arguments"])
         ])
       + exact.map { name in
-        var inputs = parameters(actions[name]!).object
-        if name == "template.rule" {
-          // A level is a number. As free text the model wrote stray markup into it.
-          var properties = inputs["properties"]!.object
-          properties["threshold"] = .object(["type": .string("number")])
-          inputs["properties"] = .object(properties)
-        }
-        return object(
-          ["name": choice([name], ""), "arguments": .object(inputs)],
+        object(
+          ["name": choice([name], ""), "arguments": parameters(actions[name]!)],
           required: ["name", "arguments"])
       }
     var runProperties: [String: Value] = [
@@ -376,7 +357,7 @@ package enum GeneralTools {
       "app":
         "A small app with its own controls, after read kind=app_guide. It stays disabled until the user enables it.",
       "record": "One drafted fact for the user to review.",
-      "definition": "A form, workflow, function or rule, after read kind=definition_guide.",
+      "definition": "A form, workflow, function or schedule, after read kind=definition_guide.",
       "template": "A template that a template action returned.",
       "result": "An evaluated result to keep.",
     ]

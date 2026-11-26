@@ -157,7 +157,7 @@ def run(cli: Path, worker: Path, output: Path) -> dict:
         call('create', old)
         manifest = old / 'manifest.json'
         with sqlite3.connect(old / 'workbook.sqlite') as connection:
-            assert connection.execute('PRAGMA user_version').fetchone()[0] == 33
+            assert connection.execute('PRAGMA user_version').fetchone()[0] == 34
             connection.execute('PRAGMA user_version=26')
         paths = [manifest, old / 'workbook.sqlite']
         hashes = [hashlib.sha256(p.read_bytes()).hexdigest() for p in paths]
@@ -201,7 +201,7 @@ def run(cli: Path, worker: Path, output: Path) -> dict:
                     process.kill()
                     process.communicate(timeout=10)
     report = {'version': 1, 'scope': 'installed-cli-semantic-feed-and-process-death',
-              'actualModel': False, 'visibleOS': False, 'automaticConditionExecution': False,
+              'actualModel': False, 'visibleOS': False,
               'cliSHA256': hashlib.sha256(cli.read_bytes()).hexdigest(),
               'workerSHA256': hashlib.sha256(worker.read_bytes()).hexdigest(),
               'callCount': len(calls), 'concurrentWriters': 6, 'unsupportedFilesPreserved': True,

@@ -13,13 +13,6 @@ public struct WorkbookTools {
   public let readOnly: Bool
   public let excelConversion: ExcelConversionBuild?
   package static let guides: [String: String] = [
-    "rule": """
-      A rule watches the stock of one inventory item. When the stock crosses a level, it drafts an alert for the user to read in Reviews, or runs a saved workflow. It never runs until the user enables it.
-      1. subject is the item as the stock table names it. If unsure, read it with sql: SELECT subject FROM stock.
-      2. For an alert, run action template.rule with {subject: the item, operator: "<" or "<=" or ">" or ">=", threshold: the level as a number, alert: one sentence the user will read}. Example: {subject: "brass bolts", operator: "<", threshold: 10, alert: "Brass bolts are below 10. Reorder them."}.
-      3. Only when the user names a saved workflow to run instead: find it with search in=definitions, using one or two words of its title. In the hit, id is the workflow's exact version ID; never use logical_id or source_id. read kind=definition with ref set to that id. Then run action template.rule with {subject, operator, threshold, arguments: the workflow's inputs or {}, workflowID: that id}, without alert.
-      4. template.rule returns a template receipt and changes nothing. save with template: {templateReceiptID: that receipt's ID, title: a short title}. Saving does not enable the rule; tell the user to enable it.
-      """,
     "receiving": """
       Receiving records a delivery as draft stock movements, one per line. The stock changes only after the user accepts them in Reviews.
       1. The workbook needs the Receive delivery action. Find it with search in=definitions for "Receive delivery". If there is none, run action template.receiving, then save with template: {templateReceiptID: that receipt's ID}. The saved action's id is its exact version ID.
@@ -51,7 +44,6 @@ public struct WorkbookTools {
     "read", "lineage", "datasets", "rows", "calculate", "balance", "spaces",
     "review_queue", "references", "space_history", "find_definitions", "read_definition",
     "definition_registry", "receiving_template", "form_template", "workflow_template",
-    "inventory_automation_template",
     "evaluate_definition", "native_app_sdk", "read_native_app", "workspace_actions",
     "preview_action", "workflow_activity", "read_workflow", "removed",
   ]

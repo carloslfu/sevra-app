@@ -197,7 +197,7 @@ package enum NativeTools {
     "read", "edit_space", "draft", "finish",
     "workflow_template", "save_definition", "include_archive_members",
     "space_history", "references", "calculate", "workspace_action", "workspace_actions",
-    "inventory_automation_template", "workflow_activity",
+    "workflow_activity",
   ]
   package static let definitions: [WorkbookToolDefinition] = fullDefinitions.map {
     guard compactParameterDescriptions.contains($0.name) else { return $0 }

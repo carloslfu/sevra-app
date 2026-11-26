@@ -304,7 +304,7 @@ func checkItemReferenceGrammar(frontend: SplashTextFrontend, factory: SplashGram
     ("a made-up item", known, [("id", failedReference)], false),
     ("a saved result by ref", fresh, [("kind", "result"), ("ref", invented)], true),
     ("the actions list", fresh, [("kind", "actions")], true),
-    ("a guide", fresh, [("kind", "rule_guide")], true),
+    ("a guide", fresh, [("kind", "receiving_guide")], true),
     ("a list with an item ID", fresh, [("id", correctReference), ("kind", "views")], false),
   ]
   for (name, policy, fields, expected) in cases {

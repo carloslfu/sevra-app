@@ -1,7 +1,7 @@
 import Foundation
 
 /// Projection of immutable versions and captured before/after images. Reading
-/// this feed does not interpret prose, grant authority or run a condition.
+/// this feed does not interpret prose, grant authority or run automation.
 struct BusinessEventEntry: Equatable {
   let family: String
   let scopeKind: String

@@ -347,28 +347,4 @@ func checkAutomaticAncestry(at root: URL) {
     try other.execute("ROLLBACK")
     try expect(try book.revision() == revision)
   }
-  check("cancellation at the condition publication barrier rolls back all derived state") {
-    let (book, source) = try businessFixture(root, "ConditionCancellationFence")
-    try book.setOpeningBalance(
-      subject: "parts", quantity: "20", effective: "2026-01-01", sourceID: source.id)
-    let consumer = try book.createInventoryCondition(
-      subject: "parts", rule: inventoryConditionRule(), effectiveThrough: "2026-12-31",
-      token: "create")["id"].text
-    let revision = try book.revision()
-    let before = try book.inventoryCondition(consumer)
-    let cancellation = Cancellation()
-    try InventoryConditionPublicationProbe.$observer.withValue({ stage in
-      if case .prepared = stage { cancellation.cancel() }
-    }) {
-      try refuses("cancelled") {
-        _ = try book.stepInventoryCondition(
-          consumer, through: "2026-12-31", token: "cancelled-page", cancellation: cancellation)
-      }
-    }
-    try expect(try book.revision() == revision && book.inventoryCondition(consumer) == before)
-    _ = try book.stepInventoryCondition(consumer, through: "2026-12-31", token: "cancelled-page")
-    try expect(try book.revision() == revision + 1)
-    try expect(try drainInventoryCondition(book, consumer)["established"] == .bool(true))
-    try expect(try book.verify()["ok"] == .bool(true))
-  }
 }

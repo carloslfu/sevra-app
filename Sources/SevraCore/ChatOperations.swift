@@ -257,7 +257,7 @@ public enum ChatOperations {
     .init(
       "automation.enable",
       "Prepare conversational approval of a saved automation on this Mac, including whether local AI may run.",
-      ["id", "generation", "allowAI"], ["fromNow"], host: true),
+      ["id", "generation", "allowAI"], [], host: true),
     .init("automation.pause", "Pause this Mac's exact automation grant.", ["id"], host: true),
     .init("file.include", "Include a previously linked original in this workbook.", ["id"]),
     .init("file.transcribe", "Transcribe an included recording locally.", ["id"], host: true),
@@ -364,7 +364,7 @@ public enum ChatOperations {
     {
       return "array"
     }
-    if ["archived", "separate", "allowAI", "fromNow", "descending", "dataBars"].contains(key) {
+    if ["archived", "separate", "allowAI", "descending", "dataBars"].contains(key) {
       return "boolean"
     }
     if [

@@ -15,11 +15,6 @@ if CommandLine.arguments.dropFirst() == ["--chat"] {
   exit(0)
 }
 
-if CommandLine.arguments.count == 5 && CommandLine.arguments[1] == "--condition-death-worker" {
-  try inventoryConditionDeathWorker(
-    CommandLine.arguments[2], consumer: CommandLine.arguments[3], stage: CommandLine.arguments[4])
-  exit(0)
-}
 
 if CommandLine.arguments.count == 4 && CommandLine.arguments[1] == "--business-death-worker" {
   try businessEventDeathWorker(CommandLine.arguments[2], stage: CommandLine.arguments[3])
@@ -76,36 +71,6 @@ if CommandLine.arguments.count == 4 && CommandLine.arguments[1] == "--business-i
     at: URL(fileURLWithPath: CommandLine.arguments[2]), stage: CommandLine.arguments[3])
   exit(0)
 }
-if CommandLine.arguments.count == 3 && CommandLine.arguments[1] == "--condition-cause-fixture" {
-  print(try createConditionCauseFixture(at: URL(fileURLWithPath: CommandLine.arguments[2])).json())
-  exit(0)
-}
-if CommandLine.arguments.count == 5 && CommandLine.arguments[1] == "--condition-dispatch-fixture" {
-  print(
-    try createConditionDispatchFixture(
-      at: URL(fileURLWithPath: CommandLine.arguments[2]),
-      targets: Int(CommandLine.arguments[3])!, admitted: Int(CommandLine.arguments[4])!
-    ).json())
-  exit(0)
-}
-if (4...5).contains(CommandLine.arguments.count)
-  && CommandLine.arguments[1] == "--condition-dispatch-worker"
-{
-  do {
-    print(
-      try conditionDispatchWorker(
-        at: URL(fileURLWithPath: CommandLine.arguments[2]),
-        definition: CommandLine.arguments[3],
-        stage: CommandLine.arguments.count == 5 ? CommandLine.arguments[4] : nil
-      ).json())
-  } catch {
-    fputs(
-      (try! encoded(error as? SevraError ?? SevraError("fixture", error.localizedDescription))
-        .json()) + "\n", stderr)
-    exit(1)
-  }
-  exit(0)
-}
 if CommandLine.arguments.dropFirst() == ["--persistence"] {
   checkPersistence(at: temp)
   print("\(passed) passed; \(failed) failed")
@@ -116,25 +81,8 @@ if CommandLine.arguments.dropFirst() == ["--tool-receipts"] {
   print("\(passed) passed; \(failed) failed")
   exit(failed == 0 ? 0 : 1)
 }
-if CommandLine.arguments.dropFirst() == ["--condition-dispatch"] {
-  checkConditionDispatch(at: temp)
-  print("\(passed) passed; \(failed) failed")
-  exit(failed == 0 ? 0 : 1)
-}
 if CommandLine.arguments.dropFirst() == ["--business-inputs"] {
   checkBusinessInputs(at: temp)
-  checkConditionCauses(at: temp)
-  print("\(passed) passed; \(failed) failed")
-  exit(failed == 0 ? 0 : 1)
-}
-if CommandLine.arguments.count == 3 && CommandLine.arguments[1] == "--condition-origin-fixture" {
-  print(try createConditionOriginFixture(at: URL(fileURLWithPath: CommandLine.arguments[2])).json())
-  exit(0)
-}
-if CommandLine.arguments.dropFirst() == ["--condition-origins"] {
-  checkConditionOrigins(at: temp)
-  checkConditionInputs(at: temp)
-  checkBusinessOrigins(at: temp)
   print("\(passed) passed; \(failed) failed")
   exit(failed == 0 ? 0 : 1)
 }
@@ -151,20 +99,6 @@ if CommandLine.arguments.dropFirst() == ["--business-origins"] {
 }
 if CommandLine.arguments.dropFirst() == ["--derivation-roles"] {
   checkDerivationRoles(at: temp)
-  print("\(passed) passed; \(failed) failed")
-  exit(failed == 0 ? 0 : 1)
-}
-if CommandLine.arguments.count == 3 && CommandLine.arguments[1] == "--condition-inputs-fixture" {
-  print(try createConditionInputFixture(at: URL(fileURLWithPath: CommandLine.arguments[2])).json())
-  exit(0)
-}
-if CommandLine.arguments.dropFirst() == ["--condition-inputs"] {
-  checkConditionInputs(at: temp)
-  print("\(passed) passed; \(failed) failed")
-  exit(failed == 0 ? 0 : 1)
-}
-if CommandLine.arguments.dropFirst() == ["--condition-input-limit"] {
-  checkConditionInputLimit(at: temp)
   print("\(passed) passed; \(failed) failed")
   exit(failed == 0 ? 0 : 1)
 }
@@ -261,33 +195,8 @@ if CommandLine.arguments.dropFirst() == ["--schedules"] {
   print("\(passed) passed; \(failed) failed")
   exit(failed == 0 ? 0 : 1)
 }
-if CommandLine.arguments.dropFirst() == ["--conditions"] {
-  checkConditionTransitions()
-  print("\(passed) passed; \(failed) failed")
-  exit(failed == 0 ? 0 : 1)
-}
 if CommandLine.arguments.dropFirst() == ["--business-events"] {
   checkBusinessEvents(at: temp)
-  print("\(passed) passed; \(failed) failed")
-  exit(failed == 0 ? 0 : 1)
-}
-if CommandLine.arguments.dropFirst() == ["--inventory-condition-limit"] {
-  checkInventoryConditionLimit(at: temp)
-  print("\(passed) passed; \(failed) failed")
-  exit(failed == 0 ? 0 : 1)
-}
-if CommandLine.arguments.dropFirst() == ["--inventory-conditions"] {
-  checkInventoryConditions(at: temp)
-  print("\(passed) passed; \(failed) failed")
-  exit(failed == 0 ? 0 : 1)
-}
-if CommandLine.arguments.dropFirst() == ["--inventory-event-state"] {
-  checkInventoryEventState(at: temp)
-  print("\(passed) passed; \(failed) failed")
-  exit(failed == 0 ? 0 : 1)
-}
-if CommandLine.arguments.dropFirst() == ["--inventory-event-limit"] {
-  checkInventoryEventLimit(at: temp)
   print("\(passed) passed; \(failed) failed")
   exit(failed == 0 ? 0 : 1)
 }

@@ -79,9 +79,6 @@ if [ "$QUICK" = 1 ]; then
 fi
 
 # Scale limits, crash recovery and the search benchmark.
-"$BIN/sevra-checks" --inventory-event-limit
-"$BIN/sevra-checks" --inventory-condition-limit
-"$BIN/sevra-checks" --condition-input-limit
 "$BIN/sevra-benchmark" --self-check
 python3 scripts/check_large_preview.py --binary "$BIN/sevra-preview-checks"
 python3 scripts/check_context_durability.py
@@ -97,16 +94,10 @@ python3 scripts/check_automation_planning.py --cli "$BIN/sevra" --checks "$BIN/s
 python3 scripts/check_automation_execution.py --cli "$BIN/sevra" --checks "$BIN/sevra-checks" --worker "$BIN/sevra-automation-durability"
 python3 scripts/check_automation_causality.py --cli "$BIN/sevra" --checks "$BIN/sevra-checks"
 python3 scripts/check_shared_admissions.py --cli "$BIN/sevra" --worker "$BIN/sevra-checks" --output .build/shared-admissions-check.json
-python3 scripts/check_condition_dispatch.py --cli "$BIN/sevra" --worker "$BIN/sevra-checks" --output .build/condition-dispatch-check.json
-python3 scripts/check_condition_transitions.py --cli "$BIN/sevra"
 python3 scripts/check_business_events.py --cli "$BIN/sevra" --worker "$BIN/sevra-checks"
-python3 scripts/check_inventory_event_state.py --cli "$BIN/sevra"
-python3 scripts/check_inventory_conditions.py --cli "$BIN/sevra" --worker "$BIN/sevra-checks"
-python3 scripts/check_condition_inputs.py --cli "$BIN/sevra" --worker "$BIN/sevra-checks"
 python3 scripts/check_automatic_ancestry.py --cli "$BIN/sevra" --worker "$BIN/sevra-checks"
 python3 scripts/check_derivation_roles.py --cli "$BIN/sevra" --worker "$BIN/sevra-checks"
 python3 scripts/check_business_origins.py --cli "$BIN/sevra" --worker "$BIN/sevra-checks"
-python3 scripts/check_condition_origins.py --cli "$BIN/sevra" --worker "$BIN/sevra-checks"
 python3 scripts/check_business_inputs.py --cli "$BIN/sevra" --worker "$BIN/sevra-checks"
 python3 scripts/check_references.py --cli "$BIN/sevra"
 python3 scripts/check_extracted_references.py --cli "$BIN/sevra"

@@ -124,6 +124,20 @@ func checkAutomationDefinitions(at root: URL) {
     payload["arguments"] = .object(badArgs)
     bad["payload"] = .object(payload)
     invalid.append(.object(bad))
+    // Automations are schedule-only: a stock-threshold trigger is not a supported kind.
+    var thresholdPayload = valid["payload"].object
+    thresholdPayload["policy"] = .string("inventory-condition-drafts-v1")
+    thresholdPayload["schedule"] = nil
+    thresholdPayload["condition"] = .object([
+      "subject": .string("parts"),
+      "rule": .object([
+        "policy": .string("native-condition-v1"), "scope": .string("inventory:parts"),
+        "operator": .string("<"), "threshold": .string("10"),
+      ]),
+    ])
+    var threshold = valid.object
+    threshold["payload"] = .object(thresholdPayload)
+    try refuses("automation_definition") { _ = try save(book, .object(threshold)) }
     let counts = try book.counts()
     for rejected in invalid {
       try refuses { _ = try save(book, rejected) }

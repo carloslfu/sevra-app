@@ -213,13 +213,6 @@ func checkBusinessEvents(at root: URL) {
       let scoped = try book.businessBatches(scopeKind: "inventory", scopeKey: subject)
       try expect(scoped["batches"].array.count == 2)
     }
-    let consumer = try book.createInventoryCondition(
-      subject: decomposed, rule: inventoryConditionRule(decomposed),
-      effectiveThrough: "2026-12-31", token: "condition")
-    try expect(try drainInventoryCondition(book, consumer["id"].text)["subject"].text == composed)
-    try expect(
-      try book.inventoryCondition(consumer["id"].text)["lastCompleteObservation"]["quantity"].text
-        == "15")
   }
   check("a date is stored as written or refused with date") {
     for value in ["1582-10-05", "1582-10-10", "1582-10-14", "1582-10-10T12:00:00Z"] {

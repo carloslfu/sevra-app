@@ -2,7 +2,7 @@ import Foundation
 
 extension Workbook {
   /// Scope filtering selects batches. Consumers still read each entire atomic
-  /// batch before evaluating conditions or advancing their durable cursor.
+  /// batch before advancing a durable cursor.
   public func businessBatches(
     after cursor: String? = nil, limit: Int = 20, scopeKind: String? = nil,
     scopeKey: String? = nil, cancellation: Cancellation = .init()

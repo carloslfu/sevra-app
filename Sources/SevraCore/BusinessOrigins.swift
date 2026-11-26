@@ -16,7 +16,7 @@ extension Workbook {
     }
   }
 
-  /// Shared only inside an already bounded snapshot. A complete condition
+  /// Shared only inside an already bounded snapshot. A complete business
   /// window can supply more exact starts than the public selection inspector.
   func inspectBusinessOrigins(inputs: [String], cancellation: Cancellation) throws -> Value {
     try require(

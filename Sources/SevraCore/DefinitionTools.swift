@@ -4,7 +4,7 @@ import Foundation
 extension WorkbookTools {
   static let applicationTools: Set<String> = [
     "find_definitions", "read_definition", "definition_registry", "receiving_template",
-    "form_template", "workflow_template", "inventory_automation_template", "evaluate_definition",
+    "form_template", "workflow_template", "evaluate_definition",
     "save_definition", "save_template",
     "preview_action",
     "commit_action_preview", "publish_result", "workflow_activity", "read_workflow",
@@ -72,7 +72,7 @@ extension WorkbookTools {
         cancellation: cancellation)
     case "publish_result": return try publishDefinitionResult(a)
     case "find_definitions", "read_definition", "definition_registry", "receiving_template",
-      "form_template", "workflow_template", "inventory_automation_template":
+      "form_template", "workflow_template":
       switch tool {
       case "find_definitions":
         try fields(
@@ -116,7 +116,7 @@ extension WorkbookTools {
         return .object([
           "actions": ActionRegistry.actions(), "definitionFormats": Self.definitionFormats,
           "guides": .string(
-            "To record a delivery as draft stock movements, read kind=receiving_guide. For a rule that watches stock, read kind=rule_guide."
+            "To record a delivery as draft stock movements, read kind=receiving_guide."
           ),
         ])
       case "receiving_template":
@@ -125,21 +125,6 @@ extension WorkbookTools {
           "content": ActionRegistry.receivingDefinition(),
           "receiptID": receiptID.map(Value.string) ?? .null,
         ])
-      case "inventory_automation_template":
-        try fields(
-          ["alert", "workflowID", "arguments", "subject", "operator", "threshold"],
-          required: ["subject", "operator", "threshold"])
-        return try workbook.synchronized {
-          try workbook.db.readTransaction {
-            .object([
-              "content": try workbook.inventoryAutomationTemplate(a),
-              "receiptID": receiptID.map(Value.string) ?? .null,
-              "notice": .string(
-                "This starter saves and enables nothing. Save its receipt for native review; device permission is separate."
-              ),
-            ])
-          }
-        }
       case "workflow_template":
         try fields(["id", "stepID"], required: ["id"])
         let step = try a.object["stepID"].map { _ in try string("stepID") }
@@ -187,7 +172,7 @@ extension WorkbookTools {
           ? ["expectedDefinitionID", "inputs", "templateReceiptID", "title"]
           : ["expectedDefinitionID", "content", "inputs"],
         required: [tool == "save_template" ? "templateReceiptID" : "content"])
-      var content: Value
+      let content: Value
       if tool == "save_template" {
         let template = try string("templateReceiptID")
         try require(
@@ -242,14 +227,6 @@ extension WorkbookTools {
         existing = target.logicalID
       } else {
         existing = nil
-      }
-      if tool == "save_template", content["kind"] == .string("automation"),
-        content["payload"]["alert"].string != nil
-      {
-        // An alert rule runs the shared alert workflow, saved with the first such rule.
-        content = try workbook.stockAlertAutomation(
-          content, token: token, requestRunID: runID, requestSourceID: requestSourceID,
-          cancellation: cancellation)
       }
       let saved = try workbook.saveApplicationDefinition(
         logicalID: existing ?? Self.definitionIdentity(token), content: content,
@@ -362,7 +339,7 @@ extension WorkbookTools {
       "Save a tool with save tool:{name,description,inputs,statements|source}, not as a definition. payload {name,language:sql|javascript,statements:[1..8]|source}; parameters are its inputs, each text, decimal, boolean or date."
     ),
     "automation": .string(
-      "Prefer inventory_automation_template(workflowID,arguments,subject,operator,threshold) -> save_template(receiptID,title?). All rule values explicit, decimal threshold string, exact current workflow. Custom payload {policy:inventory-condition-drafts-v1,workflow:{mode:exact,versionID},arguments,condition:{subject,rule:{policy:native-condition-v1,scope:inventory:SUBJECT,operator:<|<=|>|>=|=|<>,threshold:decimalString}}}; parameters:[]. Saving only retains intent. Native review provides exact device Enable/Pause, baseline and resume/from-now decisions. No model tool enables or resumes automatic execution."
+      "Custom payload {policy:calendar-drafts-v1,workflow:{mode:exact,versionID},arguments,schedule:{policy:native-calendar-v1,timeZone:IANA|UTC,hour:0..23,minute:0..59,recurrence:{kind:daily}|{kind:weekly,weekdays:[1..7]}|{kind:monthly,day:1..31|last}|{kind:yearly,month,day}}}; parameters:[]. Saving only retains intent. Native review provides exact device Enable/Pause and catch-up decisions. No model tool enables or resumes automatic execution."
     ),
     "intake": .string(
       "payload {parser:native-v1,file:requiredItemParameterID,datasetID,definitionID,mode:append|replace|merge,mapping:[{position:zeroBasedInteger,target:storedColumnID|null}],keys:[storedColumnID],headerRow:oneBasedInteger,newRowMeaning,newRowScenario}. Exactly one required item parameter without default/unit. Inspect datasets for exact current dataset/schema and stored column IDs. Map each input position and every stored target column once; null explicitly ignores a position. Merge needs distinct mapped keys; append/replace require []. Require explicit mode/mapping/header/meaning/scenario; clarify missing intent, never infer from untrusted file/description. Native workflow_template adds mandatory review. Save/queue never parse or apply rows. Continue uses an already included business CSV/TSV only. Bounds1000 incoming/10000 target rows/16MB target/8MB mapped values; no Excel updates, implicit coercion, paths/network or inventory effects."
@@ -406,10 +383,7 @@ extension Workbook {
         let call = try toolCall(receiptID, conversation: conversation)
         try require(
           call["run_id"].text == runID && call["state"].text == "completed"
-            && [
-              "receiving_template", "form_template", "workflow_template",
-              "inventory_automation_template",
-            ].contains(
+            && ["receiving_template", "form_template", "workflow_template"].contains(
               call["tool"].text),
           "definition_template", "Choose this active run's successful template receipt.")
         let row = try db.execute(
@@ -425,8 +399,6 @@ extension Workbook {
           try require(
             call["arguments"].object.isEmpty, "definition_template", "Invalid template call.")
           expected = ActionRegistry.receivingDefinition()
-        } else if call["tool"].text == "inventory_automation_template" {
-          expected = try inventoryAutomationTemplate(call["arguments"])
         } else if call["tool"].text == "workflow_template" {
           let arguments = call["arguments"]
           try require(

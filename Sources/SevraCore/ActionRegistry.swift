@@ -184,23 +184,6 @@ public enum ActionRegistry {
       ]),
     ])
   }
-  /// The action behind a rule's alert: one draft document, read by the person in Reviews.
-  public static func alertDefinition() -> Value {
-    .object([
-      "kind": .string("action"), "title": .string("Draft a stock alert"),
-      "description": .string(
-        "Draft one alert document, with its evidence, for the person to read in Reviews."),
-      "parameters": .array(documentParameters),
-      "payload": .object([
-        "primitive": .object(["id": .string(documentID), "version": .number(1)]),
-        "arguments": .object(
-          Dictionary(
-            uniqueKeysWithValues: documentParameters.map {
-              ($0["id"].text, .object(["parameter": $0["id"]]))
-            })),
-      ]),
-    ])
-  }
   public static func receivingDefinition() -> Value {
     .object([
       "kind": .string("action"), "title": .string("Receive delivery"),

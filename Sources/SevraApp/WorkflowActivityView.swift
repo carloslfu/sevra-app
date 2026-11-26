@@ -126,18 +126,6 @@ struct WorkflowRunView: View {
               : "Manual workflow. Each continuation stops for required review. Completed work is kept."
           )
           .foregroundStyle(.secondary)
-          if saved["invocation"]["origin"]["candidateID"].string != nil {
-            let origin = saved["invocation"]["origin"]
-            Text(
-              "Stock at the trigger: " + origin["trigger"]["quantity"].text + " · "
-                + DisplayText.date(origin["trigger"]["effectiveThrough"].text))
-            Text("Each later step shows its own saved inputs.").readingFont(.caption)
-              .foregroundStyle(
-                .secondary)
-            Button("Trigger and evidence") {
-              workspace.navigate(.item(origin["dispatchSourceID"].text))
-            }
-          }
           if !run["detail"].text.isEmpty,
             !saved["steps"].array.contains(where: { $0["detail"] == run["detail"] })
           {

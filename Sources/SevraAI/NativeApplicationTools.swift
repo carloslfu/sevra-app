@@ -53,23 +53,6 @@ extension NativeTools {
           "stepID": schema("string", "Step identifier; max64 characters."),
         ], required: ["id"])),
     .init(
-      name: "inventory_automation_template",
-      description:
-        "Inventory crossing starter; then save_template. Never enables execution. Runs a workflow, or drafts alert text for review.",
-      parameters: object(
-        [
-          "alert": schema(
-            "string", "Alert drafted for review when the rule fires, in place of a workflow."),
-          "workflowID": schema("string", "Exact current saved workflow version."),
-          "arguments": .object(["type": .string("object")]),
-          "subject": schema("string", "Exact explicitly requested inventory subject."),
-          "operator": .object([
-            "type": .string("string"),
-            "enum": .array(["<", "<=", ">", ">=", "=", "<>"].map(Value.string)),
-          ]),
-          "threshold": schema("string", "Explicit decimal threshold, never invented."),
-        ], required: ["subject", "operator", "threshold"])),
-    .init(
       name: "evaluate_definition",
       description:
         "Evaluate function/query; preserve scope/meaning/coverage.",
