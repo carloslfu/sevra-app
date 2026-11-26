@@ -2,7 +2,7 @@
 type: operational
 id: 01m825qdf8dt9kd5yaxyawt1cc
 created: 2026-11-22T17:44:08.936320+00:00
-updated: 2026-11-26T16:57:33.000000+00:00
+updated: 2026-11-26T17:09:44.000000+00:00
 summary: 'Chat timing, one five-message run on Splash 1.6.1 at a fixed 12 GiB: 96% of reply time is the engine and model calls per message decide it. Per-call figures predate the 1.7 engines.'
 title: Chat response time
 ---
@@ -18,7 +18,8 @@ The figures below are from one run on Splash 1.6.1 at a fixed 12 GiB engine budg
 - **The app no longer runs at a fixed 12 GiB.** Since November 25 it sizes the engine at each start to free memory less 4 GiB, from 8 to 20 GiB ([[records/plans/engine-memory-sliding-size]]). The timing harness still sets 12 GiB, so its runs measure 12 GiB, not what a Mac with room gets.
 - **More memory mostly buys writing speed.** The memory runs found decoding about twice as fast at 20 GiB as at 12, and prompt reading almost unchanged above 8 GiB. They timed long prompts, not each call's first token.
 - **"About 1 second before the first token" is not a fixed cost.** Over the 1.7.1 calls the time rises steeply over the first few hundred computed tokens and then slowly: 0.33 s for 32 tokens, 1.06 s for 740, 1.72 s for 3,349. A straight line through it gives the "fixed" second.
-- **Not measured:** the time before the first token at 16 to 20 GiB, and what the engine spends it on. The engine logs a breakdown of each first token on its stderr; no saved run has kept it.
+- **At the app's own size the second is gone.** One run on Splash 1.7.3 at 20 GiB, the size the app chose from 24.9 GiB reclaimable ([evidence](../../../integration/evidence/2026-11-26-first-token-20gib/README.md)): calls resumed from memory reached their first token in 0.10 s + 0.29 ms per computed token, 0.13 s for 117 tokens and 0.40 s for 984. The first call after an engine start, which takes the header's state back from disk, took 1.00 s for 791 tokens. Decoding ran at 190 tokens a second. "hi" took 2.53 s, of which 1.02 s waited for the engine start; a four-call question took 4.44 s, 72% of it decoding. `SEVRA_TRACE_MEMORY=app` makes the trace harness use the app's choice instead of 12 GiB.
+- **Not measured:** sizes between 12 and 20 GiB, and what the engine spends the first call's disk restore on. The engine logs a breakdown of each first token on its stderr; no saved run has kept it.
 
 ## The answer in short
 

@@ -12,11 +12,21 @@ import SevraSplashText
 /// are sent as composer input in a new chat of a copy of a workbook, with the context the app
 /// sends from Home. SEVRA_TRACE_PAUSE waits that many seconds after opening and between turns,
 /// as a person reads and types. Run with SEVRA_PROMPT_HEADER set to the build's header folder,
-/// and SEVRA_CHAT_TIMING=1 to log every step (scripts/chat_timing.py reads it).
+/// and SEVRA_CHAT_TIMING=1 to log every step (scripts/chat_timing.py reads it). The engine gets
+/// the fixed 12 GiB of the harnesses, or with SEVRA_TRACE_MEMORY=app the size the app would
+/// choose from the memory free now.
 func firstRequestTrace(
   modelsRoot: String, packagedBin: String, workbook: String, prompts: [String] = ["hi", "ho"]
 ) async throws {
   try SplashModelSetup.checkHardware()
+  let reclaimable = ProductAI.reclaimableBytes()
+  let memoryBytes =
+    ProcessInfo.processInfo.environment["SEVRA_TRACE_MEMORY"] == "app"
+    ? EngineMemory.choose(reclaimable: reclaimable) : EngineMemory.fixed
+  print(
+    String(
+      format: "engine memory %.2f GiB, reclaimable %.1f GiB", Double(memoryBytes) / 1_073_741_824,
+      Double(reclaimable ?? 0) / 1_073_741_824))
   let resources = URL(fileURLWithPath: packagedBin).standardizedFileURL
   let manifest = try Value.parse(
     String(contentsOf: resources.appendingPathComponent("native-runtime.json")))
@@ -27,7 +37,7 @@ func firstRequestTrace(
       engineFiles: manifest["engineFiles"].object.mapValues(\.text),
       grammarLibrary: resources.appendingPathComponent("NativeRuntime/libllguidance.dylib"),
       grammarSHA256: manifest["grammarSHA256"].text,
-      modelsRoot: models, memoryBytes: 12 * 1024 * 1024 * 1024,
+      modelsRoot: models, memoryBytes: memoryBytes,
       contextBudget: .init(profile: .evaluation64K), reasoning: .bounded512,
       modelLayout: .installed, contextMaintenanceEnabled: true))
   let service = ProductAI(qualifying: model)

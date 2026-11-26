@@ -243,7 +243,7 @@ public actor ProductAI {
     guard let reclaimable else { return false }
     return reclaimable >= engine + EngineMemory.headroom
   }
-  static func reclaimableBytes() -> UInt64? {
+  package static func reclaimableBytes() -> UInt64? {
     var stats = vm_statistics64()
     var count = mach_msg_type_number_t(
       MemoryLayout<vm_statistics64_data_t>.size / MemoryLayout<integer_t>.size)
