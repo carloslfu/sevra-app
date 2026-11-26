@@ -584,6 +584,9 @@ public enum WorkbookAgent {
         }
         let previousCallID = messages.last?.toolCallId
         let action: Value = .object(["tool": .string(tool), "arguments": a])
+        // The same call, whatever base version it names: a retry after a version bump is
+        // still the same call.
+        let repeatKey = try Self.repeatKey(action)
         messages.append(
           InferenceMessage(
             role: "assistant", content: response.text, toolCalls: [call],
@@ -1531,7 +1534,7 @@ public enum WorkbookAgent {
               // A completed comparison can still reject the candidate. Count it as
               // a repair failure so identical bad programs cannot spin as successes.
               callFailed = true
-              let attempt = rejectedActions[try action.json(), default: 0] + 1
+              let attempt = rejectedActions[repeatKey, default: 0] + 1
               fields["error"] = .string(String(Workbook.excelComparisonFailure(value).prefix(1800)))
               fields["candidateFailureCount"] = .number(Double(attempt))
               fields["retryInstruction"] = .string(
@@ -1642,7 +1645,7 @@ public enum WorkbookAgent {
           consecutiveFailures += 1
           let same = sameFailures[key, default: 0]
           // The very same call refused a second time will be refused every time after.
-          let resent = rejectedActions[try action.json(), default: 0] + 1 >= 2
+          let resent = rejectedActions[repeatKey, default: 0] + 1 >= 2
           if same >= 3 || consecutiveFailures >= 5 || resent {
             if wrapUp == nil {
               wrapUp =
@@ -1786,7 +1789,7 @@ public enum WorkbookAgent {
               tool: tool, arguments: a, result: result, receiptID: receiptID,
               appTargetNotFound: (appRoutingFailure as? SevraError)?.code == "space_not_found")
           }
-          var key = try action.json()
+          var key = repeatKey
           if tool == "save_native_app", excelConversion != nil,
             result["failureStage"] == .string("independent_review")
           {
@@ -2243,6 +2246,21 @@ public enum WorkbookAgent {
     let failure = error as NSError
     // NSXPCConnectionInterrupted, NSXPCConnectionInvalid and the reply-invalid code.
     return failure.domain == NSCocoaErrorDomain && (4097...4101).contains(failure.code)
+  }
+
+  /// The key the repeated-call guard counts a call under: the call without any
+  /// expectedVersion, so the same edit retried against a newer version counts as the same call.
+  package static func repeatKey(_ action: Value) throws -> String {
+    func strip(_ value: Value) -> Value {
+      switch value {
+      case .object(var fields):
+        fields["expectedVersion"] = nil
+        return .object(fields.mapValues(strip))
+      case .array(let items): return .array(items.map(strip))
+      default: return value
+      }
+    }
+    return try strip(action).json()
   }
 
   static func wrapUpNotice(_ reason: String) -> String {

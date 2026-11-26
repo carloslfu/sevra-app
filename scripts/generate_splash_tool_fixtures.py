@@ -29,8 +29,9 @@ from server.protocol import ReadyEvent
 ready = ReadyEvent(1, 32768, False, 248320, 33, (248044, 248046))
 factory = ConstraintFactory(ConstraintFactory.table(tokenizer, QWEN, ready.vocabulary_size), ready)
 tools = json.loads((ROOT/'IntegrationTests/Agent/workbook-tools.json').read_text())
-# LLGuidance preserves schema property order. Match the app's required-first
-# ordering for nested JSON while leaving XML argument order unchanged.
+# LLGuidance preserves schema property order. Match the app's ordering for nested
+# JSON (SplashToolPolicy.propertyOrder: required, size, the selectors, the rest by
+# name) while leaving XML argument order unchanged.
 def required_first(value):
     if isinstance(value, list): return [required_first(v) for v in value]
     if not isinstance(value, dict): return value
@@ -38,7 +39,7 @@ def required_first(value):
     if 'properties' in result:
         props = result['properties']
         names = [k for k in result.get('required', []) if k in props]
-        names += [k for k in ['componentID', 'definitionBinding'] if k in props and k not in names]
+        names += [k for k in ['size', 'componentID', 'definitionBinding', 'datasetID'] if k in props and k not in names]
         names += sorted(k for k in props if k not in names)
         result['properties'] = {k: props[k] for k in names}
     return result
@@ -162,7 +163,7 @@ for choice_name, app_choice, choice, thinking, examples in choices:
         assert constraint.matcher.is_accepting()
         cases.append(dict(name=choice_name+'_'+name, choice=app_choice, thinking=thinking,
                           output=output, arguments=arguments, tokens=tokens, steps=steps))
-result = dict(schemaVersion=1, nestedPropertyOrder='required-then-component-and-definition-selectors', splashCommit=pin['commit'],
+result = dict(schemaVersion=1, nestedPropertyOrder='required-size-then-component-definition-and-dataset-selectors', splashCommit=pin['commit'],
               toolsSHA256=hashlib.sha256((ROOT/'IntegrationTests/Agent/workbook-tools.json').read_bytes()).hexdigest(),
               cases=cases)
 path = ROOT/'IntegrationTests/Agent/tool-grammar-fixtures.json'

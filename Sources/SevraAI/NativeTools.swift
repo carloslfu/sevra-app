@@ -3,20 +3,20 @@ import SevraCore
 
 package enum NativeTools {
   /// The order the grammar makes the model write an object's fields in: the required fields
-  /// in the order the schema lists them, then componentID, definitionBinding and datasetID,
-  /// then the rest by name, and size last. A field the model has passed cannot be written later, so every shape shown
+  /// in the order the schema lists them, then size, then componentID, definitionBinding and
+  /// datasetID, then the rest by name. Size comes early because the model writes it right
+  /// after title, and a field written early closes every field ordered before it. A field the model has passed cannot be written later, so every shape shown
   /// to the model lists its fields in this order. `SplashToolPolicy.propertyOrder` is the grammar's
   /// copy, and the agent checks hold the two equal.
   package static func fieldOrder(_ schema: Value) -> [String] {
     let properties = schema["properties"].object
     let required = schema["required"].array.map(\.text).filter { properties[$0] != nil }
+    let early = ["size"].filter { properties[$0] != nil && !required.contains($0) }
     let selectors = ["componentID", "definitionBinding", "datasetID"].filter {
       properties[$0] != nil && !required.contains($0)
     }
-    let last = ["size"].filter { properties[$0] != nil && !required.contains($0) }
-    let first = required + selectors
-    return first + properties.keys.filter { !first.contains($0) && !last.contains($0) }.sorted()
-      + last
+    let first = required + early + selectors
+    return first + properties.keys.filter { !first.contains($0) }.sorted()
   }
   static func schema(_ type: String, _ description: String) -> Value {
     .object(["type": .string(type), "description": .string(description)])

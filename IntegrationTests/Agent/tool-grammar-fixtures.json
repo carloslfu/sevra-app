@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "nestedPropertyOrder": "required-then-component-and-definition-selectors",
+  "nestedPropertyOrder": "required-size-then-component-definition-and-dataset-selectors",
   "splashCommit": "d40c250ff248938edebdb91fb6124514e32daeaa",
   "toolsSHA256": "3d36a9bc424028c7d8d01166716a42d89b0daf9029328d93b6c36e2130786f9e",
   "cases": [
@@ -59387,7 +59387,7 @@
             5,
             6
           ],
-          "maskSHA256": "0a57c33d731f61d312d9d7bce0b9b65c9060090a893997e563361c63f09525d1",
+          "maskSHA256": "57d6a43aa36f468188c5fb187bbb538d108415d45d4708659a310c122fb20d0e",
           "forced": []
         },
         {
@@ -59539,7 +59539,7 @@
             5,
             6
           ],
-          "maskSHA256": "2df6a9bded11ee0b38fc94147f39a511f43e804312b7a5c85cd91aec5ce4dd55",
+          "maskSHA256": "f052b8579cf3eaf1a7389c0b9dd65d5465335975c5e1ab3b0a15a90b2a86bc30",
           "forced": [
             7,
             198,
@@ -59664,7 +59664,7 @@
             0,
             0
           ],
-          "maskSHA256": "a7d06930d29a77dba89d766a4a3b46fb37842468d63273a5d15d1545bec02d3c",
+          "maskSHA256": "8b27cdd84f7018a46391a89a0a3321b778a0ee355b4aed27d144da85702821ff",
           "forced": []
         },
         {
@@ -62266,7 +62266,7 @@
             5,
             6
           ],
-          "maskSHA256": "7ae57f300549a7cdb0cb6c8d177489a6d943114e978999576c38b5144124b885",
+          "maskSHA256": "c897c3f15284d4a05338f7e9537391505aa4515da311bb6137297faaba2f7916",
           "forced": []
         },
         {
@@ -67842,7 +67842,7 @@
             5,
             6
           ],
-          "maskSHA256": "4d09a21f42a7e85266c92d7b981f67b8a5c5374589d6412df4f158afba45786c",
+          "maskSHA256": "87e2de0d2b438e72cbcc08a0cbd68ca6c55b04c5b137d4db407a745a74c71872",
           "forced": []
         },
         {
@@ -67912,7 +67912,7 @@
             0,
             0
           ],
-          "maskSHA256": "e9ed0c0126b7cd3e49f0f64af20f54b3b65f65ba6b8007aa153a03ef05179343",
+          "maskSHA256": "3b289104cf3d89da639845fe0fc0404174787c80e4bc188025e54962b0783a8d",
           "forced": []
         },
         {
@@ -69779,7 +69779,7 @@
             5,
             6
           ],
-          "maskSHA256": "dc1628b00968b758e29bc73c2c132f882058aa0a953bdbc8fb76087a3bd3cf7b",
+          "maskSHA256": "7f05d0db9746276309ca27bb3212d6d02295c6ec3b05b728465b9395727340a0",
           "forced": [
             8,
             198,
@@ -69868,7 +69868,7 @@
             0,
             0
           ],
-          "maskSHA256": "f76677592f8b48d176bddd7e075d8e47f20cc37ccfe0afc4cec7d9dc9739321b",
+          "maskSHA256": "d0070419bd99f1aca386aa85c0c8b31accb52a19bd87c7d8e9db8869ece8625a",
           "forced": []
         },
         {

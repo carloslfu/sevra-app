@@ -262,15 +262,18 @@ public final class SplashToolPolicy {
     // Select the component/bound behavior before its optional arguments.
     // Fixed property order must not hide placement after componentID, typed
     // arguments after choosing a definitionBinding, or a component's table
-    // after its other fields. A model writes size last, so it comes last: a
-    // size written early would close off every field sorted after it.
+    // after its other fields. size comes right after the required fields:
+    // real-model transcripts (November 26, 2026) show the model writes a
+    // component as id, type, title, size and then stops, so with size last a
+    // size written early closed every later field. Retried buttons lost their
+    // definitionBinding and "make it a bar chart" replaces never carried
+    // chartStyle. With size here, writing it early closes nothing.
+    let early = ["size"].filter { properties[$0] != nil && !required.contains($0) }
     let selectors = ["componentID", "definitionBinding", "datasetID"].filter {
       properties[$0] != nil && !required.contains($0)
     }
-    let last = ["size"].filter { properties[$0] != nil && !required.contains($0) }
-    let first = required + selectors
-    return first + properties.keys.filter { !first.contains($0) && !last.contains($0) }.sorted()
-      + last
+    let first = required + early + selectors
+    return first + properties.keys.filter { !first.contains($0) }.sorted()
   }
   private static func nestedSchemaJSON(_ value: Any) throws -> String {
     if let object = value as? [String: Any] {

@@ -358,6 +358,15 @@ private actor SpaceActionModel: WorkbookInference {
     try expectEqual(error.message.hasPrefix("Tool counter reads and changes no table"), true)
   }
   try tool("item_count", [], "SELECT count(*) AS items FROM items")
+  // A tool over a table that does not exist yet says to create the table first.
+  do {
+    try tool("add_expense", [("amount", "decimal")], "INSERT INTO expenses (amount) VALUES (:amount)")
+    throw SevraError("fixture", "A tool over a missing table was saved.")
+  } catch let error as SevraError where error.code == "sql" {
+    try expectEqual(
+      error.message,
+      "There is no table expenses yet. Create it first with sql (CREATE TABLE ...), then save the tool.")
+  }
   func edit(_ edits: [SpaceEdit]) throws -> Space {
     try homeBook.editSpace("home", expectedVersion: homeBook.space("home").version, edits: edits)
   }
@@ -447,6 +456,37 @@ private actor SpaceActionModel: WorkbookInference {
   ])
   try expectEqual(unsized.definition.components.first { $0.id == "sized" }?.size, nil)
   _ = try edit([SpaceEdit(operation: "remove", componentID: "sized")])
+  // An edit that changes nothing is refused and keeps the version, naming a field to include.
+  let before = try homeBook.space("home")
+  let savedCounter = try expectValue(before.definition.component("counter"))
+  for same in [
+    SpaceEdit(operation: "replace", component: savedCounter),
+    SpaceEdit(operation: "title", componentID: "counter", title: savedCounter.title),
+  ] {
+    do {
+      _ = try edit([same])
+      throw SevraError("fixture", "An edit that changes nothing was saved.")
+    } catch let error as SevraError where error.code == "nothing_changed" {
+      try expectEqual(
+        error.message,
+        "Nothing changed: counter already has these values. To change it, include the field that changes, for example aggregation.")
+    }
+  }
+  try expectEqual(try homeBook.space("home").version, before.version)
+  // The repeated-call guard counts a retry against a newer version as the same call.
+  func call(_ version: Int) -> Value {
+    .object([
+      "tool": .string("run"),
+      "arguments": .object([
+        "action": .string("view.edit"),
+        "arguments": .object([
+          "id": .string("home"), "expectedVersion": .number(Double(version)),
+          "edits": .array([]),
+        ]),
+      ]),
+    ])
+  }
+  try expectEqual(try WorkbookAgent.repeatKey(call(3)), try WorkbookAgent.repeatKey(call(4)))
   let buttons = try homeBook.saveSpace(
     title: "Buttons", definition: .init(components: [button("log", "log_item")]))
   try expectThrows(try homeBook.pinSpace(buttons))
@@ -505,7 +545,7 @@ private actor SpaceActionModel: WorkbookInference {
   } catch let error as SevraError where error.code == "arguments" {
     try expectEqual(error.message, "edits[0].operation is missing.")
   }
-  print("PASS a button runs any saved tool, takes the person's inputs and can be undone; sizes and refusals")
+  print("PASS a button runs any saved tool, takes the person's inputs and can be undone; sizes and refusals; a tool over a missing table and an edit that changes nothing are refused")
   print("PASS chat Home composition, default reset, history, reopen and read-only refusal")
   print(
     "PASS scoped space opening, compound continuation, shortcut/snapshot separation, read-only denial and terminal ambiguity/window refusal"

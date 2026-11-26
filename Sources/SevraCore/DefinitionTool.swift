@@ -179,6 +179,14 @@ extension Workbook {
 
   // MARK: Saving, removing and running
 
+  /// The table a "no such table: name" failure names, without a schema prefix.
+  static func missingTable(_ message: String) -> String? {
+    guard let range = message.range(of: "no such table: ") else { return nil }
+    let name = message[range.upperBound...].prefix { !". \n".contains($0) || $0 == "." }
+    let table = name.split(separator: ".").last.map(String.init) ?? ""
+    return table.isEmpty ? nil : table
+  }
+
   /// Saves a tool, or a new version of the tool with that name, after rehearsing its
   /// statements with empty inputs, or its script once with sample inputs. Saving it here grants it.
   public func chatSaveTool(
@@ -223,9 +231,24 @@ extension Workbook {
           inputs: Dictionary(uniqueKeysWithValues: inputs.map { ($0.name, Value.null) }),
           cancellation: cancellation)
         defer { rehearsal.close() }
+        let touched: Set<String>
+        do {
+          touched = try rehearsal.rehearse(tool.statements)
+        } catch let error as SevraError where error.code == "sql" {
+          // A model that saved a tool before its table, told to list the tables, gave up.
+          guard let missing = Self.missingTable(error.message),
+            !(try datasets()).contains(where: {
+              $0.title.lowercased().contains(missing.lowercased())
+            })
+          else { throw error }
+          throw SevraError(
+            "sql",
+            "There is no table \(missing) yet. Create it first with sql (CREATE TABLE ...), then save the tool."
+          )
+        }
         // A tool keeps nothing between runs: what it counts or logs lives in a table.
         try require(
-          !(try rehearsal.rehearse(tool.statements)).isEmpty, "tool",
+          !touched.isEmpty, "tool",
           "Tool \(name) reads and changes no table, so running it does nothing. What a tool records, such as a count or a log, goes in a table: make the table with sql, then save a tool that writes to it or reads it."
         )
       }

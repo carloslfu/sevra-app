@@ -17,7 +17,7 @@ public struct ViewButton: Sendable, Equatable {
     else {
       throw SevraError(
         "view",
-        "Component \(component.id) (button) needs definitionBinding: {tool: \"name\"}, with the name of the saved tool it runs. Write a button's fields in this order: id, type, title, definitionBinding, arguments, size. A field you have passed cannot be written later."
+        "Component \(component.id) (button) needs definitionBinding: {tool: \"name\"}, with the name of the saved tool it runs. Write a button's fields in this order: id, type, title, size, definitionBinding, arguments. A field you have passed cannot be written later."
       )
     }
     switch component.arguments {
@@ -197,10 +197,10 @@ extension Workbook {
     }
     let numbers = dataset.columns.filter { $0.type == "decimal" && $0.id.lowercased() != "id" }
     let head =
-      "{id: \"shown_total\", type: \"metric\", title: \(quoted(dataset.title)), datasetID: \(quoted(dataset.id)), "
-    if onlyInserts { return head + "aggregation: \"COUNT\", size: \"large\"}" }
+      "{id: \"shown_total\", type: \"metric\", title: \(quoted(dataset.title)), size: \"large\", datasetID: \(quoted(dataset.id)), "
+    if onlyInserts { return head + "aggregation: \"COUNT\"}" }
     if numbers.count == 1 {
-      return head + "aggregation: \"SUM\", y: \(quoted(numbers[0].id)), size: \"large\"}"
+      return head + "aggregation: \"SUM\", y: \(quoted(numbers[0].id))}"
     }
     return
       "{id: \"shown_table\", type: \"table\", title: \(quoted(dataset.title)), datasetID: \(quoted(dataset.id))}"

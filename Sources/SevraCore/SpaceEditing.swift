@@ -21,9 +21,9 @@ extension SpaceDefinition {
   /// The order a model writes a component's fields in, each only when its type uses it. It is
   /// the grammar's order for the component schema, and the agent checks hold the two equal.
   public static let componentFieldOrder = [
-    "id", "type", "title", "definitionBinding", "datasetID", "aggregation", "arguments",
+    "id", "type", "title", "size", "definitionBinding", "datasetID", "aggregation", "arguments",
     "chartStyle", "children", "itemID", "presentationID", "query", "spaceID", "text", "unit",
-    "viewID", "viewVersion", "visual", "x", "y", "size",
+    "viewID", "viewVersion", "visual", "x", "y",
   ]
   /// The component types each of these fields belongs to. A field on another type was once
   /// kept and ignored, so a table titled "Overdue invoices" with a query showed every row.
@@ -363,11 +363,39 @@ extension Workbook {
           else { throw SevraError("view", "The selected component no longer exists.") }
         }
       }
+      // Edits that change nothing were once saved as a new version. A model that left out
+      // the field it meant to change, such as chartStyle, then saw success and sent the same
+      // edit again, sixteen times in one transcript. Refuse it and name what to include.
+      try require(
+        definition != current.definition || title != current.title, "nothing_changed",
+        Self.nothingChangedMessage(edits, in: current))
       try preservePinnedBindings(current.definition, next: definition)
       try publishSpace(id: id, title: title, definition: definition, current: current)
       return try encoded(space(id))
     }
     return try JSONDecoder().decode(Space.self, from: Data(result.json().utf8))
+  }
+  /// The refusal of edits that leave a view as it is: which component already has these
+  /// values, and a field of its type that would change it.
+  static func nothingChangedMessage(_ edits: [SpaceEdit], in space: Space) -> String {
+    func flatten(_ components: [Component]) -> [Component] {
+      components.flatMap { [$0] + flatten($0.children ?? []) }
+    }
+    let ids = edits.compactMap { $0.componentID ?? $0.component?.id }
+    let target = ids.first.flatMap { id in flatten(space.definition.components).first { $0.id == id } }
+    let example: String
+    switch target?.type {
+    case "chart": example = "chartStyle"
+    case "metric": example = "aggregation"
+    case "button": example = "definitionBinding"
+    case "table": example = "query"
+    case "text": example = "text"
+    case .some: example = "size"
+    case nil: example = "title"
+    }
+    let subject = target.map(\.id) ?? space.id
+    return
+      "Nothing changed: \(subject) already has these values. To change \(target == nil ? "the view" : "it"), include the field that changes, for example \(example)."
   }
   /// The order a model's grammar writes an edit's fields in. A model that writes the component
   /// first cannot go back for the position, so an error names this order.

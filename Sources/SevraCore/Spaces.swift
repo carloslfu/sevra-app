@@ -329,7 +329,7 @@ extension Workbook {
           try require(
             c.datasetID == nil && c.itemID == nil && c.snapshot == nil && c.searchSnapshot == nil
               && c.evaluationSnapshot == nil, "view",
-            "A button runs a saved tool: it takes definitionBinding, arguments and size.")
+            "A button runs a saved tool: it takes size, definitionBinding and arguments.")
           do {
             try checkButton(try ViewButton(c))
           } catch let error as SevraError where c.definitionBinding == nil {

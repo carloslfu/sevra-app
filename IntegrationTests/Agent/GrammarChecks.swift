@@ -86,23 +86,35 @@ func checkWorkbookGrammars(frontend: SplashTextFrontend, factory: SplashGrammarF
   }
   print("PASS layout grammar keeps insert labels in components, refuses fields from other edits and a visual on a button")
   // A button keeps its tool binding after other components, including ones with a query, so
-  // a view retried after an error can bind its button again.
+  // a view retried after an error can bind its button again. size comes right after title:
+  // real-model transcripts wrote id, type, title, size and then stopped, because with size
+  // last writing it early closed every later field, definitionBinding and chartStyle too.
   do {
     let savePolicy = try SplashToolPolicy(
       toolsJSON: NativeTools.serializedDefinitions(nativeAppAuthoring: false),
       choice: .named("save"), thinking: false)
-    let button = #"{"id":"button1","type":"button","title":"Add","definitionBinding":{"tool":"add_expense"},"size":"medium"}"#
+    let button = #"{"id":"button1","type":"button","title":"Add","size":"medium","definitionBinding":{"tool":"add_expense"}}"#
     let queryTable = #"{"id":"t1","type":"table","title":"E","datasetID":"e426","query":"SELECT 1 as a"}"#
-    let queryMetric = #"{"id":"m1","type":"metric","title":"Total","datasetID":"e426","query":"SELECT 1 as total","y":"total","size":"medium"}"#
-    for comps in [button, queryTable + "," + queryMetric + "," + button] {
+    let queryMetric = #"{"id":"m1","type":"metric","title":"Total","size":"medium","datasetID":"e426","query":"SELECT 1 as total","y":"total"}"#
+    let barChart = #"{"id":"c1","type":"chart","title":"By day","size":"large","datasetID":"e426","chartStyle":"bar","x":"day","y":"amount"}"#
+    let lateSize = #"{"id":"button1","type":"button","title":"Add","definitionBinding":{"tool":"add_expense"},"size":"medium"}"#
+    for (comps, allowed) in [
+      (button, true), (queryTable + "," + queryMetric + "," + button, true), (barChart, true),
+      (lateSize, false),
+    ] {
       let tokens = frontend.encode(
         "<tool_call>\n<function=save>\n<parameter=view>\n"
           + #"{"title":"T","definition":{"version":1,"components":["# + comps + #"]}}"#
           + "\n</parameter>\n</function>\n</tool_call>")
-      try factory.create(grammar: savePolicy.grammar).finish(committed: tokens, requireComplete: true)
+      let grammar = try factory.create(grammar: savePolicy.grammar)
+      if allowed {
+        try grammar.finish(committed: tokens, requireComplete: true)
+      } else {
+        try expectThrows(try grammar.finish(committed: tokens, requireComplete: true))
+      }
     }
   }
-  print("PASS save grammar keeps a button's tool binding after query components")
+  print("PASS save grammar takes size right after title, keeps a button's tool binding after query components and refuses size after definitionBinding")
   for item in fixture.cases {
     let choice: SplashToolPolicy.Choice =
       item.choice == "named_finish" ? .named("finish") : item.choice == "auto" ? .auto : .required
