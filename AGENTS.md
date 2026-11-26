@@ -74,8 +74,10 @@ the [persistence-readiness requirement](db/records/specs/persistence-readiness.m
 adds complete saved changes, causal identities, deterministic local reconstruction
 and accurate decision provenance.
 
-The shipped agent skill, `skills/sevra/SKILL.md`, teaches the chat tools through
-`sevra tool`. Change it with the tools or the CLI it describes.
+Outside agents learn the workbook from the CLI itself: `sevra agent` prints the
+guide in `Sources/SevraCLI/AgentGuide.swift` followed by the live tool declarations,
+and `sevra mcp` serves the same tools over MCP. Change the guide with the tools or
+the CLI it describes. `skills/sevra/SKILL.md` only points to `sevra agent`.
 
 ## Git
 

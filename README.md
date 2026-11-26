@@ -128,6 +128,20 @@ saved results also work without setting up AI.
 The [supplier comparison walkthrough](db/records/operations/build-and-run.md#supplier-comparison-walkthrough)
 has the exact steps. Focused requests work best.
 
+### Use a workbook from your coding agent
+
+Coding agents such as Claude Code and Codex can work in a workbook with the same
+tools Sevra's own model uses, so their changes are recorded, can be undone and
+show up in the app. Nothing needs to be installed beyond Sevra itself:
+
+- `sevra agent` prints the guide for the installed version. An agent that can run
+  commands only needs to be told to run it.
+- `sevra mcp [WORKBOOK]` serves the tools over MCP on stdio, for agents and apps
+  that take MCP servers. For example, in Claude Code:
+  `claude mcp add sevra -- ~/.local/bin/sevra mcp`.
+- `scripts/install_skill.sh claude` or `codex` adds a small skill that tells the
+  agent to run `sevra agent` when you mention a workbook. It is optional.
+
 ## Build small apps
 
 <a id="build-a-native-mini-app"></a>

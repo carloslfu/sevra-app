@@ -77,6 +77,12 @@ with tempfile.TemporaryDirectory() as folder:
     expect('update recalculates', after == {'Oak Supply': ('20', '48'), 'Cedar Tools': ('20', '55')}, after)
     undone = sql(book, undo=update['undo'])
     expect('undo restores', undone.get('undone') is True and book.values(SUPPLIERS) == start, book.values(SUPPLIERS))
+    # A formula read later in the same call sees the change (November 26, 2026: it read the old total).
+    same = sql(book, "UPDATE supplier_comparison SET unit_cost = 3 WHERE supplier = 'Cedar Tools'",
+               "SELECT supplier, total FROM supplier_comparison ORDER BY supplier")
+    expect('formula is current within a call', rows(same, 1) == [['Cedar Tools', '30'], ['Oak Supply', '24']], rows(same, 1))
+    sql(book, undo=same['undo'])
+    expect('formula undo restores', book.values(SUPPLIERS) == start, book.values(SUPPLIERS))
     try:
         sql(book, undo=update['undo'])
         expect('a second undo is refused', False)

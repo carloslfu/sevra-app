@@ -17,8 +17,21 @@ import SevraProduct
       return stop
     }
     defer { stops.forEach { $0.cancel() } }
+    let args = Array(CommandLine.arguments.dropFirst())
+    // These two speak to agents directly: the guide as plain text, and MCP over stdio.
+    if args == ["agent"] {
+      do {
+        print(try AgentGuide.text(), terminator: "")
+        return
+      } catch {
+        fputs("sevra agent: \(failureDescription(error))\n", stderr)
+        exit(1)
+      }
+    }
+    if args.first == "mcp" {
+      exit(await MCPServer.serve(args, cancellation: cancellation))
+    }
     do {
-      let args = Array(CommandLine.arguments.dropFirst())
       let result = try await run(args, cancellation: cancellation)
       await ProductAI.shared.unload()
       print(
@@ -812,32 +825,8 @@ import SevraProduct
       }
       return .object(["tool": .string(tool.name), "done": .string(String(command.dropFirst(5)))])
     case "tool":
-      // The seven general tools are accepted by name, and so is the operation behind each.
-      let name = try arg(2)
-      if name == "ask" || name == "finish" {
-        throw SevraError(
-          "chat_only",
-          "\(name) is how Sevra's chat model talks to the person during a chat turn. From the command line, talk to the person yourself, or use sevra ask WORKBOOK QUESTION to ask Sevra's model."
-        )
-      }
-      let call = GeneralTools.route(
-        name, args.count > 3 ? try Value.parseExact(args[3]) : .object([:]))
-      let result = try WorkbookTools(book, conversation: latestChat()).execute(
-        call.tool, call.arguments)
-      // An action the app window performs does nothing here, so it must not report success.
-      if let action = result["hostAction"].string {
-        let instead: [String: String] = [
-          "file.export_table": "export-csv WORKBOOK TABLE_ID PATH.csv",
-          "file.export_workbook": "export WORKBOOK PATH.sevraz",
-          "workflow.continue": "workflow-continue WORKBOOK RUN_ID",
-          "workflow.retry": "workflow-retry WORKBOOK RUN_ID TOKEN",
-        ]
-        throw SevraError(
-          "app_only",
-          "\(action) runs in the Sevra window, so nothing happened."
-            + (instead[action].map { " Use sevra \($0) instead." } ?? ""))
-      }
-      return worded(result)
+      return try callTool(
+        book, name: arg(2), arguments: args.count > 3 ? Value.parseExact(args[3]) : .object([:]))
     case "ask":
       // ask WORKBOOK PROMPT [MODEL_DIRECTORY] [--chat CHAT_ID]: the latest chat unless one is named.
       var positional = Array(args.prefix(2))
@@ -897,6 +886,34 @@ import SevraProduct
     "export": 3...3, "export-csv": 4...4, "tool": 3...4, "ask": 3...6, "tools": 2...2, "tool-enable": 3...3, "tool-disable": 3...3,
     "tool-remove": 3...3,
   ]
+  /// One call of a chat tool, as `sevra tool` and `sevra mcp` make it. The seven general tools
+  /// are accepted by name, and so is the operation behind each.
+  static func callTool(_ book: Workbook, name: String, arguments: Value) throws -> Value {
+    if name == "ask" || name == "finish" {
+      throw SevraError(
+        "chat_only",
+        "\(name) is how Sevra's chat model talks to the person during a chat turn. Talk to the person yourself, or use sevra ask WORKBOOK QUESTION to ask Sevra's model."
+      )
+    }
+    let call = GeneralTools.route(name, arguments)
+    let chat = try book.chats().first?.id ?? book.createChat()
+    let result = try WorkbookTools(book, conversation: chat).execute(call.tool, call.arguments)
+    // An action the app window performs does nothing here, so it must not report success.
+    if let action = result["hostAction"].string {
+      let instead: [String: String] = [
+        "file.export_table": "export-csv WORKBOOK TABLE_ID PATH.csv",
+        "file.export_workbook": "export WORKBOOK PATH.sevraz",
+        "workflow.continue": "workflow-continue WORKBOOK RUN_ID",
+        "workflow.retry": "workflow-retry WORKBOOK RUN_ID TOKEN",
+      ]
+      throw SevraError(
+        "app_only",
+        "\(action) runs in the Sevra window, so nothing happened."
+          + (instead[action].map { " Use sevra \($0) instead." } ?? ""))
+    }
+    return worded(result)
+  }
+
   /// Guidance in a tool result names the operations behind the tools, as it does for the app's
   /// model before the app rewords it. Only guidance text is reworded; data is left exact.
   static func worded(_ value: Value) -> Value {
@@ -918,6 +935,8 @@ import SevraProduct
   /// The front page: the tools Sevra's chat model uses, then the commands for whole workbooks.
   static let start = """
     Sevra 0.1.0 development CLI. Every result is JSON; errors exit nonzero.
+    Agents: run sevra agent first. It prints how to use these tools in this version, as plain text.
+    MCP: sevra mcp [WORKBOOK] serves search, read, sql, run and save over stdio.
     Work in a workbook with the tools Sevra's chat model uses:
       tool WORKBOOK search '{"query":"a few words"}'
       tool WORKBOOK read '{"id":"ID"}'            read '{"kind":"actions"}' lists what run can do
@@ -935,6 +954,7 @@ import SevraProduct
     """
   static let help = """
     Sevra 0.1.0 development CLI. Every result is JSON; errors exit nonzero.
+    agent (the agent guide as plain text) | mcp [WORKBOOK] (the chat tools over MCP on stdio)
     header make DIRECTORY [MODEL_DIRECTORY] | header status [DIRECTORY]
     tools WORKBOOK | tool-enable WORKBOOK NAME | tool-disable WORKBOOK NAME | tool-remove WORKBOOK NAME
     create PATH.sevra [TITLE] | demo PATH.sevra | inspect WORKBOOK | verify WORKBOOK

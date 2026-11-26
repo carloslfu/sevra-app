@@ -35,7 +35,7 @@ A spreadsheet you run by talking to it, with a local model: chat is the input, t
 - **Chat questions are answered in the composer**, with one-tap buttons for choices, and every box that writes to Sevra has the microphone.
 - **The stock ledger is gone.** Stock movements, balances, receiving, stock threshold automations and the supplier-quote guard were removed on November 25 ([[records/reviews/chat-spreadsheet-cleanup-2026-11-25]]). Inventory is ordinary tables and saved tools.
 - **The engine** is Splash 1.7.3. Its memory is sized from free memory at each start, between 8 and 20 GiB, and it restarts smaller under memory pressure ([[records/plans/engine-memory-by-free-memory]]).
-- **The command line** runs the tools through `sevra tool`, and the shipped skill teaches that ([[sources/notes/2026/11/cli-skill-seven-tools]]). `scripts/install_skill.sh codex|claude` installs or updates it.
+- **Outside agents** use the tools through `sevra tool` or `sevra mcp`, and learn them from `sevra agent`, which prints the guide built into the CLI with the live tool declarations ([[sources/notes/2026/11/agent-guide-in-the-cli]]). The skill in `skills/sevra` is an optional pointer to it.
 - Earlier work still in place: Excel import and reconstruction, programmable mini apps, rich visuals and the Native UI Catalog. Their plans are in `db/records/plans/`.
 
 ## Open decisions for the owner
@@ -47,6 +47,7 @@ A spreadsheet you run by talking to it, with a local model: chat is the input, t
 
 - A release claims only the chips its header tests passed on, so far an Apple M5 Pro.
 - The app job is the least reliable model job and is not in the light set.
+- A `sevra` installed before November 26, 2026 has no `sevra agent` or `sevra mcp`; install the app again to get them.
 - UI and VoiceOver accessibility are not qualified. The workbook menu's Remove view, Remove table and Removed items were not checked live in the installed app.
 
 ## How to work here

@@ -1,5 +1,6 @@
 #!/bin/bash
-# Install or update the sevra agent skill for Codex or Claude Code.
+# Install or update the sevra agent skill for Codex or Claude Code. The skill is a pointer to
+# `sevra agent`, which prints the guide from the installed CLI, so installing it is optional.
 # An earlier Sevra skill at the target is replaced, after a copy is kept outside the skills
 # folder so the agent does not load it twice. Anything else at the target is left alone.
 set -euo pipefail

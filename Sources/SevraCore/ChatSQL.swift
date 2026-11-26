@@ -1031,9 +1031,67 @@ final class SQLScratch {
       guarded = false
       shaping = nil
       if let shape, let before { try reshaped(shape, from: before, to: try layouts()) }
+      if shape == nil { try refreshFormulas() }
       results.append(result)
     }
     return results
+  }
+
+  /// Formula columns in the copy are plain values filled when a table is loaded. After a
+  /// statement changes rows, those rows' formulas are computed again from their new values,
+  /// so a later statement in the same call reads what the workbook will hold. A formula that
+  /// names another cell cannot be computed here and reads as NULL until the call is saved.
+  private func refreshFormulas() throws {
+    for key in order {
+      guard let entry = entries[key], !entry.dropped,
+        entry.fields.contains(where: { $0.column.formula != nil })
+      else { continue }
+      let changed = try prepare("SELECT DISTINCT id FROM \"\(Self.log)\" WHERE tbl=?")
+      defer { sqlite3_finalize(changed) }
+      _ = key.withCString { sqlite3_bind_text(changed, 1, $0, -1, Self.transient) }
+      var rowIDs: [Int64] = []
+      while sqlite3_step(changed) == SQLITE_ROW { rowIDs.append(sqlite3_column_int64(changed, 0)) }
+      guard !rowIDs.isEmpty else { continue }
+      let columns = entry.fields.map(\.column)
+      let names = entry.fields.map { "\"\($0.name)\"" }.joined(separator: ",")
+      let select = try prepare("SELECT \(names) FROM \"\(entry.name)\" WHERE rowid=?")
+      defer { sqlite3_finalize(select) }
+      for rowID in rowIDs {
+        sqlite3_reset(select)
+        sqlite3_bind_int64(select, 1, rowID)
+        guard sqlite3_step(select) == SQLITE_ROW else { continue }
+        var raw: [String: Value] = [:]
+        for (index, field) in entry.fields.enumerated() where field.column.formula == nil {
+          raw[field.column.id] = cell(select, Int32(index))
+        }
+        var cache: [String: Decimal] = [:]
+        func resolve(_ column: Column, depth: Int) throws -> Decimal {
+          if let found = cache[column.id] { return found }
+          guard let formula = column.formula else {
+            return try Numbers.decimal(raw[column.id]?.text ?? "")
+          }
+          try require(depth < 128, "formula_limit", "Column dependency depth exceeds 128.")
+          let value = try Numbers.decimal(
+            Numbers.calculate(
+              formula, values: raw,
+              units: { name in columns.first { $0.id == name }?.unit },
+              resolve: { name in
+                guard let other = columns.first(where: { $0.id == name }) else {
+                  throw SevraError("cell", "A cell reference is computed when the call is saved.")
+                }
+                return try resolve(other, depth: depth + 1)
+              }))
+          cache[column.id] = value
+          return value
+        }
+        for field in entry.fields where field.column.formula != nil {
+          let value = try? resolve(field.column, depth: 0)
+          try execute(
+            "UPDATE \"\(entry.name)\" SET \"\(field.name)\"=? WHERE rowid=?",
+            [value.map { .number(Double(Numbers.string($0)) ?? 0) } ?? .null, .number(Double(rowID))])
+        }
+      }
+    }
   }
 
   private func step(_ sql: String, index: Int) throws -> Value {

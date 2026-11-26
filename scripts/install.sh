@@ -69,6 +69,7 @@ fi
 echo "Installed $APP"
 echo "CLI: $LINK"
 echo "Workbooks and model files were not changed."
+echo "Agents: run sevra agent for the guide, or sevra mcp to serve the workbook tools over MCP."
 HEADER=$("$APP/Contents/CLI/sevra" header status | python3 -c 'import json, sys; print(json.load(sys.stdin)["result"]["state"])')
 if [ "$HEADER" != present ]; then
   echo "This build has no prepared prompt header, so chat is unavailable."
