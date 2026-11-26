@@ -101,6 +101,11 @@ struct ExcelConversionView: View {
               .lineLimit(2...5).textFieldStyle(.roundedBorder)
               .accessibilityLabel("Describe your Excel workflow")
               .disabled(state.busy)
+              DictationButton(
+                text: Binding(
+                  get: { state.excelPurposeDrafts[id] ?? draft.purpose },
+                  set: { state.excelPurposeDrafts[id] = $0 })
+              ).disabled(state.busy)
               Text(
                 "Optional. Your original file stays available, and you can use the data without AI."
               )

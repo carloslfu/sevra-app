@@ -165,6 +165,7 @@ struct StartView: View {
         } label: {
           Label("Add files…", systemImage: "paperclip")
         }.buttonStyle(.borderless).help("Start from spreadsheets, PDFs or other files")
+        DictationButton(text: $message).disabled(starting)
         Spacer()
         if starting { ProgressView().controlSize(.small) }
         Button(action: send) { Image(systemName: "arrow.up") }.buttonStyle(.borderedProminent)

@@ -71,6 +71,7 @@ struct QueuedMessagesView: View {
             Button("Save") { save(message.id) }.controlSize(.small)
               .disabled(editText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
             Button("Cancel") { editing = nil }.controlSize(.small)
+            DictationButton(text: $editText).controlSize(.small)
           }
         }
       } else {

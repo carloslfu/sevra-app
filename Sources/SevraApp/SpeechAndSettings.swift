@@ -175,6 +175,51 @@ struct VoiceButton: View {
   }
 }
 
+/// A mic for any box where the person writes to Sevra. Dictation adds to what is already typed,
+/// and typing over it stops dictation. Each box has its own recording, and only one records at a
+/// time across the app. While it listens, or after a failure, it says so beside the mic.
+struct DictationButton: View {
+  @Binding var text: String
+  @StateObject private var speech = SpeechInput(pausePlayback: {
+    PlaybackRegistry.shared.pauseAll()
+  })
+  @State private var draft: DictationDraft?
+  @State private var failure: String?
+  var body: some View {
+    HStack(spacing: 6) {
+      VoiceButton(speech: speech, action: toggle)
+      if speech.active {
+        VoiceStatus(speech: speech)
+      } else if let failure {
+        Text(failure).readingFont(.caption).foregroundStyle(.red).lineLimit(2)
+      }
+    }
+    .onChange(of: text) { _, value in
+      if speech.active, value != draft?.lastRendered { speech.stop() }
+    }
+    .onDisappear { speech.stop() }
+  }
+  private func toggle() {
+    if speech.active {
+      speech.stop()
+      return
+    }
+    failure = nil
+    draft = DictationDraft(text)
+    speech.start { transcript in
+      guard var current = draft, let rendered = current.apply(transcript, to: text) else {
+        speech.stop()
+        return
+      }
+      // The draft records the text first, so the change below is known as dictation.
+      draft = current
+      text = rendered
+    } failure: { message in
+      failure = message
+    }
+  }
+}
+
 struct VoiceStatus: View {
   @ObservedObject var speech: SpeechInput
   var body: some View {
