@@ -310,9 +310,29 @@ class Job:
         self.group = identifier.split('.')[0]
 
 
+def supplier_claims(text):
+    """Each supplier named in the answer with the clause that follows it: up to the next
+    supplier, the end of the sentence, a comma or a comparison word. A decimal point does not
+    end a sentence."""
+    end = r'(?<!\d)[.;:\n](?!\d)|,|\b(?:against|compared|than|versus|vs|while|whereas)\b'
+    parts = re.split(r'\b(Oak|Cedar)\b', text)
+    for index in range(1, len(parts) - 1, 2):
+        yield parts[index], re.split(end, parts[index + 1], flags=re.I)[0]
+
+
 def comparison_check(run):
     problems = complete(run) + unchanged(run)
     problems += ['the answer does not name ' + n for n in names(run['answer'], 'Oak')]
+    # Oak Supply totals 24 and Cedar Tools 27.5, so a sentence giving Cedar the lower total or
+    # 24, or Oak 27.5, swaps the suppliers. Numbers alone pass with the suppliers swapped.
+    lower = re.compile(r'\b(lower|lowest|cheaper|cheapest|less expensive|least expensive)\b', re.I)
+    for name, claim in supplier_claims(run['answer']):
+        wrong = '27.5' if name == 'Oak' else '24'
+        if name == 'Cedar' and lower.search(claim):
+            problems.append('the answer calls Cedar Tools the lower total')
+        if any(n == Decimal(wrong) for n in numbers(claim)):
+            problems.append('the answer gives %s %s, the other supplier\'s total' % (name, wrong))
+    problems = list(dict.fromkeys(problems))
     if not has(run['answer'], '3.5'):
         problems.append('the answer does not give the difference 3.50')
     if not near(run['answer'], '12.727', '0.05'):
@@ -881,7 +901,7 @@ def answer(text, citations=()):
 
 
 JOBS = [
-    Job('read.supplier_comparison', 'The answer names Oak Supply, the difference 3.50 (24 against 27.5) and 12.73 percent, and cites at least one row. Nothing is saved.',
+    Job('read.supplier_comparison', 'The answer names Oak Supply as the lower total, without swapping the two totals, the difference 3.50 (24 against 27.5) and 12.73 percent, and cites at least one row. Nothing is saved.',
         'In the Supplier comparison table, which supplier has the lower total, by how much, and what percentage lower is it than the other supplier\'s total?',
         comparison_check, lambda book: {'citations': [book.rows(book.table(SUPPLIERS)['id'])[0]['id']]},
         answer('Oak Supply is lower by 3.50, which is 12.73% lower.')),
