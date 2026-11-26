@@ -61,7 +61,7 @@ struct AutomationSchedulesView: View {
           {
             Text(
               query.isEmpty
-                ? "No automations yet. Save a workflow, then choose New automation."
+                ? "No automations yet. Ask in the chat, such as “every Monday remind me to order supplies”, or choose New automation."
                 : "No automations match “\(query)”."
             )
             .foregroundStyle(.secondary)
@@ -209,6 +209,8 @@ struct AutomationScheduleDetail: View {
   @State private var state: Value = .null
   @State private var inspectionOwner = UUID()
   @State private var workflow: ApplicationDefinition?
+  /// The saved tool the workflow runs, when it is one step that runs a tool.
+  @State private var toolName: String?
   @State private var grant: AutomationDeviceGrant?
   @State private var allowAI = false
   @State private var working = false
@@ -235,11 +237,19 @@ struct AutomationScheduleDetail: View {
           }
           trigger
           Divider()
-          if let workflow {
+          if let workflow, workflow.logicalID == Workbook.checkAlertWorkflowID {
+            // An alert or a reminder: the sentence is what the person will read.
             VStack(alignment: .leading, spacing: 6) {
-              Text("Then it runs " + workflow.title).readingFont(.headline)
-                .accessibilityAddTraits(.isHeader)
-              if !workflow.description.isEmpty {
+              Text(startsWithCheck ? "Then it drafts the alert" : "Then it drafts the reminder")
+                .readingFont(.headline).accessibilityAddTraits(.isHeader)
+              Text(shown.payload["arguments"]["body"].text)
+                .textSelection(.enabled).fixedSize(horizontal: false, vertical: true)
+            }
+          } else if let workflow {
+            VStack(alignment: .leading, spacing: 6) {
+              Text(toolName.map { "Then it runs the tool " + $0 } ?? "Then it runs " + workflow.title)
+                .readingFont(.headline).accessibilityAddTraits(.isHeader)
+              if toolName == nil, !workflow.description.isEmpty {
                 Text(workflow.description).readingFont(.callout).foregroundStyle(.secondary)
                   .fixedSize(horizontal: false, vertical: true)
               }
@@ -375,7 +385,8 @@ struct AutomationScheduleDetail: View {
         (
           try book.previewAutomation(definition.id, after: Date()),
           try book.automationState(definition.id),
-          try book.applicationDefinition(definition.payload["workflow"]["versionID"].text)
+          try book.applicationDefinition(definition.payload["workflow"]["versionID"].text),
+          try book.singleToolName(ofWorkflow: definition.payload["workflow"]["versionID"].text)
         )
       }.value
       let activation = saved.1["id"].string
@@ -388,6 +399,7 @@ struct AutomationScheduleDetail: View {
       preview = saved.0
       state = saved.1
       workflow = saved.2
+      toolName = saved.3
       checkState = edge
       await owner.reload()
       let registry = owner.registry

@@ -692,24 +692,42 @@ extension Workbook {
     _ = try assetURL(asset, verify: true, cancellation: cancellation)
     var tables: [Dataset] = []
     var imported: [ImportedSheet] = []
-    let total = sheets.reduce(0) { $0 + $1.rows.count }
+    // Formulas name cells, so a workbook with any keeps every sheet cell for cell, under
+    // column letters. Without formulas, a sheet whose first row heads its columns is read
+    // as a delimited file is: that row names the columns and numeric columns are numbers.
+    let formulaFree = sheets.allSatisfy { $0.formulas.isEmpty && $0.formulaKinds.isEmpty }
+    let heads = sheets.map {
+      formulaFree && Self.headerRow($0, width: $0.rows.map(\.count).max() ?? 0)
+    }
+    let total = zip(sheets, heads).reduce(0) { $0 + $1.0.rows.count - ($1.1 ? 1 : 0) }
     var finished = 0
     for (position, sheet) in sheets.enumerated() where !sheet.rows.isEmpty {
       try cancellation.check()
       let width = sheet.rows.map(\.count).max() ?? 0
-      let columns = (0..<width).map { Column(id: "c\($0+1)", title: Self.spreadsheetColumn($0)) }
+      let headed = heads[position]
+      let body = headed ? Array(sheet.rows.dropFirst()) : sheet.rows
+      let columns =
+        headed
+        ? Self.headedColumns(sheet.rows[0], rows: body[...])
+        : (0..<width).map { Column(id: "c\($0+1)", title: Self.spreadsheetColumn($0)) }
       var sourceData: [String: Value] = [
-        "originalRows": .array(sheet.rowNumbers.map { .number(Double($0)) }),
+        "originalRows": .array(
+          (headed ? Array(sheet.rowNumbers.dropFirst()) : sheet.rowNumbers).map {
+            .number(Double($0))
+          }),
         "formulas": .object(sheet.formulas.mapValues(Value.string)),
       ]
-      if sheet.columnHeadings != nil { sourceData["columnLabels"] = sheet.nativeColumnLabels }
+      if headed { sourceData["headerRow"] = .number(Double(sheet.rowNumbers[0])) }
+      if !headed, sheet.columnHeadings != nil {
+        sourceData["columnLabels"] = sheet.nativeColumnLabels
+      }
       let evidence = try addItem(
         category: "record", kind: "worksheet", title: source.title + " · " + sheet.name,
         text: sheet.notes.joined(separator: "\n"),
         data: .object(sourceData), meaning: "actual", status: "accepted", inputs: [source.id],
         transformation: "xlsx-cached-values-v1",
         token: "xlsx-sheet-\(sourceID)-\(position)-\(sheet.name)")
-      let rows = sheet.rows.map { row in
+      let rows = body.map { row in
         Dictionary(
           uniqueKeysWithValues: columns.enumerated().map { i, c in
             (c.id, i < row.count && !row[i].isEmpty ? Value.string(row[i]) : .null)
@@ -721,10 +739,26 @@ extension Workbook {
           sourceID: evidence.id, cancellation: cancellation,
           progress: { done, _ in progress(finished + done, total) }))
       imported.append(sheet)
-      finished += sheet.rows.count
+      finished += body.count
     }
     try recordSheetFormulas(sourceID: sourceID, sheets: imported, tables: tables)
     return tables
+  }
+  /// Whether a sheet's first row heads its columns: one nonempty, distinct, single-line
+  /// heading for every column, none of them a number, above at least one row, where some
+  /// column holds only numbers or the headings are styled apart from the rows below.
+  static func headerRow(_ sheet: ImportedSheet, width: Int) -> Bool {
+    guard sheet.rows.count >= 2, let first = sheet.rows.first, first.count == width, width >= 1
+    else { return false }
+    let headings = first.map { $0.trimmingCharacters(in: .whitespaces) }
+    guard
+      headings.allSatisfy({
+        !$0.isEmpty && $0.utf8.count <= 128 && (try? Numbers.decimal($0)) == nil
+          && $0.rangeOfCharacter(from: CharacterSet.controlCharacters.union(.newlines)) == nil
+      }), Set(headings.map { $0.lowercased() }).count == headings.count
+    else { return false }
+    let body = sheet.rows.dropFirst()
+    return sheet.columnHeadings != nil || (0..<width).contains { numericColumn(body, at: $0) }
   }
   public static func spreadsheetColumn(_ zero: Int) -> String {
     var n = zero + 1

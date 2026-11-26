@@ -18,8 +18,9 @@ import SevraVoice
     if id == "main.tools" && variant == "Default" {
       // One tool saved here, so enabled here.
       _ = try b.chatSaveTool(
-        name: "table_names", description: "The names of this workbook's tables.", inputs: [],
-        statements: ["SELECT name FROM tables ORDER BY name"], source: nil,
+        name: "supplier_costs", description: "Each supplier's quoted cost, lowest first.",
+        inputs: [], statements: ["SELECT supplier, cost FROM supplier_comparison ORDER BY cost"],
+        source: nil,
         token: "catalog-tool", requestSourceID: nil)
       // One as a copied workbook brings it: saved, with no grant on this Mac.
       _ = try b.saveApplicationDefinition(
@@ -112,23 +113,26 @@ import SevraVoice
 
         }
       }
-      automationDefinition = try b.saveApplicationDefinition(
-        logicalID: identifier(),
-        content: .object([
-          "kind": .string("automation"), "title": .string("Morning supplier summary"),
-          "description": .string("Synthetic, inert until explicitly stepped in this catalog"),
-          "parameters": .array([]),
-          "payload": .object([
-            "policy": .string("calendar-v1"),
-            "workflow": .object(["mode": .string("exact"), "versionID": .string(workflow.id)]),
-            "arguments": args,
-            "schedule": .object([
-              "policy": .string("native-calendar-v1"), "timeZone": .string("UTC"),
-              "hour": .number(9), "minute": .number(0),
-              "recurrence": .object(["kind": .string("daily")]),
+      // The automations page's empty state has no automation to list.
+      if !(id == "main.automations" && variant == "Empty") {
+        automationDefinition = try b.saveApplicationDefinition(
+          logicalID: identifier(),
+          content: .object([
+            "kind": .string("automation"), "title": .string("Morning supplier summary"),
+            "description": .string("Synthetic, inert until explicitly stepped in this catalog"),
+            "parameters": .array([]),
+            "payload": .object([
+              "policy": .string("calendar-v1"),
+              "workflow": .object(["mode": .string("exact"), "versionID": .string(workflow.id)]),
+              "arguments": args,
+              "schedule": .object([
+                "policy": .string("native-calendar-v1"), "timeZone": .string("UTC"),
+                "hour": .number(9), "minute": .number(0),
+                "recurrence": .object(["kind": .string("daily")]),
+              ]),
             ]),
-          ]),
-        ]))
+          ]))
+      }
     }
     if (id == "main.automations" && variant == "Check")
       || (id == "main.automation-editor" && variant == "Check"),
@@ -163,54 +167,48 @@ import SevraVoice
           session.activationID, expectedGeneration: session.generation, token: identifier())
       }
     }
-    if id == "main.automations" && variant == "Tool runs" {
-      // A nightly automation whose workflow runs a saved tool. Its page names the tool and says
-      // the change applies without review, before anyone enables it.
-      _ = try b.chatSaveTool(
-        name: "remove_blank_quotes", description: "Removes quotes with no cost.",
-        inputs: [], statements: ["DELETE FROM supplier_comparison WHERE cost IS NULL"],
-        source: nil, token: "catalog-remove-blank-quotes", requestSourceID: nil)
-      let tool = try b.applicationDefinition(
-        try b.savedTools().first { $0.name == "remove_blank_quotes" }!.definitionID)
-      let action = try b.saveApplicationDefinition(
-        logicalID: identifier(),
-        content: ActionRegistry.toolActionDefinition(tool: tool, exact: true))
-      // The tool takes no inputs, so its one step has no arguments and, since it applies at
-      // once with an Undo, no review step.
-      let workflow = try b.saveApplicationDefinition(
-        logicalID: identifier(),
-        content: .object([
-          "kind": .string("workflow"), "title": .string("Remove blank quotes"),
-          "description": .string("Runs the saved tool remove_blank_quotes."),
-          "parameters": .array([]),
-          "payload": .object([
-            "readPolicy": .string("latest-at-step"),
-            "steps": .array([
-              .object([
-                "id": .string("prepare"), "kind": .string("action"),
-                "binding": .object(["mode": .string("exact"), "versionID": .string(action.id)]),
-                "arguments": .object([:]),
-              ])
-            ]),
-          ]),
-        ]))
+    if id == "main.automations" && ["Tool runs", "Reminder"].contains(variant) {
+      // Saved through the short shapes chat writes, bound behind the scenes: a nightly run of
+      // one saved tool, and a weekly reminder that cites the request that asked for it. Each
+      // page says what it does before anyone enables it.
+      let request = try b.captureUserRequest(
+        variant == "Reminder"
+          ? "every Monday remind me to order supplies"
+          : "every night remove quotes with no cost",
+        data: .object([:]), token: "catalog-automation-request")
+      var payload: [String: Value] = ["policy": .string("calendar-v1")]
+      if variant == "Tool runs" {
+        _ = try b.chatSaveTool(
+          name: "remove_blank_quotes", description: "Removes quotes with no cost.",
+          inputs: [], statements: ["DELETE FROM supplier_comparison WHERE cost IS NULL"],
+          source: nil, token: "catalog-remove-blank-quotes", requestSourceID: nil)
+        payload["tool"] = .object(["name": .string("remove_blank_quotes")])
+        payload["schedule"] = .object([
+          "policy": .string("native-calendar-v1"), "timeZone": .string("UTC"),
+          "hour": .number(22), "minute": .number(0),
+          "recurrence": .object(["kind": .string("daily")]),
+        ])
+      } else {
+        payload["alert"] = .string("Order supplies for the week.")
+        payload["schedule"] = .object([
+          "policy": .string("native-calendar-v1"), "timeZone": .string("UTC"),
+          "hour": .number(9), "minute": .number(0),
+          "recurrence": .object(["kind": .string("weekly"), "weekdays": .array([.number(1)])]),
+        ])
+      }
+      let content = try b.boundAutomation(
+        .object([
+          "kind": .string("automation"),
+          "title": .string(
+            variant == "Reminder" ? "Every Monday, order supplies" : "Every night, remove blank quotes"),
+          "description": .string(
+            variant == "Reminder"
+              ? "Reminds you each Monday at 9:00." : "Removes quotes with no cost each night."),
+          "payload": .object(payload),
+        ]), token: "catalog-automation", requestRunID: nil, requestSourceID: request.id,
+        cancellation: .init())
       toolAutomationDefinition = try b.saveApplicationDefinition(
-        logicalID: identifier(),
-        content: .object([
-          "kind": .string("automation"), "title": .string("Every night, remove blank quotes"),
-          "description": .string("Run this saved workflow on a calendar schedule."),
-          "parameters": .array([]),
-          "payload": .object([
-            "policy": .string("calendar-v1"),
-            "workflow": .object(["mode": .string("exact"), "versionID": .string(workflow.id)]),
-            "arguments": .object([:]),
-            "schedule": .object([
-              "policy": .string("native-calendar-v1"), "timeZone": .string("UTC"),
-              "hour": .number(22), "minute": .number(0),
-              "recurrence": .object(["kind": .string("daily")]),
-            ]),
-          ]),
-        ]))
+        logicalID: identifier(), content: content, inputs: [request.id])
     }
     if id == "main.excel" || id == "composition.excel" {
       let url = Bundle.main.resourceURL!.appendingPathComponent("CatalogAssets/Quotes.xlsx")

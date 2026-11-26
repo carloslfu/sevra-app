@@ -290,9 +290,19 @@ extension Workbook {
           !table.archived,
           "update_target", "Choose a current working table, not an archived result.")
         let stored = table.columns.filter { $0.formula == nil }
+        // A numbering column or a column with a default may be left unmapped: each new row
+        // gets the next number or the default, as every other writer's new rows do.
+        let unmapped = stored.filter { !targets.contains($0.id) }
         try require(
-          Set(targets) == Set(stored.map(\.id)), "update_mapping",
-          "Map every stored target column. Calculated columns cannot be imported; partial-column updates are not supported yet."
+          Set(targets).isSubset(of: Set(stored.map(\.id)))
+            && unmapped.allSatisfy { $0.autoNumber == true || $0.defaultValue != nil },
+          "update_mapping",
+          "Map every stored target column"
+            + (unmapped.isEmpty
+              ? "" : ", or leave out only a numbering column or one with a default. Unmapped: "
+                + unmapped.filter { $0.autoNumber != true && $0.defaultValue == nil }.map(\.title)
+                .joined(separator: ", "))
+            + ". Calculated columns cannot be imported."
         )
         try require(
           Set(keys).isSubset(of: Set(targets)), "update_keys", "Keys must be mapped stored columns."
@@ -327,7 +337,9 @@ extension Workbook {
               return (target, value.isEmpty ? .null : .string(value))
             })
           do {
-            try validateValues(row, columns: table.columns)
+            // An unmapped numbering or default column is filled when the rows are applied.
+            try validateValues(
+              row, columns: table.columns.filter { $0.formula != nil || targets.contains($0.id) })
           } catch let error as SevraError {
             throw SevraError(error.code, "Source record \(record): " + error.message)
           }
@@ -406,7 +418,9 @@ extension Workbook {
             if let old = keyed[value] {
               // A removed column stays in the row's history, not in an edit of it.
               var values = Self.activeValues(old.data.object, columns: table.columns)
-              let moved = stored.filter { !sameValue($0, row[$0.id] ?? .null, old.data[$0.id]) }
+              let moved = stored.filter {
+                targets.contains($0.id) && !sameValue($0, row[$0.id] ?? .null, old.data[$0.id])
+              }
               for column in moved { values[column.id] = row[column.id] ?? .null }
               // Acceptance reviews every stored column, including one added after this row.
               for column in stored where values[column.id] == nil { values[column.id] = .null }
@@ -456,7 +470,7 @@ extension Workbook {
           repeatedIncomingRows: repeated, rowsMatchingTarget: matching, examples: examples,
           limitations: [
             (parsed.sheet == nil ? "CSV/TSV values only" : "Saved Excel cell values only")
-              + "; full stored-column mapping; lexical merge keys."
+              + "; every stored column mapped, except numbering and default columns, which new rows fill; lexical merge keys."
           ]
             + (formulaCells > 0
               ? [

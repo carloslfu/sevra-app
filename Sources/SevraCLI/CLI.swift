@@ -811,7 +811,8 @@ import SevraProduct
             "name": .string($0.name), "definitionID": .string($0.definitionID),
             "version": .number(Double(try book.applicationDefinition($0.definitionID).version)),
             "language": .string($0.language), "enabled": .bool($0.enabled),
-            "inputs": .array($0.inputs.map { .string($0.name + " " + $0.type) }),
+            "inputs": .array(
+              $0.inputs.map { .string($0.name + " " + $0.type + ($0.required ? "" : " optional")) }),
           ])
         })
     case "tool-enable", "tool-disable", "tool-remove":

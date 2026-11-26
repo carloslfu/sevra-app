@@ -262,17 +262,19 @@ func checkCheckAutomations(at root: URL) {
 
   check("an alert in place of a workflow drafts that alert for review when the check fires") {
     let f = try fixture("Alert")
-    let check = f.definition.payload["check"]
-    let content = try f.book.checkAlertAutomation(
+    // The check by name, as chat writes it, and no parameters: both are filled in.
+    let content = try f.book.boundAutomation(
       .object([
         "kind": .string("automation"), "title": .string("Low stock"),
         "description": .string("Alert when a part is below its reorder level"),
-        "parameters": .array([]),
         "payload": .object([
-          "policy": .string("check-v1"), "check": check,
+          "policy": .string("check-v1"), "check": .object(["name": .string("low_stock")]),
           "alert": .string("A part is below its reorder level. Reorder it."),
         ]),
       ]), token: "alert", requestRunID: nil, requestSourceID: nil, cancellation: .init())
+    try expect(
+      content["payload"]["check"]["logicalID"] == .string(f.check.logicalID)
+        && content["parameters"] == .array([]))
     let alert = try f.book.saveApplicationDefinition(logicalID: identifier(), content: content)
     let session = try f.book.authorizeExecution(alert, generation: 0, after: start)
     try setQuantity(f, "3")
@@ -284,6 +286,143 @@ func checkCheckAutomations(at root: URL) {
     let drafts = try f.book.items(kind: "document").filter { $0.status == "draft" }
     try expect(drafts.count == 1 && drafts[0].text.contains("reorder level"))
     _ = try f.book.verify()
+  }
+
+  func schedule() -> Value {
+    .object([
+      "policy": .string("native-calendar-v1"), "timeZone": .string("UTC"), "hour": .number(9),
+      "minute": .number(0),
+      "recurrence": .object(["kind": .string("weekly"), "weekdays": .array([.number(1)])]),
+    ])
+  }
+  func automation(_ title: String, _ payload: [String: Value]) -> Value {
+    .object([
+      "kind": .string("automation"), "title": .string(title),
+      "description": .string(title), "payload": .object(payload),
+    ])
+  }
+  func dispatchWeekly(_ book: Workbook, _ definition: ApplicationDefinition) throws -> Value {
+    // 2026-10-05 is a Monday.
+    let session = try book.authorizeExecution(definition, generation: 0, after: start)
+    let due = automationDate("2026-10-05T09:00:00Z")
+    _ = try book.planAutomationOccurrences(session.planning, through: due, token: "plan")
+    let runID = try book.dispatchAutomationOccurrence(
+      session, observedAt: due, token: "dispatch")["runID"].text
+    let worker = try book.authorizeAutomationWorkflowExecution(session, runID: runID)
+    return try book.advanceWorkflow(worker, owner: "test")
+  }
+
+  check("a reminder on a schedule drafts its sentence for review, citing the request") {
+    let f = try fixture("Reminder")
+    let request = try f.book.captureUserRequest(
+      "every Monday remind me to order supplies", data: .object([:]), token: "request")
+    let content = try f.book.boundAutomation(
+      automation(
+        "Order supplies",
+        [
+          "policy": .string("calendar-v1"), "schedule": schedule(),
+          "alert": .string("Order supplies."),
+        ]), token: "reminder", requestRunID: nil, requestSourceID: request.id,
+      cancellation: .init())
+    try expect(
+      content["payload"]["arguments"]["evidence"] == .string(request.id)
+        && content["payload"]["workflow"]["versionID"]
+          == .string(try f.book.applicationDefinition(Workbook.checkAlertWorkflowID).id))
+    let reminder = try f.book.saveApplicationDefinition(
+      logicalID: identifier(), content: content, inputs: [request.id])
+    let notice = try f.book.previewAutomation(reminder.id, after: start)["notice"].text
+    try expect(notice.contains("drafts its changes for review"))
+    _ = try dispatchWeekly(f.book, reminder)
+    let drafts = try f.book.items(kind: "document").filter { $0.status == "draft" }
+    try expect(drafts.count == 1 && drafts[0].text.contains("Order supplies."))
+    // Outside a chat request there is no request to cite.
+    try refuses("automation_definition") {
+      _ = try f.book.boundAutomation(
+        automation(
+          "Order supplies",
+          [
+            "policy": .string("calendar-v1"), "schedule": schedule(),
+            "alert": .string("Order supplies."),
+          ]), token: "reminder-2", requestRunID: nil, requestSourceID: nil,
+        cancellation: .init())
+    }
+    _ = try f.book.verify()
+  }
+
+  check("a schedule runs a saved tool directly, and the enable notice names the tool") {
+    let f = try fixture("Tool")
+    _ = try f.book.chatSaveTool(
+      name: "restock", description: "Adds stock to a part.",
+      inputs: [(name: "amount", type: "decimal")],
+      statements: ["UPDATE parts SET qty = qty + :amount WHERE name = 'bolts'"], source: nil,
+      token: "save-restock", requestSourceID: nil)
+    let content = try f.book.boundAutomation(
+      automation(
+        "Weekly restock",
+        [
+          "policy": .string("calendar-v1"), "schedule": schedule(),
+          "tool": .object(["name": .string("restock")]),
+          "arguments": .object(["amount": .string("5")]),
+        ]), token: "restock", requestRunID: nil, requestSourceID: nil, cancellation: .init())
+    let saved = try f.book.saveApplicationDefinition(logicalID: identifier(), content: content)
+    try expect(
+      try f.book.singleToolName(ofWorkflow: content["payload"]["workflow"]["versionID"].text)
+        == "restock")
+    let notice = try f.book.previewAutomation(saved.id, after: start)["notice"].text
+    try expect(notice.contains("restock") && notice.contains("without review"))
+    let run = try dispatchWeekly(f.book, saved)
+    try expect(run["state"].text == "completed")
+    try expect(
+      try f.book.rows(f.parts.id, offset: 0, limit: 5).first?.data["qty"].text == "25")
+    // The same tool again reuses its one-step workflow.
+    let again = try f.book.boundAutomation(
+      automation(
+        "Restock when low",
+        [
+          "policy": .string("check-v1"), "check": .object(["name": .string("low_stock")]),
+          "tool": .object(["name": .string("restock")]),
+          "arguments": .object(["amount": .string("5")]),
+        ]), token: "restock-2", requestRunID: nil, requestSourceID: nil, cancellation: .init())
+    try expect(again["payload"]["workflow"] == content["payload"]["workflow"])
+    _ = try f.book.verify()
+  }
+
+  check("an automation missing what it does says exactly which shape to use") {
+    let f = try fixture("Shapes")
+    func refusal(_ payload: [String: Value], parameters: Value? = nil) -> String {
+      var content = automation("Weekly", payload).object
+      if let parameters { content["parameters"] = parameters }
+      do {
+        _ = try f.book.boundAutomation(
+          .object(content), token: identifier(), requestRunID: nil, requestSourceID: nil,
+          cancellation: .init())
+        return ""
+      } catch let error as SevraError { return error.message } catch { return "" }
+    }
+    let nothing = refusal(["policy": .string("calendar-v1"), "schedule": schedule()])
+    try expect(
+      nothing.hasPrefix("Say what it does") && nothing.contains("alert: \"one sentence\"")
+        && nothing.contains("tool: {name"))
+    try expect(
+      refusal(["schedule": schedule(), "alert": .string("Hi.")]).hasPrefix("Set policy"))
+    try expect(
+      refusal(["policy": .string("calendar-v1"), "alert": .string("Hi.")]).contains(
+        "needs schedule"))
+    try expect(
+      refusal([
+        "policy": .string("calendar-v1"), "schedule": schedule(),
+        "workflow": .object(["mode": .string("exact"), "versionID": .string(identifier())]),
+      ]).contains("no saved workflow has that versionID"))
+    try expect(
+      refusal(
+        ["policy": .string("calendar-v1"), "schedule": schedule(), "alert": .string("Hi.")],
+        parameters: .array([.object(["id": .string("x")])])
+      ).contains("parameters to []"))
+    try expect(
+      refusal([
+        "policy": .string("calendar-v1"), "schedule": schedule(),
+        "tool": .object(["name": .string("nope")]),
+      ]).contains("Saved tools: low_stock"))
   }
 }
 

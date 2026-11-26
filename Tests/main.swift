@@ -993,6 +993,48 @@ check("structured import batches by value bytes and reports only committed rows"
   try expect(
     try book.rows(table.id, offset: 373, limit: 2).map { $0.data["n"].text } == ["373", "374"])
 }
+check("an XLSX sheet without formulas takes its header row as column names and types") {
+  let path = temp.appendingPathComponent("budget.xlsx")
+  let archive = try Archive(url: path, accessMode: .create)
+  func row(_ n: Int, _ cells: [String]) -> String {
+    "<row r=\"\(n)\">"
+      + cells.enumerated().map { i, v in
+        let ref = String(UnicodeScalar(65 + i)!) + String(n)
+        return Double(v) == nil
+          ? "<c r=\"\(ref)\" t=\"inlineStr\"><is><t>\(v)</t></is></c>"
+          : "<c r=\"\(ref)\"><v>\(v)</v></c>"
+      }.joined() + "</row>"
+  }
+  let parts = [
+    "xl/workbook.xml":
+      #"<workbook xmlns:r="r"><sheets><sheet name="Budget" r:id="r1"/><sheet name="Notes" r:id="r2"/></sheets></workbook>"#,
+    "xl/_rels/workbook.xml.rels":
+      #"<Relationships><Relationship Id="r1" Type="x/worksheet" Target="worksheets/sheet1.xml"/><Relationship Id="r2" Type="x/worksheet" Target="worksheets/sheet2.xml"/></Relationships>"#,
+    "xl/worksheets/sheet1.xml":
+      "<worksheet><sheetData>"
+      + row(1, ["Category", "Budgeted", "Actual"]) + row(2, ["Rent", "1500", "1500"])
+      + row(3, ["Groceries", "400", "462.3"]) + "</sheetData></worksheet>",
+    // Text under text, with no styled headings: no sign the first row heads the columns.
+    "xl/worksheets/sheet2.xml":
+      "<worksheet><sheetData>" + row(1, ["Call Oak", "Monday"]) + row(2, ["Pay rent", "Friday"])
+      + "</sheetData></worksheet>",
+  ]
+  for (name, text) in parts {
+    let bytes = Data(text.utf8)
+    try archive.addEntry(
+      with: name, type: .file, uncompressedSize: Int64(bytes.count),
+      provider: { position, count in bytes.subdata(in: Int(position)..<Int(position) + count) })
+  }
+  let source = try book.importFile(path)
+  try book.extract(source.id)
+  let tables = try book.importXLSX(source.id)
+  try expect(tables.count == 2)
+  try expect(tables[0].columns.map(\.title) == ["Category", "Budgeted", "Actual"])
+  try expect(tables[0].columns.map(\.type) == ["text", "decimal", "decimal"])
+  try expect(tables[0].rowCount == 2)
+  try expect(try book.rows(tables[0].id).first?.data[tables[0].columns[0].id].text == "Rent")
+  try expect(tables[1].columns.map(\.title) == ["A", "B"] && tables[1].rowCount == 2)
+}
 check("multi-sheet XLSX import reports rows across every sheet") {
   let path = temp.appendingPathComponent("Two sheets.xlsx")
   let archive = try Archive(url: path, accessMode: .create)

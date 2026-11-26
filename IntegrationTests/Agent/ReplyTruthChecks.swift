@@ -38,15 +38,18 @@ func checkReplyTruth() async throws {
   ] {
     try expectEqual(Workbook.needsConfirmation(rows: rows, deleted: deleted, updated: updated), asks)
   }
+  func change(_ title: String, _ rows: Int, _ deleted: Int, _ updated: Int) -> Workbook.LargeChange {
+    .init(title: title, rows: rows, deleted: deleted, updated: updated)
+  }
   try expectEqual(
-    Workbook.largeChangePreview([("Expenses", 19, 19, 0), ("Notes", 3, 1, 0)]),
+    Workbook.largeChangePreview([change("Expenses", 19, 19, 0), change("Notes", 3, 1, 0)]),
     "This deletes all 19 rows of “Expenses”.")
   try expectEqual(
-    Workbook.largeChangePreview([("Expenses", 10, 0, 6)]),
+    Workbook.largeChangePreview([change("Expenses", 10, 0, 6)]),
     "This changes 6 of the 10 rows of “Expenses”.")
   try expectEqual(
-    Workbook.largeChangePreview([("Old", 4, -1, 0)]), "This removes the table “Old” and its 4 rows.")
-  try expectEqual(Workbook.largeChangePreview([("Expenses", 10, 1, 1)]), nil)
+    Workbook.largeChangePreview([change("Old", 4, -1, 0)]), "This removes the table “Old” and its 4 rows.")
+  try expectEqual(Workbook.largeChangePreview([change("Expenses", 10, 1, 1)]), nil)
 
   // A small change applies at once. The host names it by the table's title and says it can be
   // undone, after the model's summary.
@@ -128,6 +131,43 @@ func checkReplyTruth() async throws {
     "sql", .object(["tool": .string("clear_all"), "values": .object([:])]))
   try expectEqual(try scripted.rows(scriptedTable).count, 0)
   print("PASS emptying a table waits for confirmation in the app, is refused without it, and keeps its Undo; scripts and saved tools ask too, a button does not")
+
+  // Splitting a large deletion into small calls in one request still asks once the total
+  // crosses the line. A new request starts its own count.
+  let split = try book("Split", rows: 30)
+  let splitTable = try split.chatTableID("expenses")
+  var splitTools = WorkbookTools(split, conversation: try split.startChat)
+  splitTools.confirmsLargeChanges = true
+  for n in 1...3 {
+    let part = try splitTools.execute(
+      "sql",
+      .object([
+        "statements": .array([
+          .string(
+            "DELETE FROM expenses WHERE item IN ("
+              + (((n - 1) * 5 + 1)...(n * 5)).map { "'Item \($0)'" }.joined(separator: ", ") + ")")
+        ])
+      ]))
+    try expectEqual(part["status"], .null)
+  }
+  let crossing = try splitTools.execute(
+    "sql",
+    .object([
+      "statements": .array([
+        .string("DELETE FROM expenses WHERE item IN ('Item 16', 'Item 17', 'Item 18', 'Item 19', 'Item 20')")
+      ])
+    ]))
+  try expectEqual(crossing["status"], .string("confirmation_required"))
+  try expectEqual(
+    crossing["preview"],
+    .string("With the earlier changes in this request, this deletes 20 of the 30 rows of “Expenses”."))
+  try expectEqual(try split.rows(splitTable).count, 15)
+  var fresh = WorkbookTools(split, conversation: try split.startChat)
+  fresh.confirmsLargeChanges = true
+  let next = try fresh.execute(
+    "sql", .object(["statements": .array([.string("DELETE FROM expenses WHERE item = 'Item 16'")])]))
+  try expectEqual(next["status"], .null)
+  print("PASS a large deletion split into small calls asks once the request's total crosses the line")
 
   // A failed remove of a table, settled by a later delete of its rows: the same intent done
   // another way, so the summary stands and no failure is shown.

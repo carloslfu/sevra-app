@@ -9,7 +9,7 @@ import Foundation
 extension Workbook {
   public func chatSQL(
     statements: [String], readOnly: Bool, draft: Bool = false, token: String,
-    requestSourceID: String?, inputs: [String: Value]? = nil, confirmLarge: Bool = false,
+    requestSourceID: String?, inputs: [String: Value]? = nil, confirmLarge: ChatChangeTally? = nil,
     cancellation: Cancellation = .init()
   ) throws -> Value {
     try require(
@@ -29,7 +29,7 @@ extension Workbook {
   /// Applies what the statements did on the copy through the recorded write paths.
   func saveChatSQL(
     _ scratch: SQLScratch, results: [Value], draft: Bool, token: String,
-    requestSourceID: String?, confirmLarge: Bool = false, cancellation: Cancellation
+    requestSourceID: String?, confirmLarge: ChatChangeTally? = nil, cancellation: Cancellation
   ) throws -> Value {
     try synchronized(cancellation: cancellation) {
       let reshapes = try scratch.reshapes()
@@ -39,11 +39,15 @@ extension Workbook {
         changes.allSatisfy { $0.operations.count <= SQLScratch.changeLimit }, "sql_limit",
         "One call can change at most \(SQLScratch.changeLimit) rows of a table for now. Nothing was changed. Split the change.")
       // A change that empties or removes a table, or reaches most of its rows, waits for the
-      // person. Nothing is saved, and the host asks them with this preview.
-      if confirmLarge, !draft,
+      // person. Nothing is saved, and the host asks them with this preview. The counts include
+      // what this request already changed in each table, so splitting a large deletion into
+      // small calls still asks once the total crosses the line.
+      if let tally = confirmLarge, !draft,
         let preview = Self.largeChangePreview(
-          changes.map { ($0.table.title, $0.table.rowCount, $0.deleted, $0.updated) }
-            + reshapes.filter(\.archived).map { ($0.table.title, $0.table.rowCount, -1, 0) })
+          changes.map { tally.total($0.table.id, $0.table.title, $0.table.rowCount, $0.deleted, $0.updated) }
+            + reshapes.filter(\.archived).map {
+              .init(title: $0.table.title, rows: $0.table.rowCount, deleted: -1, updated: 0)
+            })
       {
         return .object([
           "status": .string("confirmation_required"), "preview": .string(preview),
@@ -144,6 +148,11 @@ extension Workbook {
         }
         throw SevraError(failure.code, failure.message + " Nothing was changed.")
       }
+      if !draft {
+        for change in changes {
+          confirmLarge?.add(change.table.id, rows: change.table.rowCount, deleted: change.deleted, updated: change.updated)
+        }
+      }
       // What the answer rests on: the rows of small tables, or the table's own Source.
       // Rows this call replaced are no longer current, so a changed table offers none.
       let read = scratch.readTables.filter { key in
@@ -184,6 +193,38 @@ extension Workbook {
       }
       return .object(fields)
     }
+  }
+}
+
+/// What one chat request has deleted and overwritten in each table so far. The large-change
+/// confirmation counts against these totals, so a request cannot dodge it by splitting a
+/// deletion into small calls. One request shares one tally across its copies of the tools.
+public final class ChatChangeTally: @unchecked Sendable {
+  private let lock = NSLock()
+  /// Per table: its rows before the request first changed it, and the rows deleted and
+  /// overwritten since.
+  private var tables: [String: (rows: Int, deleted: Int, updated: Int)] = [:]
+  public init() {}
+
+  /// This call's change with the request's earlier changes to the same table added.
+  func total(_ id: String, _ title: String, _ rows: Int, _ deleted: Int, _ updated: Int)
+    -> Workbook.LargeChange
+  {
+    lock.lock()
+    defer { lock.unlock() }
+    guard let prior = tables[id], prior.deleted + prior.updated > 0 else {
+      return .init(title: title, rows: rows, deleted: deleted, updated: updated)
+    }
+    return .init(
+      title: title, rows: max(prior.rows, rows), deleted: prior.deleted + deleted,
+      updated: prior.updated + updated, earlier: true)
+  }
+
+  func add(_ id: String, rows: Int, deleted: Int, updated: Int) {
+    lock.lock()
+    defer { lock.unlock() }
+    let prior = tables[id] ?? (rows, 0, 0)
+    tables[id] = (prior.rows, prior.deleted + deleted, prior.updated + updated)
   }
 }
 
@@ -234,10 +275,25 @@ extension Workbook {
     return lines
   }
 
+  /// One table's change as the confirmation counts it. `earlier` is set when the counts
+  /// include changes this request already saved.
+  public struct LargeChange {
+    public var title: String
+    public var rows: Int
+    public var deleted: Int
+    public var updated: Int
+    public var earlier = false
+    public init(title: String, rows: Int, deleted: Int, updated: Int, earlier: Bool = false) {
+      self.title = title
+      self.rows = rows
+      self.deleted = deleted
+      self.updated = updated
+      self.earlier = earlier
+    }
+  }
+
   /// What the person is asked to confirm, one sentence a table, or nil when nothing needs it.
-  public static func largeChangePreview(
-    _ tables: [(title: String, rows: Int, deleted: Int, updated: Int)]
-  ) -> String? {
+  public static func largeChangePreview(_ tables: [LargeChange]) -> String? {
     func rows(_ n: Int) -> String { n == 1 ? "1 row" : "\(n) rows" }
     let lines = tables.filter {
       needsConfirmation(rows: $0.rows, deleted: $0.deleted, updated: $0.updated)
@@ -259,7 +315,8 @@ extension Workbook {
             ? "changes " + rows(table.updated)
             : "changes \(table.updated) of the " + rows(table.rows) + " of " + title)
       }
-      return "This " + parts.joined(separator: " and ") + "."
+      return (table.earlier ? "With the earlier changes in this request, this " : "This ")
+        + parts.joined(separator: " and ") + "."
     }
     return lines.isEmpty ? nil : lines.joined(separator: " ")
   }

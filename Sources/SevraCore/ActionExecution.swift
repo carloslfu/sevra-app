@@ -204,8 +204,16 @@ extension Workbook {
         && scenario.utf8.count <= 256,
       "action_document", "Enter a document title, bounded new prose and an explicit scenario.")
     let evidence = try item(arguments["evidence"]!.text)
+    // The person's own words, as the host received them, are an origin a draft can rest on:
+    // a reminder cites the request that asked for it.
+    let request =
+      try evidence.kind == "request"
+      && (db.scalar(
+        "SELECT EXISTS(SELECT 1 FROM business_inputs WHERE source_id=? AND kind='request')",
+        [.string(evidence.id)]
+      ).int == 1)
     try require(
-      evidence.id == arguments["evidence"]!.text && evidence.isBusinessEvidence,
+      evidence.id == arguments["evidence"]!.text && (evidence.isBusinessEvidence || request),
       "action_document", "Use one exact local business evidence item.")
     if arguments["meaning"] == .string("actual") {
       try require(

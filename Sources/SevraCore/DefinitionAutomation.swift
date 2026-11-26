@@ -36,7 +36,8 @@ struct DefinitionAutomation {
         && Set(descriptor.payload.object.keys)
           == ["policy", "workflow", "arguments", isCalendar ? "schedule" : "check"],
       "automation_definition",
-      "Use an exact workflow, arguments and one trigger, without parameters: schedule with policy calendar-v1, or check with policy check-v1 and check {mode: live, logicalID}."
+      "A saved automation has parameters [] and payload {policy, workflow, arguments} with schedule for calendar-v1 or check for check-v1. "
+        + Workbook.automationShapes
     )
     self.policy = policy
     workflow = try DefinitionBinding(descriptor.payload["workflow"])

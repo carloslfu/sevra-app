@@ -403,7 +403,7 @@ extension Workbook {
   /// Runs a saved SQL tool: its statements, with the caller's values bound to its inputs.
   public func chatRunTool(
     name: String, values: [String: Value], readOnly: Bool, token: String,
-    requestSourceID: String?, confirmLarge: Bool = false, cancellation: Cancellation = .init()
+    requestSourceID: String?, confirmLarge: ChatChangeTally? = nil, cancellation: Cancellation = .init()
   ) throws -> Value {
     let tool = try synchronized(cancellation: cancellation) { try runnableTool(name) }
     return try chatRunTool(
@@ -413,7 +413,7 @@ extension Workbook {
 
   func chatRunTool(
     _ tool: SavedTool, values: [String: Value], readOnly: Bool, token: String,
-    requestSourceID: String?, confirmLarge: Bool = false, cancellation: Cancellation = .init()
+    requestSourceID: String?, confirmLarge: ChatChangeTally? = nil, cancellation: Cancellation = .init()
   ) throws -> Value {
     let name = tool.name
     return try synchronized(cancellation: cancellation) {

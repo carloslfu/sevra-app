@@ -159,6 +159,37 @@ func checkTableIntake(at root: URL) {
       try expect(try copy.verify()["ok"] == .bool(true))
     }
   }
+  check("a reviewed append fills an unmapped numbering column and a default, as chat rows do") {
+    let book = try Workbook.create(at: root.appendingPathComponent("Fill.sevra"), title: "Fill")
+    _ = try book.chatSQL(
+      statements: [
+        "CREATE TABLE tasks (id INTEGER PRIMARY KEY, title TEXT, status TEXT DEFAULT 'open')",
+        "INSERT INTO tasks (title) VALUES ('First')",
+      ], readOnly: false, token: "fill-table", requestSourceID: nil)
+    let table = try book.dataset(try book.chatTableID("tasks"))
+    let column = { (title: String) in table.columns.first { $0.title.lowercased() == title }!.id }
+    let file = root.appendingPathComponent("Fill.csv")
+    try Data("title\nSecond\nThird\n".utf8).write(to: file)
+    let source = try book.importFile(file)
+    let mapped = [IntakeColumnMapping(position: 0, target: column("title"))]
+    let preview = try book.previewTableUpdate(
+      sourceID: source.id, datasetID: table.id, mode: .append, mapping: mapped)
+    let proposal = try book.proposeTableUpdate(
+      sourceID: source.id, datasetID: table.id, mode: .append, mapping: mapped, keys: [],
+      newRowMeaning: "actual", newRowScenario: "actual", expectedRevision: preview.revision,
+      expectedFingerprint: preview.fingerprint, token: "fill-propose")
+    _ = try book.accept(proposal.id, token: "fill-accept")
+    let rows = try book.rows(table.id)
+    try expect(rows.map { $0.data[column("id")].text } == ["1", "2", "3"])
+    try expect(rows.map { $0.data[column("status")].text } == ["open", "open", "open"])
+    // A column with neither still has to be mapped.
+    try refuses("update_mapping") {
+      _ = try book.previewTableUpdate(
+        sourceID: source.id, datasetID: table.id, mode: .append,
+        mapping: [.init(position: 0, target: column("status"))])
+    }
+    try expect(try book.verify()["ok"] == .bool(true))
+  }
   check("stale preview, acceptance and undo refuse without partial working changes") {
     let (book, source, table) = try fixture("StaleUpdate", text: "code,amount\n0012,7\n")
     let preview = try book.previewTableUpdate(

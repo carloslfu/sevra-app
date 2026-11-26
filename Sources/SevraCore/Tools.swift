@@ -17,6 +17,10 @@ public struct WorkbookTools {
   /// confirmation_required with a preview for the person. A view's button is the person's own
   /// action and runs without it.
   public var confirmsLargeChanges = false
+  /// What this request has deleted and overwritten so far, shared by every copy of these tools,
+  /// so the confirmation counts a table's changes across calls.
+  public var changeTally = ChatChangeTally()
+  private var largeChanges: ChatChangeTally? { confirmsLargeChanges ? changeTally : nil }
   package static let guides: [String: String] = [
     "view": """
       A view is a saved page of up to 16 components. save with view: {title, definition: {version: 1, components}}. Every component has a short id of its own, a type and a visible title, and the fields its type uses. Saving a view does not open it.
@@ -355,13 +359,13 @@ public struct WorkbookTools {
           a.object["code"] == nil, "arguments", "Send either code or a saved tool with its values.")
         return try runSavedTool(
           name, values: a["values"].object, readOnly: unchanging, token: receiptID ?? token,
-          confirmLarge: confirmsLargeChanges)
+          confirmLarge: largeChanges)
       }
       try require(
         a.object["values"] == nil, "arguments", "values belong to a saved tool, with tool beside them.")
       return try runScript(
         string("code"), inputs: [:], readOnly: unchanging, token: receiptID ?? token,
-        confirmLarge: confirmsLargeChanges)
+        confirmLarge: largeChanges)
     case "sql":
       // The general chat tools' table tool. It refuses changes itself when none are allowed.
       if let undo = a["undo"].string {
@@ -378,7 +382,7 @@ public struct WorkbookTools {
         return try workbook.chatRunTool(
           name: name, values: a["values"].object, readOnly: readOnly || inspectionOnly,
           token: "sql-" + (receiptID ?? token), requestSourceID: requestSourceID,
-          confirmLarge: confirmsLargeChanges, cancellation: cancellation)
+          confirmLarge: largeChanges, cancellation: cancellation)
       }
       try require(
         a["values"].object.isEmpty, "arguments",
@@ -390,7 +394,7 @@ public struct WorkbookTools {
       return try workbook.chatSQL(
         statements: statements, readOnly: readOnly || inspectionOnly,
         draft: a["draft"] == .bool(true), token: "sql-" + (receiptID ?? token),
-        requestSourceID: requestSourceID, confirmLarge: confirmsLargeChanges,
+        requestSourceID: requestSourceID, confirmLarge: largeChanges,
         cancellation: cancellation)
     case "datasets":
       return try encoded(
@@ -659,7 +663,7 @@ public struct WorkbookTools {
   /// saved workbook, and the actions it queues run after its changes are saved.
   private func runScript(
     _ code: String, inputs: [String: Value], readOnly unchanging: Bool, token: String,
-    confirmLarge: Bool = false
+    confirmLarge: ChatChangeTally? = nil
   ) throws -> Value {
     try workbook.chatRun(
       code: code, readOnly: unchanging, token: "run-" + token,
@@ -688,7 +692,7 @@ public struct WorkbookTools {
   /// A view's button runs its tool here too.
   func runSavedTool(
     _ name: String, values: [String: Value], readOnly unchanging: Bool, token: String,
-    confirmLarge: Bool = false
+    confirmLarge: ChatChangeTally? = nil
   ) throws -> Value {
     let tool = try workbook.synchronized { try workbook.runnableTool(name) }
     return try runTool(
@@ -713,7 +717,7 @@ public struct WorkbookTools {
 
   func runTool(
     _ tool: Workbook.SavedTool, values: [String: Value], readOnly unchanging: Bool, token: String,
-    confirmLarge: Bool = false
+    confirmLarge: ChatChangeTally? = nil
   ) throws -> Value {
     guard tool.language == "javascript" else {
       return try workbook.chatRunTool(

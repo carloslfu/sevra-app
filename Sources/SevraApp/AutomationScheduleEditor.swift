@@ -61,7 +61,10 @@ struct AutomationScheduleEditor: View {
             scheduleFields
           }
           Divider()
-          if let workflow {
+          if alerts {
+            Text(trigger == "check" ? "Then it drafts the alert" : "Then it drafts the reminder")
+              .readingFont(.headline).accessibilityAddTraits(.isHeader)
+          } else if let workflow {
             VStack(alignment: .leading, spacing: 4) {
               Text("Then it runs " + workflow.title).readingFont(.headline)
                 .accessibilityAddTraits(.isHeader)
@@ -106,10 +109,17 @@ struct AutomationScheduleEditor: View {
             if let failure = choices.failure { Text(failure).foregroundStyle(.red) }
           }
           if let workflow {
-            ForEach(workflow.parameters.array, id: \.text) { parameter in
+            // An alert's sentence is the one input to show. Its title, evidence and meaning
+            // were set when it was saved and stay as they are.
+            ForEach(
+              workflow.parameters.array.filter { !alerts || $0["id"] == .string("body") },
+              id: \.text
+            ) { parameter in
               FormParameterField(
-                parameter: parameter, value: argument(parameter),
-                workbook: workspace.workbook)
+                parameter: alerts
+                  ? .object(parameter.object.merging(["label": .string("Alert")]) { $1 })
+                  : parameter,
+                value: argument(parameter), workbook: workspace.workbook)
             }
           }
           Divider()
@@ -149,6 +159,8 @@ struct AutomationScheduleEditor: View {
       .task(id: query + String(workspace.revision)) { await loadChoices() }
       .task(id: String(workspace.revision)) { await loadChecks() }
   }
+  /// The workflow is the shared Alert one, which drafts one sentence for review.
+  private var alerts: Bool { workflow?.logicalID == Workbook.checkAlertWorkflowID }
   /// A workflow is chosen, and a check when the check starts it.
   private var ready: Bool { workflow != nil && (trigger == "schedule" || checkID != nil) }
   @ViewBuilder private var checkFields: some View {

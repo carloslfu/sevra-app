@@ -210,8 +210,10 @@ extension Workbook {
       (try db.scalar(
         "SELECT max(ordinal) FROM dataset_rows WHERE dataset_id=?", [.string(datasetID)]
       ).int ?? -1) + 1
-    for (index, values) in additions.enumerated() {
+    for (index, incoming) in additions.enumerated() {
       try cancellation.check()
+      // An unmapped numbering or default column is filled as the shared row transaction fills it.
+      let values = try newRowValues(incoming, table: table)
       try require(
         Set(values.keys) == stored, "update_mapping", "Incoming rows must map every stored column.")
       try validateValues(values, columns: table.columns)

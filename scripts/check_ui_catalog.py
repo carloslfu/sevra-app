@@ -12,7 +12,7 @@ for story in stories:
     assert story['evidence'] == 'registered'
 source = (ROOT / 'Sources/SevraApp/WorkspaceState.swift').read_text()
 routes = set(re.findall(r'case (\w+)', source.split('enum Route: Equatable {')[1].split('\n  }')[0]))
-expected = {'space','item','table','tableUpdate','excelImport','search','reviews','activity','automations','automation','workflow','tools'}
+expected = {'space','item','table','tableUpdate','excelImport','search','reviews','activity','automations','automation','workflow','tools','removed'}
 assert routes == expected, f'Review changed routes: {routes ^ expected}'
 assert {'main.table-update','main.excel','main.workflow-detail','main.automation-detail','main.column-editor','main.references','main.history-search'} <= {s['id'] for s in stories}
 # Catalog startup, fixture sources and dependencies must not ship in ordinary builds.

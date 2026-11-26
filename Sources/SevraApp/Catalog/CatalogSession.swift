@@ -780,7 +780,8 @@ import SwiftUI
         ? .automation(automationDefinition!.id)
         : variant == "Check"
           ? .automation(checkAutomationDefinition!.id)
-          : variant == "Tool runs" ? .automation(toolAutomationDefinition!.id) : .automations
+          : ["Tool runs", "Reminder"].contains(variant)
+            ? .automation(toolAutomationDefinition!.id) : .automations
     } else if id.hasPrefix("main.viewer.") {
       ws.route = .item(fileItems[id.components(separatedBy: ".").last!] ?? source!.id)
     } else if id == "main.table-update" {

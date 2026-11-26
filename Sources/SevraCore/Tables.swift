@@ -226,6 +226,35 @@ public enum CSV {
   }
 }
 extension Workbook {
+  /// Columns named by a header row, as a delimited file's first row names them: each heading
+  /// its title, a short unique ID from it, and decimal when every value under it is a number.
+  static func headedColumns(_ header: [String], rows: ArraySlice<[String]>) -> [Column] {
+    var used = Set<String>()
+    return header.enumerated().map { i, name -> Column in
+      let title =
+        name.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty ? "Column \(i+1)" : name
+      // A heading is free text. Its ID only has to stay short, usable and unique.
+      var id = String(
+        title.lowercased().replacingOccurrences(
+          of: "[^a-z0-9_]+", with: "_", options: .regularExpression
+        ).prefix(90))
+      if id.isEmpty || id.hasPrefix("_sevra_") { id = "column_\(i+1)" + id }
+      while used.contains(id) { id += "_\(i+1)" }
+      used.insert(id)
+      return Column(
+        id: id, title: title, type: numericColumn(rows, at: i) ? "decimal" : "text")
+    }
+  }
+  /// Whether every nonempty value at a position is a number. 0012 and 12 are different codes:
+  /// as decimals they would compare, group and sort as one.
+  static func numericColumn(_ rows: ArraySlice<[String]>, at i: Int) -> Bool {
+    let samples = rows.compactMap { i < $0.count ? $0[i] : nil }.filter { !$0.isEmpty }
+    return !samples.isEmpty
+      && samples.allSatisfy {
+        (try? Numbers.decimal($0)) != nil
+          && $0.range(of: "^[+-]?0[0-9]", options: .regularExpression) == nil
+      }
+  }
   @discardableResult public func importCSV(
     _ sourceID: String, cancellation: Cancellation = .init(), worker: ExtractionWorker = .init(),
     progress: (Int, Int) -> Void = { _, _ in }
@@ -253,30 +282,7 @@ extension Workbook {
       rows.dropFirst().allSatisfy { $0.count <= header.count }, "csv_columns",
       "A data row has more values than the header. Correct the original header before importing.")
     try cancellation.check()
-    var used = Set<String>()
-    let columns = header.enumerated().map { i, name -> Column in
-      let title =
-        name.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty ? "Column \(i+1)" : name
-      // A heading is free text. Its ID only has to stay short, usable and unique.
-      var id = String(
-        title.lowercased().replacingOccurrences(
-          of: "[^a-z0-9_]+", with: "_", options: .regularExpression
-        ).prefix(90))
-      if id.isEmpty || id.hasPrefix("_sevra_") { id = "column_\(i+1)" + id }
-      while used.contains(id) { id += "_\(i+1)" }
-      used.insert(id)
-      let samples = rows.dropFirst().compactMap { i < $0.count ? $0[i] : nil }.filter {
-        !$0.isEmpty
-      }
-      // 0012 and 12 are different codes. As decimals they would compare, group and sort as one.
-      let numeric =
-        !samples.isEmpty
-        && samples.allSatisfy {
-          (try? Numbers.decimal($0)) != nil
-            && $0.range(of: "^[+-]?0[0-9]", options: .regularExpression) == nil
-        }
-      return Column(id: id, title: title, type: numeric ? "decimal" : "text")
-    }
+    let columns = Self.headedColumns(header, rows: rows.dropFirst())
     return try importDataset(
       title: source.title, columns: columns,
       rows: rows.dropFirst().map { values in

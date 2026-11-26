@@ -28,7 +28,7 @@ extension Workbook {
 
   public func chatRun(
     code: String, readOnly: Bool, token: String, requestSourceID: String?,
-    inputs: [String: Value] = [:], confirmLarge: Bool = false,
+    inputs: [String: Value] = [:], confirmLarge: ChatChangeTally? = nil,
     host: (_ method: String, _ arguments: Value) throws -> Value,
     cancellation: Cancellation = .init()
   ) throws -> Value {
