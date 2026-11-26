@@ -2,7 +2,7 @@
 type: review
 id: 01m8az3aa4k3rb8eg3wh46196j
 created: 2026-11-26T03:41:28.772405+00:00
-updated: 2026-11-26T04:50:00+00:00
+updated: 2026-11-26T05:42:52.112371+00:00
 summary: Removed inventory-first leftovers (stock ledger, movements, receiving, stock thresholds, quote guard) and added general saved-tool actions and check-triggered automations.
 title: Chat-spreadsheet cleanup
 ---
@@ -50,3 +50,14 @@ Format 37. The definition policies are now `calendar-v1` and `check-v1`, since a
 - Check occurrences reuse the `calendar` causal root kind.
 - Chat `save tool` makes every input required; optional inputs need a saved definition.
 - Older records and the verification register still describe the removed systems as dated history.
+
+## Follow-up fixes, November 26, 2026
+
+Each open item was checked for whether it was real and fixed for the person using it.
+
+- **Automations** (`7bd8661`, format 37): a check automation follows its check by name, validates the latest version each run and starts fresh when the query changes. A check that already finds rows starts once when enabled, and the editor and chat confirmation say so. Automations can run workflows with saved-tool steps, and enabling one names the tools and says their changes apply without review, with Undo in Workflow runs. Policies are `calendar-v1` and `check-v1`. Not real: changes while the app is closed or paused are caught on reopen (now tested), and overlapping check runs cannot fire twice or miss.
+- **Chat tools** (`f1ed798`): `read` names everything with `ref`, so a model that means a kind is no longer forced to pick an item, and `read kind=view` returns one view. The view guide says to save a tool first when none fits a button. A component missing its table says to create it when none exists. Chat-saved tools can have optional inputs. Only visual and image components take `visual` in the grammar. An insert next to a comparison column joins it when there is room.
+- **Interface** (`ec4f6f6`, reviewed in UI Catalog captures): the automation page fits the pane, a check automation shows its check instead of an empty calendar, the editor reads "starts, then runs", tool forms run from one named button with readable labels and Undo, and "New prose" and "physical workbook" are gone.
+- **Model runs**, one each, Splash 1.7.3: `defaults.home_counter` and `defaults.mark_paid` passed (both had failed before: a metric with no button, and a read loop). The light set passed 11 of 11 on the first run. In `safety.document_instruction` the model first tried a definition read for a document and then read it correctly.
+
+Open: a workflow's tool step still pins the exact tool version, so editing that tool stops its automation with a message until the workflow is saved again.
