@@ -148,7 +148,7 @@ extension Workbook {
   /// valid multi-row swap is checked against the final set, within one transaction.
   func prepareManagedRowEdits(_ datasetID: String, exactIDs: [String]) throws {
     let schema = try db.managedSchema(datasetID)
-    guard schema.stored.contains(where: { $0.unique == true }) else { return }
+    guard schema.stored.contains(where: \.distinct) else { return }
     for id in exactIDs {
       try db.execute(
         "DELETE FROM " + ChangeFormat.quote(schema.table)
@@ -180,14 +180,20 @@ extension Workbook {
             + fields.dropFirst().map { $0 + "=excluded." + $0 }.joined(separator: ","), args)
       } catch let error as SevraError {
         if error.code == "database",
-          let column = schema.stored.first(where: {
-            $0.unique == true
+          let index = schema.stored.firstIndex(where: {
+            $0.distinct
               && error.message.contains(
                 "UNIQUE constraint failed: " + schema.table + "." + schema.field($0.id))
           })
         {
+          let column = schema.stored[index]
+          // The projected values follow the four metadata fields and the cell sidecar.
+          let value = args.count > 5 + index ? args[5 + index].text : ""
           throw SevraError(
-            "unique", column.title + " must contain distinct values. No changes were saved.")
+            "unique",
+            column.title + " must contain distinct values, and "
+              + (value.isEmpty ? "that value" : "\"" + String(value.prefix(80)) + "\"")
+              + " is already in another row. No changes were saved.")
         }
         throw error
       }
@@ -274,5 +280,38 @@ extension Workbook {
         offset += batch.count
       }
     }
+  }
+}
+
+extension Workbook {
+  /// A new row with what its writer left out filled in: each column's default, and the next
+  /// number of a numbering column. As in SQLite, a column set to nothing keeps nothing, except
+  /// a numbering column, which numbers the row then too.
+  func newRowValues(_ values: [String: Value], table: Dataset, now: Date = Date()) throws
+    -> [String: Value]
+  {
+    var filled = values
+    for column in table.columns where column.formula == nil {
+      let current = filled[column.id]
+      if column.autoNumber == true, current == nil || current == .null || current!.text.isEmpty {
+        filled[column.id] = .string(Numbers.string(try nextNumber(table, column: column)))
+      } else if current == nil, let initial = column.defaultValue {
+        filled[column.id] = .string(initial.text(at: now, type: column.type))
+      }
+    }
+    return filled
+  }
+  /// The largest whole number in a numbering column plus one, or 1 for an empty table.
+  func nextNumber(_ table: Dataset, column: Column) throws -> Decimal {
+    let schema = try db.managedSchema(table.id)
+    guard
+      let top = try db.scalar(
+        "SELECT max(" + ChangeFormat.quote(schema.field(column.id)) + ") FROM "
+          + ChangeFormat.quote(schema.table)
+      ).string, var number = try? Numbers.decimal(top)
+    else { return 1 }
+    var whole = Decimal()
+    NSDecimalRound(&whole, &number, 0, .down)
+    return whole + 1
   }
 }

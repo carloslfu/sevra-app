@@ -42,7 +42,7 @@ extension Workbook {
     day.locale = Locale(identifier: "en_US_POSIX")
     day.dateFormat = "yyyy-MM-dd"
     let session = try synchronized(cancellation: cancellation) {
-      try ChatSQLSession(self, readOnly: readOnly, cancellation: cancellation)
+      try ChatSQLSession(self, readOnly: readOnly, now: now, cancellation: cancellation)
     }
     defer { session.close() }
     // A script works on rows, so it reads more of them than a model is shown, as numbers.

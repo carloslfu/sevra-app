@@ -184,11 +184,8 @@ extension Workbook {
     for entry in named {
       let line =
         entry.name + "("
-        + entry.columns.map {
-          $0.name
-            + ($0.column.formula != nil
-              ? " REAL GENERATED" : $0.column.type == "decimal" ? " REAL" : " TEXT")
-        }.joined(separator: ", ") + ") \(entry.dataset.rowCount) rows"
+        + entry.columns.map { SQLScratch.declaration($0.name, $0.column) }.joined(separator: ", ")
+        + ") \(entry.dataset.rowCount) rows"
       guard bytes + line.utf8.count <= byteLimit else { break }
       bytes += line.utf8.count
       lines.append(line)
@@ -198,15 +195,29 @@ extension Workbook {
       + (lines.count < named.count ? "; \(named.count - lines.count) more in SELECT * FROM tables" : "")
   }
 
-  /// A current table by its id or by its name under Tables for sql.
+  /// A table by its id, or by its exact sql name or title when one current table has it.
+  /// Anything else is refused with the tables listed, so the model can pick the right one.
   public func chatTableID(_ reference: String) throws -> String {
-    if let table = try? dataset(reference), !table.archived { return table.id }
+    if let table = try? dataset(reference) { return table.id }
     let named = SQLScratch.named(try datasets())
-    guard let match = named.first(where: { $0.name == reference }) else {
-      throw SevraError(
-        "unknown_table", "No table is named \(reference). Use a name under Tables for sql.")
+    let wanted = reference.trimmingCharacters(in: .whitespacesAndNewlines)
+    var matches = named.filter { $0.name == wanted }
+    if matches.isEmpty { matches = named.filter { $0.dataset.title == wanted } }
+    if matches.isEmpty {
+      matches = named.filter {
+        $0.name == wanted.lowercased() || $0.dataset.title.lowercased() == wanted.lowercased()
+      }
     }
-    return match.dataset.id
+    if matches.count == 1 { return matches[0].dataset.id }
+    let listed = named.prefix(12).map { "\($0.dataset.title) (\($0.name), \($0.dataset.id))" }
+    throw SevraError(
+      "unknown_table",
+      (matches.isEmpty ? "No table has the id or name \(reference)." : "More than one table is named \(reference).")
+        + (named.isEmpty
+          ? " The workbook has no tables yet. Create one with sql first."
+          : " Use a table's id. Tables, as title (sql name, id): " + listed.joined(separator: "; ")
+            + (named.count > listed.count ? "; more in SELECT title, name, id FROM tables." : "."))
+    )
   }
 
   /// A host-owned, exact rule Source for table changes a person asks for in chat.
@@ -401,19 +412,20 @@ final class ChatSQLSession {
   private let cancellation: Cancellation
   private var filled = Set<String>()
 
+  /// `now` is the one time the call's date functions and defaults read.
   init(
     _ workbook: Workbook, readOnly: Bool, draft: Bool = false, inputs: [String: Value]? = nil,
-    cancellation: Cancellation
+    now: Date = Date(), cancellation: Cancellation
   ) throws {
     self.workbook = workbook
     self.cancellation = cancellation
     let tables = try workbook.datasets()
     rehearsal = try SQLScratch(
-      tables: tables, readOnly: readOnly, draft: draft, inputs: inputs,
+      tables: tables, readOnly: readOnly, draft: draft, inputs: inputs, now: now,
       cancellation: cancellation)
     do {
       scratch = try SQLScratch(
-        tables: tables, readOnly: readOnly, draft: draft, inputs: inputs,
+        tables: tables, readOnly: readOnly, draft: draft, inputs: inputs, now: now,
         cancellation: cancellation)
     } catch {
       rehearsal.close()
@@ -422,18 +434,6 @@ final class ChatSQLSession {
   }
 
   func run(_ statements: [String], inputs: [String: Value]? = nil) throws -> [Value] {
-    // AUTOINCREMENT makes SQLite keep a table of its own, which the general refusal of other
-    // objects would name as an index or a view. Say what to change instead. The word inside a
-    // quoted value, such as a note that mentions it, is data and passes.
-    for (index, statement) in statements.enumerated()
-    where statement.replacingOccurrences(of: #"'(?:[^']|'')*'"#, with: "''", options: .regularExpression)
-      .range(of: #"\bAUTOINCREMENT\b"#, options: [.regularExpression, .caseInsensitive]) != nil
-    {
-      throw SevraError(
-        "sql_shape",
-        "Statement \(index + 1): remove AUTOINCREMENT. An INTEGER PRIMARY KEY column already numbers new rows. Nothing was changed."
-      )
-    }
     if let inputs {
       rehearsal.inputs = inputs
       scratch.inputs = inputs
@@ -504,6 +504,11 @@ final class SQLScratch {
     var name: String
     var column: Column
     var added = false
+    /// A computed column this call added, which SQLite itself computes in the copy.
+    var generated = false
+    /// A default of the current time added by ALTER TABLE, which the copy cannot hold. The
+    /// saved table gives rows added in this call the time.
+    var savedDefaultOnly = false
   }
   /// One workbook table. `key` is its name when the call began, which the change log keeps.
   private struct Entry {
@@ -518,9 +523,11 @@ final class SQLScratch {
     var reshaped = false
     var notes: [String] = []
   }
-  private struct Layout {
+  struct Layout {
     let actual: String
-    let columns: [(name: String, type: String)]
+    let columns: [LayoutColumn]
+    /// The CREATE TABLE text SQLite keeps, with each added column appended.
+    let sql: String
   }
 
   private var handle: OpaquePointer?
@@ -548,6 +555,12 @@ final class SQLScratch {
   private var refusal: SevraError?
   private var deadline = Date.distantFuture
   private var shown = 0
+  /// The time 'now' means in this call, in the Mac's time zone, and the copy of SQLite whose
+  /// own date functions do the work once 'now' is replaced with it.
+  private let clockText: String
+  private let clockOffset: String
+  private var clockHandle: OpaquePointer?
+  private var clocks: [Clock] = []
 
   var readTables: [String] { order.filter(read.contains) }
   func table(_ key: String) -> Dataset { entries[key]!.dataset }
@@ -557,12 +570,21 @@ final class SQLScratch {
 
   init(
     tables: [Dataset], readOnly: Bool, draft: Bool,
-    inputs: [String: Value]? = nil, cancellation: Cancellation
+    inputs: [String: Value]? = nil, now: Date = Date(), timeZone: TimeZone = .current,
+    cancellation: Cancellation
   ) throws {
     self.readOnly = readOnly
     self.draft = draft
     self.inputs = inputs
     self.cancellation = cancellation
+    let format = DateFormatter()
+    format.calendar = Calendar(identifier: .gregorian)
+    format.locale = Locale(identifier: "en_US_POSIX")
+    format.timeZone = timeZone
+    format.dateFormat = "yyyy-MM-dd HH:mm:ss.SSS"
+    clockText = format.string(from: now)
+    format.dateFormat = "xxxxx"
+    clockOffset = format.string(from: now)
     guard
       sqlite3_open_v2(
         ":memory:", &handle, SQLITE_OPEN_READWRITE | SQLITE_OPEN_CREATE | SQLITE_OPEN_MEMORY, nil)
@@ -576,6 +598,7 @@ final class SQLScratch {
       close()
       throw SevraError("sql", "The query workspace could not be opened.")
     }
+    try installClock()
     try execute("PRAGMA trusted_schema=OFF")
     try execute("PRAGMA recursive_triggers=ON")
     // 4 KiB pages: 128 MiB for the copy and everything a statement builds.
@@ -583,13 +606,20 @@ final class SQLScratch {
     try execute(
       "CREATE TABLE tables(name TEXT, title TEXT, row_count INTEGER, id TEXT, version INTEGER, definition_id TEXT)")
     try execute(
-      "CREATE TABLE columns(table_name TEXT, name TEXT, title TEXT, type TEXT, formula TEXT, id TEXT)")
+      "CREATE TABLE columns(table_name TEXT, name TEXT, title TEXT, type TEXT, formula TEXT, id TEXT, required INTEGER, is_unique INTEGER, default_value TEXT, auto_number INTEGER)")
     try execute("CREATE TABLE \"\(Self.log)\"(tbl TEXT, id INTEGER)")
     for (name, dataset, columns) in Self.named(tables) {
+      // A numbering column is the table's INTEGER PRIMARY KEY here too, and a default is the
+      // column's DEFAULT, so later statements and saved tools add rows as SQLite would.
+      let numbered = columns.first { $0.column.autoNumber == true }?.column.id
       try execute(
         "CREATE TABLE \"\(name)\"("
           + columns.map {
-            "\"\($0.name)\" " + ($0.column.type == "decimal" || $0.column.formula != nil ? "REAL" : "TEXT")
+            "\"\($0.name)\" "
+              + ($0.column.id == numbered
+                ? "INTEGER PRIMARY KEY"
+                : ($0.column.type == "decimal" || $0.column.formula != nil ? "REAL" : "TEXT")
+                  + defaultClause($0.column))
           }.joined(separator: ",") + ")")
       try execute(
         "INSERT INTO tables VALUES(?,?,?,?,?,?)",
@@ -599,11 +629,15 @@ final class SQLScratch {
         ])
       for entry in columns {
         try execute(
-          "INSERT INTO columns VALUES(?,?,?,?,?,?)",
+          "INSERT INTO columns VALUES(?,?,?,?,?,?,?,?,?,?)",
           [
             .string(name), .string(entry.name), .string(entry.column.title),
             .string(entry.column.formula == nil ? entry.column.type : "formula"),
             entry.column.formula.map(Value.string) ?? .null, .string(entry.column.id),
+            .number(entry.column.required == true || entry.column.autoNumber == true ? 1 : 0),
+            .number(entry.column.distinct ? 1 : 0),
+            entry.column.defaultValue.map { .string($0.sql(entry.column.type)) } ?? .null,
+            .number(entry.column.autoNumber == true ? 1 : 0),
           ])
       }
       entries[name] = Entry(
@@ -630,9 +664,119 @@ final class SQLScratch {
   func close() {
     sqlite3_close_v2(handle)
     handle = nil
+    sqlite3_close_v2(clockHandle)
+    clockHandle = nil
+  }
+
+  // MARK: The clock
+
+  /// One date function. 'now' in it means the call's local time, the same in every statement.
+  final class Clock {
+    let name: String
+    unowned let scratch: SQLScratch
+    init(_ name: String, _ scratch: SQLScratch) {
+      self.name = name
+      self.scratch = scratch
+    }
+  }
+
+  /// SQLite's date functions read 'now' as UTC. Here they read the Mac's local time, fixed
+  /// for the call: each one replaces 'now' with that time and asks a plain copy of SQLite.
+  private func installClock() throws {
+    guard sqlite3_open_v2(":memory:", &clockHandle, SQLITE_OPEN_READWRITE | SQLITE_OPEN_MEMORY, nil)
+      == SQLITE_OK
+    else { throw SevraError("sql", "The query workspace could not be opened.") }
+    for name in ["date", "time", "datetime", "julianday", "strftime", "unixepoch"] {
+      let clock = Clock(name, self)
+      clocks.append(clock)
+      guard
+        sqlite3_create_function_v2(
+          handle, name, -1, SQLITE_UTF8 | SQLITE_INNOCUOUS,
+          Unmanaged.passUnretained(clock).toOpaque(),
+          { context, count, values in
+            guard let context, let pointer = sqlite3_user_data(context) else { return }
+            let clock = Unmanaged<Clock>.fromOpaque(pointer).takeUnretainedValue()
+            clock.scratch.tell(clock.name, context, Int(count), values)
+          }, nil, nil, nil) == SQLITE_OK
+      else { throw SevraError("sql", "The query workspace could not be opened.") }
+    }
+  }
+
+  private func tell(
+    _ name: String, _ context: OpaquePointer, _ count: Int,
+    _ values: UnsafeMutablePointer<OpaquePointer?>?
+  ) {
+    let at = name == "strftime" ? 1 : 0
+    func text(_ index: Int) -> String? {
+      guard let value = values?[index], sqlite3_value_type(value) == SQLITE_TEXT,
+        let raw = sqlite3_value_text(value)
+      else { return nil }
+      return String(cString: raw).trimmingCharacters(in: .whitespaces).lowercased()
+    }
+    // Each argument is the caller's value, or the call's time in place of 'now'.
+    var binds: [(text: String?, source: Int)] = []
+    var local = false
+    for index in 0..<count {
+      if index == at, text(index) == "now" {
+        binds.append((clockText, index))
+        local = true
+      } else if local, index > at, text(index) == "localtime" {
+        continue  // The time is local already.
+      } else {
+        binds.append((nil, index))
+      }
+    }
+    // With no time value the functions mean now.
+    if count <= at { binds.append((clockText, -1)) }
+    var statement: OpaquePointer?
+    let sql = "SELECT \(name)(" + Array(repeating: "?", count: binds.count).joined(separator: ",") + ")"
+    guard sqlite3_prepare_v2(clockHandle, sql, -1, &statement, nil) == SQLITE_OK else {
+      sqlite3_result_error(context, sqlite3_errmsg(clockHandle), -1)
+      return
+    }
+    defer { sqlite3_finalize(statement) }
+    for (position, bind) in binds.enumerated() {
+      if let text = bind.text {
+        sqlite3_bind_text(statement, Int32(position + 1), text, -1, Self.transient)
+      } else {
+        sqlite3_bind_value(statement, Int32(position + 1), values?[bind.source])
+      }
+    }
+    if sqlite3_step(statement) == SQLITE_ROW {
+      sqlite3_result_value(context, sqlite3_column_value(statement, 0))
+    } else {
+      sqlite3_result_error(context, sqlite3_errmsg(clockHandle), -1)
+    }
+  }
+
+  /// A column's default as SQLite declares it in the copy.
+  private func defaultClause(_ column: Column) -> String {
+    guard let initial = column.defaultValue, column.formula == nil else { return "" }
+    switch initial.now {
+    case "date"?: return " DEFAULT (date('now'))"
+    case "time"?: return " DEFAULT (time('now'))"
+    case "datetime"?:
+      return column.type == "date"
+        ? " DEFAULT (strftime('%Y-%m-%dT%H:%M:%S','now')||'\(clockOffset)')"
+        : " DEFAULT (datetime('now'))"
+    default:
+      if column.type == "decimal", let number = try? Numbers.decimal(initial.value ?? "") {
+        return " DEFAULT " + Numbers.string(number)
+      }
+      return " DEFAULT " + initial.sql()
+    }
   }
 
   // MARK: Names
+
+  /// A column as the request's list of tables declares it, with what its table keeps.
+  static func declaration(_ name: String, _ column: Column) -> String {
+    if column.formula != nil { return name + " REAL GENERATED" }
+    if column.autoNumber == true { return name + " INTEGER PRIMARY KEY" }
+    return name + (column.type == "decimal" ? " REAL" : " TEXT")
+      + (column.required == true ? " NOT NULL" : "") + (column.unique == true ? " UNIQUE" : "")
+      + (column.defaultValue.map { " DEFAULT " + $0.sql(column.type) } ?? "")
+  }
 
   /// The name each table and column has in sql: its title in lower case with underscores.
   static func named(_ tables: [Dataset]) -> [(
@@ -797,12 +941,9 @@ final class SQLScratch {
         "sql",
         "One sql call is one change, saved together. Remove BEGIN, COMMIT, ROLLBACK and SAVEPOINT.")
     case SQLITE_CREATE_INDEX where name.hasPrefix("sqlite_autoindex_"):
-      // SQLite makes this index itself for a UNIQUE column or a key that is not INTEGER. Name
-      // the column constraint, not an index the statement never wrote.
-      return refuse(
-        "sql_shape",
-        "Remove UNIQUE, and PRIMARY KEY from any column that is not INTEGER: sql cannot make the index either one needs. An INTEGER PRIMARY KEY is fine. Nothing was changed."
-      )
+      // SQLite makes this index itself for a UNIQUE column or a key that is not INTEGER. The
+      // new table keeps the column unique.
+      return shaping == .create ? SQLITE_OK : refuse("sql_shape", Self.shapeRefusal)
     case SQLITE_CREATE_TEMP_TABLE, SQLITE_DROP_TEMP_TABLE, SQLITE_CREATE_INDEX,
       SQLITE_CREATE_TEMP_INDEX, SQLITE_DROP_INDEX, SQLITE_DROP_TEMP_INDEX, SQLITE_CREATE_VIEW,
       SQLITE_CREATE_TEMP_VIEW, SQLITE_DROP_VIEW, SQLITE_DROP_TEMP_VIEW, SQLITE_CREATE_TRIGGER,
@@ -826,7 +967,9 @@ final class SQLScratch {
       (index.map { "Statement \($0 + 1): " } ?? "") + message
         + (message.contains("no such column")
           ? ". Use the exact names under Tables for sql, and write text values in single quotes."
-          : ". SELECT * FROM columns lists every table and column name."))
+          : message.contains("cannot drop PRIMARY KEY column")
+            ? ". That column numbers the table's rows. To remove it, change the table's columns with the action table.edit_schema."
+            : ". SELECT * FROM columns lists every table and column name."))
   }
 
   private func prepare(_ sql: String, index: Int? = nil) throws -> OpaquePointer? {
@@ -899,32 +1042,106 @@ final class SQLScratch {
   }
 
   /// Every table of the copy that is not the host's, with its columns as SQLite declares them.
+  /// Computed columns are listed too, in their place.
   private func layouts() throws -> [String: Layout] {
-    var names: [String] = []
-    let list = try prepare("SELECT name FROM sqlite_master WHERE type='table'")
+    var names: [(String, String)] = []
+    let list = try prepare("SELECT name, sql FROM sqlite_master WHERE type='table'")
     defer { sqlite3_finalize(list) }
     while sqlite3_step(list) == SQLITE_ROW {
       let name = String(cString: sqlite3_column_text(list, 0))
       if !Self.reserved.contains(name.lowercased()), !name.lowercased().hasPrefix("sqlite_") {
-        names.append(name)
+        names.append((name, sqlite3_column_text(list, 1).map { String(cString: $0) } ?? ""))
       }
     }
     var found: [String: Layout] = [:]
-    for name in names {
-      let info = try prepare(
-        "PRAGMA table_info(\"" + name.replacingOccurrences(of: "\"", with: "\"\"") + "\")")
+    for (name, sql) in names {
+      let info = try prepare("PRAGMA table_xinfo(" + Self.quoted(name) + ")")
       defer { sqlite3_finalize(info) }
-      var columns: [(name: String, type: String)] = []
+      var columns: [LayoutColumn] = []
+      func text(_ index: Int32) -> String? {
+        sqlite3_column_text(info, index).map { String(cString: $0) }
+      }
       while sqlite3_step(info) == SQLITE_ROW {
         columns.append(
-          (
-            String(cString: sqlite3_column_text(info, 1)),
-            sqlite3_column_text(info, 2).map { String(cString: $0) } ?? ""
-          ))
+          LayoutColumn(
+            name: text(1) ?? "", type: text(2) ?? "", notNull: sqlite3_column_int(info, 3) != 0,
+            defaultSQL: text(4), key: Int(sqlite3_column_int(info, 5)),
+            generated: [2, 3].contains(sqlite3_column_int(info, 6))))
       }
-      found[name.lowercased()] = Layout(actual: name, columns: columns)
+      found[name.lowercased()] = Layout(actual: name, columns: columns, sql: sql)
     }
     return found
+  }
+
+  /// What each column of a table asks the workbook to keep, by lower-case name. Constraints
+  /// over several columns are refused, since a workbook column keeps its own.
+  private func shapes(_ layout: Layout) throws -> [String: ColumnShape] {
+    var shapes: [String: ColumnShape] = [:]
+    let declarations = Self.declarations(layout.sql)
+    let keys = layout.columns.filter { $0.key > 0 }
+    try require(
+      keys.count <= 1, "sql_shape",
+      "\(layout.actual) has a PRIMARY KEY over several columns, which a table cannot keep. Give it one id INTEGER PRIMARY KEY column, or mark a single column UNIQUE. Nothing was changed.")
+    var unique = Set<String>()
+    let indexes = try prepare("PRAGMA index_list(" + Self.quoted(layout.actual) + ")")
+    defer { sqlite3_finalize(indexes) }
+    while sqlite3_step(indexes) == SQLITE_ROW {
+      let index = String(cString: sqlite3_column_text(indexes, 1))
+      let info = try prepare("PRAGMA index_info(" + Self.quoted(index) + ")")
+      defer { sqlite3_finalize(info) }
+      var named: [String] = []
+      while sqlite3_step(info) == SQLITE_ROW {
+        named.append(sqlite3_column_text(info, 2).map { String(cString: $0) } ?? "")
+      }
+      try require(
+        named.count == 1, "sql_shape",
+        "\(layout.actual) has a UNIQUE or PRIMARY KEY constraint over several columns, which a table cannot keep. Mark single columns UNIQUE instead. Nothing was changed.")
+      unique.insert(named[0].lowercased())
+    }
+    for column in layout.columns {
+      var shape = ColumnShape()
+      if column.key > 0 {
+        // Only a column declared exactly INTEGER is SQLite's row number.
+        if column.type.uppercased() == "INTEGER" {
+          shape.autoNumber = true
+        } else {
+          shape.required = true
+          shape.unique = true
+        }
+      }
+      if column.notNull, !shape.autoNumber { shape.required = true }
+      if unique.contains(column.name.lowercased()), !shape.autoNumber { shape.unique = true }
+      if column.generated {
+        guard let declaration = declarations[column.name.lowercased()],
+          let expression = Self.generatedExpression(declaration)
+        else {
+          throw SevraError(
+            "sql_shape", "\(column.name) is computed in a way sql cannot read. \(Self.computedHelp) Nothing was changed.")
+        }
+        shape.generated = expression
+      } else if let sql = column.defaultSQL {
+        shape.initial = try Self.columnDefault(sql, column: column.name)
+      }
+      shapes[column.name.lowercased()] = shape
+    }
+    return shapes
+  }
+
+  /// The column a layout column becomes, with what its declaration asks the table to keep.
+  private static func kept(_ column: Column, _ shape: ColumnShape?) -> Column {
+    guard let shape else { return column }
+    var column = column
+    if shape.autoNumber {
+      column.type = "decimal"
+      column.autoNumber = true
+    }
+    if shape.required { column.required = true }
+    if shape.unique { column.unique = true }
+    if let initial = shape.initial {
+      column.defaultValue = initial
+      if initial.now != nil { column.type = "text" }
+    }
+    return column
   }
 
   /// One text of several statements, cut where SQLite itself says a statement ends.
@@ -964,16 +1181,28 @@ final class SQLScratch {
       try require(
         filledRows <= Self.rowLimit, "sql_limit",
         "These tables hold more than \(Self.rowLimit) rows, which sql cannot read yet.")
+      // A numbering column is the row number here, so it is filled as the rowid.
+      let numbered = entry.fields.first { $0.column.autoNumber == true }
+      let filling = entry.fields.filter { !$0.generated && $0.column.id != numbered?.column.id }
       let insert = try prepare(
         "INSERT INTO \"\(key)\"(rowid,"
-          + entry.fields.map { "\"\($0.name)\"" }.joined(separator: ",") + ") VALUES(?"
-          + String(repeating: ",?", count: entry.fields.count) + ")")
+          + filling.map { "\"\($0.name)\"" }.joined(separator: ",") + ") VALUES(?"
+          + String(repeating: ",?", count: filling.count) + ")")
       defer { sqlite3_finalize(insert) }
       for (offset, row) in rows.enumerated() {
-        let id = Int64(offset + 1)
+        var id = Int64(offset + 1)
+        if let numbered {
+          guard let number = try? Numbers.decimal(row.1[numbered.column.id]?.text ?? ""),
+            Workbook.whole(number), abs(number) < 1_000_000_000_000_000
+          else {
+            throw SevraError(
+              "sql", "\(entry.dataset.title) has a row without a whole number in \(numbered.column.title), which numbers its rows. Give that row a number first.")
+          }
+          id = NSDecimalNumber(decimal: number).int64Value
+        }
         sqlite3_reset(insert)
         sqlite3_bind_int64(insert, 1, id)
-        for (index, field) in entry.fields.enumerated() {
+        for (index, field) in filling.enumerated() {
           let value = row.1[field.column.id] ?? .null
           let numeric = field.column.type == "decimal" || field.column.formula != nil
           if value == .null || value.text.isEmpty {
@@ -1019,18 +1248,51 @@ final class SQLScratch {
       deadline = .distantFuture
     }
     var results: [Value] = []
-    for (index, sql) in statements.enumerated() {
+    for (index, written) in statements.enumerated() {
+      var sql = Self.prepared(written)
       let shape = Self.shape(sql)
       try require(
         shape == nil || !draft, "sql_draft",
         "A draft can hold UPDATEs only for now. Nothing was changed or saved.")
+      // SQLite adds no column whose default is the current time, since the rows already there
+      // would need one. Here those rows stay empty and rows added later get the time.
+      var clock: String?
+      if shape == .alter,
+        let match = sql.range(
+          of: #"\bDEFAULT\s*\(\s*(datetime|date|time)\s*\(\s*'now'\s*\)\s*\)"#,
+          options: [.regularExpression, .caseInsensitive])
+      {
+        let found = sql[match].lowercased()
+        clock = ["datetime", "date", "time"].first { found.contains($0 + "(") }
+        sql.removeSubrange(match)
+      }
       let before = try shape.map { _ in try layouts() }
       guarded = true
       shaping = shape
       let result = try step(sql, index: index)
       guarded = false
       shaping = nil
-      if let shape, let before { try reshaped(shape, from: before, to: try layouts()) }
+      if let shape, let before {
+        do {
+          let after = try layouts()
+          try reshaped(shape, from: before, to: after, clock: clock)
+          // A new table's declaration is read now, so a refusal names its statement.
+          for name in created {
+            guard let layout = after[name] else { continue }
+            let shapes = try self.shapes(layout)
+            let names = Dictionary(
+              layout.columns.map { ($0.name.lowercased(), (id: $0.name, numeric: true)) }
+            ) { first, _ in first }
+            for column in layout.columns {
+              if let expression = shapes[column.name.lowercased()]?.generated {
+                _ = try Self.formula(expression, column: column.name, columns: names)
+              }
+            }
+          }
+        } catch let error as SevraError {
+          throw SevraError(error.code, "Statement \(index + 1): " + error.message)
+        }
+      }
       if shape == nil { try refreshFormulas() }
       results.append(result)
     }
@@ -1084,7 +1346,7 @@ final class SQLScratch {
           cache[column.id] = value
           return value
         }
-        for field in entry.fields where field.column.formula != nil {
+        for field in entry.fields where field.column.formula != nil && !field.generated {
           let value = try? resolve(field.column, depth: 0)
           try execute(
             "UPDATE \"\(entry.name)\" SET \"\(field.name)\"=? WHERE rowid=?",
@@ -1149,9 +1411,9 @@ final class SQLScratch {
   // MARK: Shape changes
 
   /// Reads what one CREATE, ALTER or DROP TABLE did from the copy's layout before and after.
-  private func reshaped(_ shape: Shape, from before: [String: Layout], to after: [String: Layout])
-    throws
-  {
+  private func reshaped(
+    _ shape: Shape, from before: [String: Layout], to after: [String: Layout], clock: String?
+  ) throws {
     let gone = Set(before.keys).subtracting(after.keys)
     let fresh = Set(after.keys).subtracting(before.keys)
     switch shape {
@@ -1205,16 +1467,33 @@ final class SQLScratch {
           entry.fields.removeAll { removed.contains($0.name) }
           var ids = Set(entry.dataset.columns.map { $0.id.lowercased() }).union(
             entry.fields.map { $0.column.id.lowercased() })
+          let shapes = added.isEmpty ? [:] : try self.shapes(layout)
           for column in added {
             let id = Self.unique(Self.identifier(column.name, fallback: "column"), in: &ids)
             let title = Self.title(column.name)
+            var shape = shapes[column.name.lowercased()]
+            if let clock { shape?.initial = ColumnDefault(now: clock) }
+            var kept = Self.kept(
+              Column(id: id, title: title, type: Self.numeric(column.type) ? "decimal" : "text"),
+              shape)
+            if let expression = shape?.generated {
+              // A computed column is a formula column, which names the others by id.
+              let others = Dictionary(
+                entry.fields.map {
+                  ($0.name.lowercased(),
+                   (id: $0.column.id, numeric: $0.column.type == "decimal" || $0.column.formula != nil))
+                }) { first, _ in first }
+              kept.type = "decimal"
+              kept.formula = try Self.formula(expression, column: column.name, columns: others)
+            }
+            // SQLite's NOT NULL on an added column needs a default, which fills the rows
+            // already there, so required holds for them.
             entry.fields.append(
               Field(
-                name: column.name,
-                column: Column(
-                  id: id, title: title, type: Self.numeric(column.type) ? "decimal" : "text"),
-                added: true))
-            entry.notes.append("added column " + title)
+                name: column.name, column: kept, added: true, generated: kept.formula != nil,
+                savedDefaultOnly: clock != nil))
+            entry.notes.append(
+              (kept.formula != nil ? "added computed column " : "added column ") + title)
           }
           entry.fields.sort {
             (now.firstIndex(of: $0.name) ?? 0) < (now.firstIndex(of: $1.name) ?? 0)
@@ -1261,21 +1540,53 @@ final class SQLScratch {
         }
         cells.append(row)
       }
+      let shapes = try self.shapes(layout)
+      // A column a computed column reads holds numbers when every value it has is one.
+      var read = Set<String>()
+      for shape in shapes.values {
+        guard let expression = shape.generated else { continue }
+        for piece in Self.pieces(expression) {
+          for word in piece.text.split(whereSeparator: { !($0.isLetter || $0.isNumber || $0 == "_") }) {
+            read.insert(word.lowercased())
+          }
+          if !piece.code, let name = Self.leadingName(piece.text) { read.insert(name.lowercased()) }
+        }
+      }
       var ids = Set<String>()
-      let columns = layout.columns.enumerated().map { index, column in
+      var columns = layout.columns.enumerated().map { index, column in
+        let shape = shapes[column.name.lowercased()]
         // A declared number column holds numbers. An undeclared one does if every value is one.
         let decimal =
-          numbers[index] && (Self.numeric(column.type) || (column.type.isEmpty && filled[index]))
-        return Column(
-          id: Self.unique(Self.identifier(column.name, fallback: "column"), in: &ids),
-          title: Self.title(column.name), type: decimal ? "decimal" : "text")
+          numbers[index]
+          && (Self.numeric(column.type) || (column.type.isEmpty && filled[index])
+            || shape?.generated != nil || read.contains(column.name.lowercased()))
+        return Self.kept(
+          Column(
+            id: Self.unique(Self.identifier(column.name, fallback: "column"), in: &ids),
+            title: Self.title(column.name), type: decimal ? "decimal" : "text"),
+          shape)
+      }
+      let names = Dictionary(
+        zip(layout.columns, columns).map {
+          ($0.name.lowercased(), (id: $1.id, numeric: $1.type == "decimal"))
+        }) { first, _ in first }
+      for (index, column) in layout.columns.enumerated() {
+        guard let expression = shapes[column.name.lowercased()]?.generated else { continue }
+        do {
+          columns[index].type = "decimal"
+          columns[index].formula = try Self.formula(
+            expression, column: column.name, columns: names)
+        } catch let error as SevraError {
+          throw SevraError(error.code, layout.actual + ": " + error.message)
+        }
       }
       tables.append(
         Created(
           name: layout.actual, title: Self.title(layout.actual), columns: columns,
           rows: cells.map { row in
             var values: [String: Value] = [:]
-            for (index, value) in row.enumerated() where value != .null {
+            for (index, value) in row.enumerated()
+            where value != .null && columns[index].formula == nil {
               values[columns[index].id] = value
             }
             return values
@@ -1345,7 +1656,11 @@ final class SQLScratch {
           counts.deleted += 1
         case (.none, .some(let now)):
           var values: [String: Value] = [:]
-          for index in writable where now[index] != .null {
+          // An empty cell in a column with a default was set empty, so it stays empty.
+          for index in writable
+          where now[index] != .null
+            || entry.fields[index].column.defaultValue != nil && !entry.fields[index].savedDefaultOnly
+          {
             values[entry.fields[index].column.id] = try stored(index)
           }
           operations.append(.object(["op": .string("insert"), "values": .object(values)]))

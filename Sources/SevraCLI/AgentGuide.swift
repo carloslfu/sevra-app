@@ -89,7 +89,11 @@ enum AgentGuide {
       drop a column, rename the table) and DROP TABLE, which archives the table.
     - Changes are saved at once. The result has an `undo` value; to reverse the call:
       `run '{"action":"table.undo_sql","arguments":{"token":"UNDO_VALUE"}}'`.
-    - Columns of type `formula` are computed and cannot be written.
+    - Columns of type `formula` are computed and cannot be written. Make one with
+      `ALTER TABLE t ADD COLUMN total REAL AS (quantity * price)`; it follows its inputs.
+    - A table keeps `INTEGER PRIMARY KEY` numbering (with or without AUTOINCREMENT),
+      `DEFAULT`, `NOT NULL` and `UNIQUE` for every later row, whoever adds it.
+    - `'now'`, `CURRENT_DATE` and `CURRENT_TIMESTAMP` are the Mac's local time.
     - Decimals come back as text with their exact digits. Do arithmetic in SQL, not in
       your head, and use `round(x, 2)` for money.
     - `"draft": true` saves UPDATEs as a proposal for the person to review instead.

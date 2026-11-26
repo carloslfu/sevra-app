@@ -5,7 +5,7 @@ extension NativeTools {
   package static let sqlDefinition = WorkbookToolDefinition(
     name: "sql",
     description:
-      "Read and change workbook tables with SQLite SQL. Reads: any SELECT, with joins, WHERE, GROUP BY and arithmetic. Row changes: INSERT, UPDATE, DELETE, saved at once with Undo. Tables: CREATE TABLE, ALTER TABLE (ADD, RENAME or DROP COLUMN, RENAME TO) and DROP TABLE, which archives.",
+      "Read and change workbook tables with SQLite SQL. Reads: any SELECT, with joins, WHERE, GROUP BY and arithmetic. Row changes: INSERT, UPDATE, DELETE, saved at once with Undo. Tables: CREATE TABLE, ALTER TABLE (ADD, RENAME or DROP COLUMN, RENAME TO) and DROP TABLE, which archives. A table keeps INTEGER PRIMARY KEY numbering, DEFAULT, NOT NULL and UNIQUE for later rows, and a computed column (total REAL AS (quantity * price)) follows its inputs. 'now' and CURRENT_DATE are the Mac's local time.",
     parameters: object(
       [
         "statements": .object([

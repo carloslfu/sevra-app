@@ -205,6 +205,11 @@ if CommandLine.arguments.dropFirst() == ["--automations"] {
   print("\(passed) passed; \(failed) failed")
   exit(failed == 0 ? 0 : 1)
 }
+if CommandLine.arguments.dropFirst() == ["--chat-sql-shape"] {
+  checkChatSQLShape(at: temp)
+  print("\(passed) passed; \(failed) failed")
+  exit(failed == 0 ? 0 : 1)
+}
 if CommandLine.arguments.dropFirst() == ["--tool-actions"] {
   checkToolActions(at: temp)
   print("\(passed) passed; \(failed) failed")

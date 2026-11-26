@@ -8,9 +8,15 @@ public struct Column: Codable, Identifiable, Equatable, Sendable {
   public var unit: String?
   public var required: Bool?
   public var unique: Bool?
+  /// What a new row holds in this column when whoever adds it leaves the column out.
+  public var defaultValue: ColumnDefault?
+  /// A new row that leaves this column out gets the largest whole number in it plus one, as
+  /// SQLite numbers an INTEGER PRIMARY KEY. Every row holds a distinct whole number here.
+  public var autoNumber: Bool?
   public init(
     id: String, title: String, type: String = "text", formula: String? = nil, unit: String? = nil,
-    required: Bool? = nil, unique: Bool? = nil
+    required: Bool? = nil, unique: Bool? = nil, defaultValue: ColumnDefault? = nil,
+    autoNumber: Bool? = nil
   ) {
     self.id = id
     self.title = title
@@ -19,6 +25,45 @@ public struct Column: Codable, Identifiable, Equatable, Sendable {
     self.unit = unit
     self.required = required
     self.unique = unique
+    self.defaultValue = defaultValue
+    self.autoNumber = autoNumber
+  }
+  /// No two rows share a value: a unique column, or one that numbers its rows.
+  public var distinct: Bool { unique == true || autoNumber == true }
+}
+/// A column's default: a fixed value, or the Mac's local date or time when the row is added.
+public struct ColumnDefault: Codable, Equatable, Sendable {
+  public var value: String?
+  /// `date`, `datetime` or `time`.
+  public var now: String?
+  public init(value: String) { self.value = value }
+  public init(now: String) { self.now = now }
+  public static let clocks = ["date", "datetime", "time"]
+  /// The value a row added at `date` gets, in the Mac's time zone. A text column holds what
+  /// SQLite's date functions write; a date column holds a date or a timestamp with its offset.
+  public func text(at date: Date, type: String, timeZone: TimeZone = .current) -> String {
+    guard let now else { return value ?? "" }
+    let format = DateFormatter()
+    format.calendar = Calendar(identifier: .gregorian)
+    format.locale = Locale(identifier: "en_US_POSIX")
+    format.timeZone = timeZone
+    switch (now, type) {
+    case ("date", _): format.dateFormat = "yyyy-MM-dd"
+    case ("time", _): format.dateFormat = "HH:mm:ss"
+    case (_, "date"): format.dateFormat = "yyyy-MM-dd'T'HH:mm:ssxxxxx"
+    default: format.dateFormat = "yyyy-MM-dd HH:mm:ss"
+    }
+    return format.string(from: date)
+  }
+  /// The default as SQL writes it for a column of `type`.
+  public func sql(_ type: String = "text") -> String {
+    if type == "decimal", let value { return value }
+    switch now {
+    case "date"?: return "CURRENT_DATE"
+    case "datetime"?: return "CURRENT_TIMESTAMP"
+    case "time"?: return "CURRENT_TIME"
+    default: return "'" + (value ?? "").replacingOccurrences(of: "'", with: "''") + "'"
+    }
   }
 }
 public struct Dataset: Codable, Identifiable, Sendable {
@@ -540,6 +585,12 @@ extension Workbook {
     }
     return columns[index].unit
   }
+  static func whole(_ number: Decimal) -> Bool {
+    var input = number
+    var output = Decimal()
+    NSDecimalRound(&output, &input, 0, .down)
+    return output == number
+  }
   public func validateColumns(_ columns: [Column]) throws {
     try ManagedDatasetSchema.validateColumns(columns)
   }
@@ -550,9 +601,14 @@ extension Workbook {
     for c in columns where c.formula == nil {
       let v = values[c.id] ?? .null
       try require(
-        c.required != true || (v != .null && !v.text.isEmpty),
+        (c.required != true && c.autoNumber != true) || (v != .null && !v.text.isEmpty),
         "required", c.title + " requires a value.")
       if v == .null || v.text.isEmpty { continue }
+      if c.autoNumber == true {
+        try require(
+          Self.whole(try Numbers.decimal(v.text)), "column_number",
+          c.title + " numbers the rows, so it holds whole numbers, and " + v.text + " is not one.")
+      }
       try require(v.text.utf8.count <= 1_000_000, "cell_limit", "Cell is too large.")
       switch c.type {
       case "decimal": _ = try Numbers.decimal(v.text)

@@ -31,6 +31,7 @@ private let groups: [() -> Void] = [
   { checkApplicationActions(at: temp) },
   { checkDocumentActions(at: temp) },
   { checkToolActions(at: temp) },
+  { checkChatSQLShape(at: temp) },
   { checkDefinitionTools(at: temp) },
   { checkWorkflowTools(at: temp) },
   { checkWorkflowInterpretations(at: temp) },

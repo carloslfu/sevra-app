@@ -610,7 +610,8 @@ import SevraProduct
           }
           try require(
             Set(definition.keys).isSubset(of: [
-              "id", "title", "type", "formula", "unit", "required", "unique",
+              "id", "title", "type", "formula", "unit", "required", "unique", "defaultValue",
+              "autoNumber",
             ]),
             "arguments", "Unknown column definition field.")
         }

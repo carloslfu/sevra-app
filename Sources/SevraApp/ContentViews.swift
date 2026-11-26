@@ -1091,6 +1091,15 @@ struct ColumnEditor: View {
     if let unit = column.unit, !unit.isEmpty { details.append(unit) }
     if column.required == true { details.append("required") }
     if column.unique == true { details.append("unique") }
+    if column.autoNumber == true { details.append("numbered") }
+    if let initial = column.defaultValue {
+      switch initial.now {
+      case "date"?: details.append("defaults to today")
+      case "datetime"?: details.append("defaults to now")
+      case "time"?: details.append("defaults to the time")
+      default: details.append("defaults to " + (initial.value ?? ""))
+      }
+    }
     return details.isEmpty ? "Options" : "Options · " + details.joined(separator: ", ")
   }
   private func save() {

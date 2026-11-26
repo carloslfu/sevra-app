@@ -52,6 +52,42 @@ public struct WorkbookTools {
     self.readOnly = readOnly
     self.excelConversion = excelConversion
   }
+  /// The actions whose `id` is a table's.
+  static let tableActions: Set<String> = [
+    "table.schema", "table.history", "table.edit_schema", "table.restore_schema",
+    "table.change_rows", "table.undo_rows", "file.export_table",
+  ]
+  /// The model may name a table where its id belongs, as sql names it or by its title. Each
+  /// datasetID, and the id of a table action, becomes that table's id when one table has the
+  /// name. Otherwise the call is refused with the tables listed.
+  func resolvingTables(_ tool: String, _ arguments: Value) throws -> Value {
+    func walk(_ value: Value) throws -> Value {
+      switch value {
+      case .object(var fields):
+        for (key, field) in fields {
+          if key == "datasetID", let text = field.string, !text.isEmpty {
+            fields[key] = .string(try workbook.chatTableID(text))
+          } else {
+            fields[key] = try walk(field)
+          }
+        }
+        return .object(fields)
+      case .array(let items): return .array(try items.map(walk))
+      default: return value
+      }
+    }
+    guard case .object = arguments else { return arguments }
+    var resolved = try walk(arguments)
+    if tool == "workspace_action", let action = resolved["action"].string,
+      Self.tableActions.contains(action), let id = resolved["arguments"]["id"].string, !id.isEmpty,
+      case .object(var fields) = resolved, case .object(var inner) = resolved["arguments"]
+    {
+      inner["id"] = .string(try workbook.chatTableID(id))
+      fields["arguments"] = .object(inner)
+      resolved = .object(fields)
+    }
+    return resolved
+  }
   public func operationToken(_ tool: String, _ arguments: Value) throws -> String {
     try Self.operationToken(runID: runID, tool, arguments)
   }
@@ -86,10 +122,11 @@ public struct WorkbookTools {
     }
   }
   private func executeAttributed(
-    _ tool: String, _ a: Value, receiptID: String?, nativeAppCheck: Value?,
+    _ tool: String, _ given: Value, receiptID: String?, nativeAppCheck: Value?,
     inspectionOnly: Bool = false
   ) throws -> Value {
     try cancellation.check()
+    let a = try resolvingTables(tool, given)
     if let build = excelConversion {
       try workbook.validateExcelConversionBuild(build)
       try require(

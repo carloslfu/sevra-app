@@ -41,7 +41,38 @@ struct ManagedDatasetSchema: Equatable {
         (column.unit?.utf8.count ?? 0) <= 40, "unit", "Unit labels are limited to 40 bytes.")
       try require(
         (column.formula?.utf8.count ?? 0) <= 4096, "formula_limit", "Formula is too long.")
+      if let initial = column.defaultValue {
+        try require(
+          column.formula == nil && column.autoNumber != true && (initial.value == nil) != (initial.now == nil),
+          "column_default",
+          "A default belongs to a stored column without numbering: a fixed value or the current date or time.")
+        if let clock = initial.now {
+          try require(
+            column.type == "text" && ColumnDefault.clocks.contains(clock)
+              || column.type == "date" && ["date", "datetime"].contains(clock),
+            "column_default",
+            "\(column.title) cannot default to the current \(clock). Use a text or date column.")
+        }
+        if let value = initial.value {
+          try require(value.utf8.count <= 4096, "column_default", "A default is limited to 4,096 bytes.")
+          switch column.type {
+          case "decimal": _ = try Numbers.decimal(value)
+          case "boolean":
+            try require(
+              ["true", "false"].contains(value.lowercased()), "column_default",
+              "Use true or false for the default of \(column.title).")
+          case "date": _ = try BusinessTime.normalized(value)
+          default: break
+          }
+        }
+      }
+      try require(
+        column.autoNumber != true || (column.formula == nil && column.type == "decimal"),
+        "column_number", "Only a stored number column numbers its new rows.")
     }
+    try require(
+      columns.filter { $0.autoNumber == true }.count <= 1, "column_number",
+      "A table numbers its rows in one column at most.")
     try require(
       Set(columns.map { $0.id.lowercased() }).count == columns.count,
       "columns", "SQLite column identifiers must also be unique without case.")
@@ -62,7 +93,7 @@ struct ManagedDatasetSchema: Equatable {
         column.type == "boolean"
         ? " CHECK(\(quote(name)) IS NULL OR \(quote(name)) IN (0,1,''))" : ""
       let required = column.required == true ? " NOT NULL CHECK(" + quote(name) + " <> '')" : ""
-      let unique = column.unique == true ? " UNIQUE" : ""
+      let unique = column.distinct ? " UNIQUE" : ""
       return quote(name) + " " + type + collation + check + required + unique
     }
     return "CREATE TABLE " + quote(table) + "("

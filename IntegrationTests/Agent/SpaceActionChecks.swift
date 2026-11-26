@@ -448,30 +448,18 @@ private actor SpaceActionModel: WorkbookInference {
   try expectEqual(try metric("AVERAGE", ["", " "]), "No values yet")
   try expectThrows(try metric("SUM", ["2", "two"]))
   try expectThrows(try metric("SUM", ["1"], total: 1_001))
-  // AUTOINCREMENT is named for what it is, not refused as an index or a view.
-  do {
-    _ = try homeBook.chatSQL(
-      statements: ["CREATE TABLE visits (id INTEGER PRIMARY KEY AUTOINCREMENT, who TEXT)"],
-      readOnly: false, token: "autoincrement", requestSourceID: nil)
-    throw SevraError("fixture", "AUTOINCREMENT was accepted.")
-  } catch let error as SevraError where error.code == "sql_shape" {
-    try expectEqual(error.message.hasPrefix("Statement 1: remove AUTOINCREMENT."), true)
-  }
-  // A UNIQUE column or a text key is named for what it is, not refused as an index the
-  // statement never wrote.
-  for statement in [
-    "CREATE TABLE counts (id INTEGER PRIMARY KEY, name TEXT UNIQUE, value INTEGER)",
-    "CREATE TABLE invoices2 (number TEXT PRIMARY KEY, status TEXT)",
-  ] {
-    do {
-      _ = try homeBook.chatSQL(
-        statements: [statement], readOnly: false, token: "unique-" + statement.prefix(19),
-        requestSourceID: nil)
-      throw SevraError("fixture", "An index SQLite makes for a constraint was accepted.")
-    } catch let error as SevraError where error.code == "sql_shape" {
-      try expectEqual(error.message.hasPrefix("Remove UNIQUE, and PRIMARY KEY"), true)
-    }
-  }
+  // AUTOINCREMENT numbers rows as an INTEGER PRIMARY KEY does, and a UNIQUE column or a text
+  // key is kept as a unique column, not refused as an index the statement never wrote.
+  _ = try homeBook.chatSQL(
+    statements: [
+      "CREATE TABLE visits (id INTEGER PRIMARY KEY AUTOINCREMENT, who TEXT)",
+      "CREATE TABLE counts (id INTEGER PRIMARY KEY, name TEXT UNIQUE, value INTEGER)",
+      "CREATE TABLE invoices2 (number TEXT PRIMARY KEY, status TEXT)",
+    ], readOnly: false, token: "autoincrement", requestSourceID: nil)
+  let kept = try homeBook.datasets()
+  try expectEqual(kept.first { $0.title == "Visits" }?.columns.first?.autoNumber, true)
+  try expectEqual(kept.first { $0.title == "Counts" }?.columns.map(\.distinct), [true, true, false])
+  try expectEqual(kept.first { $0.title == "Invoices2" }?.columns.first?.required, true)
   // A real index statement keeps its own message.
   do {
     _ = try homeBook.chatSQL(

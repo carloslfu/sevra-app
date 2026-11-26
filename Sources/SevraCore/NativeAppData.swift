@@ -351,7 +351,7 @@ extension Workbook {
             let kind = operation["op"].text
             switch kind {
             case "insert":
-              let values = operation["values"].object
+              let values = try newRowValues(operation["values"].object, table: table)
               try validateValues(values, columns: table.columns)
               let id = try insertItem(
                 category: "record", kind: "row", title: table.title + " entry",

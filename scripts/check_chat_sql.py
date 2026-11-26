@@ -172,6 +172,24 @@ with tempfile.TemporaryDirectory() as folder:
     sql(shape, "DROP TABLE minimum_levels")
     expect('drop archives the table', shape.table('Minimum levels') is None)
     expect('drop left the other tables', len(shape.values('Parts')) == 6 and len(shape.values('Reorder plan')) == 3)
+    # A table keeps its numbering, defaults and computed columns for later calls (November 26,
+    # 2026: an INSERT after the CREATE stored NULL in all three).
+    sql(shape, "CREATE TABLE jobs (id INTEGER PRIMARY KEY AUTOINCREMENT, name TEXT NOT NULL, "
+               "status TEXT DEFAULT 'open', code TEXT UNIQUE, qty REAL, price REAL, total REAL AS (qty * price))")
+    later = sql(shape, "INSERT INTO jobs (name, qty, price) VALUES ('a', 2, 3), ('b', 1, 5)",
+                "SELECT id, name, status, total FROM jobs ORDER BY id")
+    expect('a later insert gets its number, default and total',
+           rows(later, 1) == [['1', 'a', 'open', '6'], ['2', 'b', 'open', '5']], rows(later, 1))
+    refused_jobs = shape.values('Jobs')
+    for name, code, statement in [
+            ('a duplicate unique value', 'unique', "INSERT INTO jobs (name, code) VALUES ('c', 'x'), ('d', 'x')"),
+            ('a missing required value', 'required', "INSERT INTO jobs (status) VALUES ('done')"),
+            ('a computed column over text', 'sql_shape', "ALTER TABLE jobs ADD COLUMN label AS (name || 'x')")]:
+        try:
+            expect(name, False, 'not refused: ' + str(sql(shape, statement)))
+        except CLIError as error:
+            expect(name + ' code', error.code == code, error)
+        expect(name + ' changed nothing', shape.values('Jobs') == refused_jobs)
 
     # Saved tools: definitions of kind tool, granted on the Mac that saved them.
     def save(target, name, statements=(), inputs=(), description='A check fixture.', source=None):
