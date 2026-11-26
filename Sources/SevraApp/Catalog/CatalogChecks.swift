@@ -60,6 +60,30 @@ import SevraCore
       try require(
         try b.space("home").title == "Workshop Home", "catalog_check",
         "A stale update replaced the current Home")
+      // A table of only some rows follows the workbook, and a query that writes is refused.
+      let example = try b.space("example")
+      let over = Component(
+        id: "over", type: "table", title: "Quotes over 100",
+        query: "SELECT supplier, cost FROM supplier_comparison WHERE cost > 100")
+      let shown = try b.editSpace(
+        example.id, expectedVersion: example.version,
+        edits: [.init(operation: "insert", at: "last", component: over)])
+      try require(
+        try b.componentData(over).rows.count == 2, "catalog_check",
+        "A query table did not show only its rows")
+      _ = try b.chatSQL(
+        statements: ["UPDATE supplier_comparison SET cost = 101 WHERE cost = 96"], readOnly: false,
+        token: "catalog-query-live", requestSourceID: nil)
+      try require(
+        try b.componentData(over).rows.count == 3, "catalog_check",
+        "A query table did not follow a change to its table")
+      var writes = over
+      writes.query = "DELETE FROM supplier_comparison"
+      try await refuses {
+        _ = try b.editSpace(
+          example.id, expectedVersion: shown.version,
+          edits: [.init(operation: "replace", componentID: "over", component: writes)])
+      }
     }
     if session.story.id == "mini.helper.ActionForm", let app = session.app {
       let host = state.nativeAppSession(app, book: b)

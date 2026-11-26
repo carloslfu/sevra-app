@@ -24,6 +24,20 @@ public struct ComponentSearchSnapshot: Codable, Sendable, Equatable {
 extension Workbook {
   public func componentData(_ component: Component) throws -> ComponentSnapshot {
     if let snapshot = component.snapshot { return snapshot }
+    if Self.showsQuery(component), let query = component.query {
+      do { return try componentQuery(query).snapshot } catch let error as SevraError {
+        // Saved views are checked when saved, so a query that fails now met a change since,
+        // such as a renamed column or a removed table.
+        // The person reads this on the view, so sql's advice to the model is left out.
+        var reason = error.message
+        for advice in [". Use the exact names", ". SELECT * FROM columns"] {
+          if let range = reason.range(of: advice) { reason = String(reason[..<range.lowerBound]) + "." }
+        }
+        throw SevraError(
+          "view_query",
+          "This view's query no longer runs: " + reason + " Ask in chat to fix the view.")
+      }
+    }
     guard let id = component.datasetID else {
       throw SevraError("view", "This component has no table binding.")
     }
@@ -44,7 +58,9 @@ extension Workbook {
     if function == "COUNT" { return String(data.totalRows) }
     try require(
       data.rows.count == data.totalRows, "view_limit",
-      "This metric exceeds 1,000 rows. Create a smaller derived table first; a partial sum would be misleading."
+      component.query != nil
+        ? "This metric's query returns more than 1,000 rows. Add them up in the query instead, such as SELECT sum(amount) AS total; a partial sum would be misleading."
+        : "This metric exceeds 1,000 rows. Show it with a query that adds them up, such as SELECT sum(amount) AS total; a partial sum would be misleading."
     )
     guard let column = component.y else {
       throw SevraError("view", "A metric needs a value column.")
@@ -112,7 +128,7 @@ extension Workbook {
               ? try definitionQueryPopulation(evaluation, cancellation: cancellation) : nil)
           try validateDefinitionComponent(copy, pinned: true)
         }
-        if component.datasetID != nil {
+        if component.datasetID != nil || Self.showsQuery(component) {
           let snapshot = try componentData(component)
           try require(
             snapshot.totalRows == snapshot.rows.count, "view_limit",

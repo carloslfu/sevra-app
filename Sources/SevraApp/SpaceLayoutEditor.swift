@@ -78,7 +78,10 @@ struct SpaceLayoutEditor: View {
                   Text(state.spaces.first { $0.id == id }?.title ?? "Unavailable app")
                     .readingFont(.caption).foregroundStyle(.secondary)
                 }
-                if let id = component.datasetID {
+                if Workbook.showsQuery(component) {
+                  Text("Shows what its query selects. Ask in chat to change the query.")
+                    .readingFont(.caption).foregroundStyle(.secondary)
+                } else if let id = component.datasetID {
                   Text(state.datasets.first { $0.id == id }?.title ?? "Missing table binding")
                     .readingFont(.caption).foregroundStyle(.secondary)
                 }

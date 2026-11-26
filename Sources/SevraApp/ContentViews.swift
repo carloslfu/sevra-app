@@ -404,8 +404,10 @@ struct NativeComponent: View {
       headings: data.columns.map { $0.title + ($0.unit.map { " (" + $0 + ")" } ?? "") },
       rows: data.rows.map { row in data.columns.map { row.values[$0.id] ?? .null } },
       rowIDs: data.rows.map(\.id),
+      // A query's rows are its result, not rows of a table, so they open nothing.
       sources: data.rows.enumerated().map { index, row in
-        [EvidenceTable.source(row.id, title: "Original row \(index + 1)")].compactMap { $0 }
+        Workbook.showsQuery(component)
+          ? [] : [EvidenceTable.source(row.id, title: "Original row \(index + 1)")].compactMap { $0 }
       }, open: state.openConversationLink)
   }
   var body: some View {
@@ -461,7 +463,20 @@ struct NativeComponent: View {
       case "button":
         ToolButtonView(component: component, state: state, owner: owner)
       case "table":
-        if component.snapshot == nil, let id = component.datasetID,
+        if showsQuery {
+          if let data {
+            if data.rows.isEmpty {
+              emptyState
+            } else {
+              snapshotTable(data)
+              if data.rows.count < data.totalRows {
+                Text("Showing \(data.rows.count) of \(data.totalRows) rows.").readingFont(.caption)
+                  .foregroundStyle(.secondary)
+              }
+            }
+            queryTableLink
+          }
+        } else if component.snapshot == nil, let id = component.datasetID,
           let table = state.dataset(id)
         {
           DatasetView(table: table, state: state, compact: true)
@@ -472,7 +487,10 @@ struct NativeComponent: View {
           snapshotTable(data)
         }
       case "chart":
-        if let data {
+        if let data, data.rows.isEmpty {
+          emptyState
+          if showsQuery { queryTableLink }
+        } else if let data {
           let presentation = ChartReadingPresentation(
             data, x: component.x, y: component.y, unitOverride: component.unit)
           let points = presentation.points
@@ -494,7 +512,7 @@ struct NativeComponent: View {
           .accessibilityLabel(component.title)
           .accessibilityValue(presentation.summary)
           .frame(height: sized(150, 220, 340))
-          DisclosureGroup("Exact values and sources") {
+          DisclosureGroup(showsQuery ? "Exact values" : "Exact values and sources") {
             snapshotTable(data)
           }
           if points.count < data.rows.count {
@@ -506,9 +524,8 @@ struct NativeComponent: View {
             Text("Showing \(data.rows.count) of \(data.totalRows) rows.").readingFont(.caption)
               .foregroundStyle(.secondary)
           }
-          if !unitSuffix.isEmpty {
-            Text(unitSuffix).readingFont(.caption).foregroundStyle(.secondary)
-          }
+          // The y axis title already carries the unit.
+          if showsQuery { queryTableLink }
         }
       case "visual":
         if let chart = component.visual?.chart, let book = state.workbook {
@@ -594,10 +611,17 @@ struct NativeComponent: View {
         SearchComponentView(component: component, state: state)
       default: Text("This component is unavailable.").foregroundStyle(.secondary)
       }
-      if let failure { Text(failure).readingFont(.callout).foregroundStyle(.red) }
+      if let failure {
+        if showsQuery {
+          queryFailure(failure)
+        } else {
+          Text(failure).readingFont(.callout).foregroundStyle(.red)
+        }
+      }
     }.frame(maxWidth: .infinity, alignment: .leading)
       .task(id: component.id + String(state.revision)) {
-        guard component.datasetID != nil, component.type != "button", let book = state.workbook
+        guard component.datasetID != nil || showsQuery, component.type != "button",
+          let book = state.workbook
         else { return }
         do {
           let result = try await Task.detached {
@@ -611,12 +635,52 @@ struct NativeComponent: View {
           data = result.0
           metric = result.1
           failure = nil
-        } catch is CancellationError {} catch { failure = error.localizedDescription }
+        } catch is CancellationError {} catch {
+          // A query that no longer runs shows no rows rather than ones it showed before.
+          if showsQuery {
+            data = nil
+            metric = nil
+          }
+          failure = error.localizedDescription
+        }
       }
   }
   /// How large the component draws: small, medium or large, medium when absent.
   private func sized<T>(_ small: T, _ medium: T, _ large: T) -> T {
     component.size == "small" ? small : component.size == "large" ? large : medium
+  }
+  /// A table, chart or metric that shows a query's result rather than a whole table.
+  private var showsQuery: Bool { component.snapshot == nil && Workbook.showsQuery(component) }
+  /// No rows: for a query, none match it now; for a table, it has none yet.
+  private var emptyState: some View {
+    Label(
+      showsQuery ? "No rows match." : "No rows yet.",
+      systemImage: showsQuery ? "line.3.horizontal.decrease.circle" : "tablecells"
+    )
+    .readingFont(.callout).foregroundStyle(.secondary)
+    .frame(maxWidth: .infinity, minHeight: sized(60, 90, 140))
+    .background(.quaternary.opacity(0.3), in: RoundedRectangle(cornerRadius: 8))
+    .accessibilityElement(children: .combine)
+  }
+  /// The table a query's rows come from, when the component names one.
+  @ViewBuilder private var queryTableLink: some View {
+    if let id = component.datasetID, let table = state.dataset(id) {
+      Button("Open " + table.title) { state.navigate(.table(table.id)) }
+        .buttonStyle(.link).readingFont(.caption)
+    }
+  }
+  /// A saved query that stopped running, such as after a column was renamed.
+  private func queryFailure(_ message: String) -> some View {
+    Label {
+      Text(message).readingFont(.callout).textSelection(.enabled)
+        .fixedSize(horizontal: false, vertical: true)
+    } icon: {
+      Image(systemName: "exclamationmark.triangle.fill").foregroundStyle(.orange)
+    }
+    .padding(12)
+    .frame(maxWidth: .infinity, alignment: .leading)
+    .background(.orange.opacity(0.08), in: RoundedRectangle(cornerRadius: 8))
+    .accessibilityElement(children: .combine)
   }
   var unitSuffix: String {
     let unit = component.unit ?? data?.columns.first(where: { $0.id == component.y })?.unit

@@ -411,6 +411,17 @@ private actor SpaceActionModel: WorkbookInference {
   try expectThrows(try homeBook.pressButton(spaceID: "home", componentID: "add"))
   try expectThrows(
     try homeBook.pressButton(spaceID: "home", componentID: "bolt", values: ["name": .string("X")]))
+  // A null argument is an input left for the person, as a model writes one it means to leave
+  // open, and pressing without it says what to fill in.
+  _ = try edit([SpaceEdit(operation: "insert", component: button("ask", "add_item", ["name": .null]))])
+  do {
+    try homeBook.pressButton(spaceID: "home", componentID: "ask")
+    throw SevraError("fixture", "A button ran without a required input.")
+  } catch let error as SevraError where error.code == "tool_inputs" {
+    try expectEqual(error.message, "Fill in name before pressing this button. Nothing ran.")
+  }
+  try homeBook.pressButton(spaceID: "home", componentID: "ask", values: ["name": .string("Pin")])
+  _ = try edit([SpaceEdit(operation: "remove", componentID: "ask")])
   let logTool = try expectValue(try homeBook.savedTools().first { $0.name == "log_item" })
   try homeBook.disableTool(logTool.definitionID)
   do {

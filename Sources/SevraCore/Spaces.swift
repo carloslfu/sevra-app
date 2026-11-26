@@ -99,7 +99,7 @@ public struct SpaceDefinition: Codable, Equatable, Sendable {
     func visit(_ component: Component, depth: Int) throws {
       try require(
         !ids.contains(component.id), "view",
-        "Component id \(component.id) is used twice. Give each component its own id.")
+        "Component id \(component.id) is used twice. Give each component its own id. To change a component of a saved view, use view.edit with {operation: \"replace\", componentID, component}.")
       try require(
         depth <= 3 && ids.count < 16 && ids.insert(component.id).inserted,
         "view", "Use at most 16 uniquely named components and three levels.")
@@ -197,6 +197,7 @@ extension Workbook {
           .union(SpaceDefinition.sectionTypes).contains(c.type), "view",
         "Unknown component type \(c.type). Use one of: "
           + SpaceDefinition.contentTypes.sorted().joined(separator: ", ") + ".")
+      if !unchanged.contains(c) { try SpaceDefinition.refuseUnusedFields(c) }
       if c.type == "image" {
         guard let visual = c.visual, let image = visual.image else {
           throw SevraError("visual_image", "Choose an included image for this component.")
@@ -317,38 +318,64 @@ extension Workbook {
             + SpaceDefinition.sizedTypes.last! + ", and a visual only when it is a chart.")
       }
       if ["table", "chart", "metric"].contains(c.type) {
-        guard let id = c.datasetID else {
-          // With no table to point at, the only way forward is to make the one it shows.
-          let tables = try datasets()
-          let shown = tables.prefix(8).map { "\($0.title) (\($0.id))" }.joined(separator: ", ")
-          throw SevraError(
-            "view",
-            tables.isEmpty
-              ? "Component \(c.id) (\(c.type)) needs datasetID: the id of the table it shows. The workbook has no tables yet. Create the table it shows first with sql, then use its id from SELECT name, id FROM tables."
-              : "Component \(c.id) (\(c.type)) needs datasetID: the id of the table it shows, such as "
-                + shown + ". It can be the same table another component shows."
-                + (c.type == "table"
-                  ? ""
-                  : " A \(c.type) adds up its table itself, so do not create a table of totals for it.")
-                + " If the table it should show does not exist yet, create it first with sql and use its id."
-          )
+        // The columns x and y name: a query's result columns, or its table's.
+        let columns: [Column]
+        let source: String
+        if let query = c.query {
+          source = "its query's result"
+          if definition.pinnedAt != nil || unchanged.contains(c) {
+            columns = c.snapshot?.columns ?? []
+          } else {
+            let result: ComponentQueryResult
+            do { result = try componentQuery(query) } catch let error as SevraError {
+              throw SevraError(
+                error.code,
+                "\(c.id): " + error.message
+                  + " The query uses the same table and column names as sql.")
+            }
+            if let id = c.datasetID {
+              let table = try dataset(id)
+              try require(
+                result.tableIDs.contains(table.id), "view",
+                "\(c.id): its query does not read \(table.title), the table datasetID names. With a query, datasetID is optional: leave it out, or read that table in the query.")
+            }
+            columns = result.snapshot.columns
+          }
+        } else {
+          guard let id = c.datasetID else {
+            // With no table to point at, the only way forward is to make the one it shows.
+            let tables = try datasets()
+            let shown = tables.prefix(8).map { "\($0.title) (\($0.id))" }.joined(separator: ", ")
+            throw SevraError(
+              "view",
+              tables.isEmpty
+                ? "Component \(c.id) (\(c.type)) needs datasetID: the id of the table it shows. The workbook has no tables yet. Create the table it shows first with sql, then use its id from SELECT name, id FROM tables."
+                : "Component \(c.id) (\(c.type)) needs datasetID: the id of the table it shows, such as "
+                  + shown + ". It can be the same table another component shows."
+                  + " To show only some rows or a total of some, give it a query instead: one SELECT."
+                  + (c.type == "table"
+                    ? ""
+                    : " A \(c.type) adds up its table itself, so do not create a table of totals for it.")
+                  + " If the table it should show does not exist yet, create it first with sql and use its id."
+            )
+          }
+          let table = try dataset(id)
+          source = "its table"
+          // A snapshot answers for the columns it saved, whatever the table has become.
+          columns = definition.pinnedAt == nil ? table.columns : c.snapshot?.columns ?? table.columns
         }
-        let table = try dataset(id)
-        // A snapshot answers for the columns it saved, whatever the table has become.
-        let columns =
-          definition.pinnedAt == nil ? table.columns : c.snapshot?.columns ?? table.columns
         // A count is of rows, so it needs no column. Every other number is of one.
         let countsRows = c.type == "metric" && c.aggregation == "COUNT" && c.y == nil
         let columnIDs = columns.map(\.id).joined(separator: ", ")
         if ["chart", "metric"].contains(c.type), !unchanged.contains(c), !countsRows {
           try require(
             columns.contains { $0.id == c.y }, "view",
-            "\(c.id): set y to a column id of its table: \(columnIDs).")
+            "\(c.id): set y to a column of \(source): \(columnIDs).")
         }
         if c.type == "chart", !unchanged.contains(c) {
           try require(
             columns.contains { $0.id == c.x }, "view",
-            "\(c.id): set x to a column id of its table: \(columnIDs).")
+            "\(c.id): set x to a column of \(source): \(columnIDs).")
           try require(
             ["bar", "line"].contains(c.chartStyle ?? "bar"), "view",
             "\(c.id): chartStyle is bar or line.")
@@ -407,7 +434,8 @@ extension Workbook {
         try require(
           snapshot.rows.count <= 1000 && snapshot.totalRows == snapshot.rows.count, "view",
           "A pinned component must contain a complete bounded result.")
-        for row in snapshot.rows { _ = try item(row.id) }
+        // A query's rows are its result, not rows of a table.
+        if c.query == nil { for row in snapshot.rows { _ = try item(row.id) } }
       }
       for child in c.children ?? [] { try validate(child, depth: depth + 1) }
     }

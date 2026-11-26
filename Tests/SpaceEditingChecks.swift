@@ -542,5 +542,116 @@ func checkSpaceEditing(at temp: URL) {
     try raw.execute("DELETE FROM space_versions WHERE id='home' AND version=1")
     try refuses("integrity") { _ = try book.verify() }
   }
+  check("a table, chart and metric show a query's rows, live, and say when none match or it fails")
+  {
+    let book = try fixture()
+    func sql(_ statements: [String]) throws {
+      _ = try book.chatSQL(
+        statements: statements, readOnly: false, token: identifier(), requestSourceID: nil)
+    }
+    try sql([
+      "CREATE TABLE invoices (client TEXT, amount REAL, due TEXT, status TEXT)",
+      "INSERT INTO invoices VALUES ('Harbor', 850, date('now', '-9 days'), 'open'), ('Leaf', 430.5, date('now', '-2 days'), 'open'), ('Lopez', 980, date('now', '+5 days'), 'open'), ('Pine', 200, date('now', '-20 days'), 'paid')",
+    ])
+    let invoices = try book.datasets().first { $0.title == "Invoices" }!
+    let overdue =
+      "SELECT client, amount, due FROM invoices WHERE status = 'open' AND due < date('now') ORDER BY due"
+    let table = Component(
+      id: "overdue", type: "table", title: "Overdue invoices", datasetID: invoices.id,
+      query: overdue)
+    let chart = Component(
+      id: "by_client", type: "chart", title: "Overdue by client", query: overdue, x: "client",
+      y: "amount")
+    let total = Component(
+      id: "total", type: "metric", title: "Overdue total", query: overdue, aggregation: "SUM")
+    var missingY = total
+    missingY.id = "nothing"
+    // A metric over a query reads one of its result columns; the refusal lists them.
+    let refusal = refusalMessage { _ = try book.saveSpace(title: "Bad", definition: .init(components: [missingY])) }
+    try expect(refusal.contains("its query's result: client, amount, due"), refusal)
+    var totalWithY = total
+    totalWithY.y = "amount"
+    let id = try book.saveSpace(
+      title: "Overdue", definition: .init(components: [table, chart, totalWithY]))
+    let data = try book.componentData(table)
+    try expect(data.totalRows == 2 && data.rows.map { $0.values["client"]?.text } == ["Harbor", "Leaf"])
+    // A result column named like a table column keeps its title and type.
+    try expect(data.columns.map(\.title) == ["Client", "Amount", "Due"] && data.columns[1].type == "decimal")
+    try expect(try book.componentMetric(totalWithY, data: book.componentData(totalWithY)) == "1280.5")
+    // Live: a paid invoice leaves the view with no edit to it.
+    try sql(["UPDATE invoices SET status = 'paid' WHERE client = 'Harbor'"])
+    try expect(try book.componentData(table).rows.map { $0.values["client"]?.text } == ["Leaf"])
+    try sql(["UPDATE invoices SET status = 'paid'"])
+    try expect(try book.componentData(chart).rows.isEmpty)
+    try expect(try book.componentMetric(totalWithY, data: book.componentData(totalWithY)) == "0")
+    // A query that stops running says so, and edits around it still save.
+    try sql(["ALTER TABLE invoices RENAME COLUMN amount TO total"])
+    let failure = refusalMessage { _ = try book.componentData(chart) }
+    try expect(failure.hasPrefix("This view's query no longer runs") && failure.contains("amount"), failure)
+    let saved = try book.space(id)
+    _ = try book.editSpace(
+      id, expectedVersion: saved.version,
+      edits: [
+        .init(
+          operation: "insert", at: "first",
+          component: .init(id: "note", type: "text", title: "Note", text: "Ask about late ones."))
+      ])
+    // A pinned copy keeps the result it had, as a table of values.
+    var live = totalWithY
+    live.query = "SELECT client, total AS amount FROM invoices"
+    let pinnedSource = try book.saveSpace(title: "Pinned", definition: .init(components: [live]))
+    let pinned = try book.space(try book.pinSpace(pinnedSource)).definition.components[0]
+    try expect(pinned.snapshot?.rows.count == 4)
+  }
+  check("view fields are refused on types that do not use them, and queries only read") {
+    let book = try fixture()
+    _ = try book.chatSQL(
+      statements: ["CREATE TABLE stock (part TEXT, quantity REAL)"], readOnly: false,
+      token: "stock", requestSourceID: nil)
+    let stock = try book.datasets()[0]
+    func refusal(_ component: Component) -> String {
+      refusalMessage { _ = try book.saveSpace(title: identifier(), definition: .init(components: [component])) }
+    }
+    let text = refusal(.init(id: "note", type: "text", title: "Note", query: "SELECT 1", text: "x"))
+    try expect(text.contains("note is a text, which does not use query") && text.contains("table, chart or metric with query"), text)
+    let table = refusal(.init(id: "t", type: "table", title: "T", datasetID: stock.id, x: "part", y: "quantity"))
+    try expect(table.contains("does not use x, y") && table.contains("x belongs to a chart"), table)
+    let write = refusal(.init(id: "t", type: "table", title: "T", query: "DELETE FROM stock"))
+    try expect(write.contains("only reads"), write)
+    let sneaky = refusal(.init(id: "t", type: "table", title: "T", query: "WITH x AS (SELECT 1) DELETE FROM stock"))
+    try expect(sneaky.contains("only reads"), sneaky)
+    let two = refusal(.init(id: "t", type: "table", title: "T", query: "SELECT 1; SELECT 2"))
+    try expect(two.contains("one SELECT"), two)
+    let unknown = refusal(.init(id: "t", type: "table", title: "T", query: "SELECT nope FROM stock"))
+    try expect(unknown.hasPrefix("t: ") && unknown.contains("nope"), unknown)
+    _ = try book.chatSQL(
+      statements: ["CREATE TABLE orders (part TEXT)"], readOnly: false, token: "orders",
+      requestSourceID: nil)
+    let orders = try book.datasets().first { $0.title == "Orders" }!
+    let other = refusal(
+      .init(id: "t", type: "table", title: "T", datasetID: orders.id, query: "SELECT part FROM stock"))
+    try expect(other.contains("does not read Orders"), other)
+  }
+  check("inserting a component id the view has says to replace it") {
+    let book = try fixture()
+    let note = Component(id: "note", type: "text", title: "Note", text: "First")
+    let id = try book.saveSpace(title: "Notes", definition: .init(components: [note]))
+    var changed = note
+    changed.text = "Second"
+    let refused = refusalMessage {
+      _ = try book.editSpace(
+        id, expectedVersion: 1, edits: [.init(operation: "insert", at: "last", component: changed)])
+    }
+    try expect(refused.contains("operation: \"replace\", componentID: \"note\""), refused)
+    let replaced = try book.editSpace(
+      id, expectedVersion: 1,
+      edits: [.init(operation: "replace", componentID: "note", component: changed)])
+    try expect(replaced.definition.components == [changed])
+  }
+}
 
+/// What a refused call said, or "saved" when nothing refused it.
+private func refusalMessage(_ body: () throws -> Void) -> String {
+  do { try body() } catch { return (error as? SevraError)?.message ?? "\(error)" }
+  return "saved"
 }

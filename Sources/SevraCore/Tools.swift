@@ -17,6 +17,7 @@ public struct WorkbookTools {
       A view is a saved page of up to 16 components. save with view: {title, definition: {version: 1, components}}. Every component has a short id of its own, a type and a visible title, and the fields its type uses. Saving a view does not open it.
       A component's fields are written in this order, each only when its type uses it: \(SpaceDefinition.componentFieldOrder.joined(separator: ", ")). A field you have passed cannot be written later.
       table: datasetID, a table's id from SELECT name, id FROM tables.
+      query: to show only some rows or a number over some, such as overdue invoices, expenses over 500, this month's total or the last 7 days, give a table, chart or metric query: one SELECT over the tables, with the names, functions and local dates of sql, such as SELECT client, amount, due FROM invoices WHERE status = 'open' AND due < date('now'). The view runs it again whenever the workbook changes. With query, datasetID is optional, and x and y name the query's result columns. Never filter by hand or save the rows as a new table.
       chart: datasetID, chartStyle, x and y, in that order. chartStyle is bar or line, and bar when left out. x and y are column ids of that table from SELECT table_name, name, id FROM columns: x the categories, y a number. The chart adds up y for each x itself.
       metric: one number from a table, such as a count or a total: datasetID, aggregation, unit and y, in that order. aggregation is SUM, AVERAGE, MIN, MAX or COUNT, and SUM when left out. unit only when the request or the evidence states one. y is the column it reads; COUNT counts the rows and needs no y.
       button: runs a saved tool when pressed: definitionBinding, arguments and size, in that order. definitionBinding is {tool: the tool's name}. arguments holds the values of inputs the button always uses; leave out each input the person picks when pressing, such as which invoice or which customer, and the button shows a field for it. One button serves the whole view, not one per row. A button runs only a saved tool, so when no saved tool does what it should do, save one first with save {tool}, then bind the button to it: the tool's statements are what a press does, such as an INSERT, an UPDATE or a DELETE. A button shows only what its last press returned: to keep what its tool records in view, such as a count or a total, add a metric or a table of that table.
@@ -27,7 +28,11 @@ public struct WorkbookTools {
       comparison: children, two or three components side by side. To add a column to a saved comparison, insert with beforeID set to one of its children.
       form, calculation, query: read kind=definition with ref set to the saved definition's ID, copy the nativeComponent it returns and fill its arguments. Keep its definitionBinding. A result lists fields by name, so write them in the component order above, not as the result lists them.
       Example: {title: "Purchasing", definition: {version: 1, components: [{id: "table1", type: "table", title: "Quotes", datasetID: the table's id}, {id: "chart1", type: "chart", title: "Total by supplier", datasetID: the table's id, x: "supplier", y: "total"}]}}.
-      To change a saved view, read kind=view with ref set to its id for its components and version (read kind=views lists every view), then run action view.edit with {id, expectedVersion, edits}. Home is the saved view with id home. To add a component: edits [{operation: "insert", at: "first" or "last", component}].
+      To change a saved view, read kind=view with ref set to its id for its components and version (read kind=views lists every view), then run action view.edit with {id, expectedVersion, edits}. Home is the saved view with id home. A request to change this view, the one open (Active space ID in the request), or a named one, is view.edit on that view, such as "make it a bar chart" or "make this look nicer"; save a new view only when the user asks for one. The edits:
+      add: {operation: "insert", at: "first" or "last", component}, or beforeID: an id in place of at.
+      change a component: {operation: "replace", componentID, component}, the whole new component with the same id. Never insert a component again to change it.
+      take one out: {operation: "remove", componentID}. Move: {operation: "move", componentID, at or beforeID}. Relabel one: {operation: "title", componentID, title}. Change a text component's text: {operation: "text", componentID, text}. Rename the view: {operation: "rename", title}.
+      Name tables by their title, such as Invoices, in component titles and the answer, never by their sql names.
       A screen with its own logic, beyond tables, charts and buttons, is an app: read kind=app_guide.
       """,
   ]
@@ -580,7 +585,7 @@ public struct WorkbookTools {
           "space_duplicate",
           "A space titled \(title) already exists. Do not save it again. "
             + (existing.definition.app == nil
-              ? "To add to it, use edit_space with {id: \"\(existing.id)\", expectedVersion: \(existing.version), edits: [{operation: \"insert\", at: \"last\", component}]}, or continue with the remaining work."
+              ? "To change it, run the action view.edit with {id: \"\(existing.id)\", expectedVersion: \(existing.version), edits}: {operation: \"replace\", componentID, component} changes a component, {operation: \"insert\", at: \"last\", component} adds one. Or continue with the remaining work."
               : "This is a programmable app. Use read_native_app with its exact name, then save_native_app with its ID and current version to change it.")
         )
       }

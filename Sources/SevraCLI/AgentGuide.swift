@@ -130,8 +130,11 @@ enum AgentGuide {
       that reads `inputs.name`. A tool keeps nothing itself; what it records goes in a
       table. Saving a tool does not run it.
     - **view**: `datasetID` is a table's `id` and chart `x` and `y` are column `id`s
-      from the catalog. To change a saved view, read it for its components and version
-      and use the `view.edit` action instead of saving it again. A button runs a saved
+      from the catalog. A table, chart or metric of only some rows takes `query`, one
+      read-only SELECT in the `sql` dialect, run again whenever the workbook changes;
+      `x` and `y` then name its result columns. To change a saved view, read it for its
+      components and version and use the `view.edit` action instead of saving it again:
+      `{"operation":"replace","componentID":ID,"component":{...}}` changes a component. A button runs a saved
       tool, so save the tool first when none fits. Home is the view with id `home`.
       Read `{"kind":"view_guide"}` for components beyond a table and a chart.
     - **app**: read `{"kind":"app_guide"}` first. An app is saved disabled, and only

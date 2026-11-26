@@ -143,7 +143,10 @@ enum CatalogRegistry {
         "Sources/SevraApp/ContentViews.swift",
         type == "app"
           ? ["Default", "Disabled", "Missing", "Changed version", "Missing view"]
-          : type == "form" ? common + ["Runs a tool"] : common,
+          : type == "form"
+            ? common + ["Runs a tool"]
+            : Workbook.queryComponentTypes.contains(type)
+              ? common + ["Query", "Query, no rows", "Query failed"] : common,
         "Ordinary-space component, using the same renderer as Home.", ["space." + type])
     }
     for (id, title) in [

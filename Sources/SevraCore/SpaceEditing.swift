@@ -25,6 +25,50 @@ extension SpaceDefinition {
     "chartStyle", "children", "itemID", "presentationID", "query", "spaceID", "text", "unit",
     "viewID", "viewVersion", "visual", "x", "y", "size",
   ]
+  /// The component types each of these fields belongs to. A field on another type was once
+  /// kept and ignored, so a table titled "Overdue invoices" with a query showed every row.
+  static let fieldTypes: [(field: String, types: [String])] = [
+    ("datasetID", ["table", "chart", "metric"]),
+    ("query", ["table", "chart", "metric", "search"]),
+    ("aggregation", ["metric"]), ("chartStyle", ["chart"]), ("itemID", ["document", "asset"]),
+    ("text", ["text"]), ("unit", ["chart", "metric"]), ("x", ["chart"]), ("y", ["chart", "metric"]),
+  ]
+  /// Refuses a field the component's type does not use, saying what does use it. The types
+  /// with fields of their own, such as apps, buttons, forms and visuals, check theirs.
+  static func refuseUnusedFields(_ c: Component) throws {
+    func present(_ field: String) -> Bool {
+      switch field {
+      case "datasetID": return c.datasetID != nil
+      case "query": return c.query != nil
+      case "aggregation": return c.aggregation != nil
+      case "chartStyle": return c.chartStyle != nil
+      case "itemID": return c.itemID != nil
+      case "text": return c.text != nil
+      case "unit": return c.unit != nil
+      case "x": return c.x != nil
+      default: return c.y != nil
+      }
+    }
+    // An image binds its own source, and its check says so.
+    let stray = fieldTypes.filter { present($0.field) && !$0.types.contains(c.type) }
+      .filter { !(c.type == "image" && $0.field == "itemID") }
+    guard !stray.isEmpty else { return }
+    func list(_ types: [String]) -> String {
+      types.count == 1
+        ? "a " + types[0] : "a " + types.dropLast().joined(separator: ", ") + " or " + types.last!
+    }
+    throw SevraError(
+      "view",
+      "\(c.id) is a \(c.type), which does not use "
+        + stray.map(\.field).joined(separator: ", ") + ". "
+        + stray.map { $0.field + " belongs to " + list($0.types) }.joined(separator: "; ")
+        + ". Leave "
+        + (stray.count == 1 ? "it" : "them") + " out, or choose the type that uses "
+        + (stray.count == 1 ? "it" : "them") + "."
+        + (stray.contains { $0.field == "query" }
+          ? " To show only some rows, use a table, chart or metric with query: one SELECT."
+          : ""))
+  }
   public static let sectionTypes: Set<String> = [
     "input", "reviews", "shortcuts", "tables", "intake", "recent", "attention", "continue",
   ]
@@ -220,6 +264,13 @@ extension Workbook {
           guard let component = edit.component else {
             throw SevraError("view", "An insertion needs a component.")
           }
+          // A model changing a component often inserts it again under the same id.
+          func ids(_ components: [Component]) -> [String] {
+            components.flatMap { [$0.id] + ids($0.children ?? []) }
+          }
+          try require(
+            !ids(definition.components).contains(component.id), "view",
+            "This view already has a component with id \(component.id). To change that component, replace it: {operation: \"replace\", componentID: \"\(component.id)\", component}, with the whole new component and the same id. To add another one, give it a new id.")
           if let before = edit.beforeID, edit.at == nil,
             !definition.components.contains(where: { $0.id == before })
           {

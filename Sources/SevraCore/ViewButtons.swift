@@ -22,7 +22,8 @@ public struct ViewButton: Sendable, Equatable {
     }
     switch component.arguments {
     case nil, .null?: fixed = [:]
-    case .object(let values)?: fixed = values
+    // A null is an input left for the person to fill in when pressing, as if left out.
+    case .object(let values)?: fixed = values.filter { $0.value != .null }
     default:
       throw SevraError(
         "view", "A button's arguments are an object: a value for each tool input it sets itself.")
@@ -76,6 +77,16 @@ extension Workbook {
     try require(
       overlap.isEmpty, "tool_inputs",
       "The button sets " + overlap.joined(separator: " and ") + " itself.")
+    // An input the button leaves open is the person's to fill in before pressing.
+    let tool = try synchronized { try savedTools().first { $0.name == button.tool } }
+    if let tool {
+      let missing = button.open(tool).filter { input in
+        input.required && (values[input.name].map { $0 == .null || $0.text.isEmpty } ?? true)
+      }.map(\.name)
+      try require(
+        missing.isEmpty, "tool_inputs",
+        "Fill in " + missing.joined(separator: " and ") + " before pressing this button. Nothing ran.")
+    }
     return try ChangeAttribution.$actor.withValue(actor ?? ChangeAttribution.actor) {
       try WorkbookTools(self, cancellation: cancellation, conversation: "").runSavedTool(
         button.tool, values: button.fixed.merging(values) { fixed, _ in fixed },
@@ -148,7 +159,11 @@ extension Workbook {
     let buttons = components.filter { $0.type == "button" }.compactMap { try? ViewButton($0) }
     guard !buttons.isEmpty else { return nil }
     let shown = Set(
-      components.filter { ["table", "chart", "metric"].contains($0.type) }.compactMap(\.datasetID))
+      components.filter { ["table", "chart", "metric"].contains($0.type) }.flatMap { component in
+        // A query shows the tables it reads.
+        [component.datasetID].compactMap { $0 }
+          + (component.query.flatMap { try? componentQuery($0).tableIDs } ?? [])
+      })
     let tools = try savedTools()
     let tables = SQLScratch.named(try datasets())
     var missing: [(tool: String, dataset: Dataset, onlyInserts: Bool)] = []

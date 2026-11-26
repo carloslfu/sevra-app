@@ -237,7 +237,8 @@ import SwiftUI
       try require(
         host.status == expected, "catalog_worker", story.id + ": " + (host.error ?? host.status))
     }
-    if variant == "Failure" { return }
+    // A failed query renamed a column the fixture's sample visual was made against.
+    if variant == "Failure" || variant == "Query failed" { return }
     if let chart = visual?.chart { _ = try book!.chartData(chart) }
     if let work = visual?.work { _ = try book!.workVisualData(work) }
     if let diagram = visual?.diagram { _ = try book!.diagramData(diagram) }
@@ -619,6 +620,12 @@ import SwiftUI
         expectedVersion: 1)
     }
     try await seedBoundaries(b, ws)
+    // Last, so the other fixtures were made against the table as it was.
+    if id.hasPrefix("home.component."), variant == "Query failed" {
+      _ = try b.chatSQL(
+        statements: ["ALTER TABLE supplier_comparison RENAME COLUMN cost TO quoted_cost"],
+        readOnly: false, token: "catalog-rename-cost", requestSourceID: nil)
+    }
   }
   func expectedTable(_ b: Workbook, _ title: String) throws -> String {
     guard let id = try b.datasets().first(where: { $0.title == title })?.id else {
@@ -628,11 +635,29 @@ import SwiftUI
   }
   func spaceComponent(_ type: String) throws -> Component {
     let t = table!
+    // A `where` clause guards only the last pattern of a case, so the query variants are
+    // chosen before the switch.
+    let queried = Workbook.queryComponentTypes.contains(type) && variant.hasPrefix("Query")
     switch type {
+    case _ where queried:
+      // Only some rows, as chat saves them: the costs over 50, by the sql names of the table
+      // and its columns. "Query failed" renames a column the query reads after it is saved.
+      let threshold = variant == "Query, no rows" ? 100_000 : 50
+      let query =
+        type == "metric"
+        ? "SELECT cost FROM supplier_comparison WHERE cost > \(threshold)"
+        : "SELECT supplier, cost FROM supplier_comparison WHERE cost > \(threshold) ORDER BY cost DESC"
+      return .init(
+        type: type,
+        title: type == "metric" ? "Total of quotes over 50 USD" : "Quotes over 50 USD",
+        datasetID: type == "table" ? t.id : nil, query: query,
+        x: type == "chart" ? "supplier" : nil, y: type == "table" ? nil : "cost",
+        chartStyle: type == "chart" ? "bar" : nil, aggregation: type == "metric" ? "SUM" : nil)
     case "table", "chart", "metric":
       return .init(
-        type: type, title: story.title, datasetID: t.id, x: "name", y: "amount", chartStyle: "bar",
-        aggregation: "SUM", unit: "USD")
+        type: type, title: story.title, datasetID: t.id, x: type == "chart" ? "name" : nil,
+        y: type == "table" ? nil : "amount", chartStyle: type == "chart" ? "bar" : nil,
+        aggregation: type == "metric" ? "SUM" : nil, unit: type == "table" ? nil : "USD")
     case "document", "asset":
       return .init(
         type: type, title: story.title, itemID: fileItems[type == "asset" ? "image" : "text"])

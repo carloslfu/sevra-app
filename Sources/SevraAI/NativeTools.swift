@@ -124,7 +124,7 @@ package enum NativeTools {
       "title": schema("string", "Visible title."),
       "datasetID": schema(
         "string",
-        "REQUIRED on each table and each chart. Use the datasetID from datasets, even when another component uses the same table."
+        "The table a table, chart or metric shows, even when another component shows it. Optional with query."
       ),
       "spaceID": schema(
         "string", "App component: exact programmable space ID; same live data and actions."),
@@ -141,11 +141,12 @@ package enum NativeTools {
       "chartStyle": schema("string", "bar or line; default bar."),
       "aggregation": schema(
         "string",
-        "Metric aggregation: SUM, AVERAGE, MIN, MAX or COUNT. Metrics require datasetID and y."),
+        "Metric aggregation: SUM, AVERAGE, MIN, MAX or COUNT. A metric reads y of its table or query."),
       "unit": schema("string", "Optional unit ONLY when explicitly specified in evidence."),
-      "x": schema("string", "REQUIRED for chart. Existing dataset column ID for categories."),
-      "y": schema("string", "REQUIRED for chart. Existing numeric or calculated column ID."),
-      "query": schema("string", "Search component query. Not used by charts."),
+      "x": schema("string", "REQUIRED for chart. The category column: of its table, or of its query's result."),
+      "y": schema("string", "REQUIRED for chart. The number column: of its table, or of its query's result."),
+      "query": schema(
+        "string", "A search's words, or one read-only SELECT whose result a table, chart or metric shows."),
       "text": schema("string", "Text component content."),
       "size": .object([
         "type": .string("string"),
