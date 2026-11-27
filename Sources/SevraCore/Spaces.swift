@@ -434,11 +434,6 @@ extension Workbook {
           try require(
             ["bar", "line"].contains(c.chartStyle ?? "bar"), "view",
             "\(c.id): chartStyle is bar or line.")
-          // A chart named for a line that draws bars is the model leaving chartStyle out.
-          let named = c.title.lowercased().range(of: #"\bline\b"#, options: .regularExpression)
-          try require(
-            named == nil || c.chartStyle == "line", "view",
-            "\(c.id): its title says line, but without chartStyle line it draws bars. Set chartStyle to line.")
         }
         if c.type == "metric" {
           try require(

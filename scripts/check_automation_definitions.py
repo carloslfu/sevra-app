@@ -85,7 +85,7 @@ def main():
                                              'entries': [{'attachment': second['id']}]},
                                'schedule': {'policy': 'native-calendar-v1', 'timeZone': 'America/Bogota',
                                             'hour': 9, 'minute': 0,
-                                            'recurrence': {'kind': 'weekly', 'weekdays': [1, 2, 3, 4, 5]}}}}
+                                            'recurrence': {'kind': 'weekly', 'weekdays': ['monday', 'tuesday', 'wednesday', 'thursday', 'friday']}}}}
         logical = str(uuid.uuid4())
         saved = call('definition-save', book, logical, j(content), 'new', 'automation')
         assert call('definition-save', book, logical, j(content), 'new', 'automation') == saved

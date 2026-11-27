@@ -385,7 +385,9 @@ extension Workbook {
     let target = ids.first.flatMap { id in flatten(space.definition.components).first { $0.id == id } }
     let example: String
     switch target?.type {
-    case "chart": example = "chartStyle"
+    // A chart has two styles, so the example is the other one, written out.
+    case "chart":
+      example = "chartStyle: \"" + (target?.chartStyle == "line" ? "bar" : "line") + "\""
     case "metric": example = "aggregation"
     case "button": example = "definitionBinding"
     case "table": example = "query"

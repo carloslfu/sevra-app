@@ -96,6 +96,14 @@ public struct WorkbookTools {
               // A component with a query reads its own tables, so a datasetID naming no table
               // is left out. Refused, a model made a copy table for that name.
               fields[key] = nil
+            } catch let error as SevraError
+              where error.message.hasPrefix("No table") && fields["type"] != nil
+            {
+              // Without a query the model made a copy table, which stops following its rows.
+              throw SevraError(
+                error.code,
+                error.message
+                  + " For a summary or total of a table, give the component a query, such as SELECT ... GROUP BY ..., rather than making a new table: a query follows the rows as they change.")
             }
           } else {
             fields[key] = try walk(field)

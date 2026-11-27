@@ -29,6 +29,38 @@ extension Workbook {
       .joined()
   }
 
+  /// How a row names itself in a check's alert: its first column, as the guide asks.
+  static func checkRowName(_ row: Value) -> String {
+    let first = row.array.first ?? .null
+    return first.string ?? ((try? first.json()) ?? "")
+  }
+
+  /// The rows a check finds now, for a check about to be saved with an automation.
+  func checkRows(_ tool: ApplicationDefinition, cancellation: Cancellation = .init()) throws -> Value {
+    let statements = try DefinitionTool(DefinitionDescriptor(tool.content)).statements
+    return try synchronized(cancellation: cancellation) { () throws -> Value in
+      let session = try ChatSQLSession(self, readOnly: true, cancellation: cancellation)
+      defer { session.close() }
+      session.scratch.shownRows = Self.checkWatchedRows
+      session.scratch.shownBytes = 16_000_000
+      return try session.run(statements).last ?? .null
+    }
+  }
+
+  /// A refusal when rows a check finds share a first column, so they would alert as one.
+  func checkRepeats(_ tool: ApplicationDefinition) throws -> String? {
+    let found = try checkRows(tool)
+    var seen = Set<String>()
+    guard
+      let repeated = found["rows"].array.map(Self.checkRowName).first(where: {
+        !seen.insert($0).inserted
+      })
+    else { return nil }
+    let column = found["columns"].array.first.map(\.text)
+    return "The check's first column" + (column.map { " " + $0 } ?? "") + " repeats \"" + repeated
+      + "\" in the rows it finds now. Each row alerts once by its first column, so put a column that names one row first, such as its id or name. Nothing was saved."
+  }
+
   /// Where a check automation's edge stands: whether its check last found rows, how many, and
   /// the Source of that change. Nil before its first change.
   public func automationCheckState(_ activationID: String) throws -> Value {
@@ -38,7 +70,10 @@ extension Workbook {
           "SELECT * FROM automation_checks WHERE activation_id=?", [.string(activationID)]
         ).first
       else { return .null }
-      return .object(row)
+      var state = row
+      state["newRowNames"] =
+        (try? item(row["source_id"]?.text ?? "").data["newRowNames"]) ?? .array([])
+      return .object(state)
     }
   }
 
@@ -88,14 +123,7 @@ extension Workbook {
       }
     }
     let tool = try applicationDefinition(snapshot["checkID"].text)
-    let statements = try DefinitionTool(DefinitionDescriptor(tool.content)).statements
-    let result = try synchronized(cancellation: cancellation) { () throws -> Value in
-      let session = try ChatSQLSession(self, readOnly: true, cancellation: cancellation)
-      defer { session.close() }
-      session.scratch.shownRows = Self.checkWatchedRows
-      session.scratch.shownBytes = 16_000_000
-      return try session.run(statements).last ?? .null
-    }
+    let result = try checkRows(tool, cancellation: cancellation)
     let rows = result["rowCount"].int ?? 0
     let finding = rows > 0
     let keys = Set(result["rows"].array.map(Self.checkRowKey))
@@ -106,7 +134,15 @@ extension Workbook {
     // the stored one, so the page does not keep showing what the old check found.
     let changedCheck = snapshot["changedCheck"] == .bool(true)
     let known = changedCheck ? [] : storedKeys
-    let newRows = keys.subtracting(known).count
+    let fresh = keys.subtracting(known)
+    let newRows = fresh.count
+    // The new rows by name, for the check's record and the automation page.
+    var named = Set<String>()
+    let newNames = result["rows"].array.filter {
+      fresh.contains(Self.checkRowKey($0)) && named.insert(Self.checkRowKey($0)).inserted
+    }.prefix(10).map(Self.checkRowName)
+    let listed = newNames.isEmpty ? "" : ": " + newNames.joined(separator: ", ")
+      + (newRows > newNames.count ? " and \(newRows - newNames.count) more" : "")
     guard keys != known || (changedCheck && keys != storedKeys)
     else {
       return .object([
@@ -159,7 +195,7 @@ extension Workbook {
         text: fires
           ? "The saved check \(snapshot["name"].text) found \(newRows) new "
             + (newRows == 1 ? "row" : "rows") + (changedCheck ? " after it was changed" : "")
-            + ", so the automation queued one request."
+            + listed + ". The automation queued one request."
           : finding
             ? "The saved check \(snapshot["name"].text) finds \(rows) "
               + (rows == 1 ? "row" : "rows") + ", none of them new."
@@ -172,6 +208,7 @@ extension Workbook {
           "authorizationSourceID": .string(authority.sourceID),
           "checkID": snapshot["checkID"], "rows": .number(Double(rows)),
           "finding": .bool(finding), "newRows": .number(Double(newRows)),
+          "newRowNames": .array(newNames.map(Value.string)),
           "rowKeys": .array(keys.sorted().map(Value.string)), "previousCheckSourceID": previous["source_id"],
           "changedCheck": .bool(changedCheck),
           "observedAt": .string(instant), "occurrences": .array(entries),
@@ -207,7 +244,7 @@ extension Workbook {
       return .object([
         "status": .string(fires ? "fired" : finding ? "finding" : "cleared"),
         "rows": .number(Double(rows)), "newRows": .number(Double(newRows)),
-        "changed": .bool(true), "check": snapshot["name"], "sourceID": .string(source),
+        "newRowNames": .array(newNames.map(Value.string)), "changed": .bool(true), "check": snapshot["name"], "sourceID": .string(source),
         "occurrenceID": fires ? .string(occurrenceID) : .null,
         "execution": .string("preparation-only"),
       ])

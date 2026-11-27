@@ -925,7 +925,7 @@ public enum WorkbookAgent {
           {
             if inspected.isEmpty { nextToolScope = .inspection }
             problems.append(
-              "The answer includes numbers not supplied in the current request or a completed calculation. Do not label remembered or invented values as current_request. For historical or workbook facts, inspect the original and use basis=evidence with its citations. For arithmetic from this request, use sql and its actual result."
+              "The answer includes numbers not supplied in the current request or a completed calculation. Do not label remembered or invented values as current_request. For historical or workbook facts, inspect the original and use basis=evidence with its citations. For arithmetic from this request, use sql and its actual result. A value saved without the request giving it is set empty, never fixed by deleting the row the user gave."
             )
           }
           if ![

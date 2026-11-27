@@ -193,7 +193,7 @@ func checkAutomationPlanning(at root: URL) {
       .object([
         "policy": .string("native-calendar-v1"), "timeZone": .string("America/Bogota"),
         "hour": .number(9), "minute": .number(0),
-        "recurrence": .object(["kind": .string("weekly"), "weekdays": .array([.number(1)])]),
+        "recurrence": .object(["kind": .string("weekly"), "weekdays": .array([.string("monday")])]),
       ]))
     let saved = try rule.preview(after: automationDate("2026-10-01T00:00:00Z"), count: 1)[
       "occurrences"

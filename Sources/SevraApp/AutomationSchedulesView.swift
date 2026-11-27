@@ -551,8 +551,10 @@ enum AutomationTrigger {
     let when = ISO8601DateFormatter().date(from: state["updated"].text).map {
       " on " + $0.formatted(date: .abbreviated, time: .shortened)
     } ?? ""
+    let names = state["newRowNames"].array.map(\.text)
+    let new = names.isEmpty ? "" : " New: " + names.joined(separator: ", ") + "."
     return state["finding"].int == 1
-      ? "Last change: it found \(rows == 1 ? "1 row" : "\(rows) rows")\(when). New rows start it again."
+      ? "Last change: it found \(rows == 1 ? "1 row" : "\(rows) rows")\(when).\(new) New rows start it again."
       : "Last change: it found no rows\(when). It starts when the check finds rows."
   }
 }

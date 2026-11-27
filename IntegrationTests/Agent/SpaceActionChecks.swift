@@ -143,7 +143,7 @@ private actor SpaceActionModel: WorkbookInference {
           "schedule": .object([
             "policy": .string("native-calendar-v1"), "timeZone": .string("America/Bogota"),
             "hour": .number(9), "minute": .number(0),
-            "recurrence": .object(["kind": .string("weekly"), "weekdays": .array([.number(1)])]),
+            "recurrence": .object(["kind": .string("weekly"), "weekdays": .array([.string("monday")])]),
           ]),
         ]),
       ]))

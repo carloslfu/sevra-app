@@ -50,7 +50,15 @@ package enum NativeTools {
   static func withoutDescriptions(_ value: Value) -> Value {
     switch value {
     case .object(let fields):
-      return .object(fields.filter { $0.key != "description" }.mapValues(withoutDescriptions))
+      // Under properties the keys are field names, so a field named description stays.
+      return .object(
+        Dictionary(
+          uniqueKeysWithValues: fields.compactMap { key, child in
+            key == "description"
+              ? nil
+              : (key, key == "properties"
+                ? .object(child.object.mapValues(withoutDescriptions)) : withoutDescriptions(child))
+          }))
     case .array(let values): return .array(values.map(withoutDescriptions))
     default: return value
     }

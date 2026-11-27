@@ -89,9 +89,9 @@ def main():
             skipped = call(rule('Pacific/Apia'), '2011-12-29T00:00:00Z', 3)
             assert [o['localDate'] for o in skipped['occurrences']] == [
                 '2011-12-29', '2011-12-31', '2012-01-01']
-            weekly = call(rule(recurrence={'kind': 'weekly', 'weekdays': [7, 1]}),
+            weekly = call(rule(recurrence={'kind': 'weekly', 'weekdays': ['sunday', 'monday']}),
                           '2026-12-31T00:00:00Z', 3)
-            assert weekly['schedule']['recurrence']['weekdays'] == [1, 7]
+            assert weekly['schedule']['recurrence']['weekdays'] == ['monday', 'sunday']
             assert [o['localDate'] for o in weekly['occurrences']] == [
                 '2027-01-03', '2027-01-04', '2027-01-10']
             monthly = call(rule(recurrence={'kind': 'monthly', 'day': 31}),
@@ -117,7 +117,7 @@ def main():
             call(rule(), '2026-02-30T09:00:00Z', error='date')
             call(rule(hour=24), error='schedule')
             call(rule('PST'), error='schedule_zone')
-            call(rule(recurrence={'kind': 'weekly', 'weekdays': [1, 1]}), error='schedule')
+            call(rule(recurrence={'kind': 'weekly', 'weekdays': ['monday', 'monday']}), error='schedule')
             call(rule(recurrence={'kind': 'weekly', 'weekdays': [1.5]}), error='schedule')
             call(rule(recurrence={'kind': 'yearly', 'month': 2, 'day': 30}), error='schedule')
             call({**rule(), 'enabled': True}, error='schedule')

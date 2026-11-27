@@ -74,6 +74,20 @@ func checkDefinitionTools(at root: URL) {
     try refuses("stale_definition") {
       _ = try tools.execute("save_definition", .object(conflicting))
     }
+    // An edit base that names nothing saves a new definition, unless one of that kind already
+    // has the title, which the refusal names.
+    let invented = identifier()
+    var fresh = saved.content.object
+    fresh["title"] = .string("Customer note")
+    let made = try tools.execute(
+      "save_definition",
+      .object(["expectedDefinitionID": .string(invented), "content": .object(fresh)]))
+    try expect(made["version"] == .number(1) && made["id"].text != invented)
+    try refuses("definition_not_found") {
+      _ = try tools.execute(
+        "save_definition",
+        .object(["expectedDefinitionID": .string(identifier()), "content": .object(content)]))
+    }
     _ = try book.verify()
   }
   check(

@@ -24,15 +24,26 @@ func checkCalendarSchedules() {
   func dates(_ value: Value) -> [String] { value["occurrences"].array.map { $0["localDate"].text } }
   func instants(_ value: Value) -> [String] { value["occurrences"].array.map { $0["due"].text } }
 
-  check("calendar schedules validate exact fields and canonical distinct ISO weekdays") {
+  check("calendar schedules validate exact fields and canonical distinct named weekdays") {
     let weekly: Value = .object([
-      "kind": .string("weekly"), "weekdays": .array([.number(7), .number(1), .number(3)]),
+      "kind": .string("weekly"),
+      "weekdays": .array([.string("sunday"), .string("monday"), .string("wednesday")]),
     ])
     let valid = definition(zone: "America/Bogota", recurrence: weekly)
     let normalized = try NativeCalendarSchedule(valid).definition
-    try expect(
-      normalized["recurrence"]["weekdays"] == .array([.number(1), .number(3), .number(7)]))
+    let canonical: Value = .array([.string("monday"), .string("wednesday"), .string("sunday")])
+    try expect(normalized["recurrence"]["weekdays"] == canonical)
     try expect(try NativeCalendarSchedule(normalized).definition == normalized)
+    // A schedule saved earlier with ISO numbers reads as the same days, and a new one written
+    // with numbers is what saving refuses.
+    var numbered = valid.object
+    numbered["recurrence"] = .object([
+      "kind": .string("weekly"), "weekdays": .array([.number(7), .number(1), .number(3)]),
+    ])
+    try expect(
+      try NativeCalendarSchedule(.object(numbered)).definition["recurrence"]["weekdays"] == canonical)
+    try expect(NativeCalendarSchedule.numbersWeekdays(.object(numbered)))
+    try expect(!NativeCalendarSchedule.numbersWeekdays(valid))
     for (key, value) in [
       ("hour", Value.number(1.5)), ("hour", .number(24)), ("minute", .number(-1)),
       ("minute", .string("0")), ("policy", .string("rfc5545")), ("surprise", .bool(true)),
@@ -53,6 +64,7 @@ func checkCalendarSchedules() {
       .object(["kind": .string("weekly"), "weekdays": .array([])]),
       .object(["kind": .string("weekly"), "weekdays": .array([.number(1), .number(1)])]),
       .object(["kind": .string("weekly"), "weekdays": .array([.number(0)])]),
+      .object(["kind": .string("weekly"), "weekdays": .array([.string("funday")])]),
       .object(["kind": .string("monthly"), "day": .string("31")]),
       .object(["kind": .string("monthly"), "day": .number(32)]),
       .object(["kind": .string("yearly"), "month": .number(2), "day": .number(30)]),
@@ -74,10 +86,10 @@ func checkCalendarSchedules() {
     let before = try preview(definition(hour: 0), after: "2026-10-29T23:59:59Z", count: 1)
     try expect(instants(before) == ["2026-10-30T00:00:00.000Z"])
   }
-  check("weekly calendar keeps ISO weekdays across a year boundary") {
+  check("weekly calendar keeps its weekdays across a year boundary") {
     let rule = definition(
       recurrence: .object([
-        "kind": .string("weekly"), "weekdays": .array([.number(1), .number(7)]),
+        "kind": .string("weekly"), "weekdays": .array([.string("monday"), .string("sunday")]),
       ]))
     try expect(
       dates(preview(rule, after: "2026-12-31T00:00:00Z"))

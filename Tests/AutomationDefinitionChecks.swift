@@ -47,7 +47,7 @@ func checkAutomationDefinitions(at root: URL) {
           "hour": .number(9), "minute": .number(0),
           "recurrence": .object([
             "kind": .string("weekly"),
-            "weekdays": .array([.number(1), .number(2), .number(3), .number(4), .number(5)]),
+            "weekdays": .array([.string("monday"), .string("tuesday"), .string("wednesday"), .string("thursday"), .string("friday")]),
           ]),
         ]),
       ]),

@@ -21,6 +21,16 @@ extension Workbook {
     }
   }
 
+  /// The current definition of this kind with this title, if one is saved.
+  public func currentApplicationDefinition(kind: String, title: String) throws -> ApplicationDefinition? {
+    try synchronized {
+      try db.execute(
+        "SELECT d.* FROM app_definitions d JOIN app_definition_heads h ON h.definition_id=d.id WHERE d.kind=? AND d.title=? LIMIT 1",
+        [.string(kind), .string(title)]
+      ).first.map(ApplicationDefinition.init)
+    }
+  }
+
   public func applicationDefinitionHistory(
     _ logicalID: String, beforeVersion: Int? = nil, limit: Int = 20
   ) throws -> [ApplicationDefinition] {

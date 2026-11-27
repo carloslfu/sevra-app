@@ -44,11 +44,9 @@ extension Workbook {
       try require(
         payload["schedule"] != nil && payload["check"] == nil, "automation_definition",
         "A calendar-v1 automation needs schedule: {policy: native-calendar-v1, timeZone, hour, minute, recurrence}, and no check.")
-      let text = [content["title"], content["description"], payload["alert"] ?? .null]
-        .compactMap(\.string).joined(separator: " ")
-      if let conflict = try NativeCalendarSchedule(payload["schedule"]!).weekdayConflict(text) {
-        throw SevraError("schedule", conflict)
-      }
+      try require(
+        !NativeCalendarSchedule.numbersWeekdays(payload["schedule"]!), "schedule",
+        "Write weekdays by name, such as weekdays: [\"friday\"], not by number. Nothing was saved.")
     } else {
       try require(
         payload["check"] != nil && payload["schedule"] == nil, "automation_definition",
@@ -62,7 +60,13 @@ extension Workbook {
         : "Use one of alert, tool or workflow, not " + does.joined(separator: " and ") + ". ")
         + Self.automationShapes)
     var next = payload
-    if !calendar { next["check"] = try checkBinding(payload["check"]!) }
+    if !calendar {
+      next["check"] = try checkBinding(payload["check"]!)
+      let binding = try DefinitionBinding(next["check"]!)
+      if let repeats = try checkRepeats(synchronized { try resolveDefinition(binding) }) {
+        throw SevraError("automation_check", repeats)
+      }
+    }
     switch does[0] {
     case "alert":
       try require(

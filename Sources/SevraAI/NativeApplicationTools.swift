@@ -86,11 +86,18 @@ extension NativeTools {
         [
           "expectedDefinitionID": schema(
             "string", "Exact current edit base."),
+          // A save that left description out was refused, so the grammar writes it, the
+          // title and the kind; listing only some made the model drop kind. parameters and
+          // payload have their own refusals that say how.
           "content": .object([
             "type": .string("object"),
-            "description": .string(
-              "Registry format; required is Boolean."
-            ),
+            "description": .string("Registry format; required is Boolean."),
+            "properties": .object([
+              "kind": .object(["type": .string("string")]),
+              "title": .object(["type": .string("string")]),
+              "description": .object(["type": .string("string")]),
+            ]),
+            "required": .array([.string("kind"), .string("title"), .string("description")]),
           ]),
           "inputs": .object([
             "type": .string("array"), "items": .object(["type": .string("string")]),

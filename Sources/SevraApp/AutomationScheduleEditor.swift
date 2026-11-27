@@ -301,7 +301,7 @@ struct AutomationScheduleEditor: View {
     case "weekly":
       rule = .object([
         "kind": .string("weekly"),
-        "weekdays": .array(weekdays.sorted().map { .number(Double($0)) }),
+        "weekdays": .array(weekdays.sorted().map(NativeCalendarSchedule.weekdayValue)),
       ])
     case "monthly":
       rule = .object([
@@ -398,7 +398,8 @@ struct AutomationScheduleEditor: View {
     hour = schedule["hour"].int ?? 9
     minute = schedule["minute"].int ?? 0
     recurrence = schedule["recurrence"]["kind"].string ?? "daily"
-    weekdays = Set(schedule["recurrence"]["weekdays"].array.compactMap(\.int))
+    weekdays = Set(
+      schedule["recurrence"]["weekdays"].array.compactMap(NativeCalendarSchedule.weekdayNumber))
     day = schedule["recurrence"]["day"].int ?? 1
     month = schedule["recurrence"]["month"].int ?? 1
     lastDay = schedule["recurrence"]["day"] == .string("last")

@@ -216,7 +216,20 @@ extension WorkbookTools {
           runID, conversation: conversation, requestSourceID: requestSourceID)
       }
       let existing: String?
-      if let base = a["expectedDefinitionID"].string {
+      // An edit base that names no saved definition is the model filling the field for a new
+      // one: it saves as new unless one of that kind already has the title, which it may mean.
+      var base = a["expectedDefinitionID"].string
+      if let id = base, (try? workbook.applicationDefinition(id)) == nil {
+        if let same = try workbook.currentApplicationDefinition(
+          kind: content["kind"].text, title: content["title"].text)
+        {
+          throw SevraError(
+            "definition_not_found",
+            "No saved definition has the ID \(id). The \(same.kind) “\(same.title)” is saved as \(same.id): use that ID to change it, or a new title to save another.")
+        }
+        base = nil
+      }
+      if let base {
         let target = try workbook.applicationDefinition(base)
         try require(
           target.id == base, "definition_binding",
@@ -234,7 +247,7 @@ extension WorkbookTools {
       }
       let saved = try workbook.saveApplicationDefinition(
         logicalID: existing ?? Self.definitionIdentity(token), content: content,
-        expectedDefinitionID: a["expectedDefinitionID"].string,
+        expectedDefinitionID: base,
         inputs: Array(
           Set(a["inputs"].array.compactMap(\.string) + (requestSourceID.map { [$0] } ?? []))
         ).sorted(),
@@ -343,7 +356,7 @@ extension WorkbookTools {
       "Save a tool with save tool:{name,description,inputs,statements|source}, not as a definition. payload {name,language:sql|javascript,statements:[1..8]|source}; parameters are its inputs, each text, decimal, boolean or date."
     ),
     "automation": .string(
-      "An automation is how a request to remind, repeat or alert is done: \"remind me\", \"every Monday\", \"each night\" or \"alert me when\". Save it with save definition, kind automation, parameters []. payload is a trigger and what it does. Triggers: {policy: calendar-v1, schedule: {policy: native-calendar-v1, timeZone: the Mac's IANA zone from Now in the request (UTC only when the user asks), hour: 0..23, minute: 0..59, recurrence: {kind: daily} | {kind: weekly, weekdays: [ISO weekdays, 1 is Monday, 7 is Sunday]} | {kind: monthly, day: 1..31 or last} | {kind: yearly, month, day}}}, or {policy: check-v1, check: {name: a saved check}}. A check is a saved sql tool with no inputs and one SELECT of the rows to watch, such as rows below a limit, whose first column names the row, such as its id or name; write today as date('now'), never a date written out: save it first with save tool. It fires when the check finds a row it did not find before, so each row alerts once while it stays; rows it already finds when enabled or changed fire once right away. What it does, one of: alert: one sentence the user will read, drafted for their review at each start; tool: {name: a saved tool} with arguments: its inputs, run directly; workflow: {mode: exact, versionID} with arguments, for several steps. Examples. Every Monday at 9 remind me to check the list: {policy: calendar-v1, schedule: {policy: native-calendar-v1, timeZone, hour: 9, minute: 0, recurrence: {kind: weekly, weekdays: [1]}}, alert: \"Check the list.\"}. Alert me when any amount is over 500: save tool over_500 with SELECT ... WHERE amount > 500, then {policy: check-v1, check: {name: \"over_500\"}, alert: \"An amount is over 500.\"}. Every night archive done tasks: save that tool, then {policy: calendar-v1, schedule, tool: {name: \"archive_done\"}, arguments: {}}. A tool's changes apply without review and each run keeps an Undo. Saving only keeps the automation. Only the person enables it, on this Mac: after saving, run action automation.enable {id: the saved version, generation: 0 for a new automation, allowAI: false}, which asks them to confirm and names the tools it runs."
+      "An automation is how a request to remind, repeat or alert is done: \"remind me\", \"every Monday\", \"each night\" or \"alert me when\". Save it with save definition, kind automation, parameters []. payload is a trigger and what it does. Triggers: {policy: calendar-v1, schedule: {policy: native-calendar-v1, timeZone: the Mac's IANA zone from Now in the request (UTC only when the user asks), hour: 0..23, minute: 0..59, recurrence: {kind: daily} | {kind: weekly, weekdays: [weekday names, such as \"friday\"]} | {kind: monthly, day: 1..31 or last} | {kind: yearly, month, day}}}, or {policy: check-v1, check: {name: a saved check}}. A check is a saved sql tool with no inputs and one SELECT of the rows to watch, such as rows below a limit, whose first column names the row, such as its id or name; write today as date('now'), never a date written out: save it first with save tool. It fires when the check finds a row it did not find before, so each row alerts once while it stays; rows it already finds when enabled or changed fire once right away. What it does, one of: alert: one sentence the user will read, drafted for their review at each start; tool: {name: a saved tool} with arguments: its inputs, run directly; workflow: {mode: exact, versionID} with arguments, for several steps. Examples. Every Monday at 9 remind me to check the list: {policy: calendar-v1, schedule: {policy: native-calendar-v1, timeZone, hour: 9, minute: 0, recurrence: {kind: weekly, weekdays: [\"monday\"]}}, alert: \"Check the list.\"}. Alert me when any amount is over 500: save tool over_500 with SELECT ... WHERE amount > 500, then {policy: check-v1, check: {name: \"over_500\"}, alert: \"An amount is over 500.\"}. Every night archive done tasks: save that tool, then {policy: calendar-v1, schedule, tool: {name: \"archive_done\"}, arguments: {}}. A tool's changes apply without review and each run keeps an Undo. Saving only keeps the automation. Only the person enables it, on this Mac: after saving, run action automation.enable {id: the saved version, generation: 0 for a new automation, allowAI: false}, which asks them to confirm and names the tools it runs."
     ),
     "intake": .string(
       "payload {parser:native-v1,file:requiredItemParameterID,datasetID,definitionID,mode:append|replace|merge,mapping:[{position:zeroBasedInteger,target:storedColumnID|null}],keys:[storedColumnID],headerRow:oneBasedInteger,newRowMeaning,newRowScenario}. Exactly one required item parameter without default/unit. Inspect datasets for exact current dataset/schema and stored column IDs. Map each input position and every stored target column once; null explicitly ignores a position. Merge needs distinct mapped keys; append/replace require []. Require explicit mode/mapping/header/meaning/scenario; clarify missing intent, never infer from untrusted file/description. Native workflow_template adds mandatory review. Save/queue never parse or apply rows. Continue uses an already included business CSV/TSV only. Bounds1000 incoming/10000 target rows/16MB target/8MB mapped values; no Excel updates, implicit coercion, paths/network or inventory effects."

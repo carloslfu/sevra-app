@@ -34,10 +34,21 @@ public struct NativeCalendarSchedule: Equatable, Sendable {
     case .string("weekly"):
       try Self.fields(rule, ["kind", "weekdays"])
       guard case .array(let weekdays) = rule["weekdays"], (1...7).contains(weekdays.count) else {
-        throw SevraError("schedule", "Choose one to seven distinct ISO weekdays.")
+        throw SevraError("schedule", "Choose one to seven distinct weekdays, such as [\"friday\"].")
       }
-      let days = try weekdays.map { try Self.integer($0, range: 1...7) }
-      try require(Set(days).count == days.count, "schedule", "Choose distinct ISO weekdays.")
+      // Weekdays are written by name, so nothing is counted from the wrong day. A schedule
+      // saved earlier with ISO numbers, 1 for Monday, still reads.
+      let days = try weekdays.map { day in
+        if let name = day.string, let index = Self.weekdayNames.firstIndex(of: name.capitalized) {
+          return index + 1
+        }
+        guard day.string == nil else {
+          throw SevraError(
+            "schedule", "Write weekdays by name: monday, tuesday, wednesday, thursday, friday, saturday or sunday.")
+        }
+        return try Self.integer(day, range: 1...7)
+      }
+      try require(Set(days).count == days.count, "schedule", "Choose distinct weekdays.")
       recurrence = .weekly(days.sorted())
     case .string("monthly"):
       try Self.fields(rule, ["kind", "day"])
@@ -63,7 +74,7 @@ public struct NativeCalendarSchedule: Equatable, Sendable {
     case .daily: rule = .object(["kind": .string("daily")])
     case .weekly(let days):
       rule = .object([
-        "kind": .string("weekly"), "weekdays": .array(days.map { .number(Double($0)) }),
+        "kind": .string("weekly"), "weekdays": .array(days.map(Self.weekdayValue)),
       ])
     case .monthly(let day):
       rule = .object([
@@ -102,21 +113,21 @@ public struct NativeCalendarSchedule: Equatable, Sendable {
     }
   }
 
-  /// A refusal when text describing a weekly rule names weekdays and the rule runs on none of
-  /// them, which is how a weekday counted from Sunday, or from 0, shows up.
-  public func weekdayConflict(_ text: String) -> String? {
-    guard case .weekly(let days) = recurrence else { return nil }
-    let lower = text.lowercased()
-    let named = (1...7).filter {
-      lower.range(
-        of: "\\b" + Self.weekdayNames[$0 - 1].lowercased() + "s?\\b", options: .regularExpression)
-        != nil
-    }
-    guard !named.isEmpty, Set(named).isDisjoint(with: days) else { return nil }
-    let said = named.map { Self.weekdayNames[$0 - 1] + " is \($0)" }.joined(separator: ", ")
-    return "It says " + named.map { Self.weekdayNames[$0 - 1] }.joined(separator: " and ")
-      + ", but weekdays " + "\(days)" + " runs " + phrase
-      + ". Weekdays count from 1, Monday, to 7, Sunday: " + said + ". Nothing was saved."
+  /// A weekday as a schedule writes it, from 1, Monday, to 7, Sunday.
+  public static func weekdayValue(_ number: Int) -> Value {
+    .string(weekdayNames[number - 1].lowercased())
+  }
+
+  /// The day a schedule's weekday names, by name or by an earlier ISO number.
+  public static func weekdayNumber(_ value: Value) -> Int? {
+    if let name = value.string { return weekdayNames.firstIndex(of: name.capitalized).map { $0 + 1 } }
+    return value.int.flatMap { (1...7).contains($0) ? $0 : nil }
+  }
+
+  /// Whether a schedule names any weekday by number. New schedules name them, such as
+  /// "friday": the model counted numbers from Sunday and saved Friday as Saturday.
+  public static func numbersWeekdays(_ schedule: Value) -> Bool {
+    schedule["recurrence"]["weekdays"].array.contains { $0.string == nil }
   }
 
   /// Each inspected civil date has at most one slot. Horizon exhaustion is explicit.

@@ -90,6 +90,11 @@ func checkCheckAutomations(at root: URL) {
     try expect(
       second["status"] == .string("fired") && second["rows"].int == 2
         && second["newRows"].int == 1)
+    // The new row is named by its first column, in the result and on the automation's state.
+    try expect(second["newRowNames"] == .array([.string("nuts")]))
+    try expect(
+      try f.book.automationCheckState(session.planning.activationID)["newRowNames"]
+        == .array([.string("nuts")]))
     _ = try f.book.verify()
   }
 
@@ -311,7 +316,7 @@ func checkCheckAutomations(at root: URL) {
     .object([
       "policy": .string("native-calendar-v1"), "timeZone": .string("UTC"), "hour": .number(9),
       "minute": .number(0),
-      "recurrence": .object(["kind": .string("weekly"), "weekdays": .array([.number(1)])]),
+      "recurrence": .object(["kind": .string("weekly"), "weekdays": .array([.string("monday")])]),
     ])
   }
   func automation(_ title: String, _ payload: [String: Value]) -> Value {
@@ -442,6 +447,21 @@ func checkCheckAutomations(at root: URL) {
         "policy": .string("calendar-v1"), "schedule": schedule(),
         "tool": .object(["name": .string("nope")]),
       ]).contains("Saved tools: low_stock"))
+    // Rows sharing a first column would alert as one, so such a check is refused.
+    _ = try f.book.chatSQL(
+      statements: ["INSERT INTO parts (name, qty, reorder) VALUES ('nuts', 1, 10)"],
+      readOnly: false, token: identifier(), requestSourceID: nil)
+    _ = try f.book.chatSaveTool(
+      name: "by_reorder", description: "Parts by reorder level.", inputs: [],
+      statements: ["SELECT reorder, name FROM parts"], source: nil, token: "save-by-reorder",
+      requestSourceID: nil)
+    let check: [String: Value] = ["policy": .string("check-v1"), "alert": .string("Hi.")]
+    var repeats = check
+    repeats["check"] = .object(["name": .string("by_reorder")])
+    try expect(refusal(repeats).contains("first column reorder repeats"))
+    var distinct = check
+    distinct["check"] = .object(["name": .string("low_stock")])
+    try expect(refusal(distinct) == "")
   }
 }
 

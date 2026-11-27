@@ -1003,3 +1003,15 @@ The owner asked for the open freeform items fixed and then business-centred uses
 - **Guidance:** a date without a year is in the year of Now, a row missing a needed value is left out of that calculation, a period such as the next 2 weeks starts today, and a value the request does not give stays empty.
 - **CLI:** `automation-activation` shows a check state only for check automations, which fixes `check_automation_execution.py`.
 - **Checked:** sevra-checks (596), the grammar and text checks, `--sql-tool`, `check_chat_sql.py`, `check_chat_run.py` and the automation definition and execution scripts; the light set 10 of 11, the failure being the model's own arithmetic in `steps.script`.
+
+## Root-cause fixes, November 27, 2026
+
+Six gaps from the business scenarios fixed at their cause, recorded in [[records/reviews/chat-spreadsheet-cleanup-2026-11-25]]:
+
+- **Schedules** name weekdays (`["friday"]`); new numbered ones are refused and saved ones still read. The weekday-name text check is removed.
+- **Checks** name their new rows by the first column on the Source, the result and the automation page; a check whose first column repeats is refused at save.
+- **Views:** the line-title rule is removed; an unchanged chart replace names the other style; a summary without a query is told to use one instead of a new table.
+- **Definitions:** an edit base naming nothing saves as new unless that kind already has the title; the grammar requires kind, title and description.
+- **Guidance:** NOT NULL only when every row has the value, values keep the detail given, and a made-up value is emptied, never fixed by deleting the row.
+- **Checked:** sevra-checks 596, grammar 7663/8448 and 10226/10240, the schedule and automation scripts, chat sql and run; four business scenarios and the light set (11 of 11) once each on the installed build.
+
